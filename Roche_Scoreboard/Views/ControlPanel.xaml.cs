@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace Roche_Scoreboard.Views
 {
