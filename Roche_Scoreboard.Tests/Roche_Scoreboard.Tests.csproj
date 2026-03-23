@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <!-- Include only the non-WPF model and service source files directly -->
+  <ItemGroup>
+    <Compile Include="..\Roche_Scoreboard\Models\CricketMatchManager.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\CricketPlayer.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\CricketSetupResult.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\GoalAnimationStyle.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\MatchManager.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\MatchStats.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\ScoreEvent.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\ScorebugLayout.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\SetupResult.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\SportMode.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\TeamPreset.cs" />
+    <Compile Include="..\Roche_Scoreboard\Models\WinProbabilityEngine.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>
