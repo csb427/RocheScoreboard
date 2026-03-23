@@ -1,0 +1,76 @@
+<UserControl x:Class="Roche_Scoreboard.Views.SportSelectionScreen"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#0B1120">
+
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#818CF8"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#475569"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid MaxWidth="700" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,40">
+                <TextBlock Text="ROCHE SCOREBOARD" Foreground="{StaticResource AccentBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                <TextBlock Text="Choose Your Sport" Foreground="White" FontSize="32" FontWeight="Black" HorizontalAlignment="Center"/>
+                <TextBlock Text="Select which sport you're scoring today" Foreground="{StaticResource TextMutedBrush}" FontSize="13" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+            </StackPanel>
+
+            <!-- Sport cards -->
+            <UniformGrid Grid.Row="1" Columns="2">
+
+
+                <!-- AFL Card -->
+                <Border CornerRadius="16" Padding="28,32" Cursor="Hand" Margin="0,0,12,0"
+                        MouseLeftButtonUp="AFL_Click"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.Background>
+                        <SolidColorBrush x:Name="AflBg" Color="#111827"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="AflBorder" Color="#1E293B"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>2</Border.BorderThickness>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="AflScale" ScaleX="1" ScaleY="1"/>
+                    </Border.RenderTransform>
+                    <StackPanel>
+                        <TextBlock Text="🏈" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                        <TextBlock Text="AFL" Foreground="White" FontSize="22" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                        <TextBlock Text="Australian Football" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Goals, behinds, quarters, and all the AFL scoring features you know." Foreground="#64748B" FontSize="11" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Cricket Card -->
+                <Border CornerRadius="16" Padding="28,32" Cursor="Hand" Margin="12,0,0,0"
+                        MouseLeftButtonUp="Cricket_Click"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.Background>
+                        <SolidColorBrush x:Name="CricketBg" Color="#111827"/>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="CricketBorder" Color="#1E293B"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>2</Border.BorderThickness>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="CricketScale" ScaleX="1" ScaleY="1"/>
+                    </Border.RenderTransform>
+                    <StackPanel>
+                        <TextBlock Text="🏏" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                        <TextBlock Text="CRICKET" Foreground="White" FontSize="22" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                        <TextBlock Text="Limited Overs &amp; Multi-Day" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Full innings, batting, bowling, overs, targets, partnerships, and extras." Foreground="#64748B" FontSize="11" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,669 @@
+<Window x:Class="Roche_Scoreboard.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Roche_Scoreboard.Views"
+        Title="Roche Scoreboard - Control Panel"
+        Height="820"
+        Width="1200"
+        MinWidth="860"
+        MinHeight="580"
+        WindowStartupLocation="Manual"
+        Background="#0D1117">
+
+    <Window.Resources>
+        <!-- ═══════════════════════════════════ -->
+        <!-- COLOUR SYSTEM — broadcast console   -->
+        <!-- ═══════════════════════════════════ -->
+        <SolidColorBrush x:Key="ShellBrush" Color="#0D1117"/>
+        <SolidColorBrush x:Key="RegionBrush" Color="#161B22"/>
+        <SolidColorBrush x:Key="RegionAltBrush" Color="#1C2128"/>
+        <SolidColorBrush x:Key="RegionEdgeBrush" Color="#30363D"/>
+        <SolidColorBrush x:Key="SectionEdgeBrush" Color="#30363D"/>
+        <SolidColorBrush x:Key="TextStrongBrush" Color="#E6EDF3"/>
+        <SolidColorBrush x:Key="TextMidBrush" Color="#8B949E"/>
+        <SolidColorBrush x:Key="TextDimBrush" Color="#484F58"/>
+        <SolidColorBrush x:Key="HomeAccentBrush" Color="#58A6FF"/>
+        <SolidColorBrush x:Key="AwayAccentBrush" Color="#F85149"/>
+        <SolidColorBrush x:Key="LiveBrush" Color="#3FB950"/>
+        <SolidColorBrush x:Key="WarnBrush" Color="#D29922"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#58A6FF"/>
+
+        <!-- ── Section heading — uppercase, tracked ── -->
+        <Style x:Key="SectionHead" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextDimBrush}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Black"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- ── Primary command button — scoring, with tactile depress ── -->
+        <Style x:Key="PrimaryCommandButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Black"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Padding" Value="0,14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform><ScaleTransform x:Name="Sc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                            </Trigger>
+                            <EventTrigger RoutedEvent="Button.Click">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" From="0.95" To="1" Duration="0:0:0.1">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" From="0.95" To="1" Duration="0:0:0.1">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Tool button — compact, tactile press ── -->
+        <Style x:Key="ToolBtn" TargetType="Button">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}"/>
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform><ScaleTransform x:Name="TbSc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#30363D"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#484F58"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#161B22"/>
+                            </Trigger>
+                            <EventTrigger RoutedEvent="Button.Click">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" From="0.96" To="1" Duration="0:0:0.1">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" From="0.96" To="1" Duration="0:0:0.1">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Tab strip — strong, always visible, accent underline ── -->
+        <Style x:Key="PanelTab" TargetType="TabItem">
+            <Setter Property="Foreground" Value="{StaticResource TextDimBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Black"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Bd" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,3" Padding="{TemplateBinding Padding}" Margin="0,0,2,0">
+                            <ContentPresenter x:Name="Cp" ContentSource="Header" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#161B22"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="Cp" Property="TextBlock.Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1C2128"/>
+                                <Setter TargetName="Cp" Property="TextBlock.Foreground" Value="{StaticResource TextStrongBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Layout/animation radio selector ── -->
+        <Style x:Key="LayoutRadio" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource TextMidBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,0,3"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="#1C2128" BorderBrush="#30363D" BorderThickness="1" Padding="12,7">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#21262D"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#58A6FF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#484F58"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource ShellBrush}">
+        <!-- ══════════════════════════════════════════ -->
+        <!-- MAIN CONTENT — live match command surface  -->
+        <!-- ══════════════════════════════════════════ -->
+        <Grid x:Name="MainContent" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ═══ PERSISTENT MATCH STRIP — always visible, dense, functional ═══ -->
+            <Border Grid.Row="0" Background="#0D1117" BorderBrush="#21262D" BorderThickness="0,0,0,2" Padding="16,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="18"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="18"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Status badge — green/amber/grey -->
+                    <Border x:Name="StatusBadge" Grid.Column="0" BorderBrush="#244A34" BorderThickness="1.5" Background="#0D2818" Padding="10,4">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#3FB950" Margin="0,0,6,0"/>
+                            <TextBlock x:Name="StatusText" Text="READY" Foreground="#3FB950" FontSize="11" FontWeight="Black"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Clock — dominant monospaced display -->
+                    <TextBlock Grid.Column="2" x:Name="HeaderQuarterClock" Text="Q1  00:00" Foreground="White" FontSize="30" FontWeight="Black" FontFamily="Consolas" VerticalAlignment="Center"/>
+
+                    <!-- Last event -->
+                    <TextBlock Grid.Column="4" x:Name="LastEventText" Text="" Foreground="{StaticResource TextDimBrush}" FontSize="10" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                    <!-- Score readout — team colours -->
+                    <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock x:Name="HeaderHomeAbbr" Text="HOM" Foreground="{StaticResource HomeAccentBrush}" FontSize="13" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="HeaderScore" Text="0 – 0" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Consolas" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="HeaderAwayAbbr" Text="AWA" Foreground="{StaticResource AwayAccentBrush}" FontSize="13" FontWeight="Black" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <Border BorderBrush="#30363D" BorderThickness="1" Background="#161B22" Padding="10,4" Margin="14,0,0,0">
+                            <TextBlock x:Name="HeaderMarginText" Text="" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ═══ TAB BAR — strong, always visible ═══ -->
+            <TabControl Grid.Row="1" Grid.RowSpan="2" Background="Transparent" BorderThickness="0" Padding="0" TabStripPlacement="Top">
+                <TabControl.Resources>
+                    <Style TargetType="TabItem" BasedOn="{StaticResource PanelTab}"/>
+                </TabControl.Resources>
+
+                <!-- ══════════════════════════════════════════ -->
+                <!-- TAB 1: SCORING &amp; CLOCK — the heart    -->
+                <!-- ══════════════════════════════════════════ -->
+                <TabItem Header="SCORING &amp; CLOCK">
+                    <Border Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="12,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="290" MinWidth="260"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- LEFT: Scoring controls — command deck -->
+                            <Grid Grid.Column="0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="10"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="10"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Scoring header with match result -->
+                                <Grid Grid.Row="0" Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="SCORING" Style="{StaticResource SectionHead}" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" BorderBrush="#30363D" BorderThickness="1" Background="#0D1117" Padding="12,4">
+                                        <TextBlock x:Name="MatchResultText" Text="" Foreground="{StaticResource TextMidBrush}" FontSize="11" FontWeight="Bold"/>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Scoring panels — asymmetric team-coloured zones -->
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- HOME scoring zone — thick top accent -->
+                                    <Border x:Name="HomeScoringBorder" Grid.Column="0" BorderBrush="#33579A" BorderThickness="1,3,1,1" Background="#0A1428" Padding="12">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="12"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock x:Name="HomeScoringLabel" Text="HOME" Foreground="#7EB4FF" FontSize="10" FontWeight="Black"/>
+                                            <TextBlock Grid.Row="1" x:Name="HomeScoreDisplay" Text="0.0.0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" Margin="0,4,0,0"/>
+
+                                            <Grid Grid.Row="3">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="8"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <Button x:Name="HomeGoalButton" Grid.Row="0" Content="+6 GOAL" Click="HomeGoal_Click" Style="{StaticResource PrimaryCommandButton}" ToolTip="Goal (+6 points) — Ctrl+G" BorderBrush="#4D7DE7" Background="#2F63D1"/>
+                                                <Button x:Name="HomeBehindButton" Grid.Row="2" Content="+1 BEHIND" Click="HomeBehind_Click" Style="{StaticResource PrimaryCommandButton}" FontSize="16" ToolTip="Behind (+1 point) — Ctrl+B" BorderBrush="#3A4E66" Background="#1A2636"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- AWAY scoring zone — thick top accent -->
+                                    <Border x:Name="AwayScoringBorder" Grid.Column="2" BorderBrush="#8A3A3A" BorderThickness="1,3,1,1" Background="#1C0A0A" Padding="12">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="12"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock x:Name="AwayScoringLabel" Text="AWAY" Foreground="#FF9A9A" FontSize="10" FontWeight="Black"/>
+                                            <TextBlock Grid.Row="1" x:Name="AwayScoreDisplay" Text="0.0.0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" Margin="0,4,0,0"/>
+
+                                            <Grid Grid.Row="3">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="8"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <Button x:Name="AwayGoalButton" Grid.Row="0" Content="+6 GOAL" Click="AwayGoal_Click" Style="{StaticResource PrimaryCommandButton}" ToolTip="Goal (+6 points) — Alt+G" BorderBrush="#C56F6F" Background="#A63B3B"/>
+                                                <Button x:Name="AwayBehindButton" Grid.Row="2" Content="+1 BEHIND" Click="AwayBehind_Click" Style="{StaticResource PrimaryCommandButton}" FontSize="16" ToolTip="Behind (+1 point) — Alt+B" BorderBrush="#5A3A3A" Background="#2A1A1A"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Warning banner — amber accent -->
+                                <Border x:Name="StartSwitchWarning" Grid.Row="3" Background="#1E1A00" BorderBrush="#D29922" BorderThickness="1,2,1,1" Padding="10,6" Visibility="Collapsed">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="⚡" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Pressing Start will switch to the live scoreboard" Foreground="#D29922" FontSize="11" FontWeight="Black" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Clock controls — amber accent zone, grouped tight -->
+                                <Grid Grid.Row="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2.5*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Grid.Column="0" x:Name="StartPauseButton" Content="▶ Start" Height="60" FontSize="22" FontWeight="Black" Click="StartPause_Click"
+                                            Background="#0D3018" BorderBrush="#1A6040" BorderThickness="1.5" Style="{StaticResource PrimaryCommandButton}"
+                                            ToolTip="Start or pause the game clock — Space"/>
+                                    <Button Grid.Column="2" x:Name="EndQtrButton" Content="End Qtr" Height="60" FontSize="12" FontWeight="Bold" Click="EndQuarter_Click" Style="{StaticResource ToolBtn}" ToolTip="End the current quarter — Ctrl+E"
+                                            Background="#21262D" BorderBrush="#D29922"/>
+                                    <Button Grid.Column="4" Content="UNDO" Height="60" FontSize="12" FontWeight="Bold" Click="Undo_Click" Style="{StaticResource ToolBtn}" ToolTip="Undo the last score — Ctrl+Z"
+                                            Background="#2A1416" BorderBrush="#6B3A3E"/>
+                                </Grid>
+                            </Grid>
+
+                            <!-- RIGHT: Event log — live feed style -->
+                            <Border Grid.Column="2" Background="#0D1117" BorderBrush="#21262D" BorderThickness="2" Padding="10">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="MATCH LOG" Style="{StaticResource SectionHead}"/>
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel x:Name="EventList"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </TabItem>
+
+                <!-- ══════════════════════════════════════════ -->
+                <!-- TAB 2: DISPLAY — presentation switching    -->
+                <!-- ══════════════════════════════════════════ -->
+                <TabItem Header="DISPLAY">
+                    <Border Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="16,14">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel MaxWidth="720" HorizontalAlignment="Left">
+                                <TextBlock Text="PRESENTATION" Style="{StaticResource SectionHead}"/>
+                                <UniformGrid Columns="3" Margin="0,0,0,14">
+                                    <Button Content="Scorebug" Click="SwitchToScorebug_Click" Style="{StaticResource ToolBtn}" ToolTip="Live scorebug overlay"/>
+                                    <Button Content="Summary" Click="SwitchToBreakScreen_Click" Style="{StaticResource ToolBtn}" ToolTip="Quarter summary"/>
+                                    <Button Content="Worm" Click="SwitchToScoreworm_Click" Style="{StaticResource ToolBtn}" ToolTip="Score worm graph"/>
+                                    <Button Content="Stats" Click="SwitchToStatsScreen_Click" Style="{StaticResource ToolBtn}" ToolTip="Full stats screen"/>
+                                    <Button Content="Video" Click="SwitchToVideo_Click" Style="{StaticResource ToolBtn}" ToolTip="Play a custom video file"/>
+                                    <Button Content="Window" Click="ShowScoreboard_Click" Style="{StaticResource ToolBtn}" ToolTip="Open display window"/>
+                                </UniformGrid>
+
+                                <TextBlock x:Name="CurrentDisplayText" Text="Live Scorebug" Foreground="{StaticResource TextDimBrush}" FontSize="10" FontWeight="Bold" Margin="4,0,0,10"/>
+
+                                <!-- Video picker panel -->
+                                <Border x:Name="VideoPickerPrompt" Visibility="Collapsed" BorderBrush="#30363D" BorderThickness="1" Background="#0D1117" Padding="14" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock Text="SELECT VIDEO FILE" Foreground="{StaticResource TextDimBrush}" FontSize="9" FontWeight="Black" Margin="0,0,0,8"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock x:Name="VideoFilePathText" Text="No file selected" Foreground="{StaticResource TextDimBrush}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            <Button Grid.Column="1" Content="Browse" Width="70" Click="BrowseVideo_Click" Style="{StaticResource ToolBtn}" Margin="8,0,0,0"/>
+                                        </Grid>
+                                        <Button x:Name="ApplyVideoButton" Content="Apply" Height="30" FontSize="11" FontWeight="Bold" Click="ApplyVideo_Click" Style="{StaticResource ToolBtn}" Margin="0,10,0,0" IsEnabled="False" ToolTip="Switch to video presentation"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Height="2" Background="#21262D" Margin="0,0,0,14"/>
+
+                                <TextBlock Text="OVERLAYS" Style="{StaticResource SectionHead}"/>
+                                <UniformGrid Columns="4" Margin="0,0,0,14">
+                                    <Button Content="Stats Bar" Click="ManualStatsBar_Click" Style="{StaticResource ToolBtn}" ToolTip="Show stats dropdown bar"/>
+                                    <Button Content="Win Prob" Click="ManualWinProb_Click" Style="{StaticResource ToolBtn}" ToolTip="Show win probability overlay"/>
+                                    <Button Content="5 Min Warn" Click="ManualWarning_Click" Style="{StaticResource ToolBtn}" ToolTip="Show 5-minute warning"/>
+                                    <Button Content="Last Score" Click="ManualScoreless_Click" Style="{StaticResource ToolBtn}" ToolTip="Time since last score"/>
+                                    <Button Content="Scoring Run" Click="ManualScoringRun_Click" Style="{StaticResource ToolBtn}" ToolTip="Show scoring run bar"/>
+                                    <Button Content="Home Drought" Click="ManualHomeDrought_Click" Style="{StaticResource ToolBtn}" ToolTip="Home scoreless timer"/>
+                                    <Button Content="Away Drought" Click="ManualAwayDrought_Click" Style="{StaticResource ToolBtn}" ToolTip="Away scoreless timer"/>
+                                    <Button Content="G/B Counts" Click="ManualGBCounts_Click" Style="{StaticResource ToolBtn}" ToolTip="Show goals/behinds count overlay"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                </TabItem>
+
+                <!-- ══════════════════════════════════════════ -->
+                <!-- TAB 3: MESSAGES — scrolling marquee        -->
+                <!-- ══════════════════════════════════════════ -->
+                <TabItem Header="MESSAGES">
+                    <Border Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="16,14">
+                        <StackPanel MaxWidth="640" HorizontalAlignment="Left">
+                            <TextBlock Text="SCROLLING MESSAGES" Style="{StaticResource SectionHead}"/>
+                            <ListBox x:Name="MessageList" Background="#0D1117" Foreground="White" FontSize="12" BorderBrush="#30363D" BorderThickness="1" MaxHeight="220" ToolTip="Scrolling marquee messages"/>
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="NewMessageBox" FontSize="12" Background="#1C2128" Foreground="#E6EDF3" BorderBrush="#30363D" CaretBrush="White" Padding="8,5" VerticalContentAlignment="Center" Margin="0,0,6,0" ToolTip="Type a new message — press Enter to add" KeyDown="NewMessageBox_KeyDown"/>
+                                <Button Grid.Column="1" Content="+" Width="34" Height="30" FontSize="14" FontWeight="Black" Margin="0,0,4,0" Click="AddMessage_Click" Style="{StaticResource ToolBtn}" ToolTip="Add message"/>
+                                <Button Grid.Column="2" Content="−" Width="34" Height="30" FontSize="14" FontWeight="Black" Click="RemoveMessage_Click" Style="{StaticResource ToolBtn}" ToolTip="Remove selected"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </TabItem>
+
+                <!-- ══════════════════════════════════════════ -->
+                <!-- TAB 4: STATS                               -->
+                <!-- ══════════════════════════════════════════ -->
+                <TabItem Header="STATS">
+                    <Border Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="16,14">
+                        <TextBlock Text="Live statistics are automatically displayed via overlay triggers during the match." Foreground="{StaticResource TextMidBrush}" FontSize="12" TextWrapping="Wrap"/>
+                    </Border>
+                </TabItem>
+
+                <!-- ══════════════════════════════════════════ -->
+                <!-- TAB 5: SETTINGS — asymmetric two-column    -->
+                <!-- ══════════════════════════════════════════ -->
+                <TabItem Header="SETTINGS">
+                    <Border Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="16,14">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" MaxWidth="420"/>
+                                    <ColumnDefinition Width="24"/>
+                                    <ColumnDefinition Width="*" MaxWidth="420"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- LEFT: Teams + Clock + Reset -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="TEAMS" Style="{StaticResource SectionHead}"/>
+                                    <TextBlock Text="Home" Foreground="{StaticResource TextMidBrush}" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="HomeNameBox" Text="Home Team" FontSize="12" Background="#1C2128" Foreground="#E6EDF3" BorderBrush="#30363D" CaretBrush="White" Padding="6,4" VerticalContentAlignment="Center" ToolTip="Home team name"/>
+                                        <TextBox x:Name="HomeAbbrBox" Grid.Column="1" Text="HOM" Width="44" FontSize="12" Background="#1C2128" Foreground="#E6EDF3" BorderBrush="#30363D" CaretBrush="White" Margin="6,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" MaxLength="4" ToolTip="Abbreviation"/>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <TextBox x:Name="HomeColorBox" Width="66" Text="#0A2A6A" FontSize="10" VerticalContentAlignment="Center" Margin="0,0,3,0" Visibility="Collapsed"/>
+                                            <Border x:Name="HomeColorPreview" Width="26" Height="24" Background="#0A2A6A" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickHomeColor_Click" ToolTip="Primary colour"/>
+                                            <Border Width="24" Height="24" Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperHomeColor_Click" Margin="3,0,0,0" ToolTip="Eye dropper">
+                                                <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <TextBox x:Name="HomeSecondaryColorBox" Width="66" Text="#FFFFFF" FontSize="10" VerticalContentAlignment="Center" Visibility="Collapsed"/>
+                                            <Border x:Name="HomeSecondaryColorPreview" Width="26" Height="24" Background="#FFFFFF" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickHomeSecondaryColor_Click" Margin="4,0,0,0" ToolTip="Text colour"/>
+                                            <Border Width="24" Height="24" Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperHomeSecondaryColor_Click" Margin="3,0,0,0" ToolTip="Eye dropper">
+                                                <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="Away" Foreground="{StaticResource TextMidBrush}" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="AwayNameBox" Text="Away Team" FontSize="12" Background="#1C2128" Foreground="#E6EDF3" BorderBrush="#30363D" CaretBrush="White" Padding="6,4" VerticalContentAlignment="Center" ToolTip="Away team name"/>
+                                        <TextBox x:Name="AwayAbbrBox" Grid.Column="1" Text="AWA" Width="44" FontSize="12" Background="#1C2128" Foreground="#E6EDF3" BorderBrush="#30363D" CaretBrush="White" Margin="6,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" MaxLength="4" ToolTip="Abbreviation"/>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <TextBox x:Name="AwayColorBox" Width="66" Text="#7A1A1A" FontSize="10" VerticalContentAlignment="Center" Margin="0,0,3,0" Visibility="Collapsed"/>
+                                            <Border x:Name="AwayColorPreview" Width="26" Height="24" Background="#7A1A1A" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickAwayColor_Click" ToolTip="Primary colour"/>
+                                            <Border Width="24" Height="24" Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperAwayColor_Click" Margin="3,0,0,0" ToolTip="Eye dropper">
+                                                <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <TextBox x:Name="AwaySecondaryColorBox" Width="66" Text="#FFFFFF" FontSize="10" VerticalContentAlignment="Center" Visibility="Collapsed"/>
+                                            <Border x:Name="AwaySecondaryColorPreview" Width="26" Height="24" Background="#FFFFFF" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickAwaySecondaryColor_Click" Margin="4,0,0,0" ToolTip="Text colour"/>
+                                            <Border Width="24" Height="24" Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperAwaySecondaryColor_Click" Margin="3,0,0,0" ToolTip="Eye dropper">
+                                                <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock x:Name="HomeLogoPathText" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="AwayLogoPathText" Visibility="Collapsed"/>
+                                    <Button Content="Apply Changes" Height="34" FontSize="12" FontWeight="Bold" Click="ApplyTeamsAndStyling_Click" Style="{StaticResource ToolBtn}" ToolTip="Push team changes to display" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="ApplyStatusText" Text="" Foreground="{StaticResource TextDimBrush}" FontSize="10"/>
+
+                                    <Border Height="2" Background="#21262D" Margin="0,16"/>
+
+                                    <!-- Clock settings — amber accent -->
+                                    <TextBlock Text="CLOCK" Style="{StaticResource SectionHead}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <RadioButton x:Name="ClockModeCountUp" Content="Count Up" Foreground="White" FontSize="12" FontWeight="Bold" IsChecked="True" GroupName="ClockMode" Checked="ClockMode_Changed" Margin="0,0,18,0" ToolTip="Count upward from 00:00"/>
+                                        <RadioButton x:Name="ClockModeCountdown" Content="Countdown" Foreground="White" FontSize="12" FontWeight="Bold" GroupName="ClockMode" Checked="ClockMode_Changed" ToolTip="Count down from quarter length"/>
+                                    </StackPanel>
+                                    <StackPanel x:Name="QuarterDurationPanel" Visibility="Collapsed" Margin="0,0,0,8">
+                                        <TextBlock Text="QUARTER LENGTH" Foreground="#D29922" FontSize="9" FontWeight="Black" Margin="0,0,0,4"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBox x:Name="QuarterMinutesBox" Width="48" FontSize="15" FontFamily="Consolas" Text="20" Background="#1C2128" Foreground="#D29922" BorderBrush="#6B5A00" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CaretBrush="#D29922" ToolTip="Minutes" KeyDown="QuarterDurationBox_KeyDown"/>
+                                            <TextBlock Text=":" Foreground="#6B5A00" FontSize="15" FontFamily="Consolas" VerticalAlignment="Center" Margin="4,0"/>
+                                            <TextBox x:Name="QuarterSecondsBox" Width="48" FontSize="15" FontFamily="Consolas" Text="00" Background="#1C2128" Foreground="#D29922" BorderBrush="#6B5A00" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CaretBrush="#D29922" ToolTip="Seconds" KeyDown="QuarterDurationBox_KeyDown"/>
+                                            <Button Content="Set" Width="42" Height="28" FontSize="10" FontWeight="Bold" Margin="8,0,0,0" Click="ApplyQuarterDuration_Click" Style="{StaticResource ToolBtn}" BorderBrush="#D29922"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <TextBlock x:Name="ClockStatusText" Text="Count Up · Stopped · 00:00" Foreground="{StaticResource TextDimBrush}" FontSize="10" TextWrapping="Wrap"/>
+
+                                    <Border Height="2" Background="#21262D" Margin="0,16"/>
+
+                                    <!-- Reset — danger zone, muted red -->
+                                    <Button Content="Reset Match" Height="36" FontSize="12" FontWeight="Bold" Click="NewGame_Click" ToolTip="Clear all scores and set up a new game" Style="{StaticResource ToolBtn}"
+                                            Background="#2A1416" BorderBrush="#6B3A3E" Foreground="#FFD1D1"/>
+                                </StackPanel>
+
+                                <!-- RIGHT: Layout, Animation, Logo Crop -->
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="SCOREBOARD LAYOUT" Style="{StaticResource SectionHead}"/>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="12"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <RadioButton x:Name="LayoutClassicRadio" GroupName="LayoutChoice" IsChecked="True" Checked="LayoutRadio_Changed" Style="{StaticResource LayoutRadio}" Content="Classic"/>
+                                            <RadioButton x:Name="LayoutExpandedRadio" GroupName="LayoutChoice" Checked="LayoutRadio_Changed" Style="{StaticResource LayoutRadio}" Content="Expanded"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="2" BorderBrush="#30363D" BorderThickness="1" Background="#0D1117" Padding="12,10">
+                                            <StackPanel>
+                                                <TextBlock x:Name="LayoutPreviewTitle" Text="Classic" Foreground="White" FontSize="12" FontWeight="Bold" Margin="0,0,0,4"/>
+                                                <TextBlock x:Name="LayoutPreviewDesc" Text="Horizontal bar layout with team rows, score columns, and bottom clock/marquee strip." Foreground="{StaticResource TextMidBrush}" FontSize="10" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <Border Height="2" Background="#21262D" Margin="0,0,0,16"/>
+
+                                    <TextBlock Text="GOAL ANIMATION" Style="{StaticResource SectionHead}"/>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="12"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <RadioButton x:Name="AnimBroadcastRadio" GroupName="AnimChoice" Checked="AnimationRadio_Changed" Style="{StaticResource LayoutRadio}" Content="Broadcast"/>
+                                            <RadioButton x:Name="AnimElectricRadio" GroupName="AnimChoice" Checked="AnimationRadio_Changed" Style="{StaticResource LayoutRadio}" Content="Electric"/>
+                                            <RadioButton x:Name="AnimCinematicRadio" GroupName="AnimChoice" Checked="AnimationRadio_Changed" Style="{StaticResource LayoutRadio}" Content="Cinematic"/>
+                                            <RadioButton x:Name="AnimCleanRadio" GroupName="AnimChoice" Checked="AnimationRadio_Changed" Style="{StaticResource LayoutRadio}" Content="Clean"/>
+                                            <RadioButton x:Name="AnimClassicRadio" GroupName="AnimChoice" Checked="AnimationRadio_Changed" Style="{StaticResource LayoutRadio}" Content="Classic"/>
+                                            <RadioButton x:Name="AnimCustomVideoRadio" GroupName="AnimChoice" IsChecked="True" Checked="AnimationRadio_Changed" Style="{StaticResource LayoutRadio}" Content="Custom Video"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="2" BorderBrush="#30363D" BorderThickness="1" Background="#0D1117" Padding="12,10">
+                                            <StackPanel>
+                                                <TextBlock x:Name="AnimPreviewTitle" Text="Broadcast" Foreground="White" FontSize="12" FontWeight="Bold" Margin="0,0,0,4"/>
+                                                <TextBlock x:Name="AnimPreviewDesc" Text="AFL TV style. Team-colour overlay, text slam with glow burst." Foreground="{StaticResource TextMidBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border BorderBrush="#30363D" BorderThickness="1" Background="#0D1117" Padding="8,3" Margin="0,0,6,0">
+                                                        <TextBlock x:Name="AnimPreviewDuration" Text="~1.6s" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold"/>
+                                                    </Border>
+                                                    <Border BorderBrush="#30363D" BorderThickness="1" Background="#0D1117" Padding="8,3">
+                                                        <TextBlock x:Name="AnimPreviewIntensity" Text="Medium" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <Border Height="2" Background="#21262D" Margin="0,0,0,16"/>
+
+                                    <TextBlock Text="TEAM LOGO CROP" Style="{StaticResource SectionHead}"/>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+                                            <TextBlock Text="Home Logo" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold"/>
+                                            <Border Height="80" Margin="0,4,0,6" BorderBrush="#30363D" BorderThickness="1" Background="#0D1117" ClipToBounds="True">
+                                                <Grid>
+                                                    <Image x:Name="HomeLogoCropPreviewImage" Stretch="Uniform" RenderTransformOrigin="0.5,0.5"/>
+                                                </Grid>
+                                            </Border>
+                                            <TextBlock Text="Zoom" Foreground="{StaticResource TextDimBrush}" FontSize="9"/>
+                                            <Slider x:Name="HomeLogoZoomSlider" Minimum="0.8" Maximum="3.0" Value="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                            <TextBlock Text="X" Foreground="{StaticResource TextDimBrush}" FontSize="9" Margin="0,2,0,0"/>
+                                            <Slider x:Name="HomeLogoXSlider" Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                            <TextBlock Text="Y" Foreground="{StaticResource TextDimBrush}" FontSize="9" Margin="0,2,0,0"/>
+                                            <Slider x:Name="HomeLogoYSlider" Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                            <Button Content="Reset Home" Height="26" Margin="0,4,0,0" Click="ResetHomeCrop_Click" Style="{StaticResource ToolBtn}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Away Logo" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold"/>
+                                            <Border Height="80" Margin="0,4,0,6" BorderBrush="#30363D" BorderThickness="1" Background="#0D1117" ClipToBounds="True">
+                                                <Grid>
+                                                    <Image x:Name="AwayLogoCropPreviewImage" Stretch="Uniform" RenderTransformOrigin="0.5,0.5"/>
+                                                </Grid>
+                                            </Border>
+                                            <TextBlock Text="Zoom" Foreground="{StaticResource TextDimBrush}" FontSize="9"/>
+                                            <Slider x:Name="AwayLogoZoomSlider" Minimum="0.8" Maximum="3.0" Value="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                            <TextBlock Text="X" Foreground="{StaticResource TextDimBrush}" FontSize="9" Margin="0,2,0,0"/>
+                                            <Slider x:Name="AwayLogoXSlider" Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                            <TextBlock Text="Y" Foreground="{StaticResource TextDimBrush}" FontSize="9" Margin="0,2,0,0"/>
+                                            <Slider x:Name="AwayLogoYSlider" Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                            <Button Content="Reset Away" Height="26" Margin="0,4,0,0" Click="ResetAwayCrop_Click" Style="{StaticResource ToolBtn}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock x:Name="LogoCropSummaryText" Foreground="{StaticResource TextMidBrush}" FontSize="9" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- OVERLAY VIEWS — layered Z-order            -->
+        <!-- ══════════════════════════════════════════ -->
+        <views:SetupWizard x:Name="SetupWizardPanel" Panel.ZIndex="100" Visibility="Collapsed"/>
+        <views:CricketControlPanel x:Name="CricketControlPanelView" Panel.ZIndex="0" Visibility="Collapsed"/>
+        <views:CricketSetupWizard x:Name="CricketSetupWizardPanel" Panel.ZIndex="100" Visibility="Collapsed"/>
+        <views:SportSelectionScreen x:Name="SportSelectionPanel" Panel.ZIndex="200"/>
+    </Grid>
+</Window>

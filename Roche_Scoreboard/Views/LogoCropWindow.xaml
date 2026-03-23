@@ -1,0 +1,167 @@
+<Window x:Class="Roche_Scoreboard.Views.LogoCropWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Logo Crop Studio"
+        Height="760"
+        Width="1200"
+        MinHeight="680"
+        MinWidth="1020"
+        WindowStartupLocation="CenterOwner"
+        Background="#0B1120">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="LOGO CROP STUDIO" Foreground="#F1F5F9" FontSize="19" FontWeight="Black"/>
+            <TextBlock Text="Load logos, then drag in the wide preview or use sliders for precise positioning." Foreground="#94A3B8" FontSize="12"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="#111827" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="HOME" Foreground="White" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Load Home Logo" Height="26" Padding="10,0" Click="LoadHomeLogo_Click"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="190"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" CornerRadius="8" BorderBrush="#475569" BorderThickness="1" ClipToBounds="True">
+                            <Grid x:Name="HomeWideArea" MouseLeftButtonDown="Preview_MouseLeftButtonDown" MouseMove="Preview_MouseMove" MouseLeftButtonUp="Preview_MouseLeftButtonUp" MouseLeave="Preview_MouseLeave">
+                                <Grid.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#0F172A" Offset="0"/>
+                                        <GradientStop Color="#1E293B" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Grid.Background>
+                                <Image x:Name="HomeWideImage" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"/>
+                                <TextBlock x:Name="HomeEmptyHint" Text="No home logo selected" Foreground="#A8B7CB" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                <Border Width="170" Height="170" BorderBrush="#E2E8F0" BorderThickness="2" CornerRadius="2" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="2" Width="190" Height="190" CornerRadius="8" BorderBrush="#475569" BorderThickness="1" ClipToBounds="True">
+                            <Grid>
+                                <Grid.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#0F172A" Offset="0"/>
+                                        <GradientStop Color="#1E293B" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Grid.Background>
+                                <Image x:Name="HomeCropImage" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Grid.Row="2">
+                        <TextBlock x:Name="HomeLogoPathText" Text="" Foreground="#94A3B8" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Zoom" Foreground="#94A3B8" FontSize="10" Margin="0,5,0,0"/>
+                        <Slider x:Name="HomeZoomSlider" Minimum="0.6" Maximum="3.5" ValueChanged="Slider_ValueChanged"/>
+                        <TextBlock Text="Horizontal" Foreground="#94A3B8" FontSize="10" Margin="0,3,0,0"/>
+                        <Slider x:Name="HomeXSlider" Minimum="-220" Maximum="220" ValueChanged="Slider_ValueChanged"/>
+                        <TextBlock Text="Vertical" Foreground="#94A3B8" FontSize="10" Margin="0,3,0,0"/>
+                        <Slider x:Name="HomeYSlider" Minimum="-220" Maximum="220" ValueChanged="Slider_ValueChanged"/>
+                        <Button Content="Reset Home" Height="28" Margin="0,8,0,0" Click="ResetHome_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Background="#111827" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="AWAY" Foreground="White" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Load Away Logo" Height="26" Padding="10,0" Click="LoadAwayLogo_Click"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="190"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" CornerRadius="8" BorderBrush="#475569" BorderThickness="1" ClipToBounds="True">
+                            <Grid x:Name="AwayWideArea" MouseLeftButtonDown="Preview_MouseLeftButtonDown" MouseMove="Preview_MouseMove" MouseLeftButtonUp="Preview_MouseLeftButtonUp" MouseLeave="Preview_MouseLeave">
+                                <Grid.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#0F172A" Offset="0"/>
+                                        <GradientStop Color="#1E293B" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Grid.Background>
+                                <Image x:Name="AwayWideImage" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"/>
+                                <TextBlock x:Name="AwayEmptyHint" Text="No away logo selected" Foreground="#A8B7CB" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                <Border Width="170" Height="170" BorderBrush="#E2E8F0" BorderThickness="2" CornerRadius="2" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="2" Width="190" Height="190" CornerRadius="8" BorderBrush="#475569" BorderThickness="1" ClipToBounds="True">
+                            <Grid>
+                                <Grid.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#0F172A" Offset="0"/>
+                                        <GradientStop Color="#1E293B" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Grid.Background>
+                                <Image x:Name="AwayCropImage" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Grid.Row="2">
+                        <TextBlock x:Name="AwayLogoPathText" Text="" Foreground="#94A3B8" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Zoom" Foreground="#94A3B8" FontSize="10" Margin="0,5,0,0"/>
+                        <Slider x:Name="AwayZoomSlider" Minimum="0.6" Maximum="3.5" ValueChanged="Slider_ValueChanged"/>
+                        <TextBlock Text="Horizontal" Foreground="#94A3B8" FontSize="10" Margin="0,3,0,0"/>
+                        <Slider x:Name="AwayXSlider" Minimum="-220" Maximum="220" ValueChanged="Slider_ValueChanged"/>
+                        <TextBlock Text="Vertical" Foreground="#94A3B8" FontSize="10" Margin="0,3,0,0"/>
+                        <Slider x:Name="AwayYSlider" Minimum="-220" Maximum="220" ValueChanged="Slider_ValueChanged"/>
+                        <Button Content="Reset Away" Height="28" Margin="0,8,0,0" Click="ResetAway_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" Content="Cancel" Width="96" Height="32" Margin="0,0,8,0" Click="Cancel_Click"/>
+            <Button Grid.Column="2" Content="Apply" Width="96" Height="32" Click="Apply_Click"/>
+        </Grid>
+    </Grid>
+</Window>

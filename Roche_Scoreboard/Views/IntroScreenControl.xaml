@@ -1,0 +1,175 @@
+<UserControl x:Class="Roche_Scoreboard.Views.IntroScreenControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="420" d:DesignWidth="707"
+             Background="Transparent">
+
+    <Viewbox Stretch="Fill">
+        <Grid x:Name="RootGrid" Width="707" Height="420" ClipToBounds="True">
+
+            <!-- ============ HOME HALF (top-left triangle) ============ -->
+            <Border x:Name="HomeHalf" Panel.ZIndex="1">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="HomeHalfTranslate" X="0"/>
+                </Border.RenderTransform>
+                <Border.Clip>
+                    <!-- Diagonal clip: covers left half (bottom-left to top-right) -->
+                    <PathGeometry Figures="M0,0 L707,0 L0,420 Z"/>
+                </Border.Clip>
+                <Grid>
+                    <!-- Base colour fill -->
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <SolidColorBrush x:Name="HomeBgBrush" Color="#8B1A1A"/>
+                        </Rectangle.Fill>
+                    </Rectangle>
+
+                    <!-- Subtle dark-to-transparent gradient overlay for depth -->
+                    <Rectangle Opacity="0.4">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#40000000" Offset="0.0"/>
+                                <GradientStop Color="#00000000" Offset="0.6"/>
+                                <GradientStop Color="#20000000" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+
+                    <!-- Sweeping shimmer highlight -->
+                    <Rectangle x:Name="HomeShimmer" Width="250" Opacity="0" HorizontalAlignment="Left">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#00FFFFFF" Offset="0.0"/>
+                                <GradientStop Color="#30FFFFFF" Offset="0.5"/>
+                                <GradientStop Color="#00FFFFFF" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                        <Rectangle.RenderTransform>
+                            <TranslateTransform x:Name="HomeShimmerTranslate" X="-300"/>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+
+                    <!-- Home logo — centred in left triangle -->
+                    <Image x:Name="HomeLogoImage" Width="180" Height="180"
+                           Stretch="Uniform" Visibility="Collapsed"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="0,0,300,160" RenderTransformOrigin="0.5,0.5">
+                        <Image.RenderTransform>
+                            <ScaleTransform x:Name="HomeLogoScale" ScaleX="1" ScaleY="1"/>
+                        </Image.RenderTransform>
+                        <Image.Effect>
+                            <DropShadowEffect BlurRadius="30" ShadowDepth="4" Color="Black" Opacity="0.6"/>
+                        </Image.Effect>
+                    </Image>
+
+                    <!-- Fallback text if no logo -->
+                    <TextBlock x:Name="HomeNameFallback" Text="HOME" FontSize="60" FontWeight="Black"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,300,160" Opacity="0.9">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush x:Name="HomeNameBrush" Color="White"/>
+                        </TextBlock.Foreground>
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="20" ShadowDepth="2" Color="Black" Opacity="0.5"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <!-- ============ AWAY HALF (bottom-right triangle) ============ -->
+            <Border x:Name="AwayHalf" Panel.ZIndex="1">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="AwayHalfTranslate" X="0"/>
+                </Border.RenderTransform>
+                <Border.Clip>
+                    <!-- Diagonal clip: covers right half (bottom-left to top-right) -->
+                    <PathGeometry Figures="M707,0 L707,420 L0,420 Z"/>
+                </Border.Clip>
+                <Grid>
+                    <!-- Base colour fill -->
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <SolidColorBrush x:Name="AwayBgBrush" Color="#2D5A27"/>
+                        </Rectangle.Fill>
+                    </Rectangle>
+
+                    <!-- Subtle gradient overlay for depth -->
+                    <Rectangle Opacity="0.4">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="1,1" EndPoint="0,0">
+                                <GradientStop Color="#40000000" Offset="0.0"/>
+                                <GradientStop Color="#00000000" Offset="0.6"/>
+                                <GradientStop Color="#20000000" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+
+                    <!-- Sweeping shimmer highlight -->
+                    <Rectangle x:Name="AwayShimmer" Width="250" Opacity="0" HorizontalAlignment="Left">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#00FFFFFF" Offset="0.0"/>
+                                <GradientStop Color="#30FFFFFF" Offset="0.5"/>
+                                <GradientStop Color="#00FFFFFF" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                        <Rectangle.RenderTransform>
+                            <TranslateTransform x:Name="AwayShimmerTranslate" X="900"/>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+
+                    <!-- Away logo — centred in right triangle -->
+                    <Image x:Name="AwayLogoImage" Width="180" Height="180"
+                           Stretch="Uniform" Visibility="Collapsed"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="300,160,0,0" RenderTransformOrigin="0.5,0.5">
+                        <Image.RenderTransform>
+                            <ScaleTransform x:Name="AwayLogoScale" ScaleX="1" ScaleY="1"/>
+                        </Image.RenderTransform>
+                        <Image.Effect>
+                            <DropShadowEffect BlurRadius="30" ShadowDepth="4" Color="Black" Opacity="0.6"/>
+                        </Image.Effect>
+                    </Image>
+
+                    <!-- Fallback text if no logo -->
+                    <TextBlock x:Name="AwayNameFallback" Text="AWAY" FontSize="60" FontWeight="Black"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="300,160,0,0" Opacity="0.9">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush x:Name="AwayNameBrush" Color="White"/>
+                        </TextBlock.Foreground>
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="20" ShadowDepth="2" Color="Black" Opacity="0.5"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <!-- ============ Diagonal seam glow line ============ -->
+            <Canvas Panel.ZIndex="2" IsHitTestVisible="False">
+                <Line x:Name="DiagonalGlow" X1="0" Y1="420" X2="707" Y2="0"
+                      Stroke="White" StrokeThickness="3" Opacity="0">
+                    <Line.Effect>
+                        <BlurEffect x:Name="DiagonalGlowBlur" Radius="8"/>
+                    </Line.Effect>
+                </Line>
+            </Canvas>
+
+            <!-- ============ VS text ============ -->
+            <TextBlock x:Name="VsText" Text="VS" Foreground="White" FontSize="110" FontWeight="Black" FontFamily="Impact"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Panel.ZIndex="5" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                <TextBlock.Effect>
+                    <DropShadowEffect x:Name="VsGlow" BlurRadius="30" ShadowDepth="0" Color="White" Opacity="0.8"/>
+                </TextBlock.Effect>
+                <TextBlock.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="VsScale" ScaleX="0.5" ScaleY="0.5"/>
+                    </TransformGroup>
+                </TextBlock.RenderTransform>
+            </TextBlock>
+
+        </Grid>
+    </Viewbox>
+</UserControl>

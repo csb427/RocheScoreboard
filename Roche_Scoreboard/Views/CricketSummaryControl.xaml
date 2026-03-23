@@ -1,0 +1,72 @@
+<UserControl x:Class="Roche_Scoreboard.Views.CricketSummaryControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+
+    <Viewbox Stretch="Fill">
+        <Grid x:Name="RootGrid" Width="960" Height="540" Background="#0B1120" ClipToBounds="True">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="RootTranslate" X="0"/>
+            </Grid.RenderTransform>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"/>    <!-- Header -->
+                <RowDefinition Height="*"/>     <!-- Rows -->
+                <RowDefinition Height="66"/>    <!-- Footer score bar -->
+            </Grid.RowDefinitions>
+
+            <!-- HEADER -->
+            <Border Grid.Row="0">
+                <Border.Background>
+                    <SolidColorBrush x:Name="HeaderBg" Color="#CC0000"/>
+                </Border.Background>
+                <TextBlock x:Name="HeaderText" Text="TEAM BATTING" Foreground="White" FontSize="22" FontWeight="Black"
+                           FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- PLAYER ROWS -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+                <StackPanel x:Name="RowsPanel" Background="#0D1526"/>
+            </ScrollViewer>
+
+            <!-- FOOTER SCORE BAR (enhanced — bigger with team name and extra stats) -->
+            <Border Grid.Row="2">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#020614" Offset="0"/>
+                        <GradientStop Color="#0A1648" Offset="0.5"/>
+                        <GradientStop Color="#020614" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="20,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>  <!-- team name -->
+                        <ColumnDefinition Width="Auto"/>  <!-- score -->
+                        <ColumnDefinition Width="*"/>     <!-- spacer -->
+                        <ColumnDefinition Width="Auto"/>  <!-- overs label -->
+                        <ColumnDefinition Width="Auto"/>  <!-- overs value -->
+                        <ColumnDefinition Width="Auto"/>  <!-- stat1 label -->
+                        <ColumnDefinition Width="Auto"/>  <!-- stat1 value -->
+                        <ColumnDefinition Width="Auto"/>  <!-- stat2 label -->
+                        <ColumnDefinition Width="Auto"/>  <!-- stat2 value -->
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" x:Name="FooterTeamName" Text="TEAM" Foreground="#94A3B8" FontSize="15" FontWeight="Black"
+                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Grid.Column="1" x:Name="FooterTeamScore" Text="0/0" Foreground="White" FontSize="28" FontWeight="Black"
+                               FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" x:Name="FooterOversLabel" Text="OVERS" Foreground="#64748B" FontSize="11" FontWeight="Bold"
+                               VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Grid.Column="4" x:Name="FooterOvers" Text="0" Foreground="White" FontSize="18" FontWeight="Black"
+                               FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                    <TextBlock Grid.Column="5" x:Name="FooterStatLabel" Text="RUN RATE" Foreground="#64748B" FontSize="11" FontWeight="Bold"
+                               VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Grid.Column="6" x:Name="FooterStatValue" Text="0.00" Foreground="White" FontSize="18" FontWeight="Black"
+                               FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                    <TextBlock Grid.Column="7" x:Name="FooterStat2Label" Text="P'SHIP" Foreground="#64748B" FontSize="11" FontWeight="Bold"
+                               VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Grid.Column="8" x:Name="FooterStat2Value" Text="0(0)" Foreground="White" FontSize="18" FontWeight="Black"
+                               FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Viewbox>
+</UserControl>

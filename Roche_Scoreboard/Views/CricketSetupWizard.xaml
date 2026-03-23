@@ -1,0 +1,419 @@
+<UserControl x:Class="Roche_Scoreboard.Views.CricketSetupWizard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#0B1120">
+
+    <UserControl.Resources>
+        <Color x:Key="Surface1">#111827</Color>
+        <Color x:Key="Surface2">#1E293B</Color>
+        <Color x:Key="Surface3">#334155</Color>
+        <Color x:Key="Accent">#818CF8</Color>
+
+        <SolidColorBrush x:Key="Surface1Brush" Color="{StaticResource Surface1}"/>
+        <SolidColorBrush x:Key="Surface2Brush" Color="{StaticResource Surface2}"/>
+        <SolidColorBrush x:Key="Surface3Brush" Color="{StaticResource Surface3}"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F1F5F9"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#94A3B8"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#475569"/>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Surface1Brush}"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="16"/>
+        </Style>
+        <Style x:Key="SectionHead" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,0,0,3"/>
+        </Style>
+        <Style x:Key="SmallBtn" TargetType="Button">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" CornerRadius="6" Padding="10,4" Background="{StaticResource Surface2Brush}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Surface3Brush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="NavBtn" TargetType="Button">
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10" Padding="20,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid MaxWidth="980" Margin="32,16,32,24" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                <TextBlock Text="ROCHE SCOREBOARD — CRICKET" Foreground="{StaticResource AccentBrush}" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                <TextBlock Text="Match Setup" Foreground="White" FontSize="26" FontWeight="Black"/>
+                <TextBlock x:Name="StepSubtitle" Text="Configure both teams" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Step indicator -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,14">
+                <Border x:Name="Step1Dot" Width="32" Height="32" CornerRadius="16" Background="{StaticResource AccentBrush}">
+                    <TextBlock Text="1" Foreground="White" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock x:Name="Step1Label" Text="Teams" Foreground="White" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                <Border Width="28" Height="2" Background="{StaticResource Surface3Brush}" VerticalAlignment="Center" Margin="6,0"/>
+                <Border x:Name="Step2Dot" Width="32" Height="32" CornerRadius="16" Background="{StaticResource Surface2Brush}">
+                    <TextBlock Text="2" Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock x:Name="Step2Label" Text="Players" Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                <Border Width="28" Height="2" Background="{StaticResource Surface3Brush}" VerticalAlignment="Center" Margin="6,0"/>
+                <Border x:Name="Step3Dot" Width="32" Height="32" CornerRadius="16" Background="{StaticResource Surface2Brush}">
+                    <TextBlock Text="3" Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock x:Name="Step3Label" Text="Match" Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" Margin="6,0,0,0"/>
+            </StackPanel>
+
+            <!-- Step content -->
+            <Grid Grid.Row="2">
+                <!-- STEP 1: TEAMS -->
+                <Grid x:Name="Step1Panel">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="14"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Team A -->
+                    <Border Grid.Column="0" Style="{StaticResource Card}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="TEAM A (HOME)" Style="{StaticResource SectionHead}"/>
+                                <!-- Preset -->
+                                <TextBlock Text="Load Preset" Style="{StaticResource FieldLabel}"/>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox x:Name="TeamAPresetCombo" FontSize="12" VerticalContentAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="Load" Click="LoadPresetA_Click" Style="{StaticResource SmallBtn}" Margin="4,0,0,0"/>
+                                    <Button Grid.Column="2" Content="Save" Click="SavePresetA_Click" Style="{StaticResource SmallBtn}" Margin="4,0,0,0"/>
+                                </Grid>
+                                <TextBlock Text="Team Name" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TeamANameBox" FontSize="14" Margin="0,0,0,8"/>
+                                <TextBlock Text="Abbreviation" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TeamAAbbrBox" FontSize="14" MaxLength="4" Margin="0,0,0,8"/>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Primary Colour" Style="{StaticResource FieldLabel}"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBox x:Name="TeamAColorBox" Width="72" Text="#CC0000" FontSize="11" VerticalContentAlignment="Center" Margin="0,0,3,0"/>
+                                            <Border x:Name="TeamAColorPreview" Width="24" Height="22" CornerRadius="5" Background="#CC0000" BorderBrush="#444" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickTeamAColor_Click"/>
+                                            <Border Width="22" Height="22" CornerRadius="5" Background="#1E293B" BorderBrush="#444" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperTeamAColor_Click" Margin="2,0,0,0" ToolTip="Eye dropper">
+                                                <TextBlock Text="💧" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Text Colour" Style="{StaticResource FieldLabel}"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBox x:Name="TeamASecondaryBox" Width="72" Text="#FFFFFF" FontSize="11" VerticalContentAlignment="Center" Margin="0,0,3,0"/>
+                                            <Border x:Name="TeamASecondaryPreview" Width="24" Height="22" CornerRadius="5" Background="#FFFFFF" BorderBrush="#444" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickTeamASecondary_Click"/>
+                                            <Border Width="22" Height="22" CornerRadius="5" Background="#1E293B" BorderBrush="#444" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperTeamASecondary_Click" Margin="2,0,0,0" ToolTip="Eye dropper">
+                                                <TextBlock Text="💧" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                                <!-- Logo -->
+                                <TextBlock Text="Logo" Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Button Content="Browse…" Click="BrowseLogoA_Click" Style="{StaticResource SmallBtn}"/>
+                                    <Button Content="Clear" Click="ClearLogoA_Click" Style="{StaticResource SmallBtn}" Margin="4,0,0,0"/>
+                                    <TextBlock x:Name="TeamALogoText" Text="(none)" Foreground="{StaticResource TextMutedBrush}" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                <Border x:Name="TeamALogoPreview" CornerRadius="8" Background="{StaticResource Surface2Brush}" Padding="8" Margin="0,8,0,0" Visibility="Collapsed" HorizontalAlignment="Left">
+                                    <Image x:Name="TeamALogoImage" MaxHeight="60" MaxWidth="160" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Border>
+
+                                <Border Height="1" Background="{StaticResource Surface2Brush}" Margin="0,10,0,10"/>
+                                <TextBlock Text="PREVIEW" Style="{StaticResource FieldLabel}"/>
+                                <Border x:Name="TeamAPreviewBar" CornerRadius="8" Padding="12,8" Margin="0,4,0,0">
+                                    <Border.Background>
+                                        <SolidColorBrush x:Name="TeamAPreviewBg" Color="#CC0000"/>
+                                    </Border.Background>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="TeamAPreviewAbbr" Text="TMA" FontSize="16" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock.Foreground>
+                                                <SolidColorBrush x:Name="TeamAPreviewFg" Color="#FFFFFF"/>
+                                            </TextBlock.Foreground>
+                                        </TextBlock>
+                                        <TextBlock x:Name="TeamAPreviewName" Text="Team A" FontSize="14" FontWeight="Bold" VerticalAlignment="Center">
+                                            <TextBlock.Foreground>
+                                                <SolidColorBrush x:Name="TeamAPreviewNameFg" Color="#FFFFFF"/>
+                                            </TextBlock.Foreground>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Team B -->
+                    <Border Grid.Column="2" Style="{StaticResource Card}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="TEAM B (AWAY)" Style="{StaticResource SectionHead}"/>
+                                <TextBlock Text="Load Preset" Style="{StaticResource FieldLabel}"/>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox x:Name="TeamBPresetCombo" FontSize="12" VerticalContentAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="Load" Click="LoadPresetB_Click" Style="{StaticResource SmallBtn}" Margin="4,0,0,0"/>
+                                    <Button Grid.Column="2" Content="Save" Click="SavePresetB_Click" Style="{StaticResource SmallBtn}" Margin="4,0,0,0"/>
+                                </Grid>
+                                <TextBlock Text="Team Name" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TeamBNameBox" FontSize="14" Margin="0,0,0,8"/>
+                                <TextBlock Text="Abbreviation" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TeamBAbbrBox" FontSize="14" MaxLength="4" Margin="0,0,0,8"/>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Primary Colour" Style="{StaticResource FieldLabel}"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBox x:Name="TeamBColorBox" Width="72" Text="#000080" FontSize="11" VerticalContentAlignment="Center" Margin="0,0,3,0"/>
+                                            <Border x:Name="TeamBColorPreview" Width="24" Height="22" CornerRadius="5" Background="#000080" BorderBrush="#444" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickTeamBColor_Click"/>
+                                            <Border Width="22" Height="22" CornerRadius="5" Background="#1E293B" BorderBrush="#444" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperTeamBColor_Click" Margin="2,0,0,0" ToolTip="Eye dropper">
+                                                <TextBlock Text="💧" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Text Colour" Style="{StaticResource FieldLabel}"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBox x:Name="TeamBSecondaryBox" Width="72" Text="#FFFFFF" FontSize="11" VerticalContentAlignment="Center" Margin="0,0,3,0"/>
+                                            <Border x:Name="TeamBSecondaryPreview" Width="24" Height="22" CornerRadius="5" Background="#FFFFFF" BorderBrush="#444" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickTeamBSecondary_Click"/>
+                                            <Border Width="22" Height="22" CornerRadius="5" Background="#1E293B" BorderBrush="#444" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperTeamBSecondary_Click" Margin="2,0,0,0" ToolTip="Eye dropper">
+                                                <TextBlock Text="💧" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Text="Logo" Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Button Content="Browse…" Click="BrowseLogoB_Click" Style="{StaticResource SmallBtn}"/>
+                                    <Button Content="Clear" Click="ClearLogoB_Click" Style="{StaticResource SmallBtn}" Margin="4,0,0,0"/>
+                                    <TextBlock x:Name="TeamBLogoText" Text="(none)" Foreground="{StaticResource TextMutedBrush}" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                <Border x:Name="TeamBLogoPreview" CornerRadius="8" Background="{StaticResource Surface2Brush}" Padding="8" Margin="0,8,0,0" Visibility="Collapsed" HorizontalAlignment="Left">
+                                    <Image x:Name="TeamBLogoImage" MaxHeight="60" MaxWidth="160" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Border>
+
+                                <Border Height="1" Background="{StaticResource Surface2Brush}" Margin="0,10,0,10"/>
+                                <TextBlock Text="PREVIEW" Style="{StaticResource FieldLabel}"/>
+                                <Border x:Name="TeamBPreviewBar" CornerRadius="8" Padding="12,8" Margin="0,4,0,0">
+                                    <Border.Background>
+                                        <SolidColorBrush x:Name="TeamBPreviewBg" Color="#000080"/>
+                                    </Border.Background>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="TeamBPreviewAbbr" Text="TMB" FontSize="16" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock.Foreground>
+                                                <SolidColorBrush x:Name="TeamBPreviewFg" Color="#FFFFFF"/>
+                                            </TextBlock.Foreground>
+                                        </TextBlock>
+                                        <TextBlock x:Name="TeamBPreviewName" Text="Team B" FontSize="14" FontWeight="Bold" VerticalAlignment="Center">
+                                            <TextBlock.Foreground>
+                                                <SolidColorBrush x:Name="TeamBPreviewNameFg" Color="#FFFFFF"/>
+                                            </TextBlock.Foreground>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+
+                <!-- STEP 2: PLAYERS -->
+                <Grid x:Name="Step2Panel" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="14"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="TeamAPlayersLabel" Text="TEAM A PLAYERS" Style="{StaticResource SectionHead}"/>
+                            <TextBlock Grid.Row="1" Text="Add as many players as needed" Foreground="{StaticResource TextMutedBrush}" FontSize="11" Margin="0,0,0,6"/>
+                            <ListBox Grid.Row="2" x:Name="TeamAPlayerList" Background="Transparent" Foreground="White" FontSize="12" BorderThickness="0" MinHeight="120"/>
+                            <Grid Grid.Row="3" Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="4"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TeamAFirstNameBox" FontSize="12" VerticalContentAlignment="Center" Tag="First name" KeyDown="TeamAPlayerBox_KeyDown"/>
+                                <TextBox Grid.Column="2" x:Name="TeamALastNameBox" FontSize="12" VerticalContentAlignment="Center" Tag="Last name" KeyDown="TeamAPlayerBox_KeyDown"/>
+                                <Button Grid.Column="3" Content="+" Width="28" Height="26" Margin="4,0,0,0" Click="AddTeamAPlayer_Click" Style="{StaticResource SmallBtn}"/>
+                                <Button Grid.Column="4" Content="−" Width="28" Height="26" Margin="3,0,0,0" Click="RemoveTeamAPlayer_Click" Style="{StaticResource SmallBtn}"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="TeamBPlayersLabel" Text="TEAM B PLAYERS" Style="{StaticResource SectionHead}"/>
+                            <TextBlock Grid.Row="1" Text="Add as many players as needed" Foreground="{StaticResource TextMutedBrush}" FontSize="11" Margin="0,0,0,6"/>
+                            <ListBox Grid.Row="2" x:Name="TeamBPlayerList" Background="Transparent" Foreground="White" FontSize="12" BorderThickness="0" MinHeight="120"/>
+                            <Grid Grid.Row="3" Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="4"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TeamBFirstNameBox" FontSize="12" VerticalContentAlignment="Center" Tag="First name" KeyDown="TeamBPlayerBox_KeyDown"/>
+                                <TextBox Grid.Column="2" x:Name="TeamBLastNameBox" FontSize="12" VerticalContentAlignment="Center" Tag="Last name" KeyDown="TeamBPlayerBox_KeyDown"/>
+                                <Button Grid.Column="3" Content="+" Width="28" Height="26" Margin="4,0,0,0" Click="AddTeamBPlayer_Click" Style="{StaticResource SmallBtn}"/>
+                                <Button Grid.Column="4" Content="−" Width="28" Height="26" Margin="3,0,0,0" Click="RemoveTeamBPlayer_Click" Style="{StaticResource SmallBtn}"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- STEP 3: MATCH SETTINGS -->
+                <Border x:Name="Step3Panel" Style="{StaticResource Card}" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel MaxWidth="520" HorizontalAlignment="Left">
+                            <TextBlock Text="MATCH FORMAT" Style="{StaticResource SectionHead}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <RadioButton x:Name="FormatLimited" Content="Limited Overs" Foreground="White" FontSize="14" FontWeight="Bold" IsChecked="True" GroupName="CricketFormat" Checked="Format_Changed" Margin="0,0,20,0"/>
+                                <RadioButton x:Name="FormatMultiDay" Content="Multi-Day (Unlimited)" Foreground="White" FontSize="14" FontWeight="Bold" GroupName="CricketFormat" Checked="Format_Changed"/>
+                            </StackPanel>
+                            <StackPanel x:Name="OversPanel" Margin="0,0,0,14">
+                                <TextBlock Text="Total Overs" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" FontWeight="Bold" Margin="0,0,0,4"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="TotalOversBox" Width="60" FontSize="16" Text="50" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                                    <TextBlock Text="overs per innings" Foreground="{StaticResource TextMutedBrush}" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Border Height="1" Background="{StaticResource Surface2Brush}" Margin="0,0,0,14"/>
+
+                            <TextBlock Text="TOSS" Style="{StaticResource SectionHead}"/>
+                            <TextBlock Text="Who won the toss?" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <RadioButton x:Name="TossTeamA" Content="Team A" Foreground="White" FontSize="13" FontWeight="Bold" IsChecked="True" GroupName="TossWinner" Margin="0,0,20,0"/>
+                                <RadioButton x:Name="TossTeamB" Content="Team B" Foreground="White" FontSize="13" FontWeight="Bold" GroupName="TossWinner"/>
+                            </StackPanel>
+                            <TextBlock Text="Elected to…" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <RadioButton x:Name="TossElectedBat" Content="Bat" Foreground="White" FontSize="13" FontWeight="Bold" IsChecked="True" GroupName="TossChoice" Margin="0,0,20,0"/>
+                                <RadioButton x:Name="TossElectedBowl" Content="Bowl" Foreground="White" FontSize="13" FontWeight="Bold" GroupName="TossChoice"/>
+                            </StackPanel>
+
+                            <Border Height="1" Background="{StaticResource Surface2Brush}" Margin="0,0,0,14"/>
+
+                            <TextBlock Text="MESSAGES" Style="{StaticResource SectionHead}"/>
+                            <Border CornerRadius="8" Background="{StaticResource Surface2Brush}" Padding="6">
+                                <ListBox x:Name="MessageList" Background="Transparent" Foreground="White" FontSize="12" BorderThickness="0" MinHeight="50"/>
+                            </Border>
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="NewMessageBox" FontSize="12" VerticalContentAlignment="Center" Margin="0,0,4,0"/>
+                                <Button Grid.Column="1" Content="Add" Height="26" Margin="0,0,3,0" Click="AddMessage_Click" Style="{StaticResource SmallBtn}"/>
+                                <Button Grid.Column="2" Content="Remove" Height="26" Click="RemoveMessage_Click" Style="{StaticResource SmallBtn}"/>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- Navigation -->
+            <Grid Grid.Row="3" Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="BackButton" Content="← Back" Click="Back_Click" Visibility="Collapsed" Style="{StaticResource NavBtn}">
+                    <Button.Background><SolidColorBrush Color="{StaticResource Surface2}"/></Button.Background>
+                </Button>
+                <Button x:Name="NextButton" Grid.Column="2" Content="Next →" Click="Next_Click" Style="{StaticResource NavBtn}">
+                    <Button.Background><SolidColorBrush Color="{StaticResource Accent}"/></Button.Background>
+                </Button>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
+ 

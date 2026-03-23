@@ -1,0 +1,214 @@
+<UserControl x:Class="Roche_Scoreboard.Views.BreakScreenControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="420" d:DesignWidth="707">
+
+    <Viewbox Stretch="Fill">
+        <Grid Width="707" Height="420">
+            <!-- Team colour gradient background -->
+            <Grid.Background>
+                <LinearGradientBrush x:Name="BgGradient" StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#C0441A" Offset="0.0"/>
+                    <GradientStop Color="#804020" Offset="0.45"/>
+                    <GradientStop Color="#1A7A1A" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>   <!-- Title -->
+                <RowDefinition Height="Auto"/>   <!-- Divider line -->
+                <RowDefinition Height="Auto"/>   <!-- Team names -->
+                <RowDefinition Height="*"/>      <!-- Quarter rows -->
+                <RowDefinition Height="80"/>     <!-- Bottom bar -->
+            </Grid.RowDefinitions>
+
+            <!-- Time top-right -->
+            <TextBlock x:Name="BreakTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="14"
+                       HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,12,0" Grid.Row="0"/>
+
+            <!-- QUARTER SUMMARY title -->
+            <Viewbox Grid.Row="0" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" Margin="0,4,0,0">
+                <TextBlock Text="QUARTER SUMMARY" Foreground="White" FontSize="52" FontWeight="Black" FontStyle="Italic">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="3" Color="Black" Opacity="0.5"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+            </Viewbox>
+
+            <!-- Divider line -->
+            <Border Grid.Row="1" Height="2" Background="White" Margin="20,2,20,4"/>
+
+            <!-- Team names row -->
+            <Grid Grid.Row="2" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Home team name + logo -->
+                <Grid Grid.Column="0" Margin="12,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0" Margin="0,0,8,0">
+                        <Ellipse x:Name="BreakHomeLogoCircle" Width="40" Height="40" Fill="#BFBFBF"/>
+                        <Image x:Name="BreakHomeLogoImage" Width="40" Height="40" Stretch="UniformToFill" Visibility="Collapsed">
+                            <Image.Clip>
+                                <EllipseGeometry Center="20,20" RadiusX="20" RadiusY="20"/>
+                            </Image.Clip>
+                        </Image>
+                    </Grid>
+                    <Viewbox Grid.Column="1" StretchDirection="DownOnly" Stretch="Uniform" MaxHeight="36" HorizontalAlignment="Left">
+                        <TextBlock x:Name="BreakHomeName" Text="XAVIER" Foreground="White" FontSize="36" FontWeight="Black">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="2" Color="Black" Opacity="0.4"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Viewbox>
+                </Grid>
+
+                <!-- Away team name + logo -->
+                <Grid Grid.Column="2" Margin="0,0,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Viewbox Grid.Column="0" StretchDirection="DownOnly" Stretch="Uniform" MaxHeight="36" HorizontalAlignment="Right">
+                        <TextBlock x:Name="BreakAwayName" Text="ST KEVINS" Foreground="White" FontSize="36" FontWeight="Black">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="2" Color="Black" Opacity="0.4"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Viewbox>
+                    <Grid Grid.Column="1" Margin="8,0,0,0">
+                        <Ellipse x:Name="BreakAwayLogoCircle" Width="40" Height="40" Fill="#BFBFBF"/>
+                        <Image x:Name="BreakAwayLogoImage" Width="40" Height="40" Stretch="UniformToFill" Visibility="Collapsed">
+                            <Image.Clip>
+                                <EllipseGeometry Center="20,20" RadiusX="20" RadiusY="20"/>
+                            </Image.Clip>
+                        </Image>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- Quarter rows -->
+            <Grid Grid.Row="3" Margin="12,0,12,4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Each quarter row: Home G B T | Qn | Away G B T -->
+                <!-- Q1 -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" x:Name="H1G" Style="{x:Null}"/><Border Grid.Column="1" x:Name="H1B"/><Border Grid.Column="2" x:Name="H1T"/>
+                    <Viewbox Grid.Column="3" Stretch="Uniform" StretchDirection="DownOnly" Margin="4"><TextBlock Text="Q1" Foreground="White" FontSize="32" FontWeight="Black"/></Viewbox>
+                    <Border Grid.Column="4" x:Name="A1G"/><Border Grid.Column="5" x:Name="A1B"/><Border Grid.Column="6" x:Name="A1T"/>
+                </Grid>
+                <!-- Q2 -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" x:Name="H2G"/><Border Grid.Column="1" x:Name="H2B"/><Border Grid.Column="2" x:Name="H2T"/>
+                    <Viewbox Grid.Column="3" Stretch="Uniform" StretchDirection="DownOnly" Margin="4"><TextBlock Text="Q2" Foreground="White" FontSize="32" FontWeight="Black"/></Viewbox>
+                    <Border Grid.Column="4" x:Name="A2G"/><Border Grid.Column="5" x:Name="A2B"/><Border Grid.Column="6" x:Name="A2T"/>
+                </Grid>
+                <!-- Q3 -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" x:Name="H3G"/><Border Grid.Column="1" x:Name="H3B"/><Border Grid.Column="2" x:Name="H3T"/>
+                    <Viewbox Grid.Column="3" Stretch="Uniform" StretchDirection="DownOnly" Margin="4"><TextBlock Text="Q3" Foreground="White" FontSize="32" FontWeight="Black"/></Viewbox>
+                    <Border Grid.Column="4" x:Name="A3G"/><Border Grid.Column="5" x:Name="A3B"/><Border Grid.Column="6" x:Name="A3T"/>
+                </Grid>
+                <!-- Q4 -->
+                <Grid Grid.Row="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" x:Name="H4G"/><Border Grid.Column="1" x:Name="H4B"/><Border Grid.Column="2" x:Name="H4T"/>
+                    <Viewbox Grid.Column="3" Stretch="Uniform" StretchDirection="DownOnly" Margin="4"><TextBlock Text="Q4" Foreground="White" FontSize="32" FontWeight="Black"/></Viewbox>
+                    <Border Grid.Column="4" x:Name="A4G"/><Border Grid.Column="5" x:Name="A4B"/><Border Grid.Column="6" x:Name="A4T"/>
+                </Grid>
+            </Grid>
+
+            <!-- Persistent bottom bar -->
+            <Border Grid.Row="4">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#0A0A30" Offset="0.0"/>
+                        <GradientStop Color="#1A1A6A" Offset="0.5"/>
+                        <GradientStop Color="#0A0A30" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="90"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Home abbreviation -->
+                    <Viewbox Grid.Column="0" Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
+                        <TextBlock x:Name="BarHomeAbbr" Text="XC" FontSize="40" FontWeight="Black">
+                            <TextBlock.Foreground>
+                                <SolidColorBrush x:Name="BarHomeAbbrBrush" Color="#FF6040"/>
+                            </TextBlock.Foreground>
+                        </TextBlock>
+                    </Viewbox>
+
+                    <!-- Home score -->
+                    <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
+                        <TextBlock x:Name="BarHomeScore" Text="8.5.53" Foreground="White" FontSize="40" FontWeight="Black"/>
+                    </Viewbox>
+
+                    <!-- Break title (e.g. 3QT, HT) -->
+                    <Border Grid.Column="2" CornerRadius="6" Margin="4,8">
+                        <Border.Background>
+                            <SolidColorBrush x:Name="BarTitleBg" Color="#2020AA"/>
+                        </Border.Background>
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
+                            <TextBlock x:Name="BarTitle" Text="3QT" Foreground="White" FontSize="40" FontWeight="Black"/>
+                        </Viewbox>
+                    </Border>
+
+                    <!-- Away score -->
+                    <Viewbox Grid.Column="3" Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
+                        <TextBlock x:Name="BarAwayScore" Text="6.12.48" Foreground="White" FontSize="40" FontWeight="Black"/>
+                    </Viewbox>
+
+                    <!-- Away abbreviation -->
+                    <Viewbox Grid.Column="4" Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
+                        <TextBlock x:Name="BarAwayAbbr" Text="SKC" FontSize="40" FontWeight="Black">
+                            <TextBlock.Foreground>
+                                <SolidColorBrush x:Name="BarAwayAbbrBrush" Color="#40AA40"/>
+                            </TextBlock.Foreground>
+                        </TextBlock>
+                    </Viewbox>
+                </Grid>
+            </Border>
+        </Grid>
+    </Viewbox>
+</UserControl>

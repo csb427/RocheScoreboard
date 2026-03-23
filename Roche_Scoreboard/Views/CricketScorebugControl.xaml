@@ -1,0 +1,422 @@
+<UserControl x:Class="Roche_Scoreboard.Views.CricketScorebugControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+
+    <Viewbox Stretch="Fill">
+        <Grid Width="707" Height="420">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>    <!-- top bar with time -->
+                <RowDefinition Height="*"/>     <!-- main scoreboard -->
+                <RowDefinition Height="80"/>    <!-- bottom bar: stats + marquee -->
+            </Grid.RowDefinitions>
+
+            <!-- ===== TOP BAR ===== -->
+            <Border Grid.Row="0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#020614" Offset="0"/>
+                        <GradientStop Color="#060D2E" Offset="0.5"/>
+                        <GradientStop Color="#0A1648" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock x:Name="TopTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Border>
+
+            <!-- ===== MAIN SCOREBOARD ===== -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="165"/>  <!-- left panel: score/overs/target -->
+                    <ColumnDefinition Width="*"/>    <!-- right panel: batting/bowling -->
+                </Grid.ColumnDefinitions>
+
+                <!-- LEFT PANEL -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>     <!-- logo + abbr + score (merged) -->
+                        <RowDefinition Height="Auto"/>  <!-- overs -->
+                        <RowDefinition Height="Auto"/>  <!-- target/stats -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Logo + Abbreviation + Score (one tile) -->
+                    <Border Grid.Row="0" BorderBrush="#334155" BorderThickness="0,0,0,2">
+                        <Border.Background>
+                            <SolidColorBrush x:Name="BattingTeamBg" Color="#CC0000"/>
+                        </Border.Background>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <!-- Logo + Abbreviation row -->
+                            <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,10,0,0">
+                                <Image x:Name="BattingLogo" MaxHeight="50" MaxWidth="50" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock x:Name="BattingAbbrText" Text="TMA" Foreground="White" FontSize="20" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <!-- Score: wickets / runs with independent scroll -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Wickets -->
+                                <Grid ClipToBounds="True" Height="60" MinWidth="20">
+                                    <TextBlock x:Name="ScoreWickets" Text="0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform x:Name="ScoreWicketsTranslate" Y="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Grid>
+                                <!-- Slash -->
+                                <TextBlock Text="/" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect x:Name="ScoreGlow" BlurRadius="12" ShadowDepth="0" Color="White" Opacity="0.3"/>
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <!-- Runs -->
+                                <Grid ClipToBounds="True" Height="60" MinWidth="20">
+                                    <TextBlock x:Name="ScoreRuns" Text="0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform x:Name="ScoreRunsTranslate" Y="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Overs -->
+                    <Border Grid.Row="1" Height="70" Background="#0A1648">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="OVERS" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <Grid ClipToBounds="True" Height="38" HorizontalAlignment="Center">
+                                <TextBlock x:Name="OversText" Text="0" Foreground="White" FontSize="30" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock.RenderTransform>
+                                        <TranslateTransform x:Name="OversTranslate" Y="0"/>
+                                    </TextBlock.RenderTransform>
+                                </TextBlock>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Target / rotating info -->
+                    <Border Grid.Row="2" Height="70" Background="#0A1648" BorderBrush="#1E293B" BorderThickness="0,1,0,0">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock x:Name="InfoLabel" Text="RUN RATE" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <TextBlock x:Name="InfoValue" Text="0.00" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- RIGHT PANEL -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>  <!-- batting header -->
+                        <RowDefinition Height="*"/>     <!-- batsmen -->
+                        <RowDefinition Height="Auto"/>  <!-- bowling header -->
+                        <RowDefinition Height="*"/>     <!-- bowlers -->
+                    </Grid.RowDefinitions>
+
+                    <!-- BATTING HEADER -->
+                    <Border Grid.Row="0" Height="30" Padding="14,0">
+                        <Border.Background>
+                            <SolidColorBrush x:Name="BattingHeaderBg" Color="#CC0000"/>
+                        </Border.Background>
+                        <TextBlock x:Name="BattingHeaderText" Text="TEAM A BATTING" Foreground="White" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <!-- BATSMEN -->
+                    <Grid Grid.Row="1" Background="#0D1526">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Striker -->
+                        <Border Grid.Row="0" Margin="6,4,6,2" CornerRadius="2" Padding="10,0" BorderThickness="2">
+                            <Border.BorderBrush>
+                                <SolidColorBrush x:Name="StrikerBorder" Color="#CC0000"/>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <SolidColorBrush Color="#111827"/>
+                            </Border.Background>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="StrikerIndicator" Text="▶" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <TextBlock.Foreground>
+                                        <SolidColorBrush x:Name="BattingIndicatorBrush" Color="#CC0000"/>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" x:Name="StrikerName" Text="J. SMITH" Foreground="White" FontSize="17" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Grid Grid.Column="2" ClipToBounds="True" Height="28" VerticalAlignment="Center" Margin="0,0,6,0">
+                                    <TextBlock x:Name="StrikerRuns" Text="0" Foreground="White" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform x:Name="StrikerRunsTranslate" Y="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Grid>
+                                <Grid Grid.Column="3" ClipToBounds="True" Height="18" VerticalAlignment="Center" Margin="0,4,0,0">
+                                    <TextBlock x:Name="StrikerBalls" Text="0" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform x:Name="StrikerBallsTranslate" Y="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- Non-striker -->
+                        <Border Grid.Row="1" Margin="6,2,6,4" CornerRadius="2" Padding="10,0" BorderThickness="2">
+                            <Border.BorderBrush>
+                                <SolidColorBrush x:Name="NonStrikerBorder" Color="#CC0000"/>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <SolidColorBrush Color="#111827"/>
+                            </Border.Background>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="NonStrikerIndicator" Text="   " FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <TextBlock.Foreground>
+                                        <SolidColorBrush x:Name="NonStrikerIndicatorBrush" Color="#CC0000"/>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" x:Name="NonStrikerName" Text="L. JONES" Foreground="White" FontSize="17" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Grid Grid.Column="2" ClipToBounds="True" Height="28" VerticalAlignment="Center" Margin="0,0,6,0">
+                                    <TextBlock x:Name="NonStrikerRuns" Text="0" Foreground="White" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform x:Name="NonStrikerRunsTranslate" Y="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Grid>
+                                <Grid Grid.Column="3" ClipToBounds="True" Height="18" VerticalAlignment="Center" Margin="0,4,0,0">
+                                    <TextBlock x:Name="NonStrikerBalls" Text="0" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform x:Name="NonStrikerBallsTranslate" Y="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- BOWLING HEADER -->
+                    <Border Grid.Row="2" Height="30" Padding="14,0">
+                        <Border.Background>
+                            <SolidColorBrush x:Name="BowlingHeaderBg" Color="#000080"/>
+                        </Border.Background>
+                        <TextBlock x:Name="BowlingHeaderText" Text="TEAM B BOWLING" Foreground="White" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <!-- BOWLERS -->
+                    <Grid Grid.Row="3" Background="#0D1526">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Current bowler -->
+                        <Border Grid.Row="0" Margin="6,4,6,2" CornerRadius="2" Padding="10,0" BorderThickness="2">
+                            <Border.BorderBrush>
+                                <SolidColorBrush x:Name="BowlerBorder" Color="#000080"/>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <SolidColorBrush Color="#111827"/>
+                            </Border.Background>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="BowlerIndicator" Text="▶" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <TextBlock.Foreground>
+                                        <SolidColorBrush x:Name="BowlingIndicatorBrush" Color="#000080"/>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" x:Name="BowlerName" Text="M. STARC" Foreground="White" FontSize="16" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Grid Grid.Column="2" ClipToBounds="True" Height="26" VerticalAlignment="Center" Margin="0,0,6,0">
+                                    <TextBlock x:Name="BowlerFigures" Text="0-0" Foreground="White" FontSize="20" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform x:Name="BowlerFiguresTranslate" Y="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Grid>
+                                <Grid Grid.Column="3" ClipToBounds="True" Height="18" VerticalAlignment="Center" Margin="0,4,0,0">
+                                    <TextBlock x:Name="BowlerOvers" Text="0" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform x:Name="BowlerOversTranslate" Y="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- Previous/interchanging bowler -->
+                        <Border Grid.Row="1" Margin="6,2,6,4" CornerRadius="2" Padding="10,0" BorderThickness="2">
+                            <Border.BorderBrush>
+                                <SolidColorBrush x:Name="PrevBowlerBorderBrush" Color="#000080"/>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <SolidColorBrush Color="#111827"/>
+                            </Border.Background>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="   " FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Grid.Column="1" x:Name="PrevBowlerName" Text="" Foreground="#94A3B8" FontSize="16" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="2" x:Name="PrevBowlerFigures" Text="" Foreground="#94A3B8" FontSize="20" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Grid.Column="3" x:Name="PrevBowlerOvers" Text="" Foreground="#64748B" FontSize="13" FontWeight="Bold" FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- ===== BOTTOM BAR: neutral dark + stats overlay + marquee ===== -->
+            <Border Grid.Row="2" Background="#08103A">
+                <Grid>
+                    <!-- Marquee layer (always running underneath) -->
+                    <Canvas ClipToBounds="True">
+                        <TextBlock x:Name="MarqueeText" Text="" Foreground="White" FontSize="42" FontWeight="Bold" Canvas.Top="14">
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform x:Name="MarqueeTranslate" X="800"/>
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </Canvas>
+
+                    <!-- Stats bar overlay — tiled cards -->
+                    <Border x:Name="StatsBarBg" Background="#08103A" Opacity="0" Padding="8,6">
+                        <Border.RenderTransform>
+                            <TranslateTransform x:Name="StatsBarTranslate" Y="30"/>
+                        </Border.RenderTransform>
+                        <UniformGrid Columns="4" Rows="1">
+                            <Border CornerRadius="8" Background="#111B2E" Margin="3,0" Padding="8,4">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock x:Name="Stat1Label" Text="EXTRAS" Foreground="#94A3B8" FontSize="10" FontWeight="Black" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="Stat1Value" Text="0" Foreground="White" FontSize="24" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <Border CornerRadius="8" Background="#111B2E" Margin="3,0" Padding="8,4">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock x:Name="Stat2Label" Text="P'SHIP" Foreground="#94A3B8" FontSize="10" FontWeight="Black" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="Stat2Value" Text="0(0)" Foreground="White" FontSize="24" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <Border CornerRadius="8" Background="#111B2E" Margin="3,0" Padding="8,4">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock x:Name="Stat3Label" Text="RUN RATE" Foreground="#94A3B8" FontSize="10" FontWeight="Black" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="Stat3Value" Text="0.00" Foreground="White" FontSize="24" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <Border CornerRadius="8" Background="#111B2E" Margin="3,0" Padding="8,4">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock x:Name="Stat4Label" Text="" Foreground="#94A3B8" FontSize="10" FontWeight="Black" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="Stat4Value" Text="" Foreground="White" FontSize="24" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                    </Border>
+
+                    <!-- This-over ball tracker overlay -->
+                    <Border x:Name="OverTrackerBg" Background="#08103A" Opacity="0" Padding="16,0">
+                        <Border.RenderTransform>
+                            <TranslateTransform x:Name="OverTrackerTranslate" Y="30"/>
+                        </Border.RenderTransform>
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="OverTrackerLabel" Text="OVER 1" Foreground="#94A3B8" FontSize="16" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                            <StackPanel Grid.Column="1" x:Name="OverBallsPanel" Orientation="Horizontal" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ===== FULL-SCREEN EVENT OVERLAY (4/6/W) — AFL Broadcast style ===== -->
+            <Border x:Name="EventOverlay" Grid.Row="0" Grid.RowSpan="3"
+                    IsHitTestVisible="False" Opacity="0" ClipToBounds="True">
+                <Border.Background>
+                    <SolidColorBrush x:Name="EventOverlayBg" Color="#00000000"/>
+                </Border.Background>
+                <Grid>
+                    <!-- Horizontal colour sweep gradient bar -->
+                    <Rectangle x:Name="EventGradientBar" Width="2000" Height="600" HorizontalAlignment="Left" Opacity="0.6">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0" x:Name="EventGradientBarBrush">
+                                <GradientStop Color="#FFFFFF" Offset="0.0"/>
+                                <GradientStop Color="#FFD700" Offset="0.15"/>
+                                <GradientStop Color="#FF6B00" Offset="0.3"/>
+                                <GradientStop Color="#FF0080" Offset="0.45"/>
+                                <GradientStop Color="#8000FF" Offset="0.6"/>
+                                <GradientStop Color="#00BFFF" Offset="0.75"/>
+                                <GradientStop Color="#00FF88" Offset="0.9"/>
+                                <GradientStop Color="#FFFFFF" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                        <Rectangle.RenderTransform>
+                            <TranslateTransform x:Name="EventGradientScroll" X="-1400"/>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+
+                    <!-- Shimmer pass -->
+                    <Rectangle x:Name="EventShimmer" Width="120" Opacity="0" HorizontalAlignment="Left">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#00FFFFFF" Offset="0.0"/>
+                                <GradientStop Color="#99FFFFFF" Offset="0.5"/>
+                                <GradientStop Color="#00FFFFFF" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                        <Rectangle.RenderTransform>
+                            <TranslateTransform x:Name="EventShimmerScroll" X="-200"/>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+
+                    <!-- Score glow pulse -->
+                    <Border x:Name="EventScoreGlow" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <Border.Background>
+                            <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.6" RadiusY="0.6">
+                                <GradientStop x:Name="EventScoreGlowInner" Color="#CC000000" Offset="0"/>
+                                <GradientStop x:Name="EventScoreGlowOuter" Color="#00000000" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- Edge glow bar -->
+                    <Rectangle x:Name="EventEdgeGlow" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="3">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#00FFFFFF" Offset="0"/>
+                                <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
+                                <GradientStop Color="#00FFFFFF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+
+                    <!-- Central text (FOUR! / SIX! / WICKET!) -->
+                    <TextBlock x:Name="EventOverlayText" Text="FOUR!" Foreground="White" FontSize="72" FontWeight="Black"
+                               FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               RenderTransformOrigin="0.5,0.5">
+                        <TextBlock.Effect>
+                            <DropShadowEffect x:Name="EventOverlayGlow" BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
+                        </TextBlock.Effect>
+                        <TextBlock.RenderTransform>
+                            <ScaleTransform x:Name="EventTextScale" ScaleX="1" ScaleY="1"/>
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </Grid>
+    </Viewbox>
+</UserControl>
