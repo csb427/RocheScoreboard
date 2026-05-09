@@ -1,76 +1,588 @@
 <UserControl x:Class="Roche_Scoreboard.Views.SportSelectionScreen"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#0B1120">
-
-    <UserControl.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#818CF8"/>
-        <SolidColorBrush x:Key="TextMutedBrush" Color="#475569"/>
-    </UserControl.Resources>
+             Background="#080C12">
 
     <Grid>
-        <Grid MaxWidth="700" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,40">
-                <TextBlock Text="ROCHE SCOREBOARD" Foreground="{StaticResource AccentBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-                <TextBlock Text="Choose Your Sport" Foreground="White" FontSize="32" FontWeight="Black" HorizontalAlignment="Center"/>
-                <TextBlock Text="Select which sport you're scoring today" Foreground="{StaticResource TextMutedBrush}" FontSize="13" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- HEADER — SELECT YOUR SPORT                             -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Border x:Name="HeaderPanel" VerticalAlignment="Top" Height="80" Panel.ZIndex="10"
+                Opacity="0" IsHitTestVisible="False">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="HeaderTranslate" Y="-30"/>
+            </Border.RenderTransform>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#DD080C12" Offset="0"/>
+                    <GradientStop Color="#00080C12" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="SELECT YOUR SPORT" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#55FFFFFF" TextAlignment="Center"/>
+                <Border Height="2" Width="60" Margin="0,8,0,0" CornerRadius="1">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#0058A6FF" Offset="0"/>
+                            <GradientStop Color="#6058A6FF" Offset="0.5"/>
+                            <GradientStop Color="#0058A6FF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
             </StackPanel>
+        </Border>
 
-            <!-- Sport cards -->
-            <UniformGrid Grid.Row="1" Columns="2">
+        <!-- TRAINING MODE TILE — top-right corner, third option -->
+        <Border x:Name="TrainingTile" VerticalAlignment="Top" HorizontalAlignment="Right"
+                Margin="0,28,30,0" Panel.ZIndex="15"
+                Cursor="Hand" Opacity="0"
+                Background="#0D1117"
+                BorderBrush="#FBBF24" BorderThickness="2"
+                Padding="18,10"
+                MouseLeftButtonUp="Training_Click"
+                MouseEnter="TrainingTile_MouseEnter" MouseLeave="TrainingTile_MouseLeave">
+            <Border.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="TrainingTileScale" CenterX="0.5" CenterY="0.5"/>
+                    <TranslateTransform x:Name="TrainingTileTranslate" Y="-30"/>
+                </TransformGroup>
+            </Border.RenderTransform>
+            <Border.Effect>
+                <DropShadowEffect x:Name="TrainingTileGlow" BlurRadius="20" ShadowDepth="0" Color="#FBBF24" Opacity="0.4"/>
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Whistle / stopwatch icon -->
+                <Viewbox Width="22" Height="22" Margin="0,0,10,0">
+                    <Canvas Width="32" Height="32">
+                        <Ellipse Width="22" Height="22" Canvas.Left="5" Canvas.Top="7"
+                                 Stroke="#FBBF24" StrokeThickness="2.5" Fill="#0D1117"/>
+                        <Line X1="16" Y1="11" X2="16" Y2="18"
+                              Stroke="#FBBF24" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        <Line X1="16" Y1="18" X2="21" Y2="18"
+                              Stroke="#FBBF24" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        <Rectangle Width="6" Height="3" Canvas.Left="13" Canvas.Top="3" Fill="#FBBF24"/>
+                    </Canvas>
+                </Viewbox>
+                <StackPanel>
+                    <TextBlock Text="TRAINING MODE" Foreground="#FBBF24"
+                               FontFamily="Bahnschrift" FontWeight="Black" FontSize="14">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="#FBBF24" Opacity="0.6"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock Text="STOPWATCHES &amp; INTERVALS"
+                               Foreground="#9CA3AF"
+                               FontFamily="Bahnschrift" FontWeight="SemiBold" FontSize="9"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
 
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- MAIN SPLIT                                             -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-                <!-- AFL Card -->
-                <Border CornerRadius="16" Padding="28,32" Cursor="Hand" Margin="0,0,12,0"
-                        MouseLeftButtonUp="AFL_Click"
-                        RenderTransformOrigin="0.5,0.5">
-                    <Border.Background>
-                        <SolidColorBrush x:Name="AflBg" Color="#111827"/>
-                    </Border.Background>
-                    <Border.BorderBrush>
-                        <SolidColorBrush x:Name="AflBorder" Color="#1E293B"/>
-                    </Border.BorderBrush>
-                    <Border.BorderThickness>2</Border.BorderThickness>
-                    <Border.RenderTransform>
-                        <ScaleTransform x:Name="AflScale" ScaleX="1" ScaleY="1"/>
-                    </Border.RenderTransform>
-                    <StackPanel>
-                        <TextBlock Text="🏈" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
-                        <TextBlock Text="AFL" Foreground="White" FontSize="22" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-                        <TextBlock Text="Australian Football" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                        <TextBlock Text="Goals, behinds, quarters, and all the AFL scoring features you know." Foreground="#64748B" FontSize="11" TextWrapping="Wrap" TextAlignment="Center"/>
+            <!-- ══════════════════════════════════════ -->
+            <!--  AFL — LEFT HALF                      -->
+            <!-- ══════════════════════════════════════ -->
+            <Border x:Name="AflCard" Grid.Column="0" Cursor="Hand" ClipToBounds="True"
+                    Opacity="0" RenderTransformOrigin="0.5,0.5"
+                    MouseLeftButtonUp="AFL_Click"
+                    MouseEnter="Card_MouseEnter" MouseLeave="Card_MouseLeave">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="AflCardScale"/>
+                        <TranslateTransform x:Name="AflCardTranslate" X="-80"/>
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#0A1628" Offset="0"/>
+                        <GradientStop Color="#122040" Offset="0.5"/>
+                        <GradientStop Color="#0D1830" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Grid>
+                    <!-- Diagonal stripe texture -->
+                    <Border Opacity="0.025" IsHitTestVisible="False">
+                        <Border.Background>
+                            <VisualBrush TileMode="Tile"
+                                         Viewport="0,0,40,40" ViewportUnits="Absolute"
+                                         Viewbox="0,0,40,40" ViewboxUnits="Absolute">
+                                <VisualBrush.Visual>
+                                    <Canvas Width="40" Height="40">
+                                        <Line X1="0" Y1="40" X2="40" Y2="0"
+                                              Stroke="White" StrokeThickness="1"/>
+                                    </Canvas>
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- Faint AFL field oval markings -->
+                    <Canvas HorizontalAlignment="Center" VerticalAlignment="Center"
+                            IsHitTestVisible="False" Opacity="0.04" Margin="0,30,0,0">
+                        <Ellipse Width="400" Height="280" Canvas.Left="-200" Canvas.Top="-140"
+                                 Stroke="White" StrokeThickness="2" StrokeDashArray="6 4"/>
+                        <Ellipse Width="100" Height="100" Canvas.Left="-50" Canvas.Top="-50"
+                                 Stroke="White" StrokeThickness="1.5"/>
+                    </Canvas>
+
+                    <!-- Radial hero spotlight glow -->
+                    <Border x:Name="AflGlow" Opacity="0" IsHitTestVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush Center="0.5,0.38" RadiusX="0.55" RadiusY="0.55">
+                                <GradientStop Color="#5058A6FF" Offset="0"/>
+                                <GradientStop Color="#2058A6FF" Offset="0.4"/>
+                                <GradientStop Color="#00000000" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- Scanning light beam -->
+                    <Border ClipToBounds="True" IsHitTestVisible="False" Opacity="0.06">
+                        <Border Width="150" HorizontalAlignment="Left">
+                            <Border.RenderTransform>
+                                <TranslateTransform x:Name="AflBeamTranslate" X="-200"/>
+                            </Border.RenderTransform>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#00FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#40FFFFFF" Offset="0.5"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                    </Border>
+
+                    <!-- Bokeh particles -->
+                    <Canvas IsHitTestVisible="False">
+                        <Ellipse Width="6" Height="6" Fill="#2058A6FF" Canvas.Left="80" Canvas.Top="100">
+                            <Ellipse.Effect><BlurEffect Radius="3"/></Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="10" Height="10" Fill="#1558A6FF" Canvas.Left="200" Canvas.Top="250">
+                            <Ellipse.Effect><BlurEffect Radius="4"/></Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="4" Height="4" Fill="#2558A6FF" Canvas.Left="150" Canvas.Top="180">
+                            <Ellipse.Effect><BlurEffect Radius="2"/></Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="8" Height="8" Fill="#1858A6FF" Canvas.Left="50" Canvas.Top="350">
+                            <Ellipse.Effect><BlurEffect Radius="3"/></Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="5" Height="5" Fill="#2058A6FF" Canvas.Left="250" Canvas.Top="60">
+                            <Ellipse.Effect><BlurEffect Radius="2"/></Ellipse.Effect>
+                        </Ellipse>
+                    </Canvas>
+
+                    <!-- Vignette (darkens edges for cinematic depth) -->
+                    <Border IsHitTestVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#00000000" Offset="0.3"/>
+                                <GradientStop Color="#50000000" Offset="1.0"/>
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- ── Icon + Text content ── -->
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                Margin="0,-20,0,0">
+
+                        <!-- Football icon -->
+                        <Border x:Name="AflIconGroup" Opacity="0" RenderTransformOrigin="0.5,0.5"
+                                HorizontalAlignment="Center" IsHitTestVisible="False">
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="AflIconScale" ScaleX="0.3" ScaleY="0.3"/>
+                                    <TranslateTransform x:Name="AflIconFloat"/>
+                                    <TranslateTransform x:Name="AflIconHover"/>
+                                </TransformGroup>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#58A6FF" BlurRadius="40"
+                                                  ShadowDepth="0" Opacity="0.5"/>
+                            </Border.Effect>
+                            <Viewbox Width="180" Height="220" Stretch="Uniform">
+                                <Canvas Width="100" Height="110">
+                                    <Canvas.RenderTransform>
+                                        <TranslateTransform X="50" Y="55"/>
+                                    </Canvas.RenderTransform>
+                                    <!-- Ball outline -->
+                                    <Path Data="M 0,-55 C 30,-52 48,-28 48,0 C 48,28 30,52 0,55 C -30,52 -48,28 -48,0 C -48,-28 -30,-52 0,-55 Z"
+                                          Stroke="White" StrokeThickness="2.8" Fill="#10FFFFFF"/>
+                                    <!-- Center seam -->
+                                    <Path Data="M 0,-42 L 0,42"
+                                          Stroke="White" StrokeThickness="1.5" Opacity="0.6"/>
+                                    <!-- Laces -->
+                                    <Line X1="-10" Y1="-15" X2="10" Y2="-15"
+                                          Stroke="White" StrokeThickness="2.2"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Line X1="-12" Y1="-5" X2="12" Y2="-5"
+                                          Stroke="White" StrokeThickness="2.2"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Line X1="-12" Y1="5" X2="12" Y2="5"
+                                          Stroke="White" StrokeThickness="2.2"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Line X1="-10" Y1="15" X2="10" Y2="15"
+                                          Stroke="White" StrokeThickness="2.2"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                </Canvas>
+                            </Viewbox>
+                        </Border>
+
+                        <!-- Text group -->
+                        <StackPanel x:Name="AflTextPanel" Opacity="0"
+                                    HorizontalAlignment="Center" Margin="0,15,0,0"
+                                    IsHitTestVisible="False">
+                            <StackPanel.RenderTransform>
+                                <TranslateTransform x:Name="AflTextTranslate" Y="25"/>
+                            </StackPanel.RenderTransform>
+                            <TextBlock Text="AFL" FontSize="52" FontWeight="Black"
+                                       Foreground="White" TextAlignment="Center"
+                                       HorizontalAlignment="Center">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="0"
+                                                      Color="#58A6FF" Opacity="0.4"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <TextBlock Text="AUSTRALIAN RULES FOOTBALL" FontSize="11"
+                                       FontWeight="SemiBold" Foreground="#6058A6FF"
+                                       TextAlignment="Center" HorizontalAlignment="Center"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
                     </StackPanel>
-                </Border>
 
-                <!-- Cricket Card -->
-                <Border CornerRadius="16" Padding="28,32" Cursor="Hand" Margin="12,0,0,0"
-                        MouseLeftButtonUp="Cricket_Click"
-                        RenderTransformOrigin="0.5,0.5">
-                    <Border.Background>
-                        <SolidColorBrush x:Name="CricketBg" Color="#111827"/>
-                    </Border.Background>
-                    <Border.BorderBrush>
-                        <SolidColorBrush x:Name="CricketBorder" Color="#1E293B"/>
-                    </Border.BorderBrush>
-                    <Border.BorderThickness>2</Border.BorderThickness>
-                    <Border.RenderTransform>
-                        <ScaleTransform x:Name="CricketScale" ScaleX="1" ScaleY="1"/>
-                    </Border.RenderTransform>
-                    <StackPanel>
-                        <TextBlock Text="🏏" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
-                        <TextBlock Text="CRICKET" Foreground="White" FontSize="22" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-                        <TextBlock Text="Limited Overs &amp; Multi-Day" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                        <TextBlock Text="Full innings, batting, bowling, overs, targets, partnerships, and extras." Foreground="#64748B" FontSize="11" TextWrapping="Wrap" TextAlignment="Center"/>
+                    <!-- Hover brightness overlay -->
+                    <Border x:Name="AflHover" Background="White" Opacity="0"
+                            IsHitTestVisible="False"/>
+
+                    <!-- Click flash overlay -->
+                    <Border x:Name="AflFlash" Background="White" Opacity="0"
+                            IsHitTestVisible="False"/>
+                </Grid>
+            </Border>
+
+            <!-- ══════════════════════════════════════ -->
+            <!--  CENTRE DIVIDER                       -->
+            <!-- ══════════════════════════════════════ -->
+            <Border Grid.ColumnSpan="2" HorizontalAlignment="Center" Panel.ZIndex="5"
+                    IsHitTestVisible="False" Width="6" RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <ScaleTransform x:Name="DividerScale" ScaleY="0"/>
+                </Border.RenderTransform>
+                <Grid>
+                    <!-- Soft glow -->
+                    <Border x:Name="DividerGlowLine" Opacity="0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#00FFFFFF" Offset="0"/>
+                                <GradientStop Color="#30FFFFFF" Offset="0.3"/>
+                                <GradientStop Color="#50FFFFFF" Offset="0.5"/>
+                                <GradientStop Color="#30FFFFFF" Offset="0.7"/>
+                                <GradientStop Color="#00FFFFFF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <BlurEffect Radius="3"/>
+                        </Border.Effect>
+                    </Border>
+                    <!-- Sharp centre line -->
+                    <Border Width="1" Opacity="0.5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#00FFFFFF" Offset="0"/>
+                                <GradientStop Color="#FFFFFFFF" Offset="0.3"/>
+                                <GradientStop Color="#FFFFFFFF" Offset="0.7"/>
+                                <GradientStop Color="#00FFFFFF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ══════════════════════════════════════ -->
+            <!--  CRICKET — RIGHT HALF                 -->
+            <!-- ══════════════════════════════════════ -->
+            <Border x:Name="CricketCard" Grid.Column="1" Cursor="Hand" ClipToBounds="True"
+                    Opacity="0" RenderTransformOrigin="0.5,0.5"
+                    MouseLeftButtonUp="Cricket_Click"
+                    MouseEnter="Card_MouseEnter" MouseLeave="Card_MouseLeave">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="CricketCardScale"/>
+                        <TranslateTransform x:Name="CricketCardTranslate" X="80"/>
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#0F1A0A" Offset="0"/>
+                        <GradientStop Color="#1A2E12" Offset="0.5"/>
+                        <GradientStop Color="#12200D" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Grid>
+                    <!-- Diagonal stripe texture -->
+                    <Border Opacity="0.025" IsHitTestVisible="False">
+                        <Border.Background>
+                            <VisualBrush TileMode="Tile"
+                                         Viewport="0,0,40,40" ViewportUnits="Absolute"
+                                         Viewbox="0,0,40,40" ViewboxUnits="Absolute">
+                                <VisualBrush.Visual>
+                                    <Canvas Width="40" Height="40">
+                                        <Line X1="0" Y1="40" X2="40" Y2="0"
+                                              Stroke="White" StrokeThickness="1"/>
+                                    </Canvas>
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- Faint cricket pitch markings -->
+                    <Canvas HorizontalAlignment="Center" VerticalAlignment="Center"
+                            IsHitTestVisible="False" Opacity="0.04" Margin="0,30,0,0">
+                        <Rectangle Width="50" Height="260" Canvas.Left="-25" Canvas.Top="-130"
+                                   Stroke="White" StrokeThickness="1.5"/>
+                        <Line X1="-35" Y1="-100" X2="35" Y2="-100"
+                              Stroke="White" StrokeThickness="1"/>
+                        <Line X1="-35" Y1="100" X2="35" Y2="100"
+                              Stroke="White" StrokeThickness="1"/>
+                    </Canvas>
+
+                    <!-- Radial hero spotlight glow -->
+                    <Border x:Name="CricketGlow" Opacity="0" IsHitTestVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush Center="0.5,0.38" RadiusX="0.55" RadiusY="0.55">
+                                <GradientStop Color="#503FB950" Offset="0"/>
+                                <GradientStop Color="#203FB950" Offset="0.4"/>
+                                <GradientStop Color="#00000000" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- Scanning light beam -->
+                    <Border ClipToBounds="True" IsHitTestVisible="False" Opacity="0.06">
+                        <Border Width="150" HorizontalAlignment="Left">
+                            <Border.RenderTransform>
+                                <TranslateTransform x:Name="CricketBeamTranslate" X="-200"/>
+                            </Border.RenderTransform>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#00FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#40FFFFFF" Offset="0.5"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                    </Border>
+
+                    <!-- Bokeh particles -->
+                    <Canvas IsHitTestVisible="False">
+                        <Ellipse Width="7" Height="7" Fill="#203FB950" Canvas.Left="100" Canvas.Top="120">
+                            <Ellipse.Effect><BlurEffect Radius="3"/></Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="10" Height="10" Fill="#153FB950" Canvas.Left="220" Canvas.Top="280">
+                            <Ellipse.Effect><BlurEffect Radius="4"/></Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="5" Height="5" Fill="#253FB950" Canvas.Left="160" Canvas.Top="200">
+                            <Ellipse.Effect><BlurEffect Radius="2"/></Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="9" Height="9" Fill="#183FB950" Canvas.Left="70" Canvas.Top="370">
+                            <Ellipse.Effect><BlurEffect Radius="3"/></Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="4" Height="4" Fill="#223FB950" Canvas.Left="270" Canvas.Top="80">
+                            <Ellipse.Effect><BlurEffect Radius="2"/></Ellipse.Effect>
+                        </Ellipse>
+                    </Canvas>
+
+                    <!-- Vignette -->
+                    <Border IsHitTestVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#00000000" Offset="0.3"/>
+                                <GradientStop Color="#50000000" Offset="1.0"/>
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- ── Icon + Text content ── -->
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                Margin="0,-20,0,0">
+
+                        <!-- Cricket icon (bat, stumps, ball) -->
+                        <Border x:Name="CricketIconGroup" Opacity="0" RenderTransformOrigin="0.5,0.5"
+                                HorizontalAlignment="Center" IsHitTestVisible="False">
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="CricketIconScale" ScaleX="0.3" ScaleY="0.3"/>
+                                    <TranslateTransform x:Name="CricketIconFloat"/>
+                                    <TranslateTransform x:Name="CricketIconHover"/>
+                                </TransformGroup>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#3FB950" BlurRadius="40"
+                                                  ShadowDepth="0" Opacity="0.5"/>
+                            </Border.Effect>
+                            <Viewbox Width="200" Height="200" Stretch="Uniform">
+                                <Canvas Width="180" Height="180">
+                                    <!-- Bat blade -->
+                                    <Rectangle Canvas.Left="30" Canvas.Top="55" Width="28" Height="85"
+                                               RadiusX="4" RadiusY="8" Stroke="White"
+                                               StrokeThickness="2.5" Fill="#10FFFFFF"/>
+                                    <!-- Bat handle -->
+                                    <Rectangle Canvas.Left="37" Canvas.Top="15" Width="14" Height="44"
+                                               RadiusX="3" RadiusY="3" Stroke="White"
+                                               StrokeThickness="2" Fill="#08FFFFFF"/>
+                                    <!-- Grip wraps -->
+                                    <Line X1="39" Y1="25" X2="49" Y2="25"
+                                          Stroke="White" StrokeThickness="1.5" Opacity="0.6"/>
+                                    <Line X1="39" Y1="33" X2="49" Y2="33"
+                                          Stroke="White" StrokeThickness="1.5" Opacity="0.6"/>
+                                    <Line X1="39" Y1="41" X2="49" Y2="41"
+                                          Stroke="White" StrokeThickness="1.5" Opacity="0.6"/>
+                                    <!-- Stumps -->
+                                    <Rectangle Canvas.Left="105" Canvas.Top="60" Width="5" Height="110"
+                                               Fill="White" Opacity="0.9" RadiusX="1.5" RadiusY="1.5"/>
+                                    <Rectangle Canvas.Left="120" Canvas.Top="60" Width="5" Height="110"
+                                               Fill="White" Opacity="0.9" RadiusX="1.5" RadiusY="1.5"/>
+                                    <Rectangle Canvas.Left="135" Canvas.Top="60" Width="5" Height="110"
+                                               Fill="White" Opacity="0.9" RadiusX="1.5" RadiusY="1.5"/>
+                                    <!-- Bails -->
+                                    <Rectangle Canvas.Left="103" Canvas.Top="56" Width="21" Height="4"
+                                               Fill="White" RadiusX="2" RadiusY="2"/>
+                                    <Rectangle Canvas.Left="119" Canvas.Top="56" Width="21" Height="4"
+                                               Fill="White" RadiusX="2" RadiusY="2"/>
+                                    <!-- Ball -->
+                                    <Ellipse Canvas.Left="95" Canvas.Top="18" Width="28" Height="28"
+                                             Stroke="White" StrokeThickness="2.5" Fill="#10FFFFFF"/>
+                                    <!-- Ball seam -->
+                                    <Path Data="M 103,23 C 107,30 112,37 116,42"
+                                          Stroke="White" StrokeThickness="1.5"/>
+                                </Canvas>
+                            </Viewbox>
+                        </Border>
+
+                        <!-- Text group -->
+                        <StackPanel x:Name="CricketTextPanel" Opacity="0"
+                                    HorizontalAlignment="Center" Margin="0,15,0,0"
+                                    IsHitTestVisible="False">
+                            <StackPanel.RenderTransform>
+                                <TranslateTransform x:Name="CricketTextTranslate" Y="25"/>
+                            </StackPanel.RenderTransform>
+                            <TextBlock Text="CRICKET" FontSize="52" FontWeight="Black"
+                                       Foreground="White" TextAlignment="Center"
+                                       HorizontalAlignment="Center">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="0"
+                                                      Color="#3FB950" Opacity="0.4"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <TextBlock Text="THE GENTLEMAN'S GAME" FontSize="11"
+                                       FontWeight="SemiBold" Foreground="#603FB950"
+                                       TextAlignment="Center" HorizontalAlignment="Center"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
                     </StackPanel>
-                </Border>
-            </UniformGrid>
+
+                    <!-- Hover brightness overlay -->
+                    <Border x:Name="CricketHover" Background="White" Opacity="0"
+                            IsHitTestVisible="False"/>
+
+                    <!-- Click flash overlay -->
+                    <Border x:Name="CricketFlash" Background="White" Opacity="0"
+                            IsHitTestVisible="False"/>
+                </Grid>
+            </Border>
         </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- BOTTOM ACCENT BAR + CHANGELOG — centred, hover-expand  -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Grid VerticalAlignment="Bottom" Panel.ZIndex="20"
+              MouseEnter="ChangelogBar_MouseEnter" MouseLeave="ChangelogBar_MouseLeave">
+            <!-- Accent line at very bottom -->
+            <Border x:Name="BottomAccent" VerticalAlignment="Bottom" Height="3" Opacity="0"
+                    IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#58A6FF" Offset="0"/>
+                        <GradientStop Color="#1AFFFFFF" Offset="0.5"/>
+                        <GradientStop Color="#3FB950" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <!-- Changelog container -->
+            <Border x:Name="ChangelogBar" VerticalAlignment="Bottom"
+                    HorizontalAlignment="Center" Margin="0,0,0,3"
+                    MaxWidth="860" MinWidth="400">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="ChangelogTranslate" Y="0"/>
+                </Border.RenderTransform>
+
+                <Grid>
+                    <!-- Collapsed state: version pill -->
+                    <Border x:Name="ChangelogToggle" Background="#18FFFFFF"
+                            BorderBrush="#20FFFFFF" BorderThickness="1"
+                            CornerRadius="10,10,0,0" Padding="20,7"
+                            HorizontalAlignment="Center" Cursor="Hand"
+                            Opacity="0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="VersionLabel" Text="v2.0.0" FontSize="13" FontWeight="Bold"
+                                       Foreground="#8B949E" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                            <TextBlock Text="  ·  CHANGELOG" FontSize="10" FontWeight="Black"
+                                       Foreground="#484F58" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Expanded state: full changelog panel -->
+                    <Border x:Name="ChangelogPanel"
+                            Background="#0D1117" BorderBrush="#1C2838" BorderThickness="1,1,1,0"
+                            CornerRadius="10,10,0,0" ClipToBounds="True"
+                            MaxHeight="0" Opacity="0">
+                        <Grid>
+                            <!-- Ambient glow -->
+                            <Border Opacity="0.06" IsHitTestVisible="False" CornerRadius="10,10,0,0">
+                                <Border.Background>
+                                    <RadialGradientBrush Center="0.5,0.2" RadiusX="0.6" RadiusY="0.5">
+                                        <GradientStop Color="#58A6FF" Offset="0"/>
+                                        <GradientStop Color="#00000000" Offset="1"/>
+                                    </RadialGradientBrush>
+                                </Border.Background>
+                            </Border>
+
+                            <StackPanel>
+                                <!-- Header -->
+                                <Border Background="#111822" BorderBrush="#1C2838" BorderThickness="0,0,0,1" Padding="18,10">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="📋" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock Text="CHANGELOG" FontSize="16" FontWeight="Black" Foreground="#58A6FF" FontFamily="Bahnschrift" VerticalAlignment="Center">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="#58A6FF" Opacity="0.3"/>
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Scrollable entries -->
+                                <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto" Padding="20,14">
+                                    <StackPanel x:Name="ChangelogEntries"/>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
     </Grid>
 </UserControl>

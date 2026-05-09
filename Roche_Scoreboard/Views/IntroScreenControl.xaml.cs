@@ -1,25 +1,39 @@
 using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using Roche_Scoreboard.Services;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
+using Image = System.Windows.Controls.Image;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace Roche_Scoreboard.Views
 {
-    public partial class IntroScreenControl : System.Windows.Controls.UserControl
+    public partial class IntroScreenControl : UserControl
     {
         private Storyboard? _idleStoryboard;
         private Storyboard? _dismissStoryboard;
+        private bool _isDisposed;
 
         public IntroScreenControl()
         {
             InitializeComponent();
+            Unloaded += (_, _) => Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            _idleStoryboard?.Stop();
+            _idleStoryboard = null;
+            _dismissStoryboard?.Stop();
+            _dismissStoryboard = null;
         }
 
         /// <summary>
@@ -40,43 +54,39 @@ namespace Roche_Scoreboard.Views
             AwayNameBrush.Color = ContrastHelper.GetContrastForeground(awayColor);
 
             // Home logo
-            if (!string.IsNullOrWhiteSpace(homeLogoPath) && File.Exists(homeLogoPath))
-            {
-                var bi = new BitmapImage();
-                bi.BeginInit();
-                bi.UriSource = new Uri(homeLogoPath, UriKind.Absolute);
-                bi.CacheOption = BitmapCacheOption.OnLoad;
-                bi.EndInit();
-                bi.Freeze();
-                HomeLogoImage.Source = bi;
-                HomeLogoImage.Visibility = Visibility.Visible;
-                HomeNameFallback.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                HomeLogoImage.Visibility = Visibility.Collapsed;
-                HomeNameFallback.Visibility = Visibility.Visible;
-                HomeNameFallback.Text = homeName.ToUpperInvariant();
-            }
+            SetLogoImage(HomeLogoImage, HomeNameFallback, homeLogoPath, homeName);
 
             // Away logo
-            if (!string.IsNullOrWhiteSpace(awayLogoPath) && File.Exists(awayLogoPath))
+            SetLogoImage(AwayLogoImage, AwayNameFallback, awayLogoPath, awayName);
+        }
+
+        private static void SetLogoImage(Image image, TextBlock fallback, string? logoPath, string teamName)
+        {
+            if (string.IsNullOrWhiteSpace(logoPath) || !System.IO.File.Exists(logoPath))
+            {
+                image.Visibility = Visibility.Collapsed;
+                fallback.Visibility = Visibility.Visible;
+                fallback.Text = teamName.ToUpperInvariant();
+                return;
+            }
+
+            try
             {
                 var bi = new BitmapImage();
                 bi.BeginInit();
-                bi.UriSource = new Uri(awayLogoPath, UriKind.Absolute);
+                bi.UriSource = new Uri(logoPath, UriKind.Absolute);
                 bi.CacheOption = BitmapCacheOption.OnLoad;
                 bi.EndInit();
                 bi.Freeze();
-                AwayLogoImage.Source = bi;
-                AwayLogoImage.Visibility = Visibility.Visible;
-                AwayNameFallback.Visibility = Visibility.Collapsed;
+                image.Source = bi;
+                image.Visibility = Visibility.Visible;
+                fallback.Visibility = Visibility.Collapsed;
             }
-            else
+            catch
             {
-                AwayLogoImage.Visibility = Visibility.Collapsed;
-                AwayNameFallback.Visibility = Visibility.Visible;
-                AwayNameFallback.Text = awayName.ToUpperInvariant();
+                image.Visibility = Visibility.Collapsed;
+                fallback.Visibility = Visibility.Visible;
+                fallback.Text = teamName.ToUpperInvariant();
             }
         }
 
@@ -140,8 +150,7 @@ namespace Roche_Scoreboard.Views
             sb.Children.Add(homeShimOpacity);
 
             var homeShimX = new DoubleAnimation(-300, 900, TimeSpan.FromSeconds(1.5))
-            { RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut } };
-            homeShimX.Duration = TimeSpan.FromSeconds(4.0);
+            { RepeatBehavior = RepeatBehavior.Forever, Duration = TimeSpan.FromSeconds(4.0), EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut } };
             Storyboard.SetTarget(homeShimX, HomeShimmer);
             Storyboard.SetTargetProperty(homeShimX, new PropertyPath("RenderTransform.X"));
             sb.Children.Add(homeShimX);
@@ -158,8 +167,7 @@ namespace Roche_Scoreboard.Views
             sb.Children.Add(awayShimOpacity);
 
             var awayShimX = new DoubleAnimation(900, -300, TimeSpan.FromSeconds(1.5))
-            { RepeatBehavior = RepeatBehavior.Forever, BeginTime = TimeSpan.FromSeconds(2.0), EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut } };
-            awayShimX.Duration = TimeSpan.FromSeconds(4.0);
+            { RepeatBehavior = RepeatBehavior.Forever, BeginTime = TimeSpan.FromSeconds(2.0), Duration = TimeSpan.FromSeconds(4.0), EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut } };
             Storyboard.SetTarget(awayShimX, AwayShimmer);
             Storyboard.SetTargetProperty(awayShimX, new PropertyPath("RenderTransform.X"));
             sb.Children.Add(awayShimX);
@@ -168,23 +176,18 @@ namespace Roche_Scoreboard.Views
             var logoPulse = new DoubleAnimation(1.0, 1.05, TimeSpan.FromSeconds(1.5))
             { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = ease };
 
-            var homeLogoSX = logoPulse.Clone();
-            Storyboard.SetTarget(homeLogoSX, HomeLogoImage);
-            Storyboard.SetTargetProperty(homeLogoSX, new PropertyPath("RenderTransform.ScaleX"));
-            sb.Children.Add(homeLogoSX);
-            var homeLogoSY = logoPulse.Clone();
-            Storyboard.SetTarget(homeLogoSY, HomeLogoImage);
-            Storyboard.SetTargetProperty(homeLogoSY, new PropertyPath("RenderTransform.ScaleY"));
-            sb.Children.Add(homeLogoSY);
+            foreach (var element in new[] { HomeLogoImage, AwayLogoImage })
+            {
+                var logoSX = logoPulse.Clone();
+                Storyboard.SetTarget(logoSX, element);
+                Storyboard.SetTargetProperty(logoSX, new PropertyPath("RenderTransform.ScaleX"));
+                sb.Children.Add(logoSX);
 
-            var awayLogoSX = logoPulse.Clone();
-            Storyboard.SetTarget(awayLogoSX, AwayLogoImage);
-            Storyboard.SetTargetProperty(awayLogoSX, new PropertyPath("RenderTransform.ScaleX"));
-            sb.Children.Add(awayLogoSX);
-            var awayLogoSY = logoPulse.Clone();
-            Storyboard.SetTarget(awayLogoSY, AwayLogoImage);
-            Storyboard.SetTargetProperty(awayLogoSY, new PropertyPath("RenderTransform.ScaleY"));
-            sb.Children.Add(awayLogoSY);
+                var logoSY = logoPulse.Clone();
+                Storyboard.SetTarget(logoSY, element);
+                Storyboard.SetTargetProperty(logoSY, new PropertyPath("RenderTransform.ScaleY"));
+                sb.Children.Add(logoSY);
+            }
 
             _idleStoryboard = sb;
             sb.Begin(this, true);
@@ -199,11 +202,8 @@ namespace Roche_Scoreboard.Views
             _idleStoryboard?.Stop();
             _idleStoryboard = null;
 
-            var duration = TimeSpan.FromSeconds(0.7);
-            var ease = new CubicEase { EasingMode = EasingMode.EaseIn };
-            double splitDistance = 800;
-
             var sb = new Storyboard();
+            sb.Completed += (_, _) => onComplete?.Invoke();
 
             // VS flash bright then fade
             var vsFlash = new DoubleAnimationUsingKeyFrames();
@@ -231,24 +231,18 @@ namespace Roche_Scoreboard.Views
             sb.Children.Add(seamFlash);
 
             // Home half slides left
-            var homeSlide = new DoubleAnimation(0, -splitDistance, duration)
-            { BeginTime = TimeSpan.FromSeconds(0.15), EasingFunction = ease };
+            var homeSlide = new DoubleAnimation(0, -800, TimeSpan.FromSeconds(0.7))
+            { BeginTime = TimeSpan.FromSeconds(0.15), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
             Storyboard.SetTarget(homeSlide, HomeHalf);
             Storyboard.SetTargetProperty(homeSlide, new PropertyPath("RenderTransform.X"));
             sb.Children.Add(homeSlide);
 
             // Away half slides right
-            var awaySlide = new DoubleAnimation(0, splitDistance, duration)
-            { BeginTime = TimeSpan.FromSeconds(0.15), EasingFunction = ease };
+            var awaySlide = new DoubleAnimation(0, 800, TimeSpan.FromSeconds(0.7))
+            { BeginTime = TimeSpan.FromSeconds(0.15), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
             Storyboard.SetTarget(awaySlide, AwayHalf);
             Storyboard.SetTargetProperty(awaySlide, new PropertyPath("RenderTransform.X"));
             sb.Children.Add(awaySlide);
-
-            sb.Completed += (_, __) =>
-            {
-                Visibility = Visibility.Collapsed;
-                onComplete?.Invoke();
-            };
 
             _dismissStoryboard = sb;
             sb.Begin(this, true);
@@ -290,10 +284,20 @@ namespace Roche_Scoreboard.Views
             StartIdleAnimations();
         }
 
-        private static Color SafeColor(string hex, string fallback)
+        private static Color SafeColor(string? hex, string fallbackHex)
         {
-            try { return (Color)ColorConverter.ConvertFromString(hex); }
-            catch { return (Color)ColorConverter.ConvertFromString(fallback); }
+            try
+            {
+                if (string.IsNullOrWhiteSpace(hex))
+                    hex = fallbackHex;
+                if (!hex.StartsWith("#"))
+                    hex = "#" + hex;
+                return (Color)ColorConverter.ConvertFromString(hex);
+            }
+            catch
+            {
+                return (Color)ColorConverter.ConvertFromString(fallbackHex);
+            }
         }
     }
 }

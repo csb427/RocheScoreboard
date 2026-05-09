@@ -3,258 +3,326 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:Roche_Scoreboard.Views"
              mc:Ignorable="d"
-             d:DesignHeight="420" d:DesignWidth="707">
+             d:DesignHeight="193" d:DesignWidth="386"
+             Width="386" Height="193">
 
-    <Viewbox Stretch="Fill">
-        <Grid Width="707" Height="420">
-            <Grid.Background>
-                <LinearGradientBrush x:Name="StatsBgGradient" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#0A0E1F" Offset="0.0"/>
-                    <GradientStop Color="#121830" Offset="0.5"/>
-                    <GradientStop Color="#0A0E1F" Offset="1.0"/>
-                </LinearGradientBrush>
-            </Grid.Background>
+    <!-- Fixed 386x193 layout authored 1:1. No Viewbox/scaling. -->
+    <Grid ClipToBounds="True">
+        <Grid.Background>
+            <LinearGradientBrush x:Name="StatsBgGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#0D1117" Offset="0.0"/>
+                <GradientStop Color="#0D1117" Offset="0.5"/>
+                <GradientStop Color="#0D1117" Offset="1.0"/>
+            </LinearGradientBrush>
+        </Grid.Background>
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="54"/>   <!-- Title -->
-                <RowDefinition Height="*"/>    <!-- Stats grid -->
-                <RowDefinition Height="80"/>   <!-- Bottom bar -->
-            </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="16"/>   <!-- title -->
+            <RowDefinition Height="22"/>   <!-- team headers -->
+            <RowDefinition Height="*"/>    <!-- stat rows -->
+            <RowDefinition Height="44"/>   <!-- score bar -->
+        </Grid.RowDefinitions>
 
-            <!-- Title row -->
-            <Grid Grid.Row="0">
-                <!-- Time top-right -->
-                <TextBlock x:Name="StatsTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="14"
-                           HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,12,0"/>
-
-                <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" Margin="0,4,0,0">
-                    <TextBlock Text="MATCH STATS" Foreground="White" FontSize="46" FontWeight="Black" FontStyle="Italic">
-                        <TextBlock.Effect>
-                            <DropShadowEffect BlurRadius="10" ShadowDepth="3" Color="Black" Opacity="0.5"/>
-                        </TextBlock.Effect>
-                    </TextBlock>
-                </Viewbox>
-
-                <!-- Team headers -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="16,0,0,0">
-                    <Rectangle x:Name="StatsHomeLegendRect" Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="#4488FF" Margin="0,0,5,0"/>
-                    <TextBlock x:Name="StatsHomeLegendText" Text="HOME" Foreground="#AAAAAA" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,100,0">
-                    <TextBlock x:Name="StatsAwayLegendText" Text="AWAY" Foreground="#AAAAAA" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <Rectangle x:Name="StatsAwayLegendRect" Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="#FF6644" Margin="5,0,0,0"/>
-                </StackPanel>
-            </Grid>
-
-            <!-- Stats rows -->
-            <Grid Grid.Row="1" Margin="20,0,20,4">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <!-- Each row: Home value | connected clash bar with label | Away value -->
-
-                <!-- Row 0: Scoring Shots -->
-                <Grid Grid.Row="0" Margin="0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="85"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="85"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="StatsScrHomeShots" Text="0" Foreground="White" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    <Border Grid.Column="1" CornerRadius="8" Background="#15FFFFFF" Margin="6,6" VerticalAlignment="Center" Height="40" ClipToBounds="True">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="ShotsHomeCol" Width="*"/>
-                                <ColumnDefinition x:Name="ShotsAwayCol" Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" CornerRadius="8,0,0,8">
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="ShotHomeBrush" Color="#4488FF"/>
-                                </Border.Background>
-                            </Border>
-                            <Border Grid.Column="1" CornerRadius="0,8,8,0">
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="ShotAwayBrush" Color="#FF6644"/>
-                                </Border.Background>
-                            </Border>
-                            <Viewbox Grid.ColumnSpan="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,2">
-                                <TextBlock Text="SCORING SHOTS" Foreground="White" FontSize="16" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="Black" Opacity="0.9"/>
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                            </Viewbox>
-                        </Grid>
-                    </Border>
-                    <TextBlock Grid.Column="2" x:Name="StatsScrAwayShots" Text="0" Foreground="White" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-
-                <!-- Row 1: Accuracy -->
-                <Grid Grid.Row="1" Margin="0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="85"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="85"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="StatsScrHomeAcc" Text="0%" Foreground="White" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    <Border Grid.Column="1" CornerRadius="8" Background="#15FFFFFF" Margin="6,6" VerticalAlignment="Center" Height="40" ClipToBounds="True">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="AccHomeCol" Width="*"/>
-                                <ColumnDefinition x:Name="AccAwayCol" Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" CornerRadius="8,0,0,8">
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="AccHomeBrush" Color="#4488FF"/>
-                                </Border.Background>
-                            </Border>
-                            <Border Grid.Column="1" CornerRadius="0,8,8,0">
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="AccAwayBrush" Color="#FF6644"/>
-                                </Border.Background>
-                            </Border>
-                            <Viewbox Grid.ColumnSpan="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,2">
-                                <TextBlock Text="ACCURACY" Foreground="White" FontSize="16" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="Black" Opacity="0.9"/>
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                            </Viewbox>
-                        </Grid>
-                    </Border>
-                    <TextBlock Grid.Column="2" x:Name="StatsScrAwayAcc" Text="0%" Foreground="White" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-
-                <!-- Row 2: Time in Front -->
-                <Grid Grid.Row="2" Margin="0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="85"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="85"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="StatsScrHomeTime" Text="0%" Foreground="White" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    <Border Grid.Column="1" CornerRadius="8" Background="#15FFFFFF" Margin="6,6" VerticalAlignment="Center" Height="40" ClipToBounds="True">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="TimeHomeCol" Width="*"/>
-                                <ColumnDefinition x:Name="TimeAwayCol" Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" CornerRadius="8,0,0,8">
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="TimeHomeBrush" Color="#4488FF"/>
-                                </Border.Background>
-                            </Border>
-                            <Border Grid.Column="1" CornerRadius="0,8,8,0">
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="TimeAwayBrush" Color="#FF6644"/>
-                                </Border.Background>
-                            </Border>
-                            <Viewbox Grid.ColumnSpan="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,2">
-                                <TextBlock Text="TIME IN FRONT" Foreground="White" FontSize="16" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="Black" Opacity="0.9"/>
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                            </Viewbox>
-                        </Grid>
-                    </Border>
-                    <TextBlock Grid.Column="2" x:Name="StatsScrAwayTime" Text="0%" Foreground="White" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-
-                <!-- Row 3: Largest Lead -->
-                <Grid Grid.Row="3" Margin="0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="85"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="85"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="StatsScrHomeLead" Text="0" Foreground="White" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    <Border Grid.Column="1" CornerRadius="8" Background="#15FFFFFF" Margin="6,6" VerticalAlignment="Center" Height="40" ClipToBounds="True">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="LeadHomeCol" Width="*"/>
-                                <ColumnDefinition x:Name="LeadAwayCol" Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" CornerRadius="8,0,0,8">
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="LeadHomeBrush" Color="#4488FF"/>
-                                </Border.Background>
-                            </Border>
-                            <Border Grid.Column="1" CornerRadius="0,8,8,0">
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="LeadAwayBrush" Color="#FF6644"/>
-                                </Border.Background>
-                            </Border>
-                            <Viewbox Grid.ColumnSpan="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,2">
-                                <TextBlock Text="LARGEST LEAD" Foreground="White" FontSize="16" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="Black" Opacity="0.9"/>
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                            </Viewbox>
-                        </Grid>
-                    </Border>
-                    <TextBlock Grid.Column="2" x:Name="StatsScrAwayLead" Text="0" Foreground="White" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-            </Grid>
-
-            <!-- Persistent bottom bar -->
-            <Border Grid.Row="2">
+        <!-- TITLE -->
+        <Border Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+            <Border VerticalAlignment="Bottom" Height="1" IsHitTestVisible="False">
                 <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#0A0A30" Offset="0.0"/>
-                        <GradientStop Color="#1A1A6A" Offset="0.5"/>
-                        <GradientStop Color="#0A0A30" Offset="1.0"/>
+                    <LinearGradientBrush x:Name="StatsTitleAccent" StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#4488FF" Offset="0.0"/>
+                        <GradientStop Color="#00000000" Offset="0.5"/>
+                        <GradientStop Color="#FF6644" Offset="1.0"/>
                     </LinearGradientBrush>
                 </Border.Background>
+            </Border>
+        </Border>
+        <Grid Grid.Row="0" Margin="6,0">
+            <TextBlock Text="MATCH STATS" Foreground="#F0C040"
+                       FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="StatsTimeText" Text="1:26 PM" Foreground="#58A6FF"
+                       FontSize="9" FontWeight="SemiBold"
+                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- TEAM HEADERS -->
+        <Grid Grid.Row="1" Margin="4,2,4,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border x:Name="StatsHomeTeamHeader" Grid.Column="0" Padding="3,1" Height="20">
+                <Border.Effect>
+                    <DropShadowEffect x:Name="StatsHomeGlow" BlurRadius="4" ShadowDepth="0" Color="#4488FF" Opacity="0.6"/>
+                </Border.Effect>
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="130"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="90"/>
                     </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,0,4,0">
+                        <Ellipse x:Name="StatsHomeLogoFallback" Width="14" Height="14" Fill="#22FFFFFF"/>
+                        <Image x:Name="StatsHomeLogoImage" Width="14" Height="14" Stretch="UniformToFill" Visibility="Collapsed">
+                            <Image.Clip>
+                                <EllipseGeometry Center="7,7" RadiusX="7" RadiusY="7"/>
+                            </Image.Clip>
+                        </Image>
+                    </Grid>
+                    <TextBlock x:Name="StatsHomeTeamText" Grid.Column="1" Text="HOME"
+                               FontSize="12" FontWeight="Black" FontFamily="Bahnschrift"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                </Grid>
+            </Border>
 
-                    <Viewbox Grid.Column="0" Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
-                        <TextBlock x:Name="StatBarHomeAbbr" Text="XC" FontSize="40" FontWeight="Black">
-                            <TextBlock.Foreground>
-                                <SolidColorBrush x:Name="StatBarHomeAbbrBrush" Color="#FF6040"/>
-                            </TextBlock.Foreground>
-                        </TextBlock>
-                    </Viewbox>
+            <TextBlock Grid.Column="1" Text="VS" Foreground="#8B949E"
+                       FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
+                       Margin="6,0" VerticalAlignment="Center"/>
 
-                    <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
-                        <TextBlock x:Name="StatBarHomeScore" Text="8.5.53" Foreground="White" FontSize="40" FontWeight="Black"/>
-                    </Viewbox>
-
-                    <Border Grid.Column="2" CornerRadius="6" Margin="4,8">
-                        <Border.Background>
-                            <SolidColorBrush x:Name="StatBarTitleBg" Color="#2020AA"/>
-                        </Border.Background>
-                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
-                            <TextBlock x:Name="StatBarTitle" Text="3QT" Foreground="White" FontSize="40" FontWeight="Black"/>
-                        </Viewbox>
-                    </Border>
-
-                    <Viewbox Grid.Column="3" Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
-                        <TextBlock x:Name="StatBarAwayScore" Text="6.12.48" Foreground="White" FontSize="40" FontWeight="Black"/>
-                    </Viewbox>
-
-                    <Viewbox Grid.Column="4" Stretch="Uniform" StretchDirection="DownOnly" Margin="8,4">
-                        <TextBlock x:Name="StatBarAwayAbbr" Text="SKC" FontSize="40" FontWeight="Black">
-                            <TextBlock.Foreground>
-                                <SolidColorBrush x:Name="StatBarAwayAbbrBrush" Color="#40AA40"/>
-                            </TextBlock.Foreground>
-                        </TextBlock>
-                    </Viewbox>
+            <Border x:Name="StatsAwayTeamHeader" Grid.Column="2" Padding="3,1" Height="20">
+                <Border.Effect>
+                    <DropShadowEffect x:Name="StatsAwayGlow" BlurRadius="4" ShadowDepth="0" Color="#FF6644" Opacity="0.6"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="StatsAwayTeamText" Grid.Column="0" Text="AWAY"
+                               FontSize="12" FontWeight="Black" FontFamily="Bahnschrift"
+                               VerticalAlignment="Center" TextAlignment="Right"
+                               TextTrimming="CharacterEllipsis" Margin="0,0,4,0"/>
+                    <Grid Grid.Column="1" VerticalAlignment="Center">
+                        <Ellipse x:Name="StatsAwayLogoFallback" Width="14" Height="14" Fill="#22FFFFFF"/>
+                        <Image x:Name="StatsAwayLogoImage" Width="14" Height="14" Stretch="UniformToFill" Visibility="Collapsed">
+                            <Image.Clip>
+                                <EllipseGeometry Center="7,7" RadiusX="7" RadiusY="7"/>
+                            </Image.Clip>
+                        </Image>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>
-    </Viewbox>
+
+        <!-- STAT ROWS -->
+        <Grid Grid.Row="2" Margin="4,2,4,2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Row 0: Scoring Shots -->
+            <Grid Grid.Row="0" Margin="0,1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="34"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatsScrHomeShots" Text="0" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush x:Name="HomeValueBrush1" Color="#58A6FF"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+                <Border Grid.Column="1" Background="#0D1117" Margin="2,1" VerticalAlignment="Stretch" ClipToBounds="True">
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="ShotsBarBorder" Color="#30363D"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>1</Thickness>
+                    </Border.BorderThickness>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="ShotsHomeCol" Width="*"/>
+                            <ColumnDefinition x:Name="ShotsAwayCol" Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="ShotHomeBrush" Color="#58A6FF"/>
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="1">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="ShotAwayBrush" Color="#F85149"/>
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Grid.ColumnSpan="2" Text="SCORING SHOTS" Foreground="White"
+                                   FontSize="9" FontWeight="Black" FontFamily="Bahnschrift"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="2" ShadowDepth="0" Color="Black" Opacity="0.95"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+                <TextBlock Grid.Column="2" x:Name="StatsScrAwayShots" Text="0" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush x:Name="AwayValueBrush1" Color="#F85149"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+            </Grid>
+
+            <!-- Row 1: Accuracy -->
+            <Grid Grid.Row="1" Margin="0,1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="34"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatsScrHomeAcc" Text="0%" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush x:Name="HomeValueBrush2" Color="#58A6FF"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+                <Border Grid.Column="1" Background="#0D1117" Margin="2,1" VerticalAlignment="Stretch" ClipToBounds="True">
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="AccBarBorder" Color="#30363D"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>1</Thickness>
+                    </Border.BorderThickness>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="AccHomeCol" Width="*"/>
+                            <ColumnDefinition x:Name="AccAwayCol" Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="AccHomeBrush" Color="#58A6FF"/>
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="1">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="AccAwayBrush" Color="#F85149"/>
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Grid.ColumnSpan="2" Text="ACCURACY" Foreground="White"
+                                   FontSize="9" FontWeight="Black" FontFamily="Bahnschrift"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="2" ShadowDepth="0" Color="Black" Opacity="0.95"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+                <TextBlock Grid.Column="2" x:Name="StatsScrAwayAcc" Text="0%" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush x:Name="AwayValueBrush2" Color="#F85149"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+            </Grid>
+
+            <!-- Row 2: Time in Front -->
+            <Grid Grid.Row="2" Margin="0,1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="34"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatsScrHomeTime" Text="0%" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush x:Name="HomeValueBrush3" Color="#58A6FF"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+                <Border Grid.Column="1" Background="#0D1117" Margin="2,1" VerticalAlignment="Stretch" ClipToBounds="True">
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="TimeBarBorder" Color="#30363D"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>1</Thickness>
+                    </Border.BorderThickness>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="TimeHomeCol" Width="*"/>
+                            <ColumnDefinition x:Name="TimeTiedCol" Width="0"/>
+                            <ColumnDefinition x:Name="TimeAwayCol" Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="TimeHomeBrush" Color="#58A6FF"/>
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="1">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="TimeTiedBrush" Color="#484F58"/>
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="2">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="TimeAwayBrush" Color="#F85149"/>
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Grid.ColumnSpan="3" Text="TIME IN FRONT" Foreground="White"
+                                   FontSize="9" FontWeight="Black" FontFamily="Bahnschrift"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="2" ShadowDepth="0" Color="Black" Opacity="0.95"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+                <TextBlock Grid.Column="2" x:Name="StatsScrAwayTime" Text="0%" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush x:Name="AwayValueBrush3" Color="#F85149"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+            </Grid>
+
+            <!-- Row 3: Largest Lead -->
+            <Grid Grid.Row="3" Margin="0,1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="34"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatsScrHomeLead" Text="0" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush x:Name="HomeValueBrush4" Color="#58A6FF"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+                <Border Grid.Column="1" Background="#0D1117" Margin="2,1" VerticalAlignment="Stretch" ClipToBounds="True">
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="LeadBarBorder" Color="#30363D"/>
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>1</Thickness>
+                    </Border.BorderThickness>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="LeadHomeCol" Width="*"/>
+                            <ColumnDefinition x:Name="LeadAwayCol" Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="LeadHomeBrush" Color="#58A6FF"/>
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="1">
+                            <Border.Background>
+                                <SolidColorBrush x:Name="LeadAwayBrush" Color="#F85149"/>
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Grid.ColumnSpan="2" Text="LARGEST LEAD" Foreground="White"
+                                   FontSize="9" FontWeight="Black" FontFamily="Bahnschrift"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="2" ShadowDepth="0" Color="Black" Opacity="0.95"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+                <TextBlock Grid.Column="2" x:Name="StatsScrAwayLead" Text="0" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush x:Name="AwayValueBrush4" Color="#F85149"/>
+                    </TextBlock.Foreground>
+                </TextBlock>
+            </Grid>
+        </Grid>
+
+        <!-- BOTTOM SCORE BAR -->
+        <local:PresentationScoreBar x:Name="ScoreBar" Grid.Row="3"/>
+    </Grid>
 </UserControl>

@@ -1,0 +1,254 @@
+<UserControl x:Class="Roche_Scoreboard.Views.TrainingScorebugControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="540" d:DesignWidth="960"
+             Background="#080C12">
+
+    <!-- Master Viewbox: 960×540 canvas. Stretch="Fill" so the training
+         scorebug fills any host aspect ratio with no letterbox bars. -->
+    <Viewbox Stretch="Fill" StretchDirection="Both">
+        <Grid x:Name="RootGrid" Width="960" Height="540" ClipToBounds="True">
+        <Grid.Background>
+            <!-- Solid base colour we animate to red during finish flashes
+                 (no overlay element — the background itself swaps colour). -->
+            <SolidColorBrush x:Name="RootBg" Color="#080C12"/>
+        </Grid.Background>
+
+        <!-- Background gradient — sits over the solid root colour but uses
+             alpha so the red flash bleeds through cleanly when active. -->
+        <Border x:Name="GradientBg">
+            <Border.Background>
+                <RadialGradientBrush Center="0.5,0.45" RadiusX="0.7" RadiusY="0.7">
+                    <GradientStop Color="#0F1A28" Offset="0"/>
+                    <GradientStop Color="#080C12" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- Diagonal stripe texture -->
+        <Border Opacity="0.025" IsHitTestVisible="False">
+            <Border.Background>
+                <VisualBrush TileMode="Tile"
+                             Viewport="0,0,40,40" ViewportUnits="Absolute"
+                             Viewbox="0,0,40,40" ViewboxUnits="Absolute">
+                    <VisualBrush.Visual>
+                        <Canvas Width="40" Height="40">
+                            <Line X1="0" Y1="40" X2="40" Y2="0"
+                                  Stroke="White" StrokeThickness="1"/>
+                        </Canvas>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- Inner Viewbox: scales the 1920×1080 content canvas inside the
+             outer 960×540 grid. Stretch="Fill" matches the outer Viewbox so
+             non-uniform host ratios pass through cleanly without bars. -->
+        <Viewbox Stretch="Fill" StretchDirection="Both"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid Width="1920" Height="1080">
+                <!-- Five rows: title / flex spacer / timer block / flex spacer / up-next.
+                     Flex spacers absorb the up-next bar's growth so the timer
+                     block always stays vertically centred in the *remaining*
+                     space, never overlapping the up-next bar. -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title -->
+                <Border Grid.Row="0" Margin="0,70,0,0"
+                        HorizontalAlignment="Center"
+                        Padding="56,22"
+                        Background="#0D1117"
+                        BorderBrush="#58A6FF" BorderThickness="3">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="TitleScale" CenterX="0.5" CenterY="0.5"/>
+                            <TranslateTransform x:Name="TitleTranslate"/>
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <Border.Effect>
+                        <DropShadowEffect x:Name="TitleGlow" BlurRadius="34" ShadowDepth="0" Color="#58A6FF" Opacity="0.55"/>
+                    </Border.Effect>
+                    <TextBlock x:Name="TitleText" Text="WARM-UP"
+                               FontSize="110" FontWeight="Black" FontFamily="Bahnschrift"
+                               Foreground="White" TextAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="22" ShadowDepth="0" Color="#58A6FF" Opacity="0.8"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Border>
+
+                <!-- Big timer block (auto-sized so spacer rows centre it) -->
+                <StackPanel Grid.Row="2" x:Name="ActiveTimerHost"
+                            HorizontalAlignment="Center">
+                    <StackPanel.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="TimerScale" CenterX="0.5" CenterY="0.5" ScaleX="1" ScaleY="1"/>
+                            <TranslateTransform x:Name="TimerTranslate" X="0" Y="0"/>
+                        </TransformGroup>
+                    </StackPanel.RenderTransform>
+                    <TextBlock x:Name="TimerText" Text="05:00"
+                               FontSize="420" FontWeight="Black"
+                               FontFamily="Bahnschrift"
+                               Foreground="#FFFFFF"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect x:Name="TimerGlow" BlurRadius="50" ShadowDepth="0" Color="#58A6FF" Opacity="0.7"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+
+                    <!-- Progress bar -->
+                    <Border Width="1100" Height="20" Margin="0,24,0,0"
+                            Background="#1A1F2A"
+                            BorderBrush="#30363D" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="ProgressFillCol" Width="*"/>
+                                <ColumnDefinition x:Name="ProgressEmptyCol" Width="0*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0">
+                                <Border.Background>
+                                    <LinearGradientBrush x:Name="ProgressFillBrush" StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#58A6FF" Offset="0"/>
+                                        <GradientStop Color="#3FB950" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="#58A6FF" Opacity="0.6"/>
+                                </Border.Effect>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Status pill -->
+                    <Border x:Name="StatusPill" Margin="0,24,0,0"
+                            HorizontalAlignment="Center"
+                            Padding="34,10"
+                            Background="#0D1117"
+                            BorderThickness="3">
+                        <Border.BorderBrush>
+                            <SolidColorBrush x:Name="StatusPillBorder" Color="#58A6FF"/>
+                        </Border.BorderBrush>
+                        <TextBlock x:Name="StatusPillText" Text="READY"
+                                   FontSize="32" FontWeight="Black" FontFamily="Bahnschrift"
+                                   FontStretch="Expanded">
+                            <TextBlock.Foreground>
+                                <SolidColorBrush x:Name="StatusPillBrush" Color="#58A6FF"/>
+                            </TextBlock.Foreground>
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+
+                <!-- Up next bar — pinned to row 4. Row 3 (flex spacer) absorbs
+                     its growth so it never overlaps the timer block. -->
+                <Border x:Name="UpNextBar" Grid.Row="4"
+                        Height="0" ClipToBounds="True"
+                        Background="#0D1117"
+                        BorderBrush="#30363D" BorderThickness="0,2,0,0">
+                    <Grid Margin="80,22,80,22">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" x:Name="UpNextLabel" Text="UP NEXT"
+                                   Foreground="#8B949E" FontSize="42" FontWeight="Black"
+                                   FontFamily="Bahnschrift" VerticalAlignment="Center"
+                                   Margin="0,0,32,0"/>
+                        <TextBlock Grid.Column="1" x:Name="UpNextTitle" Text=""
+                                   Foreground="White" FontSize="58" FontWeight="Black"
+                                   FontFamily="Bahnschrift" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="2" x:Name="UpNextDuration" Text=""
+                                   Foreground="#58A6FF" FontSize="58" FontWeight="Black"
+                                   FontFamily="Bahnschrift" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="#58A6FF" Opacity="0.5"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <!-- Staged next timer — sits in row 4 (replaces the up-next
+                     bar visually). During the finish flash this hosts a live
+                     mini-preview of the next interval already ticking down.
+                     When the flash ends the active timer slides up & out and
+                     this block animates up to centre to take its place. -->
+                <Grid Grid.Row="4" x:Name="StagedTimerHost" Visibility="Collapsed">
+                    <Grid.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="StagedScale" CenterX="0.5" CenterY="1" ScaleX="1" ScaleY="1"/>
+                            <TranslateTransform x:Name="StagedTranslate" Y="0"/>
+                        </TransformGroup>
+                    </Grid.RenderTransform>
+                    <Border Background="#0D1117"
+                            BorderBrush="#3FB950" BorderThickness="0,3,0,0">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="#3FB950" Opacity="0.4"/>
+                        </Border.Effect>
+                        <Grid Margin="80,18,80,18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" x:Name="StagedLabel" Text="NOW STARTING"
+                                       Foreground="#3FB950" FontSize="34" FontWeight="Black"
+                                       FontFamily="Bahnschrift" VerticalAlignment="Center"
+                                       Margin="0,0,28,0">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="14" ShadowDepth="0" Color="#3FB950" Opacity="0.6"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <TextBlock Grid.Column="1" x:Name="StagedTitleText" Text=""
+                                       Foreground="White" FontSize="64" FontWeight="Black"
+                                       FontFamily="Bahnschrift" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Grid.Column="2" x:Name="StagedTimerText" Text="00:00"
+                                       Foreground="#FFFFFF" FontSize="84" FontWeight="Black"
+                                       FontFamily="Bahnschrift" VerticalAlignment="Center">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="#3FB950" Opacity="0.7"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Viewbox>
+
+        <!-- Session complete overlay -->
+        <Border x:Name="SessionCompleteOverlay"
+                IsHitTestVisible="False"
+                Opacity="0"
+                Panel.ZIndex="200">
+            <Grid>
+                <Border Background="#000000" Opacity="0.65"/>
+                <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="40">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="SESSION COMPLETE"
+                                   FontSize="160" FontWeight="Black" FontFamily="Bahnschrift"
+                                   Foreground="White" TextAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Color="#FF0000" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <TextBlock Text="ALL TIMERS FINISHED"
+                                   FontSize="42" FontWeight="Black" FontFamily="Bahnschrift"
+                                   Foreground="#FF8888" TextAlignment="Center" Margin="0,12,0,0"/>
+                    </StackPanel>
+                </Viewbox>
+            </Grid>
+        </Border>
+    </Grid>
+    </Viewbox>
+</UserControl>

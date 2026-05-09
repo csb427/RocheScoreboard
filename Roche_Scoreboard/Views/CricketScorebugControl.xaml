@@ -3,10 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="Transparent">
 
-    <Viewbox Stretch="Fill">
-        <Grid Width="707" Height="420">
+    <!-- Master Viewbox: 960×540 design canvas. Host window is locked to
+         16:9 so Uniform produces zero letterbox at any size. -->
+    <!-- Master Viewbox: 960×540 design canvas. Stretch="Fill" so the
+         cricket scorebug fills any host aspect ratio with no letterbox bars. -->
+    <Viewbox Stretch="Fill" StretchDirection="Both">
+        <Grid Width="960" Height="540">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20"/>    <!-- top bar with time -->
+                <RowDefinition Height="Auto"/>  <!-- overlay bars (AFL-style) -->
                 <RowDefinition Height="*"/>     <!-- main scoreboard -->
                 <RowDefinition Height="80"/>    <!-- bottom bar: stats + marquee -->
             </Grid.RowDefinitions>
@@ -20,11 +25,255 @@
                         <GradientStop Color="#0A1648" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
-                <TextBlock x:Name="TopTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Ellipse Grid.Column="0" Width="6" Height="6" Fill="#3FB950" Margin="8,0,4,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" x:Name="TopInningsText" Text="" Foreground="#94A3B8" FontWeight="Bold" FontSize="10" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" x:Name="TopTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                </Grid>
+            </Border>
+
+            <!-- ===== OVERLAY BARS (Height-animated, AFL-style) ===== -->
+
+            <!-- Partnership bar -->
+            <Border x:Name="PartnershipBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="5">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#0A0520" Offset="0.0"/>
+                        <GradientStop Color="#1A0E40" Offset="0.5"/>
+                        <GradientStop Color="#0A0520" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="16,0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="PARTNERSHIP" Foreground="#C084FC" FontSize="18" FontWeight="Black" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" x:Name="PartnershipBarRuns" Text="0" Foreground="White" FontSize="32" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Column="3" x:Name="PartnershipBarBalls" Text="(0)" Foreground="#94A3B8" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Run rate comparison bar -->
+            <Border x:Name="RunRateBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="6">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#021A05" Offset="0.0"/>
+                        <GradientStop Color="#0A3D12" Offset="0.5"/>
+                        <GradientStop Color="#021A05" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="12,0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="RUN RATE" Foreground="#4ADE80" FontSize="18" FontWeight="Black" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="CRR" Foreground="#94A3B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock x:Name="RunRateBarCRR" Text="0.00" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="RRR" Foreground="#F59E0B" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock x:Name="RunRateBarRRR" Text="—" Foreground="#FCD34D" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Target / chase bar -->
+            <Border x:Name="TargetBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="7">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#06061A" Offset="0.0"/>
+                        <GradientStop Color="#0C1230" Offset="0.5"/>
+                        <GradientStop Color="#06061A" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="12,0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="TARGET" Foreground="#58A6FF" FontSize="18" FontWeight="Black" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" x:Name="TargetBarTarget" Text="—" Foreground="White" FontSize="32" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="NEED" Foreground="#94A3B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock x:Name="TargetBarNeed" Text="—" Foreground="#FF6B6B" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="BALLS" Foreground="#94A3B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock x:Name="TargetBarBalls" Text="—" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Powerplay bar -->
+            <Border x:Name="PowerplayBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="8">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#1A0A02" Offset="0.0"/>
+                        <GradientStop Color="#3D2503" Offset="0.5"/>
+                        <GradientStop Color="#1A0A02" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="16,0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="⚡ POWERPLAY" Foreground="#F59E0B" FontSize="20" FontWeight="Black" VerticalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F59E0B" Opacity="0.5"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock Grid.Column="2" x:Name="PowerplayBarOvers" Text="0/6" Foreground="White" FontSize="30" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Last 5 overs bar -->
+            <Border x:Name="Last5OversBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="9">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#060D2E" Offset="0.0"/>
+                        <GradientStop Color="#0E1E5C" Offset="0.5"/>
+                        <GradientStop Color="#060D2E" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="16,0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="LAST 5 OVERS" Foreground="#58A6FF" FontSize="18" FontWeight="Black" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" x:Name="Last5OversBarValue" Text="0 runs" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Boundary drought bar -->
+            <Border x:Name="BoundaryDroughtBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="10">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#1A0A02" Offset="0.0"/>
+                        <GradientStop Color="#3D1503" Offset="0.5"/>
+                        <GradientStop Color="#1A0A02" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="16,0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="BOUNDARY DROUGHT" Foreground="#F59E0B" FontSize="18" FontWeight="Black" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" x:Name="BoundaryDroughtBarValue" Text="0 balls" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Overs remaining warning bar -->
+            <Border x:Name="OversWarningBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="11">
+                <Grid>
+                    <Border>
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#1A0E00" Offset="0"/>
+                                <GradientStop Color="#2E1800" Offset="0.3"/>
+                                <GradientStop Color="#2E1800" Offset="0.7"/>
+                                <GradientStop Color="#1A0E00" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Rectangle Opacity="0.18">
+                        <Rectangle.Fill>
+                            <DrawingBrush TileMode="Tile" Viewport="0,0,40,40" ViewportUnits="Absolute">
+                                <DrawingBrush.Transform>
+                                    <TranslateTransform x:Name="OversWarningStripesTranslate" X="0"/>
+                                </DrawingBrush.Transform>
+                                <DrawingBrush.Drawing>
+                                    <GeometryDrawing Brush="#FFD000">
+                                        <GeometryDrawing.Geometry>
+                                            <GeometryGroup>
+                                                <PathGeometry Figures="M0,0 L20,0 L40,20 L40,40 Z"/>
+                                                <PathGeometry Figures="M0,20 L20,40 L0,40 Z"/>
+                                            </GeometryGroup>
+                                        </GeometryDrawing.Geometry>
+                                    </GeometryDrawing>
+                                </DrawingBrush.Drawing>
+                            </DrawingBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Border VerticalAlignment="Top" Height="2">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#40FFD000" Offset="0"/>
+                                <GradientStop Color="#FFFFD000" Offset="0.5"/>
+                                <GradientStop Color="#40FFD000" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="⚠" FontSize="28" Foreground="#FFD000" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="#FFD000" Opacity="0.7"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <TextBlock x:Name="OversWarningText" Text="5 OVERS REMAINING" Foreground="#FFD000" FontSize="26" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="#FFD000" Opacity="0.6"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <TextBlock Text="⚠" FontSize="28" Foreground="#FFD000" VerticalAlignment="Center" Margin="10,0,0,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="#FFD000" Opacity="0.7"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Milestone bar (50/100 celebration) -->
+            <Border x:Name="MilestoneBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="12">
+                <Border.Background>
+                    <LinearGradientBrush x:Name="MilestoneBarGradient" StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#1A1A00" Offset="0.0"/>
+                        <GradientStop Color="#3D3D00" Offset="0.5"/>
+                        <GradientStop Color="#1A1A00" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="16,0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" x:Name="MilestoneBarEmoji" Text="🎉" FontSize="28" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Column="1" x:Name="MilestoneBarText" Text="HALF CENTURY" Foreground="#FCD34D" FontSize="22" FontWeight="Black" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="#FFD700" Opacity="0.7"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock Grid.Column="2" x:Name="MilestoneBarPlayer" Text="" Foreground="White" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
 
             <!-- ===== MAIN SCOREBOARD ===== -->
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="165"/>  <!-- left panel: score/overs/target -->
                     <ColumnDefinition Width="*"/>    <!-- right panel: batting/bowling -->
@@ -39,7 +288,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- Logo + Abbreviation + Score (one tile) -->
-                    <Border Grid.Row="0" BorderBrush="#334155" BorderThickness="0,0,0,2">
+                    <Border Grid.Row="0" BorderBrush="#1E293B" BorderThickness="0,0,1,1">
                         <Border.Background>
                             <SolidColorBrush x:Name="BattingTeamBg" Color="#CC0000"/>
                         </Border.Background>
@@ -82,7 +331,13 @@
                     </Border>
 
                     <!-- Overs -->
-                    <Border Grid.Row="1" Height="70" Background="#0A1648">
+                    <Border Grid.Row="1" Height="70" BorderBrush="#1E293B" BorderThickness="0,0,1,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#0A1648" Offset="0"/>
+                                <GradientStop Color="#070F38" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                             <TextBlock Text="OVERS" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                             <Grid ClipToBounds="True" Height="38" HorizontalAlignment="Center">
@@ -96,7 +351,13 @@
                     </Border>
 
                     <!-- Target / rotating info -->
-                    <Border Grid.Row="2" Height="70" Background="#0A1648" BorderBrush="#1E293B" BorderThickness="0,1,0,0">
+                    <Border Grid.Row="2" Height="70" BorderBrush="#1E293B" BorderThickness="0,1,1,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#0A1648" Offset="0"/>
+                                <GradientStop Color="#060D2E" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                             <TextBlock x:Name="InfoLabel" Text="RUN RATE" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                             <TextBlock x:Name="InfoValue" Text="0.00" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
@@ -118,11 +379,29 @@
                         <Border.Background>
                             <SolidColorBrush x:Name="BattingHeaderBg" Color="#CC0000"/>
                         </Border.Background>
-                        <TextBlock x:Name="BattingHeaderText" Text="TEAM A BATTING" Foreground="White" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/>
+                        <Grid>
+                            <!-- Subtle inner depth overlay -->
+                            <Border Opacity="0.15" IsHitTestVisible="False">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FFFFFF" Offset="0"/>
+                                        <GradientStop Color="#00000000" Offset="0.5"/>
+                                        <GradientStop Color="#40000000" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                            <TextBlock x:Name="BattingHeaderText" Text="TEAM A BATTING" Foreground="White" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/>
+                        </Grid>
                     </Border>
 
                     <!-- BATSMEN -->
-                    <Grid Grid.Row="1" Background="#0D1526">
+                    <Grid Grid.Row="1">
+                        <Grid.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#0D1526" Offset="0"/>
+                                <GradientStop Color="#0A1020" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Grid.Background>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
@@ -209,11 +488,29 @@
                         <Border.Background>
                             <SolidColorBrush x:Name="BowlingHeaderBg" Color="#000080"/>
                         </Border.Background>
-                        <TextBlock x:Name="BowlingHeaderText" Text="TEAM B BOWLING" Foreground="White" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/>
+                        <Grid>
+                            <!-- Subtle inner depth overlay -->
+                            <Border Opacity="0.15" IsHitTestVisible="False">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FFFFFF" Offset="0"/>
+                                        <GradientStop Color="#00000000" Offset="0.5"/>
+                                        <GradientStop Color="#40000000" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                            <TextBlock x:Name="BowlingHeaderText" Text="TEAM B BOWLING" Foreground="White" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/>
+                        </Grid>
                     </Border>
 
                     <!-- BOWLERS -->
-                    <Grid Grid.Row="3" Background="#0D1526">
+                    <Grid Grid.Row="3">
+                        <Grid.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#0D1526" Offset="0"/>
+                                <GradientStop Color="#0A1020" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Grid.Background>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
@@ -282,7 +579,14 @@
             </Grid>
 
             <!-- ===== BOTTOM BAR: neutral dark + stats overlay + marquee ===== -->
-            <Border Grid.Row="2" Background="#08103A">
+            <Border Grid.Row="3">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#060D2E" Offset="0.0"/>
+                        <GradientStop Color="#0E1648" Offset="0.5"/>
+                        <GradientStop Color="#060D2E" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
                 <Grid>
                     <!-- Marquee layer (always running underneath) -->
                     <Canvas ClipToBounds="True">
@@ -294,7 +598,14 @@
                     </Canvas>
 
                     <!-- Stats bar overlay — tiled cards -->
-                    <Border x:Name="StatsBarBg" Background="#08103A" Opacity="0" Padding="8,6">
+                    <Border x:Name="StatsBarBg" Opacity="0" Padding="8,6">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#060D2E" Offset="0.0"/>
+                                <GradientStop Color="#0E1648" Offset="0.5"/>
+                                <GradientStop Color="#060D2E" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
                         <Border.RenderTransform>
                             <TranslateTransform x:Name="StatsBarTranslate" Y="30"/>
                         </Border.RenderTransform>
@@ -327,7 +638,14 @@
                     </Border>
 
                     <!-- This-over ball tracker overlay -->
-                    <Border x:Name="OverTrackerBg" Background="#08103A" Opacity="0" Padding="16,0">
+                    <Border x:Name="OverTrackerBg" Opacity="0" Padding="16,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#060D2E" Offset="0.0"/>
+                                <GradientStop Color="#0E1648" Offset="0.5"/>
+                                <GradientStop Color="#060D2E" Offset="1.0"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
                         <Border.RenderTransform>
                             <TranslateTransform x:Name="OverTrackerTranslate" Y="30"/>
                         </Border.RenderTransform>
@@ -335,16 +653,33 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock x:Name="OverTrackerLabel" Text="OVER 1" Foreground="#94A3B8" FontSize="16" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                            <!-- Over label with accent underline -->
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                <TextBlock x:Name="OverTrackerLabel" Text="OVER 1" Foreground="#94A3B8" FontSize="16" FontWeight="Black"/>
+                                <Border Height="2" Margin="0,2,0,0" Opacity="0.4">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#818CF8" Offset="0"/>
+                                            <GradientStop Color="#00818CF8" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </StackPanel>
                             <StackPanel Grid.Column="1" x:Name="OverBallsPanel" Orientation="Horizontal" VerticalAlignment="Center"/>
+                            <!-- Over runs total -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                                <TextBlock x:Name="OverRunsLabel" Text="" Foreground="#64748B" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <TextBlock x:Name="OverRunsValue" Text="" Foreground="White" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Grid>
                     </Border>
                 </Grid>
             </Border>
 
             <!-- ===== FULL-SCREEN EVENT OVERLAY (4/6/W) — AFL Broadcast style ===== -->
-            <Border x:Name="EventOverlay" Grid.Row="0" Grid.RowSpan="3"
+            <Border x:Name="EventOverlay" Grid.Row="0" Grid.RowSpan="4"
                     IsHitTestVisible="False" Opacity="0" ClipToBounds="True">
                 <Border.Background>
                     <SolidColorBrush x:Name="EventOverlayBg" Color="#00000000"/>

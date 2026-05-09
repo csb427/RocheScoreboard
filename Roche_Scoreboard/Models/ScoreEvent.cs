@@ -9,15 +9,15 @@ namespace Roche_Scoreboard.Models
     {
         public DateTime Timestamp { get; init; } = DateTime.Now;
         public int Quarter { get; init; }
-        public TimeSpan GameTime { get; init; }         // elapsed in quarter
-        public TeamSide Team { get; init; }
-        public ScoreType Type { get; init; }
+        public TimeSpan GameTime { get; set; }         // elapsed in quarter
+        public TeamSide Team { get; set; }
+        public ScoreType Type { get; set; }
 
-        // Snapshots after event (for scoreworm/stats)
-        public int HomeGoals { get; init; }
-        public int HomeBehinds { get; init; }
-        public int AwayGoals { get; init; }
-        public int AwayBehinds { get; init; }
+        // Snapshots after event (rebuilt by MatchManager on corrections)
+        public int HomeGoals { get; set; }
+        public int HomeBehinds { get; set; }
+        public int AwayGoals { get; set; }
+        public int AwayBehinds { get; set; }
 
         public int HomeTotal => HomeGoals * 6 + HomeBehinds;
         public int AwayTotal => AwayGoals * 6 + AwayBehinds;

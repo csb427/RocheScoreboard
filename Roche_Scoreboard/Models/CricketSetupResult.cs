@@ -10,7 +10,7 @@ namespace Roche_Scoreboard.Models
         public string TeamAPrimaryColor { get; set; } = "#CC0000";
         public string TeamASecondaryColor { get; set; } = "#FFFFFF";
         public string? TeamALogoPath { get; set; }
-        public List<CricketPlayer> TeamAPlayers { get; set; } = new();
+        public List<CricketPlayer> TeamAPlayers { get; set; } = [];
 
         // Team B
         public string TeamBName { get; set; } = "Team B";
@@ -18,7 +18,7 @@ namespace Roche_Scoreboard.Models
         public string TeamBPrimaryColor { get; set; } = "#000080";
         public string TeamBSecondaryColor { get; set; } = "#FFFFFF";
         public string? TeamBLogoPath { get; set; }
-        public List<CricketPlayer> TeamBPlayers { get; set; } = new();
+        public List<CricketPlayer> TeamBPlayers { get; set; } = [];
 
         // Match settings
         public CricketFormat Format { get; set; } = CricketFormat.LimitedOvers;
@@ -30,6 +30,6 @@ namespace Roche_Scoreboard.Models
         public bool TeamABatsFirst { get; set; } = true;
 
         // Messages
-        public List<string> Messages { get; set; } = new();
+        public List<string> Messages { get; set; } = [];
     }
 }

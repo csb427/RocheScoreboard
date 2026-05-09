@@ -47,8 +47,8 @@ namespace Roche_Scoreboard.Models
         public int InningsNumber { get; init; }
         public string BattingTeamName { get; set; } = "";
         public string BowlingTeamName { get; set; } = "";
-        public List<CricketPlayer> BattingOrder { get; set; } = new();
-        public List<CricketPlayer> BowlingAttack { get; set; } = new();
+        public List<CricketPlayer> BattingOrder { get; set; } = [];
+        public List<CricketPlayer> BowlingAttack { get; set; } = [];
 
         public int TotalRuns { get; set; }
         public int TotalWickets { get; set; }
@@ -67,7 +67,7 @@ namespace Roche_Scoreboard.Models
             : $"{CompletedOvers}.{BallsInCurrentOver}";
 
         // Current over balls for display
-        public List<string> CurrentOverBalls { get; set; } = new();
+        public List<string> CurrentOverBalls { get; set; } = [];
 
         // Active batsmen indices into BattingOrder
         public int StrikerIndex { get; set; }
@@ -96,10 +96,57 @@ namespace Roche_Scoreboard.Models
         public CricketPlayer? CurrentBowler => CurrentBowlerIndex >= 0 && CurrentBowlerIndex < BowlingAttack.Count
             ? BowlingAttack[CurrentBowlerIndex] : null;
 
-        public List<CricketDelivery> Deliveries { get; set; } = new();
+        public List<CricketDelivery> Deliveries { get; set; } = [];
 
         public double RunRate => LegalBallsBowled > 0
             ? Math.Round(6.0 * TotalRuns / LegalBallsBowled, 2) : 0;
+
+        /// <summary>Number of consecutive legal deliveries without a boundary (4 or 6).</summary>
+        public int BoundaryDroughtBalls
+        {
+            get
+            {
+                int count = 0;
+                for (int i = Deliveries.Count - 1; i >= 0; i--)
+                {
+                    var d = Deliveries[i];
+                    if (d.Type == CricketDeliveryType.Four || d.Type == CricketDeliveryType.Six)
+                        break;
+                    if (d.Type != CricketDeliveryType.Wide && d.Type != CricketDeliveryType.NoBall)
+                        count++;
+                }
+                return count;
+            }
+        }
+
+        /// <summary>Runs scored in the last N completed overs (approximation from deliveries).</summary>
+        public int RunsInLastOvers(int oversCount)
+        {
+            int ballsWanted = oversCount * 6;
+            int runs = 0;
+            int legalCounted = 0;
+            for (int i = Deliveries.Count - 1; i >= 0 && legalCounted < ballsWanted; i--)
+            {
+                runs += Deliveries[i].Runs;
+                if (Deliveries[i].Type != CricketDeliveryType.Wide && Deliveries[i].Type != CricketDeliveryType.NoBall)
+                    legalCounted++;
+            }
+            return runs;
+        }
+
+        /// <summary>Boundaries (4s + 6s) hit in this innings.</summary>
+        public int TotalBoundaries => BattingOrder.Sum(p => p.Fours + p.Sixes);
+
+        /// <summary>Dot ball percentage in this innings.</summary>
+        public double DotBallPercentage
+        {
+            get
+            {
+                if (Deliveries.Count == 0) return 0;
+                int dots = Deliveries.Count(d => d.Type == CricketDeliveryType.Dot);
+                return Math.Round(100.0 * dots / Deliveries.Count, 1);
+            }
+        }
     }
 
     public sealed class CricketMatchManager
@@ -118,8 +165,8 @@ namespace Roche_Scoreboard.Models
         public string? TeamALogoPath { get; set; }
         public string? TeamBLogoPath { get; set; }
 
-        public List<CricketPlayer> TeamAPlayers { get; set; } = new();
-        public List<CricketPlayer> TeamBPlayers { get; set; } = new();
+        public List<CricketPlayer> TeamAPlayers { get; set; } = [];
+        public List<CricketPlayer> TeamBPlayers { get; set; } = [];
 
         // Match format
         public CricketFormat Format { get; set; } = CricketFormat.LimitedOvers;
@@ -128,12 +175,12 @@ namespace Roche_Scoreboard.Models
 
         // Match state
         public int CurrentInningsNumber { get; private set; } = 1;
-        public List<CricketInnings> AllInnings { get; } = new();
+        public List<CricketInnings> AllInnings { get; } = [];
         public CricketInnings? CurrentInnings => CurrentInningsNumber <= AllInnings.Count
             ? AllInnings[CurrentInningsNumber - 1] : null;
 
         public bool TeamABatsFirst { get; set; } = true;
-        public List<string> Messages { get; set; } = new();
+        public List<string> Messages { get; set; } = [];
 
         // Events
         public event Action? MatchChanged;
@@ -142,6 +189,8 @@ namespace Roche_Scoreboard.Models
         public event Action? BatterSelectionNeeded;
         /// <summary>Fired when an over is completed and the UI should prompt for next bowler.</summary>
         public event Action? BowlerSelectionNeeded;
+        /// <summary>Fired when a batter reaches a milestone (50, 100, 150, 200). Args: player name, milestone value.</summary>
+        public event Action<string, int>? MilestoneReached;
 
         // ---- Derived display properties ----
 
@@ -228,6 +277,36 @@ namespace Roche_Scoreboard.Models
         }
 
         public double RunRate => CurrentInnings?.RunRate ?? 0;
+
+        /// <summary>Balls remaining in the innings (limited overs only).</summary>
+        public int? BallsRemaining
+        {
+            get
+            {
+                if (Format != CricketFormat.LimitedOvers || CurrentInnings == null) return null;
+                return TotalOvers * 6 - CurrentInnings.LegalBallsBowled;
+            }
+        }
+
+        /// <summary>Overs remaining as a display string (limited overs only).</summary>
+        public string? OversRemainingDisplay
+        {
+            get
+            {
+                var br = BallsRemaining;
+                if (br == null) return null;
+                int fullOvers = br.Value / 6;
+                int balls = br.Value % 6;
+                return balls == 0 ? fullOvers.ToString() : $"{fullOvers}.{balls}";
+            }
+        }
+
+        /// <summary>True when we're in the powerplay phase (overs 1-6 in limited overs).</summary>
+        public bool IsInPowerplay =>
+            Format == CricketFormat.LimitedOvers
+            && CurrentInnings != null
+            && CurrentInnings.CompletedOvers < 6
+            && TotalOvers >= 20;
 
         /// <summary>For multi-day: how many runs the batting team leads or trails by.
         /// Positive = lead, negative = trail. Null if first innings.</summary>
@@ -527,6 +606,21 @@ namespace Roche_Scoreboard.Models
                 WicketsAfter = inn.TotalWickets
             };
             inn.Deliveries.Add(delivery);
+
+            // Check for batter milestones (50, 100, 150, 200)
+            if (striker != null && !isExtra && type != CricketDeliveryType.Wicket)
+            {
+                int prevRuns = striker.Runs - runs;
+                int[] milestones = [50, 100, 150, 200];
+                foreach (int m in milestones)
+                {
+                    if (prevRuns < m && striker.Runs >= m)
+                    {
+                        MilestoneReached?.Invoke(striker.DisplayName, m);
+                        break;
+                    }
+                }
+            }
 
             // Rotate strike indicator on odd runs (don't reorder, just swap indices)
             if (isLegal && runs % 2 == 1)

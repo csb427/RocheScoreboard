@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Roche Scoreboard — Live</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #frame {
+            max-width: 100vw;
+            max-height: 100vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            image-rendering: auto;
+        }
+
+        .conn-status {
+            position: fixed;
+            bottom: 8px;
+            right: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 11px;
+            color: #8B949E;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+
+        .conn-status:hover { opacity: 1; }
+
+        .conn-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #F59E0B;
+            transition: background 0.3s;
+        }
+
+        .conn-dot.connected { background: #22C55E; }
+
+        .waiting {
+            color: #8B949E;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <img id="frame" alt="" style="display:none;">
+    <span class="waiting" id="waitMsg">Waiting for scoreboard…</span>
+
+    <div class="conn-status">
+        <div class="conn-dot" id="connDot"></div>
+        <span id="connText">Connecting…</span>
+    </div>
+
+    <script>
+        const frame = document.getElementById('frame');
+        const waitMsg = document.getElementById('waitMsg');
+
+        const conn = new signalR.HubConnectionBuilder()
+            .withUrl('/hub')
+            .withAutomaticReconnect([0, 1000, 2000, 5000, 10000])
+            .build();
+
+        conn.on('FrameUpdate', (base64) => {
+            frame.src = 'data:image/jpeg;base64,' + base64;
+            frame.style.display = 'block';
+            waitMsg.style.display = 'none';
+        });
+
+        // Ignore state updates — we only care about frames
+        conn.on('StateUpdate', () => {});
+
+        conn.onreconnecting(() => {
+            document.getElementById('connDot').className = 'conn-dot';
+            document.getElementById('connText').textContent = 'Reconnecting…';
+        });
+
+        conn.onreconnected(() => {
+            document.getElementById('connDot').className = 'conn-dot connected';
+            document.getElementById('connText').textContent = 'Connected';
+        });
+
+        conn.onclose(() => {
+            document.getElementById('connDot').className = 'conn-dot';
+            document.getElementById('connText').textContent = 'Disconnected';
+            setTimeout(startConnection, 3000);
+        });
+
+        async function startConnection() {
+            try {
+                await conn.start();
+                document.getElementById('connDot').className = 'conn-dot connected';
+                document.getElementById('connText').textContent = 'Connected';
+            } catch {
+                document.getElementById('connDot').className = 'conn-dot';
+                document.getElementById('connText').textContent = 'Connecting…';
+                setTimeout(startConnection, 3000);
+            }
+        }
+
+        startConnection();
+    </script>
+</body>
+</html>

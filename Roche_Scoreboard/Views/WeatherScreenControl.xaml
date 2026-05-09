@@ -1,0 +1,132 @@
+<UserControl x:Class="Roche_Scoreboard.Views.WeatherScreenControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:Roche_Scoreboard.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="193" d:DesignWidth="386"
+             Width="386" Height="193">
+
+    <!-- Native 386x193 weather layout. No scaling/Viewbox. -->
+    <Grid Background="#0D1117">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="16"/>   <!-- title -->
+            <RowDefinition Height="*"/>    <!-- content -->
+            <RowDefinition Height="44"/>   <!-- score bar -->
+        </Grid.RowDefinitions>
+
+        <!-- TITLE -->
+        <Border Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1"/>
+        <Grid Grid.Row="0" Margin="6,0">
+            <TextBlock x:Name="LocationText" Text="WEATHER" Foreground="#D29922"
+                       FontSize="9" FontWeight="Bold"
+                       HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBlock Text="WEATHER FORECAST" Foreground="#F0C040"
+                       FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="WeatherTimeText" Text="1:26 PM" Foreground="#58A6FF"
+                       FontSize="9" FontWeight="SemiBold"
+                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- CONTENT -->
+        <Grid Grid.Row="1" Margin="4,2,4,2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>  <!-- current -->
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*"/>    <!-- hourly -->
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT: Current -->
+            <Border Grid.Column="0" Background="#0D1117" BorderBrush="#D29922" BorderThickness="1">
+                <Grid Margin="4,3,4,3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="RIGHT NOW" Foreground="#D29922"
+                               FontSize="9" FontWeight="Black" FontFamily="Bahnschrift"
+                               HorizontalAlignment="Center"/>
+                    <Border Grid.Row="1" Height="1" Background="#D29922" Opacity="0.4" Margin="0,1,0,2"/>
+
+                    <TextBlock Grid.Row="2" x:Name="CurrentIcon" Text="☀️"
+                               FontSize="28" FontFamily="Segoe UI Emoji"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="3" x:Name="CurrentTemp" Text="22°"
+                               Foreground="#F0C040" FontSize="32" FontWeight="Black" FontFamily="Bahnschrift"
+                               HorizontalAlignment="Center" Margin="0,-2,0,-2"/>
+
+                    <TextBlock Grid.Row="4" x:Name="CurrentDescription" Text="Clear Sky"
+                               Foreground="#D29922" FontSize="9" FontWeight="Bold" FontFamily="Bahnschrift"
+                               HorizontalAlignment="Center" TextAlignment="Center"
+                               TextWrapping="Wrap" MaxWidth="108"/>
+
+                    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
+                        <TextBlock Text="Feels " Foreground="#58A6FF" FontSize="9" FontWeight="Bold"/>
+                        <TextBlock x:Name="FeelsLikeTemp" Text="20°" Foreground="#D29922"
+                                   FontSize="9" FontWeight="Black" FontFamily="Bahnschrift"/>
+                    </StackPanel>
+
+                    <Grid Grid.Row="7" HorizontalAlignment="Center" Margin="0,1,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="6"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="▼" Foreground="#58A6FF" FontSize="9" VerticalAlignment="Center" Margin="0,0,1,0"/>
+                            <TextBlock x:Name="DayMinTemp" Text="14°" Foreground="#58A6FF"
+                                       FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="▲" Foreground="#F85149" FontSize="9" VerticalAlignment="Center" Margin="0,0,1,0"/>
+                            <TextBlock x:Name="DayMaxTemp" Text="26°" Foreground="#F85149"
+                                       FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- RIGHT: Hourly forecast -->
+            <Border Grid.Column="2" Background="#0D1117" BorderBrush="#3FB950" BorderThickness="1">
+                <Grid Margin="4,3,4,3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="22"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="NEXT 8 HOURS" Foreground="#3FB950"
+                               FontSize="9" FontWeight="Black" FontFamily="Bahnschrift"
+                               HorizontalAlignment="Center"/>
+                    <Border Grid.Row="1" Height="1" Background="#3FB950" Opacity="0.4" Margin="0,1,0,2"/>
+
+                    <UniformGrid Grid.Row="2" x:Name="HourlyGrid" Columns="8"/>
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,1">
+                        <TextBlock Text="💧" FontSize="8" FontFamily="Segoe UI Emoji" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                        <TextBlock Text="RAIN" Foreground="#58A6FF"
+                                   FontSize="8" FontWeight="Black" FontFamily="Bahnschrift"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <UniformGrid Grid.Row="4" x:Name="RainGrid" Columns="8"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- BOTTOM SCORE BAR -->
+        <local:PresentationScoreBar x:Name="ScoreBar" Grid.Row="2"/>
+    </Grid>
+</UserControl>

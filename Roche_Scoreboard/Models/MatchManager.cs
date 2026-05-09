@@ -34,6 +34,12 @@ namespace Roche_Scoreboard.Models
         private readonly Stopwatch _sw = new();
         private TimeSpan _pausedElapsed = TimeSpan.Zero;
 
+        /// <summary>Elapsed time at the moment the last quarter was ended, for continue-quarter support.</summary>
+        private TimeSpan _endedQuarterElapsed = TimeSpan.Zero;
+
+        /// <summary>The quarter number that was most recently ended (0 if none).</summary>
+        private int _endedQuarterNumber;
+
         /// <summary>Accurate elapsed time in the current quarter.</summary>
         public TimeSpan ElapsedInQuarter =>
             _pausedElapsed + (_sw.IsRunning ? _sw.Elapsed : TimeSpan.Zero);
@@ -49,7 +55,7 @@ namespace Roche_Scoreboard.Models
         public bool DarkMode { get; private set; } = true;
 
         // Quarter-by-quarter cumulative snapshots (index 0 = Q1)
-        private readonly QuarterSnapshot[] _quarterSnapshots = new QuarterSnapshot[4];
+        private readonly QuarterSnapshot?[] _quarterSnapshots = new QuarterSnapshot?[4];
 
         public QuarterSnapshot? GetQuarterSnapshot(int quarter)
         {
@@ -59,7 +65,7 @@ namespace Roche_Scoreboard.Models
         }
 
         // Log
-        private readonly List<ScoreEvent> _events = new List<ScoreEvent>();
+        private readonly List<ScoreEvent> _events = [];
         public IReadOnlyList<ScoreEvent> Events => _events;
 
         public event Action? MatchChanged;
@@ -121,6 +127,38 @@ namespace Roche_Scoreboard.Models
             MatchChanged?.Invoke();
         }
 
+        /// <summary>
+        /// Adjusts the elapsed time in the current quarter by the given delta.
+        /// The result is clamped to zero (cannot go negative).
+        /// </summary>
+        public void AdjustElapsed(TimeSpan delta)
+        {
+            if (ClockRunning)
+            {
+                _pausedElapsed += _sw.Elapsed;
+                _sw.Restart();
+            }
+
+            _pausedElapsed += delta;
+            if (_pausedElapsed < TimeSpan.Zero)
+                _pausedElapsed = TimeSpan.Zero;
+
+            MatchChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Sets the elapsed time in the current quarter to the given value.
+        /// The value is clamped to zero (cannot go negative).
+        /// </summary>
+        public void SetElapsed(TimeSpan elapsed)
+        {
+            if (ClockRunning)
+                _sw.Restart();
+
+            _pausedElapsed = elapsed < TimeSpan.Zero ? TimeSpan.Zero : elapsed;
+            MatchChanged?.Invoke();
+        }
+
         public void SetQuarterDuration(TimeSpan duration)
         {
             if (duration > TimeSpan.Zero)
@@ -136,7 +174,7 @@ namespace Roche_Scoreboard.Models
             _sw.Reset();
             _pausedElapsed = TimeSpan.Zero;
             _events.Clear();
-            for (int i = 0; i < 4; i++) _quarterSnapshots[i] = null!;
+            for (int i = 0; i < 4; i++) _quarterSnapshots[i] = null;
             MatchChanged?.Invoke();
         }
 
@@ -152,15 +190,13 @@ namespace Roche_Scoreboard.Models
 
             // Stop the clock if it's still running
             if (ClockRunning)
-            {
                 _pausedElapsed += _sw.Elapsed;
-                _sw.Reset();
-            }
-            else
-            {
-                _sw.Reset();
-            }
 
+            // Store elapsed time before resetting so ContinueQuarter can restore it
+            _endedQuarterElapsed = _pausedElapsed;
+            _endedQuarterNumber = Quarter;
+
+            _sw.Reset();
             ClockRunning = false;
             _pausedElapsed = TimeSpan.Zero;
 
@@ -177,6 +213,40 @@ namespace Roche_Scoreboard.Models
             }
 
             if (Quarter < 4) Quarter++;
+
+            MatchChanged?.Invoke();
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true if the most recently ended quarter can be continued
+        /// (i.e. it was ended and the clock has not yet started in the next quarter).
+        /// </summary>
+        public bool CanContinueQuarter =>
+            _endedQuarterNumber > 0
+            && _endedQuarterNumber < 4
+            && !ClockRunning
+            && _pausedElapsed == TimeSpan.Zero;
+
+        /// <summary>
+        /// Reverts to the quarter that was just ended, restoring the clock to where it left off.
+        /// Returns true on success.
+        /// </summary>
+        public bool ContinueQuarter()
+        {
+            if (!CanContinueQuarter) return false;
+
+            int prevQuarter = _endedQuarterNumber;
+            int idx = prevQuarter - 1;
+
+            // Remove the quarter snapshot
+            if (idx >= 0 && idx < 4)
+                _quarterSnapshots[idx] = null;
+
+            Quarter = prevQuarter;
+            _pausedElapsed = _endedQuarterElapsed;
+            _endedQuarterNumber = 0;
+            _endedQuarterElapsed = TimeSpan.Zero;
 
             MatchChanged?.Invoke();
             return true;
@@ -234,26 +304,171 @@ namespace Roche_Scoreboard.Models
         {
             if (_events.Count == 0) return false;
             _events.RemoveAt(_events.Count - 1);
+            RebuildFromEvents();
+            MatchChanged?.Invoke();
+            return true;
+        }
 
-            // Rebuild score from scratch for safety
+        /// <summary>
+        /// Removes the event at <paramref name="index"/> and rebuilds all scores and snapshots.
+        /// </summary>
+        public bool RemoveEvent(int index)
+        {
+            if (index < 0 || index >= _events.Count) return false;
+            _events.RemoveAt(index);
+            RebuildFromEvents();
+            MatchChanged?.Invoke();
+            return true;
+        }
+
+        /// <summary>
+        /// Changes the team, type, and/or time of the event at <paramref name="index"/>,
+        /// then rebuilds all scores and snapshots from that point forward.
+        /// </summary>
+        public bool ModifyEvent(int index, TeamSide newTeam, ScoreType newType, TimeSpan newGameTime)
+        {
+            if (index < 0 || index >= _events.Count) return false;
+            ScoreEvent ev = _events[index];
+            ev.Team = newTeam;
+            ev.Type = newType;
+            ev.GameTime = newGameTime;
+            RebuildFromEvents();
+            MatchChanged?.Invoke();
+            return true;
+        }
+
+        /// <summary>
+        /// Recalculates cumulative scores and per-event snapshots from the event list.
+        /// Also rebuilds quarter snapshots so scoreworm, stats, and break screens stay correct.
+        /// </summary>
+        private void RebuildFromEvents()
+        {
             HomeGoals = HomeBehinds = AwayGoals = AwayBehinds = 0;
 
-            foreach (var e in _events)
+            // Clear quarter snapshots — they'll be rebuilt from event data
+            for (int i = 0; i < 4; i++) _quarterSnapshots[i] = null;
+            int lastSeenQuarter = 0;
+
+            foreach (var ev in _events)
             {
-                if (e.Team == TeamSide.Home)
+                // If we've moved past a quarter boundary, snapshot the previous quarter(s)
+                if (ev.Quarter > lastSeenQuarter && lastSeenQuarter > 0)
                 {
-                    if (e.Type == ScoreType.Goal) HomeGoals++;
+                    int snapIdx = lastSeenQuarter - 1;
+                    if (snapIdx >= 0 && snapIdx < 4 && _quarterSnapshots[snapIdx] == null)
+                    {
+                        _quarterSnapshots[snapIdx] = new QuarterSnapshot
+                        {
+                            HomeGoals = HomeGoals,
+                            HomeBehinds = HomeBehinds,
+                            AwayGoals = AwayGoals,
+                            AwayBehinds = AwayBehinds
+                        };
+                    }
+                }
+
+                lastSeenQuarter = ev.Quarter;
+
+                if (ev.Team == TeamSide.Home)
+                {
+                    if (ev.Type == ScoreType.Goal) HomeGoals++;
                     else HomeBehinds++;
                 }
                 else
                 {
-                    if (e.Type == ScoreType.Goal) AwayGoals++;
+                    if (ev.Type == ScoreType.Goal) AwayGoals++;
                     else AwayBehinds++;
+                }
+
+                // Update the running snapshot on the event itself
+                ev.HomeGoals = HomeGoals;
+                ev.HomeBehinds = HomeBehinds;
+                ev.AwayGoals = AwayGoals;
+                ev.AwayBehinds = AwayBehinds;
+            }
+        }
+
+        /// <summary>
+        /// Validates the entire event sequence for impossible scoring patterns.
+        /// Returns a list of human-readable warnings. An empty list means all is well.
+        /// </summary>
+        public List<ScoreValidationWarning> ValidateScoreSequence()
+        {
+            List<ScoreValidationWarning> warnings = [];
+            int hg = 0, hb = 0, ag = 0, ab = 0;
+
+            for (int i = 0; i < _events.Count; i++)
+            {
+                ScoreEvent ev = _events[i];
+
+                // Apply this event
+                if (ev.Team == TeamSide.Home)
+                {
+                    if (ev.Type == ScoreType.Goal) hg++;
+                    else hb++;
+                }
+                else
+                {
+                    if (ev.Type == ScoreType.Goal) ag++;
+                    else ab++;
+                }
+
+                // Check snapshot matches expected running totals
+                if (ev.HomeGoals != hg || ev.HomeBehinds != hb || ev.AwayGoals != ag || ev.AwayBehinds != ab)
+                {
+                    warnings.Add(new ScoreValidationWarning(i, ev,
+                        $"Event #{i + 1} snapshot mismatch — expected H {hg}.{hb}.{hg * 6 + hb} A {ag}.{ab}.{ag * 6 + ab}, " +
+                        $"got H {ev.HomeGoals}.{ev.HomeBehinds}.{ev.HomeTotal} A {ev.AwayGoals}.{ev.AwayBehinds}.{ev.AwayTotal}"));
+                }
+
+                // Check total = goals*6 + behinds (should always hold, but verify)
+                if (ev.HomeTotal != ev.HomeGoals * 6 + ev.HomeBehinds)
+                {
+                    warnings.Add(new ScoreValidationWarning(i, ev,
+                        $"Event #{i + 1}: Home total {ev.HomeTotal} doesn't match {ev.HomeGoals}×6 + {ev.HomeBehinds} = {ev.HomeGoals * 6 + ev.HomeBehinds}"));
+                }
+                if (ev.AwayTotal != ev.AwayGoals * 6 + ev.AwayBehinds)
+                {
+                    warnings.Add(new ScoreValidationWarning(i, ev,
+                        $"Event #{i + 1}: Away total {ev.AwayTotal} doesn't match {ev.AwayGoals}×6 + {ev.AwayBehinds} = {ev.AwayGoals * 6 + ev.AwayBehinds}"));
+                }
+
+                // Check scores never decrease from previous event
+                if (i > 0)
+                {
+                    ScoreEvent prev = _events[i - 1];
+                    if (ev.HomeGoals < prev.HomeGoals || ev.HomeBehinds < prev.HomeBehinds)
+                    {
+                        warnings.Add(new ScoreValidationWarning(i, ev,
+                            $"Event #{i + 1}: Home score decreased — was {prev.HomeGoals}.{prev.HomeBehinds}, now {ev.HomeGoals}.{ev.HomeBehinds}"));
+                    }
+                    if (ev.AwayGoals < prev.AwayGoals || ev.AwayBehinds < prev.AwayBehinds)
+                    {
+                        warnings.Add(new ScoreValidationWarning(i, ev,
+                            $"Event #{i + 1}: Away score decreased — was {prev.AwayGoals}.{prev.AwayBehinds}, now {ev.AwayGoals}.{ev.AwayBehinds}"));
+                    }
+                }
+
+                // Check no negative values
+                if (ev.HomeGoals < 0 || ev.HomeBehinds < 0 || ev.AwayGoals < 0 || ev.AwayBehinds < 0)
+                {
+                    warnings.Add(new ScoreValidationWarning(i, ev,
+                        $"Event #{i + 1}: Negative score detected — H {ev.HomeGoals}.{ev.HomeBehinds} A {ev.AwayGoals}.{ev.AwayBehinds}"));
                 }
             }
 
-            MatchChanged?.Invoke();
-            return true;
+            // Check final state matches manager properties
+            if (_events.Count > 0)
+            {
+                if (HomeGoals != hg || HomeBehinds != hb || AwayGoals != ag || AwayBehinds != ab)
+                {
+                    warnings.Add(new ScoreValidationWarning(-1, null,
+                        $"Final score mismatch — manager shows H {HomeGoals}.{HomeBehinds} A {AwayGoals}.{AwayBehinds}, " +
+                        $"events total H {hg}.{hb} A {ag}.{ab}"));
+                }
+            }
+
+            return warnings;
         }
 
         // For saving/loading
@@ -310,7 +525,78 @@ namespace Roche_Scoreboard.Models
                 }
             }
 
+            // Rebuild quarter snapshots from event data so break screens,
+            // scoreworm, stats, and full-time detection work after a restore.
+            RebuildQuarterSnapshots();
+
             MatchChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Rebuilds <see cref="_quarterSnapshots"/> from the event list.
+        /// Each snapshot captures cumulative scores at the last event of a quarter
+        /// whose successor belongs to a later quarter (i.e. the quarter boundary).
+        /// If the current quarter matches the saved <see cref="Quarter"/> and no
+        /// time has elapsed, the snapshot for that quarter is also written so that
+        /// full-time detection works correctly for restored Q4-ended games.
+        /// </summary>
+        private void RebuildQuarterSnapshots()
+        {
+            for (int i = 0; i < 4; i++) _quarterSnapshots[i] = null;
+
+            if (_events.Count == 0) return;
+
+            int lastSeenQuarter = 0;
+            int hg = 0, hb = 0, ag = 0, ab = 0;
+
+            foreach (var ev in _events)
+            {
+                // When we cross into a new quarter, snapshot the previous one
+                if (ev.Quarter > lastSeenQuarter && lastSeenQuarter > 0)
+                {
+                    int snapIdx = lastSeenQuarter - 1;
+                    if (snapIdx >= 0 && snapIdx < 4 && _quarterSnapshots[snapIdx] == null)
+                    {
+                        _quarterSnapshots[snapIdx] = new QuarterSnapshot
+                        {
+                            HomeGoals = hg,
+                            HomeBehinds = hb,
+                            AwayGoals = ag,
+                            AwayBehinds = ab
+                        };
+                    }
+                }
+
+                lastSeenQuarter = ev.Quarter;
+
+                if (ev.Team == TeamSide.Home)
+                {
+                    if (ev.Type == ScoreType.Goal) hg++;
+                    else hb++;
+                }
+                else
+                {
+                    if (ev.Type == ScoreType.Goal) ag++;
+                    else ab++;
+                }
+            }
+
+            // If the current quarter is beyond the last event's quarter,
+            // snapshot the final event quarter (e.g. Q4 ended, clock stopped)
+            if (Quarter > lastSeenQuarter || (Quarter == lastSeenQuarter && !ClockRunning && _pausedElapsed == TimeSpan.Zero))
+            {
+                int snapIdx = lastSeenQuarter - 1;
+                if (snapIdx >= 0 && snapIdx < 4 && _quarterSnapshots[snapIdx] == null)
+                {
+                    _quarterSnapshots[snapIdx] = new QuarterSnapshot
+                    {
+                        HomeGoals = hg,
+                        HomeBehinds = hb,
+                        AwayGoals = ag,
+                        AwayBehinds = ab
+                    };
+                }
+            }
         }
 
         // Allow external callers to request the MatchChanged event be raised.
@@ -344,7 +630,7 @@ namespace Roche_Scoreboard.Models
         public List<ScoreEvent>? Events { get; set; }
     }
 
-    public sealed class QuarterSnapshot
+    public sealed record QuarterSnapshot
     {
         public int HomeGoals { get; init; }
         public int HomeBehinds { get; init; }
@@ -359,4 +645,9 @@ namespace Roche_Scoreboard.Models
         CountUp,
         Countdown
     }
+
+    /// <summary>
+    /// Describes a single score validation issue detected in the event sequence.
+    /// </summary>
+    public sealed record ScoreValidationWarning(int EventIndex, ScoreEvent? Event, string Message);
 }

@@ -72,27 +72,7 @@ namespace Roche_Scoreboard.Views
         }
 
         private static ImageSource? LoadImage(string? path)
-        {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-            {
-                return null;
-            }
-
-            try
-            {
-                BitmapImage bitmap = new();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(path, UriKind.Absolute);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                bitmap.Freeze();
-                return bitmap;
-            }
-            catch
-            {
-                return null;
-            }
-        }
+            => Services.ImageLoadHelper.Load(path);
 
         private static double Clamp(double value, double min, double max)
             => Math.Max(min, Math.Min(max, value));
@@ -167,7 +147,7 @@ namespace Roche_Scoreboard.Views
             Microsoft.Win32.OpenFileDialog picker = new()
             {
                 Title = "Select Logo Image",
-                Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.webp|All Files|*.*",
+                Filter = Services.ImageLoadHelper.LogoFilter,
                 CheckFileExists = true,
                 Multiselect = false
             };

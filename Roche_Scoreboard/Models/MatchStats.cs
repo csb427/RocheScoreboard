@@ -16,7 +16,7 @@ namespace Roche_Scoreboard.Models
         public double HomeAccuracy { get; init; }
         public double AwayAccuracy { get; init; }
 
-        // Time % in front (based on proportion of scoring events where team was leading)
+        // Time % in front (based on actual elapsed game seconds in each lead state)
         public double HomeTimePctInFront { get; init; }
         public double AwayTimePctInFront { get; init; }
         public double DrawPct { get; init; }
@@ -38,9 +38,14 @@ namespace Roche_Scoreboard.Models
         // Number of lead changes during the match
         public int LeadChanges { get; init; }
 
-        public static MatchStats Calculate(MatchManager match)
+        /// <summary>
+        /// Calculates match statistics. Pass the current quarter and elapsed time
+        /// so the open segment from the last event to "now" is included in time-in-front.
+        /// </summary>
+        public static MatchStats Calculate(MatchManager match, int currentQuarter, TimeSpan currentElapsedInQuarter)
         {
             var events = match.Events;
+            double quarterDurationSecs = match.QuarterDuration.TotalSeconds;
 
             int homeScoringShots = match.HomeGoals + match.HomeBehinds;
             int awayScoringShots = match.AwayGoals + match.AwayBehinds;
@@ -54,44 +59,53 @@ namespace Roche_Scoreboard.Models
 
             int homeLargestLead = 0;
             int awayLargestLead = 0;
-            int homeInFrontCount = 0;
-            int awayInFrontCount = 0;
-            int drawCount = 0;
+            double homeInFrontSecs = 0;
+            double awayInFrontSecs = 0;
+            double drawSecs = 0;
             int leadChanges = 0;
             int previousLeader = 0; // -1 = away leading, 0 = drawn/none, 1 = home leading
 
             // Per-quarter breakdown
             int[] hgQ = new int[4], abQ = new int[4], agQ = new int[4], hbQ = new int[4];
 
+            // Cumulative game seconds for a given quarter + elapsed
+            double CumulativeSecs(int quarter, TimeSpan elapsed) =>
+                (quarter - 1) * quarterDurationSecs + elapsed.TotalSeconds;
+
+            double previousTimestamp = 0; // game start
+            int currentMargin = 0;        // margin at start of game = 0
+
             foreach (var ev in events)
             {
-                int margin = ev.Margin; // positive = home leads
+                double eventTimestamp = CumulativeSecs(ev.Quarter, ev.GameTime);
+                double interval = Math.Max(0, eventTimestamp - previousTimestamp);
 
-                int currentLeader = margin > 0 ? 1 : margin < 0 ? -1 : 0;
+                // Accumulate time for the *previous* margin state
+                if (currentMargin > 0)
+                    homeInFrontSecs += interval;
+                else if (currentMargin < 0)
+                    awayInFrontSecs += interval;
+                else
+                    drawSecs += interval;
 
-                // A lead change occurs when one team takes the lead from the other
+                // Update state to this event's margin
+                currentMargin = ev.Margin;
+                previousTimestamp = eventTimestamp;
+
+                // Track largest lead
+                if (currentMargin > homeLargestLead)
+                    homeLargestLead = currentMargin;
+                else if (-currentMargin > awayLargestLead)
+                    awayLargestLead = -currentMargin;
+
+                // Lead change detection
+                int currentLeader = currentMargin > 0 ? 1 : currentMargin < 0 ? -1 : 0;
                 if (currentLeader != 0 && previousLeader != 0 && currentLeader != previousLeader)
                     leadChanges++;
-
                 if (currentLeader != 0)
                     previousLeader = currentLeader;
 
-                if (margin > 0)
-                {
-                    homeInFrontCount++;
-                    if (margin > homeLargestLead) homeLargestLead = margin;
-                }
-                else if (margin < 0)
-                {
-                    awayInFrontCount++;
-                    int awayLead = -margin;
-                    if (awayLead > awayLargestLead) awayLargestLead = awayLead;
-                }
-                else
-                {
-                    drawCount++;
-                }
-
+                // Per-quarter scoring breakdown
                 int qi = Math.Clamp(ev.Quarter - 1, 0, 3);
                 if (ev.Team == TeamSide.Home)
                 {
@@ -105,10 +119,20 @@ namespace Roche_Scoreboard.Models
                 }
             }
 
-            int totalEvents = events.Count;
-            double homeTimePct = totalEvents > 0 ? Math.Round(100.0 * homeInFrontCount / totalEvents, 1) : 0;
-            double awayTimePct = totalEvents > 0 ? Math.Round(100.0 * awayInFrontCount / totalEvents, 1) : 0;
-            double drawPct = totalEvents > 0 ? Math.Round(100.0 * drawCount / totalEvents, 1) : 0;
+            // Open segment: last event to current game time
+            double nowTimestamp = CumulativeSecs(currentQuarter, currentElapsedInQuarter);
+            double tailInterval = Math.Max(0, nowTimestamp - previousTimestamp);
+            if (currentMargin > 0)
+                homeInFrontSecs += tailInterval;
+            else if (currentMargin < 0)
+                awayInFrontSecs += tailInterval;
+            else
+                drawSecs += tailInterval;
+
+            double totalSecs = homeInFrontSecs + awayInFrontSecs + drawSecs;
+            double homeTimePct = totalSecs > 0 ? Math.Round(100.0 * homeInFrontSecs / totalSecs, 1) : 0;
+            double awayTimePct = totalSecs > 0 ? Math.Round(100.0 * awayInFrontSecs / totalSecs, 1) : 0;
+            double drawPct = totalSecs > 0 ? Math.Round(100.0 * drawSecs / totalSecs, 1) : 0;
 
             // Best quarter by total points
             int homeBestQ = 0, awayBestQ = 0;

@@ -1,0 +1,258 @@
+<Window x:Class="Roche_Scoreboard.Views.ResumeGameDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Resume Game"
+        Width="560" Height="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False">
+
+    <!-- Scoreboard-style: sharp edges, neon split-team accent stripe across the top. -->
+    <Border Background="#0D1117" BorderBrush="#F0C040" BorderThickness="2" ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="#F0C040" Opacity="0.4"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>   <!-- Top split-team stripe -->
+                <RowDefinition Height="Auto"/>   <!-- Title bar -->
+                <RowDefinition Height="Auto"/>   <!-- Match identity (home vs away) -->
+                <RowDefinition Height="Auto"/>   <!-- Score readout -->
+                <RowDefinition Height="*"/>      <!-- Quarter + clock readout -->
+                <RowDefinition Height="Auto"/>   <!-- Buttons -->
+            </Grid.RowDefinitions>
+
+            <!-- Split team-colour top stripe: home left, away right -->
+            <Border Grid.Row="0" Height="3">
+                <Border.Background>
+                    <LinearGradientBrush x:Name="TopStripeGradient" StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#4488FF" Offset="0.0"/>
+                        <GradientStop Color="#4488FF" Offset="0.45"/>
+                        <GradientStop Color="#0D1117" Offset="0.5"/>
+                        <GradientStop Color="#FF6644" Offset="0.55"/>
+                        <GradientStop Color="#FF6644" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <!-- Title bar -->
+            <Grid Grid.Row="1" Margin="24,16,24,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Sharp neon icon badge -->
+                <Border Grid.Column="0" Width="48" Height="48" Background="#0D1117"
+                        BorderBrush="#F0C040" BorderThickness="2" VerticalAlignment="Center">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.7"/>
+                    </Border.Effect>
+                    <TextBlock Text="&#x23F8;" FontSize="22" FontFamily="Bahnschrift"
+                               Foreground="#F0C040" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,0,0">
+                    <TextBlock Text="GAME IN PROGRESS" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" Foreground="White">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="#F0C040" Opacity="0.5"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock Text="A SAVED MATCH WAS FOUND ON THIS DEVICE" FontSize="11" FontWeight="Bold" FontFamily="Bahnschrift"
+                               Foreground="#8B949E" Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <!-- Live status pill -->
+                <Border Grid.Column="2" VerticalAlignment="Center" Background="#0D1117"
+                        BorderBrush="#F0C040" BorderThickness="1.5" Padding="8,3">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="#F0C040" Opacity="0.6"/>
+                    </Border.Effect>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Ellipse Width="6" Height="6" Fill="#F0C040" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                        <TextBlock Text="PAUSED" FontSize="10" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#F0C040" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Match identity strip: HOME vs AWAY with team-coloured borders -->
+            <Grid Grid.Row="2" Margin="24,18,24,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Home block -->
+                <Border x:Name="HomeBlock" Grid.Column="0" Background="#0D1117" BorderThickness="2" Padding="12,8">
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="HomeBorderBrush" Color="#4488FF"/>
+                    </Border.BorderBrush>
+                    <Border.Effect>
+                        <DropShadowEffect x:Name="HomeGlow" BlurRadius="10" ShadowDepth="0" Color="#4488FF" Opacity="0.5"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="HOME" FontSize="10" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#8B949E"/>
+                        <TextBlock x:Name="HomeNameText" Text="HOME" FontSize="20" FontWeight="Black" FontFamily="Bahnschrift" Foreground="White" Margin="0,2,0,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect x:Name="HomeNameGlow" BlurRadius="6" ShadowDepth="0" Color="#4488FF" Opacity="0.5"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- VS divider -->
+                <TextBlock Grid.Column="1" Text="VS" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift"
+                           Foreground="#8B949E" Margin="14,0,14,0" VerticalAlignment="Center"/>
+
+                <!-- Away block -->
+                <Border x:Name="AwayBlock" Grid.Column="2" Background="#0D1117" BorderThickness="2" Padding="12,8">
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="AwayBorderBrush" Color="#FF6644"/>
+                    </Border.BorderBrush>
+                    <Border.Effect>
+                        <DropShadowEffect x:Name="AwayGlow" BlurRadius="10" ShadowDepth="0" Color="#FF6644" Opacity="0.5"/>
+                    </Border.Effect>
+                    <StackPanel HorizontalAlignment="Right">
+                        <TextBlock Text="AWAY" FontSize="10" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#8B949E" HorizontalAlignment="Right"/>
+                        <TextBlock x:Name="AwayNameText" Text="AWAY" FontSize="20" FontWeight="Black" FontFamily="Bahnschrift" Foreground="White" Margin="0,2,0,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect x:Name="AwayNameGlow" BlurRadius="6" ShadowDepth="0" Color="#FF6644" Opacity="0.5"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Score readout -->
+            <Grid Grid.Row="3" Margin="24,12,24,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Home score: total + G.B -->
+                <StackPanel Grid.Column="0" HorizontalAlignment="Left">
+                    <TextBlock x:Name="HomeTotalText" Text="0" FontSize="44" FontWeight="Black" FontFamily="Bahnschrift" Foreground="White">
+                        <TextBlock.Effect>
+                            <DropShadowEffect x:Name="HomeTotalGlow" BlurRadius="14" ShadowDepth="0" Color="#4488FF" Opacity="0.55"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock x:Name="HomeGoalsBehindsText" Text="0.0" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#8B949E" Margin="0,-4,0,0"/>
+                </StackPanel>
+
+                <!-- Dash separator -->
+                <TextBlock Grid.Column="1" Text="&#x2014;" FontSize="32" FontWeight="Black" FontFamily="Bahnschrift"
+                           Foreground="#484F58" Margin="14,0,14,0" VerticalAlignment="Top"/>
+
+                <!-- Away score: total + G.B -->
+                <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                    <TextBlock x:Name="AwayTotalText" Text="0" FontSize="44" FontWeight="Black" FontFamily="Bahnschrift" Foreground="White" HorizontalAlignment="Right">
+                        <TextBlock.Effect>
+                            <DropShadowEffect x:Name="AwayTotalGlow" BlurRadius="14" ShadowDepth="0" Color="#FF6644" Opacity="0.55"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock x:Name="AwayGoalsBehindsText" Text="0.0" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#8B949E" Margin="0,-4,0,0" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Quarter + clock + margin readout -->
+            <Border Grid.Row="4" Margin="24,12,24,0" Background="#0D1117" BorderBrush="#21262D" BorderThickness="1.5">
+                <Grid Margin="0,8,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Quarter -->
+                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                        <TextBlock Text="QUARTER" FontSize="10" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#8B949E" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="QuarterText" Text="Q1" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#F0C040" HorizontalAlignment="Center" Margin="0,2,0,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="#F0C040" Opacity="0.5"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Clock -->
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                        <TextBlock Text="CLOCK" FontSize="10" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#8B949E" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="ClockText" Text="00:00" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,2,0,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="#58A6FF" Opacity="0.5"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Margin -->
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                        <TextBlock Text="MARGIN" FontSize="10" FontWeight="Black" FontFamily="Bahnschrift" Foreground="#8B949E" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="MarginText" Text="LEVEL" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" Foreground="White" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Buttons \u2014 sharp neon edges -->
+            <Grid Grid.Row="5" Margin="24,16,24,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="DiscardButton" Grid.Column="0" Content="DISCARD" Height="46"
+                        FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" Cursor="Hand"
+                        Click="Discard_Click"
+                        Background="#0D1117" Foreground="#F85149" BorderBrush="#F85149" BorderThickness="1.5">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Cursor="Hand">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#2A0E10"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button x:Name="ResumeButton" Grid.Column="2" Content="RESUME GAME" Height="46"
+                        FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" Cursor="Hand"
+                        Click="Resume_Click"
+                        Background="#0D1117" Foreground="#3FB950" BorderBrush="#3FB950" BorderThickness="2">
+                    <Button.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#3FB950" Opacity="0.55"/>
+                    </Button.Effect>
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Cursor="Hand">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#0F2A14"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

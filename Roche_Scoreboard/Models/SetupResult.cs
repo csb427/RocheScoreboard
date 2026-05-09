@@ -25,8 +25,12 @@ namespace Roche_Scoreboard.Models
         public ClockMode ClockMode { get; set; } = ClockMode.CountUp;
         public int QuarterMinutes { get; set; } = 20;
         public int QuarterSeconds { get; set; } = 0;
+        public bool FinalsMode { get; set; }
+
+        // Weather
+        public string? WeatherLocation { get; set; } = "Melbourne, Australia";
 
         // Messages
-        public List<string> Messages { get; set; } = new();
+        public List<string> Messages { get; set; } = [];
     }
 }

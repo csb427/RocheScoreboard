@@ -1,23 +1,39 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace Roche_Scoreboard.Views
 {
-    public partial class VideoPlayerControl : System.Windows.Controls.UserControl
+    public partial class VideoPlayerControl : UserControl
     {
         private Uri? _source;
+        private bool _isDisposed;
 
         public VideoPlayerControl()
         {
             InitializeComponent();
             VideoPlayer.MediaEnded += OnMediaEnded;
             VideoPlayer.MediaFailed += OnMediaFailed;
+            Unloaded += (_, _) => Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            VideoPlayer.MediaEnded -= OnMediaEnded;
+            VideoPlayer.MediaFailed -= OnMediaFailed;
+            Stop();
         }
 
         /// <summary>Sets the video source without starting playback.</summary>
         public void SetVideoSource(string filePath)
         {
+            ArgumentNullException.ThrowIfNull(filePath);
             try
             {
                 _source = new Uri(filePath, UriKind.Absolute);
@@ -31,7 +47,9 @@ namespace Roche_Scoreboard.Views
         /// <summary>Starts (or restarts) playback of the configured source.</summary>
         public void Play()
         {
-            if (_source == null) return;
+            if (_source == null)
+                return;
+
             try
             {
                 VideoPlayer.Source = _source;
@@ -40,7 +58,6 @@ namespace Roche_Scoreboard.Views
             }
             catch
             {
-                // Silently fail — video format may be unsupported
                 VideoPlayer.Source = null;
             }
         }
@@ -75,9 +92,15 @@ namespace Roche_Scoreboard.Views
 
         private void OnMediaFailed(object? sender, ExceptionRoutedEventArgs e)
         {
-            // Video codec unsupported or file corrupted — clear source to avoid repeated failures
-            try { VideoPlayer.Source = null; }
-            catch { /* ignore */ }
+            // Video codec unsupported or file corrupted — clear source
+            try
+            {
+                VideoPlayer.Source = null;
+            }
+            catch
+            {
+                // Ignore
+            }
         }
     }
 }

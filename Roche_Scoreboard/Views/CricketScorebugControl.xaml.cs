@@ -63,6 +63,21 @@ namespace Roche_Scoreboard.Views
         // Name/abbreviation rotation
         private DispatcherTimer? _nameRotationTimer;
         private bool _showingFullName;
+        private bool _isDisposed;
+
+        // Height-animated overlay bars (AFL-style)
+        private DispatcherTimer? _overlayBarHideTimer;
+        private string? _activeOverlayBar;
+        private const double OverlayBarHeight = 50.0;
+        private const double OverlayBarDisplaySec = 6.0;
+
+        // Overs remaining warning
+        private DispatcherTimer? _oversWarningStripeTimer;
+        private int _lastOversWarningThreshold;
+
+        // Powerplay
+        private bool _powerplayBarShownThisInnings;
+        private int _lastPowerplayOver = -1;
 
         // Cached brushes to avoid repeated allocations
         private static readonly SolidColorBrush WhiteBrush = new(Colors.White);
@@ -83,7 +98,38 @@ namespace Roche_Scoreboard.Views
             StartNameRotation();
 
             _overTrackerHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-            _overTrackerHideTimer.Tick += (_, __) => { _overTrackerHideTimer.Stop(); HideOverTracker(); };
+            _overTrackerHideTimer.Tick += OnOverTrackerHideTimer;
+
+            _overlayBarHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(OverlayBarDisplaySec) };
+            _overlayBarHideTimer.Tick += OnOverlayBarHideTimer;
+
+            _oversWarningStripeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
+            _oversWarningStripeTimer.Tick += OnOversWarningStripeTick;
+
+            Unloaded += (_, _) => Cleanup();
+        }
+
+        private void OnOverTrackerHideTimer(object? sender, EventArgs e)
+        {
+            _overTrackerHideTimer?.Stop();
+            HideOverTracker();
+        }
+
+        private void Cleanup()
+        {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+
+            _marqueeTimer?.Stop();
+            _infoRotationTimer?.Stop();
+            _statsBarTimer?.Stop();
+            _statsBarHideTimer?.Stop();
+            _overTrackerHideTimer?.Stop();
+            _nameRotationTimer?.Stop();
+            _overlayBarHideTimer?.Stop();
+            _oversWarningStripeTimer?.Stop();
         }
 
         // ---- Time ----
@@ -120,6 +166,9 @@ namespace Roche_Scoreboard.Views
                 _lastBowlerOvers = "";
                 _lastOversDisplay = "";
                 _showingFullName = false;
+                _powerplayBarShownThisInnings = false;
+                _lastPowerplayOver = -1;
+                _lastOversWarningThreshold = 0;
             }
 
             // Score — independent scroll for wickets and runs
@@ -164,6 +213,12 @@ namespace Roche_Scoreboard.Views
             BattingAbbrText.Text = _showingFullName
                 ? match.BattingTeamName.ToUpper()
                 : match.BattingTeamAbbr;
+
+            // Top bar innings info
+            string ordinal = match.CurrentInningsNumber switch { 1 => "1ST", 2 => "2ND", 3 => "3RD", _ => $"{match.CurrentInningsNumber}TH" };
+            TopInningsText.Text = match.Format == CricketFormat.LimitedOvers
+                ? $"{ordinal} INNINGS  •  {match.TotalOvers} OVERS"
+                : $"{ordinal} INNINGS";
 
             // Colours
             TrySetColor(BattingTeamBg, match.BattingTeamPrimaryColor);
@@ -357,6 +412,9 @@ namespace Roche_Scoreboard.Views
 
             // Info tile
             UpdateInfoTile(match);
+
+            // Auto-trigger overlay bars (powerplay, drought, overs warning)
+            CheckAutoOverlays(match);
         }
 
         // ---- Info tile (left panel, rotates every ~8s with crossfade) ----
@@ -801,11 +859,17 @@ namespace Roche_Scoreboard.Views
             // Only update when delivery count changes
             int currentBallCount = inn.Deliveries.Count;
             if (currentBallCount == _lastBallCount) return;
+
+            bool isNewBall = currentBallCount > _lastBallCount && _lastBallCount >= 0;
             _lastBallCount = currentBallCount;
 
             OverBallsPanel.Children.Clear();
             OverTrackerLabel.Text = $"OVER {inn.CompletedOvers + 1}";
 
+            // Calculate runs scored this over for the total display
+            int overRuns = 0;
+            int ballIndex = 0;
+            int totalBalls = inn.CurrentOverBalls.Count;
             foreach (var ball in inn.CurrentOverBalls)
             {
                 Color bgColor;
@@ -816,6 +880,15 @@ namespace Roche_Scoreboard.Views
                 else if (ball.Contains("wd") || ball.Contains("nb")) bgColor = Color.FromRgb(0xD9, 0x77, 0x06);
                 else bgColor = Color.FromRgb(0x1E, 0x40, 0xAF);
 
+                // Tally runs for the over total
+                if (ball != "•" && ball != "W")
+                {
+                    if (int.TryParse(ball, out int runs)) overRuns += runs;
+                    else if (ball.Contains("wd") || ball.Contains("nb")) overRuns += 1;
+                }
+
+                bool isLastBall = isNewBall && ballIndex == totalBalls - 1;
+
                 var pip = new Border
                 {
                     Background = new SolidColorBrush(bgColor),
@@ -824,6 +897,8 @@ namespace Roche_Scoreboard.Views
                     Height = 36,
                     Margin = new Thickness(2, 0, 2, 0),
                     Padding = new Thickness(4, 0, 4, 0),
+                    RenderTransformOrigin = new System.Windows.Point(0.5, 0.5),
+                    RenderTransform = new ScaleTransform(isLastBall ? 0 : 1, isLastBall ? 0 : 1),
                     Child = new TextBlock
                     {
                         Text = ball,
@@ -835,6 +910,26 @@ namespace Roche_Scoreboard.Views
                     }
                 };
                 OverBallsPanel.Children.Add(pip);
+
+                // Bounce-in animation for the newest pip
+                if (isLastBall)
+                {
+                    AnimatePipEntrance(pip, bgColor, ball);
+                }
+
+                ballIndex++;
+            }
+
+            // Update over runs total display
+            if (totalBalls > 0)
+            {
+                OverRunsLabel.Text = "RUNS";
+                OverRunsValue.Text = overRuns.ToString();
+            }
+            else
+            {
+                OverRunsLabel.Text = "";
+                OverRunsValue.Text = "";
             }
 
             // Show overlay only every 3rd legal ball, on wickets, boundaries, or at end of over
@@ -842,12 +937,52 @@ namespace Roche_Scoreboard.Views
             if (ballsThisOver > 0)
             {
                 string lastBall = inn.CurrentOverBalls[^1];
-                bool isEndOfOver = inn.BallsInCurrentOver == 0 && inn.LegalBallsBowled > 0;
+                bool endOfOver = inn.BallsInCurrentOver == 0 && inn.LegalBallsBowled > 0;
                 bool isSignificant = lastBall == "W" || lastBall == "4" || lastBall == "6";
                 bool isThirdBall = ballsThisOver % 3 == 0;
 
-                if (isEndOfOver || isSignificant || isThirdBall)
+                if (endOfOver || isSignificant || isThirdBall)
                     ShowOverTracker();
+            }
+        }
+
+        /// <summary>Scale-in bounce with a brief colour flash for the newest ball pip.</summary>
+        private static void AnimatePipEntrance(Border pip, Color bgColor, string ball)
+        {
+            var st = (ScaleTransform)pip.RenderTransform;
+            var backEase = new BackEase { Amplitude = 0.4, EasingMode = EasingMode.EaseOut };
+            var dur = TimeSpan.FromSeconds(0.3);
+
+            // Scale from 0 → 1 with overshoot bounce
+            var scaleX = new DoubleAnimation(0, 1, dur) { EasingFunction = backEase };
+            var scaleY = new DoubleAnimation(0, 1, dur) { EasingFunction = backEase };
+            st.BeginAnimation(ScaleTransform.ScaleXProperty, scaleX);
+            st.BeginAnimation(ScaleTransform.ScaleYProperty, scaleY);
+
+            // Brief flash: lighten the background then settle back
+            Color flashColor = Color.FromArgb(0xFF,
+                (byte)Math.Min(bgColor.R + 80, 255),
+                (byte)Math.Min(bgColor.G + 80, 255),
+                (byte)Math.Min(bgColor.B + 80, 255));
+
+            var brush = (SolidColorBrush)pip.Background;
+            var flash = new ColorAnimation(flashColor, bgColor, TimeSpan.FromSeconds(0.5))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            brush.BeginAnimation(SolidColorBrush.ColorProperty, flash);
+
+            // For boundaries and wickets, add a second pop-scale pulse
+            if (ball == "4" || ball == "6" || ball == "W")
+            {
+                var pulse = new DoubleAnimation(1, 1.15, TimeSpan.FromSeconds(0.15))
+                {
+                    BeginTime = TimeSpan.FromSeconds(0.3),
+                    AutoReverse = true,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                };
+                st.BeginAnimation(ScaleTransform.ScaleXProperty, pulse);
+                st.BeginAnimation(ScaleTransform.ScaleYProperty, pulse);
             }
         }
 
@@ -1273,6 +1408,287 @@ namespace Roche_Scoreboard.Views
 
             translate.BeginAnimation(TranslateTransform.YProperty, slideOut);
             element.BeginAnimation(OpacityProperty, fadeOut);
+        }
+
+        // ======== AFL-STYLE OVERLAY BAR SYSTEM ========
+
+        private void OnOverlayBarHideTimer(object? sender, EventArgs e)
+        {
+            _overlayBarHideTimer?.Stop();
+            if (_activeOverlayBar != null)
+                HideOverlayBar(_activeOverlayBar);
+        }
+
+        private Border? GetOverlayBarBorder(string barName) => barName switch
+        {
+            "partnership" => PartnershipBarBorder,
+            "runrate" => RunRateBarBorder,
+            "target" => TargetBarBorder,
+            "powerplay" => PowerplayBarBorder,
+            "last5" => Last5OversBarBorder,
+            "drought" => BoundaryDroughtBarBorder,
+            "overs_warning" => OversWarningBarBorder,
+            "milestone" => MilestoneBarBorder,
+            _ => null
+        };
+
+        /// <summary>Shows a named overlay bar with Height animation (AFL-style).</summary>
+        private void ShowOverlayBarInternal(string barName, double height = 50)
+        {
+            // Hide any currently showing bar first
+            if (_activeOverlayBar != null && _activeOverlayBar != barName)
+                HideOverlayBarImmediate(_activeOverlayBar);
+
+            var border = GetOverlayBarBorder(barName);
+            if (border == null) return;
+
+            _activeOverlayBar = barName;
+            _overlayBarHideTimer?.Stop();
+
+            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+            var heightAnim = new DoubleAnimation(0, height, TimeSpan.FromSeconds(0.35)) { EasingFunction = ease };
+            border.BeginAnimation(HeightProperty, heightAnim);
+
+            _overlayBarHideTimer!.Interval = TimeSpan.FromSeconds(OverlayBarDisplaySec);
+            _overlayBarHideTimer.Start();
+        }
+
+        /// <summary>Hides a named overlay bar with Height animation.</summary>
+        private void HideOverlayBar(string barName)
+        {
+            var border = GetOverlayBarBorder(barName);
+            if (border == null) return;
+
+            var ease = new CubicEase { EasingMode = EasingMode.EaseIn };
+            var heightAnim = new DoubleAnimation(border.ActualHeight, 0, TimeSpan.FromSeconds(0.3)) { EasingFunction = ease };
+            heightAnim.Completed += (_, __) =>
+            {
+                border.BeginAnimation(HeightProperty, null);
+                border.Height = 0;
+                if (_activeOverlayBar == barName)
+                {
+                    _activeOverlayBar = null;
+                    // Stop stripe animation if it was the warning bar
+                    if (barName == "overs_warning")
+                        _oversWarningStripeTimer?.Stop();
+                    OnOverlayFinished();
+                }
+            };
+            border.BeginAnimation(HeightProperty, heightAnim);
+        }
+
+        private void HideOverlayBarImmediate(string barName)
+        {
+            var border = GetOverlayBarBorder(barName);
+            if (border == null) return;
+            border.BeginAnimation(HeightProperty, null);
+            border.Height = 0;
+            if (_activeOverlayBar == barName)
+                _activeOverlayBar = null;
+            if (barName == "overs_warning")
+                _oversWarningStripeTimer?.Stop();
+        }
+
+        // ---- Partnership Bar ----
+
+        /// <summary>Shows the partnership bar overlay.</summary>
+        public void ShowPartnershipBar()
+        {
+            if (_lastMatch?.CurrentInnings == null) return;
+            EnqueueOverlay(() => ShowPartnershipBarInternal());
+        }
+
+        private void ShowPartnershipBarInternal()
+        {
+            var inn = _lastMatch?.CurrentInnings;
+            if (inn == null) { OnOverlayFinished(); return; }
+
+            PartnershipBarRuns.Text = inn.PartnershipRuns.ToString();
+            PartnershipBarBalls.Text = $"({inn.PartnershipBalls})";
+            ShowOverlayBarInternal("partnership");
+        }
+
+        // ---- Run Rate Bar ----
+
+        public void ShowRunRateBar()
+        {
+            EnqueueOverlay(() => ShowRunRateBarInternal());
+        }
+
+        private void ShowRunRateBarInternal()
+        {
+            if (_lastMatch == null) { OnOverlayFinished(); return; }
+            var inn = _lastMatch.CurrentInnings;
+            if (inn == null) { OnOverlayFinished(); return; }
+
+            RunRateBarCRR.Text = inn.RunRate.ToString("F2");
+            RunRateBarRRR.Text = _lastMatch.RequiredRunRate?.ToString("F2") ?? "\u2014";
+            ShowOverlayBarInternal("runrate");
+        }
+
+        // ---- Target / Chase Bar ----
+
+        public void ShowTargetBar()
+        {
+            EnqueueOverlay(() => ShowTargetBarInternal());
+        }
+
+        private void ShowTargetBarInternal()
+        {
+            if (_lastMatch == null) { OnOverlayFinished(); return; }
+
+            TargetBarTarget.Text = _lastMatch.Target?.ToString() ?? "\u2014";
+            TargetBarNeed.Text = _lastMatch.RunsRequired?.ToString() ?? "\u2014";
+            TargetBarBalls.Text = _lastMatch.BallsRemaining?.ToString() ?? "\u2014";
+            ShowOverlayBarInternal("target");
+        }
+
+        // ---- Powerplay Bar ----
+
+        public void ShowPowerplayBar()
+        {
+            EnqueueOverlay(() => ShowPowerplayBarInternal());
+        }
+
+        private void ShowPowerplayBarInternal()
+        {
+            if (_lastMatch?.CurrentInnings == null) { OnOverlayFinished(); return; }
+            var inn = _lastMatch.CurrentInnings;
+            int oversUsed = Math.Min(inn.CompletedOvers, 6);
+            PowerplayBarOvers.Text = $"{oversUsed}/6";
+            ShowOverlayBarInternal("powerplay");
+        }
+
+        // ---- Last 5 Overs Bar ----
+
+        public void ShowLast5OversBar()
+        {
+            EnqueueOverlay(() => ShowLast5OversBarInternal());
+        }
+
+        private void ShowLast5OversBarInternal()
+        {
+            if (_lastMatch?.CurrentInnings == null) { OnOverlayFinished(); return; }
+            int runs = _lastMatch.CurrentInnings.RunsInLastOvers(5);
+            Last5OversBarValue.Text = $"{runs} runs";
+            ShowOverlayBarInternal("last5");
+        }
+
+        // ---- Boundary Drought Bar ----
+
+        public void ShowBoundaryDroughtBar()
+        {
+            EnqueueOverlay(() => ShowBoundaryDroughtBarInternal());
+        }
+
+        private void ShowBoundaryDroughtBarInternal()
+        {
+            if (_lastMatch?.CurrentInnings == null) { OnOverlayFinished(); return; }
+            int balls = _lastMatch.CurrentInnings.BoundaryDroughtBalls;
+            BoundaryDroughtBarValue.Text = $"{balls} balls";
+            ShowOverlayBarInternal("drought");
+        }
+
+        // ---- Overs Remaining Warning Bar (AFL 5-minute style) ----
+
+        public void ShowOversRemainingWarning(int oversLeft)
+        {
+            EnqueueOverlay(() => ShowOversRemainingWarningInternal(oversLeft));
+        }
+
+        private void ShowOversRemainingWarningInternal(int oversLeft)
+        {
+            OversWarningText.Text = $"{oversLeft} OVERS REMAINING";
+            _oversWarningStripeTimer?.Start();
+            ShowOverlayBarInternal("overs_warning");
+        }
+
+        private void OnOversWarningStripeTick(object? sender, EventArgs e)
+        {
+            OversWarningStripesTranslate.X = (OversWarningStripesTranslate.X + 0.8) % 40;
+        }
+
+        // ---- Milestone Bar (50/100/150/200) ----
+
+        public void ShowMilestoneCelebration(string playerName, int milestone)
+        {
+            EnqueueOverlay(() => ShowMilestoneInternal(playerName, milestone));
+        }
+
+        private void ShowMilestoneInternal(string playerName, int milestone)
+        {
+            string text = milestone switch
+            {
+                50 => "HALF CENTURY!",
+                100 => "CENTURY!",
+                150 => "150 UP!",
+                200 => "DOUBLE CENTURY!",
+                _ => $"{milestone} RUNS!"
+            };
+
+            string emoji = milestone >= 100 ? "\U0001F31F" : "\U0001F389";
+
+            // Gold gradient for century+, standard for 50
+            Color gradStart = milestone >= 100
+                ? Color.FromRgb(0x3D, 0x2D, 0x00)
+                : Color.FromRgb(0x1A, 0x1A, 0x00);
+            Color gradMid = milestone >= 100
+                ? Color.FromRgb(0x6B, 0x50, 0x00)
+                : Color.FromRgb(0x3D, 0x3D, 0x00);
+
+            MilestoneBarGradient.GradientStops[0].Color = gradStart;
+            MilestoneBarGradient.GradientStops[1].Color = gradMid;
+            MilestoneBarGradient.GradientStops[2].Color = gradStart;
+
+            MilestoneBarEmoji.Text = emoji;
+            MilestoneBarText.Text = text;
+            MilestoneBarPlayer.Text = playerName.ToUpper();
+            ShowOverlayBarInternal("milestone");
+        }
+
+        // ---- Auto-trigger checks (called from UpdateFromMatch) ----
+
+        /// <summary>Checks for automatic overlay triggers based on match state changes.</summary>
+        private void CheckAutoOverlays(CricketMatchManager match)
+        {
+            var inn = match.CurrentInnings;
+            if (inn == null) return;
+
+            // Auto-show powerplay bar at start and on over completion during powerplay
+            if (match.IsInPowerplay)
+            {
+                int currentOver = inn.CompletedOvers;
+                if (currentOver != _lastPowerplayOver && currentOver < 6)
+                {
+                    _lastPowerplayOver = currentOver;
+                    if (!_powerplayBarShownThisInnings || currentOver == 0)
+                    {
+                        _powerplayBarShownThisInnings = true;
+                        ShowPowerplayBar();
+                    }
+                }
+            }
+
+            // Auto-show boundary drought after 18+ balls (3 overs) without boundary
+            if (inn.BoundaryDroughtBalls >= 18 && inn.BoundaryDroughtBalls % 6 == 0)
+                ShowBoundaryDroughtBar();
+
+            // Auto-show overs remaining at key points
+            if (match.Format == CricketFormat.LimitedOvers && match.BallsRemaining != null)
+            {
+                int oversLeft = match.BallsRemaining.Value / 6;
+                int ballsLeftInOver = match.BallsRemaining.Value % 6;
+
+                // Trigger at exactly 10 and 5 overs remaining (on the ball)
+                if (ballsLeftInOver == 0 && oversLeft > 0)
+                {
+                    if ((oversLeft == 10 || oversLeft == 5) && _lastOversWarningThreshold != oversLeft)
+                    {
+                        _lastOversWarningThreshold = oversLeft;
+                        ShowOversRemainingWarning(oversLeft);
+                    }
+                }
+            }
         }
     }
 }

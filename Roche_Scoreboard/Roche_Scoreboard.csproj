@@ -7,6 +7,36 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+
+    <!-- App identity -->
+    <AssemblyTitle>Roche Scoreboard</AssemblyTitle>
+    <Product>Roche Scoreboard</Product>
+    <Description>AFL broadcast scoreboard overlay</Description>
+    <Version>2.7.1</Version>
+
+    <!-- App icon (taskbar, File Explorer, title bar) -->
+    <ApplicationIcon>app.ico</ApplicationIcon>
+
+    <!-- Publishing as single-file EXE -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
+
+  <!-- ASP.NET Core for embedded web server + SignalR -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- Embed wwwroot files as content -->
+  <ItemGroup>
+    <Content Include="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.7.0" />
+    <PackageReference Include="SharpVectors.Reloaded" Version="1.8.5" />
+  </ItemGroup>
 
 </Project>

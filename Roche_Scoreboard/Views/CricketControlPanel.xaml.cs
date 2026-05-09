@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Input;
 using Roche_Scoreboard.Models;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
@@ -49,6 +50,7 @@ namespace Roche_Scoreboard.Views
             _match.DeliveryAdded += OnDeliveryAdded;
             _match.BatterSelectionNeeded += OnBatterSelectionNeeded;
             _match.BowlerSelectionNeeded += OnBowlerSelectionNeeded;
+            _match.MilestoneReached += OnMilestoneReached;
             UpdateUI();
             RefreshBowlerList();
         }
@@ -57,6 +59,14 @@ namespace Roche_Scoreboard.Views
         {
             _scorebug = scorebug;
             _scorebug.OverlayQueueChanged += OnOverlayQueueChanged;
+        }
+
+        private void OnMilestoneReached(string playerName, int milestone)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _scorebug?.ShowMilestoneCelebration(playerName, milestone);
+            });
         }
 
         private void OnOverlayQueueChanged(int count)
@@ -568,6 +578,38 @@ namespace Roche_Scoreboard.Views
             _scorebug?.ShowOverTracker();
         }
 
+        // ---- Broadcast bar overlay buttons ----
+
+        private void OverlayPartnershipBar_Click(object sender, RoutedEventArgs e)
+        {
+            _scorebug?.ShowPartnershipBar();
+        }
+
+        private void OverlayRunRate_Click(object sender, RoutedEventArgs e)
+        {
+            _scorebug?.ShowRunRateBar();
+        }
+
+        private void OverlayTarget_Click(object sender, RoutedEventArgs e)
+        {
+            _scorebug?.ShowTargetBar();
+        }
+
+        private void OverlayPowerplay_Click(object sender, RoutedEventArgs e)
+        {
+            _scorebug?.ShowPowerplayBar();
+        }
+
+        private void OverlayLast5_Click(object sender, RoutedEventArgs e)
+        {
+            _scorebug?.ShowLast5OversBar();
+        }
+
+        private void OverlayDrought_Click(object sender, RoutedEventArgs e)
+        {
+            _scorebug?.ShowBoundaryDroughtBar();
+        }
+
         private CricketSummaryControl? _summaryControl;
         private string _currentPresentation = "scorebug"; // "scorebug", "batting", "bowling"
 
@@ -585,7 +627,19 @@ namespace Roche_Scoreboard.Views
             SwitchPresentation("batting");
         }
 
+        private void ShowBattingSummary_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (_match == null) return;
+            SwitchPresentation("batting");
+        }
+
         private void ShowBowlingSummary_Click(object sender, RoutedEventArgs e)
+        {
+            if (_match == null) return;
+            SwitchPresentation("bowling");
+        }
+
+        private void ShowBowlingSummary_Click(object sender, MouseButtonEventArgs e)
         {
             if (_match == null) return;
             SwitchPresentation("bowling");
@@ -620,7 +674,17 @@ namespace Roche_Scoreboard.Views
             SwitchPresentation("scorebug");
         }
 
+        private void ShowScorebug_Click(object sender, MouseButtonEventArgs e)
+        {
+            SwitchPresentation("scorebug");
+        }
+
         private void ShowWindow_Click(object sender, RoutedEventArgs e)
+        {
+            PresentationChanged?.Invoke("window");
+        }
+
+        private void ShowWindow_Click(object sender, MouseButtonEventArgs e)
         {
             PresentationChanged?.Invoke("window");
         }
@@ -927,7 +991,8 @@ namespace Roche_Scoreboard.Views
                 3 => "3rd Innings",
                 _ => $"{_match.CurrentInningsNumber}th Innings"
             };
-            HeaderScore.Text = $"{inn.TotalWickets}/{inn.TotalRuns} ({inn.OversDisplay})";
+            HeaderScore.Text = $"{inn.TotalWickets}/{inn.TotalRuns}";
+            HeaderOvers.Text = $"Over {inn.OversDisplay}";
 
             // Batter display — keep rows stable, only move the indicator
             int si = inn.StrikerIndex;

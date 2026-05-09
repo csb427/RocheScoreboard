@@ -76,9 +76,14 @@ namespace Roche_Scoreboard.Views
         private void PopulateBatting(CricketMatchManager match, CricketInnings inn)
         {
             TrySetColor(HeaderBg, match.BattingTeamPrimaryColor);
+            TrySetColor(SeparatorBg, match.BattingTeamPrimaryColor);
             HeaderText.Text = $"{match.BattingTeamName.ToUpper()} BATTING";
             RowsPanel.Children.Clear();
 
+            // Column header row for batting
+            RowsPanel.Children.Add(CreateBattingHeaderRow());
+
+            int rowIndex = 0;
             for (int i = 0; i < inn.BattingOrder.Count; i++)
             {
                 var p = inn.BattingOrder[i];
@@ -89,7 +94,8 @@ namespace Roche_Scoreboard.Views
                 bool isNonStriker = i == inn.NonStrikerIndex;
                 bool isActive = (isStriker || isNonStriker) && !p.IsOut;
 
-                RowsPanel.Children.Add(CreateBatterRow(i + 1, p, isActive, isStriker, match.BattingTeamPrimaryColor));
+                RowsPanel.Children.Add(CreateBatterRow(i + 1, p, isActive, isStriker, match.BattingTeamPrimaryColor, rowIndex % 2 == 1));
+                rowIndex++;
             }
 
             RowsPanel.Children.Add(CreateLabelValueRow("EXTRAS", inn.TotalExtras.ToString(),
@@ -101,15 +107,18 @@ namespace Roche_Scoreboard.Views
         private void PopulateBowling(CricketMatchManager match, CricketInnings inn)
         {
             TrySetColor(HeaderBg, match.BowlingTeamPrimaryColor);
+            TrySetColor(SeparatorBg, match.BowlingTeamPrimaryColor);
             HeaderText.Text = $"{match.BowlingTeamName.ToUpper()} BOWLING";
             RowsPanel.Children.Clear();
             RowsPanel.Children.Add(CreateBowlingHeaderRow());
 
+            int rowIndex = 0;
             for (int i = 0; i < inn.BowlingAttack.Count; i++)
             {
                 var p = inn.BowlingAttack[i];
                 if (p.BallsBowled == 0 && i != inn.CurrentBowlerIndex) continue;
-                RowsPanel.Children.Add(CreateBowlerRow(p, i == inn.CurrentBowlerIndex, match.BowlingTeamPrimaryColor));
+                RowsPanel.Children.Add(CreateBowlerRow(p, i == inn.CurrentBowlerIndex, match.BowlingTeamPrimaryColor, rowIndex % 2 == 1));
+                rowIndex++;
             }
 
             PopulateFooter(match, inn);
@@ -163,24 +172,55 @@ namespace Roche_Scoreboard.Views
             RootTranslate.BeginAnimation(TranslateTransform.XProperty, slideOut);
         }
 
-        private Border CreateBatterRow(int order, CricketPlayer p, bool isActive, bool isStriker, string teamColor)
+        private static Border CreateBattingHeaderRow()
         {
-            var borderColor = isActive ? ParseColor(teamColor, Color.FromRgb(0xCC, 0, 0)) : Color.FromRgb(0x1E, 0x29, 0x3B);
+            var border = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(0x0A, 0x12, 0x28)),
+                Padding = new Thickness(16, 6, 16, 6)
+            };
+
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(36) });    // #
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // BATTER
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });    // R
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });    // B
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });    // SR
+
+            AddHeaderCell(grid, "#", 0, HorizontalAlignment.Left);
+            AddHeaderCell(grid, "BATTER", 1, HorizontalAlignment.Left);
+            AddHeaderCell(grid, "R", 2, HorizontalAlignment.Right);
+            AddHeaderCell(grid, "B", 3, HorizontalAlignment.Center);
+            AddHeaderCell(grid, "SR", 4, HorizontalAlignment.Center);
+
+            border.Child = grid;
+            return border;
+        }
+
+        private Border CreateBatterRow(int order, CricketPlayer p, bool isActive, bool isStriker, string teamColor, bool altRow)
+        {
+            var teamCol = ParseColor(teamColor, Color.FromRgb(0xCC, 0, 0));
+            var borderColor = isActive ? teamCol : Color.FromRgb(0x1E, 0x29, 0x3B);
+
+            // Alternate row tinting
+            var bgColor = altRow ? Color.FromRgb(0x0F, 0x17, 0x2A) : Color.FromRgb(0x11, 0x18, 0x27);
 
             var border = new Border
             {
+                // Left accent border for active batsmen
                 BorderBrush = new SolidColorBrush(borderColor),
-                BorderThickness = new Thickness(0, 0, 0, 2),
-                Background = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27)),
-                Padding = new Thickness(16, 10, 16, 10),
+                BorderThickness = isActive ? new Thickness(4, 0, 0, 1) : new Thickness(0, 0, 0, 1),
+                Background = new SolidColorBrush(bgColor),
+                Padding = new Thickness(isActive ? 12 : 16, 10, 16, 10),
                 Margin = new Thickness(0, 0, 0, 0)
             };
 
             var grid = new Grid();
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(36) });    // order #
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // name + dismissal
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });       // runs
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });    // runs
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });    // balls
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });    // SR
 
             // Order number
             var orderText = new TextBlock
@@ -195,8 +235,23 @@ namespace Roche_Scoreboard.Views
             Grid.SetColumn(orderText, 0);
             grid.Children.Add(orderText);
 
-            // Name + dismissal
+            // Name + dismissal + milestone badge
             var namePanel = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+
+            // Name row (with optional milestone badge)
+            var nameRow = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal };
+            if (isStriker && isActive)
+            {
+                var indicator = new TextBlock
+                {
+                    Text = "▶ ",
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush(teamCol),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                nameRow.Children.Add(indicator);
+            }
+
             var nameText = new TextBlock
             {
                 Text = p.DisplayName.ToUpper(),
@@ -204,9 +259,21 @@ namespace Roche_Scoreboard.Views
                 FontSize = 18,
                 FontWeight = FontWeights.Black,
                 FontFamily = new FontFamily("Bahnschrift"),
-                TextTrimming = TextTrimming.CharacterEllipsis
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center
             };
-            namePanel.Children.Add(nameText);
+            nameRow.Children.Add(nameText);
+
+            // Milestone badge (50, 100, 150+)
+            if (p.Runs >= 100)
+            {
+                nameRow.Children.Add(CreateMilestoneBadge("💯", Color.FromRgb(0xFF, 0xD7, 0x00)));
+            }
+            else if (p.Runs >= 50)
+            {
+                nameRow.Children.Add(CreateMilestoneBadge("50", Color.FromRgb(0x3F, 0xB9, 0x50)));
+            }
+            namePanel.Children.Add(nameRow);
 
             var dismissalLine = new TextBlock
             {
@@ -221,11 +288,11 @@ namespace Roche_Scoreboard.Views
             Grid.SetColumn(namePanel, 1);
             grid.Children.Add(namePanel);
 
-            // Runs (large)
+            // Runs (large, right-aligned)
             var runsText = new TextBlock
             {
                 Text = p.Runs.ToString(),
-                Foreground = new SolidColorBrush(Colors.White),
+                Foreground = new SolidColorBrush(p.IsOut ? Color.FromRgb(0x94, 0xA3, 0xB8) : Colors.White),
                 FontSize = 28,
                 FontWeight = FontWeights.Black,
                 FontFamily = new FontFamily("Bahnschrift"),
@@ -244,14 +311,56 @@ namespace Roche_Scoreboard.Views
                 FontSize = 16,
                 FontWeight = FontWeights.Bold,
                 FontFamily = new FontFamily("Bahnschrift"),
-                VerticalAlignment = VerticalAlignment.Bottom,
-                Margin = new Thickness(0, 0, 0, 4)
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
             };
             Grid.SetColumn(ballsText, 3);
             grid.Children.Add(ballsText);
 
+            // Strike rate
+            double sr = p.StrikeRate;
+            Color srColor = sr >= 150 ? Color.FromRgb(0x3F, 0xB9, 0x50)    // high SR = green
+                          : sr >= 100 ? Color.FromRgb(0x94, 0xA3, 0xB8)    // decent = muted
+                          : sr >= 50  ? Color.FromRgb(0xD2, 0x99, 0x22)    // slow = amber
+                          : Color.FromRgb(0x64, 0x74, 0x8B);               // very slow = dim
+            if (!isActive && p.BallsFaced == 0) srColor = Color.FromRgb(0x64, 0x74, 0x8B);
+
+            var srText = new TextBlock
+            {
+                Text = p.BallsFaced > 0 ? sr.ToString("F0") : "—",
+                Foreground = new SolidColorBrush(srColor),
+                FontSize = 14,
+                FontWeight = FontWeights.Bold,
+                FontFamily = new FontFamily("Bahnschrift"),
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            Grid.SetColumn(srText, 4);
+            grid.Children.Add(srText);
+
             border.Child = grid;
             return border;
+        }
+
+        private static Border CreateMilestoneBadge(string text, Color color)
+        {
+            return new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(0x33, color.R, color.G, color.B)),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(6, 1, 6, 1),
+                Margin = new Thickness(8, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Child = new TextBlock
+                {
+                    Text = text,
+                    Foreground = new SolidColorBrush(color),
+                    FontSize = 11,
+                    FontWeight = FontWeights.Black,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            };
         }
 
         private static Border CreateBowlingHeaderRow()
@@ -296,16 +405,18 @@ namespace Roche_Scoreboard.Views
             grid.Children.Add(tb);
         }
 
-        private Border CreateBowlerRow(CricketPlayer p, bool isCurrent, string teamColor)
+        private Border CreateBowlerRow(CricketPlayer p, bool isCurrent, string teamColor, bool altRow)
         {
-            var borderColor = isCurrent ? ParseColor(teamColor, Color.FromRgb(0, 0, 0x80)) : Color.FromRgb(0x1E, 0x29, 0x3B);
+            var teamCol = ParseColor(teamColor, Color.FromRgb(0, 0, 0x80));
+            var borderColor = isCurrent ? teamCol : Color.FromRgb(0x1E, 0x29, 0x3B);
+            var bgColor = altRow ? Color.FromRgb(0x0F, 0x17, 0x2A) : Color.FromRgb(0x11, 0x18, 0x27);
 
             var border = new Border
             {
                 BorderBrush = new SolidColorBrush(borderColor),
-                BorderThickness = new Thickness(0, 0, 0, 2),
-                Background = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27)),
-                Padding = new Thickness(16, 10, 16, 10)
+                BorderThickness = isCurrent ? new Thickness(4, 0, 0, 1) : new Thickness(0, 0, 0, 1),
+                Background = new SolidColorBrush(bgColor),
+                Padding = new Thickness(isCurrent ? 12 : 16, 10, 16, 10)
             };
 
             var grid = new Grid();
@@ -316,6 +427,18 @@ namespace Roche_Scoreboard.Views
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });  // W
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });  // ECON
 
+            // Name row with optional 5W badge
+            var nameRow = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+            if (isCurrent)
+            {
+                nameRow.Children.Add(new TextBlock
+                {
+                    Text = "▶ ",
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush(teamCol),
+                    VerticalAlignment = VerticalAlignment.Center
+                });
+            }
             var nameText = new TextBlock
             {
                 Text = p.DisplayName.ToUpper(),
@@ -326,14 +449,27 @@ namespace Roche_Scoreboard.Views
                 VerticalAlignment = VerticalAlignment.Center,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
-            Grid.SetColumn(nameText, 0);
-            grid.Children.Add(nameText);
+            nameRow.Children.Add(nameText);
+
+            if (p.Wickets >= 5)
+                nameRow.Children.Add(CreateMilestoneBadge($"{p.Wickets}W", Color.FromRgb(0xFF, 0xD7, 0x00)));
+
+            Grid.SetColumn(nameRow, 0);
+            grid.Children.Add(nameRow);
 
             AddStatCell(grid, p.OversDisplay, 1);
             AddStatCell(grid, p.Maidens.ToString(), 2);
             AddStatCell(grid, p.RunsConceded.ToString(), 3);
             AddStatCell(grid, p.Wickets.ToString(), 4, p.Wickets > 0 ? Colors.White : Color.FromRgb(0x94, 0xA3, 0xB8));
-            AddStatCell(grid, p.Economy.ToString("F1"), 5);
+
+            // Economy with colour coding
+            double econ = p.Economy;
+            Color econColor = econ <= 4.0 ? Color.FromRgb(0x3F, 0xB9, 0x50)   // excellent = green
+                            : econ <= 6.0 ? Color.FromRgb(0x94, 0xA3, 0xB8)   // moderate = muted
+                            : econ <= 8.0 ? Color.FromRgb(0xD2, 0x99, 0x22)   // expensive = amber
+                            : Color.FromRgb(0xDC, 0x26, 0x26);                // very expensive = red
+            if (p.BallsBowled == 0) econColor = Color.FromRgb(0x64, 0x74, 0x8B);
+            AddStatCell(grid, p.BallsBowled > 0 ? econ.ToString("F1") : "—", 5, econColor);
 
             border.Child = grid;
             return border;

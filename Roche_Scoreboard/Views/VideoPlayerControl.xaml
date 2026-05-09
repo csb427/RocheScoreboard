@@ -7,11 +7,14 @@
              d:DesignHeight="420" d:DesignWidth="707"
              Background="Black">
 
-    <Grid>
+    <!-- Fill: video stretches to completely fill the responsive output
+         window (e.g. the 386x193 scoreboard area) so there are no black
+         bars around the content. -->
+    <Grid ClipToBounds="True">
         <MediaElement x:Name="VideoPlayer"
                       LoadedBehavior="Manual"
                       UnloadedBehavior="Manual"
-                      Stretch="Uniform"
+                      Stretch="Fill"
                       Volume="1.0"/>
     </Grid>
 </UserControl>

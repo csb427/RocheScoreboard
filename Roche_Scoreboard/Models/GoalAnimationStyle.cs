@@ -8,32 +8,37 @@ namespace Roche_Scoreboard.Models
     public enum GoalAnimationStyle
     {
         /// <summary>
-        /// Premier League / AFL TV style — team-colour panel flash,
-        /// score scale-up with glow, count-up total, smooth settle.
+        /// TV sports graphics package — sharp snap-in overlay, signature
+        /// double-tap score glow, text unfurls horizontally then vertically
+        /// (lower-third reveal), authoritative gradient sweep with trailing shimmer.
         /// </summary>
         Broadcast,
 
         /// <summary>
-        /// High-energy — lightning-edge glow burst, rapid-flip digits
-        /// with overshoot, shimmer wipe, colour pulse fade.
+        /// Lightning storm — rapid strobe flashes on edge and score glow,
+        /// text snaps in instantly with micro-vibration from electrical surge,
+        /// reversed shimmer discharge (right-to-left), hard cut-out.
         /// </summary>
         Electric,
 
         /// <summary>
-        /// Dramatic hold — full overlay slow reveal, large-scale text pop,
-        /// double shimmer pass, long hold, cinematic fade-out.
+        /// Epic title drop — slow dramatic overlay reveal, intense long-building
+        /// glow, text starts massive (3×) and shrinks to 1× with elastic landing
+        /// bounce, dual shimmer passes, very slow cinematic fade-out.
         /// </summary>
         Cinematic,
 
         /// <summary>
-        /// Minimal and modern — subtle colour accent pulse on score area,
-        /// smooth slide-flip digits, soft glow settle. No full overlay.
+        /// Breathing pulse of light — no overlay panel or text, organic
+        /// heartbeat-like score glow (rise, dip, second pulse, slow exhale),
+        /// barely-there edge accent, gentle low-opacity shimmer pass.
         /// </summary>
         Clean,
 
         /// <summary>
-        /// Original animation preserved as a selectable option —
-        /// gradient sweep, back-ease text pop, single shimmer, fade out.
+        /// Vintage flicker — overlay flickers on with rapid opacity stutters
+        /// (incandescent bulbs warming up), text visible through the flickering
+        /// panel, warm slow score glow, no sweep or shimmer, flickers off.
         /// </summary>
         Classic,
 

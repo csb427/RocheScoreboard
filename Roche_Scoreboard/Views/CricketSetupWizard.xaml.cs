@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using Microsoft.Win32;
 using Roche_Scoreboard.Models;
 using Roche_Scoreboard.Services;
@@ -39,15 +40,50 @@ namespace Roche_Scoreboard.Views
             InitializeComponent();
             LoadPresets();
 
-            TeamANameBox.TextChanged += (_, __) => UpdateTeamAPreview();
+            TeamANameBox.TextChanged += (_, __) => { AutoAbbreviate(TeamANameBox, TeamAAbbrBox); UpdateTeamAPreview(); };
             TeamAAbbrBox.TextChanged += (_, __) => UpdateTeamAPreview();
             TeamAColorBox.TextChanged += (_, __) => UpdateTeamAPreview();
             TeamASecondaryBox.TextChanged += (_, __) => UpdateTeamAPreview();
 
-            TeamBNameBox.TextChanged += (_, __) => UpdateTeamBPreview();
+            TeamBNameBox.TextChanged += (_, __) => { AutoAbbreviate(TeamBNameBox, TeamBAbbrBox); UpdateTeamBPreview(); };
             TeamBAbbrBox.TextChanged += (_, __) => UpdateTeamBPreview();
             TeamBColorBox.TextChanged += (_, __) => UpdateTeamBPreview();
             TeamBSecondaryBox.TextChanged += (_, __) => UpdateTeamBPreview();
+        }
+
+        /// <summary>Auto-generates an abbreviation from the team name if the user hasn't manually typed one.</summary>
+        private bool _suppressAutoAbbr;
+
+        private void AutoAbbreviate(TextBox nameBox, TextBox abbrBox)
+        {
+            if (_suppressAutoAbbr) return;
+            string name = nameBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(name)) return;
+
+            // Only auto-fill if abbreviation is empty or matches a previously auto-generated value
+            string currentAbbr = abbrBox.Text.Trim();
+            string autoAbbr = GenerateAbbr(name);
+            string prevAutoAbbr = GenerateAbbr(name.Length > 1 ? name[..^1] : "");
+
+            if (string.IsNullOrWhiteSpace(currentAbbr)
+                || currentAbbr.Equals(prevAutoAbbr, StringComparison.OrdinalIgnoreCase)
+                || currentAbbr.Equals(autoAbbr, StringComparison.OrdinalIgnoreCase))
+            {
+                _suppressAutoAbbr = true;
+                abbrBox.Text = autoAbbr;
+                _suppressAutoAbbr = false;
+            }
+        }
+
+        private static string GenerateAbbr(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return "";
+            var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length >= 3)
+                return string.Concat(words.Take(3).Select(w => char.ToUpper(w[0]))).ToString();
+            if (words.Length == 2)
+                return $"{char.ToUpper(words[0][0])}{char.ToUpper(words[1][0])}{(words[1].Length > 1 ? char.ToUpper(words[1][1]) : ' ')}".Trim();
+            return name.Length >= 3 ? name[..3].ToUpper() : name.ToUpper();
         }
 
         // ---- Presets ----
@@ -209,10 +245,36 @@ namespace Roche_Scoreboard.Views
 
         private void ShowStep(int step)
         {
+            int prevStep = _currentStep;
             _currentStep = step;
-            Step1Panel.Visibility = step == 1 ? Visibility.Visible : Visibility.Collapsed;
-            Step2Panel.Visibility = step == 2 ? Visibility.Visible : Visibility.Collapsed;
-            Step3Panel.Visibility = step == 3 ? Visibility.Visible : Visibility.Collapsed;
+
+            // Determine slide direction: forward = slide left, backward = slide right
+            bool forward = step > prevStep;
+
+            // Hide all panels first (except incoming one which we'll animate)
+            var panels = new (FrameworkElement panel, TranslateTransform translate)[] { (Step1Panel, Step1Translate), (Step2Panel, Step2Translate), (Step3Panel, Step3Translate) };
+
+            foreach (var (panel, translate) in panels)
+            {
+                int panelIndex = Array.IndexOf(panels, (panel, translate)) + 1;
+                if (panelIndex != step)
+                {
+                    if (panelIndex == prevStep && prevStep != step)
+                    {
+                        // Animate outgoing panel
+                        AnimateStepOut(panel, translate, forward);
+                    }
+                    else
+                    {
+                        panel.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+
+            // Animate incoming panel
+            var incoming = panels[step - 1];
+            AnimateStepIn(incoming.Item1, incoming.Item2, forward);
+
             BackButton.Visibility = step > 1 ? Visibility.Visible : Visibility.Collapsed;
             NextButton.Content = step < 3 ? "Next →" : "Start Match ▶";
 
@@ -225,14 +287,24 @@ namespace Roche_Scoreboard.Views
 
             var accent = FindResource("AccentBrush") as SolidColorBrush;
             var surface = FindResource("Surface2Brush") as SolidColorBrush;
-            var muted = FindResource("TextMutedBrush") as SolidColorBrush;
+            var bright = FindResource("TextBrightBrush") as SolidColorBrush;
+            var muted = FindResource("TextDimBrush") as SolidColorBrush;
+            var edgeBrush = FindResource("EdgeBrush") as SolidColorBrush;
 
             Step1Dot.Background = step >= 1 ? accent : surface;
             Step2Dot.Background = step >= 2 ? accent : surface;
             Step3Dot.Background = step >= 3 ? accent : surface;
-            Step1Label.Foreground = step >= 1 ? Brushes.White : muted;
-            Step2Label.Foreground = step >= 2 ? Brushes.White : muted;
-            Step3Label.Foreground = step >= 3 ? Brushes.White : muted;
+            Step1Label.Foreground = step >= 1 ? bright : muted;
+            Step2Label.Foreground = step >= 2 ? bright : muted;
+            Step3Label.Foreground = step >= 3 ? bright : muted;
+
+            // Animate step connector lines to accent when completed
+            Step1Line.Background = step >= 2 ? accent : edgeBrush;
+            Step2Line.Background = step >= 3 ? accent : edgeBrush;
+
+            // Player count badge in step indicator
+            int totalPlayers = _teamAPlayers.Count + _teamBPlayers.Count;
+            Step2Count.Text = totalPlayers > 0 ? $"({totalPlayers})" : "";
 
             if (step == 2)
             {
@@ -249,6 +321,36 @@ namespace Roche_Scoreboard.Views
                 if (!string.IsNullOrWhiteSpace(aName)) TossTeamA.Content = aName;
                 if (!string.IsNullOrWhiteSpace(bName)) TossTeamB.Content = bName;
             }
+        }
+
+        private static void AnimateStepIn(FrameworkElement panel, TranslateTransform translate, bool fromRight)
+        {
+            panel.Visibility = Visibility.Visible;
+            panel.Opacity = 0;
+            translate.X = fromRight ? 80 : -80;
+
+            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.3)) { EasingFunction = ease };
+            var slideIn = new DoubleAnimation(fromRight ? 80 : -80, 0, TimeSpan.FromSeconds(0.3)) { EasingFunction = ease };
+            panel.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+            translate.BeginAnimation(TranslateTransform.XProperty, slideIn);
+        }
+
+        private static void AnimateStepOut(FrameworkElement panel, TranslateTransform translate, bool toLeft)
+        {
+            var ease = new CubicEase { EasingMode = EasingMode.EaseIn };
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.2)) { EasingFunction = ease };
+            var slideOut = new DoubleAnimation(0, toLeft ? -60 : 60, TimeSpan.FromSeconds(0.2)) { EasingFunction = ease };
+            fadeOut.Completed += (_, __) =>
+            {
+                panel.Visibility = Visibility.Collapsed;
+                panel.BeginAnimation(UIElement.OpacityProperty, null);
+                panel.Opacity = 1;
+                translate.BeginAnimation(TranslateTransform.XProperty, null);
+                translate.X = 0;
+            };
+            panel.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+            translate.BeginAnimation(TranslateTransform.XProperty, slideOut);
         }
 
         private void Next_Click(object sender, RoutedEventArgs e)
@@ -352,29 +454,9 @@ namespace Roche_Scoreboard.Views
 
         private void ShowLogoPreview(string? path, Border previewBorder, System.Windows.Controls.Image previewImage)
         {
-            if (!string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path))
-            {
-                try
-                {
-                    var bmp = new System.Windows.Media.Imaging.BitmapImage();
-                    bmp.BeginInit();
-                    bmp.UriSource = new Uri(path, UriKind.Absolute);
-                    bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
-                    bmp.DecodePixelHeight = 120;
-                    bmp.EndInit();
-                    bmp.Freeze();
-                    previewImage.Source = bmp;
-                    previewBorder.Visibility = Visibility.Visible;
-                }
-                catch
-                {
-                    previewBorder.Visibility = Visibility.Collapsed;
-                }
-            }
-            else
-            {
-                previewBorder.Visibility = Visibility.Collapsed;
-            }
+            var source = Services.ImageLoadHelper.Load(path, decodePixelHeight: 120);
+            previewImage.Source = source;
+            previewBorder.Visibility = source is not null ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // ---- Messages ----
@@ -477,7 +559,7 @@ namespace Roche_Scoreboard.Views
         {
             var dlg = new OpenFileDialog
             {
-                Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files|*.*",
+                Filter = Services.ImageLoadHelper.LogoFilter,
                 Title = "Select Team Logo"
             };
             return dlg.ShowDialog() == true ? dlg.FileName : null;

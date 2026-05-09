@@ -1,0 +1,487 @@
+<UserControl x:Class="Roche_Scoreboard.Views.TrainingControlPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="820" d:DesignWidth="1280"
+             Background="#080C12"
+             Focusable="True">
+
+    <UserControl.Resources>
+        <Style x:Key="InputBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#10161D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Bahnschrift"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="8,7"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#58A6FF"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SectionCaption" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Bahnschrift"/>
+            <Setter Property="FontWeight" Value="Black"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="HelperText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#8B949E"/>
+            <Setter Property="FontFamily" Value="Bahnschrift"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource HelperText}">
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="#0D1117"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="18"/>
+        </Style>
+
+        <!-- Custom button template — the default WPF Aero chrome paints its
+             own gradient and ignores Background, which made our colours
+             read as light text on a system grey/white. This template uses
+             the Background / Foreground / BorderBrush we set directly. -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="FontFamily" Value="Bahnschrift"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.4"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PresetChip" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="#10161D"/>
+            <Setter Property="Foreground" Value="#E5E7EB"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Margin" Value="0,0,6,6"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- Master Viewbox: at the natural design size (1280×820) the layout is
+         identical to before. If the host window is smaller, everything
+         inside scales DOWN proportionally so the panel always fits. -->
+    <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+        <Grid Width="1280" Height="820">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+        <!-- ═══════════════════ TOP HEADER BAR ═══════════════════ -->
+        <Border Grid.Row="0" Background="#0D1117" BorderBrush="#1F2937" BorderThickness="0,0,0,1" Padding="22,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="#0D1117" BorderBrush="#58A6FF" BorderThickness="2" Padding="16,8">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="#58A6FF" Opacity="0.55"/>
+                    </Border.Effect>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="TRAINING MODE" Foreground="White"
+                                   FontFamily="Bahnschrift" FontWeight="Black" FontSize="22"/>
+                        <Border Width="1" Background="#30363D" Margin="14,2,14,2"/>
+                        <TextBlock Text="Operator Console" Foreground="#8B949E"
+                                   FontFamily="Bahnschrift" FontWeight="SemiBold" FontSize="14"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,18,0">
+                    <TextBlock Text="SESSION TOTAL" Style="{StaticResource HelperText}"
+                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock x:Name="SessionTotalText" Text="00:00"
+                               Foreground="#58A6FF" FontFamily="Bahnschrift"
+                               FontWeight="Black" FontSize="28" VerticalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="14" ShadowDepth="0" Color="#58A6FF" Opacity="0.5"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </StackPanel>
+
+                <Button Grid.Column="3" x:Name="ExitButton" Content="✕  Exit Training"
+                        Click="OnExitClicked"
+                        Style="{StaticResource ActionButton}"
+                        Background="#3F1212" Foreground="#FECACA" BorderBrush="#B91C1C"
+                        ToolTip="Close Training Mode and return to sport selection (Esc)"/>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════ MAIN BODY ═══════════════════ -->
+        <Grid Grid.Row="1" Margin="20,18,20,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="2*" MinWidth="380"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ─────────── LEFT: NOW PLAYING + TRANSPORT + QUEUE ─────────── -->
+            <Grid Grid.Column="0" Margin="0,0,10,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource Card}" Padding="24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="22" ShadowDepth="0" Color="#58A6FF" Opacity="0.18"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="NOW PLAYING" Foreground="#8B949E" Style="{StaticResource SectionCaption}"
+                                       FontSize="11"/>
+                            <TextBlock x:Name="ActiveTitleText" Text="No timer"
+                                       Foreground="White" FontFamily="Bahnschrift" FontWeight="Black" FontSize="42"
+                                       Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                            <Border x:Name="ActiveStatusPill" Background="#10161D" BorderBrush="#58A6FF"
+                                    BorderThickness="2" Padding="12,4" Margin="0,8,0,0"
+                                    HorizontalAlignment="Left">
+                                <TextBlock x:Name="ActiveStatusText" Text="READY"
+                                           Foreground="#58A6FF" FontFamily="Bahnschrift" FontWeight="Black" FontSize="13"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" x:Name="ActiveRemainingText" Text="00:00"
+                                   Foreground="White" FontFamily="Bahnschrift" FontWeight="Black" FontSize="84"
+                                   VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="22" ShadowDepth="0" Color="#58A6FF" Opacity="0.6"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,12,0,0" Padding="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <Button x:Name="StartPauseButton" Click="OnStartPauseClicked"
+                                    Content="▶  START"
+                                    Style="{StaticResource ActionButton}"
+                                    Background="#166534" Foreground="#DCFCE7" BorderBrush="#22C55E"
+                                    Padding="32,14" Margin="0,0,10,0"
+                                    FontWeight="Black" FontSize="20"
+                                    ToolTip="Start or pause the active timer (Spacebar)"/>
+                            <Button x:Name="ResetActiveButton" Click="OnResetActiveClicked"
+                                    Content="↺  Reset"
+                                    Style="{StaticResource ActionButton}"
+                                    Background="#1F2937" Foreground="#E5E7EB" BorderBrush="#374151"
+                                    Padding="20,14" Margin="0,0,10,0"
+                                    ToolTip="Reset the active timer to its full duration (R)"/>
+                            <Button x:Name="SkipButton" Click="OnSkipClicked"
+                                    Content="⏭  Skip"
+                                    Style="{StaticResource ActionButton}"
+                                    Background="#3B2A0A" Foreground="#FDE68A" BorderBrush="#D97706"
+                                    Padding="20,14"
+                                    ToolTip="Skip the active timer and move to the next one (S)"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="ADJUST" Style="{StaticResource HelperText}"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Button x:Name="AddOneMinButton" Click="OnAdd60sClicked"
+                                    Content="+1:00"
+                                    Style="{StaticResource ActionButton}"
+                                    Background="#0F2A4A" Foreground="#DBEAFE" BorderBrush="#2563EB"
+                                    Margin="0,0,6,0"
+                                    ToolTip="Add one minute to the active timer (works while running)"/>
+                            <Button x:Name="AddTenSecButton" Click="OnAdd10sClicked"
+                                    Content="+0:10"
+                                    Style="{StaticResource ActionButton}"
+                                    Background="#0F2A4A" Foreground="#DBEAFE" BorderBrush="#2563EB"
+                                    ToolTip="Add ten seconds to the active timer (works while running)"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,12,0,0" Padding="0">
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Top" Background="#10161D">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="QUEUE" Foreground="#E5E7EB"
+                                       Style="{StaticResource SectionCaption}" Padding="16,12,8,12"/>
+                            <Border Grid.Column="1" Background="#0D1117" BorderBrush="#30363D" BorderThickness="1"
+                                    Padding="8,2" VerticalAlignment="Center" Margin="2,0,0,0">
+                                <TextBlock x:Name="QueueCountText" Text="0 timers"
+                                           Foreground="#8B949E" FontFamily="Bahnschrift" FontWeight="Bold" FontSize="11"/>
+                            </Border>
+                            <TextBlock Grid.Column="2" Text="Drag rows to reorder · ▲ ▼ buttons also work · ✕ to remove"
+                                       Style="{StaticResource HelperText}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="14,0,0,0"/>
+                            <Button Grid.Column="3" Content="Clear All"
+                                    x:Name="ClearAllButton" Click="OnClearAllClicked"
+                                    Style="{StaticResource ActionButton}"
+                                    Background="#3F1212" Foreground="#FECACA" BorderBrush="#B91C1C"
+                                    Padding="12,5" Margin="8" FontSize="11"
+                                    ToolTip="Remove every timer from the queue"/>
+                        </Grid>
+                        <Grid x:Name="QueueArea">
+                            <ScrollViewer x:Name="QueueScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl x:Name="QueueItems">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <!-- Drag insertion line — moved via Margin in code-behind, never
+                                 affects row layout. Drawn on top so rows underneath don't
+                                 reflow when it appears. -->
+                            <Border x:Name="DropIndicator" Height="3"
+                                    Background="#58A6FF"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                                    Margin="6,0,6,0" IsHitTestVisible="False"
+                                    Visibility="Collapsed">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#58A6FF" Opacity="0.85"/>
+                                </Border.Effect>
+                            </Border>
+                        </Grid>
+                    </DockPanel>
+                </Border>
+            </Grid>
+
+            <!-- ─────────── RIGHT: BUILDER PANELS ─────────── -->
+            <Grid Grid.Column="1" Margin="10,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="4" Background="#58A6FF" Margin="0,2,10,2"/>
+                                    <TextBlock Text="ADD A TIMER" Foreground="#58A6FF" Style="{StaticResource SectionCaption}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="Create one custom interval and append it to the queue."
+                                           Style="{StaticResource HelperText}" Margin="0,6,0,12"/>
+
+                                <TextBlock Text="Title" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="NewTitleBox" Text="WARM-UP"
+                                         Style="{StaticResource InputBox}" FontSize="15"
+                                         KeyDown="OnNewTitleBoxKeyDown"
+                                         ToolTip="Press Enter to add this timer to the queue"/>
+
+                                <Grid Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                        <TextBlock Text="Minutes" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="NewMinutesBox" Text="5"
+                                                 Style="{StaticResource InputBox}" FontSize="22"
+                                                 TextAlignment="Center" Padding="8,8"
+                                                 PreviewTextInput="OnNumericPreviewTextInput"
+                                                 KeyDown="OnNumericKeyDown"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                        <TextBlock Text="Seconds" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="NewSecondsBox" Text="0"
+                                                 Style="{StaticResource InputBox}" FontSize="22"
+                                                 TextAlignment="Center" Padding="8,8"
+                                                 PreviewTextInput="OnNumericPreviewTextInput"
+                                                 KeyDown="OnNumericKeyDown"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Button x:Name="AddTimerButton" Click="OnAddTimerClicked"
+                                        Content="＋  ADD TO QUEUE"
+                                        Style="{StaticResource ActionButton}"
+                                        Background="#1E40AF" Foreground="#EFF6FF" BorderBrush="#3B82F6"
+                                        Padding="14,11" Margin="0,14,0,0"
+                                        FontWeight="Black" FontSize="14"
+                                        ToolTip="Add this timer to the end of the queue (Enter while typing the title)"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="4" Background="#3FB950" Margin="0,2,10,2"/>
+                                    <TextBlock Text="QUICK PRESETS" Foreground="#3FB950" Style="{StaticResource SectionCaption}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="One-click standard intervals — appended in order."
+                                           Style="{StaticResource HelperText}" Margin="0,6,0,12"/>
+                                <WrapPanel>
+                                    <Button Style="{StaticResource PresetChip}" Content="WARM-UP · 5:00"
+                                            Tag="WARM-UP|300" Click="OnPresetClicked"/>
+                                    <Button Style="{StaticResource PresetChip}" Content="DRILL · 3:00"
+                                            Tag="DRILL|180" Click="OnPresetClicked"/>
+                                    <Button Style="{StaticResource PresetChip}" Content="REST · 1:00"
+                                            Tag="REST|60" Click="OnPresetClicked"/>
+                                    <Button Style="{StaticResource PresetChip}" Content="SPRINT · 0:30"
+                                            Tag="SPRINT|30" Click="OnPresetClicked"/>
+                                    <Button Style="{StaticResource PresetChip}" Content="MATCH PLAY · 10:00"
+                                            Tag="MATCH PLAY|600" Click="OnPresetClicked"/>
+                                    <Button Style="{StaticResource PresetChip}" Content="COOL DOWN · 5:00"
+                                            Tag="COOL DOWN|300" Click="OnPresetClicked"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="4" Background="#FBBF24" Margin="0,2,10,2"/>
+                                    <TextBlock Text="INTERVAL BUILDER" Foreground="#FBBF24" Style="{StaticResource SectionCaption}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="Tabata-style work / rest rounds. Each round adds two timers."
+                                           Style="{StaticResource HelperText}" Margin="0,6,0,12"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                        <TextBlock Text="Rounds" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="IntervalRoundsBox" Text="8"
+                                                 Style="{StaticResource InputBox}" FontSize="18"
+                                                 TextAlignment="Center" Padding="6,6"
+                                                 PreviewTextInput="OnNumericPreviewTextInput"
+                                                 KeyDown="OnNumericKeyDown"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="4,0,4,0">
+                                        <TextBlock Text="Work (s)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="IntervalWorkBox" Text="20"
+                                                 Style="{StaticResource InputBox}" FontSize="18"
+                                                 TextAlignment="Center" Padding="6,6"
+                                                 PreviewTextInput="OnNumericPreviewTextInput"
+                                                 KeyDown="OnNumericKeyDown"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Margin="4,0,0,0">
+                                        <TextBlock Text="Rest (s)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="IntervalRestBox" Text="10"
+                                                 Style="{StaticResource InputBox}" FontSize="18"
+                                                 TextAlignment="Center" Padding="6,6"
+                                                 PreviewTextInput="OnNumericPreviewTextInput"
+                                                 KeyDown="OnNumericKeyDown"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Button x:Name="BuildIntervalButton" Click="OnBuildIntervalClicked"
+                                        Content="＋  BUILD INTERVAL SESSION"
+                                        Style="{StaticResource ActionButton}"
+                                        Background="#9A3412" Foreground="#FFEDD5" BorderBrush="#F97316"
+                                        Padding="14,11" Margin="0,14,0,0"
+                                        FontWeight="Black" FontSize="13"
+                                        ToolTip="Append all rounds to the queue as alternating WORK/REST timers"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="KEYBOARD SHORTCUTS" Foreground="#8B949E"
+                                           Style="{StaticResource SectionCaption}" FontSize="11"/>
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Grid.Column="0" Background="#10161D" BorderBrush="#30363D"
+                                            BorderThickness="1" Padding="8,2" Margin="0,0,8,4">
+                                        <TextBlock Text="Space" Foreground="#E5E7EB" FontFamily="Bahnschrift"
+                                                   FontWeight="Bold" FontSize="11"/>
+                                    </Border>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Start / pause active timer"
+                                               Style="{StaticResource HelperText}" VerticalAlignment="Center"/>
+                                    <Border Grid.Row="1" Grid.Column="0" Background="#10161D" BorderBrush="#30363D"
+                                            BorderThickness="1" Padding="8,2" Margin="0,0,8,4">
+                                        <TextBlock Text="S" Foreground="#E5E7EB" FontFamily="Bahnschrift"
+                                                   FontWeight="Bold" FontSize="11"/>
+                                    </Border>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="Skip to next timer"
+                                               Style="{StaticResource HelperText}" VerticalAlignment="Center"/>
+                                    <Border Grid.Row="2" Grid.Column="0" Background="#10161D" BorderBrush="#30363D"
+                                            BorderThickness="1" Padding="8,2" Margin="0,0,8,4">
+                                        <TextBlock Text="R" Foreground="#E5E7EB" FontFamily="Bahnschrift"
+                                                   FontWeight="Bold" FontSize="11"/>
+                                    </Border>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="Reset active timer"
+                                               Style="{StaticResource HelperText}" VerticalAlignment="Center"/>
+                                    <Border Grid.Row="3" Grid.Column="0" Background="#10161D" BorderBrush="#30363D"
+                                            BorderThickness="1" Padding="8,2" Margin="0,0,8,0">
+                                        <TextBlock Text="Esc" Foreground="#E5E7EB" FontFamily="Bahnschrift"
+                                                   FontWeight="Bold" FontSize="11"/>
+                                    </Border>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="Exit Training Mode"
+                                               Style="{StaticResource HelperText}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+        </Grid>
+    </Viewbox>
+</UserControl>
