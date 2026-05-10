@@ -21,21 +21,42 @@ public sealed class WebHostService : IAsyncDisposable
     public int Port { get; private set; } = 5050;
 
     /// <summary>
+    /// Last startup error, if any. Surfaced to the UI so the operator can
+    /// see WHY the server failed instead of a generic "failed to start".
+    /// </summary>
+    public string? LastStartError { get; private set; }
+
+    /// <summary>
     /// Starts the embedded web server on the configured port.
     /// Falls back to 5051..5059 if the preferred port is in use.
     /// </summary>
     public async Task StartAsync()
     {
         string wwwroot = FindWwwRoot();
+        string contentRoot = AppContext.BaseDirectory;
 
         WebApplication? started = null;
+        Exception? lastError = null;
 
-        // Try a small range of ports to avoid conflicts
+        // Try a small range of ports to avoid conflicts. We catch every
+        // exception so a non-bind error (e.g. missing AspNetCore assets,
+        // permission denied, antivirus block) is reported instead of being
+        // silently retried until the loop exits and we throw a generic
+        // "could not bind" message.
         for (int port = 5050; port <= 5059; port++)
         {
             try
             {
-                var builder = WebApplication.CreateBuilder();
+                var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+                {
+                    // Pin the content root to the EXE folder so launching the
+                    // app from a shortcut, taskbar, or any working directory
+                    // resolves correctly. Without this, the host may use the
+                    // shell's CWD (e.g. C:\Windows\System32) and crash before
+                    // Kestrel even starts.
+                    ContentRootPath = contentRoot,
+                    Args = []
+                });
 
                 builder.WebHost.ConfigureKestrel(options =>
                 {
@@ -54,24 +75,41 @@ public sealed class WebHostService : IAsyncDisposable
 
                 app.MapHub<ScoreboardHub>("/hub");
 
-                // Redirect root to live view
+                // Redirect root to the control panel — that's what an operator
+                // hitting the URL on a phone wants to land on.
                 app.MapGet("/", (HttpContext _) =>
-                    Results.Redirect("/live.html"));
+                    Results.Redirect("/control.html"));
 
                 await app.StartAsync();
                 Port = port;
                 started = app;
+                LastStartError = null;
                 break;
             }
-            catch (IOException)
+            catch (IOException ioEx)
             {
-                // Port in use, try next
+                // Port in use — record and try the next one.
+                lastError = ioEx;
+            }
+            catch (Exception ex)
+            {
+                // Non-bind failure (missing static asset, security policy,
+                // single-file extraction, etc). Don't keep hammering the
+                // remaining ports; surface immediately.
+                lastError = ex;
+                break;
             }
         }
 
-        _app = started ?? throw new InvalidOperationException(
-            "Could not bind web server to any port in range 5050–5059.");
+        if (started is null)
+        {
+            LastStartError = lastError?.Message ?? "unknown error";
+            throw new InvalidOperationException(
+                $"Could not start embedded web server: {LastStartError}",
+                lastError);
+        }
 
+        _app = started;
         _hubContext = _app.Services.GetRequiredService<IHubContext<ScoreboardHub>>();
     }
 

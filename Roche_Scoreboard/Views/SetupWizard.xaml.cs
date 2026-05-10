@@ -146,9 +146,15 @@ namespace Roche_Scoreboard.Views
 
         private const int TotalSteps = 3;
 
+        // ── Styled marquee messages (parity with main message editor) ──
+        private readonly System.Collections.ObjectModel.ObservableCollection<MarqueeMessage> _setupMessages = [];
+        private string? _newMessageTextColor;       // null = default (white)
+        private string? _newMessageHighlightColor;  // null = no highlight
+
         public SetupWizard()
         {
             InitializeComponent();
+            SetupMessageList.ItemsSource = _setupMessages;
             _presets = PresetStorage.LoadAll();
             RefreshPresetPanels();
 
@@ -609,7 +615,7 @@ namespace Roche_Scoreboard.Views
             UpdateFinalsToggleVisuals();
             UpdateSetupClockSummary();
 
-            SetupMessageList.Items.Clear();
+            _setupMessages.Clear();
 
             _suppressWeatherFilter = true;
             _weatherBoxActivated = false;
@@ -633,12 +639,11 @@ namespace Roche_Scoreboard.Views
             int.TryParse(SetupQuarterMinutes.Text, out int mins);
             int.TryParse(SetupQuarterSeconds.Text, out int secs);
 
-            var messages = new List<string>();
-            foreach (var item in SetupMessageList.Items)
+            var messages = new List<MarqueeMessage>();
+            foreach (var item in _setupMessages)
             {
-                string? s = item?.ToString();
-                if (!string.IsNullOrWhiteSpace(s))
-                    messages.Add(s);
+                if (!string.IsNullOrWhiteSpace(item.Text))
+                    messages.Add(new MarqueeMessage(item.Text, item.TextColor, item.HighlightColor));
             }
 
             string homeName = SetupHomeNameBox.Text.Trim();
@@ -984,14 +989,102 @@ namespace Roche_Scoreboard.Views
         {
             string? text = SetupNewMessageBox.Text?.Trim();
             if (string.IsNullOrWhiteSpace(text)) return;
-            SetupMessageList.Items.Add(text);
+            _setupMessages.Add(new MarqueeMessage(text, _newMessageTextColor, _newMessageHighlightColor));
             SetupNewMessageBox.Text = "";
         }
 
-        private void SetupRemoveMessage_Click(object sender, RoutedEventArgs e)
+        private void SetupNewMessageBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (SetupMessageList.SelectedItem != null)
-                SetupMessageList.Items.Remove(SetupMessageList.SelectedItem);
+            if (e.Key != Key.Enter) return;
+            SetupAddMessage_Click(sender, new RoutedEventArgs());
+            e.Handled = true;
+        }
+
+        private void SetupRemoveMessageItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button btn) return;
+            if (btn.Tag is not MarqueeMessage msg) return;
+            _setupMessages.Remove(msg);
+        }
+
+        private void SetupPickItemTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button btn) return;
+            if (btn.Tag is not MarqueeMessage msg) return;
+            var initial = ParseDrawingColor(msg.TextColor, DrawingColor.White);
+            if (!TryPickColor(initial, out var picked)) return;
+            msg.TextColor = ToHex(picked);
+        }
+
+        private void SetupPickItemHighlightColor_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button btn) return;
+            if (btn.Tag is not MarqueeMessage msg) return;
+            var initial = ParseDrawingColor(msg.HighlightColor, DrawingColor.FromArgb(255, 30, 64, 175));
+            if (!TryPickColor(initial, out var picked)) return;
+            msg.HighlightColor = ToHex(picked);
+        }
+
+        private void SetupClearItemHighlightColor_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button btn) return;
+            if (btn.Tag is not MarqueeMessage msg) return;
+            msg.HighlightColor = null;
+        }
+
+        private void SetupPickNewTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            var initial = ParseDrawingColor(_newMessageTextColor, DrawingColor.White);
+            if (!TryPickColor(initial, out var picked)) return;
+            _newMessageTextColor = ToHex(picked);
+            if (SetupNewMessageTextColorBtn != null)
+                SetupNewMessageTextColorBtn.Background = new SolidColorBrush(Color.FromRgb(picked.R, picked.G, picked.B));
+        }
+
+        private void SetupPickNewHighlightColor_Click(object sender, RoutedEventArgs e)
+        {
+            var initial = ParseDrawingColor(_newMessageHighlightColor, DrawingColor.FromArgb(255, 30, 64, 175));
+            if (!TryPickColor(initial, out var picked)) return;
+            _newMessageHighlightColor = ToHex(picked);
+            if (SetupNewMessageHighlightColorBtn != null)
+                SetupNewMessageHighlightColorBtn.Background = new SolidColorBrush(Color.FromRgb(picked.R, picked.G, picked.B));
+        }
+
+        private void SetupClearNewHighlightColor_Click(object sender, MouseButtonEventArgs e)
+        {
+            _newMessageHighlightColor = null;
+            if (SetupNewMessageHighlightColorBtn != null)
+                SetupNewMessageHighlightColorBtn.Background = System.Windows.Media.Brushes.Transparent;
+        }
+
+        private static string ToHex(DrawingColor c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+
+        private static DrawingColor ParseDrawingColor(string? hex, DrawingColor fallback)
+        {
+            if (string.IsNullOrWhiteSpace(hex)) return fallback;
+            try
+            {
+                var media = (Color)ColorConverter.ConvertFromString(hex);
+                return DrawingColor.FromArgb(media.R, media.G, media.B);
+            }
+            catch { return fallback; }
+        }
+
+        private static bool TryPickColor(DrawingColor initial, out DrawingColor picked)
+        {
+            using var dlg = new WinForms.ColorDialog
+            {
+                FullOpen = true,
+                AnyColor = true,
+                Color = initial
+            };
+            if (dlg.ShowDialog() == WinForms.DialogResult.OK)
+            {
+                picked = dlg.Color;
+                return true;
+            }
+            picked = initial;
+            return false;
         }
 
         // ═══════════════════════════════════════════════════════

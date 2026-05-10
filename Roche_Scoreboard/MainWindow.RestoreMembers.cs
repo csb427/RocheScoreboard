@@ -3637,6 +3637,9 @@ public partial class MainWindow
                 case "addMessage":
                     HandleWebAddMessage(parameter);
                     break;
+                case "resetMatch":
+                    ResetMatch_Click(this, new RoutedEventArgs());
+                    break;
             }
         });
     }

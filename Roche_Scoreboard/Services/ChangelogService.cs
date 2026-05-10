@@ -11,6 +11,16 @@ internal static class ChangelogService
 {
     public static IReadOnlyList<ChangelogVersion> Versions { get; } =
     [
+        new("2.8.0", "2026-05-01",
+        [
+            "[New] Scoring Run engine redesigned as a broadcast-style contextual evaluator \u2014 instead of a single backward streak scan, the engine now evaluates multiple rolling windows simultaneously (event windows of 4/6/8/10/12/16/20/24/30 scores AND match-time windows of 4/8/12/18/25/35 minutes) and ranks every candidate to pick the most meaningful, broadcast-worthy run rather than the first one it stumbles on",
+            "[New] Five-tier scoring-run classification \u2014 Burst (18\u20130 type flurries), Standard (24\u20136), Sustained (36\u201312), Major (42\u201318) and Mega (48\u201312+); each tier has its own minimum points, opposition cap and dominance ratio so short bursts and long-term dominance trends are both detected with appropriate evidence",
+            "[New] Scoring runs now tolerate realistic opposition scoring \u2014 a run no longer resets the moment the opposition kicks a behind or even a goal; the engine continues to evaluate dominance across rolling windows and only fades or resets when the opposition meaningfully responds, wins recent windows or significantly reduces the run margin",
+            "[Improved] Scoring-run anti-spam tightened \u2014 once \u2018XAVIER SCORING RUN 18\u20130\u2019 has been shown, the same overlay will not re-trigger at 19\u20130 or 20\u20130; a re-show now requires either a tier escalation or a meaningful (\u002B12 point) growth, or the full 5-minute same-team cooldown to elapse",
+            "[New] 10-second post-animation delay before the scoring-run graphic shows \u2014 the overlay now waits for goal animations, the +6 swipe, active mp4 video AND any other on-screen overlay to fully clear before appearing, so it lands as a follow-up commentary card rather than interrupting live scoring excitement",
+            "[Improved] Cross-team scoring-run cooldown shortened to 45s so genuine momentum flips land close to when they happen, while same-team cooldown extended to 5 minutes to suppress repetitive triggering",
+            "[Preserved] Scoring-run overlay visual identity unchanged \u2014 same team-name + \u2018Scoring Run\u2019 wording, same value, same elapsed-time treatment; all improvements are in detection intelligence and scheduling, not branding",
+        ]),
         new("2.7.1", "2026-04-30",
         [
             "[Fixed] Recent Scores overlay no longer overflows at small scorebug sizes (~400×200) — width floor reduced from 320px to 110px so the overlay scales down with the actual score column instead of forcing the panels off-screen",

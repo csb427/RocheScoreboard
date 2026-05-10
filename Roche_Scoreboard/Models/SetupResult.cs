@@ -30,7 +30,7 @@ namespace Roche_Scoreboard.Models
         // Weather
         public string? WeatherLocation { get; set; } = "Melbourne, Australia";
 
-        // Messages
-        public List<string> Messages { get; set; } = [];
+        // Messages (styled — supports per-item text and highlight colours)
+        public List<MarqueeMessage> Messages { get; set; } = [];
     }
 }

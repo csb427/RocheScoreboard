@@ -6,608 +6,698 @@
     <title>Roche Scoreboard — Control Panel</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <style>
+        /* ═══ COLOUR SYSTEM — mirrors Views/ControlPanel.xaml ═══ */
         :root {
-            --bg: #0D1117;
-            --card: #161B22;
-            --card-hover: #1C2129;
-            --border: #30363D;
-            --text: #E6EDF3;
-            --muted: #8B949E;
-            --accent: #58A6FF;
-            --green: #22C55E;
-            --green-bg: #14532D;
-            --amber: #F59E0B;
-            --amber-bg: #422006;
-            --red: #EF4444;
-            --red-bg: #450A0A;
-            --home-primary: #000000;
-            --away-primary: #FFFFFF;
+            --shell:           #0D1117;
+            --region:          #161B22;
+            --region-edge:     #30363D;
+            --region-strong:   #21262D;
+            --text-strong:     #E6EDF3;
+            --text-mid:        #8B949E;
+            --text-dim:        #484F58;
+            --home-accent:     #58A6FF;
+            --home-strong:     #2F63D1;
+            --home-edge:       #4D7DE7;
+            --home-zone-bg:    #0A1428;
+            --home-zone-edge:  #33579A;
+            --home-behind-bg:  #1A2636;
+            --home-behind-ed:  #3A4E66;
+            --home-label:      #7EB4FF;
+            --away-accent:     #F85149;
+            --away-strong:     #A63B3B;
+            --away-edge:       #C56F6F;
+            --away-zone-bg:    #1C0A0A;
+            --away-zone-edge:  #8A3A3A;
+            --away-behind-bg:  #2A1A1A;
+            --away-behind-ed:  #5A3A3A;
+            --away-label:      #FF9A9A;
+            --live:            #3FB950;
+            --live-bg:         #0D2818;
+            --live-edge:       #244A34;
+            --warn:            #D29922;
+            --warn-bg:         #422006;
+            --reset:           #6B3A3E;
+            --reset-bg:        #2A1416;
+            --start-bg:        #0D3018;
+            --start-edge:      #1A6040;
+            --tool-bg:         #21262D;
+            --tool-bg-hover:   #30363D;
+            --tool-edge:       #30363D;
+            --tool-edge-hover: #484F58;
+            --home-primary:    #000000;
+            --away-primary:    #FFFFFF;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        html, body { height: 100%; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: var(--shell);
+            color: var(--text-strong);
             min-height: 100dvh;
-            padding: 0;
             overscroll-behavior: none;
         }
 
-        /* ── Header ── */
-        .header {
+        /* ═══ PERSISTENT MATCH STRIP — top header ═══ */
+        .match-strip {
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(13,17,23,0.92);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 10px 16px;
-            display: flex;
+            background: var(--shell);
+            border-bottom: 2px solid var(--region-strong);
+            padding: 12px 18px;
+            display: grid;
+            grid-template-columns: auto 1fr auto 1fr auto;
+            gap: 14px;
             align-items: center;
-            justify-content: space-between;
-            gap: 10px;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .status-badge {
-            display: flex;
+        .status-pill {
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 5px 10px;
+            border: 1.5px solid var(--live-edge);
+            background: var(--live-bg);
+            color: var(--live);
             font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            transition: all 0.3s;
+            font-weight: 900;
+            letter-spacing: 1px;
+            transition: background 0.25s, border-color 0.25s, color 0.25s;
         }
-
-        .status-badge.live { background: var(--green-bg); color: var(--green); }
-        .status-badge.paused { background: var(--amber-bg); color: var(--amber); }
-        .status-badge.fulltime { background: #1E293B; color: #94A3B8; }
-
-        .status-dot-sm {
-            width: 7px;
-            height: 7px;
+        .status-pill .dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: currentColor;
         }
-
-        .header-score {
-            font-variant-numeric: tabular-nums;
-            font-size: 14px;
-            font-weight: 700;
+        .status-pill.paused {
+            background: var(--warn-bg);
+            border-color: #8B5C0F;
+            color: var(--warn);
+        }
+        .status-pill.fulltime {
+            background: #1E293B;
+            border-color: #344155;
+            color: #94A3B8;
         }
 
-        .header-clock {
+        .strip-home, .strip-away {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             font-variant-numeric: tabular-nums;
-            font-family: 'SF Mono', 'Cascadia Code', monospace;
-            font-size: 12px;
-            color: var(--muted);
+        }
+        .strip-home { justify-content: flex-end; }
+        .strip-away { justify-content: flex-start; }
+
+        .strip-team {
+            font-weight: 900;
+            font-size: 15px;
+        }
+        .strip-team.home { color: var(--home-accent); }
+        .strip-team.away { color: var(--away-accent); }
+
+        .strip-score {
+            color: white;
+            font-weight: 900;
+            font-size: 26px;
+            font-family: Consolas, 'SF Mono', monospace;
         }
 
-        /* ── Tabs ── */
+        .strip-clock {
+            text-align: center;
+            font-family: Consolas, 'SF Mono', monospace;
+            font-weight: 900;
+            font-size: 26px;
+            color: var(--warn);
+            font-variant-numeric: tabular-nums;
+            min-width: 110px;
+        }
+
+        .strip-quarter {
+            border: 1px solid var(--region-edge);
+            background: var(--region);
+            padding: 5px 12px;
+            font-weight: 900;
+            font-size: 13px;
+            color: var(--text-mid);
+        }
+
+        /* ═══ TABS ═══ */
         .tabs {
             display: flex;
             overflow-x: auto;
             scrollbar-width: none;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg);
+            border-bottom: 1px solid var(--region-edge);
+            background: var(--shell);
             position: sticky;
-            top: 50px;
+            top: 70px;
             z-index: 99;
         }
-
         .tabs::-webkit-scrollbar { display: none; }
-
         .tab-btn {
             flex-shrink: 0;
-            padding: 12px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--muted);
+            padding: 12px 20px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--text-mid);
             background: none;
             border: none;
             border-bottom: 2px solid transparent;
             cursor: pointer;
             white-space: nowrap;
-            transition: all 0.2s;
+            text-transform: uppercase;
+            transition: color 0.2s;
         }
-
         .tab-btn.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
+            color: var(--text-strong);
+            border-bottom-color: var(--home-accent);
         }
 
         .tab-panel { display: none; padding: 16px; }
         .tab-panel.active { display: block; }
 
-        /* ── Cards ── */
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
-
-        .card-title {
-            font-size: 11px;
-            font-weight: 700;
+        /* ═══ SECTION HEADING — same style as XAML SectionHead ═══ */
+        .section-head {
+            color: var(--text-dim);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--muted);
-            margin-bottom: 12px;
         }
 
-        /* ── Score panel ── */
-        .score-panel {
+        /* ═══ SCORING ZONES — broadcast console style ═══ */
+        .scoring-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
 
-        .team-score-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+        .score-zone {
             padding: 14px;
-            text-align: center;
             position: relative;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .score-zone.home {
+            background: var(--home-zone-bg);
+            border: 1px solid var(--home-zone-edge);
+            border-top-width: 3px;
+        }
+        .score-zone.away {
+            background: var(--away-zone-bg);
+            border: 1px solid var(--away-zone-edge);
+            border-top-width: 3px;
         }
 
-        .team-score-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
+        .zone-label {
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1.2px;
         }
+        .score-zone.home .zone-label { color: var(--home-label); }
+        .score-zone.away .zone-label { color: var(--away-label); }
 
-        .team-score-card.home::before { background: var(--home-primary); }
-        .team-score-card.away::before { background: var(--away-primary); }
-
-        .team-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
-
-        .team-score-value {
-            font-size: 26px;
-            font-weight: 800;
+        .zone-score {
+            color: white;
+            font-size: 56px;
+            font-weight: 900;
+            font-family: 'Bahnschrift', 'Segoe UI', sans-serif;
+            line-height: 0.95;
             font-variant-numeric: tabular-nums;
-            margin-bottom: 8px;
             transition: transform 0.2s;
         }
-
-        .team-score-value.flash { animation: pop 0.3s ease-out; }
+        .zone-score.flash { animation: pop 0.35s ease-out; }
         @keyframes pop {
-            0% { transform: scale(1.1); }
+            0% { transform: scale(1); }
+            45% { transform: scale(1.12); }
             100% { transform: scale(1); }
         }
 
-        .score-btns {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        .score-btn {
-            flex: 1;
-            max-width: 100px;
-            padding: 10px 0;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--card-hover);
-            color: var(--text);
-            font-size: 14px;
+        .zone-detail {
+            color: var(--text-mid);
+            font-size: 11px;
             font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .score-btn:active {
-            transform: scale(0.95);
-            background: var(--border);
-        }
-
-        .score-btn.goal { border-color: var(--green); color: var(--green); }
-        .score-btn.goal:active { background: var(--green-bg); }
-        .score-btn.behind { border-color: var(--amber); color: var(--amber); }
-        .score-btn.behind:active { background: var(--amber-bg); }
-
-        /* ── Match result text ── */
-        .result-text {
-            text-align: center;
-            font-size: 13px;
-            color: var(--muted);
-            padding: 8px 0 0;
-        }
-
-        /* ── Clock panel ── */
-        .clock-display {
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .clock-value {
-            font-family: 'SF Mono', 'Cascadia Code', monospace;
-            font-size: 36px;
-            font-weight: 800;
+            letter-spacing: 0.5px;
             font-variant-numeric: tabular-nums;
         }
 
-        .clock-qtr {
-            font-size: 14px;
-            color: var(--muted);
-            font-weight: 600;
-            margin-top: 2px;
+        /* score buttons — match XAML ScoreButton */
+        .score-btn {
+            border: 1.5px solid;
+            color: white;
+            font-weight: 900;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+            transition: transform 0.1s, opacity 0.15s;
+        }
+        .score-btn:active { transform: scale(0.96); opacity: 0.75; }
+        .score-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+        .score-btn.goal {
+            padding: 16px 0;
+            font-size: 22px;
+        }
+        .score-btn.behind {
+            padding: 12px 0;
+            font-size: 16px;
         }
 
-        .clock-btns {
-            display: flex;
+        .home .goal   { background: var(--home-strong);   border-color: var(--home-edge); }
+        .home .behind { background: var(--home-behind-bg); border-color: var(--home-behind-ed); }
+        .away .goal   { background: var(--away-strong);   border-color: var(--away-edge); }
+        .away .behind { background: var(--away-behind-bg); border-color: var(--away-behind-ed); }
+
+        /* ═══ CLOCK CONTROLS — Start big, Pause/Reset compact ═══ */
+        .clock-row {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr 1fr;
             gap: 8px;
+            margin-top: 14px;
         }
 
-        .action-btn {
-            flex: 1;
-            padding: 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--card);
-            color: var(--text);
-            font-size: 14px;
-            font-weight: 700;
+        .clock-btn {
+            padding: 16px 0;
+            border: 1.5px solid var(--region-edge);
+            background: var(--region);
+            color: var(--text-strong);
+            font-weight: 900;
             cursor: pointer;
             text-align: center;
-            transition: all 0.15s;
+            transition: transform 0.1s, opacity 0.15s, background 0.15s;
             -webkit-user-select: none;
             user-select: none;
         }
+        .clock-btn:active { transform: scale(0.97); opacity: 0.85; }
+        .clock-btn.disabled { opacity: 0.4; pointer-events: none; }
 
-        .action-btn:active { transform: scale(0.97); }
-
-        .btn-start {
-            background: #0D3018;
-            border-color: #1A6040;
-            color: var(--green);
+        .clock-btn.start {
+            background: var(--start-bg);
+            border-color: var(--start-edge);
+            color: var(--live);
+            font-size: 19px;
+        }
+        .clock-btn.pause {
+            background: var(--tool-bg);
+            border-color: var(--warn);
+            color: var(--warn);
+            font-size: 12px;
+        }
+        .clock-btn.reset {
+            background: var(--reset-bg);
+            border-color: var(--reset);
+            color: var(--away-accent);
+            font-size: 12px;
         }
 
-        .btn-pause {
-            background: var(--amber-bg);
-            border-color: #8B5C0F;
-            color: var(--amber);
+        .undo-btn {
+            margin-top: 8px;
+            width: 100%;
+            padding: 12px;
+            background: var(--region);
+            border: 1px solid var(--region-edge);
+            color: var(--text-mid);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .undo-btn:active { background: #2A1416; color: var(--away-accent); }
+
+        .result-line {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-mid);
+            padding: 10px 0 0;
         }
 
-        .btn-end-qtr {
-            background: var(--card);
-            border-color: var(--border);
-            color: var(--muted);
+        /* ═══ MATCH LOG — right rail on the desktop, full row here ═══ */
+        .match-log {
+            margin-top: 18px;
+            background: var(--shell);
+            border: 2px solid var(--region-strong);
+            padding: 12px;
         }
-
-        .btn-undo {
-            background: var(--card);
-            border-color: var(--border);
-            color: var(--muted);
+        .log-entries {
+            list-style: none;
+            max-height: 240px;
+            overflow-y: auto;
+            font-family: Consolas, 'SF Mono', monospace;
+            font-size: 12px;
         }
-
-        .btn-undo:active { background: var(--red-bg); color: var(--red); }
-
-        .btn-disabled {
-            opacity: 0.4;
-            pointer-events: none;
+        .log-entries li {
+            padding: 5px 4px;
+            border-bottom: 1px solid var(--region-strong);
+            color: var(--text-strong);
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
         }
+        .log-entries li.empty {
+            color: var(--text-dim);
+            border-bottom: none;
+            font-style: italic;
+            justify-content: center;
+        }
+        .log-entries li .log-team-h { color: var(--home-accent); font-weight: 700; }
+        .log-entries li .log-team-a { color: var(--away-accent); font-weight: 700; }
+        .log-entries li .log-time { color: var(--text-dim); }
 
-        /* ── Display buttons ── */
+        /* ═══ DISPLAY TAB ═══ */
         .display-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 10px;
+        }
+        @media (min-width: 720px) {
+            .display-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
         .display-btn {
-            padding: 14px 10px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--card);
-            color: var(--muted);
+            padding: 16px 8px;
+            border: 1px solid var(--region-edge);
+            background: var(--region);
+            color: var(--text-mid);
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             text-align: center;
-            transition: all 0.15s;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .display-btn:hover { background: var(--tool-bg-hover); }
+        .display-btn.active-screen {
+            border-color: var(--home-accent);
+            color: var(--home-accent);
+            background: rgba(88, 166, 255, 0.08);
         }
 
-        .display-btn:active { background: var(--card-hover); }
-        .display-btn.active-screen { border-color: var(--accent); color: var(--accent); }
+        /* ═══ SETTINGS TAB ═══ */
+        .card {
+            background: var(--region);
+            border: 1px solid var(--region-edge);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
 
-        /* ── Settings ── */
-        .settings-row {
+        .field-row {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 10px;
         }
-
-        .settings-label {
-            font-size: 13px;
-            color: var(--muted);
-            min-width: 60px;
+        .field-label {
+            font-size: 12px;
+            color: var(--text-mid);
+            min-width: 70px;
+            font-weight: 600;
         }
-
-        .settings-input {
+        .field-input {
             flex: 1;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
+            padding: 9px 12px;
+            background: var(--shell);
+            border: 1px solid var(--region-edge);
+            color: var(--text-strong);
             font-size: 13px;
+            font-weight: 600;
             outline: none;
         }
+        .field-input:focus { border-color: var(--home-accent); }
 
-        .settings-input:focus { border-color: var(--accent); }
+        .colour-input {
+            width: 44px;
+            height: 32px;
+            border: 1px solid var(--region-edge);
+            background: none;
+            cursor: pointer;
+            padding: 0;
+        }
 
         .apply-btn {
             width: 100%;
             padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--accent);
-            background: rgba(88,166,255,0.1);
-            color: var(--accent);
-            font-size: 14px;
-            font-weight: 700;
+            background: rgba(88, 166, 255, 0.08);
+            border: 1px solid var(--home-accent);
+            color: var(--home-accent);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: background 0.15s;
+            text-transform: uppercase;
         }
+        .apply-btn:active { background: rgba(88, 166, 255, 0.18); }
 
-        .apply-btn:active { background: rgba(88,166,255,0.2); }
+        .danger-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--reset-bg);
+            border: 1px solid var(--reset);
+            color: var(--away-accent);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .danger-btn:active { opacity: 0.8; }
 
-        /* ── Connection bar ── */
+        /* ═══ CONNECTION BAR ═══ */
         .conn-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 6px 16px;
-            background: rgba(13,17,23,0.95);
-            border-top: 1px solid var(--border);
+            padding: 7px 16px;
+            background: rgba(13, 17, 23, 0.96);
+            border-top: 1px solid var(--region-edge);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-size: 11px;
-            color: var(--muted);
+            font-weight: 600;
+            color: var(--text-mid);
             z-index: 100;
         }
-
         .conn-bar .conn-dot {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: var(--amber);
+            background: var(--warn);
             transition: background 0.3s;
         }
+        .conn-bar .conn-dot.connected { background: var(--live); }
+        .conn-bar .conn-dot.failed { background: var(--away-accent); }
 
-        .conn-bar .conn-dot.connected { background: var(--green); }
+        body { padding-bottom: 44px; }
 
-        /* ── Safe area for bottom bar ── */
-        body { padding-bottom: 40px; }
-
-        /* ── Responsive ── */
-        @media (max-width: 380px) {
-            .score-panel { gap: 8px; }
-            .team-score-value { font-size: 22px; }
-            .score-btn { padding: 8px 0; font-size: 13px; }
-            .clock-value { font-size: 28px; }
-            .tab-btn { padding: 10px 14px; font-size: 12px; }
+        /* ═══ RESPONSIVE ═══ */
+        @media (max-width: 420px) {
+            .match-strip { grid-template-columns: auto 1fr auto; row-gap: 8px; padding: 10px 12px; }
+            .strip-home  { grid-column: 1 / -1; justify-content: center; }
+            .strip-away  { grid-column: 1 / -1; justify-content: center; }
+            .strip-clock { grid-column: 2; }
+            .status-pill { grid-column: 1; }
+            .strip-quarter { grid-column: 3; }
+            .zone-score { font-size: 44px; }
+            .score-btn.goal { font-size: 18px; padding: 14px 0; }
+            .clock-btn.start { font-size: 16px; }
         }
 
-        @media (min-width: 768px) {
-            .tab-panel { padding: 20px 24px; }
-            .score-panel { gap: 16px; }
-            .team-score-value { font-size: 32px; }
-            .display-grid { grid-template-columns: repeat(3, 1fr); }
+        @media (min-width: 900px) {
+            .tab-panel { padding: 22px 28px; max-width: 1500px; margin: 0 auto; }
+            .scoring-and-log {
+                display: grid;
+                grid-template-columns: 1fr 320px;
+                gap: 16px;
+                align-items: start;
+            }
+            .match-log { margin-top: 0; }
         }
     </style>
 </head>
 <body>
 
-<!-- ── Header ── -->
-<div class="header">
-    <div class="header-left">
-        <span class="header-title">Roche Control</span>
-        <div class="status-badge paused" id="statusBadge">
-            <div class="status-dot-sm"></div>
-            <span id="statusText">PAUSED</span>
-        </div>
+<!-- ═══ PERSISTENT MATCH STRIP ═══ -->
+<header class="match-strip">
+    <div id="statusPill" class="status-pill paused">
+        <span class="dot"></span>
+        <span id="statusText">PAUSED</span>
     </div>
-    <div style="text-align:right">
-        <div class="header-score" id="headerScore">0 – 0</div>
-        <div class="header-clock" id="headerClock">Q1  00:00</div>
-    </div>
-</div>
 
-<!-- ── Tabs ── -->
-<div class="tabs">
+    <div class="strip-home">
+        <span class="strip-team home" id="stripHomeName">Home</span>
+        <span class="strip-score" id="stripHomeScore">0</span>
+    </div>
+
+    <div class="strip-clock" id="stripClock">00:00</div>
+
+    <div class="strip-away">
+        <span class="strip-score" id="stripAwayScore">0</span>
+        <span class="strip-team away" id="stripAwayName">Away</span>
+    </div>
+
+    <div class="strip-quarter" id="stripQuarter">Q1</div>
+</header>
+
+<!-- ═══ TABS ═══ -->
+<nav class="tabs">
     <button class="tab-btn active" data-tab="scoring">Scoring</button>
     <button class="tab-btn" data-tab="display">Display</button>
     <button class="tab-btn" data-tab="settings">Settings</button>
-</div>
+</nav>
 
-<!-- ═══ SCORING TAB ═══ -->
-<div class="tab-panel active" id="tab-scoring">
+<!-- ═══════════ SCORING TAB ═══════════ -->
+<section class="tab-panel active" id="tab-scoring">
+    <div class="scoring-and-log">
+        <div>
+            <div class="section-head">Scoring</div>
+            <div class="scoring-grid">
 
-    <!-- Score panels -->
-    <div class="score-panel">
-        <div class="team-score-card home">
-            <div class="team-label" id="homeLabel">HOME</div>
-            <div class="team-score-value" id="cpHomeScore">0.0.0</div>
-            <div class="score-btns">
-                <button class="score-btn goal" onclick="sendCmd('homeGoal')">GOAL</button>
-                <button class="score-btn behind" onclick="sendCmd('homeBehind')">BHD</button>
+                <!-- HOME zone -->
+                <div class="score-zone home">
+                    <div class="zone-label" id="homeZoneLabel">HOME</div>
+                    <div class="zone-score" id="homeScoreBig">0</div>
+                    <div class="zone-detail" id="homeDetail">0.0 (0)</div>
+                    <button class="score-btn goal"   data-cmd="homeGoal">+6 GOAL</button>
+                    <button class="score-btn behind" data-cmd="homeBehind">+1 BEHIND</button>
+                </div>
+
+                <!-- AWAY zone -->
+                <div class="score-zone away">
+                    <div class="zone-label" id="awayZoneLabel">AWAY</div>
+                    <div class="zone-score" id="awayScoreBig">0</div>
+                    <div class="zone-detail" id="awayDetail">0.0 (0)</div>
+                    <button class="score-btn goal"   data-cmd="awayGoal">+6 GOAL</button>
+                    <button class="score-btn behind" data-cmd="awayBehind">+1 BEHIND</button>
+                </div>
+            </div>
+
+            <div class="result-line" id="resultLine"></div>
+
+            <!-- CLOCK CONTROLS -->
+            <div class="section-head" style="margin-top:18px">Clock</div>
+            <div class="clock-row">
+                <button class="clock-btn start" id="startPauseBtn" data-cmd="startPause">▶ Start</button>
+                <button class="clock-btn pause" id="endQtrBtn"     data-cmd="endQuarter">End Q1</button>
+                <button class="clock-btn reset" id="undoBtn"       data-cmd="undo">↶ Undo</button>
             </div>
         </div>
-        <div class="team-score-card away">
-            <div class="team-label" id="awayLabel">AWAY</div>
-            <div class="team-score-value" id="cpAwayScore">0.0.0</div>
-            <div class="score-btns">
-                <button class="score-btn goal" onclick="sendCmd('awayGoal')">GOAL</button>
-                <button class="score-btn behind" onclick="sendCmd('awayBehind')">BHD</button>
+
+        <!-- MATCH LOG -->
+        <aside>
+            <div class="section-head">Match Log <span id="logCount" style="color:var(--text-mid)">(0)</span></div>
+            <div class="match-log">
+                <ul class="log-entries" id="logList">
+                    <li class="empty">No events yet</li>
+                </ul>
             </div>
-        </div>
+        </aside>
     </div>
+</section>
 
-    <div class="result-text" id="resultText"></div>
-
-    <!-- Clock -->
-    <div class="card" style="margin-top: 12px;">
-        <div class="clock-display">
-            <div class="clock-value" id="cpClock">00:00</div>
-            <div class="clock-qtr" id="cpQtr">Quarter 1</div>
-        </div>
-        <div class="clock-btns">
-            <button class="action-btn btn-start" id="startPauseBtn" onclick="sendCmd('startPause')">
-                ▶ Start
-            </button>
-            <button class="action-btn btn-end-qtr" id="endQtrBtn" onclick="sendCmd('endQuarter')">
-                End Q1
-            </button>
-        </div>
-        <div style="margin-top: 8px;">
-            <button class="action-btn btn-undo" onclick="sendCmd('undo')" style="width:100%">
-                ↶ Undo Last Score
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- ═══ DISPLAY TAB ═══ -->
-<div class="tab-panel" id="tab-display">
+<!-- ═══════════ DISPLAY TAB ═══════════ -->
+<section class="tab-panel" id="tab-display">
     <div class="card">
-        <div class="card-title">Presentation</div>
+        <div class="section-head">Presentation</div>
         <div class="display-grid">
-            <button class="display-btn active-screen" data-screen="scorebug" onclick="sendCmd('switchScreen','scorebug')">
-                📊 Scorebug
-            </button>
-            <button class="display-btn" data-screen="summary" onclick="sendCmd('switchScreen','summary')">
-                📋 Summary
-            </button>
-            <button class="display-btn" data-screen="worm" onclick="sendCmd('switchScreen','worm')">
-                📈 Scoreworm
-            </button>
-            <button class="display-btn" data-screen="stats" onclick="sendCmd('switchScreen','stats')">
-                📊 Stats
-            </button>
-            <button class="display-btn" data-screen="weather" onclick="sendCmd('switchScreen','weather')">
-                🌤 Weather
-            </button>
-            <button class="display-btn" data-screen="video" onclick="sendCmd('switchScreen','video')">
-                🎬 Video
-            </button>
+            <button class="display-btn active-screen" data-screen="scorebug" data-cmd="switchScreen" data-param="scorebug">📊 Scorebug</button>
+            <button class="display-btn" data-screen="summary" data-cmd="switchScreen" data-param="summary">📋 Summary</button>
+            <button class="display-btn" data-screen="worm"    data-cmd="switchScreen" data-param="worm">📈 Scoreworm</button>
+            <button class="display-btn" data-screen="stats"   data-cmd="switchScreen" data-param="stats">📊 Stats</button>
+            <button class="display-btn" data-screen="weather" data-cmd="switchScreen" data-param="weather">🌤 Weather</button>
+            <button class="display-btn" data-screen="video"   data-cmd="switchScreen" data-param="video">🎬 Video</button>
         </div>
     </div>
     <div class="card">
-        <div class="card-title">Display Window</div>
-        <button class="action-btn" onclick="sendCmd('showWindow')" style="width:100%">
-            Show/Activate Window
-        </button>
+        <div class="section-head">Display Window</div>
+        <button class="apply-btn" data-cmd="showWindow">Show / Activate Display Window</button>
     </div>
-</div>
+</section>
 
-<!-- ═══ SETTINGS TAB ═══ -->
-<div class="tab-panel" id="tab-settings">
+<!-- ═══════════ SETTINGS TAB ═══════════ -->
+<section class="tab-panel" id="tab-settings">
     <div class="card">
-        <div class="card-title">Team Names</div>
-        <div class="settings-row">
-            <span class="settings-label">Home</span>
-            <input class="settings-input" id="setHomeName" placeholder="Home Team">
+        <div class="section-head">Team Names</div>
+        <div class="field-row">
+            <span class="field-label">Home</span>
+            <input class="field-input" id="setHomeName" placeholder="Home Team">
         </div>
-        <div class="settings-row">
-            <span class="settings-label">Abbr</span>
-            <input class="settings-input" id="setHomeAbbr" placeholder="HOM" maxlength="4">
+        <div class="field-row">
+            <span class="field-label">Abbr</span>
+            <input class="field-input" id="setHomeAbbr" placeholder="HOM" maxlength="4">
         </div>
-        <div class="settings-row">
-            <span class="settings-label">Away</span>
-            <input class="settings-input" id="setAwayName" placeholder="Away Team">
+        <div class="field-row">
+            <span class="field-label">Away</span>
+            <input class="field-input" id="setAwayName" placeholder="Away Team">
         </div>
-        <div class="settings-row">
-            <span class="settings-label">Abbr</span>
-            <input class="settings-input" id="setAwayAbbr" placeholder="AWY" maxlength="4">
+        <div class="field-row">
+            <span class="field-label">Abbr</span>
+            <input class="field-input" id="setAwayAbbr" placeholder="AWA" maxlength="4">
         </div>
-        <button class="apply-btn" onclick="applyTeamNames()">Apply Team Names</button>
+        <button class="apply-btn" id="applyTeams">Apply Team Names</button>
     </div>
 
     <div class="card">
-        <div class="card-title">Team Colours</div>
-        <div class="settings-row">
-            <span class="settings-label">Home</span>
-            <input type="color" id="setHomeColor" value="#000000" style="width:44px;height:32px;border:none;background:none;cursor:pointer;">
-            <span class="settings-label">Secondary</span>
-            <input type="color" id="setHomeSecColor" value="#FFFFFF" style="width:44px;height:32px;border:none;background:none;cursor:pointer;">
+        <div class="section-head">Team Colours</div>
+        <div class="field-row">
+            <span class="field-label">Home</span>
+            <input type="color" class="colour-input" id="setHomeColor" value="#000000">
+            <span class="field-label" style="min-width:auto">Sec.</span>
+            <input type="color" class="colour-input" id="setHomeSecColor" value="#FFFFFF">
         </div>
-        <div class="settings-row">
-            <span class="settings-label">Away</span>
-            <input type="color" id="setAwayColor" value="#FFFFFF" style="width:44px;height:32px;border:none;background:none;cursor:pointer;">
-            <span class="settings-label">Secondary</span>
-            <input type="color" id="setAwaySecColor" value="#000000" style="width:44px;height:32px;border:none;background:none;cursor:pointer;">
+        <div class="field-row">
+            <span class="field-label">Away</span>
+            <input type="color" class="colour-input" id="setAwayColor" value="#FFFFFF">
+            <span class="field-label" style="min-width:auto">Sec.</span>
+            <input type="color" class="colour-input" id="setAwaySecColor" value="#000000">
         </div>
-        <button class="apply-btn" onclick="applyColors()">Apply Colours</button>
+        <button class="apply-btn" id="applyColors">Apply Colours</button>
     </div>
 
     <div class="card">
-        <div class="card-title">Clock Settings</div>
-        <div class="settings-row">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <div class="section-head">Clock Mode</div>
+        <div class="field-row">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
                 <input type="radio" name="clockMode" value="CountUp" checked> Count Up
             </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
                 <input type="radio" name="clockMode" value="Countdown"> Countdown
             </label>
         </div>
-        <div class="settings-row" id="durationRow" style="display:none">
-            <span class="settings-label">Minutes</span>
-            <input class="settings-input" id="setQtrMins" type="number" value="20" min="1" max="60" style="width:70px">
+        <div class="field-row" id="durationRow" style="display:none">
+            <span class="field-label">Minutes</span>
+            <input class="field-input" id="setQtrMins" type="number" value="20" min="1" max="60" style="width:90px;flex:none">
         </div>
-        <button class="apply-btn" onclick="applyClockSettings()">Apply Clock</button>
+        <button class="apply-btn" id="applyClock">Apply Clock</button>
     </div>
 
     <div class="card">
-        <div class="card-title">Messages</div>
-        <div class="settings-row">
-            <input class="settings-input" id="newMessage" placeholder="Add marquee message…">
-            <button class="apply-btn" onclick="addMessage()" style="width:auto;padding:8px 16px;">Add</button>
+        <div class="section-head">Marquee Messages</div>
+        <div class="field-row">
+            <input class="field-input" id="newMessage" placeholder="Add message…">
+            <button class="apply-btn" id="addMsgBtn" style="width:auto;flex:none;padding:9px 16px">Add</button>
         </div>
-        <div id="messageList" style="margin-top:8px;font-size:12px;color:var(--muted);"></div>
     </div>
-</div>
 
-<!-- ── Connection Bar ── -->
-<div class="conn-bar">
+    <div class="card">
+        <div class="section-head" style="color:var(--away-accent)">Danger Zone</div>
+        <button class="danger-btn" id="resetMatchBtn">↺ Reset Match</button>
+    </div>
+</section>
+
+<!-- ═══ CONNECTION BAR ═══ -->
+<footer class="conn-bar">
     <div class="conn-dot" id="connDot"></div>
     <span id="connText">Connecting…</span>
     <span style="margin-left:auto" id="connUrl"></span>
-</div>
+</footer>
 
 <script>
     const $ = id => document.getElementById(id);
@@ -622,111 +712,132 @@
         });
     });
 
-    // ── Clock mode toggle ──
+    // ── Clock-mode toggle ──
     document.querySelectorAll('input[name="clockMode"]').forEach(r => {
         r.addEventListener('change', () => {
             $('durationRow').style.display = r.value === 'Countdown' && r.checked ? 'flex' : 'none';
         });
     });
 
+    // ── Generic data-cmd binding ──
+    document.querySelectorAll('[data-cmd]').forEach(el => {
+        el.addEventListener('click', () => sendCmd(el.dataset.cmd, el.dataset.param || null));
+    });
+
     // ── State tracking ──
     let prevHT = -1, prevAT = -1;
+    let settingsSynced = false;
+    let lastEvents = []; // local rolling buffer for the log display
 
     function applyState(s) {
-        // Header
-        $('headerScore').textContent = `${s.homeTotal} – ${s.awayTotal}`;
-        $('headerClock').textContent = `Q${s.quarter}  ${s.clock}`;
+        // Match strip
+        $('stripHomeName').textContent = s.homeAbbr || s.homeName || 'HOM';
+        $('stripAwayName').textContent = s.awayAbbr || s.awayName || 'AWA';
+        $('stripHomeScore').textContent = s.homeTotal;
+        $('stripAwayScore').textContent = s.awayTotal;
+        $('stripClock').textContent = s.clock;
+        $('stripQuarter').textContent = s.q4Ended ? 'FT' : `Q${s.quarter}`;
 
-        const badge = $('statusBadge');
-        const statusText = $('statusText');
+        const pill = $('statusPill');
+        const pillText = $('statusText');
         if (s.q4Ended) {
-            badge.className = 'status-badge fulltime';
-            statusText.textContent = 'FULL TIME';
+            pill.className = 'status-pill fulltime';
+            pillText.textContent = 'FULL TIME';
         } else if (s.clockRunning) {
-            badge.className = 'status-badge live';
-            statusText.textContent = 'LIVE';
+            pill.className = 'status-pill';
+            pillText.textContent = 'LIVE';
         } else {
-            badge.className = 'status-badge paused';
-            statusText.textContent = 'PAUSED';
+            pill.className = 'status-pill paused';
+            pillText.textContent = 'PAUSED';
         }
 
-        // Scoring tab
-        $('homeLabel').textContent = s.homeName.toUpperCase();
-        $('awayLabel').textContent = s.awayName.toUpperCase();
+        // Home/Away zones
+        $('homeZoneLabel').textContent = (s.homeName || 'HOME').toUpperCase();
+        $('awayZoneLabel').textContent = (s.awayName || 'AWAY').toUpperCase();
 
-        const hScore = $('cpHomeScore');
-        const aScore = $('cpAwayScore');
-
+        const hBig = $('homeScoreBig');
+        const aBig = $('awayScoreBig');
         if (prevHT !== -1 && s.homeTotal !== prevHT) {
-            hScore.classList.remove('flash');
-            void hScore.offsetWidth;
-            hScore.classList.add('flash');
+            hBig.classList.remove('flash'); void hBig.offsetWidth; hBig.classList.add('flash');
         }
         if (prevAT !== -1 && s.awayTotal !== prevAT) {
-            aScore.classList.remove('flash');
-            void aScore.offsetWidth;
-            aScore.classList.add('flash');
+            aBig.classList.remove('flash'); void aBig.offsetWidth; aBig.classList.add('flash');
         }
-        prevHT = s.homeTotal;
-        prevAT = s.awayTotal;
+        prevHT = s.homeTotal; prevAT = s.awayTotal;
 
-        hScore.textContent = `${s.homeGoals}.${s.homeBehinds}.${s.homeTotal}`;
-        aScore.textContent = `${s.awayGoals}.${s.awayBehinds}.${s.awayTotal}`;
+        hBig.textContent = s.homeTotal;
+        aBig.textContent = s.awayTotal;
+        $('homeDetail').textContent = `${s.homeGoals}.${s.homeBehinds} (${s.homeTotal})`;
+        $('awayDetail').textContent = `${s.awayGoals}.${s.awayBehinds} (${s.awayTotal})`;
 
-        // Team colour accents
-        document.documentElement.style.setProperty('--home-primary', s.homePrimaryColor);
-        document.documentElement.style.setProperty('--away-primary', s.awayPrimaryColor);
+        // Team accent driven by colours from desktop
+        if (s.homePrimaryColor) document.documentElement.style.setProperty('--home-primary', s.homePrimaryColor);
+        if (s.awayPrimaryColor) document.documentElement.style.setProperty('--away-primary', s.awayPrimaryColor);
 
-        // Result
-        const m = s.margin;
-        if (m > 0) $('resultText').textContent = `${s.homeName} leads by ${m}`;
-        else if (m < 0) $('resultText').textContent = `${s.awayName} leads by ${-m}`;
-        else if (s.homeTotal > 0 || s.awayTotal > 0) $('resultText').textContent = 'Scores are level';
-        else $('resultText').textContent = '';
+        // Margin / result
+        const m = s.margin || 0;
+        if (m > 0)      $('resultLine').textContent = `${s.homeName} leads by ${m}`;
+        else if (m < 0) $('resultLine').textContent = `${s.awayName} leads by ${-m}`;
+        else if ((s.homeTotal + s.awayTotal) > 0) $('resultLine').textContent = 'Scores are level';
+        else            $('resultLine').textContent = '';
 
-        // Clock
-        $('cpClock').textContent = s.clock;
-        $('cpQtr').textContent = s.q4Ended ? 'Full Time' : `Quarter ${s.quarter}`;
-
-        // Start/Pause button
-        const spBtn = $('startPauseBtn');
+        // Start/Pause big button
+        const sp = $('startPauseBtn');
         if (s.q4Ended) {
-            spBtn.textContent = 'Full Time';
-            spBtn.className = 'action-btn btn-disabled';
+            sp.textContent = 'Full Time';
+            sp.className = 'clock-btn start disabled';
         } else if (s.clockRunning) {
-            spBtn.textContent = '⏸ Pause';
-            spBtn.className = 'action-btn btn-pause';
+            sp.textContent = '⏸ Pause';
+            sp.className = 'clock-btn pause';
+            sp.style.fontSize = '19px';
         } else {
-            spBtn.textContent = '▶ Start';
-            spBtn.className = 'action-btn btn-start';
+            sp.textContent = '▶ Start';
+            sp.className = 'clock-btn start';
+            sp.style.fontSize = '19px';
         }
 
-        // End Qtr button
-        const eqBtn = $('endQtrBtn');
-        eqBtn.textContent = s.q4Ended ? 'FT' : `End Q${s.quarter}`;
-        eqBtn.className = s.q4Ended ? 'action-btn btn-end-qtr btn-disabled' : 'action-btn btn-end-qtr';
+        // End Quarter button
+        const eq = $('endQtrBtn');
+        eq.textContent = s.q4Ended ? 'FT' : `End Q${s.quarter}`;
+        eq.className = s.q4Ended ? 'clock-btn pause disabled' : 'clock-btn pause';
 
-        // Score buttons disabled after full time
-        document.querySelectorAll('.score-btn').forEach(b => {
-            b.classList.toggle('btn-disabled', s.q4Ended);
-        });
+        // Lock score buttons after full time
+        document.querySelectorAll('.score-btn').forEach(b => b.classList.toggle('disabled', !!s.q4Ended));
 
         // Display tab — highlight active screen
         document.querySelectorAll('.display-btn[data-screen]').forEach(b => {
             b.classList.toggle('active-screen', b.dataset.screen === s.activeScreen);
         });
 
-        // Sync settings inputs (only on first load / reconnect)
-        if (!settingsSynced) {
-            $('setHomeName').value = s.homeName;
-            $('setHomeAbbr').value = s.homeAbbr;
-            $('setAwayName').value = s.awayName;
-            $('setAwayAbbr').value = s.awayAbbr;
-            $('setHomeColor').value = s.homePrimaryColor;
-            $('setHomeSecColor').value = s.homeSecondaryColor;
-            $('setAwayColor').value = s.awayPrimaryColor;
-            $('setAwaySecColor').value = s.awaySecondaryColor;
+        // Match log — keep a rolling list using state count + last event hint
+        $('logCount').textContent = `(${s.eventCount || 0})`;
+        if (s.lastEvent && (lastEvents.length === 0 || lastEvents[0].text !== s.lastEvent || lastEvents[0].count !== s.eventCount)) {
+            // Only push when the event count moves forward, to avoid duplicates
+            // on simple state refreshes.
+            if (s.eventCount > (lastEvents[0]?.count ?? 0)) {
+                lastEvents.unshift({
+                    text: s.lastEvent,
+                    count: s.eventCount,
+                    time: new Date().toLocaleTimeString([], { hour12: false }),
+                    home: /\b(home|h)\b/i.test(s.lastEvent) || s.lastEvent.startsWith(s.homeName)
+                });
+                if (lastEvents.length > 30) lastEvents.length = 30;
+                renderLog(s);
+            }
+        } else if (lastEvents.length === 0) {
+            renderLog(s);
+        }
 
+        // Sync settings inputs (only on first connect)
+        if (!settingsSynced) {
+            $('setHomeName').value = s.homeName || '';
+            $('setHomeAbbr').value = s.homeAbbr || '';
+            $('setAwayName').value = s.awayName || '';
+            $('setAwayAbbr').value = s.awayAbbr || '';
+            if (s.homePrimaryColor)   $('setHomeColor').value    = s.homePrimaryColor;
+            if (s.homeSecondaryColor) $('setHomeSecColor').value = s.homeSecondaryColor;
+            if (s.awayPrimaryColor)   $('setAwayColor').value    = s.awayPrimaryColor;
+            if (s.awaySecondaryColor) $('setAwaySecColor').value = s.awaySecondaryColor;
             const modeRadio = document.querySelector(`input[name="clockMode"][value="${s.clockMode}"]`);
             if (modeRadio) {
                 modeRadio.checked = true;
@@ -736,49 +847,72 @@
         }
     }
 
-    let settingsSynced = false;
-
-    // ── Commands ──
-    function sendCmd(cmd, param) {
-        if (conn.state === signalR.HubConnectionState.Connected) {
-            conn.invoke('SendCommand', cmd, param || null);
+    function renderLog(s) {
+        const list = $('logList');
+        if (!lastEvents.length) {
+            list.innerHTML = '<li class="empty">No events yet</li>';
+            return;
         }
+        list.innerHTML = lastEvents.map(ev => {
+            const cls = ev.home ? 'log-team-h' : 'log-team-a';
+            return `<li><span class="${cls}">${escapeHtml(ev.text)}</span><span class="log-time">${ev.time}</span></li>`;
+        }).join('');
     }
 
-    function applyTeamNames() {
-        const data = JSON.stringify({
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    // ── Settings handlers ──
+    $('applyTeams').addEventListener('click', () => {
+        sendCmd('setTeams', JSON.stringify({
             homeName: $('setHomeName').value,
             homeAbbr: $('setHomeAbbr').value,
             awayName: $('setAwayName').value,
             awayAbbr: $('setAwayAbbr').value
-        });
-        sendCmd('setTeams', data);
-    }
+        }));
+    });
 
-    function applyColors() {
-        const data = JSON.stringify({
-            homePrimary: $('setHomeColor').value,
+    $('applyColors').addEventListener('click', () => {
+        sendCmd('setColors', JSON.stringify({
+            homePrimary:   $('setHomeColor').value,
             homeSecondary: $('setHomeSecColor').value,
-            awayPrimary: $('setAwayColor').value,
+            awayPrimary:   $('setAwayColor').value,
             awaySecondary: $('setAwaySecColor').value
-        });
-        sendCmd('setColors', data);
-    }
+        }));
+    });
 
-    function applyClockSettings() {
+    $('applyClock').addEventListener('click', () => {
         const mode = document.querySelector('input[name="clockMode"]:checked').value;
-        const mins = $('setQtrMins').value || '20';
-        sendCmd('setClockMode', JSON.stringify({ mode, minutes: parseInt(mins) }));
-    }
+        const mins = parseInt($('setQtrMins').value || '20', 10);
+        sendCmd('setClockMode', JSON.stringify({ mode, minutes: mins }));
+    });
 
-    function addMessage() {
+    $('addMsgBtn').addEventListener('click', () => {
         const msg = $('newMessage').value.trim();
         if (!msg) return;
         sendCmd('addMessage', msg);
         $('newMessage').value = '';
-    }
+    });
+
+    $('resetMatchBtn').addEventListener('click', () => {
+        if (!confirm('Reset the match? This will clear all scores and events.')) return;
+        // Map to existing OnWebCommand handlers — undo all events as a fallback
+        // if a dedicated reset command isn't implemented on the server side.
+        sendCmd('resetMatch');
+    });
 
     // ── SignalR ──
+    function sendCmd(cmd, param) {
+        if (conn.state === signalR.HubConnectionState.Connected) {
+            conn.invoke('SendCommand', cmd, param || null).catch(err => {
+                console.warn('SendCommand failed', err);
+            });
+        }
+    }
+
     const conn = new signalR.HubConnectionBuilder()
         .withUrl('/hub')
         .withAutomaticReconnect([0, 1000, 2000, 5000, 10000])
@@ -791,14 +925,12 @@
         $('connText').textContent = 'Reconnecting…';
         settingsSynced = false;
     });
-
     conn.onreconnected(() => {
         $('connDot').className = 'conn-dot connected';
         $('connText').textContent = 'Connected';
     });
-
     conn.onclose(() => {
-        $('connDot').className = 'conn-dot';
+        $('connDot').className = 'conn-dot failed';
         $('connText').textContent = 'Disconnected';
         settingsSynced = false;
         setTimeout(startConnection, 3000);
@@ -811,12 +943,11 @@
             $('connText').textContent = 'Connected';
             $('connUrl').textContent = location.host;
         } catch {
-            $('connDot').className = 'conn-dot';
+            $('connDot').className = 'conn-dot failed';
             $('connText').textContent = 'Connecting…';
             setTimeout(startConnection, 3000);
         }
     }
-
     startConnection();
 </script>
 </body>

@@ -452,9 +452,11 @@ namespace Roche_Scoreboard
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Web server failed to start: {ex.Message}");
-                WebAccessStatus.Text = "Web server failed to start.";
+                System.Diagnostics.Debug.WriteLine($"Web server failed to start: {ex}");
+                WebAccessStatus.Text = $"Web server failed: {ex.Message}";
                 WebAccessStatus.Foreground = FindResource("AwayAccentBrush") as System.Windows.Media.SolidColorBrush;
+                WebLiveUrlBox.Text = "—";
+                WebControlUrlBox.Text = "—";
             }
         }
 
@@ -1255,10 +1257,12 @@ namespace Roche_Scoreboard
             }
 
             _messages.Clear();
-            _messages.AddRange(r.Messages);
             _styledMessages.Clear();
-            foreach (var msg in _messages)
-                _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(msg));
+            foreach (var msg in r.Messages)
+            {
+                _messages.Add(msg.Text ?? string.Empty);
+                _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(msg.Text ?? string.Empty, msg.TextColor, msg.HighlightColor));
+            }
             if (MessageList.ItemsSource is null)
                 MessageList.ItemsSource = _styledMessages;
 

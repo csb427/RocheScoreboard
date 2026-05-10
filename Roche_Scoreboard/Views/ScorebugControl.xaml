@@ -319,12 +319,14 @@
                             <TranslateTransform x:Name="HomeShimmerScroll" X="-200"/>
                         </Rectangle.RenderTransform>
                     </Rectangle>
-                    <TextBlock x:Name="HomeOverlayText" Text="GOAL!" Foreground="White" FontSize="72" FontWeight="Black"
-                               HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock.Effect>
-                            <DropShadowEffect BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
-                        </TextBlock.Effect>
-                    </TextBlock>
+                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,6">
+                        <TextBlock x:Name="HomeOverlayText" Text="GOAL!" Foreground="White" FontSize="72" FontWeight="Black"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Viewbox>
                 </Grid>
             </Border>
         </Grid>
@@ -424,12 +426,14 @@
                             <TranslateTransform x:Name="AwayShimmerScroll" X="-200"/>
                         </Rectangle.RenderTransform>
                     </Rectangle>
-                    <TextBlock x:Name="AwayOverlayText" Text="GOAL!" Foreground="White" FontSize="72" FontWeight="Black"
-                               HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock.Effect>
-                            <DropShadowEffect BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
-                        </TextBlock.Effect>
-                    </TextBlock>
+                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,6">
+                        <TextBlock x:Name="AwayOverlayText" Text="GOAL!" Foreground="White" FontSize="72" FontWeight="Black"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Viewbox>
                 </Grid>
             </Border>
         </Grid>
@@ -1303,15 +1307,17 @@
                         </Rectangle>
 
                         <!-- GOAL! text -->
-                        <TextBlock x:Name="ExpHomeOverlayText" Text="GOAL!" Foreground="White" FontSize="100" FontWeight="Black"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                            <TextBlock.Effect>
-                                <DropShadowEffect x:Name="ExpHomeOverlayGlow" BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
-                            </TextBlock.Effect>
-                            <TextBlock.RenderTransform>
-                                <ScaleTransform x:Name="ExpHomeOverlayScale" ScaleX="0" ScaleY="0"/>
-                            </TextBlock.RenderTransform>
-                        </TextBlock>
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32,12">
+                            <TextBlock x:Name="ExpHomeOverlayText" Text="GOAL!" Foreground="White" FontSize="100" FontWeight="Black"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect x:Name="ExpHomeOverlayGlow" BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
+                                </TextBlock.Effect>
+                                <TextBlock.RenderTransform>
+                                    <ScaleTransform x:Name="ExpHomeOverlayScale" ScaleX="0" ScaleY="0"/>
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </Viewbox>
                     </Grid>
                 </Border>
                     <!-- ===== AWAY SCORE PANEL ===== -->
@@ -1480,15 +1486,17 @@
                                     <TranslateTransform x:Name="ExpAwayShimmerScroll" X="-250"/>
                                 </Rectangle.RenderTransform>
                             </Rectangle>
-                            <TextBlock x:Name="ExpAwayOverlayText" Text="GOAL!" Foreground="White" FontSize="100" FontWeight="Black"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect x:Name="ExpAwayOverlayGlow" BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
-                                </TextBlock.Effect>
-                                <TextBlock.RenderTransform>
-                                    <ScaleTransform x:Name="ExpAwayOverlayScale" ScaleX="0" ScaleY="0"/>
-                                </TextBlock.RenderTransform>
-                            </TextBlock>
+                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32,12">
+                                <TextBlock x:Name="ExpAwayOverlayText" Text="GOAL!" Foreground="White" FontSize="100" FontWeight="Black"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect x:Name="ExpAwayOverlayGlow" BlurRadius="40" ShadowDepth="0" Color="White" Opacity="0.9"/>
+                                    </TextBlock.Effect>
+                                    <TextBlock.RenderTransform>
+                                        <ScaleTransform x:Name="ExpAwayOverlayScale" ScaleX="0" ScaleY="0"/>
+                                    </TextBlock.RenderTransform>
+                                </TextBlock>
+                            </Viewbox>
                         </Grid>
                     </Border>
                 </Grid>
