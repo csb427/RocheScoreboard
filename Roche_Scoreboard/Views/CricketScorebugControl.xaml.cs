@@ -107,6 +107,66 @@ namespace Roche_Scoreboard.Views
             _oversWarningStripeTimer.Tick += OnOversWarningStripeTick;
 
             Unloaded += (_, _) => Cleanup();
+
+            // Broadcast performance mode: pause cricket marquee/info rotation
+            // and remove expensive drop-shadow effects while any MP4 video
+            // surface is playing so the renderer can focus on the video.
+            PlaybackPerformanceMode.StateChanged += OnPlaybackPerformanceStateChanged;
+            Unloaded += (_, _) => PlaybackPerformanceMode.StateChanged -= OnPlaybackPerformanceStateChanged;
+        }
+
+        private bool _perfModeApplied;
+        private readonly Dictionary<UIElement, System.Windows.Media.Effects.Effect?> _suspendedEffects = new();
+
+        private void OnPlaybackPerformanceStateChanged(object? sender, bool active)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(new Action(() => OnPlaybackPerformanceStateChanged(sender, active)));
+                return;
+            }
+
+            if (active)
+            {
+                if (_perfModeApplied) return;
+                _perfModeApplied = true;
+                _marqueeTimer?.Stop();
+                _infoRotationTimer?.Stop();
+                SuspendExpensiveEffects(this);
+            }
+            else
+            {
+                if (!_perfModeApplied) return;
+                _perfModeApplied = false;
+                RestoreExpensiveEffects();
+                if (_messages.Count > 0 && _marqueeTimer != null) _marqueeTimer.Start();
+                _infoRotationTimer?.Start();
+            }
+        }
+
+        private void SuspendExpensiveEffects(DependencyObject root)
+        {
+            int count = VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+                if (child is UIElement element &&
+                    element.Effect is System.Windows.Media.Effects.DropShadowEffect or System.Windows.Media.Effects.BlurEffect)
+                {
+                    _suspendedEffects[element] = element.Effect;
+                    element.Effect = null;
+                }
+                SuspendExpensiveEffects(child);
+            }
+        }
+
+        private void RestoreExpensiveEffects()
+        {
+            foreach (var kvp in _suspendedEffects)
+            {
+                try { kvp.Key.Effect = kvp.Value; } catch { }
+            }
+            _suspendedEffects.Clear();
         }
 
         private void OnOverTrackerHideTimer(object? sender, EventArgs e)

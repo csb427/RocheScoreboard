@@ -961,6 +961,7 @@ namespace Roche_Scoreboard.Views
             if (path == null) return;
             _homeVideoPath = path;
             SetupHomeVideoText.Text = System.IO.Path.GetFileName(path);
+            _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(path);
         }
 
         private void ChooseSetupAwayVideo_Click(object sender, RoutedEventArgs e)
@@ -969,6 +970,7 @@ namespace Roche_Scoreboard.Views
             if (path == null) return;
             _awayVideoPath = path;
             SetupAwayVideoText.Text = System.IO.Path.GetFileName(path);
+            _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(path);
         }
 
         private static string? PickVideoFile(string teamLabel)

@@ -7,14 +7,19 @@
              d:DesignHeight="420" d:DesignWidth="707"
              Background="Black">
 
-    <!-- Fill: video stretches to completely fill the responsive output
-         window (e.g. the 386x193 scoreboard area) so there are no black
-         bars around the content. -->
-    <Grid ClipToBounds="True">
+    <!-- Uniform: preserve aspect ratio so videos are never distorted; the
+         clipped black bars are visually preferable to stretched content
+         and the surface remains lightweight for the renderer. -->
+    <Grid ClipToBounds="True"
+          RenderOptions.BitmapScalingMode="LowQuality"
+          RenderOptions.EdgeMode="Aliased">
         <MediaElement x:Name="VideoPlayer"
                       LoadedBehavior="Manual"
                       UnloadedBehavior="Manual"
-                      Stretch="Fill"
-                      Volume="1.0"/>
+                      ScrubbingEnabled="True"
+                      Stretch="Uniform"
+                      Volume="1.0"
+                      RenderOptions.BitmapScalingMode="LowQuality"
+                      RenderOptions.EdgeMode="Aliased"/>
     </Grid>
 </UserControl>

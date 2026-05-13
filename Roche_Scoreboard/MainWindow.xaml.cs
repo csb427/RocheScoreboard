@@ -43,6 +43,9 @@ namespace Roche_Scoreboard
 
         // Custom video presentation path
         private string? _customVideoPath;
+        // When true, SwitchToScreen will NOT auto-play the video — used so
+        // Apply loads the video paused on its first frame for operator review.
+        private bool _suppressVideoAutoPlay;
 
         // Clock state tracking for animations
         private bool _previousClockRunning;
@@ -1239,6 +1242,8 @@ namespace Roche_Scoreboard
             _awayLogoPath = r.AwayLogoPath;
             _homeGoalVideoPath = r.HomeGoalVideoPath;
             _awayGoalVideoPath = r.AwayGoalVideoPath;
+            if (!string.IsNullOrWhiteSpace(_homeGoalVideoPath)) _ = Services.VideoOptimizer.EnsureOptimisedAsync(_homeGoalVideoPath);
+            if (!string.IsNullOrWhiteSpace(_awayGoalVideoPath)) _ = Services.VideoOptimizer.EnsureOptimisedAsync(_awayGoalVideoPath);
 
             ResetLogoCropState();
 
@@ -1411,6 +1416,8 @@ namespace Roche_Scoreboard
             _awayLogoPath = state.AwayLogoPath;
             _homeGoalVideoPath = state.HomeGoalVideoPath;
             _awayGoalVideoPath = state.AwayGoalVideoPath;
+            if (!string.IsNullOrWhiteSpace(_homeGoalVideoPath)) _ = Services.VideoOptimizer.EnsureOptimisedAsync(_homeGoalVideoPath);
+            if (!string.IsNullOrWhiteSpace(_awayGoalVideoPath)) _ = Services.VideoOptimizer.EnsureOptimisedAsync(_awayGoalVideoPath);
 
             _homeLogoZoom = state.HomeLogoZoom;
             _homeLogoOffsetX = state.HomeLogoOffsetX;
@@ -1556,13 +1563,15 @@ namespace Roche_Scoreboard
             {
                 LoadedBehavior = MediaState.Manual,
                 UnloadedBehavior = MediaState.Manual,
-                // Fill: stretch the goal/celebration video to completely
-                // cover the responsive output area (e.g. 386x193) so it
-                // matches the scoreboard dimensions exactly.
-                Stretch = System.Windows.Media.Stretch.Fill,
+                // Uniform: preserve aspect ratio so goal/celebration videos
+                // never appear stretched. Black letterbox is preferable to
+                // a distorted broadcast image.
+                Stretch = System.Windows.Media.Stretch.Uniform,
                 Visibility = Visibility.Collapsed,
                 Volume = 1.0
             };
+            System.Windows.Media.RenderOptions.SetBitmapScalingMode(_goalVideoOverlay, System.Windows.Media.BitmapScalingMode.LowQuality);
+            System.Windows.Media.RenderOptions.SetEdgeMode(_goalVideoOverlay, System.Windows.Media.EdgeMode.Aliased);
             Panel.SetZIndex(_goalVideoOverlay, 200);
             _goalVideoOverlay.MediaEnded += GoalVideo_MediaEnded;
             _goalVideoOverlay.MediaFailed += GoalVideo_MediaFailed;
@@ -1900,14 +1909,48 @@ namespace Roche_Scoreboard
         private void SwitchToVideo_Click(object sender, RoutedEventArgs e)
         {
             SetSelectedPreview("presentation:video");
+            _activeScreenKey = "video";
+            EnsureScoreboardWindow();
+
+            // Always cancel any pending break-screen automation so loading
+            // video before the game starts can't be overridden by a quarter
+            // summary timer/rotation.
+            if (_breakScreenDelayTimer != null)
+            {
+                _breakScreenDelayTimer.Stop();
+                _breakScreenDelayTimer = null;
+            }
+            StopBreakRotation();
+
             try
             {
                 if (!string.IsNullOrWhiteSpace(_customVideoPath) && System.IO.File.Exists(_customVideoPath))
                 {
                     if (_videoPlayer != null)
                     {
-                        _videoPlayer.SetVideoSource(_customVideoPath);
-                        _videoPlayer.Play();
+                        // Re-arm playback state subscriptions so the toolbar
+                        // play/pause button stays in sync.
+                        _videoPlayer.PlaybackStateChanged -= VideoPlayer_PlaybackStateChanged;
+                        _videoPlayer.PlaybackStateChanged += VideoPlayer_PlaybackStateChanged;
+                        _videoPlayer.MediaLoadFailed -= VideoPlayer_MediaLoadFailed;
+                        _videoPlayer.MediaLoadFailed += VideoPlayer_MediaLoadFailed;
+
+                        // Load the video paused on its first frame; the operator
+                        // controls playback via the play/pause button.
+                        _suppressVideoAutoPlay = true;
+                        try
+                        {
+                            _videoPlayer.SetVideoSource(_customVideoPath);
+                            SwitchToScreen(_videoPlayer, "Custom Video");
+                        }
+                        finally
+                        {
+                            _suppressVideoAutoPlay = false;
+                        }
+
+                        if (VideoPlayPauseButton != null)
+                            VideoPlayPauseButton.IsEnabled = true;
+                        UpdateVideoPlayPauseButton();
                     }
 
                     if (_goalVideoOverlay != null)
@@ -1917,6 +1960,21 @@ namespace Roche_Scoreboard
                 }
                 else
                 {
+                    // No video chosen yet — still take the display away from
+                    // the break screen / scorebug so the operator can pick a
+                    // file without the output flipping back to Quarter Summary.
+                    if (_videoPlayer != null)
+                    {
+                        _suppressVideoAutoPlay = true;
+                        try
+                        {
+                            SwitchToScreen(_videoPlayer, "Custom Video");
+                        }
+                        finally
+                        {
+                            _suppressVideoAutoPlay = false;
+                        }
+                    }
                     _customVideoPath = null;
                 }
             }
@@ -1926,6 +1984,7 @@ namespace Roche_Scoreboard
             }
 
             VideoPickerPrompt.Visibility = Visibility.Visible;
+            BroadcastWebState();
         }
 
         // Manual overlay handlers are implemented in `MainWindow.RestoreMembers.cs`.

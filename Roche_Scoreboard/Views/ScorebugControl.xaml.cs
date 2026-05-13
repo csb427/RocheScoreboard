@@ -101,6 +101,65 @@ namespace Roche_Scoreboard.Views
                 UpdateCompactClockMode();
                 UpdateExpOverlayBleed();
             };
+
+            // Broadcast performance mode: while any MP4 is actively playing
+            // we pause the ticker and drop expensive drop-shadow glows so
+            // the renderer can spend its budget on the video surface.
+            Services.PlaybackPerformanceMode.StateChanged += OnPlaybackPerformanceStateChanged;
+            Unloaded += (_, __) => Services.PlaybackPerformanceMode.StateChanged -= OnPlaybackPerformanceStateChanged;
+        }
+
+        private bool _perfModeApplied;
+        private readonly Dictionary<UIElement, Effect?> _suspendedEffects = new();
+
+        private void OnPlaybackPerformanceStateChanged(object? sender, bool active)
+        {
+            // Marshal to UI thread — PlaybackPerformanceMode can fire from
+            // background completion callbacks.
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(new Action(() => OnPlaybackPerformanceStateChanged(sender, active)));
+                return;
+            }
+
+            if (active)
+            {
+                if (_perfModeApplied) return;
+                _perfModeApplied = true;
+                StopAllMarquees();
+                SuspendExpensiveEffects(this);
+            }
+            else
+            {
+                if (!_perfModeApplied) return;
+                _perfModeApplied = false;
+                RestoreExpensiveEffects();
+                RestartMarqueeIfNeeded();
+            }
+        }
+
+        private void SuspendExpensiveEffects(DependencyObject root)
+        {
+            int count = VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+                if (child is UIElement element && element.Effect is DropShadowEffect or BlurEffect)
+                {
+                    _suspendedEffects[element] = element.Effect;
+                    element.Effect = null;
+                }
+                SuspendExpensiveEffects(child);
+            }
+        }
+
+        private void RestoreExpensiveEffects()
+        {
+            foreach (var kvp in _suspendedEffects)
+            {
+                try { kvp.Key.Effect = kvp.Value; } catch { }
+            }
+            _suspendedEffects.Clear();
         }
 
         // The expanded GOAL/LEAD-CHANGE overlays bleed left across the logo

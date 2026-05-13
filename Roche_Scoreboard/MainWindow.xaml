@@ -763,7 +763,10 @@
                                                         <TextBlock x:Name="VideoFilePathText" Text="No file selected" Foreground="#5080AA" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                         <Button Grid.Column="1" Content="Browse" Width="70" Click="BrowseVideo_Click" Style="{StaticResource ToolBtn}" Margin="8,0,0,0" BorderBrush="#2A3A52"/>
                                                     </Grid>
-                                                    <Button x:Name="ApplyVideoButton" Content="Apply" Height="30" FontSize="11" FontWeight="Bold" Click="ApplyVideo_Click" Style="{StaticResource ToolBtn}" Margin="0,10,0,0" IsEnabled="False" BorderBrush="#2A3A52"/>
+                                                    <TextBlock x:Name="VideoFileMetaText" Text="" Foreground="#3F6F9F" FontSize="9" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                                    <Button x:Name="ApplyVideoButton" Content="Load Video (Paused)" Height="30" FontSize="11" FontWeight="Bold" Click="ApplyVideo_Click" Style="{StaticResource ToolBtn}" Margin="0,10,0,0" IsEnabled="False" BorderBrush="#2A3A52"/>
+                                                    <Button x:Name="VideoPlayPauseButton" Content="▶  Play" Height="34" FontSize="12" FontWeight="Black" Click="VideoPlayPause_Click" Style="{StaticResource ToolBtn}" Margin="0,6,0,0" IsEnabled="False" BorderBrush="#1F7A3F" Background="#0E2A18" Foreground="#7FE0A0"/>
+                                                    <TextBlock x:Name="VideoStatusText" Text="" Foreground="#5AAA68" FontSize="9" FontWeight="SemiBold" Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
                                                 </StackPanel>
                                             </Grid>
                                         </Border>

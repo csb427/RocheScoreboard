@@ -102,16 +102,37 @@
         </Grid>
 
         <!-- GRAPH -->
-        <Grid Grid.Row="2" Margin="0,2,0,2">
+        <Grid Grid.Row="2" Margin="0,1,0,1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="22"/>
+                <ColumnDefinition Width="34"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Canvas x:Name="YAxisCanvas" Grid.Column="0" ClipToBounds="False"/>
-            <Border Grid.Column="1" Margin="0,0,4,0" ClipToBounds="True"
-                    Background="#0D1117" BorderBrush="#30363D" BorderThickness="1">
-                <Canvas x:Name="GraphCanvas" ClipToBounds="True"/>
-            </Border>
+            <TextBlock Grid.Column="0" Text="MARGIN" Foreground="#7088A0" FontSize="7"
+                       FontWeight="Bold" FontFamily="Bahnschrift"
+                       HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,1,0,0"/>
+            <Canvas x:Name="YAxisCanvas" Grid.Column="0" ClipToBounds="False" Margin="0,9,0,0"/>
+            <Grid Grid.Column="1" Margin="0,0,2,0">
+                <Border ClipToBounds="True"
+                        Background="#0D1117" BorderBrush="#30363D" BorderThickness="1">
+                    <Canvas x:Name="GraphCanvas" ClipToBounds="True"/>
+                </Border>
+                <!-- Dynamic margin badge: live point difference, font grows as gap widens -->
+                <Border x:Name="WormMarginBadge"
+                        VerticalAlignment="Top" HorizontalAlignment="Right"
+                        Margin="0,3,3,0"
+                        CornerRadius="4" Padding="5,1" Background="#CC0D1117"
+                        BorderBrush="#30363D" BorderThickness="1" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="WormMarginValue" Text="+0"
+                                   FontWeight="Black" FontFamily="Bahnschrift"
+                                   Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="WormMarginLabel" Text=" HOME"
+                                   FontWeight="Bold" FontFamily="Bahnschrift"
+                                   Foreground="#A8B3BF" FontSize="9" VerticalAlignment="Center"
+                                   Margin="3,2,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
 
         <!-- BOTTOM SCORE BAR -->

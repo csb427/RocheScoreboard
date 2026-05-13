@@ -173,6 +173,7 @@ namespace Roche_Scoreboard.Views
             var events = match.Events;
             if (events.Count == 0)
             {
+                WormMarginBadge.Visibility = Visibility.Collapsed;
                 DrawEmptyMessage();
                 return;
             }
@@ -183,8 +184,8 @@ namespace Roche_Scoreboard.Views
             if (canvasW <= 0 || canvasH <= 0) return;
 
             double scale = ScaleUnit;
-            double padTop = ScoreboardScaleHelper.Scale(20, scale);
-            double padBottom = ScoreboardScaleHelper.Scale(20, scale);
+            double padTop = ScoreboardScaleHelper.Scale(8, scale);
+            double padBottom = ScoreboardScaleHelper.Scale(8, scale);
             double graphH = Math.Max(1, canvasH - padTop - padBottom);
 
             // Build margin data points: start at 0, then each event's margin
@@ -275,20 +276,35 @@ namespace Roche_Scoreboard.Views
                 fill.BeginAnimation(OpacityProperty, fillFade);
             }
 
+            // ---- Identify which event points get an emphasized dot ----
+            // To avoid clutter we only emphasize: first point, quarter-end points,
+            // and the final/current point. All others get a small marker.
+            var emphasizedIdx = new HashSet<int> { 0, totalPoints - 1 };
+            for (int i = 0; i < events.Count - 1; i++)
+            {
+                if (events[i].Quarter != events[i + 1].Quarter)
+                    emphasizedIdx.Add(i + 1);
+            }
+
             // ---- Draw dots (fade in as line reaches each point) ----
             for (int i = 0; i < totalPoints; i++)
             {
                 bool isHomeAbove = margins[i] > 0;
                 bool isZero = margins[i] == 0;
                 var dotColor = isZero ? Colors.White : (isHomeAbove ? homeColor : awayColor);
+                bool emphasize = emphasizedIdx.Contains(i);
+
+                double dotSize = emphasize
+                    ? ScoreboardScaleHelper.Scale(i == totalPoints - 1 ? 8 : 6.5, scale)
+                    : ScoreboardScaleHelper.Scale(3, scale);
 
                 var dot = new Ellipse
                 {
-                    Width = ScoreboardScaleHelper.Scale(i == 0 ? 6 : 7, scale),
-                    Height = ScoreboardScaleHelper.Scale(i == 0 ? 6 : 7, scale),
+                    Width = dotSize,
+                    Height = dotSize,
                     Fill = new SolidColorBrush(dotColor),
-                    Stroke = new SolidColorBrush(Colors.White),
-                    StrokeThickness = ScoreboardScaleHelper.Scale(1.2, scale),
+                    Stroke = emphasize ? new SolidColorBrush(Colors.White) : null,
+                    StrokeThickness = emphasize ? ScoreboardScaleHelper.Scale(1.2, scale) : 0,
                     Opacity = 0
                 };
 
@@ -308,6 +324,47 @@ namespace Roche_Scoreboard.Views
 
             // ---- Y-axis labels ----
             DrawYAxisLabels(yCenter, yScale, maxAbsMargin, canvasH, scale);
+
+            // ---- Dynamic margin badge ----
+            UpdateMarginBadge(margins[^1], homeColor, awayColor, scale);
+        }
+
+        private void UpdateMarginBadge(int currentMargin, Color homeColor, Color awayColor, double scale)
+        {
+            if (currentMargin == 0)
+            {
+                WormMarginBadge.Visibility = Visibility.Visible;
+                WormMarginValue.Text = "TIED";
+                WormMarginValue.Foreground = new SolidColorBrush(Colors.White);
+                WormMarginLabel.Text = "";
+                WormMarginValue.FontSize = ScoreboardScaleHelper.Scale(12, scale);
+                WormMarginBadge.BorderBrush = new SolidColorBrush(Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF));
+                return;
+            }
+
+            int absMargin = Math.Abs(currentMargin);
+            bool homeLead = currentMargin > 0;
+            var teamColor = homeLead ? homeColor : awayColor;
+            string teamLabel = homeLead
+                ? (WormHomeTeamText.Text + " LEAD")
+                : (WormAwayTeamText.Text + " LEAD");
+
+            // Font scales with the magnitude of the difference: 11pt at small leads,
+            // up to ~24pt at 60+ point margins.
+            double t = Math.Clamp(absMargin / 60.0, 0.0, 1.0);
+            double designFont = 11 + t * 13;
+            double designLabelFont = 8 + t * 3;
+
+            WormMarginValue.Text = (homeLead ? "+" : "-") + absMargin.ToString();
+            WormMarginValue.Foreground = new SolidColorBrush(Lighten(teamColor, 0.25));
+            WormMarginValue.FontSize = ScoreboardScaleHelper.Scale(designFont, scale);
+
+            WormMarginLabel.Text = " " + teamLabel;
+            WormMarginLabel.Foreground = new SolidColorBrush(Color.FromArgb(0xC0, 0xC8, 0xD2, 0xDE));
+            WormMarginLabel.FontSize = ScoreboardScaleHelper.Scale(designLabelFont, scale);
+
+            WormMarginBadge.BorderBrush = new SolidColorBrush(Color.FromArgb(0xB0, teamColor.R, teamColor.G, teamColor.B));
+            WormMarginBadge.Visibility = Visibility.Visible;
         }
 
         private void DrawGridlines(double canvasW, double canvasH, double padTop, double padBottom,
@@ -374,9 +431,10 @@ namespace Roche_Scoreboard.Views
                 var label = new TextBlock
                 {
                     Text = qLabel,
-                    Foreground = new SolidColorBrush(Color.FromArgb(100, 255, 255, 255)),
-                    FontSize = ScoreboardScaleHelper.Scale(15, scale),
-                    FontWeight = FontWeights.Bold
+                    Foreground = new SolidColorBrush(Color.FromArgb(140, 255, 255, 255)),
+                    FontSize = ScoreboardScaleHelper.Scale(9, scale),
+                    FontWeight = FontWeights.Bold,
+                    FontFamily = new System.Windows.Media.FontFamily("Bahnschrift")
                 };
                 Canvas.SetLeft(label, x + ScoreboardScaleHelper.Scale(3, scale));
                 Canvas.SetTop(label, ScoreboardScaleHelper.Scale(2, scale));
@@ -418,75 +476,54 @@ namespace Roche_Scoreboard.Views
 
         private void DrawYAxisLabels(double yCenter, double yScale, int maxAbsMargin, double canvasH, double scale)
         {
-            double axisCanvasH = YAxisCanvas.ActualHeight > 0 ? YAxisCanvas.ActualHeight : canvasH;
-
             int step = NiceStep(maxAbsMargin);
 
             var labelBrush = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));
-            double labelWidth = Math.Max(ScoreboardScaleHelper.Scale(50, scale), YAxisCanvas.ActualWidth);
-            double zeroFontSize = ScoreboardScaleHelper.Scale(15, scale);
-            double minorFontSize = ScoreboardScaleHelper.Scale(13, scale);
-            double zeroYOffset = ScoreboardScaleHelper.Scale(10, scale);
-            double minorYOffset = ScoreboardScaleHelper.Scale(9, scale);
+            double labelWidth = YAxisCanvas.ActualWidth > 0
+                ? YAxisCanvas.ActualWidth
+                : ScoreboardScaleHelper.Scale(34, scale);
+            // Right-pad so labels don't kiss the chart border
+            double rightPad = ScoreboardScaleHelper.Scale(3, scale);
+            double zeroFontSize = ScoreboardScaleHelper.Scale(11, scale);
+            double minorFontSize = ScoreboardScaleHelper.Scale(9, scale);
+            double zeroYOffset = ScoreboardScaleHelper.Scale(7, scale);
+            double minorYOffset = ScoreboardScaleHelper.Scale(6, scale);
+
+            void AddLabel(string text, double y, double fontSize, double yOffset, FontWeight weight, Brush brush)
+            {
+                var tb = new TextBlock
+                {
+                    Text = text,
+                    Foreground = brush,
+                    FontSize = fontSize,
+                    FontWeight = weight,
+                    FontFamily = new System.Windows.Media.FontFamily("Bahnschrift"),
+                    Width = labelWidth - rightPad,
+                    TextAlignment = TextAlignment.Right
+                };
+                Canvas.SetLeft(tb, 0);
+                Canvas.SetTop(tb, y - yOffset);
+                YAxisCanvas.Children.Add(tb);
+            }
 
             // Zero label
-            var zeroLabel = new TextBlock
-            {
-                Text = "0",
-                Foreground = new SolidColorBrush(Color.FromArgb(200, 255, 255, 255)),
-                FontSize = zeroFontSize,
-                FontWeight = FontWeights.Bold,
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
-                Width = labelWidth,
-                TextAlignment = TextAlignment.Right
-            };
-            Canvas.SetLeft(zeroLabel, 0);
-            Canvas.SetTop(zeroLabel, yCenter - zeroYOffset);
-            YAxisCanvas.Children.Add(zeroLabel);
+            AddLabel("0", yCenter, zeroFontSize, zeroYOffset, FontWeights.Bold,
+                new SolidColorBrush(Color.FromArgb(220, 255, 255, 255)));
 
             for (int val = step; val <= maxAbsMargin; val += step)
             {
-                // Positive (home leads)
                 double yUp = yCenter - val * yScale;
-                var upLabel = new TextBlock
-                {
-                    Text = $"+{val}",
-                    Foreground = labelBrush,
-                    FontSize = minorFontSize,
-                    Width = labelWidth,
-                    TextAlignment = TextAlignment.Right
-                };
-                Canvas.SetLeft(upLabel, 0);
-                Canvas.SetTop(upLabel, yUp - minorYOffset);
-                YAxisCanvas.Children.Add(upLabel);
+                AddLabel("+" + val, yUp, minorFontSize, minorYOffset, FontWeights.SemiBold, labelBrush);
 
-                // Negative (away leads)
                 double yDown = yCenter + val * yScale;
-                var downLabel = new TextBlock
-                {
-                    Text = $"-{val}",
-                    Foreground = labelBrush,
-                    FontSize = minorFontSize,
-                    Width = labelWidth,
-                    TextAlignment = TextAlignment.Right
-                };
-                Canvas.SetLeft(downLabel, 0);
-                Canvas.SetTop(downLabel, yDown - minorYOffset);
-                YAxisCanvas.Children.Add(downLabel);
+                AddLabel("-" + val, yDown, minorFontSize, minorYOffset, FontWeights.SemiBold, labelBrush);
             }
         }
 
         private static void DrawEmptyMessage()
         {
-            var tb = new TextBlock
-            {
-                Text = "No scoring events yet",
-                Foreground = new SolidColorBrush(Colors.White),
-                FontSize = 16,
-                Opacity = 0.5,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
+            // Intentional no-op: the empty graph background communicates the
+            // pre-game state. Adding text here would clutter the small panel.
         }
 
         private static int NiceMax(int val)

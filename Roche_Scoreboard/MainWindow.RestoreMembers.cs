@@ -1198,6 +1198,15 @@ public partial class MainWindow
         _rotationTimer?.Stop();
         _rotationTimer = null;
         _isBreakRotating = false;
+
+        // Also cancel any pending "show break screen in 8s" timer so that
+        // switching to another screen (e.g. the custom video) isn't
+        // overridden a few seconds later.
+        if (_breakScreenDelayTimer != null)
+        {
+            _breakScreenDelayTimer.Stop();
+            _breakScreenDelayTimer = null;
+        }
     }
 
     private void ShowScorebug()
@@ -1431,6 +1440,7 @@ public partial class MainWindow
         {
             _goalVideoOverlay.Stop();
             _goalVideoOverlay.Visibility = Visibility.Collapsed;
+            Roche_Scoreboard.Services.PlaybackPerformanceMode.End();
             Action? prev = _goalVideoCompletionCallback;
             _goalVideoCompletionCallback = null;
             prev.Invoke();
@@ -1439,10 +1449,13 @@ public partial class MainWindow
         try
         {
             _goalVideoCompletionCallback = fallbackAnimation;
-            _goalVideoOverlay.Source = new Uri(path, UriKind.Absolute);
+            string playbackPath = Roche_Scoreboard.Services.VideoOptimizer.GetPlaybackPath(path);
+            _goalVideoOverlay.Source = new Uri(playbackPath, UriKind.Absolute);
             _goalVideoOverlay.Visibility = Visibility.Visible;
             _goalVideoOverlay.Position = TimeSpan.Zero;
             _goalVideoOverlay.Play();
+            Roche_Scoreboard.Services.PlaybackPerformanceMode.Begin();
+            _goalVideoPerfModeActive = true;
         }
         catch (UriFormatException)
         {
@@ -1459,6 +1472,7 @@ public partial class MainWindow
         {
             _goalVideoOverlay.Visibility = Visibility.Collapsed;
         }
+        EndGoalVideoPerfMode();
 
         Action? callback = _goalVideoCompletionCallback;
         _goalVideoCompletionCallback = null;
@@ -1472,10 +1486,20 @@ public partial class MainWindow
         {
             _goalVideoOverlay.Visibility = Visibility.Collapsed;
         }
+        EndGoalVideoPerfMode();
 
         Action? callback = _goalVideoCompletionCallback;
         _goalVideoCompletionCallback = null;
         callback?.Invoke();
+    }
+
+    private bool _goalVideoPerfModeActive;
+
+    private void EndGoalVideoPerfMode()
+    {
+        if (!_goalVideoPerfModeActive) return;
+        _goalVideoPerfModeActive = false;
+        Roche_Scoreboard.Services.PlaybackPerformanceMode.End();
     }
 
     private void StopStatsBarTimer()
@@ -1493,6 +1517,7 @@ public partial class MainWindow
         _goalVideoOverlay.Stop();
         _goalVideoOverlay.Source = null;
         _goalVideoOverlay.Visibility = Visibility.Collapsed;
+        EndGoalVideoPerfMode();
     }
 
     // ── Periodic overlay scheduling (driven by OverlayScheduler) ──
@@ -2248,6 +2273,10 @@ public partial class MainWindow
         if (target != _videoPlayer)
         {
             VideoPickerPrompt.Visibility = Visibility.Collapsed;
+            // Pause the video when leaving the video screen so audio doesn't
+            // keep playing in the background. The current frame is retained
+            // so resuming via Play picks up where it left off.
+            _videoPlayer?.Pause();
         }
 
         var current = GetCurrentlyVisibleScreen();
@@ -2275,7 +2304,8 @@ public partial class MainWindow
 
         if (target == _videoPlayer)
         {
-            _videoPlayer?.Play();
+            if (!_suppressVideoAutoPlay)
+                _videoPlayer?.Play();
         }
     }
 
@@ -2946,29 +2976,173 @@ public partial class MainWindow
 
     private void BrowseVideo_Click(object sender, RoutedEventArgs e)
     {
+        // Accept any media file. The MediaElement uses the installed Windows
+        // codecs, so anything Windows can play (mp4, mov, mkv, webm, avi,
+        // wmv, m4v, ts, mpg, mpeg, 3gp, flv, ...) is fair game. The "All
+        // Files" entry lets operators pick container types we didn't list.
+        string videoExts = "*.mp4;*.m4v;*.mov;*.mkv;*.webm;*.avi;*.wmv;*.flv;"
+                         + "*.mpg;*.mpeg;*.ts;*.mts;*.m2ts;*.3gp;*.3g2;*.ogv;*.vob;*.asf";
+
         Microsoft.Win32.OpenFileDialog picker = new()
         {
             Title = "Select Video File",
-            Filter = "Video Files|*.mp4;*.avi;*.wmv;*.mov;*.mkv|All Files|*.*"
+            // No file size cap — Windows file dialog imposes none and
+            // MediaElement streams from disk.
+            Filter = $"Video Files|{videoExts}|All Files|*.*",
+            CheckFileExists = true,
+            DereferenceLinks = true,
+            Multiselect = false
         };
 
         if (picker.ShowDialog() != true) return;
 
+        // The operator is interacting with the video flow; cancel any pending
+        // automatic switch to the Quarter Summary screen so it doesn't
+        // override the upcoming video load.
+        if (_breakScreenDelayTimer != null)
+        {
+            _breakScreenDelayTimer.Stop();
+            _breakScreenDelayTimer = null;
+        }
+        StopBreakRotation();
+
         _customVideoPath = picker.FileName;
         VideoFilePathText.Text = System.IO.Path.GetFileName(_customVideoPath);
+
+        // Kick off background optimisation so heavy imports are ready for
+        // smooth broadcast before they're triggered live.
+        _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(_customVideoPath);
+
+        // Surface basic file metadata so operators know what they picked,
+        // especially useful for very large files.
+        try
+        {
+            var info = new System.IO.FileInfo(_customVideoPath);
+            VideoFileMetaText.Text = $"{FormatFileSize(info.Length)} · {info.Extension.TrimStart('.').ToUpperInvariant()}";
+        }
+        catch
+        {
+            VideoFileMetaText.Text = string.Empty;
+        }
+
         ApplyVideoButton.IsEnabled = true;
+        VideoStatusText.Text = "Ready to load.";
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        const double KB = 1024d;
+        const double MB = KB * 1024;
+        const double GB = MB * 1024;
+        if (bytes >= GB) return $"{bytes / GB:F2} GB";
+        if (bytes >= MB) return $"{bytes / MB:F1} MB";
+        if (bytes >= KB) return $"{bytes / KB:F0} KB";
+        return $"{bytes} B";
     }
 
     private void ApplyVideo_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(_customVideoPath) || !System.IO.File.Exists(_customVideoPath)) return;
+        if (string.IsNullOrWhiteSpace(_customVideoPath) || !System.IO.File.Exists(_customVideoPath))
+        {
+            VideoStatusText.Text = "File not found.";
+            return;
+        }
 
         EnsureScoreboardWindow();
         if (_videoPlayer == null) return;
 
-        _videoPlayer.SetVideoSource(_customVideoPath);
-        SwitchToScreen(_videoPlayer, "Custom Video");
-        VideoPickerPrompt.Visibility = Visibility.Collapsed;
+        // Defensive: cancel any pending switch to Quarter Summary so it
+        // can't override the video screen a few seconds after load.
+        if (_breakScreenDelayTimer != null)
+        {
+            _breakScreenDelayTimer.Stop();
+            _breakScreenDelayTimer = null;
+        }
+        StopBreakRotation();
+
+        // Subscribe (idempotent) so the play/pause button reflects state.
+        _videoPlayer.PlaybackStateChanged -= VideoPlayer_PlaybackStateChanged;
+        _videoPlayer.PlaybackStateChanged += VideoPlayer_PlaybackStateChanged;
+        _videoPlayer.MediaLoadFailed -= VideoPlayer_MediaLoadFailed;
+        _videoPlayer.MediaLoadFailed += VideoPlayer_MediaLoadFailed;
+
+        // Load paused on frame zero. SwitchToScreen used to auto-play any
+        // video; the override flag keeps it paused for operator review.
+        _suppressVideoAutoPlay = true;
+        try
+        {
+            _videoPlayer.SetVideoSource(_customVideoPath);
+            SwitchToScreen(_videoPlayer, "Custom Video");
+        }
+        finally
+        {
+            _suppressVideoAutoPlay = false;
+        }
+
+        VideoPickerPrompt.Visibility = Visibility.Visible;
+        VideoPlayPauseButton.IsEnabled = true;
+        UpdateVideoPlayPauseButton();
+        VideoStatusText.Text = "Loaded · paused on first frame.";
+    }
+
+    private void VideoPlayPause_Click(object sender, RoutedEventArgs e)
+    {
+        if (_videoPlayer is null || !_videoPlayer.HasSource)
+        {
+            VideoStatusText.Text = "Load a video first.";
+            return;
+        }
+
+        _videoPlayer.TogglePlayPause();
+        UpdateVideoPlayPauseButton();
+    }
+
+    private void VideoPlayer_PlaybackStateChanged(object? sender, EventArgs e)
+    {
+        // Marshal in case event was raised from the media thread.
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(new Action(UpdateVideoPlayPauseButton));
+            return;
+        }
+        UpdateVideoPlayPauseButton();
+    }
+
+    private void VideoPlayer_MediaLoadFailed(object? sender, System.Windows.ExceptionRoutedEventArgs e)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(new Action(() => VideoPlayer_MediaLoadFailed(sender, e)));
+            return;
+        }
+
+        VideoPlayPauseButton.IsEnabled = false;
+        string reason = e.ErrorException?.Message ?? "unknown error";
+        VideoStatusText.Text = "Failed to load: " + reason;
+    }
+
+    private void UpdateVideoPlayPauseButton()
+    {
+        if (VideoPlayPauseButton is null) return;
+
+        bool playing = _videoPlayer?.IsPlaying == true;
+        if (playing)
+        {
+            VideoPlayPauseButton.Content = "⏸  Pause";
+            VideoPlayPauseButton.BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#7A4A1F")!;
+            VideoPlayPauseButton.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#2A1A0E")!;
+            VideoPlayPauseButton.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#F0C040")!;
+            VideoStatusText.Text = "Playing.";
+        }
+        else
+        {
+            VideoPlayPauseButton.Content = "▶  Play";
+            VideoPlayPauseButton.BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#1F7A3F")!;
+            VideoPlayPauseButton.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#0E2A18")!;
+            VideoPlayPauseButton.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#7FE0A0")!;
+            if (_videoPlayer?.HasSource == true)
+                VideoStatusText.Text = "Paused.";
+        }
     }
 
     private void LayoutRadio_Changed(object sender, RoutedEventArgs e)
