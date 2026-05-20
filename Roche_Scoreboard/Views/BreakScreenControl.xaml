@@ -8,19 +8,19 @@
              d:DesignHeight="193" d:DesignWidth="386"
              Width="386" Height="193">
 
-    <!-- 386x193 fixed canvas. Layout authored 1:1 — no Viewbox/scaling. -->
+    <!-- 386x193 fixed canvas. Quarter-by-quarter breakdown is the hero;
+         overall totals already live in the bottom score bar. -->
     <Grid Background="#0D1117" ClipToBounds="True">
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="16"/>   <!-- title bar -->
-            <RowDefinition Height="22"/>   <!-- team header strip -->
-            <RowDefinition Height="12"/>   <!-- column headers -->
-            <RowDefinition Height="*"/>    <!-- quarter rows -->
+            <RowDefinition Height="14"/>   <!-- title bar -->
+            <RowDefinition Height="20"/>   <!-- quarter header strip (Q1 Q2 Q3 Q4) -->
+            <RowDefinition Height="*"/>    <!-- home row + away row -->
             <RowDefinition Height="44"/>   <!-- bottom score bar -->
         </Grid.RowDefinitions>
 
         <!-- Subtle team-colour wash -->
-        <Border Grid.RowSpan="5" Opacity="0.18" IsHitTestVisible="False">
+        <Border Grid.RowSpan="4" Opacity="0.18" IsHitTestVisible="False">
             <Border.Background>
                 <LinearGradientBrush x:Name="BgGradient" StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#C0441A" Offset="0.0"/>
@@ -30,187 +30,135 @@
             </Border.Background>
         </Border>
 
-        <!-- TITLE BAR -->
+        <!-- TITLE BAR (matches other presentation screens) -->
         <Border Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1">
             <Border VerticalAlignment="Bottom" Height="1" IsHitTestVisible="False">
                 <Border.Background>
                     <LinearGradientBrush x:Name="TitleAccentGradient" StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#C04020" Offset="0.0"/>
+                        <GradientStop Color="#4488FF" Offset="0.0"/>
                         <GradientStop Color="#00000000" Offset="0.5"/>
-                        <GradientStop Color="#207A20" Offset="1.0"/>
+                        <GradientStop Color="#FF6644" Offset="1.0"/>
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
         </Border>
         <Grid Grid.Row="0" Margin="6,0">
-            <TextBlock Text="QUARTER SUMMARY" Foreground="#F0C040"
-                       FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
+            <TextBlock Text="QUARTER BREAKDOWN" Foreground="#F0C040"
+                       FontSize="12" FontWeight="Black" FontFamily="Bahnschrift"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <TextBlock x:Name="BreakTimeText" Text="1:26 PM" Foreground="#58A6FF"
-                       FontSize="9" FontWeight="SemiBold"
+                       FontSize="10" FontWeight="SemiBold"
                        HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </Grid>
 
-        <!-- TEAM HEADER STRIP -->
-        <Grid Grid.Row="1" Margin="4,2,4,0">
+        <!-- QUARTER HEADER STRIP: team-column header + Q1..Q4 -->
+        <Grid Grid.Row="1" Margin="4,2,4,1">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="62"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-
-            <Border x:Name="HomeTeamHeader" Grid.Column="0" Padding="3,1" BorderThickness="1" Height="20">
-                <Border.Background>
-                    <SolidColorBrush x:Name="HomeHeaderBg" Color="#C04020"/>
-                </Border.Background>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,0,4,0">
-                        <Ellipse x:Name="BreakHomeLogoCircle" Width="14" Height="14">
-                            <Ellipse.Fill>
-                                <SolidColorBrush x:Name="HomeLogoBg" Color="#FFFFFF" Opacity="0.2"/>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <Image x:Name="BreakHomeLogoImage" Width="14" Height="14" Stretch="UniformToFill" Visibility="Collapsed">
-                            <Image.Clip>
-                                <EllipseGeometry Center="7,7" RadiusX="7" RadiusY="7"/>
-                            </Image.Clip>
-                        </Image>
-                    </Grid>
-                    <TextBlock x:Name="BreakHomeName" Grid.Column="1" Text="HOME"
-                               FontSize="12" FontWeight="Black" FontFamily="Bahnschrift"
-                               VerticalAlignment="Center"
-                               TextTrimming="CharacterEllipsis">
-                        <TextBlock.Foreground>
-                            <SolidColorBrush x:Name="HomeNameFg" Color="#FFFFFF"/>
-                        </TextBlock.Foreground>
-                    </TextBlock>
-                </Grid>
+            <Border Grid.Column="0"/>
+            <Border Grid.Column="1" Background="#15202B" BorderBrush="#30363D" BorderThickness="1" CornerRadius="3" Margin="1,0">
+                <TextBlock Text="Q1" Foreground="#58A6FF" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
-
-            <TextBlock Grid.Column="1" Text="VS" Foreground="#8B949E"
-                       FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
-                       Margin="6,0" VerticalAlignment="Center"/>
-
-            <Border x:Name="AwayTeamHeader" Grid.Column="2" Padding="3,1" BorderThickness="1" Height="20">
-                <Border.Background>
-                    <SolidColorBrush x:Name="AwayHeaderBg" Color="#207A20"/>
-                </Border.Background>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="BreakAwayName" Grid.Column="0" Text="AWAY"
-                               FontSize="12" FontWeight="Black" FontFamily="Bahnschrift"
-                               VerticalAlignment="Center" TextAlignment="Right"
-                               TextTrimming="CharacterEllipsis" Margin="0,0,4,0">
-                        <TextBlock.Foreground>
-                            <SolidColorBrush x:Name="AwayNameFg" Color="#FFFFFF"/>
-                        </TextBlock.Foreground>
-                    </TextBlock>
-                    <Grid Grid.Column="1" VerticalAlignment="Center">
-                        <Ellipse x:Name="BreakAwayLogoCircle" Width="14" Height="14">
-                            <Ellipse.Fill>
-                                <SolidColorBrush x:Name="AwayLogoBg" Color="#FFFFFF" Opacity="0.2"/>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <Image x:Name="BreakAwayLogoImage" Width="14" Height="14" Stretch="UniformToFill" Visibility="Collapsed">
-                            <Image.Clip>
-                                <EllipseGeometry Center="7,7" RadiusX="7" RadiusY="7"/>
-                            </Image.Clip>
-                        </Image>
-                    </Grid>
-                </Grid>
+            <Border Grid.Column="2" Background="#15202B" BorderBrush="#30363D" BorderThickness="1" CornerRadius="3" Margin="1,0">
+                <TextBlock Text="Q2" Foreground="#58A6FF" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <Border Grid.Column="3" Background="#15202B" BorderBrush="#30363D" BorderThickness="1" CornerRadius="3" Margin="1,0">
+                <TextBlock Text="Q3" Foreground="#58A6FF" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <Border Grid.Column="4" Background="#15202B" BorderBrush="#30363D" BorderThickness="1" CornerRadius="3" Margin="1,0">
+                <TextBlock Text="Q4" Foreground="#58A6FF" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
         </Grid>
 
-        <!-- COLUMN HEADERS -->
-        <Grid Grid.Row="2" Margin="4,1,4,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="28"/>
-                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock x:Name="HomeHdrG" Grid.Column="0" Text="G" Foreground="#C04020" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" FontFamily="Bahnschrift"/>
-            <TextBlock x:Name="HomeHdrB" Grid.Column="1" Text="B" Foreground="#C04020" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" FontFamily="Bahnschrift"/>
-            <TextBlock x:Name="HomeHdrT" Grid.Column="2" Text="TOT" Foreground="#C04020" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" FontFamily="Bahnschrift"/>
-            <TextBlock x:Name="AwayHdrG" Grid.Column="4" Text="G" Foreground="#207A20" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" FontFamily="Bahnschrift"/>
-            <TextBlock x:Name="AwayHdrB" Grid.Column="5" Text="B" Foreground="#207A20" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" FontFamily="Bahnschrift"/>
-            <TextBlock x:Name="AwayHdrT" Grid.Column="6" Text="TOT" Foreground="#207A20" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" FontFamily="Bahnschrift"/>
-        </Grid>
-
-        <!-- QUARTER ROWS -->
-        <Grid Grid.Row="3" Margin="4,1,4,2">
+        <!-- BODY: two rows (home / away). Team label with zoomed-logo bg + abbr, then four quarter score cells. -->
+        <Grid Grid.Row="2" Margin="4,1,4,2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="62"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- Q1 -->
-            <Grid Grid.Row="0" Margin="0,1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="28"/>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" x:Name="H1G"/><Border Grid.Column="1" x:Name="H1B"/><Border Grid.Column="2" x:Name="H1T"/>
-                <Border Grid.Column="3" Background="#0D1117" BorderBrush="#58A6FF" BorderThickness="1" Margin="2,0">
-                    <TextBlock Text="Q1" Foreground="#58A6FF" FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <Border Grid.Column="4" x:Name="A1G"/><Border Grid.Column="5" x:Name="A1B"/><Border Grid.Column="6" x:Name="A1T"/>
-            </Grid>
-            <!-- Q2 -->
-            <Grid Grid.Row="1" Margin="0,1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="28"/>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" x:Name="H2G"/><Border Grid.Column="1" x:Name="H2B"/><Border Grid.Column="2" x:Name="H2T"/>
-                <Border Grid.Column="3" Background="#0D1117" BorderBrush="#58A6FF" BorderThickness="1" Margin="2,0">
-                    <TextBlock Text="Q2" Foreground="#58A6FF" FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <Border Grid.Column="4" x:Name="A2G"/><Border Grid.Column="5" x:Name="A2B"/><Border Grid.Column="6" x:Name="A2T"/>
-            </Grid>
-            <!-- Q3 -->
-            <Grid Grid.Row="2" Margin="0,1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="28"/>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" x:Name="H3G"/><Border Grid.Column="1" x:Name="H3B"/><Border Grid.Column="2" x:Name="H3T"/>
-                <Border Grid.Column="3" Background="#0D1117" BorderBrush="#58A6FF" BorderThickness="1" Margin="2,0">
-                    <TextBlock Text="Q3" Foreground="#58A6FF" FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <Border Grid.Column="4" x:Name="A3G"/><Border Grid.Column="5" x:Name="A3B"/><Border Grid.Column="6" x:Name="A3T"/>
-            </Grid>
-            <!-- Q4 -->
-            <Grid Grid.Row="3" Margin="0,1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="28"/>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" x:Name="H4G"/><Border Grid.Column="1" x:Name="H4B"/><Border Grid.Column="2" x:Name="H4T"/>
-                <Border Grid.Column="3" Background="#0D1117" BorderBrush="#58A6FF" BorderThickness="1" Margin="2,0">
-                    <TextBlock Text="Q4" Foreground="#58A6FF" FontSize="11" FontWeight="Black" FontFamily="Bahnschrift"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <Border Grid.Column="4" x:Name="A4G"/><Border Grid.Column="5" x:Name="A4B"/><Border Grid.Column="6" x:Name="A4T"/>
-            </Grid>
+            <!-- HOME label cell: huge logo bg + huge abbreviation -->
+            <Border Grid.Row="0" Grid.Column="0" CornerRadius="3" Margin="0,1,2,1"
+                    BorderThickness="1" ClipToBounds="True">
+                <Border.BorderBrush>
+                    <SolidColorBrush x:Name="HomeHeaderBorder" Color="#C04020"/>
+                </Border.BorderBrush>
+                <Border.Background>
+                    <SolidColorBrush x:Name="HomeHeaderBg" Color="#C04020" Opacity="0.25"/>
+                </Border.Background>
+                <Grid>
+                    <!-- Zoomed logo as background, faded -->
+                    <Image x:Name="BreakHomeLogoBg" Stretch="UniformToFill" Opacity="0.35"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="-12" Visibility="Collapsed"/>
+                    <!-- Abbreviation overlay -->
+                    <Viewbox Stretch="Uniform" Margin="2">
+                        <TextBlock x:Name="BreakHomeAbbr" Text="HME"
+                                   FontSize="36" FontWeight="Black" FontFamily="Bahnschrift">
+                            <TextBlock.Foreground>
+                                <SolidColorBrush x:Name="HomeNameFg" Color="#FFFFFF"/>
+                            </TextBlock.Foreground>
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="Black" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Viewbox>
+                </Grid>
+            </Border>
+
+            <!-- HOME quarter cells -->
+            <Border Grid.Row="0" Grid.Column="1" x:Name="H1T" Margin="1,1"/>
+            <Border Grid.Row="0" Grid.Column="2" x:Name="H2T" Margin="1,1"/>
+            <Border Grid.Row="0" Grid.Column="3" x:Name="H3T" Margin="1,1"/>
+            <Border Grid.Row="0" Grid.Column="4" x:Name="H4T" Margin="1,1"/>
+
+            <!-- AWAY label cell -->
+            <Border Grid.Row="1" Grid.Column="0" CornerRadius="3" Margin="0,1,2,1"
+                    BorderThickness="1" ClipToBounds="True">
+                <Border.BorderBrush>
+                    <SolidColorBrush x:Name="AwayHeaderBorder" Color="#207A20"/>
+                </Border.BorderBrush>
+                <Border.Background>
+                    <SolidColorBrush x:Name="AwayHeaderBg" Color="#207A20" Opacity="0.25"/>
+                </Border.Background>
+                <Grid>
+                    <Image x:Name="BreakAwayLogoBg" Stretch="UniformToFill" Opacity="0.35"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="-12" Visibility="Collapsed"/>
+                    <Viewbox Stretch="Uniform" Margin="2">
+                        <TextBlock x:Name="BreakAwayAbbr" Text="AWY"
+                                   FontSize="36" FontWeight="Black" FontFamily="Bahnschrift">
+                            <TextBlock.Foreground>
+                                <SolidColorBrush x:Name="AwayNameFg" Color="#FFFFFF"/>
+                            </TextBlock.Foreground>
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="Black" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Viewbox>
+                </Grid>
+            </Border>
+
+            <!-- AWAY quarter cells -->
+            <Border Grid.Row="1" Grid.Column="1" x:Name="A1T" Margin="1,1"/>
+            <Border Grid.Row="1" Grid.Column="2" x:Name="A2T" Margin="1,1"/>
+            <Border Grid.Row="1" Grid.Column="3" x:Name="A3T" Margin="1,1"/>
+            <Border Grid.Row="1" Grid.Column="4" x:Name="A4T" Margin="1,1"/>
         </Grid>
 
         <!-- BOTTOM SCORE BAR -->
-        <local:PresentationScoreBar x:Name="ScoreBar" Grid.Row="4"/>
+        <local:PresentationScoreBar x:Name="ScoreBar" Grid.Row="3"/>
     </Grid>
 </UserControl>

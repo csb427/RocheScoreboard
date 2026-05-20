@@ -7,228 +7,264 @@
              d:DesignHeight="44" d:DesignWidth="386"
              Height="44">
 
-    <!-- Compact 386x44 score bar authored at 1:1 capture pixels.
-         No Viewbox/scaling: every element is sized for native rendering. -->
-    <Grid Background="#0D1117">
+    <!--
+        Broadcast-style compact score bar.
+        Mirrors the main scorebug layout: team-colour gradient panels, dark
+        centre quarter/clock panel, scorebug-style 3D separator bars between
+        Goals | Behinds | Total cells, Stolzl typography, transparent score
+        cells sharing the panel gradient.
 
-        <!-- 1px team-colour top accent -->
-        <Border Height="1" VerticalAlignment="Top" IsHitTestVisible="False">
-            <Border.Background>
-                <LinearGradientBrush x:Name="BarTopAccent" StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="#4488FF" Offset="0.0"/>
-                    <GradientStop Color="#30363D" Offset="0.5"/>
-                    <GradientStop Color="#FF6644" Offset="1.0"/>
+        Layout columns (left -> right):
+            HOME panel  | LOGO | CENTRE quarter+clock | LOGO | AWAY panel
+        Score order:
+            HOME:   Total  Behinds  Goals     (logo on right edge of home panel)
+            AWAY:   Goals  Behinds  Total     (logo on left edge of away panel)
+        - Totals are kept adjacent to the centre so the headline score reads
+          across like a real scorebug.
+    -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>      <!-- Home panel (scores) -->
+            <ColumnDefinition Width="44"/>     <!-- Home logo -->
+            <ColumnDefinition Width="62"/>     <!-- Centre: quarter / clock -->
+            <ColumnDefinition Width="44"/>     <!-- Away logo -->
+            <ColumnDefinition Width="*"/>      <!-- Away panel (scores) -->
+        </Grid.ColumnDefinitions>
+
+        <!-- =========================== HOME PANEL =========================== -->
+        <Grid Grid.Column="0" x:Name="HomePanel" ClipToBounds="True">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop x:Name="HomePanelGradStart" Color="#5C2118" Offset="0.0"/>
+                    <GradientStop x:Name="HomePanelGradEnd"   Color="#C9483B" Offset="1.0"/>
                 </LinearGradientBrush>
-            </Border.Background>
-        </Border>
+            </Grid.Background>
 
-        <Grid Margin="0,1,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="44"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <!-- 3D top-light overlay -->
+            <Rectangle IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#33FFFFFF" Offset="0.0"/>
+                        <GradientStop Color="#00000000" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
 
-            <!-- HOME SECTION -->
-            <Border Grid.Column="0" BorderThickness="0,0,1,0">
-                <Border.BorderBrush>
-                    <SolidColorBrush x:Name="HomeBgBrush" Color="#4488FF"/>
-                </Border.BorderBrush>
-                <Border.Background>
-                    <SolidColorBrush x:Name="HomeSectionBg" Color="#180D1117"/>
-                </Border.Background>
-                <Grid Margin="3,2,3,2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.25*"/>   <!-- Goals -->
+                    <ColumnDefinition Width="2"/>
+                    <ColumnDefinition Width="1.25*"/>   <!-- Behinds -->
+                    <ColumnDefinition Width="2"/>
+                    <ColumnDefinition Width="2.2*"/>    <!-- Total -->
+                </Grid.ColumnDefinitions>
 
-                    <!-- Logo -->
-                    <Grid Grid.Column="0" VerticalAlignment="Center">
-                        <Ellipse x:Name="HomeLogoFallback" Width="22" Height="22" Fill="#22FFFFFF"/>
-                        <Image x:Name="HomeLogoImage" Width="22" Height="22" Stretch="UniformToFill" Visibility="Collapsed">
-                            <Image.Clip>
-                                <EllipseGeometry Center="11,11" RadiusX="11" RadiusY="11"/>
-                            </Image.Clip>
-                        </Image>
-                    </Grid>
+                <!-- Goals -->
+                <TextBlock Grid.Column="0" x:Name="HomeGoalsText" Text="0" Foreground="White"
+                           FontFamily="Stolzl" FontSize="22" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
 
-                    <!-- Abbreviation -->
-                    <TextBlock Grid.Column="1" x:Name="HomeAbbrText" Text="ADE"
-                               FontSize="16" FontWeight="Black" FontFamily="Bahnschrift"
-                               VerticalAlignment="Center" Margin="4,0,0,0">
-                        <TextBlock.Foreground>
-                            <SolidColorBrush x:Name="HomeAbbrBrush" Color="#4488FF"/>
-                        </TextBlock.Foreground>
-                        <TextBlock.Effect>
-                            <DropShadowEffect x:Name="HomeAbbrGlow" Color="#4488FF" ShadowDepth="0" BlurRadius="4" Opacity="0.6"/>
-                        </TextBlock.Effect>
-                    </TextBlock>
+                <!-- 3D separator -->
+                <Rectangle Grid.Column="1" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#55000000" Offset="0"/>
+                            <GradientStop Color="#66FFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
 
-                    <!-- G/B chips -->
-                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0">
-                        <Border CornerRadius="3" Padding="3,0" BorderThickness="1" Margin="0,0,2,0" VerticalAlignment="Center">
-                            <Border.Background>
-                                <SolidColorBrush x:Name="HomeGoalsChipBg" Color="#30FFFFFF"/>
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <SolidColorBrush x:Name="HomeGoalsChipBorder" Color="#4488FF"/>
-                            </Border.BorderBrush>
-                            <Border.Effect>
-                                <DropShadowEffect x:Name="HomeGoalsChipGlow" Color="#4488FF" ShadowDepth="0" BlurRadius="3" Opacity="0.5"/>
-                            </Border.Effect>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="HomeGoalsText" Text="16" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift"
-                                           Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock Text="G" FontSize="8" FontWeight="Black" FontFamily="Bahnschrift"
-                                           Foreground="#B0B8C4" VerticalAlignment="Center" Margin="2,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-                        <Border CornerRadius="3" Padding="3,0" BorderThickness="1" VerticalAlignment="Center">
-                            <Border.Background>
-                                <SolidColorBrush x:Name="HomeBehindsChipBg" Color="#14FFFFFF"/>
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <SolidColorBrush x:Name="HomeBehindsChipBorder" Color="#4488FF"/>
-                            </Border.BorderBrush>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="HomeBehindsText" Text="11" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift"
-                                           Foreground="#D0D7E0" VerticalAlignment="Center"/>
-                                <TextBlock Text="B" FontSize="8" FontWeight="Black" FontFamily="Bahnschrift"
-                                           Foreground="#828B96" VerticalAlignment="Center" Margin="2,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
+                <!-- Behinds -->
+                <TextBlock Grid.Column="2" x:Name="HomeBehindsText" Text="0" Foreground="White"
+                           FontFamily="Stolzl" FontSize="22" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
 
-                    <!-- Total -->
-                    <Border x:Name="HomeTotalBadge" Grid.Column="4" Padding="4,0" VerticalAlignment="Center"
-                            BorderThickness="1" Background="#0D1117">
-                        <Border.BorderBrush>
-                            <SolidColorBrush x:Name="HomeTotalBorderBrush" Color="#4488FF"/>
-                        </Border.BorderBrush>
-                        <TextBlock x:Name="HomeTotalText" Text="107" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift"
-                                   VerticalAlignment="Center">
-                            <TextBlock.Foreground>
-                                <SolidColorBrush x:Name="HomeTotalFg" Color="#FFFFFF"/>
-                            </TextBlock.Foreground>
-                            <TextBlock.Effect>
-                                <DropShadowEffect x:Name="HomeTotalGlow" Color="#4488FF" ShadowDepth="0" BlurRadius="6" Opacity="0.7"/>
-                            </TextBlock.Effect>
-                        </TextBlock>
-                    </Border>
-                </Grid>
-            </Border>
+                <!-- 3D separator -->
+                <Rectangle Grid.Column="3" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#55000000" Offset="0"/>
+                            <GradientStop Color="#66FFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
 
-            <!-- CENTER -->
-            <Border Grid.Column="1" Background="#161B22">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock x:Name="QuarterText" Text="QT" Foreground="#F0C040"
-                               FontSize="13" FontWeight="Black" FontFamily="Bahnschrift"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="TimerText" Text="19:57" Foreground="#58A6FF"
-                               FontSize="9" FontWeight="Bold" FontFamily="Bahnschrift"
-                               HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
-
-            <!-- AWAY SECTION -->
-            <Border Grid.Column="2" BorderThickness="1,0,0,0">
-                <Border.BorderBrush>
-                    <SolidColorBrush x:Name="AwayBgBrush" Color="#FF6644"/>
-                </Border.BorderBrush>
-                <Border.Background>
-                    <SolidColorBrush x:Name="AwaySectionBg" Color="#18FF6644"/>
-                </Border.Background>
-                <Grid Margin="3,2,3,2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Total (left of away) -->
-                    <Border x:Name="AwayTotalBadge" Grid.Column="0" Padding="4,0" VerticalAlignment="Center"
-                            BorderThickness="1" Background="#0D1117">
-                        <Border.BorderBrush>
-                            <SolidColorBrush x:Name="AwayTotalBorderBrush" Color="#FF6644"/>
-                        </Border.BorderBrush>
-                        <TextBlock x:Name="AwayTotalText" Text="97" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift"
-                                   VerticalAlignment="Center">
-                            <TextBlock.Foreground>
-                                <SolidColorBrush x:Name="AwayTotalFg" Color="#FFFFFF"/>
-                            </TextBlock.Foreground>
-                            <TextBlock.Effect>
-                                <DropShadowEffect x:Name="AwayTotalGlow" Color="#FF6644" ShadowDepth="0" BlurRadius="6" Opacity="0.7"/>
-                            </TextBlock.Effect>
-                        </TextBlock>
-                    </Border>
-
-                    <!-- G/B chips -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,0,0">
-                        <Border CornerRadius="3" Padding="3,0" BorderThickness="1" Margin="0,0,2,0" VerticalAlignment="Center">
-                            <Border.Background>
-                                <SolidColorBrush x:Name="AwayGoalsChipBg" Color="#30FFFFFF"/>
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <SolidColorBrush x:Name="AwayGoalsChipBorder" Color="#FF6644"/>
-                            </Border.BorderBrush>
-                            <Border.Effect>
-                                <DropShadowEffect x:Name="AwayGoalsChipGlow" Color="#FF6644" ShadowDepth="0" BlurRadius="3" Opacity="0.5"/>
-                            </Border.Effect>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="AwayGoalsText" Text="14" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift"
-                                           Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock Text="G" FontSize="8" FontWeight="Black" FontFamily="Bahnschrift"
-                                           Foreground="#B0B8C4" VerticalAlignment="Center" Margin="2,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-                        <Border CornerRadius="3" Padding="3,0" BorderThickness="1" VerticalAlignment="Center">
-                            <Border.Background>
-                                <SolidColorBrush x:Name="AwayBehindsChipBg" Color="#14FFFFFF"/>
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <SolidColorBrush x:Name="AwayBehindsChipBorder" Color="#FF6644"/>
-                            </Border.BorderBrush>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="AwayBehindsText" Text="9" FontSize="13" FontWeight="Black" FontFamily="Bahnschrift"
-                                           Foreground="#D0D7E0" VerticalAlignment="Center"/>
-                                <TextBlock Text="B" FontSize="8" FontWeight="Black" FontFamily="Bahnschrift"
-                                           Foreground="#828B96" VerticalAlignment="Center" Margin="2,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-
-                    <!-- Abbreviation (right side) -->
-                    <TextBlock Grid.Column="3" x:Name="AwayAbbrText" Text="GEEL"
-                               FontSize="16" FontWeight="Black" FontFamily="Bahnschrift"
-                               VerticalAlignment="Center" Margin="0,0,4,0">
-                        <TextBlock.Foreground>
-                            <SolidColorBrush x:Name="AwayAbbrBrush" Color="#FF6644"/>
-                        </TextBlock.Foreground>
-                        <TextBlock.Effect>
-                            <DropShadowEffect x:Name="AwayAbbrGlow" Color="#FF6644" ShadowDepth="0" BlurRadius="4" Opacity="0.6"/>
-                        </TextBlock.Effect>
-                    </TextBlock>
-
-                    <!-- Logo -->
-                    <Grid Grid.Column="4" VerticalAlignment="Center">
-                        <Ellipse x:Name="AwayLogoFallback" Width="22" Height="22" Fill="#22FFFFFF"/>
-                        <Image x:Name="AwayLogoImage" Width="22" Height="22" Stretch="UniformToFill" Visibility="Collapsed">
-                            <Image.Clip>
-                                <EllipseGeometry Center="11,11" RadiusX="11" RadiusY="11"/>
-                            </Image.Clip>
-                        </Image>
-                    </Grid>
-                </Grid>
-            </Border>
+                <!-- Total -->
+                <TextBlock Grid.Column="4" x:Name="HomeTotalText" Text="0" Foreground="White"
+                           FontFamily="Stolzl Bold" FontSize="30" FontWeight="Black"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="2" Direction="270" Color="Black" Opacity="0.5"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+            </Grid>
         </Grid>
 
-        <!-- 1px bottom border -->
-        <Border Height="1" VerticalAlignment="Bottom" Background="#30363D" IsHitTestVisible="False"/>
+        <!-- 3D separator: home panel -> home logo -->
+        <Rectangle Grid.Column="0" HorizontalAlignment="Right" Width="3" IsHitTestVisible="False" Panel.ZIndex="50">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#55000000" Offset="0"/>
+                    <GradientStop Color="#66FFFFFF" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- =========================== HOME LOGO =========================== -->
+        <Border Grid.Column="1" x:Name="HomeLogoCell" ClipToBounds="True">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop x:Name="HomeLogoCellGradStart" Color="#5C2118" Offset="0.0"/>
+                    <GradientStop x:Name="HomeLogoCellGradEnd"   Color="#C9483B" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid Margin="3">
+                <TextBlock x:Name="HomeLogoFallback" Text="HOM" Foreground="#EEEEEE"
+                           FontWeight="Black" FontFamily="Stolzl Bold" FontSize="14"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Image x:Name="HomeLogoImage" Stretch="Uniform" Visibility="Collapsed"/>
+            </Grid>
+        </Border>
+
+        <!-- 3D separator: home logo -> centre -->
+        <Rectangle Grid.Column="1" HorizontalAlignment="Right" Width="3" IsHitTestVisible="False" Panel.ZIndex="50">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#55000000" Offset="0"/>
+                    <GradientStop Color="#66FFFFFF" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- =========================== CENTRE: QUARTER / CLOCK =========================== -->
+        <Grid Grid.Column="2" x:Name="CenterPanel">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#1A1F2E" Offset="0.0"/>
+                    <GradientStop Color="#0A0D14" Offset="0.5"/>
+                    <GradientStop Color="#000000" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="2,3">
+                <StackPanel x:Name="CenterStack" Orientation="Vertical" HorizontalAlignment="Center">
+                    <TextBlock x:Name="QuarterText" Text="QT" Foreground="White"
+                               FontFamily="Stolzl Bold" FontSize="40" FontWeight="Bold"
+                               HorizontalAlignment="Center" TextAlignment="Center"/>
+                    <TextBlock x:Name="TimerText" Text="14:37" Foreground="White"
+                               FontFamily="Stolzl Bold" FontSize="32" FontWeight="Bold"
+                               HorizontalAlignment="Center" TextAlignment="Center"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </Viewbox>
+        </Grid>
+
+        <!-- 3D separator: centre -> away logo -->
+        <Rectangle Grid.Column="2" HorizontalAlignment="Right" Width="3" IsHitTestVisible="False" Panel.ZIndex="50">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#55000000" Offset="0"/>
+                    <GradientStop Color="#66FFFFFF" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- =========================== AWAY LOGO =========================== -->
+        <Border Grid.Column="3" x:Name="AwayLogoCell" ClipToBounds="True">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop x:Name="AwayLogoCellGradStart" Color="#5C470A" Offset="0.0"/>
+                    <GradientStop x:Name="AwayLogoCellGradEnd"   Color="#B68F12" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid Margin="3">
+                <TextBlock x:Name="AwayLogoFallback" Text="AWA" Foreground="#EEEEEE"
+                           FontWeight="Black" FontFamily="Stolzl Bold" FontSize="14"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Image x:Name="AwayLogoImage" Stretch="Uniform" Visibility="Collapsed"/>
+            </Grid>
+        </Border>
+
+        <!-- 3D separator: away logo -> away panel -->
+        <Rectangle Grid.Column="3" HorizontalAlignment="Right" Width="3" IsHitTestVisible="False" Panel.ZIndex="50">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#55000000" Offset="0"/>
+                    <GradientStop Color="#66FFFFFF" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- =========================== AWAY PANEL =========================== -->
+        <Grid Grid.Column="4" x:Name="AwayPanel" ClipToBounds="True">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop x:Name="AwayPanelGradStart" Color="#B68F12" Offset="0.0"/>
+                    <GradientStop x:Name="AwayPanelGradEnd"   Color="#5C470A" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <!-- 3D top-light overlay -->
+            <Rectangle IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#33FFFFFF" Offset="0.0"/>
+                        <GradientStop Color="#00000000" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.25*"/>   <!-- Goals -->
+                    <ColumnDefinition Width="2"/>
+                    <ColumnDefinition Width="1.25*"/>   <!-- Behinds -->
+                    <ColumnDefinition Width="2"/>
+                    <ColumnDefinition Width="2.2*"/>    <!-- Total -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Goals -->
+                <TextBlock Grid.Column="0" x:Name="AwayGoalsText" Text="0" Foreground="White"
+                           FontFamily="Stolzl" FontSize="22" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+
+                <!-- 3D separator -->
+                <Rectangle Grid.Column="1" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#55000000" Offset="0"/>
+                            <GradientStop Color="#66FFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <!-- Behinds -->
+                <TextBlock Grid.Column="2" x:Name="AwayBehindsText" Text="0" Foreground="White"
+                           FontFamily="Stolzl" FontSize="22" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+
+                <!-- 3D separator -->
+                <Rectangle Grid.Column="3" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#55000000" Offset="0"/>
+                            <GradientStop Color="#66FFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <!-- Total -->
+                <TextBlock Grid.Column="4" x:Name="AwayTotalText" Text="0" Foreground="White"
+                           FontFamily="Stolzl Bold" FontSize="30" FontWeight="Black"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="2" Direction="270" Color="Black" Opacity="0.5"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+            </Grid>
+        </Grid>
+
+        <!-- Top + bottom hairlines for crisp scorebug edge -->
+        <Border Grid.ColumnSpan="5" Height="1" VerticalAlignment="Top"  Background="#66000000" IsHitTestVisible="False"/>
+        <Border Grid.ColumnSpan="5" Height="1" VerticalAlignment="Bottom" Background="#88000000" IsHitTestVisible="False"/>
     </Grid>
 </UserControl>

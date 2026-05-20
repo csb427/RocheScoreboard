@@ -34,6 +34,7 @@ public partial class TrainingControlPanel : UserControl
 
     private TrainingSession? _session;
     private readonly DispatcherTimer _ui;
+    private Guid? _editingTimerId;
 
     private static readonly CubicEase EaseOut = new() { EasingMode = EasingMode.EaseOut };
 
@@ -134,8 +135,15 @@ public partial class TrainingControlPanel : UserControl
         _session = session;
         _session.Changed += OnSessionChanged;
         _session.StructuralChanged += OnStructuralChanged;
+        AutoAdvanceToggle.IsChecked = _session.AutoAdvance;
         OnStructuralChanged();
         OnSessionChanged();
+    }
+
+    private void OnAutoAdvanceChanged(object sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+        _session.AutoAdvance = AutoAdvanceToggle.IsChecked == true;
     }
 
     // ─────────── Live UI ───────────
@@ -227,6 +235,23 @@ public partial class TrainingControlPanel : UserControl
     private void RebuildQueueList()
     {
         if (_session is null) return;
+        // Drop the editing flag if the target timer is no longer in the queue
+        // (e.g. removed externally) or has finished.
+        if (_editingTimerId is Guid editId)
+        {
+            bool stillEditable = false;
+            for (int i = 0; i < _session.Timers.Count; i++)
+            {
+                var t = _session.Timers[i];
+                if (t.Id == editId && !t.HasFinished && i >= _session.ActiveIndex)
+                {
+                    stillEditable = true;
+                    break;
+                }
+            }
+            if (!stillEditable) _editingTimerId = null;
+        }
+
         QueueItems.Items.Clear();
         for (int i = 0; i < _session.Timers.Count; i++)
         {
@@ -241,11 +266,13 @@ public partial class TrainingControlPanel : UserControl
         bool isFinished = t.HasFinished || index < activeIndex;
         string accent = isActive ? "#58A6FF" : isFinished ? "#374151" : "#6B7280";
 
+        bool isEditing = _editingTimerId == t.Id && !isFinished;
+
         var border = new Border
         {
             Background = ColorFromHex("#10161D"),
-            BorderBrush = ColorFromHex(isActive ? "#58A6FF" : "#1F2937"),
-            BorderThickness = new Thickness(isActive ? 2 : 1),
+            BorderBrush = ColorFromHex(isEditing ? "#FBBF24" : isActive ? "#58A6FF" : "#1F2937"),
+            BorderThickness = new Thickness(isActive || isEditing ? 2 : 1),
             Margin = new Thickness(8, 6, 8, 0),
             Padding = new Thickness(12, 8, 12, 8),
             Opacity = isFinished ? 0.45 : 1.0
@@ -259,6 +286,15 @@ public partial class TrainingControlPanel : UserControl
                 Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#58A6FF")!,
                 Opacity = 0.4
             };
+        }
+
+        if (isEditing)
+        {
+            border.Child = BuildEditRowContent(t, index, accent);
+            // No drag for the edit row — would steal focus from the inputs.
+            border.Cursor = Cursors.Arrow;
+            border.Opacity = 1.0;
+            return border;
         }
 
         var grid = new Grid();
@@ -355,6 +391,14 @@ public partial class TrainingControlPanel : UserControl
             int idx = _session.Timers.IndexOf(t);
             if (idx >= 0 && idx < _session.Timers.Count - 1) _session.MoveTimer(t, idx + 1);
         }));
+        if (!isFinished)
+        {
+            actions.Children.Add(MakeIconButton("✎", "Edit title and duration", () =>
+            {
+                _editingTimerId = t.Id;
+                RebuildQueueList();
+            }));
+        }
         actions.Children.Add(MakeIconButton("✕", "Remove", () => _session?.RemoveTimer(t)));
 
         Grid.SetColumn(actions, 3);
@@ -390,6 +434,141 @@ public partial class TrainingControlPanel : UserControl
 
     /// <summary>Set during a drag-drop reorder so newly built rows don't animate in.</summary>
     private bool _suppressNextRowAnim;
+
+    /// <summary>
+    /// Builds the inline-edit layout for a queued timer. Shows editable
+    /// title, minutes and seconds fields plus Save / Cancel buttons. Enter
+    /// saves, Escape cancels.
+    /// </summary>
+    private FrameworkElement BuildEditRowContent(TrainingTimer t, int index, string accent)
+    {
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var idxBorder = new Border
+        {
+            Background = ColorFromHex("#0D1117"),
+            BorderBrush = ColorFromHex("#FBBF24"),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(8, 2, 8, 2),
+            Margin = new Thickness(0, 0, 12, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        idxBorder.Child = new TextBlock
+        {
+            Text = $"#{index + 1}",
+            FontFamily = new FontFamily("Bahnschrift"),
+            FontWeight = FontWeights.Bold,
+            FontSize = 12,
+            Foreground = ColorFromHex("#FBBF24")
+        };
+        Grid.SetColumn(idxBorder, 0);
+        grid.Children.Add(idxBorder);
+
+        var titleBox = new TextBox
+        {
+            Text = t.Title,
+            Style = (Style)FindResource("InputBox"),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+            MinWidth = 120
+        };
+        Grid.SetColumn(titleBox, 1);
+        grid.Children.Add(titleBox);
+
+        int totalSecs = Math.Max(1, (int)Math.Round(t.Duration.TotalSeconds));
+        int mins = totalSecs / 60;
+        int secs = totalSecs % 60;
+
+        var timeStack = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        var minBox = new TextBox
+        {
+            Text = mins.ToString(CultureInfo.InvariantCulture),
+            Style = (Style)FindResource("InputBox"),
+            Width = 50,
+            TextAlignment = TextAlignment.Center
+        };
+        minBox.PreviewTextInput += OnNumericPreviewTextInput;
+        var colon = new TextBlock
+        {
+            Text = ":",
+            Foreground = ColorFromHex("#E5E7EB"),
+            FontFamily = new FontFamily("Bahnschrift"),
+            FontWeight = FontWeights.Black,
+            FontSize = 18,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(4, 0, 4, 0)
+        };
+        var secBox = new TextBox
+        {
+            Text = secs.ToString("D2", CultureInfo.InvariantCulture),
+            Style = (Style)FindResource("InputBox"),
+            Width = 50,
+            TextAlignment = TextAlignment.Center
+        };
+        secBox.PreviewTextInput += OnNumericPreviewTextInput;
+        timeStack.Children.Add(minBox);
+        timeStack.Children.Add(colon);
+        timeStack.Children.Add(secBox);
+        Grid.SetColumn(timeStack, 2);
+        grid.Children.Add(timeStack);
+
+        void Commit()
+        {
+            if (_session is null) return;
+            int m = ParseInt(minBox.Text, 0);
+            int s = ParseInt(secBox.Text, 0);
+            TimeSpan dur = TimeSpan.FromSeconds(Math.Max(1, m * 60 + s));
+            _session.UpdateTimer(t, titleBox.Text, dur);
+            _editingTimerId = null;
+            RebuildQueueList();
+        }
+
+        void Cancel()
+        {
+            _editingTimerId = null;
+            RebuildQueueList();
+        }
+
+        void OnKey(object s, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) { Commit(); e.Handled = true; }
+            else if (e.Key == Key.Escape) { Cancel(); e.Handled = true; }
+        }
+        titleBox.KeyDown += OnKey;
+        minBox.KeyDown += OnKey;
+        secBox.KeyDown += OnKey;
+
+        var saveBtn = MakeIconButton("✓", "Save (Enter)", Commit);
+        saveBtn.Background = ColorFromHex("#166534");
+        saveBtn.Foreground = ColorFromHex("#DCFCE7");
+        saveBtn.BorderBrush = ColorFromHex("#22C55E");
+        Grid.SetColumn(saveBtn, 3);
+        grid.Children.Add(saveBtn);
+
+        var cancelBtn = MakeIconButton("✕", "Cancel (Esc)", Cancel);
+        Grid.SetColumn(cancelBtn, 4);
+        grid.Children.Add(cancelBtn);
+
+        // Auto-focus the title field when the row appears.
+        titleBox.Loaded += (_, _) =>
+        {
+            titleBox.SelectAll();
+            titleBox.Focus();
+            Keyboard.Focus(titleBox);
+        };
+
+        return grid;
+    }
 
     // ─────────── Drag-and-drop reordering ───────────
 

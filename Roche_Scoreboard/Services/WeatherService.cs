@@ -99,6 +99,8 @@ internal sealed class WeatherService : IDisposable
         if (_disposed) return;
         _disposed = true;
         _refreshTimer.Stop();
+        WeatherUpdated = null;
+        ForecastUpdated = null;
     }
 
     private async Task<bool> GeocodeAsync(string city)
@@ -155,7 +157,8 @@ internal sealed class WeatherService : IDisposable
             double dayMin = daily.GetProperty("temperature_2m_min")[0].GetDouble();
             double dayMax = daily.GetProperty("temperature_2m_max")[0].GetDouble();
 
-            // Parse hourly forecast
+            // Parse hourly forecast — defensive: API occasionally omits arrays
+            // or returns mismatched lengths, which used to crash the refresh.
             JsonElement hourly = doc.RootElement.GetProperty("hourly");
             JsonElement hTimes = hourly.GetProperty("time");
             JsonElement hTemps = hourly.GetProperty("temperature_2m");
@@ -164,10 +167,18 @@ internal sealed class WeatherService : IDisposable
             JsonElement hProb = hourly.GetProperty("precipitation_probability");
 
             List<HourlyForecast> hours = [];
-            int count = Math.Min(hTimes.GetArrayLength(), 8);
+            int count = Math.Min(
+                Math.Min(hTimes.GetArrayLength(), hTemps.GetArrayLength()),
+                Math.Min(Math.Min(hCodes.GetArrayLength(), hPrecip.GetArrayLength()), hProb.GetArrayLength()));
+            count = Math.Min(count, 8);
             for (int i = 0; i < count; i++)
             {
-                DateTime time = DateTime.Parse(hTimes[i].GetString()!, CultureInfo.InvariantCulture);
+                string? timeStr = hTimes[i].GetString();
+                if (string.IsNullOrWhiteSpace(timeStr) ||
+                    !DateTime.TryParse(timeStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime time))
+                {
+                    continue;
+                }
                 int hCode = hCodes[i].GetInt32();
                 hours.Add(new HourlyForecast(
                     time,

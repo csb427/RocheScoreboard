@@ -233,9 +233,12 @@ public partial class TrainingScorebugControl : UserControl
         AnimateUpNext(0);
 
         // 3) Advance the model NOW — the next timer's stopwatch starts
-        //    running immediately in the background.
+        //    running immediately in the background, unless the operator has
+        //    disabled auto-advance (in which case the next timer is staged
+        //    paused and waits for a manual Start press).
         bool sessionFinishing = _session.UpNext is null;
-        _session.AdvanceAfterFinish(autoStart: !sessionFinishing);
+        bool autoStart = !sessionFinishing && _session.AutoAdvance;
+        _session.AdvanceAfterFinish(autoStart: autoStart);
 
         // 4) Start the strobe (background colour change, no overlay).
         StartStrobe();

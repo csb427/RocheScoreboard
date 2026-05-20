@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using Roche_Scoreboard.Models;
 using Roche_Scoreboard.Services;
@@ -11,7 +10,6 @@ using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using UserControl = System.Windows.Controls.UserControl;
-using Image = System.Windows.Controls.Image;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 
 namespace Roche_Scoreboard.Views
@@ -86,7 +84,7 @@ namespace Roche_Scoreboard.Views
             BgGradient.GradientStops.Add(new GradientStop(Colors.Black, 0.45));
             BgGradient.GradientStops.Add(new GradientStop(awayColor, 1.0));
 
-            // Title accent line: home colour left → transparent centre → away colour right
+            // Title accent line
             TitleAccentGradient.GradientStops.Clear();
             TitleAccentGradient.GradientStops.Add(new GradientStop(homeColor, 0.0));
             TitleAccentGradient.GradientStops.Add(new GradientStop(Color.FromArgb(0x60, homeColor.R, homeColor.G, homeColor.B), 0.35));
@@ -94,84 +92,48 @@ namespace Roche_Scoreboard.Views
             TitleAccentGradient.GradientStops.Add(new GradientStop(Color.FromArgb(0x60, awayColor.R, awayColor.G, awayColor.B), 0.65));
             TitleAccentGradient.GradientStops.Add(new GradientStop(awayColor, 1.0));
 
-            // Team headers: subtle dark bg, bold team-colour border, secondary colour text.
-            // If the team primary is too dark to register against the panel's
-            // dark background, fall back to the team's secondary so the border
-            // actually reads as a line.
-            HomeHeaderBg.Color = Darken(homeColor, 0.7);
-            AwayHeaderBg.Color = Darken(awayColor, 0.7);
-            var homeHeaderBg = HomeHeaderBg.Color;
-            var awayHeaderBg = AwayHeaderBg.Color;
-            HomeTeamHeader.BorderBrush = Services.ContrastHelper.GetVisibleBorderBrush(homeHeaderBg, homeColor, homeSecondary);
-            AwayTeamHeader.BorderBrush = Services.ContrastHelper.GetVisibleBorderBrush(awayHeaderBg, awayColor, awaySecondary);
-            HomeNameFg.Color = Lighten(homeColor, 0.4);
-            AwayNameFg.Color = Lighten(awayColor, 0.4);
+            // Team panel background and border washes, scorebug-style
+            HomeHeaderBorder.Color = homeColor;
+            AwayHeaderBorder.Color = awayColor;
+            HomeHeaderBg.Color = Darken(homeColor, 0.55);
+            AwayHeaderBg.Color = Darken(awayColor, 0.55);
+            HomeNameFg.Color = Lighten(homeColor, 0.55);
+            AwayNameFg.Color = Lighten(awayColor, 0.55);
 
-            // Column headers: lightened team colours so they read clearly
-            var homeHdrBrush = new SolidColorBrush(Lighten(homeColor, 0.4));
-            var awayHdrBrush = new SolidColorBrush(Lighten(awayColor, 0.4));
-            HomeHdrG.Foreground = homeHdrBrush;
-            HomeHdrB.Foreground = homeHdrBrush;
-            HomeHdrT.Foreground = homeHdrBrush;
-            AwayHdrG.Foreground = awayHdrBrush;
-            AwayHdrB.Foreground = awayHdrBrush;
-            AwayHdrT.Foreground = awayHdrBrush;
+            // Smart contrast: if the lightened tint fails WCAG against its panel background,
+            // fall back to high-contrast white/black so abbreviations remain readable.
+            if (Services.SmartContrast.IsLowContrast(HomeNameFg.Color, HomeHeaderBg.Color))
+                HomeNameFg.Color = Services.SmartContrast.PickForeground(HomeHeaderBg.Color);
+            if (Services.SmartContrast.IsLowContrast(AwayNameFg.Color, AwayHeaderBg.Color))
+                AwayNameFg.Color = Services.SmartContrast.PickForeground(AwayHeaderBg.Color);
 
-            // Team names — always use the full name; the team-name Viewbox
-            // (Stretch=Uniform StretchDirection=DownOnly MaxHeight=26)
-            // auto-shrinks long names so they still fit the header strip.
-            BreakHomeName.Text = match.HomeName.ToUpper();
-            BreakAwayName.Text = match.AwayName.ToUpper();
+            // Team abbreviations (large, readable label)
+            BreakHomeAbbr.Text = SafeAbbr(match.HomeAbbr, match.HomeName);
+            BreakAwayAbbr.Text = SafeAbbr(match.AwayAbbr, match.AwayName);
 
-            // Bottom score bar
+            // Bottom score bar - the break screen IS the quarter break, so the
+            // bar only shows the quarter label (QT/HT/3QT/FT). Never show the
+            // running game clock here regardless of any caller-supplied title.
             ScoreBar.Populate(match, endedQuarter, homeColorHex, awayColorHex,
                 homeSecondaryHex, awaySecondaryHex, homeLogoPath, awayLogoPath,
-                barTitleOverride);
+                barTitleOverride, showTimer: false);
 
-            // Logos — hide all placeholders if at least one team has no logo
-            bool hideLogos = Services.ImageLoadHelper.Load(homeLogoPath) is null
-                          || Services.ImageLoadHelper.Load(awayLogoPath) is null;
-            ApplyLogo(BreakHomeLogoImage, BreakHomeLogoCircle, homeLogoPath, hideLogos);
-            ApplyLogo(BreakAwayLogoImage, BreakAwayLogoCircle, awayLogoPath, hideLogos);
+            // Zoomed logo backgrounds (faint art behind the abbreviation)
+            ApplyLogoBg(BreakHomeLogoBg, homeLogoPath);
+            ApplyLogoBg(BreakAwayLogoBg, awayLogoPath);
 
-            // Quarter rows — bold team-coloured borders, subtle dark backgrounds
-            var homeCellBg = new SolidColorBrush(Darken(homeColor, 0.80));
-            var awayCellBg = new SolidColorBrush(Darken(awayColor, 0.80));
+            // Per-quarter scores (per-quarter only - overall totals already shown by ScoreBar)
             var homeCellFg = new SolidColorBrush(Lighten(homeColor, 0.5));
             var awayCellFg = new SolidColorBrush(Lighten(awayColor, 0.5));
-            // Total columns: bright team colour for max emphasis
-            var homeTotalFg = new SolidColorBrush(Lighten(homeColor, 0.3));
-            var awayTotalFg = new SolidColorBrush(Lighten(awayColor, 0.3));
-            // Cell borders: full opacity team primary — bold and vibrant.
-            // If the team primary is too dark against the cell's dark background
-            // the border vanishes; fall through to secondary in that case so the
-            // grid stays visually structured.
-            var homeCellBgColor = Darken(homeColor, 0.80);
-            var awayCellBgColor = Darken(awayColor, 0.80);
-            var homeBorderBrush = Services.ContrastHelper.GetVisibleBorderBrush(homeCellBgColor, homeColor, homeSecondary);
-            var awayBorderBrush = Services.ContrastHelper.GetVisibleBorderBrush(awayCellBgColor, awayColor, awaySecondary);
 
-            // Cell borders: H1G, H1B, H1T, A1G, A1B, A1T ... H4G, H4B, H4T, A4G, A4B, A4T
-            Border[,] homeCells = {
-                { H1G, H1B, H1T },
-                { H2G, H2B, H2T },
-                { H3G, H3B, H3T },
-                { H4G, H4B, H4T }
-            };
-            Border[,] awayCells = {
-                { A1G, A1B, A1T },
-                { A2G, A2B, A2T },
-                { A3G, A3B, A3T },
-                { A4G, A4B, A4T }
-            };
+            Border[] homeQuarterCells = { H1T, H2T, H3T, H4T };
+            Border[] awayQuarterCells = { A1T, A2T, A3T, A4T };
 
             for (int q = 0; q < 4; q++)
             {
                 var snap = match.GetQuarterSnapshot(q + 1);
                 bool played = snap != null;
 
-                // If no snapshot but this is the current in-progress quarter, show live scores
-                // Only if the clock has actually run in this quarter (elapsed > 0)
                 if (!played && q + 1 == match.Quarter &&
                     match.ElapsedInQuarter > TimeSpan.Zero &&
                     (match.HomeGoals + match.HomeBehinds + match.AwayGoals + match.AwayBehinds) > 0)
@@ -186,74 +148,65 @@ namespace Roche_Scoreboard.Views
                     };
                 }
 
-                string hg, hb, ht, ag, ab, at;
+                string homeText, awayText;
                 if (played && snap != null)
                 {
-                    hg = snap.HomeGoals.ToString();
-                    hb = snap.HomeBehinds.ToString();
-                    ht = snap.HomeTotal.ToString();
-                    ag = snap.AwayGoals.ToString();
-                    ab = snap.AwayBehinds.ToString();
-                    at = snap.AwayTotal.ToString();
+                    homeText = snap.HomeTotal.ToString();
+                    awayText = snap.AwayTotal.ToString();
                 }
                 else
                 {
-                    hg = hb = ht = ag = ab = at = "–";
+                    homeText = "–";
+                    awayText = "–";
                 }
 
-                StyleCell(homeCells[q, 0], hg, homeCellBg, homeCellFg, homeBorderBrush, played, ScaleUnit);
-                StyleCell(homeCells[q, 1], hb, homeCellBg, homeCellFg, homeBorderBrush, played, ScaleUnit);
-                StyleCell(homeCells[q, 2], ht, homeCellBg, homeTotalFg, homeBorderBrush, played, ScaleUnit, isTotal: true);
-                StyleCell(awayCells[q, 0], ag, awayCellBg, awayCellFg, awayBorderBrush, played, ScaleUnit);
-                StyleCell(awayCells[q, 1], ab, awayCellBg, awayCellFg, awayBorderBrush, played, ScaleUnit);
-                StyleCell(awayCells[q, 2], at, awayCellBg, awayTotalFg, awayBorderBrush, played, ScaleUnit, isTotal: true);
+                StyleQuarterCell(homeQuarterCells[q], homeText, homeCellFg, played);
+                StyleQuarterCell(awayQuarterCells[q], awayText, awayCellFg, played);
             }
         }
 
-        private static void StyleCell(Border border, string text, Brush bg, Brush fg, Brush borderBrush, bool played, double scale, bool isTotal = false)
+        private static void StyleQuarterCell(Border border, string text, Brush fg, bool played)
         {
-            border.CornerRadius = new CornerRadius(0);
-            border.Background = bg;
-            border.BorderBrush = borderBrush;
-            border.BorderThickness = new Thickness(1);
-            border.Margin = new Thickness(2, 0, 2, 0);
+            border.Background = System.Windows.Media.Brushes.Transparent;
+            border.BorderThickness = new Thickness(0);
+            border.Margin = new Thickness(0);
             border.Padding = new Thickness(0);
-            border.Opacity = played ? 1.0 : 0.25;
+            border.Opacity = played ? 1.0 : 0.35;
 
-            border.Child = new TextBlock
+            var textBlock = new TextBlock
             {
                 Text = text,
                 Foreground = fg,
-                FontSize = isTotal ? 13 : 12,
-                FontWeight = isTotal ? FontWeights.Black : FontWeights.Bold,
+                FontSize = 48,
+                FontWeight = FontWeights.Black,
                 FontFamily = new System.Windows.Media.FontFamily("Bahnschrift"),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
+
+            border.Child = new Viewbox
+            {
+                Stretch = Stretch.Uniform,
+                Margin = new Thickness(1, 2, 1, 2),
+                Child = textBlock
+            };
         }
 
-        private static void ApplyLogo(Image image, Ellipse fallback, string? path, bool hideLogos = false)
+        private static void ApplyLogoBg(System.Windows.Controls.Image image, string? path)
         {
-            if (hideLogos)
-            {
-                image.Source = null;
-                image.Visibility = Visibility.Collapsed;
-                fallback.Visibility = Visibility.Collapsed;
-                return;
-            }
-
             ImageSource? source = ImageLoadHelper.LoadTrimmed(path);
-            if (source is null)
-            {
-                image.Source = null;
-                image.Visibility = Visibility.Collapsed;
-                fallback.Visibility = Visibility.Visible;
-                return;
-            }
-
             image.Source = source;
-            image.Visibility = Visibility.Visible;
-            fallback.Visibility = Visibility.Collapsed;
+            image.Visibility = source is not null ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private static string SafeAbbr(string? abbr, string? fallbackName)
+        {
+            if (!string.IsNullOrWhiteSpace(abbr))
+                return abbr.Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(fallbackName))
+                return "---";
+            string clean = fallbackName.Trim();
+            return (clean.Length <= 4 ? clean : clean[..3]).ToUpperInvariant();
         }
 
         private static Color SafeColor(string? hex, string fallbackHex)

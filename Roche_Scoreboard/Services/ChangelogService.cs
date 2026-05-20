@@ -11,6 +11,21 @@ internal static class ChangelogService
 {
     public static IReadOnlyList<ChangelogVersion> Versions { get; } =
     [
+        new("3.0.1", "2026-05-03",
+        [
+            "[New] Training Mode — inline edit queued timers: each queue row now has a ✎ button that swaps the row into an editable title + mm:ss form with ✓ Save / ✕ Cancel (Enter saves, Esc cancels); editing the active timer preserves elapsed progress and re-baselines the running stopwatch on the fly",
+            "[New] Training Mode — AUTO-ADVANCE toggle in the queue header: when on (default) the next timer starts automatically at the end of the strobe; when off the session pauses at the end of every interval and waits for the operator to press Start (or Space)",
+        ]),
+        new("3.0.0", "2026-05-02",
+        [
+            "[New] Display windows now default to the opaque, GPU-composited path on new installs — the single biggest video framerate win; operators who previously chose per-pixel transparency keep their saved choice (toggle with Ctrl+Shift+T on the display window)",
+            "[New] High-framerate video playback — MP4s are now transcoded to a fastdecode-friendly H.264 profile (baseline, no B-frames, ref=1, no CABAC/deblock, 30fps) and the player surface releases its decoder whenever it's off screen, lifting playback from stuttery ~15fps to a consistent 30–60fps",
+            "[New] Goal-video overlay sits on an opaque black backdrop so the layered display window no longer per-pixel alpha-blends every video frame",
+            "[Improved] MediaElement tuned for throughput — ScrubbingEnabled off, LowQuality bitmap scaling and aliased edges to keep the GPU/CPU off the critical decode path",
+            "[Fixed] Weather overlay temperatures no longer render a question mark next to the digits — degree symbols are now emitted as encoding-safe escapes with a Bahnschrift/Segoe UI/Arial font fallback chain",
+            "[Fixed] Quarter-break presentation screens no longer show a stale 00:00 timer next to the QT/HT/3QT label — the shared bottom bar hides the timer automatically when the clock is stopped at zero",
+            "[Improved] Scoreworm overhaul — cleaner rendering and consistent layout against the redesigned bottom score bar",
+        ]),
         new("2.8.0", "2026-05-01",
         [
             "[New] Scoring Run engine redesigned as a broadcast-style contextual evaluator \u2014 instead of a single backward streak scan, the engine now evaluates multiple rolling windows simultaneously (event windows of 4/6/8/10/12/16/20/24/30 scores AND match-time windows of 4/8/12/18/25/35 minutes) and ranks every candidate to pick the most meaningful, broadcast-worthy run rather than the first one it stumbles on",

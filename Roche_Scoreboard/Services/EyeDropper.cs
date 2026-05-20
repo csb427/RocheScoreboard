@@ -123,6 +123,14 @@ internal static class EyeDropper
                 overlay.Close();
         };
 
+        // Ensure the overlay window has keyboard focus so Esc cancels reliably
+        // even when the user launches the eye dropper via a mouse click.
+        overlay.Loaded += (_, _) =>
+        {
+            overlay.Activate();
+            Keyboard.Focus(overlay);
+        };
+
         overlay.ShowDialog();
         return result;
     }

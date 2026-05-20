@@ -366,6 +366,10 @@ public sealed class AutoUpdateService
     {
         var client = new HttpClient();
         client.DefaultRequestHeaders.UserAgent.ParseAdd("Roche-Scoreboard-Updater/1.0");
+        // GitHub recommends an explicit Accept header and API version so the
+        // response shape stays stable even if the default version changes.
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+        client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
         client.Timeout = TimeSpan.FromSeconds(30);
         return client;
     }

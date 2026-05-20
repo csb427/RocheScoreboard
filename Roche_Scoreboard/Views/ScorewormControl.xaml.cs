@@ -108,21 +108,21 @@ namespace Roche_Scoreboard.Views
             WormTitleAccent.GradientStops.Add(new System.Windows.Media.GradientStop(Color.FromArgb(0x60, awayColor.R, awayColor.G, awayColor.B), 0.65));
             WormTitleAccent.GradientStops.Add(new System.Windows.Media.GradientStop(awayColor, 1.0));
 
-            // Team headers: subtle dark bg, bold team-colour border, vibrant text.
-            // Border falls back to secondary if primary is too dark to register
-            // against the dark header background.
-            var wormHomeHeaderBg = Darken(homeColor, 0.7);
-            var wormAwayHeaderBg = Darken(awayColor, 0.7);
-            WormHomeTeamHeader.Background = new SolidColorBrush(wormHomeHeaderBg);
-            WormHomeTeamHeader.BorderBrush = Services.ContrastHelper.GetVisibleBorderBrush(wormHomeHeaderBg, homeColor, homeSecondary);
-            WormAwayTeamHeader.Background = new SolidColorBrush(wormAwayHeaderBg);
-            WormAwayTeamHeader.BorderBrush = Services.ContrastHelper.GetVisibleBorderBrush(wormAwayHeaderBg, awayColor, awaySecondary);
-            WormHomeGlow.Color = Color.FromArgb(0xFF, homeColor.R, homeColor.G, homeColor.B);
-            WormAwayGlow.Color = Color.FromArgb(0xFF, awayColor.R, awayColor.G, awayColor.B);
-            WormHomeTeamText.Text = match.HomeName.ToUpperInvariant();
-            WormAwayTeamText.Text = match.AwayName.ToUpperInvariant();
-            WormHomeTeamText.Foreground = new SolidColorBrush(Lighten(homeColor, 0.4));
-            WormAwayTeamText.Foreground = new SolidColorBrush(Lighten(awayColor, 0.4));
+            // Indicator column: vertical brush splits home (top) / away
+            // (bottom), each half carries the team abbreviation rotated 90°
+            // and a zoomed-in logo. No gradients overlaid on the graph
+            // itself — the side column does all the team-identity work.
+            WormSideStripBrush.GradientStops.Clear();
+            WormSideStripBrush.GradientStops.Add(new System.Windows.Media.GradientStop(homeColor, 0.0));
+            WormSideStripBrush.GradientStops.Add(new System.Windows.Media.GradientStop(homeColor, 0.5));
+            WormSideStripBrush.GradientStops.Add(new System.Windows.Media.GradientStop(awayColor, 0.5));
+            WormSideStripBrush.GradientStops.Add(new System.Windows.Media.GradientStop(awayColor, 1.0));
+
+            WormHomeAbbrText.Text = (match.HomeAbbr ?? "HOM").ToUpperInvariant();
+            WormHomeAbbrText.Foreground = Services.ContrastHelper.GetContrastBrush(homeColor);
+
+            WormAwayAbbrText.Text = (match.AwayAbbr ?? "AWY").ToUpperInvariant();
+            WormAwayAbbrText.Foreground = Services.ContrastHelper.GetContrastBrush(awayColor);
 
             // Hide all logo placeholders if at least one team has no logo
             bool hideLogos = Services.ImageLoadHelper.Load(homeLogoPath) is null
@@ -173,7 +173,6 @@ namespace Roche_Scoreboard.Views
             var events = match.Events;
             if (events.Count == 0)
             {
-                WormMarginBadge.Visibility = Visibility.Collapsed;
                 DrawEmptyMessage();
                 return;
             }
@@ -218,7 +217,7 @@ namespace Roche_Scoreboard.Views
                 X2 = canvasW,
                 Y2 = yCenter,
                 Stroke = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255)),
-                StrokeThickness = ScoreboardScaleHelper.Scale(1.5, scale)
+                StrokeThickness = ScoreboardScaleHelper.Scale(2.5, scale)
             };
             GraphCanvas.Children.Add(zeroLine);
 
@@ -246,13 +245,24 @@ namespace Roche_Scoreboard.Views
             if (totalLength < 1) totalLength = 1;
 
             // ---- Draw line with dash-offset draw animation ----
+            // Slimmer line for a more modern look, with a soft glow + bright stroke
+            // so the path remains highly visible against the dark graph background.
             var polyline = new Polyline
             {
                 Stroke = new SolidColorBrush(Colors.White),
-                StrokeThickness = ScoreboardScaleHelper.Scale(2.5, scale),
+                StrokeThickness = ScoreboardScaleHelper.Scale(2.4, scale),
                 StrokeLineJoin = PenLineJoin.Round,
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round,
                 StrokeDashArray = new DoubleCollection { totalLength, totalLength },
-                StrokeDashOffset = totalLength
+                StrokeDashOffset = totalLength,
+                Effect = new System.Windows.Media.Effects.DropShadowEffect
+                {
+                    Color = Colors.White,
+                    BlurRadius = ScoreboardScaleHelper.Scale(10.0, scale),
+                    ShadowDepth = 0,
+                    Opacity = 0.85
+                }
             };
             foreach (var p in points)
                 polyline.Points.Add(p);
@@ -295,8 +305,11 @@ namespace Roche_Scoreboard.Views
                 bool emphasize = emphasizedIdx.Contains(i);
 
                 double dotSize = emphasize
-                    ? ScoreboardScaleHelper.Scale(i == totalPoints - 1 ? 8 : 6.5, scale)
-                    : ScoreboardScaleHelper.Scale(3, scale);
+                    ? ScoreboardScaleHelper.Scale(i == totalPoints - 1 ? 11 : 8, scale)
+                    : 0;
+
+                if (dotSize <= 0)
+                    continue;
 
                 var dot = new Ellipse
                 {
@@ -324,55 +337,14 @@ namespace Roche_Scoreboard.Views
 
             // ---- Y-axis labels ----
             DrawYAxisLabels(yCenter, yScale, maxAbsMargin, canvasH, scale);
-
-            // ---- Dynamic margin badge ----
-            UpdateMarginBadge(margins[^1], homeColor, awayColor, scale);
-        }
-
-        private void UpdateMarginBadge(int currentMargin, Color homeColor, Color awayColor, double scale)
-        {
-            if (currentMargin == 0)
-            {
-                WormMarginBadge.Visibility = Visibility.Visible;
-                WormMarginValue.Text = "TIED";
-                WormMarginValue.Foreground = new SolidColorBrush(Colors.White);
-                WormMarginLabel.Text = "";
-                WormMarginValue.FontSize = ScoreboardScaleHelper.Scale(12, scale);
-                WormMarginBadge.BorderBrush = new SolidColorBrush(Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF));
-                return;
-            }
-
-            int absMargin = Math.Abs(currentMargin);
-            bool homeLead = currentMargin > 0;
-            var teamColor = homeLead ? homeColor : awayColor;
-            string teamLabel = homeLead
-                ? (WormHomeTeamText.Text + " LEAD")
-                : (WormAwayTeamText.Text + " LEAD");
-
-            // Font scales with the magnitude of the difference: 11pt at small leads,
-            // up to ~24pt at 60+ point margins.
-            double t = Math.Clamp(absMargin / 60.0, 0.0, 1.0);
-            double designFont = 11 + t * 13;
-            double designLabelFont = 8 + t * 3;
-
-            WormMarginValue.Text = (homeLead ? "+" : "-") + absMargin.ToString();
-            WormMarginValue.Foreground = new SolidColorBrush(Lighten(teamColor, 0.25));
-            WormMarginValue.FontSize = ScoreboardScaleHelper.Scale(designFont, scale);
-
-            WormMarginLabel.Text = " " + teamLabel;
-            WormMarginLabel.Foreground = new SolidColorBrush(Color.FromArgb(0xC0, 0xC8, 0xD2, 0xDE));
-            WormMarginLabel.FontSize = ScoreboardScaleHelper.Scale(designLabelFont, scale);
-
-            WormMarginBadge.BorderBrush = new SolidColorBrush(Color.FromArgb(0xB0, teamColor.R, teamColor.G, teamColor.B));
-            WormMarginBadge.Visibility = Visibility.Visible;
         }
 
         private void DrawGridlines(double canvasW, double canvasH, double padTop, double padBottom,
             double yCenter, double yScale, int maxAbsMargin, Color homeColor, Color awayColor, double scale)
         {
             int step = NiceStep(maxAbsMargin);
-            var gridBrush = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255));
-            double gridThickness = ScoreboardScaleHelper.Scale(0.8, scale);
+            var gridBrush = new SolidColorBrush(Color.FromArgb(18, 255, 255, 255));
+            double gridThickness = ScoreboardScaleHelper.Scale(0.6, scale);
 
             for (int val = step; val <= maxAbsMargin; val += step)
             {
@@ -484,10 +456,10 @@ namespace Roche_Scoreboard.Views
                 : ScoreboardScaleHelper.Scale(34, scale);
             // Right-pad so labels don't kiss the chart border
             double rightPad = ScoreboardScaleHelper.Scale(3, scale);
-            double zeroFontSize = ScoreboardScaleHelper.Scale(11, scale);
-            double minorFontSize = ScoreboardScaleHelper.Scale(9, scale);
-            double zeroYOffset = ScoreboardScaleHelper.Scale(7, scale);
-            double minorYOffset = ScoreboardScaleHelper.Scale(6, scale);
+            double zeroFontSize = ScoreboardScaleHelper.Scale(13, scale);
+            double minorFontSize = ScoreboardScaleHelper.Scale(11, scale);
+            double zeroYOffset = ScoreboardScaleHelper.Scale(8, scale);
+            double minorYOffset = ScoreboardScaleHelper.Scale(7, scale);
 
             void AddLabel(string text, double y, double fontSize, double yOffset, FontWeight weight, Brush brush)
             {

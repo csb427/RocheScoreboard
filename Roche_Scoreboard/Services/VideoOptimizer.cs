@@ -19,12 +19,15 @@ namespace Roche_Scoreboard.Services
     public static class VideoOptimizer
     {
         // Soft thresholds. Files that exceed any of these are re-encoded.
-        private const long MaxAcceptableBytes = 25L * 1024 * 1024; // 25 MB
-        private const int MaxAcceptableHeight = 720;
-        private const int TargetHeight = 720;
+        // The threshold is intentionally aggressive: any clip larger than
+        // ~8 MB is almost certainly high-res / high-bitrate and will benefit
+        // from a lighter playback copy.
+        private const long MaxAcceptableBytes = 8L * 1024 * 1024; // 8 MB
+        private const int MaxAcceptableHeight = 540;
+        private const int TargetHeight = 540;
         private const int TargetFps = 30;
-        private const string TargetVideoBitrate = "3500k";
-        private const string TargetAudioBitrate = "128k";
+        private const string TargetVideoBitrate = "2200k";
+        private const string TargetAudioBitrate = "96k";
 
         private static readonly ConcurrentDictionary<string, Task<string>> InFlight = new(StringComparer.OrdinalIgnoreCase);
         private static readonly Lazy<string?> FfmpegPath = new(LocateFfmpeg);
@@ -73,10 +76,10 @@ namespace Roche_Scoreboard.Services
             if (!NeedsOptimisation(originalPath))
                 return Task.FromResult(originalPath);
 
-            return InFlight.GetOrAdd(optimised, _ => Task.Run(() => RunOptimisation(originalPath, optimised, cancellationToken), cancellationToken));
+            return InFlight.GetOrAdd(optimised, _ => Task.Run(() => RunOptimisationAsync(originalPath, optimised, cancellationToken), cancellationToken));
         }
 
-        private static string RunOptimisation(string source, string destination, CancellationToken ct)
+        private static async Task<string> RunOptimisationAsync(string source, string destination, CancellationToken ct)
         {
             try
             {
@@ -90,31 +93,69 @@ namespace Roche_Scoreboard.Services
                     try { File.Delete(tmp); } catch { }
                 }
 
+                // Playback-friendly encode profile:
+                //   -preset superfast  : low encoder CPU, combined with Idle
+                //                        priority below keeps ffmpeg from
+                //                        stealing cycles from playback.
+                //   -tune fastdecode   : disables CABAC, in-loop deblocking
+                //                        tweaks, etc. so the *decoder* burns
+                //                        far less CPU during playback — the
+                //                        single biggest win for high-framerate
+                //                        scoreboard playback.
+                //   -bf 0 -refs 1      : no B-frames and a single reference
+                //                        frame so the decoder can render each
+                //                        frame independently with minimal
+                //                        buffering / motion-comp work.
+                //   -g {fps*2}         : keyframe every ~2s; snappier seeking
+                //                        and looping with negligible size cost.
+                //   -threads 2         : cap the encoder to two threads so we
+                //                        never saturate the box while the
+                //                        scoreboard is live.
+                int gop = TargetFps * 2;
                 string args =
-                    $"-y -hide_banner -loglevel error -i \"{source}\" " +
+                    $"-y -hide_banner -loglevel error -nostats -threads 2 -i \"{source}\" " +
                     $"-vf \"scale='min(iw,trunc(oh*iw/ih/2)*2)':'min(ih,{TargetHeight})':force_original_aspect_ratio=decrease,fps={TargetFps}\" " +
-                    $"-c:v libx264 -preset veryfast -profile:v high -pix_fmt yuv420p -b:v {TargetVideoBitrate} -maxrate {TargetVideoBitrate} -bufsize 7000k " +
-                    $"-movflags +faststart -c:a aac -b:a {TargetAudioBitrate} \"{tmp}\"";
+                    $"-c:v libx264 -preset superfast -tune fastdecode -profile:v baseline -level 3.1 -pix_fmt yuv420p " +
+                    $"-x264opts no-cabac:no-deblock:ref=1:bframes=0 " +
+                    $"-bf 0 -refs 1 -g {gop} -sc_threshold 0 " +
+                    $"-b:v {TargetVideoBitrate} -maxrate {TargetVideoBitrate} -bufsize 4400k " +
+                    $"-movflags +faststart -c:a aac -b:a {TargetAudioBitrate} -ac 2 \"{tmp}\"";
 
                 var psi = new ProcessStartInfo(ffmpeg, args)
                 {
                     CreateNoWindow = true,
                     UseShellExecute = false,
+                    // Drain stderr; ffmpeg writes everything there. Without
+                    // draining, the OS pipe buffer eventually fills and the
+                    // encoder blocks indefinitely on its next write.
                     RedirectStandardError = true,
-                    RedirectStandardOutput = true,
+                    RedirectStandardOutput = false,
                 };
 
                 using var p = Process.Start(psi);
                 if (p is null) return source;
 
-                while (!p.WaitForExit(250))
+                // Lower the encoder priority so it never steals CPU from the
+                // foreground playback / WPF render thread. Idle is safe here
+                // because the optimised file is only consumed on the *next*
+                // playback — we explicitly fall back to the original file
+                // until ffmpeg finishes, so it can run as slowly as it needs.
+                try { p.PriorityClass = ProcessPriorityClass.Idle; } catch { }
+
+                // Asynchronously read & discard stderr to keep the pipe
+                // drained. Capturing into a buffer would just grow forever.
+                p.ErrorDataReceived += static (_, _) => { };
+                try { p.BeginErrorReadLine(); } catch { }
+
+                try
                 {
-                    if (ct.IsCancellationRequested)
-                    {
-                        try { p.Kill(true); } catch { }
-                        try { File.Delete(tmp); } catch { }
-                        return source;
-                    }
+                    await p.WaitForExitAsync(ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    try { p.Kill(true); } catch { }
+                    try { File.Delete(tmp); } catch { }
+                    return source;
                 }
 
                 if (p.ExitCode != 0 || !File.Exists(tmp))
@@ -170,15 +211,26 @@ namespace Roche_Scoreboard.Services
         private static string ComputeOptimisedPath(string originalPath)
         {
             string full = Path.GetFullPath(originalPath);
-            string key = full.ToLowerInvariant();
-            byte[] bytes = Encoding.UTF8.GetBytes(key);
-            byte[] hash = SHA1.HashData(bytes);
-            var sb = new StringBuilder(2 * hash.Length);
-            foreach (byte b in hash) sb.Append(b.ToString("x2"));
+            int byteCount = Encoding.UTF8.GetByteCount(full);
+            Span<byte> bytes = byteCount <= 512 ? stackalloc byte[byteCount] : new byte[byteCount];
+            Encoding.UTF8.GetBytes(full.AsSpan(), bytes);
+            // ASCII lower-case in place — file paths are ASCII-equivalent for
+            // case-folding on Windows.
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                byte b = bytes[i];
+                if (b >= (byte)'A' && b <= (byte)'Z') bytes[i] = (byte)(b + 32);
+            }
+            Span<byte> hash = stackalloc byte[20];
+            SHA1.HashData(bytes, hash);
+            string hex = Convert.ToHexString(hash[..8]); // 16 chars, was Substring(0,16) of the full SHA1
 
             string name = Path.GetFileNameWithoutExtension(originalPath);
             string safeName = string.Concat(name.Split(Path.GetInvalidFileNameChars()));
-            return Path.Combine(CacheDir.Value, $"{safeName}.{sb.ToString().Substring(0, 16)}.opt.mp4");
+            // v3 suffix: bumped when the encode profile changes so older
+            // cached copies (high-profile / CABAC / 720p) are bypassed and
+            // a baseline / no-cabac / 540p copy is produced on next playback.
+            return Path.Combine(CacheDir.Value, $"{safeName}.{hex.ToLowerInvariant()}.v3.opt.mp4");
         }
 
         private static string InitCacheDir()

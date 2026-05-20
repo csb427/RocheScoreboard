@@ -87,6 +87,11 @@ namespace Roche_Scoreboard
         private string? _homeGoalVideoPath;
         private string? _awayGoalVideoPath;
         private MediaElement? _goalVideoOverlay;
+        // Opaque rectangle drawn directly under _goalVideoOverlay so the
+        // display window's layered-transparency surface (AllowsTransparency=True)
+        // doesn't force WPF's render thread to alpha-blend every video frame
+        // against the desktop. Shown only while the goal video is on screen.
+        private System.Windows.Shapes.Rectangle? _goalVideoBackdrop;
         private Action? _goalVideoCompletionCallback;
 
         // Retro CRT transition overlay
@@ -255,6 +260,33 @@ namespace Roche_Scoreboard
             MatchStripBorder.Visibility = MainTabControl.SelectedIndex == 0
                 ? Visibility.Collapsed
                 : Visibility.Visible;
+
+            // Pause the local video preview whenever the operator leaves the
+            // VIDEO tab. Two simultaneous MediaElements (scoreboard + preview)
+            // are expensive — letting the hidden one keep decoding caused the
+            // app-wide lag that persisted until restart.
+            UpdateVideoTabPreviewActivation();
+        }
+
+        private void UpdateVideoTabPreviewActivation()
+        {
+            if (VideoTabPreview is null) return;
+            bool videoTabActive = MainTabControl?.SelectedItem is System.Windows.Controls.TabItem ti
+                                  && ti.Header is string h && h.Contains("VIDEO", StringComparison.OrdinalIgnoreCase);
+            try
+            {
+                if (!videoTabActive)
+                {
+                    VideoTabPreview.Pause();
+                }
+                else if (_videoPlayer?.IsPlaying == true && VideoTabPreview.Source is not null)
+                {
+                    // Re-sync to the scoreboard's current position and resume.
+                    try { VideoTabPreview.Position = _videoPlayer.Position; } catch { }
+                    VideoTabPreview.Play();
+                }
+            }
+            catch { /* ignore */ }
         }
 
         private async void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -318,6 +350,9 @@ namespace Roche_Scoreboard
             }
 
             StartWebServerAsync();
+
+            // Restore last-loaded custom MP4 in the VIDEO tab (best-effort).
+            TryRestoreLastVideoPath();
 
             // Defer alerts so the window is fully visible first
             await Dispatcher.InvokeAsync(ShowDeferredAlerts, System.Windows.Threading.DispatcherPriority.Background);
@@ -589,17 +624,38 @@ namespace Roche_Scoreboard
         // matches the mirrored capture region of the outdoor scoreboard.
         private void DisplayWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (_calibrationOverlay is null) return;
-
             bool ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
             bool shift = (Keyboard.Modifiers & ModifierKeys.Shift) != 0;
 
-            if (ctrl && shift && e.Key == Key.C)
+            if (ctrl && shift && e.Key == Key.C && _calibrationOverlay is not null)
             {
                 _calibrationOverlay.Visibility = _calibrationOverlay.Visibility == Visibility.Visible
                     ? Visibility.Collapsed
                     : Visibility.Visible;
                 e.Handled = true;
+                return;
+            }
+
+            // Ctrl+Shift+T toggles the persisted "opaque display windows"
+            // preference. AllowsTransparency cannot be changed after a window
+            // is shown, so we save the flip and prompt the operator to
+            // reopen the display window so the new rendering mode takes
+            // effect on the scoreboard PC. This is the runtime A/B switch
+            // for diagnosing layered-transparency framerate drops.
+            if (ctrl && shift && e.Key == Key.T)
+            {
+                bool newValue = !DisplaySettings.OpaqueDisplayWindows;
+                DisplaySettings.OpaqueDisplayWindows = newValue;
+                e.Handled = true;
+
+                MessageBox.Show(
+                    sender as Window ?? this,
+                    newValue
+                        ? "Display windows will use OPAQUE rendering (no transparency).\n\nClose and reopen the display window for this to take effect."
+                        : "Display windows will use TRANSPARENT rendering.\n\nClose and reopen the display window for this to take effect.",
+                    "Display rendering mode",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
 
@@ -950,11 +1006,13 @@ namespace Roche_Scoreboard
             {
                 Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Training Display",
                 WindowStyle = WindowStyle.None,
-                AllowsTransparency = true,
+                AllowsTransparency = !DisplaySettings.OpaqueDisplayWindows,
                 ResizeMode = ResizeMode.CanResize,
                 Topmost = true,
                 ShowInTaskbar = false,
-                Background = System.Windows.Media.Brushes.Transparent,
+                Background = DisplaySettings.OpaqueDisplayWindows
+                    ? (System.Windows.Media.Brush)System.Windows.Media.Brushes.Black
+                    : System.Windows.Media.Brushes.Transparent,
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 Width = 386,
                 Height = 193,
@@ -1154,11 +1212,13 @@ namespace Roche_Scoreboard
             {
                 Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Cricket Display",
                 WindowStyle = WindowStyle.None,
-                AllowsTransparency = true,
+                AllowsTransparency = !DisplaySettings.OpaqueDisplayWindows,
                 ResizeMode = ResizeMode.CanResize,
                 Topmost = true,
                 ShowInTaskbar = false,
-                Background = System.Windows.Media.Brushes.Transparent,
+                Background = DisplaySettings.OpaqueDisplayWindows
+                    ? (System.Windows.Media.Brush)System.Windows.Media.Brushes.Black
+                    : System.Windows.Media.Brushes.Transparent,
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 Width = 386,
                 Height = 193,
@@ -1563,10 +1623,11 @@ namespace Roche_Scoreboard
             {
                 LoadedBehavior = MediaState.Manual,
                 UnloadedBehavior = MediaState.Manual,
-                // Uniform: preserve aspect ratio so goal/celebration videos
-                // never appear stretched. Black letterbox is preferable to
-                // a distorted broadcast image.
-                Stretch = System.Windows.Media.Stretch.Uniform,
+                // Fill: goal animations are produced to match the display
+                // surface and should cover the entire area edge-to-edge
+                // (no black bezels). MP4 *presentation* videos use Uniform
+                // letterboxing — that's a separate playback path.
+                Stretch = System.Windows.Media.Stretch.Fill,
                 Visibility = Visibility.Collapsed,
                 Volume = 1.0
             };
@@ -1575,7 +1636,26 @@ namespace Roche_Scoreboard
             Panel.SetZIndex(_goalVideoOverlay, 200);
             _goalVideoOverlay.MediaEnded += GoalVideo_MediaEnded;
             _goalVideoOverlay.MediaFailed += GoalVideo_MediaFailed;
+
+            // Opaque backdrop directly beneath the goal video so DWM's
+            // per-pixel-alpha composition (forced on by the display window's
+            // AllowsTransparency=True flag) collapses to a trivial opaque
+            // blit over the video region. Without this the render thread
+            // has to alpha-blend every video frame against the transparent
+            // layered-window surface, which is the documented cause of
+            // global WPF framerate drops during MediaElement playback.
+            // Visibility tracks the goal video so the rest of the time the
+            // scoreboard chrome retains its existing transparent behaviour.
+            var goalVideoBackdrop = new System.Windows.Shapes.Rectangle
+            {
+                Fill = System.Windows.Media.Brushes.Black,
+                IsHitTestVisible = false,
+                Visibility = Visibility.Collapsed
+            };
+            Panel.SetZIndex(goalVideoBackdrop, 199);
+            _displayContainer.Children.Add(goalVideoBackdrop);
             _displayContainer.Children.Add(_goalVideoOverlay);
+            _goalVideoBackdrop = goalVideoBackdrop;
 
             // Retro CRT transition overlay — hidden until a retro transition fires
             _retroCrtOverlay = new Border
@@ -1600,12 +1680,18 @@ namespace Roche_Scoreboard
             _displayWindow = new Window
             {
                 Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Display",
-                WindowStyle = WindowStyle.None,
-                AllowsTransparency = true,
+                WindowStyle = DisplaySettings.OpaqueDisplayWindows ? WindowStyle.None : WindowStyle.None,
+                // AllowsTransparency forces WPF into a software-composited
+                // layered window, which is the documented cause of global
+                // framerate drops during MP4 playback. The operator can flip
+                // DisplaySettings.OpaqueDisplayWindows (Ctrl+Shift+T on the
+                // display window) to disable transparency on next launch and
+                // restore GPU-accelerated composition.
+                AllowsTransparency = !DisplaySettings.OpaqueDisplayWindows,
                 ResizeMode = ResizeMode.CanResize,
                 Topmost = true,
                 ShowInTaskbar = false,
-                Background = Brushes.Transparent,
+                Background = DisplaySettings.OpaqueDisplayWindows ? (System.Windows.Media.Brush)Brushes.Black : Brushes.Transparent,
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 Width = 386,
                 Height = 193,
@@ -1635,6 +1721,7 @@ namespace Roche_Scoreboard
                 _videoPlayer = null;
                 _weatherScreen = null;
                 _goalVideoOverlay = null;
+                _goalVideoBackdrop = null;
                 _retroCrtOverlay = null;
                 _calibrationOverlay = null;
                 _displayContainer = null;
@@ -1908,83 +1995,15 @@ namespace Roche_Scoreboard
         // ----------------------------
         private void SwitchToVideo_Click(object sender, RoutedEventArgs e)
         {
+            // The dedicated VIDEO tab now owns the upload / playback workflow.
+            // This handler remains so legacy entry points (web control, setup
+            // wizard, sport switching) can still route a "show video" request
+            // to the scoreboard window when a clip is already loaded.
             SetSelectedPreview("presentation:video");
-            _activeScreenKey = "video";
             EnsureScoreboardWindow();
-
-            // Always cancel any pending break-screen automation so loading
-            // video before the game starts can't be overridden by a quarter
-            // summary timer/rotation.
-            if (_breakScreenDelayTimer != null)
-            {
-                _breakScreenDelayTimer.Stop();
-                _breakScreenDelayTimer = null;
-            }
-            StopBreakRotation();
-
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(_customVideoPath) && System.IO.File.Exists(_customVideoPath))
-                {
-                    if (_videoPlayer != null)
-                    {
-                        // Re-arm playback state subscriptions so the toolbar
-                        // play/pause button stays in sync.
-                        _videoPlayer.PlaybackStateChanged -= VideoPlayer_PlaybackStateChanged;
-                        _videoPlayer.PlaybackStateChanged += VideoPlayer_PlaybackStateChanged;
-                        _videoPlayer.MediaLoadFailed -= VideoPlayer_MediaLoadFailed;
-                        _videoPlayer.MediaLoadFailed += VideoPlayer_MediaLoadFailed;
-
-                        // Load the video paused on its first frame; the operator
-                        // controls playback via the play/pause button.
-                        _suppressVideoAutoPlay = true;
-                        try
-                        {
-                            _videoPlayer.SetVideoSource(_customVideoPath);
-                            SwitchToScreen(_videoPlayer, "Custom Video");
-                        }
-                        finally
-                        {
-                            _suppressVideoAutoPlay = false;
-                        }
-
-                        if (VideoPlayPauseButton != null)
-                            VideoPlayPauseButton.IsEnabled = true;
-                        UpdateVideoPlayPauseButton();
-                    }
-
-                    if (_goalVideoOverlay != null)
-                    {
-                        _goalVideoOverlay.Visibility = Visibility.Collapsed;
-                    }
-                }
-                else
-                {
-                    // No video chosen yet — still take the display away from
-                    // the break screen / scorebug so the operator can pick a
-                    // file without the output flipping back to Quarter Summary.
-                    if (_videoPlayer != null)
-                    {
-                        _suppressVideoAutoPlay = true;
-                        try
-                        {
-                            SwitchToScreen(_videoPlayer, "Custom Video");
-                        }
-                        finally
-                        {
-                            _suppressVideoAutoPlay = false;
-                        }
-                    }
-                    _customVideoPath = null;
-                }
-            }
-            catch
-            {
-                _customVideoPath = null;
-            }
-
-            VideoPickerPrompt.Visibility = Visibility.Visible;
-            BroadcastWebState();
+            if (_videoPlayer is null) return;
+            if (!_videoPlayer.HasSource) return;
+            SwitchToScreen(_videoPlayer, "Custom Video");
         }
 
         // Manual overlay handlers are implemented in `MainWindow.RestoreMembers.cs`.

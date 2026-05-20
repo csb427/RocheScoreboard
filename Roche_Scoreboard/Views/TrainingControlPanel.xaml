@@ -264,15 +264,27 @@
                                 <TextBlock x:Name="QueueCountText" Text="0 timers"
                                            Foreground="#8B949E" FontFamily="Bahnschrift" FontWeight="Bold" FontSize="11"/>
                             </Border>
-                            <TextBlock Grid.Column="2" Text="Drag rows to reorder · ▲ ▼ buttons also work · ✕ to remove"
+                            <TextBlock Grid.Column="2" Text="Drag rows to reorder · Click ✎ to edit · ▲ ▼ to move · ✕ to remove"
                                        Style="{StaticResource HelperText}" FontSize="11"
                                        VerticalAlignment="Center" Margin="14,0,0,0"/>
-                            <Button Grid.Column="3" Content="Clear All"
-                                    x:Name="ClearAllButton" Click="OnClearAllClicked"
-                                    Style="{StaticResource ActionButton}"
-                                    Background="#3F1212" Foreground="#FECACA" BorderBrush="#B91C1C"
-                                    Padding="12,5" Margin="8" FontSize="11"
-                                    ToolTip="Remove every timer from the queue"/>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
+                                <Border Background="#10161D" BorderBrush="#30363D" BorderThickness="1"
+                                        Padding="10,4" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <CheckBox x:Name="AutoAdvanceToggle" Content="AUTO-ADVANCE"
+                                              IsChecked="True"
+                                              Checked="OnAutoAdvanceChanged" Unchecked="OnAutoAdvanceChanged"
+                                              Foreground="#E5E7EB" FontFamily="Bahnschrift"
+                                              FontWeight="Bold" FontSize="11"
+                                              VerticalContentAlignment="Center"
+                                              ToolTip="When on, the next timer starts automatically. When off, the session pauses at the end of each timer and waits for Start."/>
+                                </Border>
+                                <Button Content="Clear All"
+                                        x:Name="ClearAllButton" Click="OnClearAllClicked"
+                                        Style="{StaticResource ActionButton}"
+                                        Background="#3F1212" Foreground="#FECACA" BorderBrush="#B91C1C"
+                                        Padding="12,5" FontSize="11"
+                                        ToolTip="Remove every timer from the queue"/>
+                            </StackPanel>
                         </Grid>
                         <Grid x:Name="QueueArea">
                             <ScrollViewer x:Name="QueueScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

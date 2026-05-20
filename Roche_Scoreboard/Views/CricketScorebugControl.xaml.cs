@@ -132,6 +132,11 @@ namespace Roche_Scoreboard.Views
                 _perfModeApplied = true;
                 _marqueeTimer?.Stop();
                 _infoRotationTimer?.Stop();
+                // 50 Hz warning-stripe animation churns the render thread
+                // every 20 ms — suspend it while video is on screen so the
+                // renderer can spend its budget on the MediaElement frame.
+                _oversWarningStripeWasRunning = _oversWarningStripeTimer?.IsEnabled == true;
+                _oversWarningStripeTimer?.Stop();
                 SuspendExpensiveEffects(this);
             }
             else
@@ -141,8 +146,11 @@ namespace Roche_Scoreboard.Views
                 RestoreExpensiveEffects();
                 if (_messages.Count > 0 && _marqueeTimer != null) _marqueeTimer.Start();
                 _infoRotationTimer?.Start();
+                if (_oversWarningStripeWasRunning) _oversWarningStripeTimer?.Start();
             }
         }
+
+        private bool _oversWarningStripeWasRunning;
 
         private void SuspendExpensiveEffects(DependencyObject root)
         {

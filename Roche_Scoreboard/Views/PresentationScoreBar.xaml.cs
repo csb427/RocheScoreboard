@@ -1,10 +1,7 @@
 using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using Roche_Scoreboard.Models;
 using Color = System.Windows.Media.Color;
@@ -15,12 +12,14 @@ using UserControl = System.Windows.Controls.UserControl;
 namespace Roche_Scoreboard.Views;
 
 /// <summary>
-/// Broadcast-style score bar — dark background with team-colour accent stripes,
-/// labelled goals/behinds, and team-tinted total badges.
+/// Broadcast-style score bar mirroring the main scorebug layout:
+/// team-colour gradient panels, dark centre quarter/clock panel,
+/// scorebug-style separator splits, and Stolzl typography.
 /// </summary>
 public partial class PresentationScoreBar : UserControl
 {
     private MatchManager? _match;
+    private bool _showTimer = true;
     private readonly DispatcherTimer _clockTimer;
 
     public PresentationScoreBar()
@@ -36,119 +35,122 @@ public partial class PresentationScoreBar : UserControl
 
     private void OnClockTick(object? sender, EventArgs e)
     {
-        if (_match == null) return;
+        if (_match is null || !_showTimer) return;
         TimeSpan dc = _match.DisplayClock;
         TimerText.Text = $"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
     }
 
     /// <summary>
     /// Populate the score bar with match state, team colours, and logos.
+    /// When <paramref name="showTimer"/> is false (quarter breaks), only the
+    /// quarter label is displayed in the centre panel.
     /// </summary>
     public void Populate(MatchManager match, int endedQuarter,
         string homeColorHex, string awayColorHex,
         string homeSecondaryHex, string awaySecondaryHex,
         string? homeLogoPath, string? awayLogoPath,
-        string? barTitleOverride = null)
+        string? barTitleOverride = null,
+        bool showTimer = true)
     {
         ArgumentNullException.ThrowIfNull(match);
         _match = match;
 
-        Color homeColor = SafeColor(homeColorHex, "#4488FF");
-        Color awayColor = SafeColor(awayColorHex, "#FF6644");
-        Color homeSecondary = SafeColor(homeSecondaryHex, "#FFFFFF");
-        Color awaySecondary = SafeColor(awaySecondaryHex, "#FFFFFF");
-        Color homeLift = LiftForDarkBg(homeColor);
-        Color awayLift = LiftForDarkBg(awayColor);
+        Color homeColor = SafeColor(homeColorHex, "#C9483B");
+        Color awayColor = SafeColor(awayColorHex, "#B68F12");
+        _ = homeSecondaryHex;
+        _ = awaySecondaryHex;
 
-        // Top accent gradient: home → centre → away
-        BarTopAccent.GradientStops[0].Color = homeColor;
-        BarTopAccent.GradientStops[2].Color = awayColor;
+        // Panel gradients — same dark->bright sweep as the main scorebug.
+        Color homeDark = Darken(homeColor, 0.55);
+        Color awayDark = Darken(awayColor, 0.55);
 
-        // Section borders — bold team colour
-        HomeBgBrush.Color = homeColor;
-        AwayBgBrush.Color = awayColor;
+        HomePanelGradStart.Color = homeDark;
+        HomePanelGradEnd.Color   = homeColor;
+        AwayPanelGradStart.Color = awayColor;
+        AwayPanelGradEnd.Color   = awayDark;
 
-        // Subtle team-tinted section backgrounds
-        HomeSectionBg.Color = Color.FromArgb(0x18, homeColor.R, homeColor.G, homeColor.B);
-        AwaySectionBg.Color = Color.FromArgb(0x18, awayColor.R, awayColor.G, awayColor.B);
+        // Logo cell gradients match the adjacent panel edge so the seam
+        // reads as a single coloured strip across home / logo and logo / away.
+        HomeLogoCellGradStart.Color = homeDark;
+        HomeLogoCellGradEnd.Color   = homeColor;
+        AwayLogoCellGradStart.Color = awayColor;
+        AwayLogoCellGradEnd.Color   = awayDark;
 
-        // Abbreviation text — team coloured with glow
-        HomeAbbrBrush.Color = homeLift;
-        AwayAbbrBrush.Color = awayLift;
-        HomeAbbrGlow.Color = homeColor;
-        AwayAbbrGlow.Color = awayColor;
-
-        // Total — white text, team-coloured border and glow. Border falls
-        // back to secondary if primary is too dark to register against the
-        // bar's dark background.
-        HomeTotalFg.Color = Colors.White;
-        AwayTotalFg.Color = Colors.White;
-        Color barBg = Color.FromRgb(0x0D, 0x11, 0x17);
-        HomeTotalBorderBrush.Color = Services.ContrastHelper.GetVisibleBorderColor(barBg, homeColor, homeSecondary);
-        AwayTotalBorderBrush.Color = Services.ContrastHelper.GetVisibleBorderColor(barBg, awayColor, awaySecondary);
-        HomeTotalGlow.Color = homeColor;
-        AwayTotalGlow.Color = awayColor;
-
-        // Goals/behinds chips — team-coloured borders + glow on the goals chip
-        // for a punchier broadcast look. Behinds chip uses the same border
-        // colour but a more muted background so goals read as the headline.
-        HomeGoalsChipBorder.Color = homeColor;
-        AwayGoalsChipBorder.Color = awayColor;
-        HomeGoalsChipGlow.Color = homeColor;
-        AwayGoalsChipGlow.Color = awayColor;
-        HomeBehindsChipBorder.Color = Color.FromArgb(0xB0, homeColor.R, homeColor.G, homeColor.B);
-        AwayBehindsChipBorder.Color = Color.FromArgb(0xB0, awayColor.R, awayColor.G, awayColor.B);
-        HomeGoalsChipBg.Color = Color.FromArgb(0x30, homeColor.R, homeColor.G, homeColor.B);
-        AwayGoalsChipBg.Color = Color.FromArgb(0x30, awayColor.R, awayColor.G, awayColor.B);
-        HomeBehindsChipBg.Color = Color.FromArgb(0x14, homeColor.R, homeColor.G, homeColor.B);
-        AwayBehindsChipBg.Color = Color.FromArgb(0x14, awayColor.R, awayColor.G, awayColor.B);
-
-        // Team abbreviations — the abbreviation slot is short and the bar
-        // appears on every presentation screen, so abbreviations read more
-        // cleanly than full names regardless of window width.
-        HomeAbbrText.Text = match.HomeAbbr.ToUpperInvariant();
-        AwayAbbrText.Text = match.AwayAbbr.ToUpperInvariant();
-
-        // Scores
-        HomeGoalsText.Text = match.HomeGoals.ToString();
+        // Score / total values
+        HomeGoalsText.Text   = match.HomeGoals.ToString();
         HomeBehindsText.Text = match.HomeBehinds.ToString();
-        HomeTotalText.Text = match.HomeTotal.ToString();
-        AwayGoalsText.Text = match.AwayGoals.ToString();
+        HomeTotalText.Text   = match.HomeTotal.ToString();
+        AwayGoalsText.Text   = match.AwayGoals.ToString();
         AwayBehindsText.Text = match.AwayBehinds.ToString();
-        AwayTotalText.Text = match.AwayTotal.ToString();
+        AwayTotalText.Text   = match.AwayTotal.ToString();
 
-        // Quarter label
-        QuarterText.Text = !string.IsNullOrEmpty(barTitleOverride) ? barTitleOverride : endedQuarter switch
+        // Smart contrast: pick readable text against each panel gradient.
+        var homeFg = new SolidColorBrush(Services.SmartContrast.PickForeground(
+            Services.SmartContrast.ContrastRatio(homeDark, Colors.White) < Services.SmartContrast.ContrastRatio(homeColor, Colors.White) ? homeDark : homeColor));
+        var awayFg = new SolidColorBrush(Services.SmartContrast.PickForeground(
+            Services.SmartContrast.ContrastRatio(awayDark, Colors.White) < Services.SmartContrast.ContrastRatio(awayColor, Colors.White) ? awayDark : awayColor));
+        HomeGoalsText.Foreground = homeFg;
+        HomeBehindsText.Foreground = homeFg;
+        HomeTotalText.Foreground = homeFg;
+        AwayGoalsText.Foreground = awayFg;
+        AwayBehindsText.Foreground = awayFg;
+        AwayTotalText.Foreground = awayFg;
+        HomeLogoFallback.Foreground = homeFg;
+        AwayLogoFallback.Foreground = awayFg;
+
+        // Logo fallback letters
+        HomeLogoFallback.Text = match.HomeAbbr.ToUpperInvariant();
+        AwayLogoFallback.Text = match.AwayAbbr.ToUpperInvariant();
+
+        // Centre quarter label
+        QuarterText.Text = !string.IsNullOrEmpty(barTitleOverride)
+            ? barTitleOverride
+            : endedQuarter switch
+            {
+                1 => "QT",
+                2 => "HT",
+                3 => "3QT",
+                _ => "FT"
+            };
+
+        // Timer behaviour - hidden at quarter breaks. The bar additionally
+        // auto-hides the timer whenever the match is sitting on a break
+        // (clock stopped and no elapsed time in the current quarter) so the
+        // scoreworm / weather / stats screens don't display a stale "00:00"
+        // during the same window the break screen suppresses it.
+        bool atBreak = !match.ClockRunning && match.ElapsedInQuarter <= TimeSpan.Zero;
+        _showTimer = showTimer && !atBreak;
+        if (_showTimer)
         {
-            1 => "QT",
-            2 => "HT",
-            3 => "3QT",
-            _ => "FT"
-        };
+            TimeSpan dc = match.DisplayClock;
+            TimerText.Text = $"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
+            TimerText.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            TimerText.Visibility = Visibility.Collapsed;
+        }
 
-        // Match timer
-        TimeSpan dc = match.DisplayClock;
-        TimerText.Text = $"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
-
-        // Logos — hide all placeholders if at least one team has no logo
+        // Logos - hide both placeholders if either logo failed to load.
         bool hideLogos = Services.ImageLoadHelper.Load(homeLogoPath) is null
                       || Services.ImageLoadHelper.Load(awayLogoPath) is null;
         ApplyLogo(HomeLogoImage, HomeLogoFallback, homeLogoPath, hideLogos);
         ApplyLogo(AwayLogoImage, AwayLogoFallback, awayLogoPath, hideLogos);
     }
 
-    private static void ApplyLogo(Image image, Ellipse fallback, string? path, bool hideLogos = false)
+    private static void ApplyLogo(Image image, TextBlock fallback, string? path, bool hideLogos)
     {
         if (hideLogos)
         {
+            image.Source = null;
             image.Visibility = Visibility.Collapsed;
             fallback.Visibility = Visibility.Collapsed;
             return;
         }
 
-        var source = Services.ImageLoadHelper.LoadTrimmed(path);
+        ImageSource? source = Services.ImageLoadHelper.LoadTrimmed(path);
         image.Source = source;
-        image.Visibility = source is not null ? Visibility.Visible : Visibility.Collapsed;
+        image.Visibility    = source is not null ? Visibility.Visible : Visibility.Collapsed;
         fallback.Visibility = source is not null ? Visibility.Collapsed : Visibility.Visible;
     }
 
@@ -160,7 +162,6 @@ public partial class PresentationScoreBar : UserControl
                 hex = fallbackHex;
             if (!hex.StartsWith('#'))
                 hex = "#" + hex;
-
             return (Color)ColorConverter.ConvertFromString(hex);
         }
         catch
@@ -169,19 +170,12 @@ public partial class PresentationScoreBar : UserControl
         }
     }
 
-    /// <summary>
-    /// Brightens a colour that would be invisible against the dark bar background.
-    /// Blends toward white just enough to keep text readable.
-    /// </summary>
-    private static Color LiftForDarkBg(Color c)
+    private static Color Darken(Color c, double amount)
     {
-        int sum = c.R + c.G + c.B;
-        if (sum >= 200) return c;
-
-        double t = Math.Max(0.0, (200 - sum) / 400.0);
+        amount = Math.Clamp(amount, 0, 1);
         return Color.FromRgb(
-            (byte)(c.R + (255 - c.R) * t),
-            (byte)(c.G + (255 - c.G) * t),
-            (byte)(c.B + (255 - c.B) * t));
+            (byte)(c.R * (1 - amount)),
+            (byte)(c.G * (1 - amount)),
+            (byte)(c.B * (1 - amount)));
     }
 }

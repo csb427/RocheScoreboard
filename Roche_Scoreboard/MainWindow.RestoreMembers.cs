@@ -931,6 +931,10 @@ public partial class MainWindow
         EnsureScoreboardWindow();
 
         GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
+        if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
+        {
+            style = GoalAnimationStyle.Classic;
+        }
         DeferScorePush(GetGoalAnimationDuration(style));
 
         ScoreEvent ev = _match.AddGoal(TeamSide.Home);
@@ -942,7 +946,10 @@ public partial class MainWindow
             return;
         }
 
+        GoalAnimationStyle previous = _scorebug?.GetGoalAnimationStyle() ?? style;
+        if (previous != style) _scorebug?.SetGoalAnimationStyle(style);
         _scorebug?.PlayScoreAnimation(true, true, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal);
+        if (previous != style) _scorebug?.SetGoalAnimationStyle(previous);
     }
 
     private void HomeBehind_Click(object sender, RoutedEventArgs e)
@@ -959,6 +966,10 @@ public partial class MainWindow
         EnsureScoreboardWindow();
 
         GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
+        if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
+        {
+            style = GoalAnimationStyle.Classic;
+        }
         DeferScorePush(GetGoalAnimationDuration(style));
 
         ScoreEvent ev = _match.AddGoal(TeamSide.Away);
@@ -970,7 +981,18 @@ public partial class MainWindow
             return;
         }
 
+        GoalAnimationStyle previous = _scorebug?.GetGoalAnimationStyle() ?? style;
+        if (previous != style) _scorebug?.SetGoalAnimationStyle(style);
         _scorebug?.PlayScoreAnimation(false, true, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal);
+        if (previous != style) _scorebug?.SetGoalAnimationStyle(previous);
+    }
+
+    private bool BothTeamsHaveGoalVideos()
+    {
+        return !string.IsNullOrWhiteSpace(_homeGoalVideoPath)
+            && System.IO.File.Exists(_homeGoalVideoPath)
+            && !string.IsNullOrWhiteSpace(_awayGoalVideoPath)
+            && System.IO.File.Exists(_awayGoalVideoPath);
     }
 
     private void AwayBehind_Click(object sender, RoutedEventArgs e)
@@ -1336,8 +1358,8 @@ public partial class MainWindow
     {
         if (_weatherScreen == null) return;
 
-        var snapshot = _scorebug?.GetWeatherSnapshot();
-        if (snapshot == null) return;
+        var snapshot = _scorebug?.GetWeatherSnapshot()
+            ?? new WeatherSnapshot(0, 0, 0, 0, 0, string.Empty, string.Empty, Array.Empty<HourlyForecast>());
 
         _weatherScreen.Populate(snapshot, _weatherLocation,
             _match, GetEndedQuarter(),
@@ -1440,6 +1462,7 @@ public partial class MainWindow
         {
             _goalVideoOverlay.Stop();
             _goalVideoOverlay.Visibility = Visibility.Collapsed;
+            if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
             Roche_Scoreboard.Services.PlaybackPerformanceMode.End();
             Action? prev = _goalVideoCompletionCallback;
             _goalVideoCompletionCallback = null;
@@ -1451,6 +1474,9 @@ public partial class MainWindow
             _goalVideoCompletionCallback = fallbackAnimation;
             string playbackPath = Roche_Scoreboard.Services.VideoOptimizer.GetPlaybackPath(path);
             _goalVideoOverlay.Source = new Uri(playbackPath, UriKind.Absolute);
+            // Show the opaque backdrop *before* the video so the layered-
+            // window surface never has to alpha-blend a video frame.
+            if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Visible;
             _goalVideoOverlay.Visibility = Visibility.Visible;
             _goalVideoOverlay.Position = TimeSpan.Zero;
             _goalVideoOverlay.Play();
@@ -1461,6 +1487,7 @@ public partial class MainWindow
         {
             _goalVideoCompletionCallback = null;
             _goalVideoOverlay.Visibility = Visibility.Collapsed;
+            if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
             fallbackAnimation();
         }
     }
@@ -1472,6 +1499,7 @@ public partial class MainWindow
         {
             _goalVideoOverlay.Visibility = Visibility.Collapsed;
         }
+        if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
         EndGoalVideoPerfMode();
 
         Action? callback = _goalVideoCompletionCallback;
@@ -1486,6 +1514,7 @@ public partial class MainWindow
         {
             _goalVideoOverlay.Visibility = Visibility.Collapsed;
         }
+        if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
         EndGoalVideoPerfMode();
 
         Action? callback = _goalVideoCompletionCallback;
@@ -1517,6 +1546,7 @@ public partial class MainWindow
         _goalVideoOverlay.Stop();
         _goalVideoOverlay.Source = null;
         _goalVideoOverlay.Visibility = Visibility.Collapsed;
+        if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
         EndGoalVideoPerfMode();
     }
 
@@ -2272,7 +2302,6 @@ public partial class MainWindow
 
         if (target != _videoPlayer)
         {
-            VideoPickerPrompt.Visibility = Visibility.Collapsed;
             // Pause the video when leaving the video screen so audio doesn't
             // keep playing in the background. The current frame is retained
             // so resuming via Play picks up where it left off.
@@ -2311,41 +2340,72 @@ public partial class MainWindow
 
     private void SlideTransition(UIElement from, UIElement to, bool slideLeft)
     {
-        double width = _displayWindow?.ActualWidth ?? 752;
-        double direction = slideLeft ? -1 : 1;
-
-        to.Visibility = Visibility.Visible;
-        to.Opacity = 0;
-        to.RenderTransform = new TranslateTransform(-direction * width, 0);
-
-        if (from.RenderTransform is not TranslateTransform)
+        // Modern "blackout pulse" transition:
+        //   1. Black overlay fades in (covers desktop / any compositor flash)
+        //   2. Outgoing screen is hidden & incoming screen is shown while fully black
+        //   3. Black overlay fades back out, revealing the new screen with a subtle scale-in
+        // This guarantees the desktop is never visible mid-transition.
+        if (_retroCrtOverlay == null)
         {
-            from.RenderTransform = new TranslateTransform(0, 0);
-        }
-
-        CubicEase ease = new() { EasingMode = EasingMode.EaseInOut };
-        TimeSpan duration = TimeSpan.FromMilliseconds(360);
-
-        DoubleAnimation fromAnim = new(0, direction * width, duration) { EasingFunction = ease };
-        DoubleAnimation toAnim = new(-direction * width, 0, duration) { EasingFunction = ease };
-
-        // Crossfade: outgoing fades out, incoming fades in
-        var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200))
-        { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-        var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(280))
-        { BeginTime = TimeSpan.FromMilliseconds(80), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-
-        fromAnim.Completed += (_, _) =>
-        {
+            // Fallback: instant swap
             from.Visibility = Visibility.Collapsed;
             from.RenderTransform = new TranslateTransform(0, 0);
             from.Opacity = 1;
+            to.Visibility = Visibility.Visible;
+            to.RenderTransform = new TranslateTransform(0, 0);
+            to.Opacity = 1;
+            return;
+        }
+
+        const int fadeInMs = 180;
+        const int holdMs = 60;
+        const int fadeOutMs = 220;
+
+        _retroCrtOverlay.Background = System.Windows.Media.Brushes.Black;
+        _retroCrtOverlay.Visibility = Visibility.Visible;
+        _retroCrtOverlay.Opacity = 0;
+
+        var ease = new CubicEase { EasingMode = EasingMode.EaseInOut };
+
+        var fadeToBlack = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(fadeInMs)) { EasingFunction = ease };
+        fadeToBlack.Completed += (_, _) =>
+        {
+            // Swap behind the curtain
+            from.Visibility = Visibility.Collapsed;
+            from.Opacity = 1;
+            from.RenderTransform = new TranslateTransform(0, 0);
+
+            // Prep incoming with a subtle scale-up for a modern reveal
+            var scale = new ScaleTransform(1.03, 1.03);
+            to.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+            to.RenderTransform = scale;
+            to.Opacity = 1;
+            to.Visibility = Visibility.Visible;
+
+            var scaleEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+            var sx = new DoubleAnimation(1.03, 1.0, TimeSpan.FromMilliseconds(fadeOutMs + 80)) { EasingFunction = scaleEase };
+            var sy = new DoubleAnimation(1.03, 1.0, TimeSpan.FromMilliseconds(fadeOutMs + 80)) { EasingFunction = scaleEase };
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, sx);
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, sy);
+
+            var fadeFromBlack = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(fadeOutMs))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(holdMs),
+                EasingFunction = ease
+            };
+            fadeFromBlack.Completed += (_, _) =>
+            {
+                if (_retroCrtOverlay != null)
+                {
+                    _retroCrtOverlay.Visibility = Visibility.Collapsed;
+                    _retroCrtOverlay.Opacity = 0;
+                }
+                to.RenderTransform = new TranslateTransform(0, 0);
+            };
+            _retroCrtOverlay!.BeginAnimation(UIElement.OpacityProperty, fadeFromBlack);
         };
 
-        ((TranslateTransform)from.RenderTransform).BeginAnimation(TranslateTransform.XProperty, fromAnim);
-        ((TranslateTransform)to.RenderTransform).BeginAnimation(TranslateTransform.XProperty, toAnim);
-        from.BeginAnimation(UIElement.OpacityProperty, fadeOut);
-        to.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+        _retroCrtOverlay.BeginAnimation(UIElement.OpacityProperty, fadeToBlack);
     }
 
     /// <summary>
@@ -2976,57 +3036,9 @@ public partial class MainWindow
 
     private void BrowseVideo_Click(object sender, RoutedEventArgs e)
     {
-        // Accept any media file. The MediaElement uses the installed Windows
-        // codecs, so anything Windows can play (mp4, mov, mkv, webm, avi,
-        // wmv, m4v, ts, mpg, mpeg, 3gp, flv, ...) is fair game. The "All
-        // Files" entry lets operators pick container types we didn't list.
-        string videoExts = "*.mp4;*.m4v;*.mov;*.mkv;*.webm;*.avi;*.wmv;*.flv;"
-                         + "*.mpg;*.mpeg;*.ts;*.mts;*.m2ts;*.3gp;*.3g2;*.ogv;*.vob;*.asf";
-
-        Microsoft.Win32.OpenFileDialog picker = new()
-        {
-            Title = "Select Video File",
-            // No file size cap — Windows file dialog imposes none and
-            // MediaElement streams from disk.
-            Filter = $"Video Files|{videoExts}|All Files|*.*",
-            CheckFileExists = true,
-            DereferenceLinks = true,
-            Multiselect = false
-        };
-
-        if (picker.ShowDialog() != true) return;
-
-        // The operator is interacting with the video flow; cancel any pending
-        // automatic switch to the Quarter Summary screen so it doesn't
-        // override the upcoming video load.
-        if (_breakScreenDelayTimer != null)
-        {
-            _breakScreenDelayTimer.Stop();
-            _breakScreenDelayTimer = null;
-        }
-        StopBreakRotation();
-
-        _customVideoPath = picker.FileName;
-        VideoFilePathText.Text = System.IO.Path.GetFileName(_customVideoPath);
-
-        // Kick off background optimisation so heavy imports are ready for
-        // smooth broadcast before they're triggered live.
-        _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(_customVideoPath);
-
-        // Surface basic file metadata so operators know what they picked,
-        // especially useful for very large files.
-        try
-        {
-            var info = new System.IO.FileInfo(_customVideoPath);
-            VideoFileMetaText.Text = $"{FormatFileSize(info.Length)} · {info.Extension.TrimStart('.').ToUpperInvariant()}";
-        }
-        catch
-        {
-            VideoFileMetaText.Text = string.Empty;
-        }
-
-        ApplyVideoButton.IsEnabled = true;
-        VideoStatusText.Text = "Ready to load.";
+        // Legacy entry point. The dedicated VIDEO tab now owns the upload
+        // workflow — route any external callers to the new flow.
+        VideoTabBrowse_Click(sender, e);
     }
 
     private static string FormatFileSize(long bytes)
@@ -3040,72 +3052,16 @@ public partial class MainWindow
         return $"{bytes} B";
     }
 
-    private void ApplyVideo_Click(object sender, RoutedEventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(_customVideoPath) || !System.IO.File.Exists(_customVideoPath))
-        {
-            VideoStatusText.Text = "File not found.";
-            return;
-        }
-
-        EnsureScoreboardWindow();
-        if (_videoPlayer == null) return;
-
-        // Defensive: cancel any pending switch to Quarter Summary so it
-        // can't override the video screen a few seconds after load.
-        if (_breakScreenDelayTimer != null)
-        {
-            _breakScreenDelayTimer.Stop();
-            _breakScreenDelayTimer = null;
-        }
-        StopBreakRotation();
-
-        // Subscribe (idempotent) so the play/pause button reflects state.
-        _videoPlayer.PlaybackStateChanged -= VideoPlayer_PlaybackStateChanged;
-        _videoPlayer.PlaybackStateChanged += VideoPlayer_PlaybackStateChanged;
-        _videoPlayer.MediaLoadFailed -= VideoPlayer_MediaLoadFailed;
-        _videoPlayer.MediaLoadFailed += VideoPlayer_MediaLoadFailed;
-
-        // Load paused on frame zero. SwitchToScreen used to auto-play any
-        // video; the override flag keeps it paused for operator review.
-        _suppressVideoAutoPlay = true;
-        try
-        {
-            _videoPlayer.SetVideoSource(_customVideoPath);
-            SwitchToScreen(_videoPlayer, "Custom Video");
-        }
-        finally
-        {
-            _suppressVideoAutoPlay = false;
-        }
-
-        VideoPickerPrompt.Visibility = Visibility.Visible;
-        VideoPlayPauseButton.IsEnabled = true;
-        UpdateVideoPlayPauseButton();
-        VideoStatusText.Text = "Loaded · paused on first frame.";
-    }
-
-    private void VideoPlayPause_Click(object sender, RoutedEventArgs e)
-    {
-        if (_videoPlayer is null || !_videoPlayer.HasSource)
-        {
-            VideoStatusText.Text = "Load a video first.";
-            return;
-        }
-
-        _videoPlayer.TogglePlayPause();
-        UpdateVideoPlayPauseButton();
-    }
-
     private void VideoPlayer_PlaybackStateChanged(object? sender, EventArgs e)
     {
         // Marshal in case event was raised from the media thread.
         if (!Dispatcher.CheckAccess())
         {
-            Dispatcher.BeginInvoke(new Action(UpdateVideoPlayPauseButton));
+            Dispatcher.BeginInvoke(new Action(UpdateVideoTabPlayPauseButton));
             return;
         }
-        UpdateVideoPlayPauseButton();
+        UpdateVideoTabPlayPauseButton();
+        SyncPreviewToScoreboard();
     }
 
     private void VideoPlayer_MediaLoadFailed(object? sender, System.Windows.ExceptionRoutedEventArgs e)
@@ -3116,34 +3072,459 @@ public partial class MainWindow
             return;
         }
 
-        VideoPlayPauseButton.IsEnabled = false;
+        if (VideoTabPlayPauseButton != null) VideoTabPlayPauseButton.IsEnabled = false;
         string reason = e.ErrorException?.Message ?? "unknown error";
-        VideoStatusText.Text = "Failed to load: " + reason;
+        if (VideoTabStatusText != null) VideoTabStatusText.Text = "Failed to load: " + reason;
     }
 
-    private void UpdateVideoPlayPauseButton()
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Dedicated VIDEO tab handlers. These wrap the existing video workflow
+    // with a modern step-by-step UI and an inline local preview.
+    // ──────────────────────────────────────────────────────────────────────
+    private void TryRestoreLastVideoPath()
     {
-        if (VideoPlayPauseButton is null) return;
+        try
+        {
+            string? saved = Services.DisplaySettings.LastVideoPath;
+            if (string.IsNullOrWhiteSpace(saved) || !System.IO.File.Exists(saved))
+                return;
+
+            _customVideoPath = saved;
+            VideoTabFilePathText.Text = System.IO.Path.GetFileName(_customVideoPath);
+            VideoTabFilePathText.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#E6EDF3")!;
+
+            try
+            {
+                var info = new System.IO.FileInfo(_customVideoPath);
+                VideoTabFileMetaText.Text = $"{FormatFileSize(info.Length)} · {info.Extension.TrimStart('.').ToUpperInvariant()} · {info.Name}";
+            }
+            catch
+            {
+                VideoTabFileMetaText.Text = string.Empty;
+            }
+
+            VideoTabApplyButton.IsEnabled = true;
+            VideoTabStatusText.Text = "Restored last video · click APPLY to load.";
+
+            _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(_customVideoPath);
+
+            try
+            {
+                string previewPath = Roche_Scoreboard.Services.VideoOptimizer.GetPlaybackPath(_customVideoPath);
+                VideoTabPreview.Source = new Uri(previewPath);
+                VideoTabPreview.Visibility = Visibility.Visible;
+                VideoTabPreviewPlaceholder.Visibility = Visibility.Collapsed;
+                VideoTabPreview.Play();
+                VideoTabPreview.Pause();
+            }
+            catch
+            {
+                VideoTabPreview.Visibility = Visibility.Collapsed;
+                VideoTabPreviewPlaceholder.Visibility = Visibility.Visible;
+            }
+        }
+        catch
+        {
+            // Restoring the last video is best-effort; never block startup.
+        }
+    }
+
+    private void VideoTabBrowse_Click(object sender, RoutedEventArgs e)
+    {
+        string videoExts = "*.mp4;*.m4v;*.mov;*.mkv;*.webm;*.avi;*.wmv;*.flv;"
+                         + "*.mpg;*.mpeg;*.ts;*.mts;*.m2ts;*.3gp;*.3g2;*.ogv;*.vob;*.asf";
+
+        if (_breakScreenDelayTimer != null)
+        {
+            _breakScreenDelayTimer.Stop();
+            _breakScreenDelayTimer = null;
+        }
+        StopBreakRotation();
+
+        Microsoft.Win32.OpenFileDialog picker = new()
+        {
+            Title = "Select Video File",
+            Filter = $"Video Files|{videoExts}|All Files|*.*",
+            CheckFileExists = true,
+            DereferenceLinks = true,
+            Multiselect = false
+        };
+
+        if (picker.ShowDialog() != true) return;
+
+        _customVideoPath = picker.FileName;
+        VideoTabFilePathText.Text = System.IO.Path.GetFileName(_customVideoPath);
+        VideoTabFilePathText.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#E6EDF3")!;
+
+        // Persist so the VIDEO tab can restore this clip across app restarts.
+        try { Services.DisplaySettings.LastVideoPath = _customVideoPath; } catch { /* best-effort */ }
+
+        _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(_customVideoPath);
+
+        try
+        {
+            var info = new System.IO.FileInfo(_customVideoPath);
+            VideoTabFileMetaText.Text = $"{FormatFileSize(info.Length)} · {info.Extension.TrimStart('.').ToUpperInvariant()} · {info.Name}";
+        }
+        catch
+        {
+            VideoTabFileMetaText.Text = string.Empty;
+        }
+
+        VideoTabApplyButton.IsEnabled = true;
+        VideoTabStatusText.Text = "✓ Upload successful · ready to load.";
+
+        // Local preview in the right pane. Use the optimised playback copy
+        // (downscaled / re-encoded by VideoOptimizer) when available so two
+        // MediaElements don't both decode a 4K source at the same time —
+        // that was causing the app-wide lag during playback.
+        try
+        {
+            string previewPath = Roche_Scoreboard.Services.VideoOptimizer.GetPlaybackPath(_customVideoPath);
+            VideoTabPreview.Source = new Uri(previewPath);
+            VideoTabPreview.Visibility = Visibility.Visible;
+            VideoTabPreviewPlaceholder.Visibility = Visibility.Collapsed;
+            VideoTabPreview.Play();
+            VideoTabPreview.Pause(); // hold on first frame
+        }
+        catch
+        {
+            VideoTabPreview.Visibility = Visibility.Collapsed;
+            VideoTabPreviewPlaceholder.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void VideoTabApply_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_customVideoPath) || !System.IO.File.Exists(_customVideoPath))
+        {
+            VideoTabStatusText.Text = "File not found.";
+            return;
+        }
+
+        EnsureScoreboardWindow();
+        if (_videoPlayer == null) return;
+
+        if (_breakScreenDelayTimer != null)
+        {
+            _breakScreenDelayTimer.Stop();
+            _breakScreenDelayTimer = null;
+        }
+        StopBreakRotation();
+
+        _videoPlayer.PlaybackStateChanged -= VideoPlayer_PlaybackStateChanged;
+        _videoPlayer.PlaybackStateChanged += VideoPlayer_PlaybackStateChanged;
+        _videoPlayer.MediaLoadFailed -= VideoPlayer_MediaLoadFailed;
+        _videoPlayer.MediaLoadFailed += VideoPlayer_MediaLoadFailed;
+
+        _suppressVideoAutoPlay = true;
+        try
+        {
+            // Load the scoreboard's player paused on frame zero so the
+            // operator can scrub/cue in the preview before switching to it.
+            _videoPlayer.SetVideoSource(_customVideoPath);
+        }
+        finally
+        {
+            _suppressVideoAutoPlay = false;
+        }
+
+        VideoTabPlayPauseButton.IsEnabled = true;
+        VideoTabRestartButton.IsEnabled = true;
+        if (VideoTabShowOnScoreboardButton != null) VideoTabShowOnScoreboardButton.IsEnabled = true;
+        EnsureVideoTabPreviewSyncTimer();
+        UpdateVideoTabPlayPauseButton();
+        VideoTabStatusText.Text = "Loaded · paused on first frame. Use \"Show on Scoreboard\" to broadcast.";
+    }
+
+    private void VideoTabShowOnScoreboard_Click(object sender, RoutedEventArgs e)
+    {
+        EnsureScoreboardWindow();
+        if (_videoPlayer is null || !_videoPlayer.HasSource)
+        {
+            VideoTabStatusText.Text = "Load a video first.";
+            return;
+        }
+
+        _suppressVideoAutoPlay = true;
+        try
+        {
+            SwitchToScreen(_videoPlayer, "Custom Video");
+        }
+        finally
+        {
+            _suppressVideoAutoPlay = false;
+        }
+
+        SetSelectedPreview("presentation:video");
+        VideoTabStatusText.Text = "Showing on scoreboard.";
+    }
+
+    private void VideoTabPlayPause_Click(object sender, RoutedEventArgs e)
+    {
+        if (_videoPlayer is null || !_videoPlayer.HasSource)
+        {
+            VideoTabStatusText.Text = "Load a video first.";
+            return;
+        }
+
+        _videoPlayer.TogglePlayPause();
+        // Mirror to local preview.
+        try
+        {
+            if (_videoPlayer.IsPlaying) VideoTabPreview.Play();
+            else VideoTabPreview.Pause();
+        }
+        catch { /* ignore */ }
+        UpdateVideoTabPlayPauseButton();
+    }
+
+    private void VideoTabRestart_Click(object sender, RoutedEventArgs e)
+    {
+        if (_videoPlayer is null || !_videoPlayer.HasSource)
+        {
+            VideoTabStatusText.Text = "Load a video first.";
+            return;
+        }
+
+        try
+        {
+            _videoPlayer.Seek(TimeSpan.Zero);
+            _videoPlayer.Play();
+            VideoTabPreview.Position = TimeSpan.Zero;
+            VideoTabPreview.Play();
+            VideoTabStatusText.Text = "Restarted from beginning.";
+        }
+        catch
+        {
+            VideoTabStatusText.Text = "Could not restart video.";
+        }
+        UpdateVideoTabPlayPauseButton();
+    }
+
+    private void UpdateVideoTabPlayPauseButton()
+    {
+        if (VideoTabPlayPauseButton is null) return;
 
         bool playing = _videoPlayer?.IsPlaying == true;
+        var conv = new System.Windows.Media.BrushConverter();
         if (playing)
         {
-            VideoPlayPauseButton.Content = "⏸  Pause";
-            VideoPlayPauseButton.BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#7A4A1F")!;
-            VideoPlayPauseButton.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#2A1A0E")!;
-            VideoPlayPauseButton.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#F0C040")!;
-            VideoStatusText.Text = "Playing.";
+            VideoTabPlayPauseButton.Content = "⏸  Pause";
+            VideoTabPlayPauseButton.BorderBrush = (System.Windows.Media.Brush)conv.ConvertFromString("#7A4A1F")!;
+            VideoTabPlayPauseButton.Background = (System.Windows.Media.Brush)conv.ConvertFromString("#2A1A0E")!;
+            VideoTabPlayPauseButton.Foreground = (System.Windows.Media.Brush)conv.ConvertFromString("#F0C040")!;
+            VideoTabStatusText.Text = "Playing.";
         }
         else
         {
-            VideoPlayPauseButton.Content = "▶  Play";
-            VideoPlayPauseButton.BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#1F7A3F")!;
-            VideoPlayPauseButton.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#0E2A18")!;
-            VideoPlayPauseButton.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#7FE0A0")!;
+            VideoTabPlayPauseButton.Content = "▶  Play";
+            VideoTabPlayPauseButton.BorderBrush = (System.Windows.Media.Brush)conv.ConvertFromString("#1F7A3F")!;
+            VideoTabPlayPauseButton.Background = (System.Windows.Media.Brush)conv.ConvertFromString("#0E2A18")!;
+            VideoTabPlayPauseButton.Foreground = (System.Windows.Media.Brush)conv.ConvertFromString("#7FE0A0")!;
             if (_videoPlayer?.HasSource == true)
-                VideoStatusText.Text = "Paused.";
+                VideoTabStatusText.Text = "Paused.";
         }
     }
+
+    // ── YouTube-style preview controls ──────────────────────────────────────
+
+    private System.Windows.Threading.DispatcherTimer? _videoTabPreviewSyncTimer;
+    private bool _videoTabSeekIsDragging;
+    private bool _videoTabSuppressSeekFeedback;
+
+    private void EnsureVideoTabPreviewSyncTimer()
+    {
+        if (_videoTabPreviewSyncTimer != null) return;
+        _videoTabPreviewSyncTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(250)
+        };
+        _videoTabPreviewSyncTimer.Tick += (_, _) => SyncPreviewToScoreboard();
+        _videoTabPreviewSyncTimer.Start();
+    }
+
+    private void StopVideoTabPreviewSyncTimer()
+    {
+        if (_videoTabPreviewSyncTimer == null) return;
+        _videoTabPreviewSyncTimer.Stop();
+        _videoTabPreviewSyncTimer = null;
+    }
+
+    // The local preview is the authoritative source for slider/time UI —
+    // it's what the operator is actually watching. We push the scoreboard
+    // player's position toward the preview when they drift, NOT the other
+    // way around. That prevents the 200ms timer from clobbering an in-flight
+    // drag-scrub on the slider.
+    private void SyncPreviewToScoreboard()
+    {
+        if (VideoTabPreview?.Source is null) return;
+
+        TimeSpan duration = VideoTabPreview.NaturalDuration.HasTimeSpan
+            ? VideoTabPreview.NaturalDuration.TimeSpan
+            : TimeSpan.Zero;
+        TimeSpan position;
+        try { position = VideoTabPreview.Position; }
+        catch { return; }
+
+        if (VideoTabSeekSlider != null && duration > TimeSpan.Zero)
+        {
+            double totalSec = duration.TotalSeconds;
+            if (Math.Abs(VideoTabSeekSlider.Maximum - totalSec) > 0.05)
+            {
+                VideoTabSeekSlider.Maximum = totalSec;
+            }
+            if (!_videoTabSeekIsDragging)
+            {
+                _videoTabSuppressSeekFeedback = true;
+                VideoTabSeekSlider.Value = Math.Min(position.TotalSeconds, totalSec);
+                _videoTabSuppressSeekFeedback = false;
+            }
+        }
+
+        if (VideoTabCurrentTimeText != null)
+            VideoTabCurrentTimeText.Text = FormatTime(position);
+        if (VideoTabDurationText != null)
+            VideoTabDurationText.Text = FormatTime(duration);
+    }
+
+    private static string FormatTime(TimeSpan t)
+    {
+        if (t.TotalHours >= 1)
+            return $"{(int)t.TotalHours}:{t.Minutes:D2}:{t.Seconds:D2}";
+        return $"{t.Minutes}:{t.Seconds:D2}";
+    }
+
+    private void VideoTabSeek_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
+    {
+        _videoTabSeekIsDragging = true;
+    }
+
+    private void VideoTabSeek_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+    {
+        _videoTabSeekIsDragging = false;
+        ApplySeekFromSlider();
+    }
+
+    private void VideoTabSeek_PreviewMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        // Click-to-seek (IsMoveToPointEnabled) — apply the new position
+        // immediately so it feels like YouTube's instant scrub.
+        ApplySeekFromSlider();
+    }
+
+    private void VideoTabSeek_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_videoTabSuppressSeekFeedback) return;
+        // Live time + frame preview while dragging. We scrub the preview
+        // MediaElement directly (it has ScrubbingEnabled), which is what
+        // the operator is actually watching.
+        if (_videoTabSeekIsDragging)
+        {
+            if (VideoTabCurrentTimeText != null)
+                VideoTabCurrentTimeText.Text = FormatTime(TimeSpan.FromSeconds(e.NewValue));
+            ScrubPreviewTo(TimeSpan.FromSeconds(e.NewValue));
+        }
+    }
+
+    // WPF MediaElement quirk: assigning Position on a paused element doesn't
+    // always render the new frame even with ScrubbingEnabled. Briefly nudging
+    // the playback state forces the decoder to present the seeked frame.
+    private void ScrubPreviewTo(TimeSpan target)
+    {
+        if (VideoTabPreview is null) return;
+        try
+        {
+            VideoTabPreview.Position = target;
+            // If the preview was paused, kick it so the frame actually paints,
+            // then re-pause so the operator stays in scrub mode.
+            VideoTabPreview.Play();
+            VideoTabPreview.Pause();
+            VideoTabPreview.Position = target;
+        }
+        catch { }
+    }
+
+    private void ApplySeekFromSlider()
+    {
+        if (VideoTabSeekSlider is null) return;
+        TimeSpan target = TimeSpan.FromSeconds(VideoTabSeekSlider.Value);
+        ScrubPreviewTo(target);
+        // Push the new position onto the scoreboard player if a clip is loaded.
+        if (_videoPlayer is not null && _videoPlayer.HasSource)
+        {
+            _videoPlayer.Seek(target);
+        }
+    }
+
+    private void VideoTabSpeed_Changed(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (VideoTabSpeedCombo?.SelectedItem is not System.Windows.Controls.ComboBoxItem item) return;
+        if (item.Tag is not string tag) return;
+        if (!double.TryParse(tag, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double rate))
+            return;
+
+        if (_videoPlayer != null) _videoPlayer.SpeedRatio = rate;
+        try { VideoTabPreview.SpeedRatio = rate; } catch { }
+    }
+
+    private void VideoTabVolume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_videoPlayer != null) _videoPlayer.Volume = e.NewValue;
+        // The local preview is muted by design (so audio only comes from the
+        // scoreboard). The slider therefore drives only the scoreboard output.
+        UpdateVideoTabMuteButtonIcon();
+    }
+
+    private void VideoTabMute_Click(object sender, RoutedEventArgs e)
+    {
+        if (_videoPlayer is null) return;
+        _videoPlayer.IsMuted = !_videoPlayer.IsMuted;
+        UpdateVideoTabMuteButtonIcon();
+    }
+
+    private void UpdateVideoTabMuteButtonIcon()
+    {
+        if (VideoTabMuteButton is null) return;
+        bool muted = _videoPlayer?.IsMuted == true;
+        double vol = _videoPlayer?.Volume ?? 1.0;
+        VideoTabMuteButton.Content = muted || vol <= 0.001 ? "🔇" : vol < 0.5 ? "🔉" : "🔊";
+    }
+
+    private void VideoTabPreview_MediaOpened(object sender, RoutedEventArgs e)
+    {
+        VideoTabPreviewBadge.Text = "LOCAL PREVIEW · MIRRORS SCOREBOARD";
+        try
+        {
+            if (VideoTabPreview.NaturalDuration.HasTimeSpan)
+            {
+                double total = VideoTabPreview.NaturalDuration.TimeSpan.TotalSeconds;
+                if (VideoTabSeekSlider != null) VideoTabSeekSlider.Maximum = total;
+                if (VideoTabDurationText != null) VideoTabDurationText.Text = FormatTime(VideoTabPreview.NaturalDuration.TimeSpan);
+            }
+        }
+        catch { /* ignore */ }
+    }
+
+    private void VideoTabPreview_MediaFailed(object sender, System.Windows.ExceptionRoutedEventArgs e)
+    {
+        VideoTabPreview.Visibility = Visibility.Collapsed;
+        VideoTabPreviewPlaceholder.Visibility = Visibility.Visible;
+        VideoTabStatusText.Text = "Preview unavailable for this file.";
+    }
+
+    private void VideoTabPreview_MediaEnded(object sender, RoutedEventArgs e)
+    {
+        // Loop the local preview to mirror the scoreboard player's behavior.
+        try
+        {
+            VideoTabPreview.Position = TimeSpan.Zero;
+            if (_videoPlayer?.IsPlaying == true) VideoTabPreview.Play();
+        }
+        catch { /* ignore */ }
+    }
+
 
     private void LayoutRadio_Changed(object sender, RoutedEventArgs e)
     {
@@ -4106,12 +4487,6 @@ public partial class MainWindow
         UpdatePresentationCards("weather");
     }
 
-    private void PresCardVideo_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-        SwitchToVideo_Click(sender, new RoutedEventArgs());
-        UpdatePresentationCards("video");
-    }
-
     private void PresCardWindow_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         bool isOpen = _sportMode == SportMode.AFL
@@ -4177,7 +4552,6 @@ public partial class MainWindow
             (PresCardWorm,     PresCheckWorm,     null,              "worm"),
             (PresCardStats,    PresCheckStats,    null,              "stats"),
             (PresCardWeather,  PresCheckWeather,  null,              "weather"),
-            (PresCardVideo,    PresCheckVideo,    null,              "video"),
         };
 
         foreach (var (card, check, glow, key) in cards)
@@ -4633,20 +5007,160 @@ public partial class MainWindow
     // ═══════════════════════════════════════════════════════════════
 
     private void SettingsNav_Teams_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => SettingsSection_Teams.BringIntoView();
+    {
+        ApplySettingsCategoryFilter("teams");
+        SettingsSection_Teams.BringIntoView();
+    }
 
     private void SettingsNav_Match_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => SettingsSection_Match.BringIntoView();
+    {
+        ApplySettingsCategoryFilter("match");
+        SettingsSection_Match.BringIntoView();
+    }
 
     private void SettingsNav_Display_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => SettingsSection_Display.BringIntoView();
+    {
+        ApplySettingsCategoryFilter("display");
+        SettingsSection_Display.BringIntoView();
+    }
 
     private void SettingsNav_Overlays_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => SettingsSection_Overlays.BringIntoView();
+    {
+        ApplySettingsCategoryFilter("overlays");
+        SettingsSection_Overlays.BringIntoView();
+    }
 
     private void SettingsNav_Media_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => SettingsSection_Media.BringIntoView();
+    {
+        ApplySettingsCategoryFilter("media");
+        SettingsSection_Media.BringIntoView();
+    }
 
     private void SettingsNav_Advanced_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => SettingsSection_Advanced.BringIntoView();
+    {
+        ApplySettingsCategoryFilter("advanced");
+        SettingsSection_Advanced.BringIntoView();
+    }
+
+    private void SettingsNav_All_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        => ApplySettingsCategoryFilter("all");
+
+    // ═══════════════════════════════════════════════════════════════
+    // Settings tab — Search & category filtering
+    // ═══════════════════════════════════════════════════════════════
+
+    private string _settingsActiveCategory = "all";
+
+    private void ApplySettingsCategoryFilter(string category)
+    {
+        _settingsActiveCategory = string.IsNullOrWhiteSpace(category) ? "all" : category.ToLowerInvariant();
+        UpdateSettingsCategoryPillStyles();
+        ApplySettingsFilter();
+    }
+
+    private void UpdateSettingsCategoryPillStyles()
+    {
+        var pills = new (System.Windows.Controls.Border Pill, string Key)[]
+        {
+            (SettingsNavBtn_All, "all"),
+            (SettingsNavBtn_Teams, "teams"),
+            (SettingsNavBtn_Match, "match"),
+            (SettingsNavBtn_Display, "display"),
+            (SettingsNavBtn_Overlays, "overlays"),
+            (SettingsNavBtn_Media, "media"),
+            (SettingsNavBtn_Advanced, "advanced"),
+        };
+        foreach (var (pill, key) in pills)
+        {
+            if (pill is null) continue;
+            bool active = string.Equals(key, _settingsActiveCategory, System.StringComparison.OrdinalIgnoreCase);
+            pill.Background = active
+                ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1F, 0x29, 0x37))
+                : System.Windows.Media.Brushes.Transparent;
+            pill.BorderBrush = active
+                ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x58, 0xA6, 0xFF))
+                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x21, 0x26, 0x2D));
+        }
+    }
+
+    private void SettingsSearch_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        if (SettingsSearchPlaceholder is not null && SettingsSearchBox is not null)
+            SettingsSearchPlaceholder.Visibility = string.IsNullOrEmpty(SettingsSearchBox.Text)
+                ? System.Windows.Visibility.Visible
+                : System.Windows.Visibility.Collapsed;
+        if (SettingsSearchClear is not null && SettingsSearchBox is not null)
+            SettingsSearchClear.Visibility = string.IsNullOrEmpty(SettingsSearchBox.Text)
+                ? System.Windows.Visibility.Collapsed
+                : System.Windows.Visibility.Visible;
+        ApplySettingsFilter();
+    }
+
+    private void SettingsSearchClear_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (SettingsSearchBox is not null)
+            SettingsSearchBox.Text = string.Empty;
+    }
+
+    private void ApplySettingsFilter()
+    {
+        string query = SettingsSearchBox?.Text?.Trim().ToLowerInvariant() ?? string.Empty;
+        string category = _settingsActiveCategory ?? "all";
+
+        var sections = new (System.Windows.Controls.Border Section, string Key)[]
+        {
+            (SettingsSection_Teams,    "teams"),
+            (SettingsSection_Match,    "match"),
+            (SettingsSection_Display,  "display"),
+            (SettingsSection_Overlays, "overlays"),
+            (SettingsSection_Media,    "media"),
+            (SettingsSection_Advanced, "advanced"),
+        };
+
+        int visibleCount = 0;
+        foreach (var (section, key) in sections)
+        {
+            if (section is null) continue;
+            bool categoryMatch = category == "all" || string.Equals(category, key, System.StringComparison.OrdinalIgnoreCase);
+            bool queryMatch = string.IsNullOrEmpty(query) || SectionMatchesQuery(section, query);
+            bool show = categoryMatch && queryMatch;
+            section.Visibility = show ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            if (show) visibleCount++;
+        }
+
+        if (SettingsNoResults is not null)
+            SettingsNoResults.Visibility = visibleCount == 0
+                ? System.Windows.Visibility.Visible
+                : System.Windows.Visibility.Collapsed;
+    }
+
+    private static bool SectionMatchesQuery(System.Windows.DependencyObject root, string query)
+    {
+        // Match the section's own Tag keywords first
+        if (root is System.Windows.FrameworkElement fe && fe.Tag is string tag &&
+            tag.ToLowerInvariant().Contains(query))
+            return true;
+
+        // Then any descendant TextBlock / TextBox / Button content
+        int count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            switch (child)
+            {
+                case System.Windows.Controls.TextBlock tb when !string.IsNullOrEmpty(tb.Text) &&
+                    tb.Text.ToLowerInvariant().Contains(query):
+                    return true;
+                case System.Windows.Controls.TextBox tx when !string.IsNullOrEmpty(tx.Text) &&
+                    tx.Text.ToLowerInvariant().Contains(query):
+                    return true;
+                case System.Windows.Controls.ContentControl cc when cc.Content is string s &&
+                    s.ToLowerInvariant().Contains(query):
+                    return true;
+            }
+            if (SectionMatchesQuery(child, query))
+                return true;
+        }
+        return false;
+    }
 }

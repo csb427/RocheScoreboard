@@ -45,6 +45,13 @@ public sealed class TrainingSession
     public bool IsRunning => _sw.IsRunning;
 
     /// <summary>
+    /// When true (default), the next interval's stopwatch starts immediately
+    /// after the current one finishes. When false, the session pauses at the
+    /// end of every interval and waits for the operator to press Start.
+    /// </summary>
+    public bool AutoAdvance { get; set; } = true;
+
+    /// <summary>
     /// True once every queued timer has hit zero (i.e. the session is fully
     /// exhausted and the final flash should run).
     /// </summary>
@@ -99,6 +106,67 @@ public sealed class TrainingSession
             if (_activeIndex >= _timers.Count) _activeIndex = Math.Max(0, _timers.Count);
         }
         RaiseStructural();
+    }
+
+    /// <summary>
+    /// Updates a queued (not-yet-finished) timer's title and/or duration.
+    /// For the currently-active timer this also re-baselines the stopwatch
+    /// so the running countdown reflects the new duration immediately.
+    /// </summary>
+    public void UpdateTimer(TrainingTimer t, string? newTitle, TimeSpan? newDuration)
+    {
+        int idx = _timers.IndexOf(t);
+        if (idx < 0) return;
+        if (t.HasFinished) return;
+
+        bool changed = false;
+
+        if (newTitle is not null)
+        {
+            string trimmed = string.IsNullOrWhiteSpace(newTitle) ? "TIMER" : newTitle.Trim();
+            if (!string.Equals(t.Title, trimmed, StringComparison.Ordinal))
+            {
+                t.Title = trimmed;
+                changed = true;
+            }
+        }
+
+        if (newDuration is { } d)
+        {
+            if (d < TimeSpan.FromSeconds(1)) d = TimeSpan.FromSeconds(1);
+            if (t.Duration != d)
+            {
+                bool isActive = idx == _activeIndex;
+                bool wasRunning = isActive && _sw.IsRunning;
+
+                // For non-active (queued) timers, replace both Duration and
+                // Remaining outright since the timer hasn't ticked yet.
+                // For the active timer, preserve elapsed progress where
+                // possible: keep the same elapsed offset and clamp Remaining.
+                if (!isActive)
+                {
+                    t.Duration = d;
+                    t.Remaining = d;
+                }
+                else
+                {
+                    TimeSpan elapsed = t.Duration - ActiveRemaining;
+                    if (elapsed < TimeSpan.Zero) elapsed = TimeSpan.Zero;
+                    t.Duration = d;
+                    TimeSpan newRemaining = d - elapsed;
+                    if (newRemaining < TimeSpan.Zero) newRemaining = TimeSpan.Zero;
+                    t.Remaining = newRemaining;
+                    if (wasRunning)
+                    {
+                        _remainingAtLastStart = newRemaining;
+                        _sw.Restart();
+                    }
+                }
+                changed = true;
+            }
+        }
+
+        if (changed) RaiseStructural();
     }
 
     public void MoveTimer(TrainingTimer t, int newIndex)
