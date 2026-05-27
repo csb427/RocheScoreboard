@@ -83,15 +83,11 @@ namespace Roche_Scoreboard
         private bool _syncingLogoCropControls;
         private string _selectedPreviewKey = "presentation:scorebug";
 
-        // Custom goal video paths
+        // Custom goal video paths. Goal-celebration MP4s now play through
+        // the same LibVLCSharp _video player surface as presentation videos
+        // — see PlayCustomGoalVideoIfConfigured / EnterVideoTakeover.
         private string? _homeGoalVideoPath;
         private string? _awayGoalVideoPath;
-        private MediaElement? _goalVideoOverlay;
-        // Opaque rectangle drawn directly under _goalVideoOverlay so the
-        // display window's layered-transparency surface (AllowsTransparency=True)
-        // doesn't force WPF's render thread to alpha-blend every video frame
-        // against the desktop. Shown only while the goal video is on screen.
-        private System.Windows.Shapes.Rectangle? _goalVideoBackdrop;
         private Action? _goalVideoCompletionCallback;
 
         // Retro CRT transition overlay
@@ -228,6 +224,10 @@ namespace Roche_Scoreboard
             // Wire up the cricket setup wizard
             CricketSetupWizardPanel.SetupCompleted += OnCricketSetupCompleted;
 
+            // Populate the custom quarter / break labels in settings from
+            // persisted overrides; live updates flow through QuarterLabelService.
+            LoadQuarterLabelsToSettings();
+
             // Wire up the cricket control panel reset
             CricketControlPanelView.ResetRequested += OnCricketResetRequested;
 
@@ -261,32 +261,35 @@ namespace Roche_Scoreboard
                 ? Visibility.Collapsed
                 : Visibility.Visible;
 
-            // Pause the local video preview whenever the operator leaves the
-            // VIDEO tab. Two simultaneous MediaElements (scoreboard + preview)
-            // are expensive — letting the hidden one keep decoding caused the
-            // app-wide lag that persisted until restart.
-            UpdateVideoTabPreviewActivation();
-        }
-
-        private void UpdateVideoTabPreviewActivation()
-        {
-            if (VideoTabPreview is null) return;
-            bool videoTabActive = MainTabControl?.SelectedItem is System.Windows.Controls.TabItem ti
-                                  && ti.Header is string h && h.Contains("VIDEO", StringComparison.OrdinalIgnoreCase);
-            try
+            // Only paint the VIDEO-tab live mirror while the tab is visible.
+            // VisualBrush of a 1080p container is a heavy per-frame operation
+            // on slower devices, so we keep it disconnected when the operator
+            // is on any other tab.
+            bool onVideoTab = MainTabControl?.SelectedItem is System.Windows.Controls.TabItem ti
+                              && ti.Header is string h && h.Contains("VIDEO", StringComparison.OrdinalIgnoreCase);
+            if (onVideoTab)
             {
-                if (!videoTabActive)
-                {
-                    VideoTabPreview.Pause();
-                }
-                else if (_videoPlayer?.IsPlaying == true && VideoTabPreview.Source is not null)
-                {
-                    // Re-sync to the scoreboard's current position and resume.
-                    try { VideoTabPreview.Position = _videoPlayer.Position; } catch { }
-                    VideoTabPreview.Play();
-                }
+                // Make sure the scoreboard window exists so the live mirror
+                // has a real visual to sample. Without this the operator
+                // sees the "Open the scoreboard window" placeholder until
+                // they manually trigger something on another tab.
+                EnsureScoreboardWindow();
+                // Finish any deferred restore load now that the operator is
+                // actually on the VIDEO tab.
+                HandleVideoTabActivated();
+                AttachLiveMirror();
+                // Hook the position event only while the operator can actually
+                // see the slider/clock. A paused video still ticks the libvlc
+                // event thread occasionally; gating the subscription means
+                // zero UI-thread dispatches happen on any other tab.
+                if (_videoPlayer is not null && _videoPlayer.HasSource)
+                    EnsureVideoTabPreviewSyncTimer();
             }
-            catch { /* ignore */ }
+            else
+            {
+                DetachLiveMirror();
+                StopVideoTabPreviewSyncTimer();
+            }
         }
 
         private async void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -355,7 +358,7 @@ namespace Roche_Scoreboard
             TryRestoreLastVideoPath();
 
             // Defer alerts so the window is fully visible first
-            await Dispatcher.InvokeAsync(ShowDeferredAlerts, System.Windows.Threading.DispatcherPriority.Background);
+            await Dispatcher.InvokeAsync(async () => await ShowDeferredAlerts(), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         /// <summary>
@@ -434,12 +437,34 @@ namespace Roche_Scoreboard
         /// Shows deferred alerts after the window is visible.
         /// Update alert takes priority; if skipped, the game-restore alert follows.
         /// </summary>
-        private void ShowDeferredAlerts()
+        private async Task ShowDeferredAlerts()
         {
+            // Wait for the background update check kicked off in App.OnStartup
+            // to finish before deciding whether to show the prompt. Without
+            // this await, the check is still in flight when this method runs
+            // and UpdateAvailable returns false on first launch, so the prompt
+            // never appears.
+            if (System.Windows.Application.Current is App startupApp)
+            {
+                try { await startupApp.UpdateCheckTask; } catch { }
+            }
+
             // Refresh the in-app Settings update card so the user can act on
-            // any pending update from there. Removed the close-time alert
-            // entirely — update management lives in the Settings tab now.
+            // any pending update from there.
             try { RefreshUpdateStatusUi(); } catch { }
+
+            // If a newer release is already known from the background check
+            // in App.OnStartup, surface the update prompt right away so the
+            // operator doesn't have to dig into Settings to find it.
+            if (System.Windows.Application.Current is App app && app.UpdateService.UpdateAvailable)
+            {
+                if (app.PromptForUpdate())
+                {
+                    // Update was applied and the app is shutting down to let
+                    // the external updater finish — skip the resume dialog.
+                    return;
+                }
+            }
 
             // Then check for a saved game in progress
             if (GameStateService.HasSavedState())
@@ -1006,13 +1031,14 @@ namespace Roche_Scoreboard
             {
                 Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Training Display",
                 WindowStyle = WindowStyle.None,
-                AllowsTransparency = !DisplaySettings.OpaqueDisplayWindows,
+                // Match the AFL display window: opaque, no layered transparency,
+                // so Windows 11 doesn't draw rounded corners or a faint border
+                // around the client area.
+                AllowsTransparency = false,
                 ResizeMode = ResizeMode.CanResize,
                 Topmost = true,
                 ShowInTaskbar = false,
-                Background = DisplaySettings.OpaqueDisplayWindows
-                    ? (System.Windows.Media.Brush)System.Windows.Media.Brushes.Black
-                    : System.Windows.Media.Brushes.Transparent,
+                Background = System.Windows.Media.Brushes.Black,
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 Width = 386,
                 Height = 193,
@@ -1020,6 +1046,18 @@ namespace Roche_Scoreboard
                 Top = 0,
                 Content = container
             };
+
+            // Collapse the non-client frame entirely so the training scorebug
+            // sits flush in the top-left with sharp corners and no border —
+            // identical to the AFL / Cricket display window styling.
+            System.Windows.Shell.WindowChrome.SetWindowChrome(_trainingDisplayWindow, new System.Windows.Shell.WindowChrome
+            {
+                CaptionHeight = 0,
+                GlassFrameThickness = new Thickness(0),
+                ResizeBorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(0),
+                UseAeroCaptionButtons = false
+            });
 
             // Restore the operator's last-saved Training display window layout if any.
             var savedTraining = WindowLayoutStorage.Get(WindowLayoutStorage.TrainingDisplayKey);
@@ -1070,7 +1108,108 @@ namespace Roche_Scoreboard
             SportSelectionPanel.Visibility = Visibility.Visible;
         }
 
+        private void ShowMatchLoadingScreen(
+            string homeName, string homeAbbr, string? homeLogo, string? homePrimaryColor,
+            string awayName, string awayAbbr, string? awayLogo, string? awayPrimaryColor,
+            string subtitle,
+            IReadOnlyList<string> steps,
+            FrameworkElement fadeOutWizard,
+            Action onReady)
+        {
+            MatchLoadingPanel.ConfigureTeams(
+                homeName, homeAbbr, homeLogo, homePrimaryColor,
+                awayName, awayAbbr, awayLogo, awayPrimaryColor);
+            MatchLoadingPanel.SetBrandSubtitle(subtitle);
+
+            MatchLoadingPanel.Opacity = 0;
+            MatchLoadingPanel.Visibility = Visibility.Visible;
+
+            var fadeIn = new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220))
+            {
+                EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }
+            };
+            MatchLoadingPanel.BeginAnimation(OpacityProperty, fadeIn);
+
+            // Fade the wizard panel out softly so the loader takes over the visual stage.
+            if (fadeOutWizard is not null)
+            {
+                var wizardFade = new System.Windows.Media.Animation.DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(220));
+                wizardFade.Completed += (_, _) =>
+                {
+                    fadeOutWizard.Visibility = Visibility.Collapsed;
+                    fadeOutWizard.Opacity = 1;
+                };
+                fadeOutWizard.BeginAnimation(OpacityProperty, wizardFade);
+            }
+
+            Action? finishedHandler = null;
+            bool readyInvoked = false;
+            finishedHandler = () =>
+            {
+                MatchLoadingPanel.LoadingFinished -= finishedHandler;
+
+                // Fade the loader out first, THEN run the (potentially heavy)
+                // match-startup work. Running it before the fade was making
+                // the dispatcher block on the final step and the "READY"
+                // beat, which looked like the loader was stuck at 100%.
+                var fadeOut = new System.Windows.Media.Animation.DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(260))
+                {
+                    EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseIn }
+                };
+                fadeOut.Completed += (_, _) =>
+                {
+                    MatchLoadingPanel.Visibility = Visibility.Collapsed;
+                    MatchLoadingPanel.Opacity = 1;
+
+                    if (readyInvoked) return;
+                    readyInvoked = true;
+
+                    // Defer the heavy work one dispatcher beat so WPF can
+                    // actually commit the collapsed visibility / wizard
+                    // teardown before we start hammering the UI thread.
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        try { onReady(); }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[MatchLoading] onReady error: {ex.Message}");
+                        }
+                    }), System.Windows.Threading.DispatcherPriority.Background);
+                };
+                MatchLoadingPanel.BeginAnimation(OpacityProperty, fadeOut);
+            };
+            MatchLoadingPanel.LoadingFinished += finishedHandler;
+
+            MatchLoadingPanel.StartLoading(steps, TimeSpan.FromMilliseconds(2600));
+        }
+
         private void OnSetupCompleted(SetupResult result)
+        {
+            ShowMatchLoadingScreen(
+                homeName: result.HomeName,
+                homeAbbr: result.HomeAbbr,
+                homeLogo: result.HomeLogoPath,
+                homePrimaryColor: result.HomePrimaryColor,
+                awayName: result.AwayName,
+                awayAbbr: result.AwayAbbr,
+                awayLogo: result.AwayLogoPath,
+                awayPrimaryColor: result.AwayPrimaryColor,
+                subtitle: "PREPARING MATCH BROADCAST",
+                steps: new[]
+                {
+                    "Calibrating scoreboard engine",
+                    "Loading team identities",
+                    "Syncing clock and quarter rules",
+                    "Mounting marquee feed",
+                    "Warming graphics pipeline",
+                    "Linking display window",
+                    "Final pre-match checks"
+                },
+                fadeOutWizard: SetupWizardPanel,
+                onReady: () => FinalizeAflSetup(result));
+        }
+
+        private void FinalizeAflSetup(SetupResult result)
         {
             ApplySetupResult(result);
 
@@ -1126,6 +1265,32 @@ namespace Roche_Scoreboard
         // Cricket setup + display
         // ----------------------------
         private void OnCricketSetupCompleted(CricketSetupResult result)
+        {
+            ShowMatchLoadingScreen(
+                homeName: result.TeamAName,
+                homeAbbr: result.TeamAAbbr,
+                homeLogo: result.TeamALogoPath,
+                homePrimaryColor: result.TeamAPrimaryColor,
+                awayName: result.TeamBName,
+                awayAbbr: result.TeamBAbbr,
+                awayLogo: result.TeamBLogoPath,
+                awayPrimaryColor: result.TeamBPrimaryColor,
+                subtitle: "PREPARING CRICKET BROADCAST",
+                steps: new[]
+                {
+                    "Calibrating match engine",
+                    "Loading squads and logos",
+                    "Configuring format and overs",
+                    "Mounting marquee feed",
+                    "Spinning up scorebug",
+                    "Linking cricket display",
+                    "Setting innings and toss"
+                },
+                fadeOutWizard: CricketSetupWizardPanel,
+                onReady: () => FinalizeCricketSetup(result));
+        }
+
+        private void FinalizeCricketSetup(CricketSetupResult result)
         {
             // Create and configure the cricket match manager
             _cricketMatch = new CricketMatchManager
@@ -1619,43 +1784,18 @@ namespace Roche_Scoreboard
             _displayContainer.Children.Add(_videoPlayer);
             _displayContainer.Children.Add(_weatherScreen);
 
-            _goalVideoOverlay = new MediaElement
-            {
-                LoadedBehavior = MediaState.Manual,
-                UnloadedBehavior = MediaState.Manual,
-                // Fill: goal animations are produced to match the display
-                // surface and should cover the entire area edge-to-edge
-                // (no black bezels). MP4 *presentation* videos use Uniform
-                // letterboxing — that's a separate playback path.
-                Stretch = System.Windows.Media.Stretch.Fill,
-                Visibility = Visibility.Collapsed,
-                Volume = 1.0
-            };
-            System.Windows.Media.RenderOptions.SetBitmapScalingMode(_goalVideoOverlay, System.Windows.Media.BitmapScalingMode.LowQuality);
-            System.Windows.Media.RenderOptions.SetEdgeMode(_goalVideoOverlay, System.Windows.Media.EdgeMode.Aliased);
-            Panel.SetZIndex(_goalVideoOverlay, 200);
-            _goalVideoOverlay.MediaEnded += GoalVideo_MediaEnded;
-            _goalVideoOverlay.MediaFailed += GoalVideo_MediaFailed;
+            // _videoPlayer is the sole MP4 surface: goal videos and
+            // presentation videos both route through it. Push it above the
+            // scorebug/other screens so toggling Visibility=Visible cleanly
+            // takes over the output window.
+            Panel.SetZIndex(_videoPlayer, 200);
 
-            // Opaque backdrop directly beneath the goal video so DWM's
-            // per-pixel-alpha composition (forced on by the display window's
-            // AllowsTransparency=True flag) collapses to a trivial opaque
-            // blit over the video region. Without this the render thread
-            // has to alpha-blend every video frame against the transparent
-            // layered-window surface, which is the documented cause of
-            // global WPF framerate drops during MediaElement playback.
-            // Visibility tracks the goal video so the rest of the time the
-            // scoreboard chrome retains its existing transparent behaviour.
-            var goalVideoBackdrop = new System.Windows.Shapes.Rectangle
-            {
-                Fill = System.Windows.Media.Brushes.Black,
-                IsHitTestVisible = false,
-                Visibility = Visibility.Collapsed
-            };
-            Panel.SetZIndex(goalVideoBackdrop, 199);
-            _displayContainer.Children.Add(goalVideoBackdrop);
-            _displayContainer.Children.Add(_goalVideoOverlay);
-            _goalVideoBackdrop = goalVideoBackdrop;
+            // The live VisualBrush mirror is attached lazily when the operator
+            // opens the VIDEO tab — see MainTabControl_SelectionChanged. A
+            // permanent attachment forces WPF to re-rasterise the entire
+            // scoreboard for every frame regardless of whether anyone is
+            // looking at the preview, which is the dominant background cost
+            // on lower-spec devices.
 
             // Retro CRT transition overlay — hidden until a retro transition fires
             _retroCrtOverlay = new Border
@@ -1677,21 +1817,35 @@ namespace Roche_Scoreboard
 
             _showingBreakScreen = false;
 
+            // VLC's VideoView embeds a native HWND via HwndHost. Layered
+            // (AllowsTransparency=true) WPF windows cannot host child HWNDs,
+            // so libvlc falls back to creating its own top-level window for
+            // the video — which is the "separate VLC window" the operator
+            // was seeing on Play. Forcing the AFL display window opaque
+            // keeps the video surface embedded in the top-left display
+            // window where it belongs, and also restores GPU-accelerated
+            // composition (the existing comment block below already
+            // recommends this for MP4 playback). Persist the choice so the
+            // Ctrl+Shift+T toggle stays in sync.
+            if (!DisplaySettings.OpaqueDisplayWindows)
+            {
+                DisplaySettings.OpaqueDisplayWindows = true;
+            }
+
             _displayWindow = new Window
             {
                 Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Display",
-                WindowStyle = DisplaySettings.OpaqueDisplayWindows ? WindowStyle.None : WindowStyle.None,
-                // AllowsTransparency forces WPF into a software-composited
-                // layered window, which is the documented cause of global
-                // framerate drops during MP4 playback. The operator can flip
-                // DisplaySettings.OpaqueDisplayWindows (Ctrl+Shift+T on the
-                // display window) to disable transparency on next launch and
-                // restore GPU-accelerated composition.
-                AllowsTransparency = !DisplaySettings.OpaqueDisplayWindows,
+                WindowStyle = WindowStyle.None,
+                // AllowsTransparency must stay false here: libvlc's VideoView
+                // hosts a child HWND for the video surface and child HWNDs
+                // cannot render inside a layered WPF window. Leaving this
+                // true caused VLC to spawn its own floating window for
+                // playback instead of drawing into the scoreboard surface.
+                AllowsTransparency = false,
                 ResizeMode = ResizeMode.CanResize,
                 Topmost = true,
                 ShowInTaskbar = false,
-                Background = DisplaySettings.OpaqueDisplayWindows ? (System.Windows.Media.Brush)Brushes.Black : Brushes.Transparent,
+                Background = Brushes.Black,
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 Width = 386,
                 Height = 193,
@@ -1699,6 +1853,23 @@ namespace Roche_Scoreboard
                 Top = 0,
                 Content = _displayContainer
             };
+
+            // Strip the non-client frame entirely. WindowStyle=None on a
+            // non-layered window still leaves Windows 11 drawing a thin
+            // border + rounded corners around the client area; applying a
+            // WindowChrome with zero glass, zero caption, zero border and
+            // zero corner radius collapses the non-client area to nothing
+            // so the scorebug sits flush in the top-left with no bars,
+            // gaps or curves. The existing WM_NCHITTEST hook continues to
+            // provide edge resizing.
+            System.Windows.Shell.WindowChrome.SetWindowChrome(_displayWindow, new System.Windows.Shell.WindowChrome
+            {
+                CaptionHeight = 0,
+                GlassFrameThickness = new Thickness(0),
+                ResizeBorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(0),
+                UseAeroCaptionButtons = false
+            });
 
             // Restore the operator's last-saved AFL display window layout if any.
             // Falls back to the 386×193 capture-area default at (0,0) — top-left of the primary monitor.
@@ -1711,8 +1882,9 @@ namespace Roche_Scoreboard
                 _rotationTimer?.Stop();
                 _rotationTimer = null;
                 StopStatsBarTimer();
-                StopGoalVideo();
+                ExitVideoTakeover();
                 _videoPlayer?.Stop();
+                DetachLiveMirror();
                 _displayWindow = null;
                 _scorebug = null;
                 _breakScreen = null;
@@ -1720,8 +1892,6 @@ namespace Roche_Scoreboard
                 _statsScreen = null;
                 _videoPlayer = null;
                 _weatherScreen = null;
-                _goalVideoOverlay = null;
-                _goalVideoBackdrop = null;
                 _retroCrtOverlay = null;
                 _calibrationOverlay = null;
                 _displayContainer = null;
@@ -1730,6 +1900,11 @@ namespace Roche_Scoreboard
             };
 
             HookDimensionMirror(_displayWindow);
+
+            // Hard opt-out from Windows 11 DWM rounded corners + accent border.
+            // Without this, WindowStyle.None windows get curved edges and a
+            // 1px coloured border on some machines (notably the scoreboard PC).
+            Services.WindowChromeEnforcer.Attach(_displayWindow);
 
             // Ctrl+Shift+C toggles the calibration overlay on the display window.
             _displayWindow.PreviewKeyDown += DisplayWindow_PreviewKeyDown;

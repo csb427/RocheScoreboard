@@ -75,7 +75,7 @@ namespace Roche_Scoreboard.Views
             ExpTopTimeText.Text = now;
             ExpTopClockText.Text = now;
             ExpTopDateText.Text = DateTime.Now.ToString("ddd d MMM");
-            ExpTopWeatherText.Text = "--�";
+            ExpTopWeatherText.Text = "--°";
 
             _wallClockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _wallClockTimer.Tick += (_, __) =>
@@ -102,69 +102,26 @@ namespace Roche_Scoreboard.Views
                 UpdateExpOverlayBleed();
             };
 
-            // Broadcast performance mode: while any MP4 is actively playing
-            // we pause the ticker and drop expensive drop-shadow glows so
-            // the renderer can spend its budget on the video surface.
-            Services.PlaybackPerformanceMode.StateChanged += OnPlaybackPerformanceStateChanged;
-            Unloaded += (_, __) => Services.PlaybackPerformanceMode.StateChanged -= OnPlaybackPerformanceStateChanged;
+            // Live custom quarter / break label refresh: when the operator
+            // changes a label in settings the scorebug should reflect it
+            // immediately without waiting for the next quarter change.
+            QuarterLabelService.LabelsChanged += OnQuarterLabelsChanged;
+            Unloaded += (_, __) => QuarterLabelService.LabelsChanged -= OnQuarterLabelsChanged;
         }
 
-        private bool _perfModeApplied;
-        private readonly Dictionary<UIElement, Effect?> _suspendedEffects = new();
-
-        private void OnPlaybackPerformanceStateChanged(object? sender, bool active)
+        private void OnQuarterLabelsChanged()
         {
-            // Marshal to UI thread � PlaybackPerformanceMode can fire from
-            // background completion callbacks.
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.BeginInvoke(new Action(() => OnPlaybackPerformanceStateChanged(sender, active)));
+                Dispatcher.BeginInvoke(new Action(OnQuarterLabelsChanged));
                 return;
             }
-
-            if (active)
-            {
-                if (_perfModeApplied) return;
-                _perfModeApplied = true;
-                StopAllMarquees();
-                SuspendExpensiveEffects(this);
-            }
-            else
-            {
-                if (!_perfModeApplied) return;
-                _perfModeApplied = false;
-                RestoreExpensiveEffects();
-                RestartMarqueeIfNeeded();
-            }
-        }
-
-        private void SuspendExpensiveEffects(DependencyObject root)
-        {
-            int count = VisualTreeHelper.GetChildrenCount(root);
-            for (int i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(root, i);
-                if (child is UIElement element && element.Effect is DropShadowEffect or BlurEffect)
-                {
-                    _suspendedEffects[element] = element.Effect;
-                    element.Effect = null;
-                }
-                SuspendExpensiveEffects(child);
-            }
-        }
-
-        private void RestoreExpensiveEffects()
-        {
-            foreach (var kvp in _suspendedEffects)
-            {
-                try { kvp.Key.Effect = kvp.Value; } catch { }
-            }
-            _suspendedEffects.Clear();
+            RefreshQuarterLabel();
         }
 
         // The expanded GOAL/LEAD-CHANGE overlays bleed left across the logo
         // column so the team-colour wash visually unifies the score and logo
-        // areas. The bleed must equal the logo column's actual width � when the
+        // areas. The bleed must equal the logo column's actual width ° when the
         // output window resizes the column changes width and a static -240
         // margin would leave a gap or overshoot. Recompute on layout changes.
         private void UpdateExpOverlayBleed()
@@ -226,20 +183,79 @@ namespace Roche_Scoreboard.Views
         // for the scores/names/clock on outdoor scoreboards. It is only made
         // visible when a contextual ticker message is queued, or when compact
         // clock mode needs the row to host the quarter+clock fallback.
+        private bool _bottomBarVisible;
+
         private void UpdateBottomBarVisibility()
         {
             if (ExpBottomBarRow is null) return;
             bool hasMessages = _marqueeMessages.Count > 0;
             bool needsRow = hasMessages || _compactClockActive;
-            ExpBottomBarRow.Height = needsRow ? new GridLength(70, GridUnitType.Star) : new GridLength(0);
-            ExpBottomBarRow.MinHeight = needsRow ? 32 : 0;
+
+            if (needsRow == _bottomBarVisible)
+            {
+                // Still ensure row height is correct (e.g. first run)
+                ExpBottomBarRow.Height = needsRow ? new GridLength(70, GridUnitType.Star) : new GridLength(0);
+                ExpBottomBarRow.MinHeight = needsRow ? 32 : 0;
+                return;
+            }
+
+            _bottomBarVisible = needsRow;
+
+            if (needsRow)
+            {
+                // Reveal the row first, then animate the border sliding up + fading in.
+                ExpBottomBarRow.Height = new GridLength(70, GridUnitType.Star);
+                ExpBottomBarRow.MinHeight = 32;
+                AnimateBottomBar(show: true);
+            }
+            else
+            {
+                AnimateBottomBar(show: false, onCompleted: () =>
+                {
+                    ExpBottomBarRow.Height = new GridLength(0);
+                    ExpBottomBarRow.MinHeight = 0;
+                });
+            }
+        }
+
+        private void AnimateBottomBar(bool show, Action? onCompleted = null)
+        {
+            if (ExpBottomBarBorder is null || ExpBottomBarSlide is null) return;
+
+            // Slightly longer durations + Quintic easing read as a smoother
+            // hand-off than the previous cubic curve, especially when the bar
+            // is sliding back out behind a finished marquee.
+            const double slideDistance = 48;
+            TimeSpan dur = TimeSpan.FromMilliseconds(show ? 460 : 380);
+            var ease = new QuinticEase { EasingMode = show ? EasingMode.EaseOut : EasingMode.EaseIn };
+
+            var fade = new DoubleAnimation
+            {
+                To = show ? 1.0 : 0.0,
+                Duration = dur,
+                EasingFunction = ease
+            };
+            var slide = new DoubleAnimation
+            {
+                To = show ? 0.0 : slideDistance,
+                Duration = dur,
+                EasingFunction = ease
+            };
+
+            if (onCompleted is not null)
+            {
+                slide.Completed += (_, _) => onCompleted();
+            }
+
+            ExpBottomBarBorder.BeginAnimation(UIElement.OpacityProperty, fade);
+            ExpBottomBarSlide.BeginAnimation(TranslateTransform.YProperty, slide);
         }
 
         // ---- Layout switching ----
 
         public void SetLayout(ScorebugLayout layout)
         {
-            // Only the modern (Expanded) layout is supported now � flexible, no Viewbox, no stretching.
+            // Only the modern (Expanded) layout is supported now ° flexible, no Viewbox, no stretching.
             layout = ScorebugLayout.Expanded;
             if (_currentLayout == layout) return;
             ClearOverlayQueue();
@@ -433,14 +449,40 @@ namespace Roche_Scoreboard.Views
         public void LockScoreUpdate(bool isHome) { if (isHome) _homeAnimating = true; else _awayAnimating = true; }
 
         private bool _quarterAnimating;
+        private int _currentQuarter = 1;
+        private int? _lastBreakQuarter; // when set, we're displaying the break label
 
         public void SetQuarter(int quarter)
         {
             if (_quarterAnimating) return;
             quarter = Math.Clamp(quarter, 1, 4);
-            QuarterNumberText.Text = $"Q{quarter}";
-            ExpQuarterNumberText.Text = $"Q{quarter}";
-            ExpCompactQuarterText.Text = $"Q{quarter}";
+            bool stateChanged = _currentQuarter != quarter || _lastBreakQuarter is not null;
+            _currentQuarter = quarter;
+            _lastBreakQuarter = null;
+            // Transitioning into a new quarter clears any live operator override
+            // so the new default Q-label is shown until the operator re-customises.
+            if (stateChanged) QuarterLabelService.ClearCurrentOverride();
+            string label = QuarterLabelService.CurrentOverride ?? QuarterLabelService.GetQuarterLabel(quarter);
+            QuarterNumberText.Text = label;
+            ExpQuarterNumberText.Text = label;
+            ExpCompactQuarterText.Text = label;
+        }
+
+        /// <summary>
+        /// Re-applies the current quarter / break label without animating. Used
+        /// when the operator edits a custom label in settings and we want the
+        /// scorebug to update live.
+        /// </summary>
+        internal void RefreshQuarterLabel()
+        {
+            if (_quarterAnimating) return;
+            string baseLabel = _lastBreakQuarter is int eq
+                ? QuarterLabelService.GetBreakLabel(eq)
+                : QuarterLabelService.GetQuarterLabel(_currentQuarter);
+            string label = QuarterLabelService.CurrentOverride ?? baseLabel;
+            QuarterNumberText.Text = label;
+            ExpQuarterNumberText.Text = label;
+            ExpCompactQuarterText.Text = label;
         }
 
         /// <summary>
@@ -448,16 +490,13 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         public void AnimateQuarterToBreakLabel(int endedQuarter)
         {
-            string breakLabel = endedQuarter switch
-            {
-                1 => "QT",
-                2 => "HT",
-                3 => "3QT",
-                _ => "FT"
-            };
+            // Transitioning to a break clears any live override.
+            QuarterLabelService.ClearCurrentOverride();
+            string breakLabel = QuarterLabelService.GetBreakLabel(endedQuarter);
+            _lastBreakQuarter = endedQuarter;
 
             // Set the text to the pre-break quarter so the flip starts from the right label
-            string fromLabel = $"Q{endedQuarter}";
+            string fromLabel = QuarterLabelService.GetQuarterLabel(endedQuarter);
             QuarterNumberText.Text = fromLabel;
             ExpQuarterNumberText.Text = fromLabel;
             ExpCompactQuarterText.Text = breakLabel;
@@ -549,7 +588,7 @@ namespace Roche_Scoreboard.Views
             var hSecBrush = new SolidColorBrush(hTextColor);
             var aSecBrush = new SolidColorBrush(aTextColor);
 
-            // Classic � single continuous gradient across the entire row (including logo area)
+            // Classic ° single continuous gradient across the entire row (including logo area)
             HomeRowGrid.Background = BuildRowGradient(_homeColor);
             AwayRowGrid.Background = BuildRowGradient(_awayColor);
             HomeLogoSquare.Background = System.Windows.Media.Brushes.Transparent;
@@ -564,7 +603,7 @@ namespace Roche_Scoreboard.Views
             HomeGoalsText.Foreground = hSecBrush; HomeBehindsText.Foreground = hSecBrush;
             AwayGoalsText.Foreground = aSecBrush; AwayBehindsText.Foreground = aSecBrush;
 
-            // Expanded � apply team gradients across logo cell and score panel.
+            // Expanded ° apply team gradients across logo cell and score panel.
             // The right-side end stops are kept relatively bright so the gradient
             // remains noticeable without going muddy / overly dark.
             var hDark = Mix(_homeColor, Colors.Black, 0.30);
@@ -754,7 +793,7 @@ namespace Roche_Scoreboard.Views
                 int cropW = right - left + 1;
                 int cropH = bottom - top + 1;
                 if (cropW <= 0 || cropH <= 0) return src;
-                // No meaningful trim � return original
+                // No meaningful trim ° return original
                 if (top == 0 && left == 0 && cropW == w && cropH == h) return src;
 
                 var cropped = new CroppedBitmap(converted, new Int32Rect(left, top, cropW, cropH));
@@ -821,7 +860,7 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         private void ExpandGBColumns()
         {
-            // Defer if a goal overlay is still animating � schedule a retry
+            // Defer if a goal overlay is still animating ° schedule a retry
             if (_homeAnimating || _awayAnimating)
             {
                 _gbExpandDelayTimer?.Stop();
@@ -851,7 +890,7 @@ namespace Roche_Scoreboard.Views
             // Animate name scale down (full name compressed to fit reduced width)
             SyncClassicNameScales(animate: true, GBExpandDuration, popEase);
 
-            // Column expansion � To-only so interrupted collapses resume smoothly
+            // Column expansion ° To-only so interrupted collapses resume smoothly
             var expand = new DoubleAnimation { To = GBColumnWidth, Duration = GBExpandDuration, EasingFunction = popEase };
             HomeGoalsContainer.BeginAnimation(WidthProperty, expand.Clone() as DoubleAnimation);
             HomeBehindsContainer.BeginAnimation(WidthProperty, expand.Clone() as DoubleAnimation);
@@ -902,7 +941,7 @@ namespace Roche_Scoreboard.Views
             // Animate name scale up (full name expanding to fill recovered width)
             SyncClassicNameScales(animate: true, GBCollapseDuration, ease);
 
-            // Column collapse � To-only so interrupted expands resume smoothly
+            // Column collapse ° To-only so interrupted expands resume smoothly
             var collapse = new DoubleAnimation { To = 0, Duration = GBCollapseDuration, EasingFunction = ease };
             HomeGoalsContainer.BeginAnimation(WidthProperty, collapse.Clone() as DoubleAnimation);
             HomeBehindsContainer.BeginAnimation(WidthProperty, collapse.Clone() as DoubleAnimation);
@@ -1105,6 +1144,14 @@ namespace Roche_Scoreboard.Views
             overlayText.Foreground = new SolidColorBrush(secondaryColor);
             overlayText.FontSize = expanded ? 100 : 72;
 
+            // Reset overlay-level transform/opacity so a previous style cannot
+            // leak a leftover TranslateTransform or stale opacity into the next
+            // animation. Each style configures its own entry transform.
+            overlay.RenderTransform = new TranslateTransform(0, 0);
+            overlay.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+            overlay.Opacity = 0;
+            overlayText.Opacity = 1;
+
             if (expanded)
             {
                 var scale = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale;
@@ -1122,6 +1169,9 @@ namespace Roche_Scoreboard.Views
             shimmer.Opacity = 0;
             gradBar.Opacity = expanded ? 0.55 : 0.7;
 
+            // Reset edge glow too — Electric strobes it, Clean uses it as an accent.
+            GetEdgeGlow(isHome, expanded).Opacity = 0;
+
             if (overlayText.Effect is System.Windows.Media.Effects.DropShadowEffect glow)
             { glow.Color = secondaryColor; glow.BlurRadius = 40; glow.Opacity = 0.9; }
         }
@@ -1134,12 +1184,16 @@ namespace Roche_Scoreboard.Views
         }
 
         // ==================================================================
-        // BROADCAST � AFL / Premier League TV
+        // BROADCAST — Premium TV graphics package
         // ------------------------------------------------------------------
-        // Team-colour overlay (NO rainbow) ? giant text slam at 1.5� snapping
-        // to 1� ? bright score-area glow radiates ? single fast shimmer ?
-        // overlay fades leaving a score glow pulse on the digits.
-        // The gradient bar uses a WHITE-to-TEAM colour wash, not rainbow.
+        // Structural fingerprint: VERTICAL reveal entry, multi-beat hold with
+        // two distinct shimmer passes, signature double-tap score glow, then
+        // controlled fade. Feels like a top-tier sports broadcaster lower-third.
+        // Entry: scaleY 0→1 with overshoot (vertical unfurl).
+        // Hold:  team-colour gradient wash; text grows then settles; two
+        //        shimmers separated by a silent beat; second glow pulse.
+        // Exit:  smooth opacity fade (no slide).
+        // Duration ~3.8s.
         // ==================================================================
 
         private double BuildBroadcastGoal(Storyboard sb, bool isHome, bool expanded)
@@ -1154,11 +1208,11 @@ namespace Roche_Scoreboard.Views
             var gradBar = GetGradBar(isHome, expanded);
             var shimmer = GetShimmer(isHome, expanded);
             var scoreGlow = GetScoreGlow(isHome, expanded);
+            var edgeGlow = GetEdgeGlow(isHome, expanded);
 
-            // Use full-opacity team colour overlay (not 0xEE)
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
 
-            // Tint the gradient bar to team secondary (white?team instead of rainbow)
+            // White ↔ team-secondary wash on the gradient bar
             var gradBrush = (LinearGradientBrush)gradBar.Fill;
             gradBrush.GradientStops[0].Color = Colors.White;
             gradBrush.GradientStops[1].Color = secondaryColor;
@@ -1170,52 +1224,92 @@ namespace Roche_Scoreboard.Views
             gradBrush.GradientStops[7].Color = secondaryColor;
 
             var ease = new QuadraticEase { EasingMode = EasingMode.EaseInOut };
-            var backEase = new BackEase { Amplitude = 0.5, EasingMode = EasingMode.EaseOut };
             var decelEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+            var backEase = new BackEase { Amplitude = 0.45, EasingMode = EasingMode.EaseOut };
             var (gradFrom, gradTo) = GetGradSweep(overlay, expanded);
             double shimFrom = GetShimmerFrom(overlay, expanded);
             double shimTo = GetShimmerTo(overlay, expanded);
 
-            // Score glow radiates FIRST (0�0.4s) � visible beneath overlay
-            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0, 1, 0.1, 0.0));
-            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 1, 0, 1.2, 1.6, ease));
+            // Signature VERTICAL feel: overlay snaps in at full coverage so the
+            // logos/scores can never peek through, but the GOAL text *itself*
+            // unfurls vertically (scaleY 0→1 with overshoot) giving the
+            // "lower-third reveal" character without exposing the row beneath.
+            overlayText.FontSize = expanded ? 124 : 90;
+            overlay.RenderTransform = new TranslateTransform(0, 0);
+            overlay.Opacity = 0;
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.10, 0.0, decelEase));
 
-            // Overlay slams in instantly
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.04));
-
-            // Team-colour gradient wash (0�1.5s, slower sweep)
-            sb.Children.Add(MakeDA(gradBar, "RenderTransform.(TranslateTransform.X)", gradFrom, gradTo, 1.5, 0.0, ease));
-
-            // GOAL text: starts at 1.5� and snaps DOWN to 1� (overshoot inward)
-            overlayText.FontSize = expanded ? 120 : 86;
+            // GOAL text unfurls vertically with a confident overshoot — this
+            // carries the broadcast "reveal" signature now that the panel
+            // itself is always fully opaque.
             if (expanded)
-            { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1.5; sc.ScaleY = 1.5; }
+            { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1; sc.ScaleY = 0; }
             else
-            { overlayText.RenderTransform = new ScaleTransform(1.5, 1.5); }
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 1.5, 1, 0.4, 0.02, backEase));
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleY", 1.5, 1, 0.4, 0.02, backEase));
+            { overlayText.RenderTransform = new ScaleTransform(1, 0); }
+            overlayText.Opacity = 0;
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0, 1, 0.12, 0.10, decelEase));
+            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleY", 0, 1, 0.42, 0.10, backEase));
+            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 1, 1, 0.01, 0.0));
 
-            // Glow burst: starts massive, contracts
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 120, 30, 0.5, 0.02, ease));
+            // First gradient wash (0.2–1.5s) — slow, authoritative
+            sb.Children.Add(MakeDA(gradBar, "RenderTransform.(TranslateTransform.X)", gradFrom, gradTo, 1.3, 0.2, ease));
 
-            // Fast shimmer wipe (0.4�0.9s)
-            sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0, 1, 0.06, 0.4));
-            sb.Children.Add(MakeDA(shimmer, "RenderTransform.(TranslateTransform.X)", shimFrom, shimTo, 0.5, 0.4, ease));
-            sb.Children.Add(MakeDA(shimmer, OpacityProperty, 1, 0, 0.08, 0.82));
+            // Score glow: double-tap signature (tap → ease → second tap → fade)
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0, 1, 0.08, 0.0));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 1, 0.25, 0.35, 0.08, ease));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.25, 0.95, 0.18, 1.4, ease));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.95, 0, 1.6, 1.6, ease));
 
-            // Hold, then crisp fade (1.4�1.8s)
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.4, 1.4, ease));
+            // Text glow follows the double-tap rhythm
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 30, 90, 0.25, 0.0, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 90, 30, 0.5, 0.25, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 30, 75, 0.15, 1.4, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 75, 25, 0.7, 1.55, ease));
 
-            return 1.6;
+            // Edge glow accent during hold (subtle horizontal energy line)
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 0.85, 0.4, 0.6, ease));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0.85, 0, 0.8, 2.4, ease));
+
+            // First shimmer (0.6–1.1s) — quick pass
+            sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0, 0.9, 0.06, 0.6));
+            sb.Children.Add(MakeDA(shimmer, "RenderTransform.(TranslateTransform.X)", shimFrom, shimTo, 0.55, 0.6, ease));
+            sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0.9, 0, 0.08, 1.07));
+
+            // Second shimmer (2.0–2.6s) — slower, signature double-pass
+            var shimReset = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.9) };
+            var t = isHome ? _homeTimers : _awayTimers;
+            shimReset.Tick += (_, __) =>
+            {
+                shimReset.Stop(); t.Remove(shimReset);
+                GetShimmerScroll(isHome, expanded).X = shimFrom;
+            };
+            t.Add(shimReset); shimReset.Start();
+            sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0, 0.7, 0.08, 2.0));
+            sb.Children.Add(MakeDA(shimmer, "RenderTransform.(TranslateTransform.X)", shimFrom, shimTo, 0.7, 2.0, ease));
+            sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0.7, 0, 0.1, 2.6));
+
+            // Exit: GOAL text closes vertically while the panel opacity holds
+            // until the very last moment so the row stays masked while the
+            // wordmark collapses — then both fade together.
+            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleY", 1, 0, 0.35, 3.20, ease));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0, 0.30, 3.25, ease));
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.30, 3.40, ease));
+
+            return 3.5;
         }
 
         // ==================================================================
-        // ELECTRIC � NBA / high-energy
+        // ELECTRIC — Stadium hype / high-energy
         // ------------------------------------------------------------------
-        // NO gradient bar at all. Instead: rapid white FLASH (overlay goes
-        // full white ? team colour), text SLAMS from 2� to 1� instantly,
-        // edge glow STROBES 3� rapidly, overlay flickers ON-OFF-ON-OFF-ON
-        // before holding steady, then snaps off. Very fast (<1.2s).
+        // Structural fingerprint: HORIZONTAL energy injection (no central
+        // scale-slam), rhythmic crackle hold, jagged exit. Edge glows lead
+        // the eye in from both sides; the overlay surges in like a charge.
+        // Entry: edge double-zap → horizontal compress/expand snap (scaleX
+        //        from 1.6 → 1 with overshoot), text vibrates micro-jitter.
+        // Hold:  5-beat strobe rhythm on the overlay & edge glow at uneven
+        //        intervals; gradient bar dashes across in reverse direction.
+        // Exit:  rapid edge-glow tail + horizontal collapse + cut.
+        // Duration ~3.0s.
         // ==================================================================
 
         private double BuildElectricGoal(Storyboard sb, bool isHome, bool expanded)
@@ -1230,66 +1324,110 @@ namespace Roche_Scoreboard.Views
             var edgeGlow = GetEdgeGlow(isHome, expanded);
             var gradBar = GetGradBar(isHome, expanded);
 
-            // Hide gradient bar for Electric � we use white flash instead
-            gradBar.Opacity = 0;
-
-            // Start overlay as WHITE
-            overlayBg.Color = Colors.White;
-            overlayText.FontSize = expanded ? 130 : 90;
-            overlayText.Foreground = new SolidColorBrush(secondaryColor);
+            // Hot white core wrapped in team colour
+            overlayBg.Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
+            overlayText.FontSize = expanded ? 128 : 92;
+            overlayText.Foreground = new SolidColorBrush(Colors.White);
             if (overlayText.Effect is System.Windows.Media.Effects.DropShadowEffect g)
-            { g.Color = secondaryColor; g.BlurRadius = 10; g.Opacity = 0.9; }
+            { g.Color = secondaryColor; g.BlurRadius = 30; g.Opacity = 1.0; }
 
+            // Reverse-direction gradient pass (right-to-left) — distinct from Broadcast/Classic
+            var gradBrush = (LinearGradientBrush)gradBar.Fill;
+            gradBrush.GradientStops[0].Color = secondaryColor;
+            gradBrush.GradientStops[1].Color = Colors.White;
+            gradBrush.GradientStops[2].Color = secondaryColor;
+            gradBrush.GradientStops[3].Color = Colors.White;
+            gradBrush.GradientStops[4].Color = secondaryColor;
+            gradBrush.GradientStops[5].Color = Colors.White;
+            gradBrush.GradientStops[6].Color = secondaryColor;
+            gradBrush.GradientStops[7].Color = Colors.White;
+            gradBar.Opacity = 0.85;
+
+            // Text: horizontal compress (1.6×, 1×) snapping wide — NO uniform scale-slam
             if (expanded)
-            { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 2.5; sc.ScaleY = 2.5; }
+            { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1.6; sc.ScaleY = 1; }
             else
-            { overlayText.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5); overlayText.RenderTransform = new ScaleTransform(2.5, 2.5); }
+            { overlayText.RenderTransform = new ScaleTransform(1.6, 1); }
 
-            var snapEase = new QuadraticEase { EasingMode = EasingMode.EaseIn };
+            var snapEase = new QuadraticEase { EasingMode = EasingMode.EaseOut };
             var decelEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+            var backEase = new BackEase { Amplitude = 0.6, EasingMode = EasingMode.EaseOut };
+            var (gradFrom, gradTo) = GetGradSweep(overlay, expanded);
 
-            // Edge glow triple strobe (0�0.3s)
-            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 1, 0.02, 0.0));
-            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0, 0.04, 0.02));
-            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 1, 0.02, 0.08));
-            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0, 0.04, 0.10));
-            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 1, 0.02, 0.16));
-            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0, 0.12, 0.18, decelEase));
+            // 0.00 – 0.30s: pre-charge edge zaps before overlay appears
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 1, 0.03, 0.0));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0, 0.05, 0.04));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 1, 0.03, 0.12));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0, 0.05, 0.16));
 
-            // Overlay: white flash ON-OFF-ON-OFF-ON (stutter)
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.02, 0.0));
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.02, 0.02));
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.02, 0.06));
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.02, 0.08));
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.02, 0.12));
+            // 0.20s: overlay surges in with horizontal expansion of the text.
+            // The panel itself snaps to full opacity instantly so the row
+            // never bleeds through during the energy beats.
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.04, 0.20));
+            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 1.6, 1, 0.28, 0.20, backEase));
 
-            // White flash transitions to team colour via timer
-            var colorTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.14) };
-            var timers = isHome ? _homeTimers : _awayTimers;
-            var teamCol = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
-            colorTimer.Tick += (_, __) => { colorTimer.Stop(); timers.Remove(colorTimer); overlayBg.Color = teamCol; };
-            timers.Add(colorTimer); colorTimer.Start();
+            // Reverse gradient dash (right→left) very fast
+            sb.Children.Add(MakeDA(gradBar, "RenderTransform.(TranslateTransform.X)", gradTo, gradFrom, 0.45, 0.22, snapEase));
 
-            // Text SLAMS from 2.5� ? 1� instantly (0.02�0.2s)
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 2.5, 1, 0.18, 0.02, snapEase));
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleY", 2.5, 1, 0.18, 0.02, snapEase));
+            // Hold beat 1: 5-step strobe at uneven cadence — strobing now
+            // hits the GOAL TEXT and SHIMMER (a white flash layer) instead
+            // of the panel, so the underlying row stays fully covered.
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0.35, 0.04, 0.55));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.35, 1, 0.05, 0.59));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0.5, 0.03, 0.78));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.5, 1, 0.04, 0.81));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0.7, 0.04, 1.05));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.7, 1, 0.05, 1.09));
 
-            // Glow burst on impact
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 10, 80, 0.08, 0.02));
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 80, 10, 0.15, 0.12, decelEase));
+            // Edge glow rides the strobes
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 1, 0.05, 0.55));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0.2, 0.25, 0.60));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0.2, 1, 0.05, 1.05));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0.3, 0.4, 1.10));
 
-            // Snap OFF (0.9�1.0s)
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.1, 0.9, snapEase));
+            // Glow burst pulses in sync (NOT a smooth fade — sharp)
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 30, 95, 0.06, 0.20));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 95, 25, 0.30, 0.26, decelEase));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 25, 70, 0.06, 1.05));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 70, 30, 0.4, 1.11, decelEase));
 
-            return 0.8;
+            // Second reverse gradient dash (1.6s) — confirms the energy
+            var gradReset = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.55) };
+            var t = isHome ? _homeTimers : _awayTimers;
+            gradReset.Tick += (_, __) => { gradReset.Stop(); t.Remove(gradReset); GetGradScroll(isHome, expanded).X = gradTo; };
+            t.Add(gradReset); gradReset.Start();
+            sb.Children.Add(MakeDA(gradBar, "RenderTransform.(TranslateTransform.X)", gradTo, gradFrom, 0.5, 1.6, snapEase));
+
+            // Sustained crackle on edge glow (1.8 – 2.5s)
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0.3, 1, 0.03, 1.85));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0.4, 0.06, 1.88));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0.4, 1, 0.03, 2.10));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0.3, 0.10, 2.13));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0.3, 0, 0.4, 2.30, decelEase));
+
+            // Exit (2.5 – 3.0s): text collapses horizontally while the panel
+            // stays fully opaque, then a quick cut at the very end.
+            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 1, 0.7, 0.18, 2.50, snapEase));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0, 0.12, 2.65, snapEase));
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.08, 2.78, snapEase));
+
+            return 2.9;
         }
 
         // ==================================================================
-        // CINEMATIC � F1 / Champions League
+        // CINEMATIC — Champions League / atmospheric drama
         // ------------------------------------------------------------------
-        // Overlay SLIDES IN from left (TranslateTransform), text fades in at
-        // normal scale (NO pop, NO scale), glow breathes slowly, entire overlay
-        // SLIDES OUT to the right. Very long hold (3.5s+). No shimmer.
+        // Structural fingerprint: SLOW BUILD, long breath-hold, atmospheric
+        // exit. The only style with horizontal slide ENTRY and EXIT — but
+        // they are slow and intentional, not flashy. Team logo participates:
+        // it slowly zooms forward during the buildup as an identity beat.
+        // Entry: overlay slides in from left over 0.9s (slow). Text fades
+        //        in from 0 with a faint upward drift; no scale snap.
+        // Hold:  long, glow breathes through three full inhale/exhale
+        //        cycles; team logo gently zoom-in (1.0 → 1.08) reinforcing
+        //        identity; subtle score glow rises and lingers.
+        // Exit:  slow slide out to right + opacity fade together (1.0s).
+        // Duration ~5.2s.
         // ==================================================================
 
         private double BuildCinematicGoal(Storyboard sb, bool isHome, bool expanded)
@@ -1305,114 +1443,201 @@ namespace Roche_Scoreboard.Views
             var scoreGlow = GetScoreGlow(isHome, expanded);
 
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
-            overlayText.FontSize = expanded ? 110 : 78;
+            overlayText.FontSize = expanded ? 118 : 82;
 
-            // Set text to full scale immediately (no pop effect)
+            // Text at full scale, but starts invisible — pure opacity reveal
             if (expanded)
             { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1; sc.ScaleY = 1; }
             else
             { overlayText.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5); overlayText.RenderTransform = new ScaleTransform(1, 1); }
 
-            // Hide gradient bar � cinematic uses no rainbow sweep
+            // No gradient sweep in cinematic
             gradBar.Opacity = 0;
-
-            // Text starts invisible (fades in)
             overlayText.Opacity = 0;
 
             var ease = new QuadraticEase { EasingMode = EasingMode.EaseInOut };
             var decelEase = new CubicEase { EasingMode = EasingMode.EaseOut };
-            var gentleEase = new SineEase { EasingMode = EasingMode.EaseInOut };
+            var slowDecel = new QuarticEase { EasingMode = EasingMode.EaseOut };
             double panelWidth = expanded ? 543 : 707;
 
-            // SLIDE overlay in from the left via ClipToBounds + translate
-            // We animate the overlay's own position using RenderTransform
-            overlay.RenderTransform = new TranslateTransform(-panelWidth, 0);
-            overlay.Opacity = 1;
+            // Cinematic entry: the panel itself fades up to full coverage
+            // (so the row is never partially exposed), while the gradient
+            // bar slowly slides across to carry the "horizontal cinematic
+            // motion" signature on top of the masked backdrop.
+            overlay.RenderTransform = new TranslateTransform(0, 0);
+            overlay.Opacity = 0;
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.45, 0.0, slowDecel));
 
-            // Slide in (0�0.6s)
-            sb.Children.Add(MakeDA(overlay, "RenderTransform.(TranslateTransform.X)", -panelWidth, 0, 0.6, 0.0, decelEase));
+            // Slow horizontal accent bar drift gives the cinematic feel
+            // without exposing the row.
+            gradBar.Opacity = 0.25;
+            var (cinGradFrom, cinGradTo) = GetGradSweep(overlay, expanded);
+            sb.Children.Add(MakeDA(gradBar, "RenderTransform.(TranslateTransform.X)", cinGradFrom, cinGradTo, 4.0, 0.2, ease));
 
-            // Score glow slow build
-            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0, 0.8, 0.8, 0.0, decelEase));
-            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.8, 0, 2.0, 2.5, ease));
+            // Score glow slow rise (peaks around 1.5s, holds, decays)
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0, 0.85, 1.2, 0.3, decelEase));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.85, 0.6, 1.5, 1.5, ease));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.6, 0, 1.8, 3.0, ease));
 
-            // Text fades in (0.3�0.8s) � NO scale animation
-            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0, 1, 0.5, 0.3, decelEase));
+            // Text fades in slowly (0.6 – 1.4s)
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0, 1, 0.8, 0.6, decelEase));
 
-            // Glow breathes (0.3�3.5s)
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 20, 100, 0.8, 0.3, ease));
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 100, 40, 1.0, 1.1, ease));
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 40, 80, 0.8, 2.1, ease));
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 80, 20, 0.6, 2.9, ease));
+            // Glow breathes — 3 full inhale/exhale cycles across the hold
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 25, 95, 0.8, 0.6, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 95, 35, 0.8, 1.4, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 35, 90, 0.7, 2.2, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 90, 30, 0.8, 2.9, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 30, 70, 0.5, 3.7, ease));
 
-            // SLIDE overlay out to the right (3.2�3.8s)
-            sb.Children.Add(MakeDA(overlay, "RenderTransform.(TranslateTransform.X)", 0, panelWidth, 0.6, 3.2, ease));
+            // Identity beat: gently zoom the team's logo (1.0 → 1.08 → 1.0)
+            // during the hold. Logo is foundational team identity — only this
+            // style uses it because the slow pacing leaves room to notice.
+            // We preserve the existing crop transform (zoom/offset) by adding
+            // a dedicated pulse ScaleTransform on top via a TransformGroup.
+            var logoImage = expanded
+                ? (isHome ? ExpHomeLogoImage : ExpAwayLogoImage)
+                : (isHome ? HomeLogoImage : AwayLogoImage);
+            if (logoImage != null)
+            {
+                logoImage.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+                var pulse = new ScaleTransform(1, 1);
+                var group = new TransformGroup();
+                if (logoImage.RenderTransform is TransformGroup existing)
+                {
+                    foreach (var child in existing.Children) group.Children.Add(child);
+                }
+                else if (logoImage.RenderTransform is Transform t && t != Transform.Identity)
+                {
+                    group.Children.Add(t);
+                }
+                group.Children.Add(pulse);
+                logoImage.RenderTransform = group;
+                sb.Children.Add(MakeDA(pulse, ScaleTransform.ScaleXProperty, 1.0, 1.08, 2.0, 0.4, ease));
+                sb.Children.Add(MakeDA(pulse, ScaleTransform.ScaleYProperty, 1.0, 1.08, 2.0, 0.4, ease));
+                sb.Children.Add(MakeDA(pulse, ScaleTransform.ScaleXProperty, 1.08, 1.0, 1.6, 2.4, ease));
+                sb.Children.Add(MakeDA(pulse, ScaleTransform.ScaleYProperty, 1.08, 1.0, 1.6, 2.4, ease));
+            }
 
-            return 3.6;
+            // Exit: text fades first, then the panel fades — no slide-off
+            // so the row underneath is never half-exposed.
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0, 0.6, 4.20, ease));
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.7, 4.50, ease));
+
+            return 5.0;
         }
 
         // ==================================================================
-        // CLEAN � Minimal / modern
+        // CLEAN — Modern minimalist / understated
         // ------------------------------------------------------------------
-        // NO overlay panel at all. Score area glows in team colour, the TOTAL
-        // score text scales up 1.2� with elastic ease then settles, and all
-        // score digits flash bright white foreground momentarily. Completely
-        // non-intrusive � the scoreboard stays fully readable.
+        // Structural fingerprint: a calm, fully opaque team-colour panel
+        // fades up over the scoring row; a single restrained "GOAL!"
+        // wordmark fades in centred at full size (NO scaling, NO sweeps,
+        // NO shimmer) — the typography itself carries the moment. A
+        // gentle score-glow heartbeat and total-digit swell run beneath
+        // so the score still reacts. Nothing strobes, nothing sweeps.
+        // Entry: panel opacity fade in, text opacity fade in.
+        // Hold:  GOAL holds steady, score heartbeat, total digit swell.
+        // Exit:  text fades, then panel fades — no slide, no flicker.
+        // Duration ~2.8s.
         // ==================================================================
 
         private double BuildCleanGoal(Storyboard sb, bool isHome, bool expanded)
         {
             var primaryColor = isHome ? _homeColor : _awayColor;
+            var secondaryColor = isHome ? _homeSecondaryColor : _awaySecondaryColor;
+            PrepareOverlay(isHome, expanded, primaryColor, secondaryColor);
             PrepareScoreGlow(isHome, expanded, primaryColor);
 
+            var overlay = GetOverlay(isHome, expanded);
+            var overlayText = GetOverlayText(isHome, expanded);
+            var gradBar = GetGradBar(isHome, expanded);
+            var shimmer = GetShimmer(isHome, expanded);
             var scoreGlow = GetScoreGlow(isHome, expanded);
             var edgeGlow = GetEdgeGlow(isHome, expanded);
 
-            // Get the total text element to animate scale
-            var totalText = expanded
-                ? (isHome ? ExpHomeTotalText : ExpAwayTotalText)
-                : (isHome ? HomeTotalText : AwayTotalText);
+            GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
+            overlayText.FontSize = expanded ? 116 : 84;
+
+            // No sweep, no shimmer — clean is defined by their absence.
+            gradBar.Opacity = 0;
+            shimmer.Opacity = 0;
+
+            // Text starts at full scale, fully transparent — pure opacity reveal.
+            if (expanded)
+            { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1; sc.ScaleY = 1; }
+            else
+            { overlayText.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5); overlayText.RenderTransform = new ScaleTransform(1, 1); }
+            overlayText.Opacity = 0;
+
+            // Restrained glow — soft, slow, no pulsing.
+            if (overlayText.Effect is System.Windows.Media.Effects.DropShadowEffect g)
+            { g.Color = secondaryColor; g.BlurRadius = 30; g.Opacity = 0.6; }
 
             var ease = new QuadraticEase { EasingMode = EasingMode.EaseInOut };
             var elasticEase = new ElasticEase { Oscillations = 1, Springiness = 5, EasingMode = EasingMode.EaseOut };
             var decelEase = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-            // Big score glow pulse (0�1.5s)
-            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0, 1, 0.08, 0.0));
-            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 1, 0.5, 0.2, 0.08, ease));
-            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.5, 0.8, 0.15, 0.28, ease));
-            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.8, 0, 1.0, 0.43, ease));
+            // Entry: panel fades up to full coverage, then text fades in.
+            overlay.RenderTransform = new TranslateTransform(0, 0);
+            overlay.Opacity = 0;
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.30, 0.00, decelEase));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0, 1, 0.30, 0.20, decelEase));
 
-            // Edge glow accent (0�0.5s)
-            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 1, 0.04, 0.0));
-            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 1, 0, 0.45, 0.04, decelEase));
+            // Single slow glow breath on the text (no pulses).
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 30, 55, 0.8, 0.5, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 55, 35, 0.8, 1.3, ease));
 
-            // Total text scales up 1.2� with elastic spring (0�0.8s)
+            // Soft edge accent — single sweep, no strobing.
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0, 0.6, 0.20, 0.10, decelEase));
+            sb.Children.Add(MakeDA(edgeGlow, OpacityProperty, 0.6, 0, 1.2, 0.50, ease));
+
+            // Heartbeat on the score area (subtler than overlay-less version).
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0, 0.85, 0.10, 0.00, decelEase));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.85, 0.35, 0.25, 0.10, ease));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.35, 0.75, 0.15, 0.50, ease));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.75, 0, 1.6, 0.70, ease));
+
+            // Elastic swell on the total digit — preserves any existing flip transform.
+            var totalText = expanded
+                ? (isHome ? ExpHomeTotalText : ExpAwayTotalText)
+                : (isHome ? HomeTotalText : AwayTotalText);
             totalText.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
-            var existingFlip = totalText.RenderTransform as TranslateTransform;
-            // We need a TransformGroup to combine flip + scale
-            var scaleXform = new ScaleTransform(1, 1);
-            if (existingFlip != null)
+            var swell = new ScaleTransform(1, 1);
+            var swellGroup = new TransformGroup();
+            if (totalText.RenderTransform is TransformGroup existing)
             {
-                var grp = new TransformGroup();
-                grp.Children.Add(existingFlip);
-                grp.Children.Add(scaleXform);
-                totalText.RenderTransform = grp;
-                sb.Children.Add(MakeDA(scaleXform, ScaleTransform.ScaleXProperty, 1, 1.2, 0.6, 0.0, elasticEase));
-                sb.Children.Add(MakeDA(scaleXform, ScaleTransform.ScaleYProperty, 1, 1.2, 0.6, 0.0, elasticEase));
-                sb.Children.Add(MakeDA(scaleXform, ScaleTransform.ScaleXProperty, 1.2, 1, 0.4, 0.6, decelEase));
-                sb.Children.Add(MakeDA(scaleXform, ScaleTransform.ScaleYProperty, 1.2, 1, 0.4, 0.6, decelEase));
+                foreach (var child in existing.Children) swellGroup.Children.Add(child);
             }
+            else if (totalText.RenderTransform is Transform t && t != Transform.Identity)
+            {
+                swellGroup.Children.Add(t);
+            }
+            swellGroup.Children.Add(swell);
+            totalText.RenderTransform = swellGroup;
 
-            // No overlay used � flip starts immediately
-            return 0.0;
+            sb.Children.Add(MakeDA(swell, ScaleTransform.ScaleXProperty, 1, 1.18, 0.55, 0.0, elasticEase));
+            sb.Children.Add(MakeDA(swell, ScaleTransform.ScaleYProperty, 1, 1.18, 0.55, 0.0, elasticEase));
+            sb.Children.Add(MakeDA(swell, ScaleTransform.ScaleXProperty, 1.18, 1, 0.45, 0.6, decelEase));
+            sb.Children.Add(MakeDA(swell, ScaleTransform.ScaleYProperty, 1.18, 1, 0.45, 0.6, decelEase));
+
+            // Exit: text first, then panel — no slide, no flicker.
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0, 0.35, 2.20, ease));
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.30, 2.50, ease));
+
+            return 2.6;
         }
 
         // ==================================================================
-        // CLASSIC � original animation preserved as-is
+        // CLASSIC — Retro arcade / vintage flicker
         // ------------------------------------------------------------------
-        // Rainbow gradient sweep + back-ease text pop + shimmer + pulse + fade.
-        // This is the ONLY preset that uses the rainbow gradient bar.
+        // Structural fingerprint: Looks like a 1980s scoreboard bulb display.
+        // Overlay stutters on like incandescent bulbs warming up, holds with
+        // an irregular flicker (random-feeling but deterministic), then
+        // flickers off. No gradient sweep, no shimmer — that is intentional
+        // and is what makes it READ as "old hardware" instead of "modern TV".
+        // Warm amber/secondary tint on the text. Score digits get a single
+        // settled glow (no double-tap — too modern).
+        // Duration ~2.6s.
         // ==================================================================
 
         private double BuildClassicGoal(Storyboard sb, bool isHome, bool expanded)
@@ -1420,47 +1645,74 @@ namespace Roche_Scoreboard.Views
             var primaryColor = isHome ? _homeColor : _awayColor;
             var secondaryColor = isHome ? _homeSecondaryColor : _awaySecondaryColor;
             PrepareOverlay(isHome, expanded, primaryColor, secondaryColor);
+            PrepareScoreGlow(isHome, expanded, primaryColor);
 
             var overlay = GetOverlay(isHome, expanded);
             var overlayText = GetOverlayText(isHome, expanded);
             var gradBar = GetGradBar(isHome, expanded);
             var shimmer = GetShimmer(isHome, expanded);
+            var scoreGlow = GetScoreGlow(isHome, expanded);
 
-            // Restore rainbow gradient (in case another preset changed it)
-            var gradBrush = (LinearGradientBrush)gradBar.Fill;
-            gradBrush.GradientStops[0].Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFFFFF");
-            gradBrush.GradientStops[1].Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFD700");
-            gradBrush.GradientStops[2].Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF6B00");
-            gradBrush.GradientStops[3].Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF0080");
-            gradBrush.GradientStops[4].Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#8000FF");
-            gradBrush.GradientStops[5].Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#00BFFF");
-            gradBrush.GradientStops[6].Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#00FF88");
-            gradBrush.GradientStops[7].Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFFFFF");
+            GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
+            overlayText.FontSize = expanded ? 108 : 78;
 
-            overlayText.FontSize = expanded ? 100 : 72;
+            // Vintage hardware: no gradient sweep, no shimmer
+            gradBar.Opacity = 0;
+            shimmer.Opacity = 0;
+
+            // Text starts at full scale (bulb either lit or unlit, no scaling)
+            if (expanded)
+            { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1; sc.ScaleY = 1; }
+            else
+            { overlayText.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5); overlayText.RenderTransform = new ScaleTransform(1, 1); }
+
+            // Warm bulb-glow on the text
+            if (overlayText.Effect is System.Windows.Media.Effects.DropShadowEffect g)
+            { g.Color = secondaryColor; g.BlurRadius = 25; g.Opacity = 0.95; }
 
             var ease = new QuadraticEase { EasingMode = EasingMode.EaseInOut };
-            var backEase = new BackEase { Amplitude = 0.4, EasingMode = EasingMode.EaseOut };
-            var (gradFrom, gradTo) = GetGradSweep(overlay, expanded);
-            double shimFrom = GetShimmerFrom(overlay, expanded);
-            double shimTo = GetShimmerTo(overlay, expanded);
+            var decelEase = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.12));
-            sb.Children.Add(MakeDA(gradBar, "RenderTransform.(TranslateTransform.X)", gradFrom, gradTo, expanded ? 1.2 : 1.8, ease: ease));
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 0, 1, 0.35, 0.08, backEase));
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleY", 0, 1, 0.35, 0.08, backEase));
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 40, expanded ? 100 : 80, expanded ? 0.2 : 0.3, expanded ? 0.08 : 0.4, ease));
-            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", expanded ? 100 : 80, 30, expanded ? 0.4 : 0.5, expanded ? 0.35 : 0.7, ease));
-            sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0, expanded ? 0.85 : 0.8, expanded ? 0.12 : 0.15, 0.5));
-            sb.Children.Add(MakeDA(shimmer, "RenderTransform.(TranslateTransform.X)", shimFrom, shimTo, 0.7, 0.5, ease));
-            sb.Children.Add(MakeDA(shimmer, OpacityProperty, expanded ? 0.85 : 0.8, 0, expanded ? 0.12 : 0.15, expanded ? 1.1 : 1.05));
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 1, 1.12, expanded ? 0.18 : 0.2, 1.0, ease));
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleY", 1, 1.12, expanded ? 0.18 : 0.2, 1.0, ease));
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 1.12, 1, expanded ? 0.22 : 0.25, expanded ? 1.18 : 1.2, ease));
-            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleY", 1.12, 1, expanded ? 0.22 : 0.25, expanded ? 1.18 : 1.2, ease));
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.5, 1.8, ease));
+            // Bulb warm-up: the PANEL snaps to full coverage immediately so
+            // the row is masked; the bulb stutter happens on the TEXT only,
+            // which reads as the lit bulb "warming up" against the housing.
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.04, 0.00, decelEase));
 
-            return 2.1;
+            // Text bulb warm-up: off, on, off, on, dim, on full (0.06 – 0.40s)
+            overlayText.Opacity = 0;
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0, 1, 0.02, 0.06));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0, 0.03, 0.09));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0, 1, 0.02, 0.17));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0.4, 0.04, 0.21));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.4, 1, 0.10, 0.30, decelEase));
+
+            // Bulb glow pulses irregularly during the hold (0.6 – 2.0s)
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 25, 55, 0.20, 0.50));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 55, 30, 0.35, 0.70, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 30, 60, 0.18, 1.10));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 60, 35, 0.40, 1.28, ease));
+            sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 35, 45, 0.20, 1.70));
+
+            // Mid-hold flicker dip (1.05s) — on the bulb (text) only, the
+            // housing (panel) stays fully opaque so the row stays masked.
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0.55, 0.03, 1.05));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.55, 1, 0.05, 1.08));
+
+            // Single warm settled score glow — no double-tap
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0, 0.7, 0.4, 0.30, decelEase));
+            sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.7, 0, 1.4, 1.00, ease));
+
+            // Bulb burnout exit (2.1 – 2.5s): the BULB (text) flickers and
+            // dies; the housing (panel) only fades after the bulb is fully
+            // out so the row underneath is never exposed mid-flicker.
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0.3, 0.03, 2.10));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.3, 0.9, 0.03, 2.13));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.9, 0.15, 0.04, 2.18));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.15, 0.55, 0.03, 2.22));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0.55, 0, 0.15, 2.25, decelEase));
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 1, 0, 0.20, 2.42, decelEase));
+
+            return 2.4;
         }
 
         // ==================================================================
@@ -1478,7 +1730,7 @@ namespace Roche_Scoreboard.Views
             var ease = new QuadraticEase { EasingMode = EasingMode.EaseInOut };
             var decelEase = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-            // Subtle score area glow (0�0.8s)
+            // Subtle score area glow (0°0.8s)
             sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0, 0.5, 0.1, 0.0, decelEase));
             sb.Children.Add(MakeDA(scoreGlow, OpacityProperty, 0.5, 0, 0.7, 0.1, ease));
 
@@ -1521,7 +1773,7 @@ namespace Roche_Scoreboard.Views
                 // Slide old value UP and out (off the top of the cell)
                 var so = new DoubleAnimation(0, -slideDist, slideOutDur) { BeginTime = begin, EasingFunction = snapEase };
                 Storyboard.SetTarget(so, tb); Storyboard.SetTargetProperty(so, new PropertyPath("RenderTransform.(TranslateTransform.Y)")); sb.Children.Add(so);
-                // Slide new value UP into place from below � G/B values pop with overshoot
+                // Slide new value UP into place from below ° G/B values pop with overshoot
                 var inEase = pop ? (IEasingFunction)popEase : bounceEase;
                 var si = new DoubleAnimation(slideDist, 0, slideInDur) { BeginTime = begin + slideOutDur, EasingFunction = inEase };
                 Storyboard.SetTarget(si, tb); Storyboard.SetTargetProperty(si, new PropertyPath("RenderTransform.(TranslateTransform.Y)")); sb.Children.Add(si);
@@ -1640,7 +1892,7 @@ namespace Roche_Scoreboard.Views
             translate.X = 0;
             translate.Y = h;
 
-            // Smooth easing curves � soft entry, gentle exit. No sway, scale,
+            // Smooth easing curves ° soft entry, gentle exit. No sway, scale,
             // or tilt: just a clean upward swipe that feels fluid.
             var entryEase = new CubicEase { EasingMode = EasingMode.EaseOut };
             var exitEase = new CubicEase { EasingMode = EasingMode.EaseIn };
@@ -1854,7 +2106,7 @@ namespace Roche_Scoreboard.Views
             else
             {
                 // A new overlay was requested while one is already showing.
-                // Smoothly hide the current one � OnOverlayHidden will pick the
+                // Smoothly hide the current one ° OnOverlayHidden will pick the
                 // next one off the queue, giving an exit-before-enter transition.
                 HideActiveOverlay();
             }
@@ -1920,7 +2172,7 @@ namespace Roche_Scoreboard.Views
                 new StatEntry { Label = "SCORING SHOTS", HomeValue = stats.HomeScoringShots.ToString(), AwayValue = stats.AwayScoringShots.ToString(), HomePct = st > 0 ? stats.HomeScoringShots / st : 0.5 },
                 new StatEntry { Label = "ACCURACY", HomeValue = $"{stats.HomeAccuracy:0}%", AwayValue = $"{stats.AwayAccuracy:0}%", HomePct = at2 > 0 ? stats.HomeAccuracy / at2 : 0.5 },
                 new StatEntry { Label = "TIME IN FRONT", HomeValue = $"{stats.HomeTimePctInFront:0}%", AwayValue = $"{stats.AwayTimePctInFront:0}%", HomePct = tt > 0 ? stats.HomeTimePctInFront / tt : 0.5 },
-                new StatEntry { Label = "LARGEST LEAD", HomeValue = stats.HomeLargestLead > 0 ? stats.HomeLargestLead.ToString() : "�", AwayValue = stats.AwayLargestLead > 0 ? stats.AwayLargestLead.ToString() : "�", HomePct = lt > 0 ? (double)stats.HomeLargestLead / lt : 0.5 }
+                new StatEntry { Label = "LARGEST LEAD", HomeValue = stats.HomeLargestLead > 0 ? stats.HomeLargestLead.ToString() : "–", AwayValue = stats.AwayLargestLead > 0 ? stats.AwayLargestLead.ToString() : "–", HomePct = lt > 0 ? (double)stats.HomeLargestLead / lt : 0.5 }
             };
         }
 
@@ -2032,7 +2284,7 @@ namespace Roche_Scoreboard.Views
 
             // No-op if the list is identical to the active one. Routine state
             // refreshes (score adds, clock pauses, periodic pushes) call this
-            // method on every tick � restarting the scroll there would reset
+            // method on every tick ° restarting the scroll there would reset
             // the marquee position constantly. Only apply when something
             // actually changed.
             if (MarqueeListEquals(_marqueeMessages, incoming))
@@ -2056,7 +2308,7 @@ namespace Roche_Scoreboard.Views
 
             if (MarqueeListEquals(_marqueeMessages, asText))
             {
-                // Text identical � just refresh styling on the active scroll
+                // Text identical ° just refresh styling on the active scroll
                 ApplyCurrentMarqueeStyle();
                 return;
             }
@@ -2129,6 +2381,20 @@ namespace Roche_Scoreboard.Views
 
         private void ApplyMarqueeMessages(List<string> messages)
         {
+            // Special-case: the operator just removed the last message while a
+            // scroll is in progress. Cutting the bar off mid-text looks abrupt,
+            // so let the active message finish its travel and the natural
+            // animation-complete handler will hide the bar smoothly.
+            if (messages.Count == 0 && _marqueeRunning && _marqueeMessages.Count > 0)
+            {
+                _marqueeMessages = messages;
+                _marqueeIndex = 0;
+                // Do NOT call StopAllMarquees / UpdateBottomBarVisibility here.
+                // OnMarqueeScrollCompleted will see the empty list and tear
+                // down + animate the bar out cleanly.
+                return;
+            }
+
             StopAllMarquees();
 
             // Find the first truly new message (not in the previous list) and start there
@@ -2174,6 +2440,18 @@ namespace Roche_Scoreboard.Views
         private void RunSingleMarquee(TextBlock text, Canvas canvas, TranslateTransform tr, System.Windows.Shapes.Rectangle? highlight = null, TranslateTransform? highlightTr = null)
         {
             if (string.IsNullOrWhiteSpace(text.Text)) { _marqueeRunning = false; return; }
+
+            // The bottom bar may have only just been made visible; if the canvas
+            // hasn't measured yet we'd compute a zero-size layout and the text
+            // ends up tiny and off-centre. Defer one layout pass in that case.
+            if (canvas.ActualHeight <= 0 || canvas.ActualWidth <= 0)
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                    RunSingleMarquee(text, canvas, tr, highlight, highlightTr)),
+                    DispatcherPriority.Loaded);
+                return;
+            }
+
             tr.BeginAnimation(TranslateTransform.XProperty, null);
             highlightTr?.BeginAnimation(TranslateTransform.XProperty, null);
 
@@ -2181,17 +2459,17 @@ namespace Roche_Scoreboard.Views
             // the bottom bar at any output-window size (instead of overflowing
             // when the bar shrinks below the design 34px).
             double canvasH = canvas.ActualHeight;
-            if (canvasH > 0)
-            {
-                double targetFs = Math.Max(8, canvasH * 0.7);
-                if (Math.Abs(text.FontSize - targetFs) > 0.5)
-                    text.FontSize = targetFs;
-            }
+            double targetFs = Math.Max(8, canvasH * 0.7);
+            if (Math.Abs(text.FontSize - targetFs) > 0.5)
+                text.FontSize = targetFs;
 
+            // Re-measure AFTER FontSize change so the centering math uses the
+            // final size (previously we measured against the stale font size
+            // which made the text look off-centre vertically).
             text.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
             double tw = text.DesiredSize.Width, th = text.DesiredSize.Height;
-            double cw = canvas.ActualWidth > 0 ? canvas.ActualWidth : ScalePx(600);
-            double ch = canvas.ActualHeight > 0 ? canvas.ActualHeight : ScalePx(100);
+            double cw = canvas.ActualWidth;
+            double ch = canvas.ActualHeight;
             Canvas.SetTop(text, Math.Max(0, (ch - th) / 2));
             Canvas.SetLeft(text, 0);
 
@@ -2234,6 +2512,25 @@ namespace Roche_Scoreboard.Views
             {
                 _marqueeIndex = (_marqueeIndex + 1) % _marqueeMessages.Count;
                 ScrollNextMessage();
+            }
+            else
+            {
+                // The message list was cleared while this scroll was in flight.
+                // Now that the text has travelled fully off the bar we can
+                // animate the bottom bar out smoothly.
+                MarqueeText.Text = string.Empty;
+                ExpMarqueeText.Text = string.Empty;
+                if (MarqueeHighlight is not null)
+                {
+                    MarqueeHighlight.Visibility = Visibility.Collapsed;
+                    MarqueeHighlight.Width = 0;
+                }
+                if (ExpMarqueeHighlight is not null)
+                {
+                    ExpMarqueeHighlight.Visibility = Visibility.Collapsed;
+                    ExpMarqueeHighlight.Width = 0;
+                }
+                UpdateBottomBarVisibility();
             }
         }
 
@@ -2855,7 +3152,7 @@ namespace Roche_Scoreboard.Views
         }
 
         // ==================================================================
-        // LEAD CHANGES � AFL / NRL
+        // LEAD CHANGES ° AFL / NRL
         // ------------------------------------------------------------------
         // Simple team-colour wash overlay (NO rainbow) ? "LEAD CHANGES:" label
         // fades in ? numerical value scales up with bounce effect ? overlay
@@ -2897,7 +3194,7 @@ namespace Roche_Scoreboard.Views
             // Overlay slams in instantly
             sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.04));
 
-            // Team-colour gradient wash (0�1.5s, slower sweep)
+            // Team-colour gradient wash (0°1.5s, slower sweep)
             sb.Children.Add(MakeDA(gradBar, "RenderTransform.(TranslateTransform.X)", gradFrom, gradTo, 1.5, 0.0, ease));
 
             // Value: starts at 0 and bounces to target
@@ -2935,7 +3232,7 @@ namespace Roche_Scoreboard.Views
         }
 
         // ==================================================================
-        // QUARTER SCORES � neon overlay showing each team's tally for the quarter.
+        // QUARTER SCORES ° neon overlay showing each team's tally for the quarter.
         // ==================================================================
 
         private bool _quarterScoresBarVisible;
@@ -2997,7 +3294,7 @@ namespace Roche_Scoreboard.Views
         }
 
         // ==================================================================
-        // RECENT SCORES � right-pushing mask overlay showing only the last
+        // RECENT SCORES ° right-pushing mask overlay showing only the last
         // five score events as "GOAL" / "BEHIND" with optional quarter splits.
         // The total-score and logo columns remain visible behind it.
         // ==================================================================
@@ -3026,6 +3323,7 @@ namespace Roche_Scoreboard.Views
 
             int? prevQuarter = null;
             int rowIdx = 0;
+            bool firstRow = true;
             foreach (var ev in lastN)
             {
                 if (prevQuarter.HasValue && prevQuarter.Value != ev.Quarter)
@@ -3036,10 +3334,14 @@ namespace Roche_Scoreboard.Views
                     ExpRecentScoresList.Children.Add(split);
                 }
                 ExpRecentScoresList.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-                var row = BuildRecentScoreRow(ev);
+                // First iteration is the most recent score (newest-first order).
+                // Flag it so BuildRecentScoreRow can apply the continuous
+                // pulse that flags the latest entry to the audience.
+                var row = BuildRecentScoreRow(ev, firstRow);
                 Grid.SetRow(row, rowIdx++);
                 ExpRecentScoresList.Children.Add(row);
                 prevQuarter = ev.Quarter;
+                firstRow = false;
             }
 
             // Width: covers the name/goals/behinds portion of the score column.
@@ -3051,13 +3353,13 @@ namespace Roche_Scoreboard.Views
             ExpRecentScoresOverlay.BeginAnimation(WidthProperty, null);
 
             // Fade name + goal + behind text out so the area behind the overlay
-            // is empty � only the Total cell and team logo remain visible
+            // is empty ° only the Total cell and team logo remain visible
             // (Total is pushed left to sit beside the logo).
             SetScoreCellsHiddenForRecentScores(true);
 
             if (_recentScoresVisible)
             {
-                // Already visible � just refresh content; no slide-in.
+                // Already visible ° just refresh content; no slide-in.
                 ExpRecentScoresOverlay.Width = targetW;
                 AnimatePanelPush(-targetW, TimeSpan.FromSeconds(0.0));
             }
@@ -3130,7 +3432,7 @@ namespace Roche_Scoreboard.Views
         private void AnimatePanelPush(double toX, TimeSpan dur)
         {
             // The recent-scores overlay enters from the right edge of the
-            // score column. Every score cell � including Totals � translates
+            // score column. Every score cell ° including Totals ° translates
             // LEFT by the overlay width, so the Total ends up sitting against
             // the logo column on the left while the overlay covers the rest.
             TranslateTransform[] targets =
@@ -3180,7 +3482,7 @@ namespace Roche_Scoreboard.Views
             return Math.Max(110, mask);
         }
 
-        private FrameworkElement BuildRecentScoreRow(ScoreEvent ev)
+        private FrameworkElement BuildRecentScoreRow(ScoreEvent ev, bool isMostRecent = false)
         {
             bool isGoal = ev.Type == ScoreType.Goal;
             bool isHome = ev.Team == TeamSide.Home;
@@ -3199,18 +3501,17 @@ namespace Roche_Scoreboard.Views
             {
                 Margin = new Thickness(0, 1, 0, 1),
                 Padding = new Thickness(0),
-                BorderThickness = new Thickness(1),
-                BorderBrush = new SolidColorBrush(teamColor),
+                BorderThickness = new Thickness(0),
                 Background = new SolidColorBrush(darkBg),
                 HorizontalAlignment = HAlign.Stretch,
                 VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
                 MinWidth = 0,
                 Effect = new DropShadowEffect
                 {
-                    BlurRadius = 8,
+                    BlurRadius = isMostRecent ? 14 : 8,
                     ShadowDepth = 0,
                     Color = teamColor,
-                    Opacity = 0.85
+                    Opacity = isMostRecent ? 1.0 : 0.85
                 }
             };
 
@@ -3261,7 +3562,7 @@ namespace Roche_Scoreboard.Views
             {
                 Stretch = Stretch.Uniform,
                 StretchDirection = StretchDirection.Both,
-                Margin = new Thickness(2),
+                Margin = new Thickness(0),
                 HorizontalAlignment = HAlign.Stretch,
                 VerticalAlignment = System.Windows.VerticalAlignment.Stretch
             };
@@ -3283,13 +3584,15 @@ namespace Roche_Scoreboard.Views
                     Opacity = 0.95
                 }
             };
-            // Reference width sized to the longer "BEHIND" label at FontSize 14.
-            // GOAL renders centered inside the same frame so both boxes scale
-            // their text to the exact same height.
+            // Reference frame sized to the longer "BEHIND" label at FontSize 14
+            // with no extra Viewbox margin so the text scales up to fill the
+            // row height. The Viewbox keeps GOAL and BEHIND at identical
+            // rendered heights and the frame width prevents either from
+            // clipping out of the row.
             var textFrame = new Grid
             {
-                Width = 70,
-                Height = 18,
+                Width = 64,
+                Height = 14,
                 HorizontalAlignment = HAlign.Center,
                 VerticalAlignment = System.Windows.VerticalAlignment.Center
             };
@@ -3299,15 +3602,32 @@ namespace Roche_Scoreboard.Views
             grid.Children.Add(viewbox);
 
             box.Child = grid;
+
+            // Continuous "latest score" indicator: pulse the most recent row's
+            // opacity for the full overlay duration so the audience can pick
+            // out the freshest entry at a glance. The animation loops via
+            // RepeatBehavior.Forever — HideRecentScores tears the overlay
+            // down by clearing the list, which releases this animation.
+            if (isMostRecent)
+            {
+                var pulse = new DoubleAnimation
+                {
+                    From = 1.0,
+                    To = 0.35,
+                    Duration = TimeSpan.FromSeconds(0.55),
+                    AutoReverse = true,
+                    RepeatBehavior = RepeatBehavior.Forever,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                };
+                box.BeginAnimation(OpacityProperty, pulse);
+            }
+
             return box;
         }
 
         private static string FormatQuarterBreakLabel(int olderQuarter) => olderQuarter switch
         {
-            1 => "QT",
-            2 => "HT",
-            3 => "3QT",
-            4 => "FT",
+            >= 1 and <= 4 => Services.QuarterLabelService.GetBreakLabel(olderQuarter),
             _ => $"END Q{olderQuarter}"
         };
 
@@ -3318,12 +3638,11 @@ namespace Roche_Scoreboard.Views
             {
                 Margin = new Thickness(0, 1, 0, 1),
                 Padding = new Thickness(2, 0, 2, 0),
-                BorderThickness = new Thickness(0, 1, 0, 1),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0x66, 0xFB, 0xBF, 0x24)) // amber
+                BorderThickness = new Thickness(0)
             };
             var tb = new TextBlock
             {
-                Text = $"� {FormatQuarterBreakLabel(olderQuarter)} �",
+                Text = $"— {FormatQuarterBreakLabel(olderQuarter)} —",
                 Foreground = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24)),
                 FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
                 FontWeight = FontWeights.Black,
@@ -3443,11 +3762,11 @@ namespace Roche_Scoreboard.Views
             if (_pendingWeatherStats is null) { OnOverlayHidden(); return; }
             var s = _pendingWeatherStats;
             ExpWeatherStatsIcon.Text = string.IsNullOrWhiteSpace(s.Icon) ? "?" : s.Icon;
-            ExpWeatherStatsTemp.Text = $"{Math.Round(s.CurrentTemp)}�";
+            ExpWeatherStatsTemp.Text = $"{Math.Round(s.CurrentTemp)}°";
             ExpWeatherStatsDesc.Text = (s.Description ?? "").ToUpperInvariant();
-            ExpWeatherStatsFeels.Text = $"{Math.Round(s.FeelsLike)}�";
-            ExpWeatherStatsMin.Text = $"{Math.Round(s.DayMin)}�";
-            ExpWeatherStatsMax.Text = $"{Math.Round(s.DayMax)}�";
+            ExpWeatherStatsFeels.Text = $"{Math.Round(s.FeelsLike)}°";
+            ExpWeatherStatsMin.Text = $"{Math.Round(s.DayMin)}°";
+            ExpWeatherStatsMax.Text = $"{Math.Round(s.DayMax)}°";
 
             if (_weatherStatsVisible) return;
             _weatherStatsVisible = true;
@@ -3484,10 +3803,9 @@ namespace Roche_Scoreboard.Views
                 var tile = new Border
                 {
                     Margin = new Thickness(1, 0, 1, 0),
-                    BorderBrush = new SolidColorBrush(Color.FromArgb(0x66, 0x67, 0xE8, 0xF9)),
-                    BorderThickness = new Thickness(1),
+                    BorderThickness = new Thickness(0),
                     Background = new SolidColorBrush(Color.FromArgb(0x44, 0x06, 0x1A, 0x2C)),
-                    CornerRadius = new CornerRadius(3),
+                    CornerRadius = new CornerRadius(0),
                     Padding = new Thickness(2, 0, 2, 0)
                 };
                 var sp = new StackPanel { HorizontalAlignment = HAlign.Center, VerticalAlignment = System.Windows.VerticalAlignment.Center };
@@ -3573,7 +3891,7 @@ namespace Roche_Scoreboard.Views
                 var track = new Border
                 {
                     Background = new SolidColorBrush(Color.FromArgb(0x33, 0x38, 0xBD, 0xF8)),
-                    CornerRadius = new CornerRadius(2)
+                    CornerRadius = new CornerRadius(0)
                 };
                 trackContainer.Children.Add(track);
 
@@ -3583,7 +3901,7 @@ namespace Roche_Scoreboard.Views
                 fillRow.RowDefinitions.Add(new RowDefinition { Height = new GridLength(Math.Max(pct, 0.0001), GridUnitType.Star) });
                 var fill = new Border
                 {
-                    CornerRadius = new CornerRadius(2),
+                    CornerRadius = new CornerRadius(0),
                     Background = new LinearGradientBrush(
                         Color.FromRgb(0x38, 0xBD, 0xF8), Color.FromRgb(0x06, 0x6E, 0xC9), 90)
                 };
@@ -3647,7 +3965,7 @@ namespace Roche_Scoreboard.Views
         {
             if (s is null) return;
             string icon = string.IsNullOrWhiteSpace(s.Icon) ? string.Empty : s.Icon + " ";
-            ExpTopWeatherText.Text = $"{icon}{Math.Round(s.CurrentTemp)}�";
+            ExpTopWeatherText.Text = $"{icon}{Math.Round(s.CurrentTemp)}°";
         }
 
         public void ShowQuarterScores(int quarter, int homeGoals, int homeBehinds, int awayGoals, int awayBehinds)

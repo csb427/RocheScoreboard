@@ -11,6 +11,30 @@ internal static class ChangelogService
 {
     public static IReadOnlyList<ChangelogVersion> Versions { get; } =
     [
+        new("3.2.0", "2026-05-06",
+        [
+            "[New] Video playback diagnostics & telemetry layer — structured log file at %LOCALAPPDATA%\\Roche_Scoreboard\\video.log, in-memory ring buffer surfaced on the VIDEO tab, and per-event severity (Info/Warn/Error) across source-set, Play/Pause/Stop, watchdog and decoder fallback paths",
+            "[New] LibVLC native runtime validation at startup — App.OnStartup now calls VlcRuntime.ValidateOrThrow() so missing or broken native VLC libraries surface as a clear startup diagnostic instead of failing silently when the first clip is loaded",
+            "[New] Frozen-playback watchdog — the player monitors VLC time progression after Play() and, if the stream stalls for 4 seconds, transparently retries once with software decoding before reporting failure to the operator",
+            "[New] Isolated playback test mode — StartIsolatedPlaybackTest / StopIsolatedPlaybackTest let a clip be looped through the takeover surface in isolation for diagnosing render or decode issues without touching the live scoreboard state",
+            "[New] Emergency VLC-only fallback window — a borderless, opaque, top-left, software-decoded EmergencyVideoWindow can be engaged if embedded WPF hosting becomes unstable, bypassing the WPF composition pipeline entirely",
+            "[New] VIDEO tab telemetry overlay — playback mode, hardware vs software decode state, takeover state and recent diagnostic entries are now shown above the live preview mirror",
+            "[Fixed] Switching to the video surface no longer auto-plays — pressing ‘Show on Scoreboard’ now displays the loaded clip paused on its current frame; the operator must explicitly press Play (or Restart) to start broadcast playback",
+            "[Improved] VlcRuntime hardened — initialisation errors are captured and exposed via IsAvailable / InitializationError, and Instance now throws fast with a clear message instead of failing later inside the player control",
+        ]),
+        new("3.1.1", "2026-05-05",
+        [
+            "[Fixed] Auto-updater now actually replaces the installed exe — for the single-file self-contained build, AppContext.BaseDirectory points at a per-launch %TEMP%\\.net extraction folder, so the previous updater was robocopying the new release into that throwaway directory and the real Roche_Scoreboard.exe on disk was never touched (next launch just re-extracted the old bundle). The install directory is now derived from Environment.ProcessPath, so the update is applied to the genuine install location and persists across relaunches",
+            "[Fixed] First-launch update prompt — App.OnStartup was awaiting the GitHub check on the UI thread, but as soon as it suspended the dispatcher created MainWindow and ran ShowDeferredAlerts BEFORE the network call returned, so UpdateAvailable was still false and the prompt never appeared. The check now runs as a background task exposed via App.UpdateCheckTask, and MainWindow awaits that task before deciding to show the prompt",
+        ]),
+        new("3.1.0", "2026-05-04",
+        [
+            "[Fixed] Custom video playback no longer spawns a separate floating VLC window — the player now correctly embeds inside the scoreboard display in the top-left; loading a clip just cues the source and the native VLC surface is only attached once the operator switches to the video screen so libvlc can host into the real child HWND instead of falling back to its own top-level window",
+            "[Fixed] Scoreboard display window is now truly borderless — Windows 11's residual rounded corners, 1px accent border and thin top caption strip on WindowStyle=None windows are stripped via a zero-thickness WindowChrome, so the scorebug sits flush in the top-left with no bars, gaps or curves",
+            "[Fixed] Auto-update detection — the app was querying the wrong GitHub repository name (Roche_Scoreboard instead of RocheScoreboard), so the startup update prompt never appeared and the Settings ‘Check for Updates’ button reported ‘failed to download update’; the API target now matches the actual release repo and updates are picked up immediately",
+            "[New] Recent Scores overlay — the most recent score now pulses continuously for the full duration of the overlay (sine-eased opacity flash + stronger team-coloured glow) so the freshest entry is unmistakable at a glance",
+            "[Improved] Recent Scores GOAL / BEHIND text is now noticeably larger inside each row — Viewbox margin removed and reference frame tightened so the labels scale up to fill the row height; GOAL and BEHIND still render at identical heights and neither clips the row",
+        ]),
         new("3.0.1", "2026-05-03",
         [
             "[New] Training Mode — inline edit queued timers: each queue row now has a ✎ button that swaps the row into an editable title + mm:ss form with ✓ Save / ✕ Cancel (Enter saves, Esc cancels); editing the active timer preserves elapsed progress and re-baselines the running stopwatch on the fly",

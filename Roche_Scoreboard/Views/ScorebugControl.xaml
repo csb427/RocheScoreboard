@@ -66,18 +66,18 @@
                 <Viewbox Grid.Column="0" Stretch="Uniform" StretchDirection="DownOnly" Margin="2">
                     <TextBlock x:Name="StatsHomeValueText" Text="0" Foreground="White" FontSize="28" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Viewbox>
-                <Border Grid.Column="1" CornerRadius="5" Background="#18FFFFFF" Margin="6,10,6,10" VerticalAlignment="Stretch" ClipToBounds="True">
+                <Border Grid.Column="1" CornerRadius="0" Background="#18FFFFFF" Margin="6,10,6,10" VerticalAlignment="Stretch" ClipToBounds="True">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition x:Name="StatsBarHomeCol" Width="*"/>
                             <ColumnDefinition x:Name="StatsBarAwayCol" Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" CornerRadius="5,0,0,5">
+                        <Border Grid.Column="0" CornerRadius="0">
                             <Border.Background>
                                 <SolidColorBrush x:Name="StatsHomeBarBrush" Color="#4488FF"/>
                             </Border.Background>
                         </Border>
-                        <Border Grid.Column="1" CornerRadius="0,5,5,0">
+                        <Border Grid.Column="1" CornerRadius="0">
                             <Border.Background>
                                 <SolidColorBrush x:Name="StatsAwayBarBrush" Color="#FF6644"/>
                             </Border.Background>
@@ -196,16 +196,16 @@
                 </Viewbox>
                 <!-- Split bar -->
                 <Grid Grid.Column="1" Margin="6,8">
-                    <Border CornerRadius="5" Background="#18FFFFFF" ClipToBounds="True">
+                    <Border CornerRadius="0" Background="#18FFFFFF" ClipToBounds="True">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition x:Name="WinProbHomeCol" Width="50*"/>
                                 <ColumnDefinition x:Name="WinProbAwayCol" Width="50*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" CornerRadius="5,0,0,5">
+                            <Border Grid.Column="0" CornerRadius="0">
                                 <Border.Background><SolidColorBrush x:Name="WinProbHomeBarBrush" Color="#4488FF"/></Border.Background>
                             </Border>
-                            <Border Grid.Column="1" CornerRadius="0,5,5,0">
+                            <Border Grid.Column="1" CornerRadius="0">
                                 <Border.Background><SolidColorBrush x:Name="WinProbAwayBarBrush" Color="#FF6644"/></Border.Background>
                             </Border>
                             <Viewbox Grid.ColumnSpan="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="4,1">
@@ -541,7 +541,7 @@
         </Grid.RowDefinitions>
 
         <!-- ============ TOP INFO BAR (weather | time | date) ============ -->
-        <Border Grid.Row="0" Panel.ZIndex="0" ClipToBounds="True" BorderThickness="0,0,0,1" BorderBrush="#1F2A44">
+        <Border Grid.Row="0" Panel.ZIndex="0" ClipToBounds="True" BorderThickness="0">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#020614" Offset="0.0"/>
@@ -576,8 +576,11 @@
             </Grid>
         </Border>
 
-        <!-- Bottom message bar -->
-        <Border Grid.Row="3" Panel.ZIndex="0" ClipToBounds="True">
+        <!-- Bottom message bar - slides up + fades in when triggered -->
+        <Border x:Name="ExpBottomBarBorder" Grid.Row="3" Panel.ZIndex="0" ClipToBounds="True" Opacity="0">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="ExpBottomBarSlide" Y="40"/>
+            </Border.RenderTransform>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#020614" Offset="0.0"/>
@@ -618,7 +621,7 @@
         </Border>
 
         <!-- Overlay bars (drop over top message bar) -->
-        <Border x:Name="ExpStatsBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="5" BorderThickness="1" BorderBrush="#F0C040" Background="#0D1117">
+        <Border x:Name="ExpStatsBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="5" BorderThickness="0" Background="#0D1117">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
             </Border.Effect>
@@ -663,7 +666,7 @@
             </Grid>
         </Border>
 
-        <Border x:Name="ExpScorelessBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="6" BorderThickness="1" BorderBrush="#F0C040" Background="#0D1117">
+        <Border x:Name="ExpScorelessBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="6" BorderThickness="0" Background="#0D1117">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
             </Border.Effect>
@@ -676,7 +679,7 @@
             </Viewbox>
         </Border>
 
-        <Border x:Name="ExpScoringRunBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="7" BorderThickness="1" BorderBrush="#F0C040">
+        <Border x:Name="ExpScoringRunBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="7" BorderThickness="0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
             </Border.Effect>
@@ -693,7 +696,7 @@
             </Viewbox>
         </Border>
 
-        <Border x:Name="ExpTeamDroughtBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="8" BorderThickness="1" BorderBrush="#F0C040">
+        <Border x:Name="ExpTeamDroughtBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="8" BorderThickness="0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
             </Border.Effect>
@@ -710,7 +713,7 @@
         </Border>
 
         <!-- Lead changes bar (expanded) -->
-        <Border x:Name="ExpLeadChangesBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="9" BorderThickness="1" BorderBrush="#F0C040" Background="#0D1117">
+        <Border x:Name="ExpLeadChangesBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="9" BorderThickness="0" Background="#0D1117">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
             </Border.Effect>
@@ -726,7 +729,7 @@
         </Border>
 
         <!-- Win probability bar (expanded) -->
-        <Border x:Name="ExpWinProbBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="10" BorderThickness="1" BorderBrush="#F0C040" Background="#0D1117">
+        <Border x:Name="ExpWinProbBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="10" BorderThickness="0" Background="#0D1117">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
             </Border.Effect>
@@ -772,7 +775,7 @@
              content scales to the bar's height while keeping a balanced layout. -->
 
         <!-- Current Weather (label + big temp + feels-like + min/max) -->
-        <Border x:Name="ExpWeatherStatsBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="12" BorderThickness="1" BorderBrush="#3B82F6">
+        <Border x:Name="ExpWeatherStatsBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="12" BorderThickness="0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#3B82F6" Opacity="0.55"/>
             </Border.Effect>
@@ -826,7 +829,7 @@
         </Border>
 
         <!-- Hourly Forecast (label + 4 compact tiles: time / icon / temp) -->
-        <Border x:Name="ExpForecastBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="13" BorderThickness="1" BorderBrush="#22D3EE">
+        <Border x:Name="ExpForecastBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="13" BorderThickness="0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#22D3EE" Opacity="0.55"/>
             </Border.Effect>
@@ -851,7 +854,7 @@
         </Border>
 
         <!-- Rain Probability (label + bars showing % per upcoming hour) -->
-        <Border x:Name="ExpRainBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="14" BorderThickness="1" BorderBrush="#38BDF8">
+        <Border x:Name="ExpRainBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="14" BorderThickness="0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#38BDF8" Opacity="0.55"/>
             </Border.Effect>
@@ -881,7 +884,7 @@
         </Border>
 
         <!-- Scores this quarter (drops from the top bar; pushes content below) -->
-        <Border x:Name="ExpQuarterScoresBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="11" BorderThickness="1" BorderBrush="#F0C040" Background="#0D1117">
+        <Border x:Name="ExpQuarterScoresBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="11" BorderThickness="0" Background="#0D1117">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
             </Border.Effect>
@@ -901,7 +904,7 @@
                     <!-- Hidden but kept for code-behind compatibility -->
                     <TextBlock x:Name="ExpQuarterScoresHomeNameText" Visibility="Collapsed"/>
                     <!-- Goals box -->
-                    <Border x:Name="ExpQuarterScoresHomeGoalsBox" MinWidth="92" Height="64" BorderThickness="2" Margin="0,0,6,0">
+                    <Border x:Name="ExpQuarterScoresHomeGoalsBox" MinWidth="92" Height="64" BorderThickness="0" Margin="0,0,6,0">
                         <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresHomeGoalsBg" Color="#0A2A6A"/></Border.Background>
                         <Border.BorderBrush><SolidColorBrush x:Name="ExpQuarterScoresHomeGoalsBorder" Color="#5A8AFF"/></Border.BorderBrush>
                         <Grid>
@@ -910,7 +913,7 @@
                         </Grid>
                     </Border>
                     <!-- Behinds box -->
-                    <Border x:Name="ExpQuarterScoresHomeBehindsBox" MinWidth="92" Height="64" BorderThickness="2" Margin="0,0,6,0">
+                    <Border x:Name="ExpQuarterScoresHomeBehindsBox" MinWidth="92" Height="64" BorderThickness="0" Margin="0,0,6,0">
                         <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresHomeBehindsBg" Color="#0A2A6A"/></Border.Background>
                         <Border.BorderBrush><SolidColorBrush x:Name="ExpQuarterScoresHomeBehindsBorder" Color="#5A8AFF"/></Border.BorderBrush>
                         <Grid>
@@ -919,7 +922,7 @@
                         </Grid>
                     </Border>
                     <!-- Total box (filled team colour) -->
-                    <Border x:Name="ExpQuarterScoresHomeTotalBox" MinWidth="110" Height="64" BorderThickness="2">
+                    <Border x:Name="ExpQuarterScoresHomeTotalBox" MinWidth="110" Height="64" BorderThickness="0">
                         <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresHomeTotalBg" Color="#0A2A6A"/></Border.Background>
                         <Border.BorderBrush><SolidColorBrush x:Name="ExpQuarterScoresHomeTotalBorder" Color="#FFFFFF"/></Border.BorderBrush>
                         <Grid>
@@ -943,7 +946,7 @@
                 <!-- Away block (boxes only) -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextBlock x:Name="ExpQuarterScoresAwayNameText" Visibility="Collapsed"/>
-                    <Border x:Name="ExpQuarterScoresAwayGoalsBox" MinWidth="92" Height="64" BorderThickness="2" Margin="0,0,6,0">
+                    <Border x:Name="ExpQuarterScoresAwayGoalsBox" MinWidth="92" Height="64" BorderThickness="0" Margin="0,0,6,0">
                         <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresAwayGoalsBg" Color="#7A1A1A"/></Border.Background>
                         <Border.BorderBrush><SolidColorBrush x:Name="ExpQuarterScoresAwayGoalsBorder" Color="#FF6644"/></Border.BorderBrush>
                         <Grid>
@@ -951,7 +954,7 @@
                             <TextBlock x:Name="ExpQuarterScoresAwayGoalsText" Text="0" FontFamily="Stolzl Bold" FontSize="58" FontWeight="Black" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,6,4,0"/>
                         </Grid>
                     </Border>
-                    <Border x:Name="ExpQuarterScoresAwayBehindsBox" MinWidth="92" Height="64" BorderThickness="2" Margin="0,0,6,0">
+                    <Border x:Name="ExpQuarterScoresAwayBehindsBox" MinWidth="92" Height="64" BorderThickness="0" Margin="0,0,6,0">
                         <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresAwayBehindsBg" Color="#7A1A1A"/></Border.Background>
                         <Border.BorderBrush><SolidColorBrush x:Name="ExpQuarterScoresAwayBehindsBorder" Color="#FF6644"/></Border.BorderBrush>
                         <Grid>
@@ -959,7 +962,7 @@
                             <TextBlock x:Name="ExpQuarterScoresAwayBehindsText" Text="0" FontFamily="Stolzl Bold" FontSize="58" FontWeight="Black" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,6,4,0"/>
                         </Grid>
                     </Border>
-                    <Border x:Name="ExpQuarterScoresAwayTotalBox" MinWidth="110" Height="64" BorderThickness="2">
+                    <Border x:Name="ExpQuarterScoresAwayTotalBox" MinWidth="110" Height="64" BorderThickness="0">
                         <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresAwayTotalBg" Color="#7A1A1A"/></Border.Background>
                         <Border.BorderBrush><SolidColorBrush x:Name="ExpQuarterScoresAwayTotalBorder" Color="#FFFFFF"/></Border.BorderBrush>
                         <Grid>
@@ -1513,7 +1516,7 @@
                     VerticalAlignment="Stretch"
                     Width="0"
                     ClipToBounds="True"
-                    BorderThickness="3,0,0,0"
+                    BorderThickness="0"
                     Panel.ZIndex="60"
                     IsHitTestVisible="False">
                 <Border.Effect>
@@ -1536,7 +1539,7 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <!-- Header strip -->
-                                    <Border Grid.Row="0" Height="14" Background="#15FFFFFF" BorderThickness="0,0,0,1">
+                                    <Border Grid.Row="0" Height="14" Background="#15FFFFFF" BorderThickness="0">
                                         <Border.BorderBrush>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                                 <GradientStop x:Name="ExpRecentScoresHeaderHomeStop" Color="#0A2A6A" Offset="0.0"/>
@@ -1557,14 +1560,20 @@
                                          entries (newest on top), with optional quarter splits.
                                          Each row gets an equal star height so boxes fill the
                                          entire overlay vertically. -->
-                                    <Grid x:Name="ExpRecentScoresList"
-                                          Grid.Row="1"
-                                          HorizontalAlignment="Stretch"
-                                          VerticalAlignment="Stretch"
-                                          Margin="2,1,2,1"/>
-                                </Grid>
-                            </Border>
-                    </Grid>
-                    </Grid>
-                </Grid>
-                </UserControl>
+                                                                 <Grid x:Name="ExpRecentScoresList"
+                                                                       Grid.Row="1"
+                                                                       HorizontalAlignment="Stretch"
+                                                                       VerticalAlignment="Stretch"
+                                                                       Margin="2,1,2,1"/>
+                                                             </Grid>
+                                                         </Border>
+                                                 </Grid>
+
+                                    <!-- ===== GOAL TAKEOVER (expanded) — REMOVED =====
+                                         Per-team overlays (`ExpHomeOverlay` / `ExpAwayOverlay`)
+                                         handle goal presentation scoped to the scoring team's
+                                         panel; a full-scorebug takeover layer is intentionally
+                                         not used here so animations stay within the team's row. -->
+                                                 </Grid>
+                                             </Grid>
+                                             </UserControl>

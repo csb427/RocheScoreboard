@@ -9,10 +9,11 @@
     <UseWindowsForms>true</UseWindowsForms>
 
     <!-- App identity -->
+    <AssemblyName>Roche Scoreboard</AssemblyName>
     <AssemblyTitle>Roche Scoreboard</AssemblyTitle>
     <Product>Roche Scoreboard</Product>
     <Description>AFL broadcast scoreboard overlay</Description>
-    <Version>3.0.1</Version>
+    <Version>3.2.0</Version>
 
     <!-- App icon (taskbar, File Explorer, title bar) -->
     <ApplicationIcon>app.ico</ApplicationIcon>
@@ -35,8 +36,30 @@
     <Content Include="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.7.1" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
     <PackageReference Include="SharpVectors.Reloaded" Version="1.8.5" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" />
   </ItemGroup>
+
+  <!--
+    LibVLCSharp's native loader requires libvlc.dll, libvlccore.dll and the
+    plugins folder to sit as LOOSE files next to the executable under
+    libvlc\win-x64\. With PublishSingleFile=true the VideoLAN.LibVLC.Windows
+    content items aren't reliably emitted to the publish directory, which
+    leaves the runtime unable to initialise on first launch. This target
+    copies the native runtime from the build output into the publish folder
+    after publishing finishes, so the deployed EXE always has its native
+    dependencies sitting beside it.
+  -->
+  <Target Name="CopyLibVlcNativesToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_LibVlcNativeFiles Include="$(OutDir)libvlc\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_LibVlcNativeFiles)"
+          DestinationFiles="@(_LibVlcNativeFiles->'$(PublishDir)libvlc\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          OverwriteReadOnlyFiles="true" />
+  </Target>
 
 </Project>

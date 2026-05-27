@@ -1,44 +1,44 @@
 namespace Roche_Scoreboard.Models
 {
     /// <summary>
-    /// Animation preset used when a goal or behind is scored.
-    /// Each style controls overlay appearance, score digit transitions,
-    /// colour effects, and timing curves.
+    /// Animation preset used when a goal or behind is scored. Each style has
+    /// a deliberately distinct motion fingerprint so the five presets do not
+    /// feel like variants of the same animation.
     /// </summary>
     public enum GoalAnimationStyle
     {
         /// <summary>
-        /// TV sports graphics package — sharp snap-in overlay, signature
-        /// double-tap score glow, text unfurls horizontally then vertically
-        /// (lower-third reveal), authoritative gradient sweep with trailing shimmer.
+        /// Premium TV graphics package — vertical-unfurl overlay entry,
+        /// signature double-tap score glow, two distinct shimmer passes,
+        /// controlled opacity fade. ~3.5s.
         /// </summary>
         Broadcast,
 
         /// <summary>
-        /// Lightning storm — rapid strobe flashes on edge and score glow,
-        /// text snaps in instantly with micro-vibration from electrical surge,
-        /// reversed shimmer discharge (right-to-left), hard cut-out.
+        /// Stadium hype — pre-charge edge-glow zaps, horizontal surge entry
+        /// (no central scale slam), 5-beat strobe rhythm, reverse-direction
+        /// gradient dashes, crackling collapse exit. ~2.9s.
         /// </summary>
         Electric,
 
         /// <summary>
-        /// Epic title drop — slow dramatic overlay reveal, intense long-building
-        /// glow, text starts massive (3×) and shrinks to 1× with elastic landing
-        /// bounce, dual shimmer passes, very slow cinematic fade-out.
+        /// Champions League drama — slow horizontal slide entry, three
+        /// breathing glow cycles, team logo gently zooms forward as an
+        /// identity beat, slow slide exit. ~5.0s.
         /// </summary>
         Cinematic,
 
         /// <summary>
-        /// Breathing pulse of light — no overlay panel or text, organic
-        /// heartbeat-like score glow (rise, dip, second pulse, slow exhale),
-        /// barely-there edge accent, gentle low-opacity shimmer pass.
+        /// Modern minimalist — no overlay panel, no GOAL! text. Two-stage
+        /// heartbeat on the score area, soft edge accent, elastic swell on
+        /// the total digit. Scoreboard remains fully readable. ~2.2s.
         /// </summary>
         Clean,
 
         /// <summary>
-        /// Vintage flicker — overlay flickers on with rapid opacity stutters
-        /// (incandescent bulbs warming up), text visible through the flickering
-        /// panel, warm slow score glow, no sweep or shimmer, flickers off.
+        /// Retro arcade — overlay stutters on like 1980s scoreboard bulbs
+        /// warming up, irregular mid-hold flicker, bulb-burnout exit.
+        /// No gradient sweep, no shimmer. ~2.4s.
         /// </summary>
         Classic,
 

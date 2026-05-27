@@ -20,6 +20,14 @@ public partial class App : Application
     internal AutoUpdateService UpdateService { get; } = new();
 
     /// <summary>
+    /// The background update check kicked off in <see cref="OnStartup"/>.
+    /// MainWindow awaits this before deciding whether to show the update
+    /// prompt, otherwise the prompt is evaluated before the network call
+    /// returns and never appears on first launch.
+    /// </summary>
+    internal Task UpdateCheckTask { get; private set; } = Task.CompletedTask;
+
+    /// <summary>
     /// Path to the crash log file. Each unhandled exception is appended with a
     /// timestamp so the next crash is diagnosable even if no WER dump is produced.
     /// </summary>
@@ -28,7 +36,7 @@ public partial class App : Application
         "Roche_Scoreboard",
         "crash.log");
 
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
@@ -45,15 +53,43 @@ public partial class App : Application
         // Enable high DPI support for modern displays
         System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.Default;
 
-        // Check for updates in the background; the prompt is deferred to MainWindow_Loaded
+        // Validate LibVLC native runtime up-front. A missing or broken VLC
+        // install should surface as a clear startup diagnostic instead of
+        // becoming an unexplained black-screen state during the first goal
+        // video. Failures are logged (via VideoDiagnostics) and shown to the
+        // operator, but do NOT block app launch - the scoreboard itself is
+        // still usable without video playback.
         try
         {
-            await UpdateService.CheckForUpdateAsync();
+            VlcRuntime.ValidateOrThrow();
         }
-        catch
+        catch (Exception vlcEx)
         {
-            // Never let an update check failure prevent the app from starting.
+            VideoDiagnostics.Error("Startup",
+                "LibVLC validation failed - video playback will be unavailable.", vlcEx);
+            LogException("VlcRuntime.ValidateOrThrow", vlcEx);
+            try
+            {
+                System.Windows.MessageBox.Show(
+                    "LibVLC native libraries failed to initialise. Video playback features will be disabled for this session.\n\n"
+                    + vlcEx.Message,
+                    "Roche Scoreboard - Video subsystem unavailable",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+            catch { /* headless / no shell - already logged */ }
         }
+
+        // Kick off the update check in the background. We do NOT await it
+        // here — OnStartup must return promptly so the dispatcher can show
+        // MainWindow. The task is parked on UpdateCheckTask so MainWindow's
+        // deferred-alerts code can await it before deciding whether to show
+        // the update prompt.
+        UpdateCheckTask = Task.Run(async () =>
+        {
+            try { await UpdateService.CheckForUpdateAsync(); }
+            catch { /* Never let an update check failure prevent the app from starting. */ }
+        });
     }
 
     /// <summary>

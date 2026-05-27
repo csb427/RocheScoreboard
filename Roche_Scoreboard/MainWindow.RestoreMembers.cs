@@ -516,12 +516,12 @@ public partial class MainWindow
     {
         return style switch
         {
-            GoalAnimationStyle.Broadcast => TimeSpan.FromSeconds(1.8),
-            GoalAnimationStyle.Electric => TimeSpan.FromSeconds(1.0),
-            GoalAnimationStyle.Cinematic => TimeSpan.FromSeconds(3.2),
-            GoalAnimationStyle.Clean => TimeSpan.FromSeconds(1.0),
-            GoalAnimationStyle.Classic => TimeSpan.FromSeconds(1.7),
-            _ => TimeSpan.FromSeconds(1.8)
+            GoalAnimationStyle.Broadcast => TimeSpan.FromSeconds(3.5),
+            GoalAnimationStyle.Electric => TimeSpan.FromSeconds(2.9),
+            GoalAnimationStyle.Cinematic => TimeSpan.FromSeconds(5.0),
+            GoalAnimationStyle.Clean => TimeSpan.FromSeconds(2.9),
+            GoalAnimationStyle.Classic => TimeSpan.FromSeconds(2.7),
+            _ => TimeSpan.FromSeconds(3.5)
         };
     }
 
@@ -1436,9 +1436,241 @@ public partial class MainWindow
         scoreDisplay.Foreground = ContrastHelper.GetContrastBrush(bg);
     }
 
+    // ── Unified MP4 takeover ───────────────────────────────────────────────
+    //
+    // Both goal-celebration videos and presentation videos play through the
+    // same LibVLCSharp surface (_videoPlayer). EnterVideoTakeover hides every
+    // sibling screen and reveals _videoPlayer; ExitVideoTakeover restores the
+    // screen that was visible beforehand. This replaces the previous layered
+    // MediaElement overlay, which was the root cause of black-screen and
+    // global-lag issues during live operation.
+
+    private UIElement? _preTakeoverScreen;
+    private bool _videoTakeoverActive;
+    private bool _scoreboardSuspendedForPlayback;
+    private bool _breakRotationWasRunningPreTakeover;
+
+    // Put the scoreboard ecosystem into a dormant state while a video owns
+    // the output window. Stops the break-screen rotation timer and break
+    // delay timer (both of which can otherwise fire mid-playback and force
+    // a screen switch), and freezes any running storyboard animations on
+    // the now-hidden sibling surfaces so they stop scheduling render-thread
+    // work. The video surface itself is untouched.
+    private void SuspendScoreboardForPlayback()
+    {
+        if (_scoreboardSuspendedForPlayback) return;
+        _scoreboardSuspendedForPlayback = true;
+
+        _breakRotationWasRunningPreTakeover = _isBreakRotating;
+        try { StopBreakRotation(); } catch { /* best-effort */ }
+
+        if (_breakScreenDelayTimer != null)
+        {
+            try { _breakScreenDelayTimer.Stop(); } catch { /* best-effort */ }
+            _breakScreenDelayTimer = null;
+        }
+
+        // Hidden WPF children still cost render-thread work if they have
+        // active storyboards. Collapsing them is already done by the
+        // takeover, but explicitly halting any animations on them removes
+        // the last bit of composition-thread chatter during playback.
+        try { _scorebug?.BeginAnimation(UIElement.OpacityProperty, null); } catch { }
+        try { _breakScreen?.BeginAnimation(UIElement.OpacityProperty, null); } catch { }
+        try { _scoreworm?.BeginAnimation(UIElement.OpacityProperty, null); } catch { }
+        try { _statsScreen?.BeginAnimation(UIElement.OpacityProperty, null); } catch { }
+        try { _weatherScreen?.BeginAnimation(UIElement.OpacityProperty, null); } catch { }
+    }
+
+    private void ResumeScoreboardForPlayback()
+    {
+        if (!_scoreboardSuspendedForPlayback) return;
+        _scoreboardSuspendedForPlayback = false;
+
+        if (_breakRotationWasRunningPreTakeover)
+        {
+            try { StartBreakRotation(); } catch { /* best-effort */ }
+        }
+        _breakRotationWasRunningPreTakeover = false;
+    }
+
+    private void EnterVideoTakeover()
+    {
+        if (_videoPlayer is null || _displayContainer is null) return;
+
+        if (!_videoTakeoverActive)
+        {
+            _preTakeoverScreen = GetCurrentlyVisibleScreen();
+            _videoTakeoverActive = true;
+            Roche_Scoreboard.Services.VideoDiagnostics.Info("Takeover",
+                $"EnterVideoTakeover · preScreen={_preTakeoverScreen?.GetType().Name ?? "<none>"}");
+        }
+
+        // Hide every non-video child so the takeover is unambiguous.
+        foreach (UIElement child in _displayContainer.Children)
+        {
+            if (ReferenceEquals(child, _videoPlayer)) continue;
+            child.Visibility = Visibility.Collapsed;
+        }
+
+        _videoPlayer.Visibility = Visibility.Visible;
+        _showingBreakScreen = true;
+
+        // Put the rest of the scoreboard system into dormant mode so the
+        // video surface owns the render pipeline.
+        SuspendScoreboardForPlayback();
+
+        if (VideoTabPreviewBadge != null)
+            VideoTabPreviewBadge.Text = "VIDEO TAKEOVER · ON SCOREBOARD";
+    }
+
+    private void ExitVideoTakeover()
+    {
+        if (_videoPlayer is not null)
+        {
+            try { _videoPlayer.Pause(); } catch { /* control may be torn down */ }
+            _videoPlayer.Visibility = Visibility.Collapsed;
+        }
+
+        // Always resume the scoreboard ecosystem, even if takeover wasn't
+        // formally active — defensive against suspend/resume drift.
+        ResumeScoreboardForPlayback();
+
+        if (!_videoTakeoverActive) return;
+        _videoTakeoverActive = false;
+        Roche_Scoreboard.Services.VideoDiagnostics.Info("Takeover", "ExitVideoTakeover");
+
+        UIElement? restore = _preTakeoverScreen ?? (UIElement?)_scorebug;
+        _preTakeoverScreen = null;
+
+        if (restore is not null)
+        {
+            restore.Visibility = Visibility.Visible;
+            _showingBreakScreen = !ReferenceEquals(restore, _scorebug);
+        }
+
+        if (VideoTabPreviewBadge != null)
+            VideoTabPreviewBadge.Text = "LIVE · MIRRORING SCOREBOARD";
+    }
+
+    /// <summary>
+    /// Isolated playback diagnostic mode. Suspends the rest of the scoreboard
+    /// ecosystem (rotation, animations, sibling screens) and plays a single
+    /// MP4 on the persistent <see cref="VideoPlayerControl"/> with no
+    /// overlays, no scorebug, no transitions. Used to isolate whether a
+    /// playback issue originates from LibVLC itself or from scoreboard
+    /// integration logic.
+    /// </summary>
+    /// <param name="filePath">Absolute path to an MP4 (or other VLC-readable) file.</param>
+    /// <returns>True when playback was kicked off; false when the file is missing or VLC is unavailable.</returns>
+    internal bool StartIsolatedPlaybackTest(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
+        {
+            Roche_Scoreboard.Services.VideoDiagnostics.Warn("TestMode",
+                $"StartIsolatedPlaybackTest: file not found ({filePath}).");
+            return false;
+        }
+        if (_videoPlayer is null || !Roche_Scoreboard.Services.VlcRuntime.IsAvailable)
+        {
+            Roche_Scoreboard.Services.VideoDiagnostics.Error("TestMode",
+                "StartIsolatedPlaybackTest: video player or LibVLC runtime unavailable.");
+            return false;
+        }
+
+        Roche_Scoreboard.Services.VideoDiagnostics.Info("TestMode",
+            $"Entering isolated playback test mode for {filePath}.");
+        try
+        {
+            _videoPlayer.Loop = true;
+            _videoPlayer.SetVideoSource(filePath);
+            EnterVideoTakeover();
+            _videoPlayer.Play();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Roche_Scoreboard.Services.VideoDiagnostics.Error("TestMode",
+                "StartIsolatedPlaybackTest threw.", ex);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Stops the isolated playback test mode and returns the scoreboard to
+    /// its pre-takeover state.
+    /// </summary>
+    internal void StopIsolatedPlaybackTest()
+    {
+        Roche_Scoreboard.Services.VideoDiagnostics.Info("TestMode",
+            "Exiting isolated playback test mode.");
+        try { _videoPlayer?.Stop(); } catch { /* best-effort */ }
+        ExitVideoTakeover();
+    }
+
+    // Single live instance — emergency mode is mutually exclusive with the
+    // embedded takeover. Only created on demand so its native player
+    // resources don't sit idle.
+    private Roche_Scoreboard.Views.EmergencyVideoWindow? _emergencyVideoWindow;
+
+    /// <summary>
+    /// Engages the emergency VLC-only borderless fallback window for the
+    /// given source. Use only when the embedded takeover pipeline has
+    /// repeatedly failed; this path bypasses the WPF compositor entirely.
+    /// The window is pinned to the top-left and sized to match the
+    /// scoreboard output dimensions.
+    /// </summary>
+    internal bool EngageEmergencyPlayback(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
+        {
+            Roche_Scoreboard.Services.VideoDiagnostics.Warn("Emergency",
+                $"EngageEmergencyPlayback: file not found ({filePath}).");
+            return false;
+        }
+        if (!Roche_Scoreboard.Services.VlcRuntime.IsAvailable)
+        {
+            Roche_Scoreboard.Services.VideoDiagnostics.Error("Emergency",
+                "EngageEmergencyPlayback: LibVLC runtime unavailable.");
+            return false;
+        }
+
+        // Mirror the scoreboard output region so the operator sees the same
+        // on-air result. Fall back to the display container's render size.
+        double w = _displayContainer?.ActualWidth > 0 ? _displayContainer.ActualWidth : 1280;
+        double h = _displayContainer?.ActualHeight > 0 ? _displayContainer.ActualHeight : 720;
+
+        try
+        {
+            if (_emergencyVideoWindow is null)
+            {
+                _emergencyVideoWindow = new Roche_Scoreboard.Views.EmergencyVideoWindow(
+                    Roche_Scoreboard.Services.VlcRuntime.Instance, w, h);
+                _emergencyVideoWindow.Closed += (_, _) => _emergencyVideoWindow = null;
+                _emergencyVideoWindow.Show();
+            }
+            _emergencyVideoWindow.PlaySource(filePath);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Roche_Scoreboard.Services.VideoDiagnostics.Error("Emergency",
+                "EngageEmergencyPlayback threw.", ex);
+            return false;
+        }
+    }
+
+    /// <summary>Closes the emergency playback window, if one is currently visible.</summary>
+    internal void DisengageEmergencyPlayback()
+    {
+        if (_emergencyVideoWindow is null) return;
+        Roche_Scoreboard.Services.VideoDiagnostics.Info("Emergency", "DisengageEmergencyPlayback.");
+        try { _emergencyVideoWindow.Close(); } catch { /* best-effort */ }
+        _emergencyVideoWindow = null;
+    }
+
     private void PlayCustomGoalVideoIfConfigured(bool isHome, Action fallbackAnimation)
     {
-        if (_scorebug == null)
+        if (_scorebug is null)
         {
             return;
         }
@@ -1450,85 +1682,69 @@ public partial class MainWindow
         }
 
         string? path = isHome ? _homeGoalVideoPath : _awayGoalVideoPath;
-        if (string.IsNullOrWhiteSpace(path) || !System.IO.File.Exists(path) || _goalVideoOverlay == null)
+        if (string.IsNullOrWhiteSpace(path) || !System.IO.File.Exists(path) || _videoPlayer is null)
         {
             fallbackAnimation();
             return;
         }
 
-        // If a goal video is already playing, stop it and fire its pending callback
-        // so the previous score flip completes before starting the new one
-        if (_goalVideoOverlay.Source != null && _goalVideoCompletionCallback != null)
+        // If a previous goal video is still on-screen, finish its pending
+        // score-flip so the new event can take over cleanly.
+        if (_goalVideoCompletionCallback is not null)
         {
-            _goalVideoOverlay.Stop();
-            _goalVideoOverlay.Visibility = Visibility.Collapsed;
-            if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
-            Roche_Scoreboard.Services.PlaybackPerformanceMode.End();
             Action? prev = _goalVideoCompletionCallback;
             _goalVideoCompletionCallback = null;
-            prev.Invoke();
+            _videoPlayer.PlaybackEnded -= GoalVideo_OneShotEnded;
+            _videoPlayer.MediaLoadFailed -= GoalVideo_LoadFailed;
+            try { prev?.Invoke(); } catch { /* ignore */ }
         }
 
         try
         {
             _goalVideoCompletionCallback = fallbackAnimation;
+            _videoPlayer.Loop = false;
+            _videoPlayer.PlaybackEnded += GoalVideo_OneShotEnded;
+            _videoPlayer.MediaLoadFailed += GoalVideo_LoadFailed;
+
+            // VideoOptimizer produces a playback-friendly copy at import
+            // time; using it here avoids decoding the original 4K source.
             string playbackPath = Roche_Scoreboard.Services.VideoOptimizer.GetPlaybackPath(path);
-            _goalVideoOverlay.Source = new Uri(playbackPath, UriKind.Absolute);
-            // Show the opaque backdrop *before* the video so the layered-
-            // window surface never has to alpha-blend a video frame.
-            if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Visible;
-            _goalVideoOverlay.Visibility = Visibility.Visible;
-            _goalVideoOverlay.Position = TimeSpan.Zero;
-            _goalVideoOverlay.Play();
-            Roche_Scoreboard.Services.PlaybackPerformanceMode.Begin();
-            _goalVideoPerfModeActive = true;
+            _videoPlayer.SetVideoSource(playbackPath);
+            EnterVideoTakeover();
+            _videoPlayer.Play();
         }
-        catch (UriFormatException)
+        catch
         {
-            _goalVideoCompletionCallback = null;
-            _goalVideoOverlay.Visibility = Visibility.Collapsed;
-            if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
-            fallbackAnimation();
+            FinishGoalVideoCallback();
         }
     }
 
-    private void GoalVideo_MediaEnded(object? sender, RoutedEventArgs e)
+    private void GoalVideo_OneShotEnded(object? sender, EventArgs e)
     {
-        _goalVideoOverlay?.Stop();
-        if (_goalVideoOverlay != null)
+        FinishGoalVideoCallback();
+    }
+
+    private void GoalVideo_LoadFailed(object? sender, VideoLoadFailedEventArgs e)
+    {
+        Roche_Scoreboard.Services.VideoDiagnostics.Error("GoalVideo",
+            "Goal video load/playback failed - reverting to fallback animation.", e.ErrorException);
+        FinishGoalVideoCallback();
+    }
+
+    private void FinishGoalVideoCallback()
+    {
+        if (_videoPlayer is not null)
         {
-            _goalVideoOverlay.Visibility = Visibility.Collapsed;
+            _videoPlayer.PlaybackEnded -= GoalVideo_OneShotEnded;
+            _videoPlayer.MediaLoadFailed -= GoalVideo_LoadFailed;
+            _videoPlayer.Loop = true;
         }
-        if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
-        EndGoalVideoPerfMode();
+
+        ExitVideoTakeover();
 
         Action? callback = _goalVideoCompletionCallback;
         _goalVideoCompletionCallback = null;
-        callback?.Invoke();
-    }
-
-    private void GoalVideo_MediaFailed(object? sender, ExceptionRoutedEventArgs e)
-    {
-        _goalVideoOverlay?.Stop();
-        if (_goalVideoOverlay != null)
-        {
-            _goalVideoOverlay.Visibility = Visibility.Collapsed;
-        }
-        if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
-        EndGoalVideoPerfMode();
-
-        Action? callback = _goalVideoCompletionCallback;
-        _goalVideoCompletionCallback = null;
-        callback?.Invoke();
-    }
-
-    private bool _goalVideoPerfModeActive;
-
-    private void EndGoalVideoPerfMode()
-    {
-        if (!_goalVideoPerfModeActive) return;
-        _goalVideoPerfModeActive = false;
-        Roche_Scoreboard.Services.PlaybackPerformanceMode.End();
+        try { callback?.Invoke(); } catch { /* ignore */ }
     }
 
     private void StopStatsBarTimer()
@@ -1537,17 +1753,6 @@ public partial class MainWindow
         _statsBarTimer = null;
         _statsBarHideTimer?.Stop();
         _statsBarHideTimer = null;
-    }
-
-    private void StopGoalVideo()
-    {
-        if (_goalVideoOverlay == null) return;
-
-        _goalVideoOverlay.Stop();
-        _goalVideoOverlay.Source = null;
-        _goalVideoOverlay.Visibility = Visibility.Collapsed;
-        if (_goalVideoBackdrop != null) _goalVideoBackdrop.Visibility = Visibility.Collapsed;
-        EndGoalVideoPerfMode();
     }
 
     // ── Periodic overlay scheduling (driven by OverlayScheduler) ──
@@ -1572,14 +1777,16 @@ public partial class MainWindow
     /// </summary>
     private void RegisterScheduledOverlays()
     {
-        // Shared cadence for every scheduled overlay. The interval is set just
-        // below the quarter length so any single overlay can appear at most
-        // about once per quarter, leaving room for the other six to also rotate
-        // through. Priority is also uniform so the late-quarter high-priority
-        // filter treats them all the same way.
-        TimeSpan sharedInterval = TimeSpan.FromMinutes(4);
+        // Analysis overlays (StatsBar, WinProbability, QuarterScores, RecentScores)
+        // surface the in-game story so they're favored over weather overlays:
+        // shorter MinInterval = more eligible scheduling slots, higher priority
+        // so they survive late-quarter filtering. Weather overlays still rotate
+        // through, but at roughly half the cadence so they no longer dominate.
+        TimeSpan analysisInterval = TimeSpan.FromMinutes(3);
+        TimeSpan weatherInterval = TimeSpan.FromMinutes(8);
         TimeSpan sharedDuration = TimeSpan.FromSeconds(12);
-        const int sharedPriority = 80;
+        const int analysisPriority = 90;
+        const int weatherPriority = 60;
 
         _overlayScheduler.RegisterOverlays(
         [
@@ -1587,40 +1794,40 @@ public partial class MainWindow
             {
                 Kind = OverlayKind.StatsBar,
                 DisplayDuration = sharedDuration,
-                MinInterval = sharedInterval,
-                Priority = sharedPriority,
+                MinInterval = analysisInterval,
+                Priority = analysisPriority,
                 IsRelevant = () => _match.Events.Count > 0
             },
             new OverlayDefinition
             {
                 Kind = OverlayKind.WinProbability,
                 DisplayDuration = sharedDuration,
-                MinInterval = sharedInterval,
-                Priority = sharedPriority,
+                MinInterval = analysisInterval,
+                Priority = analysisPriority,
                 IsRelevant = () => _match.Events.Count >= 3
             },
             new OverlayDefinition
             {
                 Kind = OverlayKind.Forecast,
                 DisplayDuration = sharedDuration,
-                MinInterval = sharedInterval,
-                Priority = sharedPriority,
+                MinInterval = weatherInterval,
+                Priority = weatherPriority,
                 IsRelevant = () => _scorebug?.GetWeatherSnapshot() is not null
             },
             new OverlayDefinition
             {
                 Kind = OverlayKind.Weather,
                 DisplayDuration = sharedDuration,
-                MinInterval = sharedInterval,
-                Priority = sharedPriority,
+                MinInterval = weatherInterval,
+                Priority = weatherPriority,
                 IsRelevant = () => _scorebug?.GetWeatherSnapshot() is not null
             },
             new OverlayDefinition
             {
                 Kind = OverlayKind.Rain,
                 DisplayDuration = sharedDuration,
-                MinInterval = sharedInterval,
-                Priority = sharedPriority,
+                MinInterval = weatherInterval,
+                Priority = weatherPriority,
                 IsRelevant = () =>
                 {
                     var snap = _scorebug?.GetWeatherSnapshot();
@@ -1632,16 +1839,16 @@ public partial class MainWindow
             {
                 Kind = OverlayKind.QuarterScores,
                 DisplayDuration = sharedDuration,
-                MinInterval = sharedInterval,
-                Priority = sharedPriority,
+                MinInterval = analysisInterval,
+                Priority = analysisPriority,
                 IsRelevant = () => _match.Events.Count > 0
             },
             new OverlayDefinition
             {
                 Kind = OverlayKind.RecentScores,
                 DisplayDuration = TimeSpan.FromSeconds(14),
-                MinInterval = sharedInterval,
-                Priority = sharedPriority,
+                MinInterval = analysisInterval,
+                Priority = analysisPriority,
                 IsRelevant = () => _match.Events.Count >= 3
             }
         ]);
@@ -2331,11 +2538,10 @@ public partial class MainWindow
         _showingBreakScreen = target != _scorebug;
         CurrentDisplayText.Text = label;
 
-        if (target == _videoPlayer)
-        {
-            if (!_suppressVideoAutoPlay)
-                _videoPlayer?.Play();
-        }
+        // Note: switching to the video surface intentionally does NOT auto-play
+        // the clip. The operator loads a video paused on its first frame and
+        // explicitly hits Play/Show on Scoreboard when they want broadcast.
+        // Goal videos drive their own playback start via PlayCustomGoalVideoIfConfigured.
     }
 
     private void SlideTransition(UIElement from, UIElement to, bool slideLeft)
@@ -2541,32 +2747,32 @@ public partial class MainWindow
         {
             style = GoalAnimationStyle.Electric;
             title = "Electric";
-            desc = "Lightning strobe flashes, instant text snap with micro-vibration, reversed shimmer discharge.";
-            duration = "~1.2s";
+            desc = "Stadium hype — pre-charge edge zaps, horizontal surge entry, 5-beat strobe rhythm, reverse-direction gradient dashes, crackling exit.";
+            duration = "~2.9s";
             intensity = "High";
         }
         else if (AnimCinematicRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Cinematic;
             title = "Cinematic";
-            desc = "Epic title drop — text falls from 3× with elastic bounce, slow glow build, dual shimmer.";
-            duration = "~3.2s";
+            desc = "Champions League drama — slow slide entry, three breathing glow cycles, team logo gently zooms forward, slow slide exit.";
+            duration = "~5.0s";
             intensity = "Low";
         }
         else if (AnimCleanRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Clean;
             title = "Clean";
-            desc = "Organic heartbeat pulse of light. No overlay or text — just a breath of score glow.";
-            duration = "~0.8s";
+            desc = "Modern minimalist — no overlay, no text. Two-stage heartbeat on the score area and an elastic swell on the total digit.";
+            duration = "~2.2s";
             intensity = "Minimal";
         }
         else if (AnimClassicRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Classic;
             title = "Classic";
-            desc = "Vintage flicker — overlay stutters on like old bulbs warming up, then flickers off.";
-            duration = "~1.8s";
+            desc = "Retro arcade — overlay stutters on like 1980s scoreboard bulbs warming up, irregular mid-hold flicker, bulb-burnout exit.";
+            duration = "~2.4s";
             intensity = "Medium";
         }
         else if (AnimCustomVideoRadio?.IsChecked == true)
@@ -2581,8 +2787,8 @@ public partial class MainWindow
         {
             style = GoalAnimationStyle.Broadcast;
             title = "Broadcast";
-            desc = "TV graphics package — sharp snap-in with double-tap glow and horizontal text unfurl.";
-            duration = "~2.0s";
+            desc = "Premium TV package — vertical-unfurl entry, signature double-tap score glow, dual shimmer passes, controlled fade.";
+            duration = "~3.5s";
             intensity = "Medium";
         }
 
@@ -3064,7 +3270,7 @@ public partial class MainWindow
         SyncPreviewToScoreboard();
     }
 
-    private void VideoPlayer_MediaLoadFailed(object? sender, System.Windows.ExceptionRoutedEventArgs e)
+    private void VideoPlayer_MediaLoadFailed(object? sender, Roche_Scoreboard.Views.VideoLoadFailedEventArgs e)
     {
         if (!Dispatcher.CheckAccess())
         {
@@ -3104,25 +3310,22 @@ public partial class MainWindow
                 VideoTabFileMetaText.Text = string.Empty;
             }
 
-            VideoTabApplyButton.IsEnabled = true;
-            VideoTabStatusText.Text = "Restored last video · click APPLY to load.";
+            if (VideoTabApplyButton != null) VideoTabApplyButton.IsEnabled = true;
 
+            // Re-load the saved clip into the scoreboard player on startup so
+            // every control button (Play, Restart, Show on Scoreboard, Unload)
+            // is immediately usable. Previously only the hidden Apply button
+            // was enabled here, which left the operator with disabled buttons
+            // and no obvious way forward after an app restart.
             _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(_customVideoPath);
 
-            try
-            {
-                string previewPath = Roche_Scoreboard.Services.VideoOptimizer.GetPlaybackPath(_customVideoPath);
-                VideoTabPreview.Source = new Uri(previewPath);
-                VideoTabPreview.Visibility = Visibility.Visible;
-                VideoTabPreviewPlaceholder.Visibility = Visibility.Collapsed;
-                VideoTabPreview.Play();
-                VideoTabPreview.Pause();
-            }
-            catch
-            {
-                VideoTabPreview.Visibility = Visibility.Collapsed;
-                VideoTabPreviewPlaceholder.Visibility = Visibility.Visible;
-            }
+            // Mark as pending so the first activation of the VIDEO tab will
+            // load it. We don't load it right now because Apply forces the
+            // scoreboard window to open, which we don't want to do during
+            // app start-up before the operator has picked a layout.
+            _pendingVideoRestoreLoad = true;
+            if (VideoTabUnloadButton != null) VideoTabUnloadButton.IsEnabled = true;
+            VideoTabStatusText.Text = "Restored last video · open the VIDEO tab to load.";
         }
         catch
         {
@@ -3175,24 +3378,10 @@ public partial class MainWindow
         VideoTabApplyButton.IsEnabled = true;
         VideoTabStatusText.Text = "✓ Upload successful · ready to load.";
 
-        // Local preview in the right pane. Use the optimised playback copy
-        // (downscaled / re-encoded by VideoOptimizer) when available so two
-        // MediaElements don't both decode a 4K source at the same time —
-        // that was causing the app-wide lag during playback.
-        try
-        {
-            string previewPath = Roche_Scoreboard.Services.VideoOptimizer.GetPlaybackPath(_customVideoPath);
-            VideoTabPreview.Source = new Uri(previewPath);
-            VideoTabPreview.Visibility = Visibility.Visible;
-            VideoTabPreviewPlaceholder.Visibility = Visibility.Collapsed;
-            VideoTabPreview.Play();
-            VideoTabPreview.Pause(); // hold on first frame
-        }
-        catch
-        {
-            VideoTabPreview.Visibility = Visibility.Collapsed;
-            VideoTabPreviewPlaceholder.Visibility = Visibility.Visible;
-        }
+        // Auto-load into the scoreboard player so the operator only has to
+        // click "Show on Scoreboard" next. This collapses the old three-step
+        // Browse → Load → Show workflow into a single linear path.
+        VideoTabApply_Click(this, new RoutedEventArgs());
     }
 
     private void VideoTabApply_Click(object sender, RoutedEventArgs e)
@@ -3233,6 +3422,7 @@ public partial class MainWindow
         VideoTabPlayPauseButton.IsEnabled = true;
         VideoTabRestartButton.IsEnabled = true;
         if (VideoTabShowOnScoreboardButton != null) VideoTabShowOnScoreboardButton.IsEnabled = true;
+        if (VideoTabUnloadButton != null) VideoTabUnloadButton.IsEnabled = true;
         EnsureVideoTabPreviewSyncTimer();
         UpdateVideoTabPlayPauseButton();
         VideoTabStatusText.Text = "Loaded · paused on first frame. Use \"Show on Scoreboard\" to broadcast.";
@@ -3247,18 +3437,26 @@ public partial class MainWindow
             return;
         }
 
+        // Use the formal takeover entry so the previous screen is captured
+        // and Unload / EndReached can restore it. SwitchToScreen alone
+        // doesn't set _videoTakeoverActive, which used to leave the operator
+        // stuck on the video surface after pressing Unload.
+        EnterVideoTakeover();
+
+        // Switching to the video surface intentionally does NOT auto-play.
+        // The clip is shown paused on its current frame; the operator must
+        // explicitly press Play (or Restart) to start broadcast playback.
         _suppressVideoAutoPlay = true;
         try
         {
-            SwitchToScreen(_videoPlayer, "Custom Video");
+            _videoPlayer.Pause();
         }
-        finally
-        {
-            _suppressVideoAutoPlay = false;
-        }
+        catch { /* ignore — VLC may still be wiring up */ }
 
+        CurrentDisplayText.Text = "Custom Video";
         SetSelectedPreview("presentation:video");
-        VideoTabStatusText.Text = "Showing on scoreboard.";
+        UpdateVideoTabPlayPauseButton();
+        VideoTabStatusText.Text = "Showing on scoreboard · paused. Press Play to start.";
     }
 
     private void VideoTabPlayPause_Click(object sender, RoutedEventArgs e)
@@ -3270,13 +3468,6 @@ public partial class MainWindow
         }
 
         _videoPlayer.TogglePlayPause();
-        // Mirror to local preview.
-        try
-        {
-            if (_videoPlayer.IsPlaying) VideoTabPreview.Play();
-            else VideoTabPreview.Pause();
-        }
-        catch { /* ignore */ }
         UpdateVideoTabPlayPauseButton();
     }
 
@@ -3292,14 +3483,59 @@ public partial class MainWindow
         {
             _videoPlayer.Seek(TimeSpan.Zero);
             _videoPlayer.Play();
-            VideoTabPreview.Position = TimeSpan.Zero;
-            VideoTabPreview.Play();
             VideoTabStatusText.Text = "Restarted from beginning.";
         }
         catch
         {
             VideoTabStatusText.Text = "Could not restart video.";
         }
+        UpdateVideoTabPlayPauseButton();
+    }
+
+    private void VideoTabUnload_Click(object sender, RoutedEventArgs e)
+    {
+        // If the scoreboard is currently broadcasting the video, drop back to
+        // the previous screen before tearing the source down so the operator
+        // doesn't see a frozen last frame.
+        if (_videoTakeoverActive)
+        {
+            ExitVideoTakeover();
+        }
+
+        try { _videoPlayer?.Stop(); } catch { /* control may be unloading */ }
+
+        StopVideoTabPreviewSyncTimer();
+
+        _customVideoPath = null;
+        try { Services.DisplaySettings.LastVideoPath = null; } catch { /* best-effort */ }
+
+        if (VideoTabFilePathText != null)
+        {
+            VideoTabFilePathText.Text = "No file selected";
+            VideoTabFilePathText.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#5080AA")!;
+        }
+        if (VideoTabFileMetaText != null)
+        {
+            VideoTabFileMetaText.Text = "Supported: mp4, mov, mkv, webm, avi, wmv, m4v, ts, mpg, mpeg, 3gp, flv and other Windows-supported formats.";
+        }
+
+        if (VideoTabApplyButton != null) VideoTabApplyButton.IsEnabled = false;
+        if (VideoTabShowOnScoreboardButton != null) VideoTabShowOnScoreboardButton.IsEnabled = false;
+        if (VideoTabPlayPauseButton != null) VideoTabPlayPauseButton.IsEnabled = false;
+        if (VideoTabRestartButton != null) VideoTabRestartButton.IsEnabled = false;
+        if (VideoTabUnloadButton != null) VideoTabUnloadButton.IsEnabled = false;
+
+        if (VideoTabSeekSlider != null)
+        {
+            _videoTabSuppressSeekFeedback = true;
+            VideoTabSeekSlider.Value = 0;
+            VideoTabSeekSlider.Maximum = 1;
+            _videoTabSuppressSeekFeedback = false;
+        }
+        if (VideoTabCurrentTimeText != null) VideoTabCurrentTimeText.Text = FormatTime(TimeSpan.Zero);
+        if (VideoTabDurationText != null) VideoTabDurationText.Text = FormatTime(TimeSpan.Zero);
+
+        if (VideoTabStatusText != null) VideoTabStatusText.Text = "Video unloaded.";
         UpdateVideoTabPlayPauseButton();
     }
 
@@ -3330,43 +3566,81 @@ public partial class MainWindow
 
     // ── YouTube-style preview controls ──────────────────────────────────────
 
-    private System.Windows.Threading.DispatcherTimer? _videoTabPreviewSyncTimer;
     private bool _videoTabSeekIsDragging;
     private bool _videoTabSuppressSeekFeedback;
+    private bool _videoTabPositionHandlerHooked;
+    // Set by TryRestoreLastVideoPath when a path was loaded from settings but
+    // the actual VLC source load has been deferred until the operator first
+    // visits the VIDEO tab (to avoid forcing the scoreboard window open on
+    // app start-up). Consumed by MainTabControl_SelectionChanged.
+    private bool _pendingVideoRestoreLoad;
 
+    internal void HandleVideoTabActivated()
+    {
+        if (!_pendingVideoRestoreLoad) return;
+        _pendingVideoRestoreLoad = false;
+        if (string.IsNullOrWhiteSpace(_customVideoPath) || !System.IO.File.Exists(_customVideoPath)) return;
+        try
+        {
+            VideoTabApply_Click(this, new RoutedEventArgs());
+            if (VideoTabStatusText != null)
+                VideoTabStatusText.Text = "Restored last video · paused on first frame.";
+        }
+        catch
+        {
+            // Leave the path visible so the operator can retry via Browse.
+        }
+    }
+
+    // The seek/time UI is driven by VLC's TimeChanged event surfaced via
+    // VideoPlayerControl.PositionChanged. That's 4 Hz of work *only* when
+    // the decoder is actually advancing — no DispatcherTimer waking the UI
+    // thread, no polling cost on idle/paused media. The handler is itself
+    // coalesced inside the player, so bursts after a seek don't queue up.
     private void EnsureVideoTabPreviewSyncTimer()
     {
-        if (_videoTabPreviewSyncTimer != null) return;
-        _videoTabPreviewSyncTimer = new System.Windows.Threading.DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(250)
-        };
-        _videoTabPreviewSyncTimer.Tick += (_, _) => SyncPreviewToScoreboard();
-        _videoTabPreviewSyncTimer.Start();
+        if (_videoPlayer is null || _videoTabPositionHandlerHooked) return;
+        _videoPlayer.PositionChanged += VideoPlayer_PositionChanged;
+        _videoTabPositionHandlerHooked = true;
+        // Push one immediate sync so the slider/clock reflect frame zero.
+        SyncPreviewToScoreboard();
     }
 
     private void StopVideoTabPreviewSyncTimer()
     {
-        if (_videoTabPreviewSyncTimer == null) return;
-        _videoTabPreviewSyncTimer.Stop();
-        _videoTabPreviewSyncTimer = null;
+        if (_videoPlayer != null && _videoTabPositionHandlerHooked)
+        {
+            _videoPlayer.PositionChanged -= VideoPlayer_PositionChanged;
+        }
+        _videoTabPositionHandlerHooked = false;
     }
 
-    // The local preview is the authoritative source for slider/time UI —
-    // it's what the operator is actually watching. We push the scoreboard
-    // player's position toward the preview when they drift, NOT the other
-    // way around. That prevents the 200ms timer from clobbering an in-flight
-    // drag-scrub on the slider.
+    // Throttle PositionChanged-driven UI sync. VLC's TimeChanged can fire
+    // several times per second; the slider/clock only need ~4 Hz to feel
+    // smooth to an operator. Anything tighter wastes UI-thread cycles
+    // during active playback, which is precisely when we want WPF idle.
+    private long _lastPositionSyncTicks;
+    private const long PositionSyncThrottleTicks = 2_500_000; // 250 ms
+
+    private void VideoPlayer_PositionChanged(object? sender, EventArgs e)
+    {
+        // Skip the UI refresh while the operator is dragging — their slider
+        // position is the source of truth until they release.
+        if (_videoTabSeekIsDragging) return;
+
+        long now = DateTime.UtcNow.Ticks;
+        if (now - _lastPositionSyncTicks < PositionSyncThrottleTicks) return;
+        _lastPositionSyncTicks = now;
+
+        SyncPreviewToScoreboard();
+    }
+
     private void SyncPreviewToScoreboard()
     {
-        if (VideoTabPreview?.Source is null) return;
+        if (_videoPlayer is null || !_videoPlayer.HasSource) return;
 
-        TimeSpan duration = VideoTabPreview.NaturalDuration.HasTimeSpan
-            ? VideoTabPreview.NaturalDuration.TimeSpan
-            : TimeSpan.Zero;
-        TimeSpan position;
-        try { position = VideoTabPreview.Position; }
-        catch { return; }
+        TimeSpan duration = _videoPlayer.Duration;
+        TimeSpan position = _videoPlayer.Position;
 
         if (VideoTabSeekSlider != null && duration > TimeSpan.Zero)
         {
@@ -3385,8 +3659,43 @@ public partial class MainWindow
 
         if (VideoTabCurrentTimeText != null)
             VideoTabCurrentTimeText.Text = FormatTime(position);
-        if (VideoTabDurationText != null)
+        if (VideoTabDurationText != null && duration > TimeSpan.Zero)
             VideoTabDurationText.Text = FormatTime(duration);
+
+        UpdateVideoTabTelemetryText();
+    }
+
+    /// <summary>
+    /// Refreshes the lightweight telemetry HUD overlaid on the VIDEO tab
+    /// preview. Reads cheap state from the player (decoder mode, playback
+    /// state, takeover state) so the operator can spot stalls or HW->SW
+    /// fallbacks at a glance.
+    /// </summary>
+    private void UpdateVideoTabTelemetryText()
+    {
+        if (VideoTabTelemetryText is null || _videoPlayer is null) return;
+        string mode = _videoPlayer.IsHardwareDecoding ? "HW DECODE" : "SW DECODE";
+        string state = _videoPlayer.IsPlaying ? "PLAYING" : (_videoPlayer.HasSource ? "PAUSED" : "IDLE");
+        string takeover = _videoTakeoverActive ? "TAKEOVER" : "PREVIEW";
+        string fallback = _videoPlayer.SoftwareFallbackAttempted ? " · SW FALLBACK USED" : string.Empty;
+        VideoTabTelemetryText.Text = $"{mode} · {state} · {takeover}{fallback}";
+
+        if (VideoTabDiagnosticText is not null)
+        {
+            Roche_Scoreboard.Services.VideoDiagnosticEntry? last = Roche_Scoreboard.Services.VideoDiagnostics.Last;
+            if (last is null)
+            {
+                VideoTabDiagnosticText.Text = string.Empty;
+            }
+            else if (last.Severity == Roche_Scoreboard.Services.VideoLogSeverity.Info)
+            {
+                VideoTabDiagnosticText.Text = string.Empty;
+            }
+            else
+            {
+                VideoTabDiagnosticText.Text = $"{last.Severity}: {last.Category} · {last.Message}";
+            }
+        }
     }
 
     private static string FormatTime(TimeSpan t)
@@ -3417,41 +3726,24 @@ public partial class MainWindow
     private void VideoTabSeek_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (_videoTabSuppressSeekFeedback) return;
-        // Live time + frame preview while dragging. We scrub the preview
-        // MediaElement directly (it has ScrubbingEnabled), which is what
-        // the operator is actually watching.
+        // While dragging we update *only* the readout label. The actual seek
+        // is applied on DragCompleted / mouse-up. Calling _videoPlayer.Seek
+        // on every value change would queue dozens of seeks per drag and on
+        // slower machines the decoder visibly stalls while it works through
+        // the queue. Coalescing inside the player helps, but skipping the
+        // calls entirely is cheaper and feels just as responsive because the
+        // operator is watching the slider thumb, not the live frame.
         if (_videoTabSeekIsDragging)
         {
             if (VideoTabCurrentTimeText != null)
                 VideoTabCurrentTimeText.Text = FormatTime(TimeSpan.FromSeconds(e.NewValue));
-            ScrubPreviewTo(TimeSpan.FromSeconds(e.NewValue));
         }
-    }
-
-    // WPF MediaElement quirk: assigning Position on a paused element doesn't
-    // always render the new frame even with ScrubbingEnabled. Briefly nudging
-    // the playback state forces the decoder to present the seeked frame.
-    private void ScrubPreviewTo(TimeSpan target)
-    {
-        if (VideoTabPreview is null) return;
-        try
-        {
-            VideoTabPreview.Position = target;
-            // If the preview was paused, kick it so the frame actually paints,
-            // then re-pause so the operator stays in scrub mode.
-            VideoTabPreview.Play();
-            VideoTabPreview.Pause();
-            VideoTabPreview.Position = target;
-        }
-        catch { }
     }
 
     private void ApplySeekFromSlider()
     {
         if (VideoTabSeekSlider is null) return;
         TimeSpan target = TimeSpan.FromSeconds(VideoTabSeekSlider.Value);
-        ScrubPreviewTo(target);
-        // Push the new position onto the scoreboard player if a clip is loaded.
         if (_videoPlayer is not null && _videoPlayer.HasSource)
         {
             _videoPlayer.Seek(target);
@@ -3466,14 +3758,19 @@ public partial class MainWindow
             return;
 
         if (_videoPlayer != null) _videoPlayer.SpeedRatio = rate;
-        try { VideoTabPreview.SpeedRatio = rate; } catch { }
     }
 
+    private double _lastAppliedVolume = -1.0;
     private void VideoTabVolume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_videoPlayer != null) _videoPlayer.Volume = e.NewValue;
-        // The local preview is muted by design (so audio only comes from the
-        // scoreboard). The slider therefore drives only the scoreboard output.
+        // The volume slider raises ValueChanged on every sub-pixel move. VLC
+        // accepts integer 0–100 internally, so anything below ~1% delta has
+        // no audible effect — skipping those calls keeps the audio thread
+        // quiet during fast drags.
+        double v = Math.Clamp(e.NewValue, 0.0, 1.0);
+        if (_lastAppliedVolume >= 0 && Math.Abs(v - _lastAppliedVolume) < 0.01) return;
+        _lastAppliedVolume = v;
+        if (_videoPlayer != null) _videoPlayer.Volume = v;
         UpdateVideoTabMuteButtonIcon();
     }
 
@@ -3492,38 +3789,64 @@ public partial class MainWindow
         VideoTabMuteButton.Content = muted || vol <= 0.001 ? "🔇" : vol < 0.5 ? "🔉" : "🔊";
     }
 
-    private void VideoTabPreview_MediaOpened(object sender, RoutedEventArgs e)
+    // Connect the VIDEO-tab preview rectangle to a live VisualBrush of the
+    // scoreboard's display container. The brush updates automatically as the
+    // scoreboard repaints, so the right-hand pane always reflects the real
+    // top-left output (scorebug, break, scoreworm, stats, weather). LibVLC's
+    // native HWND is the one surface a VisualBrush can't sample, so during
+    // an MP4 takeover the local MediaElement overlay (which uses the
+    // optimised playback copy) is shown on top of the mirror.
+    private void AttachLiveMirror()
     {
-        VideoTabPreviewBadge.Text = "LOCAL PREVIEW · MIRRORS SCOREBOARD";
-        try
+        if (VideoTabLiveMirror is null) return;
+        if (_displayContainer is null)
         {
-            if (VideoTabPreview.NaturalDuration.HasTimeSpan)
+            VideoTabLiveMirror.Fill = null;
+            if (VideoTabPreviewPlaceholder != null)
+                VideoTabPreviewPlaceholder.Visibility = Visibility.Visible;
+            return;
+        }
+
+        // Re-use an existing brush if we already attached one — there's no
+        // need to rebuild it every tab activation, and recreating the brush
+        // forces WPF to discard its cached intermediate render bitmap.
+        if (VideoTabLiveMirror.Fill is not System.Windows.Media.VisualBrush)
+        {
+            var brush = new System.Windows.Media.VisualBrush(_displayContainer)
             {
-                double total = VideoTabPreview.NaturalDuration.TimeSpan.TotalSeconds;
-                if (VideoTabSeekSlider != null) VideoTabSeekSlider.Maximum = total;
-                if (VideoTabDurationText != null) VideoTabDurationText.Text = FormatTime(VideoTabPreview.NaturalDuration.TimeSpan);
-            }
+                AutoLayoutContent = false,
+                Stretch = System.Windows.Media.Stretch.Uniform,
+                ViewboxUnits = System.Windows.Media.BrushMappingMode.RelativeToBoundingBox,
+                Viewbox = new Rect(0, 0, 1, 1),
+            };
+            // Cache the intermediate bitmap so the brush only re-rasterises
+            // when the scoreboard actually changes, instead of on every WPF
+            // render tick. The cache scale is intentionally low (0.5×) — the
+            // preview pane is small and the operator does not need pixel
+            // accuracy here, so we trade visual sharpness for headroom on
+            // lower-end devices.
+            System.Windows.Media.RenderOptions.SetCachingHint(brush, System.Windows.Media.CachingHint.Cache);
+            System.Windows.Media.RenderOptions.SetCacheInvalidationThresholdMinimum(brush, 0.5);
+            System.Windows.Media.RenderOptions.SetCacheInvalidationThresholdMaximum(brush, 1.0);
+            VideoTabLiveMirror.Fill = brush;
         }
-        catch { /* ignore */ }
+
+        if (VideoTabPreviewPlaceholder != null)
+            VideoTabPreviewPlaceholder.Visibility = Visibility.Collapsed;
+        if (VideoTabPreviewBadge != null && !_videoTakeoverActive)
+            VideoTabPreviewBadge.Text = "LIVE · MIRRORING SCOREBOARD";
     }
 
-    private void VideoTabPreview_MediaFailed(object sender, System.Windows.ExceptionRoutedEventArgs e)
+    private void DetachLiveMirror()
     {
-        VideoTabPreview.Visibility = Visibility.Collapsed;
-        VideoTabPreviewPlaceholder.Visibility = Visibility.Visible;
-        VideoTabStatusText.Text = "Preview unavailable for this file.";
+        if (VideoTabLiveMirror != null) VideoTabLiveMirror.Fill = null;
+        if (VideoTabPreviewPlaceholder != null)
+            VideoTabPreviewPlaceholder.Visibility = Visibility.Visible;
     }
 
-    private void VideoTabPreview_MediaEnded(object sender, RoutedEventArgs e)
-    {
-        // Loop the local preview to mirror the scoreboard player's behavior.
-        try
-        {
-            VideoTabPreview.Position = TimeSpan.Zero;
-            if (_videoPlayer?.IsPlaying == true) VideoTabPreview.Play();
-        }
-        catch { /* ignore */ }
-    }
+    private void VideoTabPreview_MediaOpened(object sender, RoutedEventArgs e) { }
+    private void VideoTabPreview_MediaFailed(object sender, System.Windows.ExceptionRoutedEventArgs e) { }
+    private void VideoTabPreview_MediaEnded(object sender, RoutedEventArgs e) { }
 
 
     private void LayoutRadio_Changed(object sender, RoutedEventArgs e)
@@ -3849,7 +4172,7 @@ public partial class MainWindow
     {
         StopBreakRotation();
         StopStatsBarTimer();
-        StopGoalVideo();
+        ExitVideoTakeover();
 
         _match.ResetForNewGame();
         _winProbEngine.Reset();
@@ -4014,7 +4337,6 @@ public partial class MainWindow
     private bool IsAnyVideoPlaying()
     {
         if (_videoPlayer is { Visibility: Visibility.Visible }) return true;
-        if (_goalVideoOverlay is { Visibility: Visibility.Visible, Source: not null }) return true;
         return false;
     }
 

@@ -105,13 +105,7 @@ public partial class PresentationScoreBar : UserControl
         // Centre quarter label
         QuarterText.Text = !string.IsNullOrEmpty(barTitleOverride)
             ? barTitleOverride
-            : endedQuarter switch
-            {
-                1 => "QT",
-                2 => "HT",
-                3 => "3QT",
-                _ => "FT"
-            };
+            : Services.QuarterLabelService.GetBreakLabel(endedQuarter);
 
         // Timer behaviour - hidden at quarter breaks. The bar additionally
         // auto-hides the timer whenever the match is sitting on a break

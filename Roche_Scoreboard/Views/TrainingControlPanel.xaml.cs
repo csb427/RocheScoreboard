@@ -8,6 +8,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Threading;
 using Roche_Scoreboard.Models;
+using Roche_Scoreboard.Services;
 using Brushes = System.Windows.Media.Brushes;
 using Button = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
@@ -50,6 +51,7 @@ public partial class TrainingControlPanel : UserControl
             // straight away (Space/S/R/Esc).
             Focus();
             Keyboard.Focus(this);
+            RefreshRecentTimers();
         };
         Unloaded += (_, _) => _ui.Stop();
         // Operator shortcuts at the panel level — only when focus isn't in a
@@ -795,9 +797,12 @@ public partial class TrainingControlPanel : UserControl
         string title = string.IsNullOrWhiteSpace(NewTitleBox.Text) ? "TIMER" : NewTitleBox.Text.Trim();
         int mins = ParseInt(NewMinutesBox.Text, 0);
         int secs = ParseInt(NewSecondsBox.Text, 0);
-        TimeSpan dur = TimeSpan.FromSeconds(Math.Max(1, mins * 60 + secs));
+        int totalSeconds = Math.Max(1, mins * 60 + secs);
+        TimeSpan dur = TimeSpan.FromSeconds(totalSeconds);
 
         _session.AddTimer(new TrainingTimer(title, dur));
+        RecentTrainingTimerStorage.Record(title, totalSeconds);
+        RefreshRecentTimers();
     }
 
     private void OnPresetClicked(object sender, RoutedEventArgs e)
@@ -808,6 +813,39 @@ public partial class TrainingControlPanel : UserControl
         if (parts.Length != 2) return;
         if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int seconds)) return;
         _session.AddTimer(new TrainingTimer(parts[0], TimeSpan.FromSeconds(seconds)));
+        RecentTrainingTimerStorage.Record(parts[0], seconds);
+        RefreshRecentTimers();
+    }
+
+    private void RefreshRecentTimers()
+    {
+        if (RecentTimersPanel is null) return;
+        RecentTimersPanel.Children.Clear();
+
+        var entries = RecentTrainingTimerStorage.Load();
+        if (entries.Count == 0)
+        {
+            RecentTimersEmptyText.Visibility = Visibility.Visible;
+            return;
+        }
+
+        RecentTimersEmptyText.Visibility = Visibility.Collapsed;
+
+        var chipStyle = (Style)FindResource("PresetChip");
+        foreach (var entry in entries)
+        {
+            int mins = entry.Seconds / 60;
+            int secs = entry.Seconds % 60;
+            var btn = new Button
+            {
+                Style = chipStyle,
+                Content = $"{entry.Title} · {mins}:{secs:D2}",
+                Tag = $"{entry.Title}|{entry.Seconds.ToString(CultureInfo.InvariantCulture)}",
+                ToolTip = "Click to append this timer to the queue"
+            };
+            btn.Click += OnPresetClicked;
+            RecentTimersPanel.Children.Add(btn);
+        }
     }
 
     private void OnBuildIntervalClicked(object sender, RoutedEventArgs e)

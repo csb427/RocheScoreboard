@@ -370,25 +370,15 @@
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="4" Background="#3FB950" Margin="0,2,10,2"/>
-                                    <TextBlock Text="QUICK PRESETS" Foreground="#3FB950" Style="{StaticResource SectionCaption}"
+                                    <TextBlock Text="RECENT TIMERS" Foreground="#3FB950" Style="{StaticResource SectionCaption}"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <TextBlock Text="One-click standard intervals — appended in order."
+                                <TextBlock Text="Your last-used timers — click to append. Persists across app launches."
                                            Style="{StaticResource HelperText}" Margin="0,6,0,12"/>
-                                <WrapPanel>
-                                    <Button Style="{StaticResource PresetChip}" Content="WARM-UP · 5:00"
-                                            Tag="WARM-UP|300" Click="OnPresetClicked"/>
-                                    <Button Style="{StaticResource PresetChip}" Content="DRILL · 3:00"
-                                            Tag="DRILL|180" Click="OnPresetClicked"/>
-                                    <Button Style="{StaticResource PresetChip}" Content="REST · 1:00"
-                                            Tag="REST|60" Click="OnPresetClicked"/>
-                                    <Button Style="{StaticResource PresetChip}" Content="SPRINT · 0:30"
-                                            Tag="SPRINT|30" Click="OnPresetClicked"/>
-                                    <Button Style="{StaticResource PresetChip}" Content="MATCH PLAY · 10:00"
-                                            Tag="MATCH PLAY|600" Click="OnPresetClicked"/>
-                                    <Button Style="{StaticResource PresetChip}" Content="COOL DOWN · 5:00"
-                                            Tag="COOL DOWN|300" Click="OnPresetClicked"/>
-                                </WrapPanel>
+                                <WrapPanel x:Name="RecentTimersPanel"/>
+                                <TextBlock x:Name="RecentTimersEmptyText"
+                                           Text="No recent timers yet — add one above and it'll appear here."
+                                           Style="{StaticResource HelperText}" FontStyle="Italic"/>
                             </StackPanel>
                         </Border>
 

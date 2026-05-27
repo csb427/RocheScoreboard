@@ -18,7 +18,7 @@ namespace Roche_Scoreboard.Services;
 public sealed class AutoUpdateService
 {
     private const string GitHubOwner = "csb427";
-    private const string GitHubRepo = "Roche_Scoreboard";
+    private const string GitHubRepo = "RocheScoreboard";
     private const string ReleasesApiUrl = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest";
 
     private static readonly HttpClient s_http = CreateHttpClient();
@@ -96,7 +96,19 @@ public sealed class AutoUpdateService
         if (assetUrl is null)
             return false;
 
-        string appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        // CRITICAL: when the app is published as a single-file self-contained
+        // exe (PublishSingleFile=true + IncludeNativeLibrariesForSelfExtract=true),
+        // AppContext.BaseDirectory is the per-launch EXTRACTION folder under
+        // %TEMP%\.net\<app>\<hash>\, NOT the directory of the actual exe on
+        // disk. Copying the update over that temp folder leaves the real exe
+        // untouched, so the next launch just re-extracts the old bundle and
+        // the user sees "no update applied". Always derive the install
+        // directory from the running process path instead.
+        string? exePath = Environment.ProcessPath;
+        string appDir = !string.IsNullOrEmpty(exePath)
+            ? Path.GetDirectoryName(exePath)!
+            : AppContext.BaseDirectory;
+        appDir = appDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         // Stage the update OUTSIDE the app folder so the updater can freely
         // overwrite the app dir without trying to delete the script that's
@@ -114,7 +126,7 @@ public sealed class AutoUpdateService
             long totalBytes = response.Content.Headers.ContentLength ?? -1;
             long bytesRead = 0;
 
-            string currentExe = Environment.ProcessPath ?? Path.Combine(appDir, "Roche_Scoreboard.exe");
+            string currentExe = Environment.ProcessPath ?? Path.Combine(appDir, "Roche Scoreboard.exe");
             string currentExeName = Path.GetFileName(currentExe);
 
             string sourceDir;
@@ -204,7 +216,7 @@ public sealed class AutoUpdateService
             var proc = Process.Start(psi);
             return proc is not null;
         }
-        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException or TaskCanceledException or OperationCanceledException)
         {
             try { File.AppendAllText(logPath, $"[{DateTime.Now:O}] Download/stage failed: {ex}\r\n"); } catch { }
             try { if (Directory.Exists(tempRoot)) Directory.Delete(tempRoot, recursive: true); } catch { }
@@ -364,13 +376,17 @@ public sealed class AutoUpdateService
 
     private static HttpClient CreateHttpClient()
     {
-        var client = new HttpClient();
+        // Disable the per-request timeout entirely — large release assets
+        // (84 MB+) easily exceed a 30s budget on a normal home connection,
+        // and HttpClient.Timeout applies to the whole operation including
+        // body read even with ResponseHeadersRead. We rely on the caller's
+        // CancellationToken for cancellation instead.
+        var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         client.DefaultRequestHeaders.UserAgent.ParseAdd("Roche-Scoreboard-Updater/1.0");
         // GitHub recommends an explicit Accept header and API version so the
         // response shape stays stable even if the default version changes.
         client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
-        client.Timeout = TimeSpan.FromSeconds(30);
         return client;
     }
 }

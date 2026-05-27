@@ -511,14 +511,28 @@ namespace Roche_Scoreboard.Views
 
         private static int NiceStep(int range)
         {
+            // Aim for roughly 2-3 labelled ticks on each side of zero so the
+            // axis stays readable and uncluttered regardless of margin magnitude.
+            // For small ranges this returns small steps (1, 2, 5); for large
+            // ranges it climbs through 10, 20, 50, 100... dynamically.
             if (range <= 0) return 1;
-            int raw = Math.Max(1, range / 5);
+            if (range <= 3) return 1;
+            if (range <= 6) return 2;
+            if (range <= 12) return 5;
+
+            const int targetTicksPerSide = 3;
+            double raw = (double)range / targetTicksPerSide;
             int magnitude = 1;
             while (magnitude * 10 <= raw) magnitude *= 10;
-            if (raw <= magnitude) return magnitude;
-            if (raw <= magnitude * 2) return magnitude * 2;
-            if (raw <= magnitude * 5) return magnitude * 5;
-            return magnitude * 10;
+            double normalized = raw / magnitude;
+            int niceNormalized = normalized switch
+            {
+                <= 1.5 => 1,
+                <= 3.5 => 2,
+                <= 7.5 => 5,
+                _ => 10
+            };
+            return niceNormalized * magnitude;
         }
 
         private static Color SafeColor(string? hex, string fallbackHex)

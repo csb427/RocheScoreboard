@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -108,15 +109,13 @@ public partial class TrainingScorebugControl : UserControl
         var active = _session.Active;
         if (active is null)
         {
-            TitleText.Text = "NO TIMERS";
+            SetTitleText("NO TIMERS");
             TimerText.Text = "00:00";
-            ProgressFillCol.Width = new GridLength(0, GridUnitType.Star);
-            ProgressEmptyCol.Width = new GridLength(1, GridUnitType.Star);
-            SetStatus("READY", "#58A6FF");
+            UpdateProgressSegments(0);
             return;
         }
 
-        TitleText.Text = active.Title.ToUpperInvariant();
+        SetTitleText(active.Title.ToUpperInvariant());
 
         TimeSpan rem = _session.ActiveRemaining;
         TimerText.Text = FormatTime(rem);
@@ -125,27 +124,12 @@ public partial class TrainingScorebugControl : UserControl
         double frac = active.Duration.TotalSeconds <= 0
             ? 0
             : Math.Clamp(1 - (rem.TotalSeconds / active.Duration.TotalSeconds), 0, 1);
-        ProgressFillCol.Width = new GridLength(Math.Max(0.0001, frac), GridUnitType.Star);
-        ProgressEmptyCol.Width = new GridLength(Math.Max(0.0001, 1 - frac), GridUnitType.Star);
+        UpdateProgressSegments(frac);
 
-        // Status pill colour shifts blue -> amber -> red as the timer winds down
-        if (active.HasFinished)
+        // Pulse the timer glow when in the final 10 seconds for urgency cue.
+        if (!active.HasFinished && _session.IsRunning && rem.TotalSeconds <= 10)
         {
-            SetStatus("FINISHED", "#FF4444");
-        }
-        else if (!_session.IsRunning)
-        {
-            SetStatus("PAUSED", "#FFA657");
-        }
-        else if (rem.TotalSeconds <= 10)
-        {
-            SetStatus("LAST 10s", "#FF6B6B");
-            // Pulse the timer glow when in the final 10 seconds
             PulseTimerGlow();
-        }
-        else
-        {
-            SetStatus("RUNNING", "#3FB950");
         }
     }
 
@@ -175,7 +159,7 @@ public partial class TrainingScorebugControl : UserControl
         }
         UpNextTitle.Text = next.Title;
         UpNextDuration.Text = FormatTime(next.Duration);
-        AnimateUpNext(140);
+        AnimateUpNext(260);
     }
 
     private double _currentUpNextHeight;
@@ -190,13 +174,99 @@ public partial class TrainingScorebugControl : UserControl
         UpNextBar.BeginAnimation(HeightProperty, anim);
     }
 
-    private void SetStatus(string text, string colorHex)
+    private string _lastTitleText = string.Empty;
+    private void SetTitleText(string text)
     {
-        StatusPillText.Text = text;
-        if (System.Windows.Media.ColorConverter.ConvertFromString(colorHex) is Color c)
+        if (string.Equals(_lastTitleText, text, StringComparison.Ordinal))
+            return;
+        _lastTitleText = text;
+        TitleText.Text = text;
+        UpdateTitleScroll();
+    }
+
+    /// <summary>
+    /// Measures the title against the visible clip width. If it overflows,
+    /// kick off a back-and-forth (reverse) translate animation; otherwise
+    /// hold it centred (Canvas.Left mid-position).
+    /// </summary>
+    private void UpdateTitleScroll()
+    {
+        // Stop any previous scroll animation.
+        TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, null);
+        TitleScrollTransform.X = 0;
+
+        // Force the TextBlock to measure now so DesiredSize is current.
+        TitleText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+        double textWidth = TitleText.DesiredSize.Width;
+        double clipWidth = TitleClip.Width;
+
+        if (textWidth <= clipWidth - 8)
         {
-            StatusPillBrush.Color = c;
-            StatusPillBorder.Color = c;
+            // Fits — centre it within the clip canvas.
+            Canvas.SetLeft(TitleText, (clipWidth - textWidth) / 2);
+            return;
+        }
+
+        // Overflows — anchor to left edge of clip, then animate back and forth.
+        Canvas.SetLeft(TitleText, 0);
+        double travel = textWidth - clipWidth + 24; // padding so last char clears edge
+        // Speed: ~140 px/sec
+        double seconds = Math.Max(2.5, travel / 140.0);
+        var anim = new DoubleAnimation(0, -travel, TimeSpan.FromSeconds(seconds))
+        {
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+        TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, anim);
+    }
+
+    private void UpdateProgressSegments(double fraction)
+    {
+        if (_progressSegmentCache.Count == 0)
+        {
+            BuildProgressSegments();
+        }
+        int segmentCount = _progressSegmentCache.Count;
+        int filled = (int)Math.Round(Math.Clamp(fraction, 0, 1) * segmentCount);
+        for (int i = 0; i < segmentCount; i++)
+        {
+            var seg = _progressSegmentCache[i];
+            bool on = i < filled;
+            seg.Background = on ? _segOnBrush : _segOffBrush;
+            seg.Opacity = on ? 1.0 : 0.55;
+        }
+    }
+
+    private readonly List<Border> _progressSegmentCache = new();
+    private static readonly SolidColorBrush _segOnBrush =
+        new(((Color)System.Windows.Media.ColorConverter.ConvertFromString("#58A6FF")!));
+    private static readonly SolidColorBrush _segOffBrush =
+        new(((Color)System.Windows.Media.ColorConverter.ConvertFromString("#1F2937")!));
+
+    private void BuildProgressSegments()
+    {
+        const int count = 20;
+        ProgressSegments.Items.Clear();
+        _progressSegmentCache.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            var seg = new Border
+            {
+                Height = 38,
+                Margin = new Thickness(4, 0, 4, 0),
+                Background = _segOffBrush,
+                Opacity = 0.55,
+                Effect = new DropShadowEffect
+                {
+                    BlurRadius = 14,
+                    ShadowDepth = 0,
+                    Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#58A6FF")!,
+                    Opacity = 0.45
+                }
+            };
+            _progressSegmentCache.Add(seg);
+            ProgressSegments.Items.Add(seg);
         }
     }
 
@@ -221,11 +291,9 @@ public partial class TrainingScorebugControl : UserControl
 
         // 1) Lock the visible scorebug on the just-finished timer.
         _lockedFinishedTitle = finished.Title.ToUpperInvariant();
-        TitleText.Text = _lockedFinishedTitle;
+        SetTitleText(_lockedFinishedTitle);
         TimerText.Text = "00:00";
-        ProgressFillCol.Width = new GridLength(1, GridUnitType.Star);
-        ProgressEmptyCol.Width = new GridLength(0.0001, GridUnitType.Star);
-        SetStatus("FINISHED", "#FF4444");
+        UpdateProgressSegments(1);
         _flashing = true;
 
         // 2) Hide the up-next bar — its slot will be taken by the staged
@@ -426,9 +494,8 @@ public partial class TrainingScorebugControl : UserControl
 
     private void ShowSessionComplete()
     {
-        TitleText.Text = "SESSION COMPLETE";
+        SetTitleText("SESSION COMPLETE");
         TimerText.Text = "00:00";
-        SetStatus("DONE", "#FF4444");
 
         SessionCompleteOverlay.BeginAnimation(OpacityProperty,
             new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(450)) { EasingFunction = EaseOut });
