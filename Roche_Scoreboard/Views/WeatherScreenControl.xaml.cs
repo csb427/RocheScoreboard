@@ -55,7 +55,11 @@ public partial class WeatherScreenControl : UserControl
             ? "WEATHER"
             : locationName.ToUpperInvariant();
 
-        CurrentIcon.Text = snapshot.Icon;
+        // Strip the U+FE0F emoji-presentation variation selector so WPF uses
+        // the monochrome glyph from Segoe UI Symbol and honours the bright
+        // Foreground brush we set in XAML. Otherwise the colour emoji
+        // bitmap renders very dark on the #0D1117 background.
+        CurrentIcon.Text = snapshot.Icon?.Replace("\uFE0F", string.Empty);
         CurrentTemp.Text = $"{snapshot.CurrentTemp:0}°";
         CurrentDescription.Text = snapshot.Description;
         FeelsLikeTemp.Text = $"{snapshot.FeelsLike:0}\u00B0";

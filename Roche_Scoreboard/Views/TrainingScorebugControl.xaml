@@ -113,14 +113,14 @@
                                TextAlignment="Center"
                                HorizontalAlignment="Center">
                         <TextBlock.Effect>
-                            <DropShadowEffect x:Name="TimerGlow" BlurRadius="50" ShadowDepth="0" Color="#58A6FF" Opacity="0.7"/>
+                            <DropShadowEffect x:Name="TimerGlow" BlurRadius="55" ShadowDepth="0" Color="#58A6FF" Opacity="0.75"/>
                         </TextBlock.Effect>
                     </TextBlock>
 
                     <!-- Progress: segmented tick row. 20 segments fill left-to-right
                          as time elapses. Code-behind toggles each segment's
                          opacity/colour to reflect progress. -->
-                    <ItemsControl x:Name="ProgressSegments" Margin="0,40,0,0"
+                    <ItemsControl x:Name="ProgressSegments" Margin="0,28,0,0"
                                   Width="1400" HorizontalAlignment="Center">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -130,34 +130,43 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <!-- Up next bar — pinned to row 4. Row 3 (flex spacer) absorbs
-                     its growth so it never overlaps the timer block. -->
+                <!-- Up next bar — pinned to row 4. The bar is ALWAYS laid out
+                     at its full natural height; we just toggle Visibility to
+                     show/hide it (with a quick opacity fade for polish).
+                     Earlier we animated Height from 0->N, but starting at
+                     Height=0 with ClipToBounds=True caused WPF to short-
+                     circuit the child measure pass on first show — the
+                     text never appeared until the next layout invalidation.
+                     Row 3 is a flex spacer so making the bar always present
+                     simply pushes the timer block up slightly when visible. -->
                 <Border x:Name="UpNextBar" Grid.Row="4"
-                        Height="0" ClipToBounds="True"
+                        Visibility="Collapsed" Opacity="0"
                         Background="#0D1117"
-                        BorderBrush="#58A6FF" BorderThickness="0,4,0,0">
+                        BorderBrush="#58A6FF" BorderThickness="0,5,0,0">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="26" ShadowDepth="0" Color="#58A6FF" Opacity="0.45"/>
                     </Border.Effect>
-                    <Grid Margin="80,30,80,30">
+                    <Grid Margin="80,28,80,28" MinHeight="160">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="UpNextLabel" Text="UP NEXT"
-                                   Foreground="#8B949E" FontSize="72" FontWeight="Black"
+                                   Foreground="#FFFFFF" FontSize="96" FontWeight="Black"
                                    FontFamily="Bahnschrift" VerticalAlignment="Center"
-                                   Margin="0,0,48,0"/>
+                                   Margin="0,0,40,0"/>
                         <TextBlock Grid.Column="1" x:Name="UpNextTitle" Text=""
                                    Foreground="White" FontSize="96" FontWeight="Black"
-                                   FontFamily="Bahnschrift" VerticalAlignment="Center"
-                                   TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Grid.Column="2" x:Name="UpNextDuration" Text=""
-                                   Foreground="#58A6FF" FontSize="96" FontWeight="Black"
+                                   FontFamily="Bahnschrift"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   Margin="0,0,40,0"/>
+                        <TextBlock Grid.Column="2" x:Name="UpNextDuration" Text="00:00"
+                                   Foreground="#FF9100" FontSize="112" FontWeight="Black"
                                    FontFamily="Bahnschrift" VerticalAlignment="Center">
                             <TextBlock.Effect>
-                                <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="#58A6FF" Opacity="0.6"/>
+                                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="#FF9100" Opacity="0.75"/>
                             </TextBlock.Effect>
                         </TextBlock>
                     </Grid>

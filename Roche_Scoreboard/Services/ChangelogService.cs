@@ -11,6 +11,26 @@ internal static class ChangelogService
 {
     public static IReadOnlyList<ChangelogVersion> Versions { get; } =
     [
+        new("3.2.2", "2026-05-08",
+        [
+            "[New] Training mode \u2014 \u201cup next\u201d bar redesigned: bigger, evenly-sized 96 px label/title text and a punchy 112 px orange countdown timer; long titles ellipsise cleanly and the whole bar is now centred vertically within its strip instead of crowding the screen edge",
+            "[New] Training mode \u2014 active timer enlarged to a bolder 420 px digit block with a brighter blue glow, kept perfectly centred via the existing flex-spacer rows so it never collides with the up-next bar",
+            "[Fixed] Training mode \u2014 \u201cup next\u201d bar text was invisible on first show. The bar previously animated from Height=0 with ClipToBounds=True, which caused WPF to bake a 0-height child measure pass and skip drawing the text. The bar is now always measured at its natural size and toggled via Visibility + opacity fade, so the text appears the instant the bar reveals",
+            "[Fixed] Training mode \u2014 up-next bar was being vertically clipped by the 1920\u00d71080 canvas because the timer/title/segment stack exceeded the canvas height; sizes rebalanced so everything renders fully on screen",
+            "[Fixed] Remote scoring website \u2014 embedded Kestrel host now resolves wwwroot from Environment.ProcessPath instead of AppContext.BaseDirectory, so the single-file build no longer points the static-file server at the per-launch %TEMP%\\.net extraction folder; ContentRootPath was wrong too, which is why the \u201cerror generating link\u201d message appeared on every fresh install",
+            "[Fixed] Auto-update apply path \u2014 updater now renames the running EXE to .old before robocopy runs. Windows allows renaming an in-use executable even when overwrite would fail, so a lingering AV/prefetch handle can no longer cause robocopy to silently \u201csucceed\u201d while leaving the user on the previous version. Adds post-copy verification with .old fallback, Unblock-File to strip Mark-of-the-Web from the new EXE (so SmartScreen doesn\u2019t block the relaunch), and queued cleanup of the .old backup once it\u2019s unlocked",
+            "[Fixed] Weather presentation screen \u2014 weather icons rendered nearly black on the dark background because Segoe UI Emoji\u2019s colour bitmap ignores Foreground; the U+FE0F emoji-presentation selector is now stripped from the snapshot icon and the TextBlock falls back to Segoe UI Symbol monochrome with a bright amber Foreground + glow",
+            "[Fixed] Settings screen \u2014 weather location combo box rendered black-on-dark; switched to white text on a dark input background, and brightened the dim status/helper label colours (#3A5A80, #3A5070, #5080AA, #30363D, #484F58, etc.) to readable complementary tints",
+            "[Fixed] Settings screen \u2014 WEB ACCESS card text was very dark green on near-black; status, section labels and helper text bumped to brighter greens (#7FE39B / #9DD9AC) for proper contrast",
+        ]),
+        new("3.2.1", "2026-05-07",
+        [
+            "[Fixed] Goal animation pipeline rebuilt \u2014 score now stays on the old value until the goal animation (default or MP4) has finished, then the +6 / +1 swipe rises and the digits flip in sync with the swipe reveal",
+            "[Fixed] Away-side custom MP4 sometimes failed to appear on the scoreboard \u2014 VideoPlayerControl no longer inherits the previous clip's suspend bookkeeping, so each fresh goal video always starts from frame 0",
+            "[Fixed] Back-to-back goal clicks no longer desync \u2014 score events are queued, the per-side lock arms BEFORE the model mutation so MatchChanged can\u2019t leak the new score onto the scoreboard early, and the next animation only starts after the prior swipe slide-out completes",
+            "[Fixed] Race in VideoPlayerControl.SetVideoSource where calling VLC.Stop() then immediately reassigning Media occasionally killed the next clip; the source swap now pauses, replaces Media cleanly, and lets Play() start the new clip",
+            "[Improved] Expanded scorebug \u2014 team-name bar is a touch taller so the team font auto-scales up, while goal / behind / total cell heights are unchanged so the score digits keep their original size",
+        ]),
         new("3.2.0", "2026-05-06",
         [
             "[New] Video playback diagnostics & telemetry layer — structured log file at %LOCALAPPDATA%\\Roche_Scoreboard\\video.log, in-memory ring buffer surfaced on the VIDEO tab, and per-event severity (Info/Warn/Error) across source-set, Play/Pause/Stop, watchdog and decoder fallback paths",

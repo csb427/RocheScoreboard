@@ -148,31 +148,68 @@ public partial class TrainingScorebugControl : UserControl
         TimerGlow.BeginAnimation(DropShadowEffect.OpacityProperty, anim);
     }
 
+    private string _lastUpNextTitle = string.Empty;
     private void UpdateUpNext()
     {
         if (_session is null) return;
         var next = _session.UpNext;
         if (next is null)
         {
-            AnimateUpNext(0);
+            ShowUpNext(false);
             return;
         }
-        UpNextTitle.Text = next.Title;
         UpNextDuration.Text = FormatTime(next.Duration);
-        AnimateUpNext(260);
+        if (!string.Equals(_lastUpNextTitle, next.Title, StringComparison.Ordinal))
+        {
+            _lastUpNextTitle = next.Title;
+            UpNextTitle.Text = next.Title;
+        }
+        ShowUpNext(true);
     }
 
-    private double _currentUpNextHeight;
-    private void AnimateUpNext(double targetHeight)
+    private bool _upNextVisible;
+    /// <summary>
+    /// Toggles the up-next bar via Visibility + opacity fade. We do NOT
+    /// animate Height any more — starting at Height=0 with ClipToBounds=True
+    /// was causing WPF to skip the child measure pass on first show, leaving
+    /// the title text invisible.
+    /// </summary>
+    private void ShowUpNext(bool show)
     {
-        if (Math.Abs(_currentUpNextHeight - targetHeight) < 0.5) return;
-        _currentUpNextHeight = targetHeight;
-        var anim = new DoubleAnimation(targetHeight, TimeSpan.FromMilliseconds(450))
+        if (_upNextVisible == show) return;
+        _upNextVisible = show;
+
+        UpNextBar.BeginAnimation(OpacityProperty, null);
+
+        if (show)
         {
-            EasingFunction = EaseOut
-        };
-        UpNextBar.BeginAnimation(HeightProperty, anim);
+            UpNextBar.Visibility = Visibility.Visible;
+            var fadeIn = new DoubleAnimation(UpNextBar.Opacity, 1, TimeSpan.FromMilliseconds(280))
+            {
+                EasingFunction = EaseOut
+            };
+            UpNextBar.BeginAnimation(OpacityProperty, fadeIn);
+        }
+        else
+        {
+            var fadeOut = new DoubleAnimation(UpNextBar.Opacity, 0, TimeSpan.FromMilliseconds(220))
+            {
+                EasingFunction = EaseOut
+            };
+            fadeOut.Completed += (_, _) =>
+            {
+                if (!_upNextVisible) UpNextBar.Visibility = Visibility.Collapsed;
+            };
+            UpNextBar.BeginAnimation(OpacityProperty, fadeOut);
+        }
     }
+
+    /// <summary>
+    /// Legacy entry point preserved for the finish-flash flow which used to
+    /// drive the bar via height. Now just maps to Visibility — any non-zero
+    /// target means "show".
+    /// </summary>
+    private void AnimateUpNext(double targetHeight) => ShowUpNext(targetHeight > 0);
 
     private string _lastTitleText = string.Empty;
     private void SetTitleText(string text)

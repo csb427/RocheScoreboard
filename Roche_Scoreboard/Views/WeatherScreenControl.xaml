@@ -46,7 +46,16 @@
                     </Grid.ColumnDefinitions>
 
                     <Viewbox Grid.Column="0" Stretch="Uniform" Margin="2">
-                        <TextBlock x:Name="CurrentIcon" Text="☀️" FontFamily="Segoe UI Emoji" FontSize="80"/>
+                        <!-- Bright foreground so the icon stays readable even
+                             when Windows falls back to the monochrome glyph
+                             from Segoe UI Symbol (Segoe UI Emoji on some
+                             systems renders flat instead of full colour). -->
+                        <TextBlock x:Name="CurrentIcon" Text="☀" FontFamily="Segoe UI Emoji, Segoe UI Symbol"
+                                   FontSize="80" Foreground="#FFD54A">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#FFD54A" Opacity="0.55"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
                     </Viewbox>
 
                     <Grid Grid.Column="1">

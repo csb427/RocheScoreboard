@@ -1002,11 +1002,18 @@ namespace Roche_Scoreboard.Views
         public void SetGoalAnimationStyle(GoalAnimationStyle style) => _animationStyle = style;
         public GoalAnimationStyle GetGoalAnimationStyle() => _animationStyle;
 
-        public void PlayScoreAnimation(bool isHome, bool isGoal, int newGoals, int newBehinds, int newTotal)
+        public void PlayScoreAnimation(bool isHome, bool isGoal, int newGoals, int newBehinds, int newTotal, Action? onCompleted = null)
         {
             bool expanded = IsExpanded;
             if (expanded) CancelExpandedTeamAnimation(isHome);
             else CancelClassicTeamAnimation(isHome);
+
+            // Lock score-text writes for this side until the entire sequence
+            // (entry overlay + digit flip + +N swipe) has finished. Without
+            // this, SetScores from PushAllToScoreboard can overwrite digits
+            // mid-flight and the swipe text falls out of sync with the value
+            // the operator actually clicked.
+            if (isHome) _homeAnimating = true; else _awayAnimating = true;
 
             var sb = new Storyboard();
             double flipStart;
@@ -1027,8 +1034,12 @@ namespace Roche_Scoreboard.Views
                 flipStart = BuildBehindAnimation(sb, isHome, expanded);
             }
 
-            AddFlipAnimations(sb, isHome, flipStart, newGoals, newBehinds, newTotal, expanded);
+            // onCompleted is fired from the guard timer inside AddFlipAnimations
+            // so it lines up with the END of the +N swipe slide-out, not the
+            // earlier moment when the storyboard portion finishes.
+            AddFlipAnimations(sb, isHome, flipStart, newGoals, newBehinds, newTotal, expanded, onCompleted);
             if (isHome) _homeScoreSb = sb; else _awayScoreSb = sb;
+
             sb.Begin();
 
             // Delay G/B column expansion until the total score has landed
@@ -1050,15 +1061,19 @@ namespace Roche_Scoreboard.Views
         /// Plays only the score digit flip animation (no goal overlay).
         /// Used after custom video playback completes.
         /// </summary>
-        public void PlayScoreFlipOnly(bool isHome, int newGoals, int newBehinds, int newTotal)
+        public void PlayScoreFlipOnly(bool isHome, int newGoals, int newBehinds, int newTotal, Action? onCompleted = null)
         {
             bool expanded = IsExpanded;
             if (expanded) CancelExpandedTeamAnimation(isHome);
             else CancelClassicTeamAnimation(isHome);
 
+            // Lock score-text writes until the flip + swipe sequence completes.
+            if (isHome) _homeAnimating = true; else _awayAnimating = true;
+
             var sb = new Storyboard();
-            AddFlipAnimations(sb, isHome, 0.0, newGoals, newBehinds, newTotal, expanded);
+            AddFlipAnimations(sb, isHome, 0.0, newGoals, newBehinds, newTotal, expanded, onCompleted);
             if (isHome) _homeScoreSb = sb; else _awayScoreSb = sb;
+
             sb.Begin();
 
             // Delay G/B column expansion until the total score has landed
@@ -1740,7 +1755,7 @@ namespace Roche_Scoreboard.Views
         // ---- Shared flip builder ----
 
         private void AddFlipAnimations(Storyboard sb, bool isHome, double flipStart,
-            int newGoals, int newBehinds, int newTotal, bool expanded)
+            int newGoals, int newBehinds, int newTotal, bool expanded, Action? onCompleted = null)
         {
             var goalsText = expanded ? (isHome ? ExpHomeGoalsText : ExpAwayGoalsText) : (isHome ? HomeGoalsText : AwayGoalsText);
             var behindsText = expanded ? (isHome ? ExpHomeBehindsText : ExpAwayBehindsText) : (isHome ? HomeBehindsText : AwayBehindsText);
@@ -1844,7 +1859,18 @@ namespace Roche_Scoreboard.Views
             }
 
             var guard = new DispatcherTimer { Interval = TimeSpan.FromSeconds(totalDur) };
-            guard.Tick += (_, __) => { guard.Stop(); timers.Remove(guard); if (isHome) _homeAnimating = false; else _awayAnimating = false; };
+            guard.Tick += (_, __) =>
+            {
+                guard.Stop(); timers.Remove(guard);
+                if (isHome) _homeAnimating = false; else _awayAnimating = false;
+                // Fire the host-supplied completion callback now — after the
+                // swipe slide-out has finished — so the next queued goal
+                // doesn't cancel an in-flight +N swipe.
+                if (onCompleted is not null)
+                {
+                    try { onCompleted(); } catch { /* never let host crash storyboard */ }
+                }
+            };
             timers.Add(guard); guard.Start();
         }
 

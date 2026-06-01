@@ -296,6 +296,16 @@ namespace Roche_Scoreboard.Views
                     ? $"Source set: {filePath}"
                     : $"Source set: {filePath} (optimised copy: {resolved})");
 
+            // A fresh source must not inherit the previous clip's
+            // suspend bookkeeping. Without this, the Suspend → Resume
+            // cycle triggered by EnterVideoTakeover would seek the new
+            // (e.g. away) goal video to the previous (home) clip's
+            // end-of-stream position, which is exactly why the away
+            // MP4 sometimes never appeared on the scoreboard.
+            _suspended = false;
+            _suspendPositionMs = 0;
+            _resumePlayingOnVisible = false;
+
             // Re-arm hardware decoding for the new clip — every source gets
             // one chance at HW decode before we fall back to software.
             _hwDecodeEnabled = true;
@@ -303,6 +313,28 @@ namespace Roche_Scoreboard.Views
             if (_player is not null)
             {
                 try { _player.EnableHardwareDecoding = true; } catch { /* best-effort */ }
+
+                // Clear the previously-loaded Media so the next Play() call
+                // forces a fresh CreateMediaForCurrentSource(). Without this,
+                // back-to-back goal videos (e.g. away goal immediately after
+                // home goal) would re-use the prior MediaPlayer.Media and the
+                // new clip would never start.
+                //
+                // IMPORTANT: do NOT call _player.Stop() here. VLC's Stop is
+                // asynchronous (the state transition runs on the media
+                // thread), so calling Stop and then immediately reassigning
+                // Media races with that transition and is what was causing
+                // the away-side MP4 to occasionally never appear after a
+                // home goal video. The player is already paused by
+                // ExitVideoTakeover before this method is reached, so
+                // simply nulling Media is the safe canonical pattern.
+                try
+                {
+                    var prev = _player.Media;
+                    _player.Media = null;
+                    prev?.Dispose();
+                }
+                catch { /* best-effort */ }
             }
 
             // Do NOT call _player.Play() here. The scoreboard switcher calls

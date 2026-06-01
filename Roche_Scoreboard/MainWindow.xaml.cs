@@ -1936,7 +1936,7 @@ namespace Roche_Scoreboard
             _scorebug.SetTeams(_match.HomeName, _match.HomeAbbr, _match.AwayName, _match.AwayAbbr);
             _scorebug.SetQuarter(_match.Quarter);
 
-            if (DateTime.UtcNow >= _deferScorePushUntilUtc)
+            if (!IsScoreAnimationActive && DateTime.UtcNow >= _deferScorePushUntilUtc)
             {
                 _scorebug.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
             }

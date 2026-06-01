@@ -265,7 +265,32 @@ public sealed class AutoUpdateService
             }
             Start-Sleep -Milliseconds 750
 
-            # 2. Copy files with retry (handles AV / locked files)
+            # 2a. Rename the existing EXE out of the way. Windows permits
+            #     renaming an open/locked executable even when it cannot be
+            #     deleted or overwritten, so this guarantees the copy step
+            #     below can write a fresh EXE in its place. Without this, a
+            #     lingering file handle (AV scan, prefetch, taskbar pin) can
+            #     cause robocopy to silently skip the EXE and still return
+            #     success code 1, leaving the user on the old version.
+            $exePath = '{{Esc(currentExe)}}'
+            if (Test-Path -LiteralPath $exePath) {
+                $oldExePath = "$exePath.old"
+                for ($r = 1; $r -le 5; $r++) {
+                    try {
+                        if (Test-Path -LiteralPath $oldExePath) {
+                            Remove-Item -LiteralPath $oldExePath -Force -ErrorAction SilentlyContinue
+                        }
+                        Rename-Item -LiteralPath $exePath -NewName ([System.IO.Path]::GetFileName($oldExePath)) -Force -ErrorAction Stop
+                        Write-Log "Renamed existing EXE to '$oldExePath'"
+                        break
+                    } catch {
+                        Write-Log "Rename attempt $r failed: $_"
+                        Start-Sleep -Seconds 1
+                    }
+                }
+            }
+
+            # 2b. Copy files with retry (handles AV / locked files)
             $src = '{{Esc(sourceDir)}}'
             $dst = '{{Esc(appDir)}}'
             $maxAttempts = 8
@@ -293,9 +318,34 @@ public sealed class AutoUpdateService
                 } catch { Write-Log "Copy-Item failed: $_" }
             }
 
+            # 2c. Verify the EXE was actually written. If the rename succeeded
+            #     but the copy didn't drop a new EXE in its place, the user is
+            #     now without an app — restore the old one so they aren't left
+            #     in a broken state.
+            if (-not (Test-Path -LiteralPath $exePath)) {
+                Write-Log "Post-copy EXE missing at '$exePath' — attempting to restore from .old"
+                if (Test-Path -LiteralPath "$exePath.old") {
+                    try { Rename-Item -LiteralPath "$exePath.old" -NewName ([System.IO.Path]::GetFileName($exePath)) -Force } catch { Write-Log "Restore failed: $_" }
+                }
+                $copied = $false
+            } else {
+                Write-Log "New EXE present at '$exePath'."
+            }
+
             if (-not $copied) {
                 Write-Log "Update apply FAILED. Attempting to relaunch original exe so the user is not left without an app."
             }
+
+            # 2d. Strip Mark-of-the-Web from the freshly-written EXE so SmartScreen
+            #     doesn't silently block the auto-relaunch. Files downloaded via
+            #     HttpClient and then copied retain a Zone.Identifier ADS that can
+            #     cause Start-Process to fail without a visible error.
+            try {
+                Unblock-File -LiteralPath $exePath -ErrorAction SilentlyContinue
+                Get-ChildItem -LiteralPath $dst -Filter '*.exe' -File -ErrorAction SilentlyContinue | ForEach-Object {
+                    try { Unblock-File -LiteralPath $_.FullName -ErrorAction SilentlyContinue } catch {}
+                }
+            } catch { Write-Log "Unblock-File failed: $_" }
 
             # 3. Launch the (now-updated) application — retry to be absolutely sure
             $exe = '{{Esc(currentExe)}}'
@@ -329,10 +379,13 @@ public sealed class AutoUpdateService
             }
 
             # 4. Self-clean staged temp dir AFTER this script ends, so we don't
-            #    try to delete the directory we are running from.
+            #    try to delete the directory we are running from. Also queues
+            #    deletion of the .old EXE backup once it's no longer locked.
             $temp = '{{Esc(tempRoot)}}'
+            $oldExeForCleanup = "$exePath.old"
             try {
-                Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c', 'ping', '127.0.0.1', '-n', '3', '>nul', '&', 'rmdir', '/s', '/q', "`"$temp`"") -WindowStyle Hidden
+                $cleanupCmd = "ping 127.0.0.1 -n 5 >nul & del /f /q `"$oldExeForCleanup`" 2>nul & rmdir /s /q `"$temp`""
+                Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c', $cleanupCmd) -WindowStyle Hidden
             } catch {}
             Write-Log "Updater finished. launched=$launched copied=$copied"
             """;

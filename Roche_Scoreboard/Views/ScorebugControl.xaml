@@ -1138,8 +1138,8 @@
                         <SolidColorBrush x:Key="ExpHomePanelBrushKey" Color="#C9483B"/>
                     </Grid.Resources>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>     <!-- team name -->
-                        <RowDefinition Height="2.6*"/>  <!-- score cells (bumped from 2.2* so the totals/score row dominates the team name for long-distance readability) -->
+                        <RowDefinition Height="1.2*"/>   <!-- team name (slightly taller than the original 1*, so the bar + auto-scaled font grow a little) -->
+                        <RowDefinition Height="2.6*"/>   <!-- score cells (UNCHANGED from original so the goal/behind/total digit sizes stay exactly the same) -->
                     </Grid.RowDefinitions>
                     <!-- Top-light gradient overlay for 3D look -->
                     <Rectangle Grid.RowSpan="2" IsHitTestVisible="False">
@@ -1336,7 +1336,7 @@
                             <SolidColorBrush x:Key="ExpAwayPanelBrushKey" Color="#B68F12"/>
                         </Grid.Resources>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="1.2*"/>
                             <RowDefinition Height="2.6*"/>
                         </Grid.RowDefinitions>
                         <Rectangle Grid.RowSpan="2" IsHitTestVisible="False">

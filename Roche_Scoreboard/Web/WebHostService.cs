@@ -33,7 +33,11 @@ public sealed class WebHostService : IAsyncDisposable
     public async Task StartAsync()
     {
         string wwwroot = FindWwwRoot();
-        string contentRoot = AppContext.BaseDirectory;
+        // ContentRoot must match where loose files live next to the actual
+        // EXE — NOT AppContext.BaseDirectory, which is the single-file
+        // extraction temp folder. Using the wrong root makes Kestrel fail
+        // to locate static assets and the embedded server cannot start.
+        string contentRoot = Path.GetDirectoryName(wwwroot)!;
 
         WebApplication? started = null;
         Exception? lastError = null;
@@ -150,9 +154,22 @@ public sealed class WebHostService : IAsyncDisposable
 
     private static string FindWwwRoot()
     {
-        // Check next to the executable first (published scenario)
-        string exeDir = AppContext.BaseDirectory;
+        // With PublishSingleFile + IncludeNativeLibrariesForSelfExtract,
+        // AppContext.BaseDirectory points at the per-launch extraction folder
+        // under %TEMP%\.net\<app>\<hash>\, NOT the folder containing the real
+        // EXE. Content files (wwwroot\**) stay LOOSE next to the actual EXE,
+        // so we must look there first, otherwise the embedded web server
+        // fails to start and the remote-scoring URLs cannot be generated.
+        string? exePath = Environment.ProcessPath;
+        string exeDir = !string.IsNullOrEmpty(exePath)
+            ? Path.GetDirectoryName(exePath)!
+            : AppContext.BaseDirectory;
+
         string candidate = Path.Combine(exeDir, "wwwroot");
+        if (Directory.Exists(candidate)) return candidate;
+
+        // Fallback: next to AppContext.BaseDirectory (non-single-file builds)
+        candidate = Path.Combine(AppContext.BaseDirectory, "wwwroot");
         if (Directory.Exists(candidate)) return candidate;
 
         // Development: walk up from the exe to find the project wwwroot

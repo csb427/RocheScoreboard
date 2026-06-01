@@ -152,6 +152,20 @@ public partial class MainWindow
     private const int LeadChangeMaxCurrentMargin = 24;
     private DateTime _deferScorePushUntilUtc = DateTime.MinValue;
 
+    // ── Score-animation completion gating ──
+    //
+    // _activeScoreAnimations counts in-flight goal/behind animations (both
+    // default storyboards and custom-MP4 goal videos). PushAllToScoreboard
+    // skips writing score digits while this is > 0 so the next clock tick or
+    // overlay cycle cannot clobber a flip mid-animation. The previous
+    // wall-clock deferral was a guess; this is the genuine signal.
+    //
+    // _pendingScoreAnimations queues follow-up goals/behinds that arrive
+    // while one is still animating, so back-to-back scoring events play out
+    // in the order they were entered instead of stomping each other.
+    private int _activeScoreAnimations;
+    private readonly Queue<Action> _pendingScoreAnimations = new();
+
     // ── Auto overlay delay
     private static readonly TimeSpan AutoOverlayDelay = TimeSpan.FromSeconds(2);
     // Scoring run is a contextual analysis overlay — it should land AFTER
@@ -510,6 +524,63 @@ public partial class MainWindow
 
         // Let the overlay scheduler know a goal animation is in progress
         _overlayScheduler.NotifyGoalAnimation(duration);
+    }
+
+    // ── Score-animation lifecycle helpers ──────────────────────────────────
+    //
+    // BeginScoreAnimation increments the in-flight counter and asks the
+    // overlay scheduler to back off for the worst-case duration of the
+    // current style. EndScoreAnimation is invoked from the storyboard /
+    // goal-video Completed callback; it decrements the counter and, if any
+    // follow-up scoring events were queued while this one was running,
+    // drains the next one in FIFO order. PushAllToScoreboard checks
+    // IsScoreAnimationActive (counter > 0) to know whether it's safe to
+    // write the live score digits.
+
+    private bool IsScoreAnimationActive => _activeScoreAnimations > 0;
+
+    private void BeginScoreAnimation(TimeSpan worstCaseDuration)
+    {
+        _activeScoreAnimations++;
+        if (worstCaseDuration > TimeSpan.Zero)
+        {
+            _overlayScheduler.NotifyGoalAnimation(worstCaseDuration);
+        }
+    }
+
+    private void EndScoreAnimation()
+    {
+        if (_activeScoreAnimations > 0) _activeScoreAnimations--;
+
+        if (_activeScoreAnimations == 0)
+        {
+            // Animation chain finished — make sure the displayed digits match
+            // the live model in case PushAllToScoreboard was throttled while
+            // the animation was running.
+            _scorebug?.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
+
+            if (_pendingScoreAnimations.Count > 0)
+            {
+                Action next = _pendingScoreAnimations.Dequeue();
+                try { next(); } catch { /* never let a queued event crash the chain */ }
+            }
+            else
+            {
+                PushAllToScoreboard();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Cancels every queued/in-flight score animation. Called by Undo /
+    /// reset / event editor paths so the new authoritative score lands
+    /// immediately rather than waiting for a now-stale animation chain.
+    /// </summary>
+    private void ResetScoreAnimationQueue()
+    {
+        _pendingScoreAnimations.Clear();
+        _activeScoreAnimations = 0;
+        _deferScorePushUntilUtc = DateTime.MinValue;
     }
 
     private static TimeSpan GetGoalAnimationDuration(GoalAnimationStyle style)
@@ -929,61 +1000,142 @@ public partial class MainWindow
     private void HomeGoal_Click(object sender, RoutedEventArgs e)
     {
         EnsureScoreboardWindow();
+        EnqueueScoringEvent(PerformHomeGoal);
+    }
 
+    private void HomeBehind_Click(object sender, RoutedEventArgs e)
+    {
+        EnsureScoreboardWindow();
+        EnqueueScoringEvent(PerformHomeBehind);
+    }
+
+    private void AwayGoal_Click(object sender, RoutedEventArgs e)
+    {
+        EnsureScoreboardWindow();
+        EnqueueScoringEvent(PerformAwayGoal);
+    }
+
+    /// <summary>
+    /// Either runs the scoring action immediately or queues it behind the
+    /// currently-animating event, so back-to-back operator clicks render
+    /// in the order they were entered. PushAllToScoreboard is gated on the
+    /// real animation/video completion signal rather than a wall-clock
+    /// guess, which is what previously caused score digits to flip out of
+    /// order during longer goal videos.
+    /// </summary>
+    private void EnqueueScoringEvent(Action action)
+    {
+        if (IsScoreAnimationActive)
+        {
+            _pendingScoreAnimations.Enqueue(action);
+        }
+        else
+        {
+            action();
+        }
+    }
+
+    private void PerformHomeGoal()
+    {
         GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
         if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
         {
             style = GoalAnimationStyle.Classic;
         }
-        DeferScorePush(GetGoalAnimationDuration(style));
+
+        // CRITICAL: lock the score display BEFORE mutating the model.
+        // _match.AddGoal raises MatchChanged synchronously, which calls
+        // PushAllToScoreboard → SetScores. If the lock isn't up first the
+        // new digits would land on the scoreboard immediately, the goal
+        // animation would have nothing to flip from, and the +6 swipe
+        // would be suppressed because (current text == new text).
+        BeginScoreAnimation(GetGoalAnimationDuration(style));
+        _scorebug?.LockScoreUpdate(true);
 
         ScoreEvent ev = _match.AddGoal(TeamSide.Home);
 
         if (style == GoalAnimationStyle.CustomVideo)
         {
-            void afterVideo() => _scorebug?.PlayScoreFlipOnly(true, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal);
+            void afterVideo()
+            {
+                if (_scorebug is null)
+                {
+                    EndScoreAnimation();
+                    return;
+                }
+                _scorebug.PlayScoreFlipOnly(true, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal, EndScoreAnimation);
+            }
             PlayCustomGoalVideoIfConfigured(true, afterVideo);
             return;
         }
 
         GoalAnimationStyle previous = _scorebug?.GetGoalAnimationStyle() ?? style;
         if (previous != style) _scorebug?.SetGoalAnimationStyle(style);
-        _scorebug?.PlayScoreAnimation(true, true, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal);
+        if (_scorebug is null)
+        {
+            EndScoreAnimation();
+        }
+        else
+        {
+            _scorebug.PlayScoreAnimation(true, true, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal, EndScoreAnimation);
+        }
         if (previous != style) _scorebug?.SetGoalAnimationStyle(previous);
     }
 
-    private void HomeBehind_Click(object sender, RoutedEventArgs e)
+    private void PerformHomeBehind()
     {
-        EnsureScoreboardWindow();
+        BeginScoreAnimation(TimeSpan.FromMilliseconds(900));
+        _scorebug?.LockScoreUpdate(true);
 
-        DeferScorePush(TimeSpan.FromMilliseconds(900));
         ScoreEvent ev = _match.AddBehind(TeamSide.Home);
-        _scorebug?.PlayScoreAnimation(true, false, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal);
+        if (_scorebug is null)
+        {
+            EndScoreAnimation();
+        }
+        else
+        {
+            _scorebug.PlayScoreAnimation(true, false, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal, EndScoreAnimation);
+        }
     }
 
-    private void AwayGoal_Click(object sender, RoutedEventArgs e)
+    private void PerformAwayGoal()
     {
-        EnsureScoreboardWindow();
-
         GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
         if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
         {
             style = GoalAnimationStyle.Classic;
         }
-        DeferScorePush(GetGoalAnimationDuration(style));
+
+        BeginScoreAnimation(GetGoalAnimationDuration(style));
+        _scorebug?.LockScoreUpdate(false);
 
         ScoreEvent ev = _match.AddGoal(TeamSide.Away);
 
         if (style == GoalAnimationStyle.CustomVideo)
         {
-            void afterVideo() => _scorebug?.PlayScoreFlipOnly(false, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal);
+            void afterVideo()
+            {
+                if (_scorebug is null)
+                {
+                    EndScoreAnimation();
+                    return;
+                }
+                _scorebug.PlayScoreFlipOnly(false, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal, EndScoreAnimation);
+            }
             PlayCustomGoalVideoIfConfigured(false, afterVideo);
             return;
         }
 
         GoalAnimationStyle previous = _scorebug?.GetGoalAnimationStyle() ?? style;
         if (previous != style) _scorebug?.SetGoalAnimationStyle(style);
-        _scorebug?.PlayScoreAnimation(false, true, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal);
+        if (_scorebug is null)
+        {
+            EndScoreAnimation();
+        }
+        else
+        {
+            _scorebug.PlayScoreAnimation(false, true, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal, EndScoreAnimation);
+        }
         if (previous != style) _scorebug?.SetGoalAnimationStyle(previous);
     }
 
@@ -998,10 +1150,23 @@ public partial class MainWindow
     private void AwayBehind_Click(object sender, RoutedEventArgs e)
     {
         EnsureScoreboardWindow();
+        EnqueueScoringEvent(PerformAwayBehind);
+    }
 
-        DeferScorePush(TimeSpan.FromMilliseconds(900));
+    private void PerformAwayBehind()
+    {
+        BeginScoreAnimation(TimeSpan.FromMilliseconds(900));
+        _scorebug?.LockScoreUpdate(false);
+
         ScoreEvent ev = _match.AddBehind(TeamSide.Away);
-        _scorebug?.PlayScoreAnimation(false, false, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal);
+        if (_scorebug is null)
+        {
+            EndScoreAnimation();
+        }
+        else
+        {
+            _scorebug.PlayScoreAnimation(false, false, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal, EndScoreAnimation);
+        }
     }
 
     private void Undo_Click(object sender, RoutedEventArgs e)
@@ -1009,7 +1174,7 @@ public partial class MainWindow
         if (_match.UndoLastScore())
         {
             // Clear any pending score animation defer so undo shows immediately
-            _deferScorePushUntilUtc = DateTime.MinValue;
+            ResetScoreAnimationQueue();
             _scorebug?.ResetAllOverlayState();
             _scorebug?.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
 
@@ -1066,7 +1231,7 @@ public partial class MainWindow
                 MessageBoxImage.Warning);
         }
 
-        _deferScorePushUntilUtc = DateTime.MinValue;
+        ResetScoreAnimationQueue();
         _scorebug?.ResetAllOverlayState();
         _scorebug?.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
 
@@ -1705,6 +1870,13 @@ public partial class MainWindow
             _videoPlayer.Loop = false;
             _videoPlayer.PlaybackEnded += GoalVideo_OneShotEnded;
             _videoPlayer.MediaLoadFailed += GoalVideo_LoadFailed;
+
+            // Pause the previous clip (if any) before swapping the source
+            // so VLC isn't actively decoding the old media while we replace
+            // its Media instance. Without this, the away MP4 occasionally
+            // never started rendering because the underlying MediaPlayer
+            // was still mid-tick on the previous home clip.
+            try { _videoPlayer.Pause(); } catch { /* best-effort */ }
 
             // VideoOptimizer produces a playback-friendly copy at import
             // time; using it here avoids decoding the original 4K source.
@@ -4178,7 +4350,7 @@ public partial class MainWindow
         _winProbEngine.Reset();
         _fiveMinWarningShown = false;
         _previousRemainingTime = TimeSpan.MaxValue;
-        _deferScorePushUntilUtc = DateTime.MinValue;
+        ResetScoreAnimationQueue();
         _showingBreakScreen = false;
         _lastDisplayedSecond = -1;
         _overlayQueueWired = false;
