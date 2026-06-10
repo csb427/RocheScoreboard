@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Lock the SPA into the safe-area on iOS so home-bar doesn't overlap the
+   bottom nav, and prevent the elastic scroll bounce on the body. */
+html,
+body {
+	overscroll-behavior-y: none;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+@layer components {
+	/* Big tap targets — at least 44px tall is Apple's HIG minimum. */
+	.btn {
+		@apply inline-flex select-none items-center justify-center gap-2 rounded-md border px-4 py-3 text-sm font-bold transition active:scale-[0.98];
+		min-height: 44px;
+	}
+	.btn-primary {
+		@apply btn border-accent-blueDim bg-accent-blueDim/40 text-accent-blue hover:bg-accent-blueDim/60;
+	}
+	.btn-success {
+		@apply btn border-accent-green/40 bg-accent-green/10 text-accent-green hover:bg-accent-green/20;
+	}
+	.btn-danger {
+		@apply btn border-accent-red/40 bg-accent-red/10 text-accent-red hover:bg-accent-red/20;
+	}
+	.btn-ghost {
+		@apply btn border-ink-400 bg-ink-700 text-slate-200 hover:bg-ink-600;
+	}
+	.btn-home {
+		@apply btn border-home-soft bg-home/20 text-home-text hover:bg-home/40;
+	}
+	.btn-away {
+		@apply btn border-away-soft bg-away/20 text-away-text hover:bg-away/40;
+	}
+	.card {
+		@apply rounded-lg border border-ink-400 bg-ink-700 p-4 shadow-card;
+	}
+	.field-label {
+		@apply mb-1 block text-[11px] font-black uppercase tracking-wide text-slate-400;
+	}
+	.field-input {
+		@apply w-full rounded-md border border-ink-400 bg-ink-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-accent-blue/60;
+		min-height: 44px;
+	}
+	.pill {
+		@apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide;
+	}
+}

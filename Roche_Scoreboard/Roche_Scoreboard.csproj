@@ -2,9 +2,14 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- Windows 10 19041+ TFM unlocks the WinRT projection so we can use
+         Windows.Media.Control (GSMTC) for Music Mode's now-playing detection. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
 
@@ -13,7 +18,7 @@
     <AssemblyTitle>Roche Scoreboard</AssemblyTitle>
     <Product>Roche Scoreboard</Product>
     <Description>AFL broadcast scoreboard overlay</Description>
-    <Version>3.2.2</Version>
+    <Version>3.3.0</Version>
 
     <!-- App icon (taskbar, File Explorer, title bar) -->
     <ApplicationIcon>app.ico</ApplicationIcon>
@@ -26,19 +31,11 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
-  <!-- ASP.NET Core for embedded web server + SignalR -->
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <!-- Embed wwwroot files as content -->
-  <ItemGroup>
-    <Content Include="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LibVLCSharp.WPF" Version="3.9.7.1" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
     <PackageReference Include="SharpVectors.Reloaded" Version="1.8.5" />
+    <PackageReference Include="Supabase" Version="1.1.1" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" />
   </ItemGroup>
 
@@ -56,10 +53,7 @@
     <ItemGroup>
       <_LibVlcNativeFiles Include="$(OutDir)libvlc\**\*.*" />
     </ItemGroup>
-    <Copy SourceFiles="@(_LibVlcNativeFiles)"
-          DestinationFiles="@(_LibVlcNativeFiles->'$(PublishDir)libvlc\%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"
-          OverwriteReadOnlyFiles="true" />
+    <Copy SourceFiles="@(_LibVlcNativeFiles)" DestinationFiles="@(_LibVlcNativeFiles->'$(PublishDir)libvlc\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
   </Target>
 
 </Project>

@@ -11,6 +11,13 @@ internal static class ChangelogService
 {
     public static IReadOnlyList<ChangelogVersion> Versions { get; } =
     [
+        new("3.3.0", "2026-05-09",
+        [
+            "[Removed] Music Mode \u2014 the GSMTC-driven now-playing screen, its WASAPI loopback FFT visualiser, the presentation card, the break-screen rotation entry and all associated audio/session services have been removed in full",
+            "[New] 5-minute warning overlay completely redesigned in broadcast style \u2014 red\u2192black radial vignette replaces the flat linear backdrop, real diagonal hazard stripes scroll across the panel via a tiled DrawingBrush + diagonal cut mask, a white scanline sweeps across every 1.6s, the border glow pulses on a sine curve, and a bright white entry flash wipes 0\u21920.9\u21920 in 420ms when the overlay first appears",
+            "[Improved] 5-minute warning overlay typography \u2014 primary \u00225 MIN\u0022 line bumped to 1.85\u00d7 with heavier 34px drop shadow; subtitle \u0022WARNING\u0022 tightened to 0.78\u00d7 with extra letter spacing (5px), amber #FFC84A tint and flanking \u26A0 chevrons; whole letter group sits inside an italic SkewTransform (-8\u00B0) with a very subtle 1.00 \u2194 1.025 / 820ms heartbeat scale so motion is felt without making the text wobble",
+            "[Improved] 5-minute warning hazard stripes restricted to thin top + bottom caution bands via a vertical opacity-mask, with thin amber #FFB020 accent lines just below each band; the centre of the panel stays a clean red vignette so the white \u00225 MIN\u0022 punches and remains the hero",
+        ]),
         new("3.2.2", "2026-05-08",
         [
             "[New] Training mode \u2014 \u201cup next\u201d bar redesigned: bigger, evenly-sized 96 px label/title text and a punchy 112 px orange countdown timer; long titles ellipsise cleanly and the whole bar is now centred vertically within its strip instead of crowding the screen edge",

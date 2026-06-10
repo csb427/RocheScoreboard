@@ -1,0 +1,23 @@
+{
+  "name": "roche-scoreboard-remote",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mobile-first remote control for the Roche Scoreboard. Mirrors every desktop control panel option onto iPhone, iPad, or laptop.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8"
+  }
+}

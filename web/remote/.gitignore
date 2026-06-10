@@ -1,0 +1,13 @@
+# Local env files
+.env
+.env.local
+
+# Build artefacts
+dist/
+node_modules/
+*.log
+.vscode/
+
+# OS noise
+.DS_Store
+Thumbs.db

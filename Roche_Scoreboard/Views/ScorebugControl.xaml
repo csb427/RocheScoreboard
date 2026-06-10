@@ -482,31 +482,91 @@
                 </Border>
 
                 <!-- 5-minute alert overlay (covers ONLY the quarter+clock panel).
-                     Bold red alert backdrop with a pulsing border glow and a
-                     hidden translate transform retained for code compatibility. -->
+                     Redesigned broadcast-style hazard alert: deep red vignette,
+                     animated diagonal hazard stripes top + bottom, pulsing
+                     border glow, scanline shimmer, italic-skewed letter host. -->
                 <Border x:Name="WarningOverlay" Opacity="0" IsHitTestVisible="False" Panel.ZIndex="100" ClipToBounds="True">
                     <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#7A0010" Offset="0.0"/>
-                            <GradientStop Color="#C81020" Offset="0.5"/>
-                            <GradientStop Color="#7A0010" Offset="1.0"/>
-                        </LinearGradientBrush>
+                        <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.95" RadiusY="1.15">
+                            <GradientStop Color="#FFE0001E" Offset="0.0"/>
+                            <GradientStop Color="#FFA80018" Offset="0.45"/>
+                            <GradientStop Color="#FF38000A" Offset="1.0"/>
+                        </RadialGradientBrush>
                     </Border.Background>
                     <Grid>
-                        <!-- Hidden stripe rect retained so existing code refs survive. -->
-                        <Rectangle Opacity="0" IsHitTestVisible="False">
+                        <!-- Caution stripes: rendered full-rect, then masked to thin
+                             top + bottom bands by the vertical OpacityMask so the
+                             middle text area stays clean and readable. -->
+                        <Rectangle x:Name="WarningStripesRect" Opacity="0.85" IsHitTestVisible="False"
+                                   Width="2400" HorizontalAlignment="Left">
+                            <Rectangle.Fill>
+                                <DrawingBrush TileMode="Tile" Stretch="None"
+                                              Viewport="0,0,56,56" ViewportUnits="Absolute">
+                                    <DrawingBrush.Drawing>
+                                        <GeometryDrawing Brush="#FF1A0000">
+                                            <GeometryDrawing.Geometry>
+                                                <PathGeometry Figures="M 0,28 L 28,0 L 56,0 L 0,56 Z M 28,56 L 56,28 L 56,56 Z"/>
+                                            </GeometryDrawing.Geometry>
+                                        </GeometryDrawing>
+                                    </DrawingBrush.Drawing>
+                                </DrawingBrush>
+                            </Rectangle.Fill>
+                            <Rectangle.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.00"/>
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.16"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="0.22"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="0.78"/>
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.84"/>
+                                    <GradientStop Color="#FFFFFFFF" Offset="1.00"/>
+                                </LinearGradientBrush>
+                            </Rectangle.OpacityMask>
                             <Rectangle.RenderTransform>
                                 <TranslateTransform x:Name="WarningStripesTranslate" X="0"/>
                             </Rectangle.RenderTransform>
                         </Rectangle>
-                        <Border x:Name="WarningGlowBorder" Opacity="0" BorderThickness="4" CornerRadius="0" BorderBrush="#FFE94A6A">
+
+                        <!-- Thin accent lines under each caution band -->
+                        <Border Height="2" VerticalAlignment="Top" Margin="0,18,0,0" Background="#FFFFB020" Opacity="0.85" IsHitTestVisible="False"/>
+                        <Border Height="2" VerticalAlignment="Bottom" Margin="0,0,0,18" Background="#FFFFB020" Opacity="0.85" IsHitTestVisible="False"/>
+
+                        <!-- Scanline shimmer: thin bright bar that sweeps across. -->
+                        <Rectangle x:Name="WarningScanline" IsHitTestVisible="False"
+                                   Width="80" HorizontalAlignment="Left" Opacity="0.0">
+                            <Rectangle.Fill>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#00FFFFFF" Offset="0.0"/>
+                                    <GradientStop Color="#80FFFFFF" Offset="0.5"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                            <Rectangle.RenderTransform>
+                                <TranslateTransform x:Name="WarningScanlineTranslate" X="-80"/>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+
+                        <!-- Pulsing red glow border -->
+                        <Border x:Name="WarningGlowBorder" Opacity="0" BorderThickness="5" CornerRadius="0" BorderBrush="#FFFF2A40">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="22" ShadowDepth="0" Color="#FF2A40" Opacity="0.9"/>
+                                <DropShadowEffect BlurRadius="34" ShadowDepth="0" Color="#FF2A40" Opacity="1.0"/>
                             </Border.Effect>
                         </Border>
+
+                        <!-- Letter host with italic skew + heartbeat scale -->
                         <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,2">
-                            <StackPanel x:Name="WarningLetterHost" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Grid RenderTransformOrigin="0.5,0.5">
+                                <Grid.RenderTransform>
+                                    <TransformGroup>
+                                        <SkewTransform x:Name="WarningLetterSkew" AngleX="-8" AngleY="0"/>
+                                        <ScaleTransform x:Name="WarningLetterPulse" ScaleX="1" ScaleY="1"/>
+                                    </TransformGroup>
+                                </Grid.RenderTransform>
+                                <StackPanel x:Name="WarningLetterHost" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
                         </Viewbox>
+
+                        <!-- White entry flash sits on top, faded in/out by code. -->
+                        <Rectangle x:Name="WarningFlash" Fill="White" Opacity="0" IsHitTestVisible="False"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -1020,31 +1080,84 @@
                 <TextBlock x:Name="ExpTopTimeText" Visibility="Collapsed" Text="1:26 PM"/>
 
                 <!-- 5-minute alert overlay (covers only the quarter+clock panel).
-                     Solid red alert with pulsing glow border; the hazard
-                     stripe transform is retained as a hidden no-op so the
-                     existing code-behind animation calls remain valid. -->
+                     Redesigned broadcast-style hazard alert mirroring the
+                     compact overlay: vignette, scrolling hazard stripes,
+                     scanline shimmer, pulsing border glow, italic-skewed
+                     heartbeat text, white entry flash. -->
                 <Border x:Name="ExpWarningOverlay" Grid.RowSpan="2" Opacity="0" IsHitTestVisible="False" Panel.ZIndex="100" ClipToBounds="True" BorderThickness="0">
                     <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#7A0010" Offset="0.0"/>
-                            <GradientStop Color="#C81020" Offset="0.5"/>
-                            <GradientStop Color="#7A0010" Offset="1.0"/>
-                        </LinearGradientBrush>
+                        <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.95" RadiusY="1.15">
+                            <GradientStop Color="#FFE0001E" Offset="0.0"/>
+                            <GradientStop Color="#FFA80018" Offset="0.45"/>
+                            <GradientStop Color="#FF38000A" Offset="1.0"/>
+                        </RadialGradientBrush>
                     </Border.Background>
                     <Grid>
-                        <Rectangle Opacity="0" IsHitTestVisible="False">
+                        <Rectangle x:Name="ExpWarningStripesRect" Opacity="0.85" IsHitTestVisible="False"
+                                   Width="2400" HorizontalAlignment="Left">
+                            <Rectangle.Fill>
+                                <DrawingBrush TileMode="Tile" Stretch="None"
+                                              Viewport="0,0,56,56" ViewportUnits="Absolute">
+                                    <DrawingBrush.Drawing>
+                                        <GeometryDrawing Brush="#FF1A0000">
+                                            <GeometryDrawing.Geometry>
+                                                <PathGeometry Figures="M 0,28 L 28,0 L 56,0 L 0,56 Z M 28,56 L 56,28 L 56,56 Z"/>
+                                            </GeometryDrawing.Geometry>
+                                        </GeometryDrawing>
+                                    </DrawingBrush.Drawing>
+                                </DrawingBrush>
+                            </Rectangle.Fill>
+                            <Rectangle.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.00"/>
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.14"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="0.20"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="0.80"/>
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.86"/>
+                                    <GradientStop Color="#FFFFFFFF" Offset="1.00"/>
+                                </LinearGradientBrush>
+                            </Rectangle.OpacityMask>
                             <Rectangle.RenderTransform>
                                 <TranslateTransform x:Name="ExpWarningStripesTranslate" X="0"/>
                             </Rectangle.RenderTransform>
                         </Rectangle>
-                        <Border x:Name="ExpWarningGlowBorder" Opacity="0" BorderThickness="6" BorderBrush="#FFE94A6A">
+
+                        <Border Height="3" VerticalAlignment="Top" Margin="0,28,0,0" Background="#FFFFB020" Opacity="0.9" IsHitTestVisible="False"/>
+                        <Border Height="3" VerticalAlignment="Bottom" Margin="0,0,0,28" Background="#FFFFB020" Opacity="0.9" IsHitTestVisible="False"/>
+
+                        <Rectangle x:Name="ExpWarningScanline" IsHitTestVisible="False"
+                                   Width="120" HorizontalAlignment="Left" Opacity="0.0">
+                            <Rectangle.Fill>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#00FFFFFF" Offset="0.0"/>
+                                    <GradientStop Color="#80FFFFFF" Offset="0.5"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                            <Rectangle.RenderTransform>
+                                <TranslateTransform x:Name="ExpWarningScanlineTranslate" X="-120"/>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+
+                        <Border x:Name="ExpWarningGlowBorder" Opacity="0" BorderThickness="7" BorderBrush="#FFFF2A40">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="28" ShadowDepth="0" Color="#FF2A40" Opacity="0.9"/>
+                                <DropShadowEffect BlurRadius="44" ShadowDepth="0" Color="#FF2A40" Opacity="1.0"/>
                             </Border.Effect>
                         </Border>
+
                         <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,6">
-                            <StackPanel x:Name="ExpWarningLetterHost" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Grid RenderTransformOrigin="0.5,0.5">
+                                <Grid.RenderTransform>
+                                    <TransformGroup>
+                                        <SkewTransform x:Name="ExpWarningLetterSkew" AngleX="-8" AngleY="0"/>
+                                        <ScaleTransform x:Name="ExpWarningLetterPulse" ScaleX="1" ScaleY="1"/>
+                                    </TransformGroup>
+                                </Grid.RenderTransform>
+                                <StackPanel x:Name="ExpWarningLetterHost" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
                         </Viewbox>
+
+                        <Rectangle x:Name="ExpWarningFlash" Fill="White" Opacity="0" IsHitTestVisible="False"/>
                     </Grid>
                 </Border>
             </Grid>

@@ -2100,6 +2100,10 @@ namespace Roche_Scoreboard.Views
         private StackPanel AWarningLetterHost => IsExpanded ? ExpWarningLetterHost : WarningLetterHost;
         private TranslateTransform AWarningStripes => IsExpanded ? ExpWarningStripesTranslate : WarningStripesTranslate;
         private Border AWarningGlow => IsExpanded ? ExpWarningGlowBorder : WarningGlowBorder;
+        private TranslateTransform AWarningScanline => IsExpanded ? ExpWarningScanlineTranslate : WarningScanlineTranslate;
+        private System.Windows.Shapes.Rectangle AWarningScanlineRect => IsExpanded ? ExpWarningScanline : WarningScanline;
+        private System.Windows.Shapes.Rectangle AWarningFlash => IsExpanded ? ExpWarningFlash : WarningFlash;
+        private ScaleTransform AWarningPulse => IsExpanded ? ExpWarningLetterPulse : WarningLetterPulse;
         private TextBlock AQuarterText => IsExpanded ? ExpQuarterNumberText : QuarterNumberText;
         private TextBlock AClockText => IsExpanded ? ExpClockText : ClockText;
         private ScaleTransform AQuarterTextScale => IsExpanded ? ExpQuarterNumberTextScale : QuarterNumberTextScale;
@@ -2627,44 +2631,80 @@ namespace Roche_Scoreboard.Views
         private void BuildWarningLetters(StackPanel host, IReadOnlyList<string> lines, Color color, double fontSize, bool foldedOut)
         {
             host.Children.Clear();
-            // Primary line (index 0) renders ~1.7x larger than subtitles so the
-            // big "5 MIN" reads from the back row while "WARNING" sits under it.
+            // Primary line (index 0) renders ~1.85x larger than subtitles. The
+            // subtitle uses an amber tint with extra letter spacing and is
+            // flanked by ⚠ glyphs for broadcast-caption polish.
             for (int lineIndex = 0; lineIndex < lines.Count; lineIndex++)
             {
                 string line = lines[lineIndex];
                 bool isPrimary = lineIndex == 0;
-                double size = isPrimary ? fontSize * 1.7 : fontSize * 0.85;
+                double size = isPrimary ? fontSize * 1.85 : fontSize * 0.78;
+                Color lineColor = isPrimary ? color : Color.FromRgb(0xFF, 0xC8, 0x4A);
+                double letterPad = isPrimary ? 1 : 5;
                 var row = new StackPanel
                 {
                     Orientation = System.Windows.Controls.Orientation.Horizontal,
                     HorizontalAlignment = HAlign.Center,
-                    Margin = isPrimary ? new Thickness(0, 0, 0, 4) : new Thickness(0, 2, 0, 0)
+                    Margin = isPrimary ? new Thickness(0, 0, 0, 2) : new Thickness(0, 6, 0, 0)
                 };
+
+                // Subtitle gets a leading ⚠ chevron.
+                if (!isPrimary)
+                    row.Children.Add(MakeWarningGlyph(size, lineColor, leftMargin: 0, rightMargin: 14));
+
                 foreach (var ch in line)
                 {
                     var tb = new TextBlock
                     {
                         Text = ch == ' ' ? "\u00A0\u00A0" : ch.ToString(),
-                        Foreground = new SolidColorBrush(color),
+                        Foreground = new SolidColorBrush(lineColor),
                         FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
                         FontWeight = FontWeights.Black,
                         FontSize = size,
-                        Margin = new Thickness(1, 0, 1, 0),
+                        Margin = new Thickness(letterPad, 0, letterPad, 0),
                         RenderTransformOrigin = new System.Windows.Point(0.5, 0.5),
                         Effect = new DropShadowEffect
                         {
-                            BlurRadius = isPrimary ? 26 : 14,
+                            BlurRadius = isPrimary ? 34 : 18,
                             ShadowDepth = 0,
-                            Color = Colors.Black,
-                            Opacity = 0.85
+                            Color = isPrimary ? Colors.Black : Color.FromRgb(0x55, 0x00, 0x00),
+                            Opacity = 0.95
                         }
                     };
                     var st = new ScaleTransform(1, foldedOut ? 0.001 : 1);
                     tb.RenderTransform = st;
                     row.Children.Add(tb);
                 }
+
+                // Subtitle gets a trailing ⚠ chevron.
+                if (!isPrimary)
+                    row.Children.Add(MakeWarningGlyph(size, lineColor, leftMargin: 14, rightMargin: 0));
+
                 host.Children.Add(row);
             }
+        }
+
+        private static TextBlock MakeWarningGlyph(double size, Color color, double leftMargin, double rightMargin)
+        {
+            var tb = new TextBlock
+            {
+                Text = "\u26A0", // ⚠
+                Foreground = new SolidColorBrush(color),
+                FontFamily = new System.Windows.Media.FontFamily("Segoe UI Symbol"),
+                FontWeight = FontWeights.Black,
+                FontSize = size * 1.15,
+                Margin = new Thickness(leftMargin, 0, rightMargin, 0),
+                RenderTransformOrigin = new System.Windows.Point(0.5, 0.5),
+                Effect = new DropShadowEffect
+                {
+                    BlurRadius = 18,
+                    ShadowDepth = 0,
+                    Color = Color.FromRgb(0x55, 0x00, 0x00),
+                    Opacity = 0.95
+                }
+            };
+            tb.RenderTransform = new ScaleTransform(1, 1);
+            return tb;
         }
 
         // Animates a ScaleTransform.ScaleY between values to mimic a letter "folding".
@@ -2757,13 +2797,69 @@ namespace Roche_Scoreboard.Views
                     new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220))
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
 
-                // Start ambient hazard animations (stripes scroll + glow pulse).
+                // Bright entry flash – white wipe that fades immediately.
+                var flash = AWarningFlash;
+                if (flash != null)
+                {
+                    var fa = new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop };
+                    fa.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+                    fa.KeyFrames.Add(new LinearDoubleKeyFrame(0.9, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(70))));
+                    fa.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(420))));
+                    flash.BeginAnimation(OpacityProperty, fa);
+                }
+
+                // Stripe scroll + glow pulse (ambient hazard animations).
                 ws.BeginAnimation(TranslateTransform.XProperty,
                     new DoubleAnimation(0, ScalePx(56), TimeSpan.FromSeconds(0.8))
                     { RepeatBehavior = RepeatBehavior.Forever });
                 wg.BeginAnimation(OpacityProperty,
-                    new DoubleAnimation(0.3, 0.8, TimeSpan.FromSeconds(0.8))
-                    { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+                    new DoubleAnimation(0.35, 1.0, TimeSpan.FromSeconds(0.55))
+                    { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever,
+                      EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } });
+
+                // Scanline sweep across the overlay.
+                var scan = AWarningScanline;
+                var scanRect = AWarningScanlineRect;
+                if (scan != null && scanRect != null)
+                {
+                    double width = Math.Max(AWarningOverlay.ActualWidth, 200);
+                    var scanAnim = new DoubleAnimation
+                    {
+                        From = -scanRect.Width,
+                        To = width + scanRect.Width,
+                        Duration = TimeSpan.FromSeconds(1.6),
+                        BeginTime = TimeSpan.FromMilliseconds(420),
+                        RepeatBehavior = RepeatBehavior.Forever,
+                        EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+                    };
+                    var scanOp = new DoubleAnimation
+                    {
+                        From = 0.0,
+                        To = 0.55,
+                        Duration = TimeSpan.FromMilliseconds(300),
+                        BeginTime = TimeSpan.FromMilliseconds(420)
+                    };
+                    scan.BeginAnimation(TranslateTransform.XProperty, scanAnim);
+                    scanRect.BeginAnimation(OpacityProperty, scanOp);
+                }
+
+                // Heartbeat: very subtle scale pulse on the letter group so
+                // motion is felt without making the text wobble or jitter.
+                var pulse = AWarningPulse;
+                if (pulse != null)
+                {
+                    var pa = new DoubleAnimation
+                    {
+                        From = 1.0,
+                        To = 1.025,
+                        Duration = TimeSpan.FromMilliseconds(820),
+                        AutoReverse = true,
+                        RepeatBehavior = RepeatBehavior.Forever,
+                        EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                    };
+                    pulse.BeginAnimation(ScaleTransform.ScaleXProperty, pa);
+                    pulse.BeginAnimation(ScaleTransform.ScaleYProperty, pa);
+                }
 
                 // Stage 3: fold-in warning letters one-by-one.
                 FoldInWarningLetters(host, () =>
@@ -2802,6 +2898,24 @@ namespace Roche_Scoreboard.Views
                 ws.BeginAnimation(TranslateTransform.XProperty, null);
                 wg.BeginAnimation(OpacityProperty, null);
                 wg.Opacity = 0;
+
+                // Stop scanline + heartbeat.
+                var scan = AWarningScanline;
+                var scanRect = AWarningScanlineRect;
+                scan?.BeginAnimation(TranslateTransform.XProperty, null);
+                if (scanRect != null)
+                {
+                    scanRect.BeginAnimation(OpacityProperty, null);
+                    scanRect.Opacity = 0;
+                }
+                var pulse = AWarningPulse;
+                if (pulse != null)
+                {
+                    pulse.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                    pulse.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+                    pulse.ScaleX = 1.0;
+                    pulse.ScaleY = 1.0;
+                }
 
                 var fo = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(260))
                 { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };

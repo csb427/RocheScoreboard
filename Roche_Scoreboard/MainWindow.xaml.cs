@@ -14,7 +14,6 @@ using Microsoft.Win32;
 using Roche_Scoreboard.Models;
 using Roche_Scoreboard.Services;
 using Roche_Scoreboard.Views;
-using Roche_Scoreboard.Web;
 
 // WinForms colour wheel
 using WinForms = System.Windows.Forms;
@@ -129,8 +128,6 @@ namespace Roche_Scoreboard
         private Window? _trainingDisplayWindow;
         private DispatcherTimer? _trainingTickTimer;
 
-        // Embedded web server for remote control panel and live view
-        private WebHostService? _webHost;
         private string _activeScreenKey = "scorebug";
 
         public MainWindow()
@@ -298,22 +295,16 @@ namespace Roche_Scoreboard
             // update section in the Settings tab. Proceed straight to teardown.
 
             CompositionTarget.Rendering -= OnFrameRendering;
-            ScoreboardHub.CommandReceived -= OnWebCommand;
             StopAutoSaveTimer();
             SaveGameState();
             SaveAllWindowLayouts();
-            StopFrameCapture();
             _weatherService?.Dispose();
             _weatherService = null;
             _displayWindow?.Close();
             _cricketDisplayWindow?.Close();
             _trainingDisplayWindow?.Close();
 
-            if (_webHost is not null)
-            {
-                await _webHost.DisposeAsync();
-                _webHost = null;
-            }
+            await Task.CompletedTask;
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -352,7 +343,8 @@ namespace Roche_Scoreboard
                 if (Top < workArea.Top) Top = workArea.Top;
             }
 
-            StartWebServerAsync();
+            // Cloud remote session startup is wired up in MainWindow.CloudRemote.cs.
+            StartCloudRemoteOnLoad();
 
             // Restore last-loaded custom MP4 in the VIDEO tab (best-effort).
             TryRestoreLastVideoPath();
@@ -491,39 +483,13 @@ namespace Roche_Scoreboard
             }
         }
 
-        private async void StartWebServerAsync()
-        {
-            try
-            {
-                _webHost = new WebHostService();
-                await _webHost.StartAsync();
-                ScoreboardHub.CommandReceived += OnWebCommand;
-                BroadcastWebState();
-                StartFrameCapture();
+        // ───────────────────────────────────────────────────────────────
+        // QR / clipboard helpers — used by the Cloud Remote settings card
+        // (see MainWindow.CloudRemote.cs). The legacy local web server,
+        // live view, and SignalR command bridge have been removed.
+        // ───────────────────────────────────────────────────────────────
 
-                string localIp = GetLocalIpAddress();
-                int port = _webHost.Port;
-                string liveUrl = $"http://{localIp}:{port}/live.html";
-                string controlUrl = $"http://{localIp}:{port}/control.html";
-                WebLiveUrlBox.Text = liveUrl;
-                WebControlUrlBox.Text = controlUrl;
-                WebAccessStatus.Text = $"Server running on port {port}";
-                WebAccessStatus.Foreground = FindResource("LiveBrush") as System.Windows.Media.SolidColorBrush;
-
-                LiveQrImage.Source = GenerateQrCode(liveUrl);
-                ControlQrImage.Source = GenerateQrCode(controlUrl);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Web server failed to start: {ex}");
-                WebAccessStatus.Text = $"Web server failed: {ex.Message}";
-                WebAccessStatus.Foreground = FindResource("AwayAccentBrush") as System.Windows.Media.SolidColorBrush;
-                WebLiveUrlBox.Text = "—";
-                WebControlUrlBox.Text = "—";
-            }
-        }
-
-        private static BitmapSource GenerateQrCode(string text)
+        internal static BitmapSource GenerateQrCode(string text)
         {
             using var generator = new QRCoder.QRCodeGenerator();
             using QRCoder.QRCodeData data = generator.CreateQrCode(text, QRCoder.QRCodeGenerator.ECCLevel.M);
@@ -537,38 +503,6 @@ namespace Roche_Scoreboard
             bitmap.EndInit();
             bitmap.Freeze();
             return bitmap;
-        }
-
-        private static string GetLocalIpAddress()
-        {
-            foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (ni.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up)
-                    continue;
-                if (ni.NetworkInterfaceType is System.Net.NetworkInformation.NetworkInterfaceType.Loopback
-                    or System.Net.NetworkInformation.NetworkInterfaceType.Tunnel)
-                    continue;
-
-                foreach (var addr in ni.GetIPProperties().UnicastAddresses)
-                {
-                    if (addr.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                        return addr.Address.ToString();
-                }
-            }
-
-            return "localhost";
-        }
-
-        private void CopyLiveUrl_Click(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(WebLiveUrlBox.Text) && WebLiveUrlBox.Text != "—")
-                TrySetClipboardWithFeedback(WebLiveUrlBox.Text, WebAccessStatus);
-        }
-
-        private void CopyControlUrl_Click(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(WebControlUrlBox.Text) && WebControlUrlBox.Text != "—")
-                TrySetClipboardWithFeedback(WebControlUrlBox.Text, WebAccessStatus);
         }
 
         private static void TrySetClipboard(string text)

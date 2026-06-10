@@ -1,0 +1,258 @@
+using System;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Windows.Threading;
+
+namespace Roche_Scoreboard.Services.Cloud;
+
+/// <summary>
+/// Contract the WPF <c>MainWindow</c> implements so the cloud dispatcher can
+/// invoke operator actions without taking a direct reference to the window.
+/// Every method runs on the UI thread.
+///
+/// The signatures intentionally mirror the existing local click handlers so
+/// the dispatcher is "press the button" rather than "mutate model" — that
+/// way every animation, validation rule, and snapshot continues to work
+/// exactly as it does for a local click.
+/// </summary>
+public interface IRemoteCommandTarget
+{
+    // Scoring
+    void HomeGoal();
+    void HomeBehind();
+    void AwayGoal();
+    void AwayBehind();
+    void Undo();
+
+    // Clock
+    void ToggleClock();
+    void SetClockMode(string mode, int minutes, int seconds);
+    void SetElapsedClock(int minutes, int seconds);
+    void Siren();
+
+    // Quarter
+    void EndQuarter();
+    void ContinueQuarter();
+
+    // Match
+    void ResetMatch();
+    void SetTeams(string homeName, string homeAbbr, string awayName, string awayAbbr);
+    void SetColors(string homePrimary, string homeSecondary, string awayPrimary, string awaySecondary);
+    void SetFinalsMode(bool enabled);
+    void SetWeatherLocation(string location);
+
+    // Presentation
+    void SwitchScreen(string screen);
+    void ShowScoreboardWindow();
+
+    // Marquee
+    void AddMessage(string text);
+    void RemoveMessage(int index);
+    void SetMessages(string[] messages);
+
+    // Layout / animation
+    void SetLayout(string layout);
+    void SetGoalAnimation(string style);
+}
+
+/// <summary>
+/// Marshals incoming <see cref="RemoteEvent"/> envelopes onto the WPF UI
+/// thread and invokes the matching <see cref="IRemoteCommandTarget"/> hook.
+/// Deduplicates by <see cref="RemoteEvent.Id"/> so realtime replays
+/// (reconnect, refresh) never double-apply a goal.
+/// </summary>
+public sealed class RemoteCommandDispatcher
+{
+    private readonly IRemoteCommandTarget _target;
+    private readonly Dispatcher _uiDispatcher;
+    private readonly LruIdCache _processed = new(capacity: 512);
+
+    public RemoteCommandDispatcher(IRemoteCommandTarget target, Dispatcher uiDispatcher)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(uiDispatcher);
+        _target = target;
+        _uiDispatcher = uiDispatcher;
+    }
+
+    /// <summary>
+    /// Entry point for the realtime client. Safe to call from any thread.
+    /// </summary>
+    public void Dispatch(RemoteEvent ev)
+    {
+        ArgumentNullException.ThrowIfNull(ev);
+        if (string.IsNullOrEmpty(ev.EventType)) return;
+        if (!_processed.TryAdd(ev.Id)) return;
+
+        _ = _uiDispatcher.InvokeAsync(() => ApplyOnUiThread(ev));
+    }
+
+    private void ApplyOnUiThread(RemoteEvent ev)
+    {
+        try
+        {
+            switch (ev.EventType)
+            {
+                // Scoring
+                case RemoteEventTypes.HomeGoal:    _target.HomeGoal(); break;
+                case RemoteEventTypes.HomeBehind:  _target.HomeBehind(); break;
+                case RemoteEventTypes.AwayGoal:    _target.AwayGoal(); break;
+                case RemoteEventTypes.AwayBehind:  _target.AwayBehind(); break;
+                case RemoteEventTypes.Undo:        _target.Undo(); break;
+
+                // Clock
+                case RemoteEventTypes.ClockToggle: _target.ToggleClock(); break;
+                case RemoteEventTypes.Siren:       _target.Siren(); break;
+                case RemoteEventTypes.ClockModeSet:
+                    _target.SetClockMode(
+                        GetString(ev.Payload, "mode", "CountUp"),
+                        GetInt(ev.Payload, "minutes", 20),
+                        GetInt(ev.Payload, "seconds", 0));
+                    break;
+                case RemoteEventTypes.ClockSet:
+                    _target.SetElapsedClock(
+                        GetInt(ev.Payload, "minutes", 0),
+                        GetInt(ev.Payload, "seconds", 0));
+                    break;
+
+                // Quarter
+                case RemoteEventTypes.EndQuarter:      _target.EndQuarter(); break;
+                case RemoteEventTypes.ContinueQuarter: _target.ContinueQuarter(); break;
+
+                // Match
+                case RemoteEventTypes.MatchReset: _target.ResetMatch(); break;
+                case RemoteEventTypes.SetTeams:
+                    _target.SetTeams(
+                        GetString(ev.Payload, "homeName", "HOME"),
+                        GetString(ev.Payload, "homeAbbr", "HOM"),
+                        GetString(ev.Payload, "awayName", "AWAY"),
+                        GetString(ev.Payload, "awayAbbr", "AWY"));
+                    break;
+                case RemoteEventTypes.SetColors:
+                    _target.SetColors(
+                        GetString(ev.Payload, "homePrimary",   "#000000"),
+                        GetString(ev.Payload, "homeSecondary", "#FFFFFF"),
+                        GetString(ev.Payload, "awayPrimary",   "#FFFFFF"),
+                        GetString(ev.Payload, "awaySecondary", "#000000"));
+                    break;
+                case RemoteEventTypes.SetFinalsMode:
+                    _target.SetFinalsMode(GetBool(ev.Payload, "enabled", false));
+                    break;
+                case RemoteEventTypes.SetWeatherLocation:
+                    _target.SetWeatherLocation(GetString(ev.Payload, "location", ""));
+                    break;
+
+                // Presentation
+                case RemoteEventTypes.SwitchScreen:
+                    _target.SwitchScreen(GetString(ev.Payload, "screen", "scorebug"));
+                    break;
+                case RemoteEventTypes.ShowScoreboardWindow:
+                    _target.ShowScoreboardWindow();
+                    break;
+
+                // Marquee
+                case RemoteEventTypes.MessageAdd:
+                    _target.AddMessage(GetString(ev.Payload, "text", ""));
+                    break;
+                case RemoteEventTypes.MessageRemove:
+                    _target.RemoveMessage(GetInt(ev.Payload, "index", -1));
+                    break;
+                case RemoteEventTypes.MessagesSet:
+                    _target.SetMessages(GetStringArray(ev.Payload, "messages"));
+                    break;
+
+                // Layout / animation
+                case RemoteEventTypes.SetLayout:
+                    _target.SetLayout(GetString(ev.Payload, "layout", "classic"));
+                    break;
+                case RemoteEventTypes.SetGoalAnimation:
+                    _target.SetGoalAnimation(GetString(ev.Payload, "style", "broadcast"));
+                    break;
+
+                // Lifecycle (informational only)
+                case RemoteEventTypes.SessionStarted:
+                case RemoteEventTypes.SessionEnded:
+                case RemoteEventTypes.Heartbeat:
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[CloudRemote] dispatch error '{ev.EventType}': {ex.Message}");
+        }
+    }
+
+    // ── JSON helpers ──
+
+    private static string GetString(JsonElement payload, string name, string fallback)
+    {
+        if (payload.ValueKind != JsonValueKind.Object) return fallback;
+        if (!payload.TryGetProperty(name, out var el)) return fallback;
+        return el.ValueKind == JsonValueKind.String ? (el.GetString() ?? fallback) : fallback;
+    }
+
+    private static int GetInt(JsonElement payload, string name, int fallback)
+    {
+        if (payload.ValueKind != JsonValueKind.Object) return fallback;
+        if (!payload.TryGetProperty(name, out var el)) return fallback;
+        return el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out int v) ? v : fallback;
+    }
+
+    private static bool GetBool(JsonElement payload, string name, bool fallback)
+    {
+        if (payload.ValueKind != JsonValueKind.Object) return fallback;
+        if (!payload.TryGetProperty(name, out var el)) return fallback;
+        return el.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => fallback
+        };
+    }
+
+    private static string[] GetStringArray(JsonElement payload, string name)
+    {
+        if (payload.ValueKind != JsonValueKind.Object) return Array.Empty<string>();
+        if (!payload.TryGetProperty(name, out var el)) return Array.Empty<string>();
+        if (el.ValueKind != JsonValueKind.Array) return Array.Empty<string>();
+
+        var result = new string[el.GetArrayLength()];
+        int i = 0;
+        foreach (var item in el.EnumerateArray())
+            result[i++] = item.ValueKind == JsonValueKind.String ? (item.GetString() ?? "") : "";
+        return result;
+    }
+
+    /// <summary>
+    /// Small fixed-size set used to dedupe by event id without unbounded
+    /// memory growth. When full it drops the oldest insert.
+    /// </summary>
+    private sealed class LruIdCache
+    {
+        private readonly int _capacity;
+        private readonly System.Collections.Generic.LinkedList<Guid> _order = new();
+        private readonly System.Collections.Generic.Dictionary<Guid, System.Collections.Generic.LinkedListNode<Guid>> _index = new();
+        private readonly object _gate = new();
+
+        public LruIdCache(int capacity) => _capacity = capacity;
+
+        public bool TryAdd(Guid id)
+        {
+            lock (_gate)
+            {
+                if (_index.ContainsKey(id)) return false;
+
+                if (_order.Count >= _capacity && _order.First is { } oldest)
+                {
+                    _order.RemoveFirst();
+                    _index.Remove(oldest.Value);
+                }
+
+                var node = _order.AddLast(id);
+                _index[id] = node;
+                return true;
+            }
+        }
+    }
+}
