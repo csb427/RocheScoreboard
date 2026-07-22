@@ -105,6 +105,9 @@ internal sealed class GameState
     public List<string> Messages { get; set; } = [];
     public bool FinalsMode { get; set; }
     public string? WeatherLocation { get; set; }
+    public bool ShowControlPanelCountdown { get; set; }
+    public int ControlPanelCountdownDurationSeconds { get; set; }
+    public int ControlPanelCountdownRemainingSeconds { get; set; }
 
     // Logo crop
     public double HomeLogoZoom { get; set; } = 1.0;

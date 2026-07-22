@@ -967,6 +967,8 @@ public partial class MainWindow
             return;
         }
 
+        _controlPanelCountdownAutoPausedClock = false;
+
         if (_showingBreakScreen || _isBreakRotating)
         {
             StopBreakRotation();
@@ -994,6 +996,40 @@ public partial class MainWindow
 
         _match.StartClock();
         UpdateLiveUI();
+    }
+
+    private void ControlPanelCountdownStartPauseButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_showControlPanelCountdown || _match.ClockMode != ClockMode.CountUp)
+        {
+            return;
+        }
+
+        if (_controlPanelCountdownRemaining == TimeSpan.Zero)
+        {
+            _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+            _controlPanelCountdownAutoPausedClock = false;
+        }
+
+        _controlPanelCountdownRunning = !_controlPanelCountdownRunning;
+        UpdateControlPanelCountdownUi();
+    }
+
+    private void ControlPanelCountdownResetButton_Click(object sender, RoutedEventArgs e)
+    {
+        _controlPanelCountdownRunning = false;
+        _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+        _controlPanelCountdownAutoPausedClock = false;
+        UpdateControlPanelCountdownUi();
+    }
+
+    private void ControlPanelCountdownSyncButton_Click(object sender, RoutedEventArgs e)
+    {
+        _controlPanelCountdownRunning = false;
+        _controlPanelCountdownDuration = _match.QuarterDuration;
+        _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+        _controlPanelCountdownAutoPausedClock = false;
+        UpdateControlPanelCountdownUi();
     }
 
     private void HomeGoal_Click(object sender, RoutedEventArgs e)
@@ -1246,6 +1282,9 @@ public partial class MainWindow
     {
         if (!_match.EndQuarter()) return;
 
+        _controlPanelCountdownRunning = false;
+        _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+        _controlPanelCountdownAutoPausedClock = false;
         _fiveMinWarningShown = false;
         _previousRemainingTime = TimeSpan.MaxValue;
         _scorebug?.PauseScorelessForBreak();
@@ -1284,6 +1323,9 @@ public partial class MainWindow
     private void ContinueQuarter_Click(object sender, RoutedEventArgs e)
     {
         if (!_match.CanContinueQuarter) return;
+
+        _controlPanelCountdownRunning = false;
+        _controlPanelCountdownAutoPausedClock = false;
 
         int resumeQ = _match.Quarter - 1;
         MessageBoxResult confirm = System.Windows.MessageBox.Show(
@@ -1352,6 +1394,45 @@ public partial class MainWindow
     {
         var dc = _match.DisplayClock;
         ClockStatusText.Text = $"{(_match.ClockMode == ClockMode.Countdown ? "Countdown" : "Count Up")} · {(_match.ClockRunning ? "Running" : "Stopped")} · {(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
+        UpdateControlPanelCountdownUi();
+    }
+
+    private void UpdateControlPanelCountdownUi()
+    {
+        if (ControlPanelCountdownPanel is null)
+        {
+            return;
+        }
+
+        bool visible = _match.ClockMode == ClockMode.CountUp && _showControlPanelCountdown;
+        ControlPanelCountdownPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        if (!visible)
+        {
+            return;
+        }
+
+        ControlPanelCountdownText.Text = $"{(int)_controlPanelCountdownRemaining.TotalMinutes:D2}:{_controlPanelCountdownRemaining.Seconds:D2}";
+        ControlPanelCountdownStartPauseButton.Content = _controlPanelCountdownRunning ? "⏸ Pause countdown" : "▶ Start countdown";
+
+        if (_controlPanelCountdownRemaining == TimeSpan.Zero)
+        {
+            ControlPanelCountdownStatusText.Text = _controlPanelCountdownAutoPausedClock
+                ? "Countdown finished — live scoreboard clock paused"
+                : "Countdown finished";
+            ControlPanelCountdownStatusText.Foreground = MediaBrushes.White;
+        }
+        else if (_controlPanelCountdownRunning)
+        {
+            ControlPanelCountdownStatusText.Text = "Countdown running independently";
+            ControlPanelCountdownStatusText.Foreground = FindResource("AccentBrush") as SolidColorBrush ?? MediaBrushes.White;
+        }
+        else
+        {
+            ControlPanelCountdownStatusText.Text = _match.ClockRunning
+                ? "Countdown paused — scoreboard clock can keep running"
+                : "Ready to run";
+            ControlPanelCountdownStatusText.Foreground = FindResource("TextMidBrush") as SolidColorBrush ?? MediaBrushes.White;
+        }
     }
 
     private void StartBreakRotation()
@@ -3378,6 +3459,7 @@ public partial class MainWindow
         {
             _match.SetClockMode(ClockMode.Countdown);
             QuarterDurationPanel.Visibility = Visibility.Visible;
+            _controlPanelCountdownRunning = false;
 
             // Apply the current duration so the clock resets to the configured countdown value
             ApplyQuarterDuration_Click(sender, new RoutedEventArgs());
@@ -3386,6 +3468,11 @@ public partial class MainWindow
         {
             _match.SetClockMode(ClockMode.CountUp);
             QuarterDurationPanel.Visibility = Visibility.Collapsed;
+            if (_controlPanelCountdownDuration <= TimeSpan.Zero)
+            {
+                _controlPanelCountdownDuration = TimeSpan.FromMinutes(20);
+            }
+            _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
         }
 
         if (ClockStatusText != null)
@@ -3405,7 +3492,14 @@ public partial class MainWindow
         if (mins < 0 || mins > 60 || secs < 0 || secs > 59) return;
         if (mins == 0 && secs == 0) return;
 
-        _match.SetQuarterDuration(TimeSpan.FromMinutes(mins) + TimeSpan.FromSeconds(secs));
+        var duration = TimeSpan.FromMinutes(mins) + TimeSpan.FromSeconds(secs);
+        _match.SetQuarterDuration(duration);
+        _controlPanelCountdownDuration = duration;
+        if (!_controlPanelCountdownRunning)
+        {
+            _controlPanelCountdownRemaining = duration;
+            _controlPanelCountdownAutoPausedClock = false;
+        }
         UpdateClockStatus();
         PushAllToScoreboard();
         BroadcastWebState();

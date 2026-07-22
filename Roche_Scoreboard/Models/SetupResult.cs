@@ -25,6 +25,9 @@ namespace Roche_Scoreboard.Models
         public ClockMode ClockMode { get; set; } = ClockMode.CountUp;
         public int QuarterMinutes { get; set; } = 20;
         public int QuarterSeconds { get; set; } = 0;
+        public bool ShowControlPanelCountdown { get; set; } = true;
+        public int ControlPanelCountdownMinutes { get; set; } = 20;
+        public int ControlPanelCountdownSeconds { get; set; } = 0;
         public bool FinalsMode { get; set; }
 
         // Weather

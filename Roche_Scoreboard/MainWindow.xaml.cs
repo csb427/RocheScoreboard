@@ -69,6 +69,13 @@ namespace Roche_Scoreboard
         private bool _fiveMinWarningShown;
         private TimeSpan _previousRemainingTime = TimeSpan.MaxValue;
 
+        // Optional control-panel-only stoppage countdown for count-up matches.
+        private bool _showControlPanelCountdown;
+        private bool _controlPanelCountdownRunning;
+        private TimeSpan _controlPanelCountdownDuration = TimeSpan.FromMinutes(20);
+        private TimeSpan _controlPanelCountdownRemaining = TimeSpan.FromMinutes(20);
+        private bool _controlPanelCountdownAutoPausedClock;
+
         private string? _homeLogoPath;
         private string? _awayLogoPath;
 
@@ -697,21 +704,56 @@ namespace Roche_Scoreboard
         {
             _match.Tick();   // handles countdown expiry only
 
-            if (!_match.ClockRunning) return;
+            int scorebugSecond = (int)_match.DisplayClock.TotalSeconds;
+            bool scorebugSecondChanged = scorebugSecond != _lastDisplayedSecond;
+            if (scorebugSecondChanged)
+            {
+                _lastDisplayedSecond = scorebugSecond;
+            }
 
-            // Only touch the UI when the displayed second actually changes
-            int sec = (int)_match.DisplayClock.TotalSeconds;
-            if (sec == _lastDisplayedSecond) return;
-            _lastDisplayedSecond = sec;
+            bool countdownSecondChanged = false;
+            if (_controlPanelCountdownRunning && _controlPanelCountdownRemaining > TimeSpan.Zero)
+            {
+                _controlPanelCountdownRemaining -= TimeSpan.FromSeconds(1);
+                if (_controlPanelCountdownRemaining < TimeSpan.Zero)
+                {
+                    _controlPanelCountdownRemaining = TimeSpan.Zero;
+                }
 
-            PushClockToScoreboard();
+                countdownSecondChanged = true;
 
-            // Update just the clock portion of the control panel
-            var dc = _match.DisplayClock;
-            HeaderQuarterClock.Text = $"Q{_match.Quarter}  {(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
+                if (_controlPanelCountdownRemaining == TimeSpan.Zero)
+                {
+                    _controlPanelCountdownRunning = false;
+                    if (_match.ClockRunning)
+                    {
+                        _controlPanelCountdownAutoPausedClock = true;
+                        _match.PauseClock();
+                    }
+                }
+            }
 
-            CheckPeriodicOverlays();
-            BroadcastWebState();
+            if (!scorebugSecondChanged && !countdownSecondChanged)
+            {
+                return;
+            }
+
+            if (scorebugSecondChanged)
+            {
+                PushClockToScoreboard();
+
+                // Update just the clock portion of the control panel
+                var dc = _match.DisplayClock;
+                HeaderQuarterClock.Text = $"Q{_match.Quarter}  {(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
+
+                CheckPeriodicOverlays();
+                BroadcastWebState();
+            }
+
+            if (countdownSecondChanged || scorebugSecondChanged)
+            {
+                UpdateControlPanelCountdownUi();
+            }
         }
 
         // ----------------------------
@@ -1512,6 +1554,17 @@ namespace Roche_Scoreboard
                 _match.SetClockMode(ClockMode.CountUp);
             }
 
+            _showControlPanelCountdown = r.ClockMode == ClockMode.CountUp && r.ShowControlPanelCountdown;
+            _controlPanelCountdownRunning = false;
+            _controlPanelCountdownDuration = TimeSpan.FromMinutes(r.ControlPanelCountdownMinutes) + TimeSpan.FromSeconds(r.ControlPanelCountdownSeconds);
+            if (_controlPanelCountdownDuration <= TimeSpan.Zero)
+            {
+                _controlPanelCountdownDuration = TimeSpan.FromMinutes(Math.Max(1, r.QuarterMinutes)) + TimeSpan.FromSeconds(Math.Max(0, r.QuarterSeconds));
+            }
+            _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+            _controlPanelCountdownAutoPausedClock = false;
+            UpdateClockStatus();
+
             _messages.Clear();
             _styledMessages.Clear();
             foreach (var msg in r.Messages)
@@ -1604,6 +1657,9 @@ namespace Roche_Scoreboard
                 Messages = [.. _messages],
                 FinalsMode = _finalsMode,
                 WeatherLocation = _weatherLocation,
+                ShowControlPanelCountdown = _showControlPanelCountdown,
+                ControlPanelCountdownDurationSeconds = (int)Math.Max(0, _controlPanelCountdownDuration.TotalSeconds),
+                ControlPanelCountdownRemainingSeconds = (int)Math.Max(0, _controlPanelCountdownRemaining.TotalSeconds),
                 HomeLogoZoom = _homeLogoZoom,
                 HomeLogoOffsetX = _homeLogoOffsetX,
                 HomeLogoOffsetY = _homeLogoOffsetY,
@@ -1703,6 +1759,15 @@ namespace Roche_Scoreboard
             SettingsFinalsToggle.IsChecked = _finalsMode;
             UpdateSettingsFinalsCardVisuals();
             _weatherLocation = state.WeatherLocation;
+            _showControlPanelCountdown = state.ShowControlPanelCountdown && _match.ClockMode == ClockMode.CountUp;
+            _controlPanelCountdownRunning = false;
+            _controlPanelCountdownDuration = state.ControlPanelCountdownDurationSeconds > 0
+                ? TimeSpan.FromSeconds(state.ControlPanelCountdownDurationSeconds)
+                : _match.QuarterDuration;
+            _controlPanelCountdownRemaining = state.ControlPanelCountdownRemainingSeconds > 0
+                ? TimeSpan.FromSeconds(state.ControlPanelCountdownRemainingSeconds)
+                : _controlPanelCountdownDuration;
+            _controlPanelCountdownAutoPausedClock = false;
             _suppressSettingsWeatherFilter = true;
             _settingsWeatherActivated = false;
             SettingsWeatherLocation.Text = _weatherLocation ?? "";

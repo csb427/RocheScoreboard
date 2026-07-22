@@ -40,7 +40,12 @@ public static class RecentTrainingTimerStorage
             string path = GetPath();
             if (!File.Exists(path)) return new List<Entry>();
             string json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<List<Entry>>(json, Options) ?? new List<Entry>();
+            var entries = JsonSerializer.Deserialize<List<Entry>>(json, Options) ?? new List<Entry>();
+            return entries
+                .Where(e => e.Seconds > 0)
+                .OrderByDescending(e => e.LastUsedUtc)
+                .Take(MaxEntries)
+                .ToList();
         }
         catch (Exception ex) when (ex is IOException or JsonException)
         {

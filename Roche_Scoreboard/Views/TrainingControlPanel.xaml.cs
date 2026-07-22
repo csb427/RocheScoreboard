@@ -94,6 +94,15 @@ public partial class TrainingControlPanel : UserControl
         }
     }
 
+    /// <summary>Clicking the title box clears the retained drill title for quick replacement.</summary>
+    private void OnNewTitleBoxPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not TextBox textBox || textBox.IsKeyboardFocusWithin)
+            return;
+
+        textBox.Clear();
+    }
+
     /// <summary>Restrict numeric input fields to digits only.</summary>
     private void OnNumericPreviewTextInput(object sender, TextCompositionEventArgs e)
     {

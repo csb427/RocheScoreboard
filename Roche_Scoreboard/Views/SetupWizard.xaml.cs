@@ -606,11 +606,13 @@ namespace Roche_Scoreboard.Views
             SetupAwayVideoText.Text = "(none)";
 
             SetupCountUp.IsChecked = true;
+            SetupControlPanelCountdown.IsChecked = true;
             SetupQuarterMinutes.Text = "20";
             SetupQuarterSeconds.Text = "00";
             SetupFinalsMode.IsChecked = false;
             DurationMinutesDisplay.Text = "20";
             UpdateClockModeVisuals();
+            UpdateControlPanelCountdownOptionVisuals();
             HighlightActivePresetTile(20);
             UpdateFinalsToggleVisuals();
             UpdateSetupClockSummary();
@@ -670,6 +672,9 @@ namespace Roche_Scoreboard.Views
                 ClockMode = SetupCountdown.IsChecked == true ? ClockMode.Countdown : ClockMode.CountUp,
                 QuarterMinutes = mins > 0 ? mins : 20,
                 QuarterSeconds = secs >= 0 ? secs : 0,
+                ShowControlPanelCountdown = SetupCountUp.IsChecked == true && SetupControlPanelCountdown.IsChecked == true,
+                ControlPanelCountdownMinutes = mins > 0 ? mins : 20,
+                ControlPanelCountdownSeconds = secs >= 0 ? secs : 0,
                 FinalsMode = SetupFinalsMode.IsChecked == true,
 
                 WeatherLocation = string.IsNullOrWhiteSpace(SetupWeatherLocation.Text) ? null : SetupWeatherLocation.Text.Trim(),
@@ -694,9 +699,19 @@ namespace Roche_Scoreboard.Views
             SetupCountdown.IsChecked = true;
         }
 
+        private void ControlPanelCountdownOptionCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (SetupCountUp.IsChecked != true)
+                return;
+
+            SetupControlPanelCountdown.IsChecked = SetupControlPanelCountdown.IsChecked != true;
+            UpdateControlPanelCountdownOptionVisuals();
+        }
+
         private void SetupClockMode_Changed(object sender, RoutedEventArgs e)
         {
             UpdateClockModeVisuals();
+            UpdateControlPanelCountdownOptionVisuals();
             UpdateSetupClockSummary();
         }
 
@@ -747,6 +762,23 @@ namespace Roche_Scoreboard.Views
 
             // Disable duration editing when count-up is selected
             DurationDisabledOverlay.Visibility = isCountdown ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void UpdateControlPanelCountdownOptionVisuals()
+        {
+            if (ControlPanelCountdownOptionCard is null)
+                return;
+
+            bool isVisible = SetupCountUp.IsChecked == true;
+            bool isEnabled = SetupControlPanelCountdown.IsChecked == true;
+
+            ControlPanelCountdownOptionCard.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+            ControlPanelCountdownOptionCard.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#0E1B2B" : "#10161D"));
+            ControlPanelCountdownOptionCard.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#30363D"));
+            ControlPanelCountdownOptionCard.BorderThickness = new Thickness(isEnabled ? 2 : 1);
+            ControlPanelCountdownOptionBadge.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#30363D"));
+            ControlPanelCountdownOptionBadge.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#484F58"));
+            ControlPanelCountdownOptionBadgeText.Text = isEnabled ? "ON" : "OFF";
         }
 
         private void MinutesMinus_Click(object sender, MouseButtonEventArgs e)

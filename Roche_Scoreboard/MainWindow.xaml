@@ -1596,6 +1596,20 @@
                                             </StackPanel>
                                             <TextBlock x:Name="ClockStatusText" Text="Count Up · Stopped · 00:00" Foreground="#6B5A00" FontSize="10" Margin="0,0,0,8"/>
 
+                                            <Border x:Name="ControlPanelCountdownPanel" Background="#0A1220" BorderBrush="#1F6FEB" BorderThickness="1" Padding="14" Margin="0,0,0,8" Visibility="Collapsed">
+                                                <StackPanel>
+                                                    <TextBlock Text="STOPPAGE COUNTDOWN" FontSize="10" FontWeight="Black" Foreground="#58A6FF" HorizontalAlignment="Center"/>
+                                                    <TextBlock Text="Runs separately from the scoreboard clock and pauses live play when it reaches zero." FontSize="10" FontWeight="SemiBold" Foreground="#8B949E" TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,10"/>
+                                                    <TextBlock x:Name="ControlPanelCountdownText" Text="20:00" FontSize="34" FontWeight="Black" FontFamily="Consolas" Foreground="White" HorizontalAlignment="Center"/>
+                                                    <TextBlock x:Name="ControlPanelCountdownStatusText" Text="Ready to run" FontSize="10" FontWeight="SemiBold" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,10"/>
+                                                    <UniformGrid Columns="3" Margin="0,0,0,8">
+                                                        <Button x:Name="ControlPanelCountdownStartPauseButton" Content="▶ Start countdown" Margin="0,0,6,0" Click="ControlPanelCountdownStartPauseButton_Click" Style="{StaticResource ToolBtn}"/>
+                                                        <Button x:Name="ControlPanelCountdownResetButton" Content="↺ Reset" Margin="0,0,6,0" Click="ControlPanelCountdownResetButton_Click" Style="{StaticResource ToolBtn}"/>
+                                                        <Button x:Name="ControlPanelCountdownSyncButton" Content="Sync to quarter" Click="ControlPanelCountdownSyncButton_Click" Style="{StaticResource ToolBtn}"/>
+                                                    </UniformGrid>
+                                                </StackPanel>
+                                            </Border>
+
                                             <!-- Live clock adjustment -->
                                             <Expander Style="{StaticResource SettingsExpander}" Header="ADJUST CLOCK MID-MATCH">
                                             <Border Background="#0C0A04" BorderBrush="#C9B070" BorderThickness="1" Padding="10" Margin="0,0,0,8">
