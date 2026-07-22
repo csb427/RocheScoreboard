@@ -1,28 +1,35 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// advancedScreen.ts
+// moreTab.ts (AFL)
 //
-// "More" tab: device label + diagnostics, session info, copy join code,
-// and the leave-session button.
+// AFL diagnostics + leave-session tab. Shows session metadata, the
+// device label that gets attached to every event (so the desktop log can
+// identify who pressed what), and a destructive "leave session" action.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { h } from "../ui/dom.js";
-import { toast } from "../ui/toast.js";
-import { getClientId, getClientLabel, setClientLabel } from "../lib/events.js";
-import type { LiveState } from "../contract/liveState.js";
+import { h } from "../../../ui/dom.js";
+import { toast } from "../../../ui/toast.js";
+import { getClientId, getClientLabel, setClientLabel } from "../../../lib/events.js";
+import { safeText, safeTime, EM_DASH } from "../../../lib/safe.js";
+import type { LiveState } from "../../../contract/liveState.js";
 
-export interface AdvancedDeps {
+export interface MoreDeps {
 	sessionId: string;
 	joinCode: string;
 	onLeave: () => void;
 }
 
-export function advancedScreen(state: LiveState | null, deps: AdvancedDeps): HTMLElement {
+export function moreTab(state: LiveState | null, deps: MoreDeps): HTMLElement {
 	const labelInput = h("input", {
 		type: "text",
 		class: "field-input",
 		value: getClientLabel(),
 		maxlength: 32,
 	}) as HTMLInputElement;
+
+	const status = safeText(state?.sessionStatus, EM_DASH);
+	const lastUpdate = state?.updatedAt ? safeTime(state.updatedAt) : EM_DASH;
+	const joinCode = safeText(deps.joinCode, EM_DASH);
+	const sessionId = safeText(deps.sessionId, EM_DASH);
 
 	return h(
 		"div",
@@ -31,17 +38,21 @@ export function advancedScreen(state: LiveState | null, deps: AdvancedDeps): HTM
 			"section",
 			{ class: "card space-y-2" },
 			h("div", { class: "field-label" }, "Session"),
-			kv("Join code", deps.joinCode),
-			kv("Game id", deps.sessionId),
-			kv("Status", state?.sessionStatus ?? "—"),
-			kv("Last update", state?.updatedAt ?? "—"),
+			kv("Join code", joinCode),
+			kv("Game id", sessionId),
+			kv("Status", status),
+			kv("Last update", lastUpdate),
 			h(
 				"button",
 				{
 					type: "button",
 					class: "btn-ghost w-full",
 					onclick: () => {
-						navigator.clipboard?.writeText(deps.joinCode).then(
+						if (!navigator.clipboard) {
+							toast("Clipboard unavailable", "error");
+							return;
+						}
+						navigator.clipboard.writeText(joinCode).then(
 							() => toast("Join code copied"),
 							() => toast("Copy failed", "error")
 						);
@@ -55,7 +66,11 @@ export function advancedScreen(state: LiveState | null, deps: AdvancedDeps): HTM
 			"section",
 			{ class: "card space-y-2" },
 			h("div", { class: "field-label" }, "This device"),
-			h("p", { class: "text-xs text-slate-400" }, "The desktop event log uses this label to credit each press."),
+			h(
+				"p",
+				{ class: "text-xs text-slate-400" },
+				"The desktop event log uses this label to credit each press."
+			),
 			labelInput,
 			h(
 				"button",
@@ -69,14 +84,18 @@ export function advancedScreen(state: LiveState | null, deps: AdvancedDeps): HTM
 				},
 				"Save label"
 			),
-			kv("Client id", getClientId())
+			kv("Client id", safeText(getClientId(), EM_DASH))
 		),
 
 		h(
 			"section",
-			{ class: "card space-y-2 border-accent-red/30 bg-accent-red/5" },
+			{ class: "card space-y-2 border-accent-red/30" },
 			h("div", { class: "field-label text-accent-red" }, "Leave session"),
-			h("p", { class: "text-xs text-slate-300" }, "Returns you to the join screen on this device only — the desktop session keeps running."),
+			h(
+				"p",
+				{ class: "text-xs text-slate-300" },
+				"Returns you to the join screen on this device only — the desktop session keeps running."
+			),
 			h(
 				"button",
 				{

@@ -2,50 +2,207 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Lock the SPA into the safe-area on iOS so home-bar doesn't overlap the
-   bottom nav, and prevent the elastic scroll bounce on the body. */
+/* ??????????????????????????????????????????????????????????????????????????
+   ROOT — phone-native baseline
+   ?????????????????????????????????????????????????????????????????????????? */
+:root {
+	--accent: #58a6ff;
+	--accent-dim: rgba(88, 166, 255, 0.22);
+	--surface: #0d1117;
+	--surface-hi: #11192a;
+	--surface-line: #1f2c44;
+	--text-hi: #f8fafc;
+	--text-mid: #cbd5e1;
+	--text-lo: #94a3b8;
+	--good: #3fb950;
+	--bad: #ff6b6b;
+	--warn: #d29922;
+	--safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 html,
 body {
+	background: #04060a;
+	color: var(--text-hi);
 	overscroll-behavior-y: none;
 	-webkit-tap-highlight-color: transparent;
 	touch-action: manipulation;
+	font-feature-settings: "tnum" 1;
+}
+
+body {
+	min-height: 100dvh;
+}
+
+input,
+textarea,
+button,
+select {
+	font-family: inherit;
+}
+
+.phone-shell {
+	max-width: 28rem;
+	margin-left: auto;
+	margin-right: auto;
+	min-height: 100dvh;
+	background: linear-gradient(180deg, #04060a 0%, #060a14 60%, #04060a 100%);
+	box-shadow: 0 0 0 9999px rgb(2 6 23 / 0.65);
+	position: relative;
+}
+
+.phone-content {
+	padding-top: 0.75rem;
+	padding-bottom: calc(6rem + var(--safe-bottom));
+}
+
+.theme-afl {
+	--accent: #58a6ff;
+	--accent-dim: rgba(88, 166, 255, 0.22);
+}
+.theme-training {
+	--accent: #fbbf24;
+	--accent-dim: rgba(251, 191, 36, 0.22);
 }
 
 @layer components {
-	/* Big tap targets â€” at least 44px tall is Apple's HIG minimum. */
 	.btn {
-		@apply inline-flex select-none items-center justify-center gap-2 rounded-md border px-4 py-3 text-sm font-bold transition active:scale-[0.98];
-		min-height: 44px;
+		@apply inline-flex select-none items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold transition active:scale-[0.97];
+		min-height: 48px;
 	}
 	.btn-primary {
-		@apply btn border-accent-blueDim bg-accent-blueDim/40 text-accent-blue hover:bg-accent-blueDim/60;
+		@apply btn;
+		background: var(--accent-dim);
+		border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+		color: var(--accent);
+	}
+	.btn-primary:hover {
+		background: color-mix(in srgb, var(--accent) 28%, transparent);
 	}
 	.btn-success {
 		@apply btn border-accent-green/40 bg-accent-green/10 text-accent-green hover:bg-accent-green/20;
 	}
 	.btn-danger {
-		@apply btn border-accent-red/40 bg-accent-red/10 text-accent-red hover:bg-accent-red/20;
+		@apply btn border-accent-red/45 bg-accent-red/10 text-accent-red hover:bg-accent-red/20;
+	}
+	.btn-warn {
+		@apply btn border-accent-yellow/45 bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/20;
 	}
 	.btn-ghost {
 		@apply btn border-ink-400 bg-ink-700 text-slate-200 hover:bg-ink-600;
 	}
 	.btn-home {
-		@apply btn border-home-soft bg-home/20 text-home-text hover:bg-home/40;
+		@apply btn border-home-soft bg-home/25 text-home-text hover:bg-home/45;
 	}
 	.btn-away {
-		@apply btn border-away-soft bg-away/20 text-away-text hover:bg-away/40;
+		@apply btn border-away-soft bg-away/25 text-away-text hover:bg-away/45;
 	}
+
+	.chip {
+		@apply inline-flex select-none items-center justify-center rounded-lg border border-ink-400 bg-ink-700 text-slate-200 transition active:scale-95;
+		min-width: 40px;
+		min-height: 40px;
+	}
+
 	.card {
-		@apply rounded-lg border border-ink-400 bg-ink-700 p-4 shadow-card;
+		@apply rounded-2xl border border-ink-400 p-4;
+		background: linear-gradient(180deg, #0f1828 0%, #0c1320 100%);
+		box-shadow:
+			0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+			0 6px 18px -8px rgba(0, 0, 0, 0.5);
 	}
+	.card-tight {
+		@apply card p-3;
+	}
+	.card-flat {
+		@apply rounded-2xl border border-ink-400 bg-ink-700 p-4;
+	}
+
 	.field-label {
 		@apply mb-1 block text-[11px] font-black uppercase tracking-wide text-slate-400;
 	}
 	.field-input {
-		@apply w-full rounded-md border border-ink-400 bg-ink-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-accent-blue/60;
-		min-height: 44px;
+		@apply w-full rounded-xl border border-ink-400 bg-ink-800 px-3 py-2.5 text-slate-100 outline-none transition;
+		min-height: 48px;
+		font-size: 16px;
 	}
+	.field-input:focus {
+		border-color: color-mix(in srgb, var(--accent) 65%, transparent);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+	}
+
 	.pill {
 		@apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide;
 	}
+
+	.segmented {
+		@apply grid gap-2;
+	}
+	.seg {
+		@apply flex flex-col items-center justify-center gap-1 rounded-xl border border-ink-400 bg-ink-700 px-2 py-3 text-[11px] font-bold text-slate-200 transition active:scale-[0.97];
+		min-height: 60px;
+	}
+	.seg-icon {
+		@apply text-xl leading-none;
+	}
+	.seg-on {
+		background: var(--accent-dim);
+		border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+		color: var(--accent);
+	}
+
+	.top-bar {
+		@apply sticky top-0 z-30 border-b border-ink-400/80 backdrop-blur;
+		background: rgba(6, 8, 12, 0.78);
+	}
+
+	.bottom-nav {
+		@apply fixed inset-x-0 bottom-0 z-30 border-t border-ink-400/80 backdrop-blur;
+		background: rgba(6, 8, 12, 0.88);
+		padding-bottom: var(--safe-bottom);
+	}
+	.bottom-nav-inner {
+		@apply mx-auto flex max-w-md items-stretch;
+	}
+	.bottom-nav-btn {
+		@apply flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-[10px] font-black uppercase tracking-wide text-slate-500 transition;
+		min-height: 56px;
+	}
+	.bottom-nav-btn-on {
+		color: var(--accent);
+	}
+	.bottom-nav-btn .icon {
+		@apply text-[20px] leading-none;
+	}
+
+	.toast-pill {
+		@apply rounded-full border border-ink-400 bg-ink-700 px-4 py-2 text-xs font-bold text-slate-100 shadow-card;
+	}
+}
+
+.numeric-hero {
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum" 1;
+	letter-spacing: -0.02em;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+input[type="number"] {
+	-moz-appearance: textfield;
+}
+
+input[type="color"] {
+	border-radius: 0.75rem;
+	overflow: hidden;
+	padding: 0;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+	border: none;
 }

@@ -11,6 +11,14 @@ internal static class ChangelogService
 {
     public static IReadOnlyList<ChangelogVersion> Versions { get; } =
     [
+        new("3.3.1", "2026-05-10",
+        [
+            "[Fixed] 5-minute warning overlay no longer plays late \u2014 the edge-detection that watches the countdown clock cross 5:00 used to live inside PushAllToScoreboard, which only fires on MatchChanged (score events, settings changes, etc.), so a quiet stretch between 5:01 and the next goal could delay the warning by minutes. The check now runs in PushClockToScoreboard from CompositionTarget.Rendering, so it triggers exactly on the second the countdown ticks through 5:00",
+            "[New] Number-row + NumPad presentation shortcuts in AFL mode \u2014 press 1 Scorebug \u00b7 2 Summary \u00b7 3 Worm \u00b7 4 Stats \u00b7 5 Weather \u00b7 6 Video. Shortcuts route through the same handler as the Display & Messages cards so the active card border updates too, are suppressed inside text boxes, are ignored when any modifier is held (so Ctrl+G / Ctrl+B / Ctrl+Z / Ctrl+E remain untouched), and each presentation card now shows a small \u201cPress N\u201d hint",
+            "[New] Training mobile remote redesigned as a phone-fitted port of the desktop Training control panel \u2014 a single Control surface stacks Now Playing (title, big countdown, colour-coded status pill), Transport (Start/Pause/Reset/Skip), Adjust (+1:00 / +0:10), Queue (auto-advance toggle, clear-all, per-row index/title/duration with reorder/edit/remove + inline mm:ss editor), Add a Timer, Recent Timers chips, Interval Builder and Exit Training \u2014 replacing the previous four-tab phone layout",
+            "[New] Phone-local recent timers helper \u2014 last-used Training timers are now persisted in localStorage (key roche.training.recent.v1), deduped by title+seconds and capped at 12 entries; chips on the Training control surface tap-to-re-add",
+            "[New] training_update_timer / training_adjust_active cloud events \u2014 the desktop dispatcher and mobile contract gain matching constants so the phone can edit queued timers in place and add +1:00 / +0:10 to the active timer; both route through existing TrainingSession.UpdateTimer / AddTimeToActive on the host",
+        ]),
         new("3.3.0", "2026-05-09",
         [
             "[Removed] Music Mode \u2014 the GSMTC-driven now-playing screen, its WASAPI loopback FFT visualiser, the presentation card, the break-screen rotation entry and all associated audio/session services have been removed in full",

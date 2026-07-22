@@ -4,12 +4,20 @@
 // Drives the Settings → Cloud Remote card. The cloud transport itself lives
 // in MainWindow.CloudRemote.cs; this file only owns the card's visual state
 // machine and click handlers so the XAML stays clean.
+//
+// It also owns a list of compact <see cref="Views.CloudRemoteLauncher"/>
+// widgets that are embedded on other tabs (AFL Scoring & Clock, Training
+// Mode). Each registered launcher receives the same state + connection
+// updates, and routes its Start / End / Copy clicks back through the same
+// methods the Settings card uses.
 // ─────────────────────────────────────────────────────────────────────────────
 
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Roche_Scoreboard.Views;
 
 namespace Roche_Scoreboard;
 
@@ -23,6 +31,87 @@ public partial class MainWindow
 
     private static readonly SolidColorBrush CloudBadgeWarning =
         new(System.Windows.Media.Color.FromRgb(0xD2, 0x99, 0x22));
+
+    private readonly List<CloudRemoteLauncher> _cloudLaunchers = new();
+
+    /// <summary>
+    /// Registers a compact cloud-remote launcher placed on another tab so
+    /// it stays in sync with the Settings card. Safe to call multiple
+    /// times with the same instance.
+    /// </summary>
+    internal void RegisterCloudRemoteLauncher(CloudRemoteLauncher? launcher)
+    {
+        if (launcher is null) return;
+        if (_cloudLaunchers.Contains(launcher)) return;
+
+        launcher.StartRequested        += async (_, _) => await LauncherStartRequestedAsync(launcher).ConfigureAwait(true);
+        launcher.EndRequested          += async (_, _) => await LauncherEndRequestedAsync(launcher).ConfigureAwait(true);
+        launcher.CopyJoinCodeRequested += (_, _) => LauncherCopyJoinCode();
+        launcher.CopyJoinUrlRequested  += (_, _) => LauncherCopyJoinUrl();
+
+        _cloudLaunchers.Add(launcher);
+
+        // Push current state immediately so the embedded widget shows the
+        // right idle/disabled/live visuals as soon as the host loads it.
+        PushStateToLauncher(launcher);
+    }
+
+    private async System.Threading.Tasks.Task LauncherStartRequestedAsync(CloudRemoteLauncher launcher)
+    {
+        try
+        {
+            await StartCloudSessionAsync().ConfigureAwait(true);
+            if (IsCloudSessionActive) launcher.Expand();
+        }
+        finally
+        {
+            RefreshCloudRemoteUi();
+        }
+    }
+
+    private async System.Threading.Tasks.Task LauncherEndRequestedAsync(CloudRemoteLauncher launcher)
+    {
+        MessageBoxResult ok = System.Windows.MessageBox.Show(this,
+            "End the live cloud session?\n\nAll remote phones will be disconnected.",
+            "Cloud Remote",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+        if (ok != MessageBoxResult.Yes)
+        {
+            RefreshCloudRemoteUi();
+            return;
+        }
+
+        try
+        {
+            await EndCloudSessionAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            RefreshCloudRemoteUi();
+        }
+    }
+
+    private void LauncherCopyJoinCode()
+    {
+        if (string.IsNullOrWhiteSpace(CloudJoinCode)) return;
+        try { System.Windows.Clipboard.SetText(CloudJoinCode!); }
+        catch (System.Runtime.InteropServices.ExternalException) { /* clipboard locked */ }
+    }
+
+    private void LauncherCopyJoinUrl()
+    {
+        string? url = CloudJoinUrl;
+        if (string.IsNullOrWhiteSpace(url)) return;
+        try { System.Windows.Clipboard.SetText(url!); }
+        catch (System.Runtime.InteropServices.ExternalException) { /* clipboard locked */ }
+    }
+
+    private void PushStateToLauncher(CloudRemoteLauncher launcher)
+    {
+        launcher.ApplyState(IsCloudConfigReady, IsCloudSessionActive, CloudJoinCode, CloudJoinUrl);
+        launcher.ApplyConnection(IsCloudSessionActive && (_cloudRemote?.IsActive ?? false), IsCloudSessionActive);
+    }
 
     /// <summary>
     /// Operator clicked "Start cloud session" in the Settings card.
@@ -95,6 +184,13 @@ public partial class MainWindow
     /// </summary>
     partial void RefreshCloudRemoteUi()
     {
+        // Always sync the launchers, even before the Settings XAML is
+        // ready, so that a tab embed loaded earlier doesn't show stale UI.
+        foreach (CloudRemoteLauncher l in _cloudLaunchers)
+        {
+            PushStateToLauncher(l);
+        }
+
         if (CloudRemoteCard is null) return; // XAML not loaded yet.
 
         bool configReady = IsCloudConfigReady;
@@ -163,10 +259,16 @@ public partial class MainWindow
 
     /// <summary>
     /// Implements the partial declared in <c>MainWindow.CloudRemote.cs</c>.
-    /// Flips the small "connected" pip on the live card.
+    /// Flips the small "connected" pip on the live card and every embedded
+    /// launcher.
     /// </summary>
     partial void OnCloudConnectedChanged(bool connected)
     {
+        foreach (CloudRemoteLauncher l in _cloudLaunchers)
+        {
+            l.ApplyConnection(connected, IsCloudSessionActive);
+        }
+
         if (CloudConnectionDot is not null)
         {
             CloudConnectionDot.Fill = connected ? CloudBadgeOnline : CloudBadgeOffline;

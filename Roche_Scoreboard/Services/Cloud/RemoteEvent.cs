@@ -83,6 +83,19 @@ public static class RemoteEventTypes
     public const string SetLayout        = "set_layout";
     public const string SetGoalAnimation = "set_goal_animation";
 
+    // Training
+    public const string TrainingStartPause     = "training_start_pause";
+    public const string TrainingSkip           = "training_skip";
+    public const string TrainingResetActive    = "training_reset_active";
+    public const string TrainingAddTimer       = "training_add_timer";
+    public const string TrainingUpdateTimer    = "training_update_timer";
+    public const string TrainingRemoveTimer    = "training_remove_timer";
+    public const string TrainingClearQueue     = "training_clear_queue";
+    public const string TrainingSetAutoAdvance = "training_set_auto_advance";
+    public const string TrainingReorder        = "training_reorder";
+    public const string TrainingAdjustActive   = "training_adjust_active";
+    public const string TrainingExit           = "training_exit";
+
     // Lifecycle
     public const string SessionStarted = "session_started";
     public const string SessionEnded   = "session_ended";

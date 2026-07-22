@@ -19,10 +19,14 @@ function ensureHost(): HTMLElement {
 }
 
 export function toast(message: string, kind: "info" | "error" = "info"): void {
+	const isError = kind === "error";
 	const el = h(
 		"div",
 		{
-			class: `pill ${kind === "error" ? "bg-accent-red/20 text-accent-red" : "bg-accent-blueDim/40 text-accent-blue"} shadow-card`,
+			class: "toast-pill",
+			style: isError
+				? "background:rgba(255,107,107,0.15);color:#ff6b6b;border-color:rgba(255,107,107,0.4)"
+				: "background:var(--accent-dim);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 60%,transparent)",
 		},
 		message
 	);

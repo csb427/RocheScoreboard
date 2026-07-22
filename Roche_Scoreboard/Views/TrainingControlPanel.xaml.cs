@@ -873,6 +873,13 @@ public partial class TrainingControlPanel : UserControl
         ExitRequested?.Invoke();
     }
 
+    /// <summary>
+    /// Programmatic trigger for the same exit flow as the on-screen
+    /// "Exit training mode" button. Used by the cloud remote dispatch so
+    /// a phone press of "Exit" tears the session down identically.
+    /// </summary>
+    public void RequestExit() => ExitRequested?.Invoke();
+
     private static int ParseInt(string s, int fallback) =>
         int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
 }

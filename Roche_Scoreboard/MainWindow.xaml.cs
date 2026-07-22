@@ -346,6 +346,12 @@ namespace Roche_Scoreboard
             // Cloud remote session startup is wired up in MainWindow.CloudRemote.cs.
             StartCloudRemoteOnLoad();
 
+            // Embed the AFL Scoring & Clock cloud remote launcher so the
+            // operator can spin up / show the QR without flipping to
+            // Settings. The Training Mode launcher is registered in
+            // EnterTrainingMode() because that control is created lazily.
+            RegisterCloudRemoteLauncher(ScoringTabCloudLauncher);
+
             // Restore last-loaded custom MP4 in the VIDEO tab (best-effort).
             TryRestoreLastVideoPath();
 
@@ -545,7 +551,19 @@ namespace Roche_Scoreboard
 
             bool ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
             bool alt = (Keyboard.Modifiers & ModifierKeys.Alt) != 0;
+            bool shift = (Keyboard.Modifiers & ModifierKeys.Shift) != 0;
             bool q4Ended = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) != null;
+
+            // Number-row / NumPad shortcuts for presentation switching. Match
+            // the order of the cards in the Display & Messages tab:
+            //   1 Scorebug · 2 Summary · 3 Worm · 4 Stats · 5 Weather · 6 Video
+            // Modifier keys are intentionally excluded so they don't collide
+            // with existing Ctrl+G / Ctrl+B / Ctrl+Z / Ctrl+E combos.
+            if (!ctrl && !alt && !shift && TryHandlePresentationKey(e.Key))
+            {
+                e.Handled = true;
+                return;
+            }
 
             switch (e.Key)
             {
@@ -576,6 +594,58 @@ namespace Roche_Scoreboard
                     if (!q4Ended) { EndQuarter_Click(this, new RoutedEventArgs()); e.Handled = true; }
                     break;
             }
+        }
+
+        /// <summary>
+        /// Maps a top-row or NumPad digit to the matching presentation switcher.
+        /// Returns <c>true</c> when the key was a known presentation digit so the
+        /// caller can mark the event handled.
+        /// </summary>
+        private bool TryHandlePresentationKey(Key key)
+        {
+            int slot = key switch
+            {
+                Key.D1 or Key.NumPad1 => 1,
+                Key.D2 or Key.NumPad2 => 2,
+                Key.D3 or Key.NumPad3 => 3,
+                Key.D4 or Key.NumPad4 => 4,
+                Key.D5 or Key.NumPad5 => 5,
+                Key.D6 or Key.NumPad6 => 6,
+                _ => 0,
+            };
+
+            if (slot == 0) return false;
+
+            var args = new RoutedEventArgs();
+            switch (slot)
+            {
+                case 1:
+                    SwitchToScorebug_Click(this, args);
+                    UpdatePresentationCards("scorebug");
+                    break;
+                case 2:
+                    SwitchToBreakScreen_Click(this, args);
+                    UpdatePresentationCards("summary");
+                    break;
+                case 3:
+                    SwitchToScoreworm_Click(this, args);
+                    UpdatePresentationCards("worm");
+                    break;
+                case 4:
+                    SwitchToStatsScreen_Click(this, args);
+                    UpdatePresentationCards("stats");
+                    break;
+                case 5:
+                    SwitchToWeatherScreen_Click(this, args);
+                    UpdatePresentationCards("weather");
+                    break;
+                case 6:
+                    SwitchToVideo_Click(this, args);
+                    UpdatePresentationCards("video");
+                    break;
+            }
+
+            return true;
         }
 
         // Toggles the calibration overlay on the display window. Bound to
@@ -921,10 +991,27 @@ namespace Roche_Scoreboard
             TrainingControlPanelView.ExitRequested -= OnTrainingExitRequested;
             TrainingControlPanelView.ExitRequested += OnTrainingExitRequested;
 
+            // Mirror the AFL Scoring & Clock launcher onto the Training
+            // header so operators can start / share the cloud remote
+            // without leaving training mode.
+            RegisterCloudRemoteLauncher(TrainingControlPanelView.TrainingCloudLauncher);
+
+            // Hook the cloud publisher into structural session changes so
+            // the phone queue + active timer stay in lock-step with the
+            // desktop. Tick-driven countdown updates ride on the normal
+            // throttled snapshot publish.
+            AttachTrainingCloudBridge(_trainingSession);
+
             // Drive the session's countdown from a UI tick
             _trainingTickTimer?.Stop();
             _trainingTickTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
-            _trainingTickTimer.Tick += (_, _) => _trainingSession?.Tick();
+            _trainingTickTimer.Tick += (_, _) =>
+            {
+                _trainingSession?.Tick();
+                // The publisher is internally throttled to ~10/s, so it's
+                // safe to call on the 30 fps tick.
+                if (_trainingSession is not null) PublishCloudSnapshot();
+            };
             _trainingTickTimer.Start();
 
             EnsureTrainingDisplayWindow();
@@ -1024,6 +1111,11 @@ namespace Roche_Scoreboard
         {
             _trainingTickTimer?.Stop();
             _trainingTickTimer = null;
+
+            if (_trainingSession is not null)
+            {
+                DetachTrainingCloudBridge(_trainingSession);
+            }
 
             _trainingScorebug?.ResetVisuals();
             _trainingScorebug = null;
@@ -1875,28 +1967,11 @@ namespace Roche_Scoreboard
                 _scorebug.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
             }
 
-            if (_match.ClockMode == ClockMode.Countdown && _match.ClockRunning)
-            {
-                var remaining = _match.DisplayClock;
-                var threshold = TimeSpan.FromMinutes(5);
-
-                // Edge detection: trigger exactly when remaining crosses 5:00
-                if (!_fiveMinWarningShown &&
-                    _previousRemainingTime > threshold &&
-                    remaining <= threshold && remaining > TimeSpan.Zero)
-                {
-                    _fiveMinWarningShown = true;
-                    _overlayScheduler.NotifyEventDrivenOverlay();
-                    _scorebug.ShowFiveMinuteWarning();
-                }
-
-                _previousRemainingTime = remaining;
-            }
-            else if (_fiveMinWarningShown && (!_match.ClockRunning || _match.ClockMode != ClockMode.Countdown))
-            {
-                _fiveMinWarningShown = false;
-                _scorebug.HideFiveMinuteWarning();
-            }
+            // 5-minute warning edge detection lives in PushClockToScoreboard
+            // (which runs every second from CompositionTarget.Rendering).
+            // Doing it here would only fire on MatchChanged — i.e. score
+            // events — so a quiet stretch between 5:01 and the next score
+            // would delay the warning until well past the 5-minute mark.
 
             _scorebug.SetTeamColors(
                 HomeColorBox.Text, AwayColorBox.Text,
@@ -1916,6 +1991,11 @@ namespace Roche_Scoreboard
 
             var dc = _match.DisplayClock;
             _scorebug.SetClock($"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}");
+
+            // Fire the 5-minute warning the instant the countdown ticks through
+            // 5:00. This runs every second via OnFrameRendering so a quiet game
+            // (no goals/behinds) can never delay the trigger past the mark.
+            CheckFiveMinuteWarning(dc);
 
             if (!_showingBreakScreen)
             {
@@ -1952,6 +2032,47 @@ namespace Roche_Scoreboard
             }
 
             UpdateClockStatus();
+        }
+
+        /// <summary>
+        /// Fires the 5-minute warning the moment the countdown clock first
+        /// reads &lt;= 5:00. The previous remaining time is tracked across
+        /// ticks so we only trigger on the falling edge through the 5:00
+        /// threshold — not on every subsequent tick while we're inside the
+        /// window.
+        /// <para>
+        /// Lives on the per-frame path (called from <see cref="PushClockToScoreboard"/>)
+        /// rather than the match-changed path so a quiet stretch between
+        /// 5:01 and the next score event can't delay the warning past the
+        /// 5-minute mark.
+        /// </para>
+        /// </summary>
+        private void CheckFiveMinuteWarning(TimeSpan remaining)
+        {
+            if (_scorebug == null) return;
+
+            if (_match.ClockMode == ClockMode.Countdown && _match.ClockRunning)
+            {
+                var threshold = TimeSpan.FromMinutes(5);
+
+                if (!_fiveMinWarningShown &&
+                    _previousRemainingTime > threshold &&
+                    remaining <= threshold && remaining > TimeSpan.Zero)
+                {
+                    _fiveMinWarningShown = true;
+                    _overlayScheduler.NotifyEventDrivenOverlay();
+                    _scorebug.ShowFiveMinuteWarning();
+                }
+
+                _previousRemainingTime = remaining;
+            }
+            else if (_fiveMinWarningShown)
+            {
+                // Clock paused or mode flipped away from countdown — reset so
+                // the warning can re-arm if countdown resumes.
+                _fiveMinWarningShown = false;
+                _scorebug.HideFiveMinuteWarning();
+            }
         }
 
         // ----------------------------

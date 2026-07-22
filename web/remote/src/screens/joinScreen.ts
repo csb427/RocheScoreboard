@@ -2,8 +2,12 @@
 // joinScreen.ts
 //
 // Login-less join screen — the user types or scans the join code shown
-// on the desktop. On success we resolve the session id and hand control
-// back to the app shell.
+// on the desktop. On success we resolve the session id + sport and hand
+// control back to the app shell, which then boots the matching sport's
+// phone app.
+//
+// Phone-first: full-bleed centred card, big tap targets, system
+// keyboard nudged to ALL-CAPS via `autocapitalize="characters"`.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { h } from "../ui/dom.js";
@@ -20,6 +24,7 @@ export function joinScreen(prefill: string, onJoined: (session: GameSession) => 
 		spellcheck: "false",
 		maxlength: 9,
 		value: prefill,
+		inputmode: "text",
 	}) as HTMLInputElement;
 
 	const submit = h(
@@ -65,7 +70,7 @@ export function joinScreen(prefill: string, onJoined: (session: GameSession) => 
 
 	return h(
 		"main",
-		{ class: "mx-auto flex min-h-dvh max-w-md flex-col justify-center p-6" },
+		{ class: "phone-shell theme-afl flex min-h-dvh flex-col justify-center p-6" },
 		h(
 			"div",
 			{ class: "card space-y-4" },
@@ -73,10 +78,20 @@ export function joinScreen(prefill: string, onJoined: (session: GameSession) => 
 				"header",
 				{ class: "space-y-1 text-center" },
 				h("div", { class: "text-3xl" }, "🏉"),
-				h("h1", { class: "text-xl font-black text-accent-blue" }, "Roche Remote"),
-				h("p", { class: "text-xs text-slate-400" }, "Type the join code shown on the desktop scoreboard.")
+				h("h1", { class: "text-xl font-black", style: "color:var(--accent)" }, "Roche Remote"),
+				h(
+					"p",
+					{ class: "text-xs text-slate-400" },
+					"Type the join code shown on the desktop scoreboard."
+				)
 			),
-			form
+			form,
+			h(
+				"p",
+				{ class: "text-center text-[11px] text-slate-500" },
+				"Codes look like ABCD-1234. The phone app picks AFL or Training automatically."
+			)
 		)
 	);
 }
+

@@ -12,6 +12,12 @@ namespace Roche_Scoreboard.Services.Cloud;
 /// </summary>
 public sealed record LiveStateSnapshot
 {
+    /// <summary>
+    /// Which phone app the mobile shell should boot — <c>"afl"</c> or
+    /// <c>"training"</c>. Defaults to AFL for backwards compatibility.
+    /// </summary>
+    public string Sport { get; init; } = "afl";
+
     // Teams
     public string HomeName { get; init; } = "";
     public string HomeAbbr { get; init; } = "";
@@ -64,6 +70,12 @@ public sealed record LiveStateSnapshot
     // Session
     public string SessionStatus { get; init; } = "lobby";
     public DateTimeOffset UpdatedAt { get; init; } = DateTimeOffset.UtcNow;
+
+    /// <summary>
+    /// Optional training payload. Present only while the host is in
+    /// Training mode. <c>null</c> for AFL sessions.
+    /// </summary>
+    public TrainingSnapshotDto? Training { get; init; }
 }
 
 public sealed record QuarterSnapshotDto
@@ -75,4 +87,32 @@ public sealed record QuarterSnapshotDto
     public int Ag { get; init; }
     public int Ab { get; init; }
     public int At { get; init; }
+}
+
+/// <summary>
+/// Snapshot of a <see cref="Roche_Scoreboard.Models.TrainingSession"/> in
+/// a form the phone client can render directly.
+/// </summary>
+public sealed record TrainingSnapshotDto
+{
+    public bool   IsRunning              { get; init; }
+    public bool   AutoAdvance            { get; init; } = true;
+    public int    ActiveIndex            { get; init; } = -1;
+    public string ActiveTitle            { get; init; } = "";
+    public int    ActiveTotalSeconds     { get; init; }
+    public int    ActiveRemainingSeconds { get; init; }
+    public int    SessionTotalSeconds    { get; init; }
+    public int    SessionRemainingSeconds { get; init; }
+
+    public IReadOnlyList<TrainingTimerDto> Timers { get; init; } =
+        Array.Empty<TrainingTimerDto>();
+}
+
+public sealed record TrainingTimerDto
+{
+    public string Id               { get; init; } = "";
+    public string Title            { get; init; } = "";
+    public int    TotalSeconds     { get; init; }
+    public int    RemainingSeconds { get; init; }
+    public bool   HasFinished      { get; init; }
 }

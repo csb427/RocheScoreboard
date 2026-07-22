@@ -615,34 +615,44 @@
                                         Background="#2A1416" BorderBrush="#E08A8F" Foreground="#FF6B6B"/>
                             </Grid>
 
-                            <!-- RIGHT: Event log — live feed style -->
-                            <Border Grid.Column="2" Background="#0D1117" BorderBrush="#21262D" BorderThickness="1" CornerRadius="6" Padding="0" ClipToBounds="True">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
+                            <!-- RIGHT: cloud remote launcher + event log -->
+                            <Grid Grid.Column="2">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="8"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
 
-                                    <!-- Header bar -->
-                                    <Border Grid.Row="0" Background="#161B22" BorderBrush="#21262D" BorderThickness="0,0,0,1" Padding="12,8">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE81C;" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="#818CF8" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                            <TextBlock Text="MATCH LOG" FontSize="10" FontWeight="Black" Foreground="#818CF8" VerticalAlignment="Center"/>
-                                            <TextBlock x:Name="MatchLogCountBadge" Text="" FontSize="9" FontWeight="Bold" Foreground="#A8B0BA" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                        </StackPanel>
-                                    </Border>
+                                <views:CloudRemoteLauncher x:Name="ScoringTabCloudLauncher" Grid.Row="0"/>
 
-                                    <!-- Scrollable event list -->
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="6,4">
-                                        <StackPanel x:Name="EventList"/>
-                                    </ScrollViewer>
+                                <Border Grid.Row="2" Background="#0D1117" BorderBrush="#21262D" BorderThickness="1" CornerRadius="6" Padding="0" ClipToBounds="True">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
 
-                                    <!-- Empty state hint -->
-                                    <TextBlock x:Name="MatchLogEmptyHint" Grid.Row="1" Text="Score events will appear here"
-                                               Foreground="#7A8693" FontSize="11" FontWeight="SemiBold"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
+                                        <!-- Header bar -->
+                                        <Border Grid.Row="0" Background="#161B22" BorderBrush="#21262D" BorderThickness="0,0,0,1" Padding="12,8">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="&#xE81C;" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="#818CF8" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="MATCH LOG" FontSize="10" FontWeight="Black" Foreground="#818CF8" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="MatchLogCountBadge" Text="" FontSize="9" FontWeight="Bold" Foreground="#A8B0BA" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Scrollable event list -->
+                                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="6,4">
+                                            <StackPanel x:Name="EventList"/>
+                                        </ScrollViewer>
+
+                                        <!-- Empty state hint -->
+                                        <TextBlock x:Name="MatchLogEmptyHint" Grid.Row="1" Text="Score events will appear here"
+                                                   Foreground="#7A8693" FontSize="11" FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
                         </Grid>
                     </Border>
                 </TabItem>
@@ -711,6 +721,7 @@
                                                         <TextBlock Text="📊" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                                                         <TextBlock Text="SCOREBUG" FontSize="11" FontWeight="Black" Foreground="White" HorizontalAlignment="Center"/>
                                                         <TextBlock Text="Live overlay" FontSize="8" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="Press 1" FontSize="8" FontWeight="SemiBold" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,1,0,0"/>
                                                     </StackPanel>
                                                     <Border x:Name="PresCheckScorebug" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#58A6FF" Padding="5,2">
                                                         <TextBlock Text="✓" FontSize="9" FontWeight="Black" Foreground="White"/>
@@ -724,6 +735,7 @@
                                                         <TextBlock Text="📋" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                                                         <TextBlock Text="SUMMARY" FontSize="11" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
                                                         <TextBlock Text="Quarter break" FontSize="8" Foreground="#4A4A60" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="Press 2" FontSize="8" FontWeight="SemiBold" Foreground="#4A4A60" HorizontalAlignment="Center" Margin="0,1,0,0"/>
                                                     </StackPanel>
                                                     <Border x:Name="PresCheckSummary" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#58A6FF" Padding="5,2" Visibility="Collapsed">
                                                         <TextBlock Text="✓" FontSize="9" FontWeight="Black" Foreground="White"/>
@@ -737,6 +749,7 @@
                                                         <TextBlock Text="📈" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                                                         <TextBlock Text="WORM" FontSize="11" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
                                                         <TextBlock Text="Score graph" FontSize="8" Foreground="#4A4A60" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="Press 3" FontSize="8" FontWeight="SemiBold" Foreground="#4A4A60" HorizontalAlignment="Center" Margin="0,1,0,0"/>
                                                     </StackPanel>
                                                     <Border x:Name="PresCheckWorm" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#58A6FF" Padding="5,2" Visibility="Collapsed">
                                                         <TextBlock Text="✓" FontSize="9" FontWeight="Black" Foreground="White"/>
@@ -750,6 +763,7 @@
                                                         <TextBlock Text="📉" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                                                         <TextBlock Text="STATS" FontSize="11" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
                                                         <TextBlock Text="Full stats" FontSize="8" Foreground="#4A4A60" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="Press 4" FontSize="8" FontWeight="SemiBold" Foreground="#4A4A60" HorizontalAlignment="Center" Margin="0,1,0,0"/>
                                                     </StackPanel>
                                                     <Border x:Name="PresCheckStats" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#58A6FF" Padding="5,2" Visibility="Collapsed">
                                                         <TextBlock Text="✓" FontSize="9" FontWeight="Black" Foreground="White"/>
@@ -763,6 +777,7 @@
                                                         <TextBlock Text="☁" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                                                         <TextBlock Text="WEATHER" FontSize="11" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
                                                         <TextBlock Text="Forecast" FontSize="8" Foreground="#4A4A60" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="Press 5" FontSize="8" FontWeight="SemiBold" Foreground="#4A4A60" HorizontalAlignment="Center" Margin="0,1,0,0"/>
                                                     </StackPanel>
                                                     <Border x:Name="PresCheckWeather" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#58A6FF" Padding="5,2" Visibility="Collapsed">
                                                         <TextBlock Text="✓" FontSize="9" FontWeight="Black" Foreground="White"/>

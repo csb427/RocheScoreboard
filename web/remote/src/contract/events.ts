@@ -47,6 +47,19 @@ export const EventTypes = {
 	SetLayout: "set_layout",
 	SetGoalAnimation: "set_goal_animation",
 
+	// Training
+	TrainingStartPause: "training_start_pause",
+	TrainingSkip: "training_skip",
+	TrainingResetActive: "training_reset_active",
+	TrainingAddTimer: "training_add_timer",
+	TrainingUpdateTimer: "training_update_timer",
+	TrainingRemoveTimer: "training_remove_timer",
+	TrainingClearQueue: "training_clear_queue",
+	TrainingSetAutoAdvance: "training_set_auto_advance",
+	TrainingReorder: "training_reorder",
+	TrainingAdjustActive: "training_adjust_active",
+	TrainingExit: "training_exit",
+
 	// Lifecycle
 	SessionStarted: "session_started",
 	SessionEnded: "session_ended",
@@ -54,6 +67,9 @@ export const EventTypes = {
 } as const;
 
 export type EventType = (typeof EventTypes)[keyof typeof EventTypes];
+
+/** Sport identifier for the active cloud session. Mirrors `game_sessions.sport`. */
+export type Sport = "afl" | "training";
 
 /** Active screen identifiers — must match `_activeScreenKey` in WPF. */
 export const Screens = ["scorebug", "summary", "worm", "stats", "weather", "video"] as const;
@@ -63,10 +79,10 @@ export type Screen = (typeof Screens)[number];
 export type ClockMode = "CountUp" | "Countdown";
 
 /** Layout identifiers consumed by `IRemoteCommandTarget.SetLayout`. */
-export type Layout = "classic";
+export type Layout = "classic" | "expanded" | "retro" | "noLogos";
 
 /** Goal animation identifiers consumed by `IRemoteCommandTarget.SetGoalAnimation`. */
-export type GoalAnimation = "classic" | "broadcast" | "customVideo";
+export type GoalAnimation = "classic" | "broadcast" | "electric" | "cinematic" | "clean" | "customVideo";
 
 /** Session lifecycle status values written to `live_state.sessionStatus`. */
 export type SessionStatus = "lobby" | "live" | "fullTime";

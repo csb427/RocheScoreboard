@@ -1,0 +1,132 @@
+<UserControl x:Class="Roche_Scoreboard.Views.CloudRemoteLauncher"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="300" d:DesignHeight="80">
+
+    <!-- Compact reusable cloud remote launcher. Collapsed shows a single
+         "📱 Cloud Remote" button. Expanded shows status, join code, QR,
+         copy buttons, and start/end controls. Used in: AFL Scoring &
+         Clock tab and Training Mode header. The full settings card stays
+         the source of truth in MainWindow.xaml. -->
+    <Border Background="#0A1620" BorderBrush="#1A3A6A" BorderThickness="1" CornerRadius="2">
+        <StackPanel>
+
+            <!-- ── COLLAPSED: single button ── -->
+            <Button x:Name="CollapsedButton"
+                    Click="CollapsedButton_Click"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    Padding="10,8"
+                    HorizontalContentAlignment="Stretch">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#0F1F30"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="📱" FontSize="18" Foreground="#58A6FF" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="CLOUD REMOTE" FontSize="11" FontWeight="Black" Foreground="#58A6FF"/>
+                        <TextBlock x:Name="CollapsedStatusText" Text="Tap to start" FontSize="9" Foreground="#9CC4F0"/>
+                    </StackPanel>
+                    <TextBlock x:Name="CollapsedChevron" Grid.Column="2" Text="▾" FontSize="12" FontWeight="Black" Foreground="#58A6FF" VerticalAlignment="Center"/>
+                </Grid>
+            </Button>
+
+            <!-- ── EXPANDED: full controls ── -->
+            <StackPanel x:Name="ExpandedPanel" Visibility="Collapsed" Margin="10,2,10,10">
+
+                <Border Height="1" Background="#1A3A6A" Margin="0,0,0,8"/>
+
+                <TextBlock x:Name="StatusText" Text="Checking configuration…"
+                           FontSize="10" FontWeight="SemiBold" Foreground="#6E7681"
+                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
+                           Margin="0,0,0,8"/>
+
+                <!-- IDLE STATE -->
+                <StackPanel x:Name="IdleState" Visibility="Collapsed">
+                    <Button x:Name="StartButton" Content="Start cloud session"
+                            Height="30" FontSize="11" FontWeight="Black"
+                            Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1"
+                            Foreground="#58A6FF" Cursor="Hand"
+                            Click="StartButton_Click"/>
+                    <TextBlock Text="A new join code is created each time."
+                               FontSize="9" Foreground="#6E7B8A"
+                               TextWrapping="Wrap" HorizontalAlignment="Center"
+                               TextAlignment="Center" Margin="0,6,0,0"/>
+                </StackPanel>
+
+                <!-- DISABLED STATE -->
+                <StackPanel x:Name="DisabledState" Visibility="Collapsed">
+                    <Border Background="#1C140A" BorderBrush="#4A3A1A" BorderThickness="1" Padding="8">
+                        <StackPanel>
+                            <TextBlock Text="Setup required" FontSize="11" FontWeight="Bold" Foreground="#D29922"
+                                       HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Add supabase.config.json next to the executable."
+                                       FontSize="9" Foreground="#C9B070" TextWrapping="Wrap" TextAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- LIVE STATE -->
+                <StackPanel x:Name="LiveState" Visibility="Collapsed">
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+                        <Ellipse x:Name="ConnectionDot" Width="8" Height="8" Fill="#6E7681" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="ConnectionLabel" Text="Connecting…" FontSize="10" FontWeight="Bold"
+                                   Foreground="#6E7681" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBlock Text="JOIN CODE" FontSize="9" FontWeight="Black" Foreground="#7DA0CA" HorizontalAlignment="Center"/>
+                    <Border Background="#060A10" BorderBrush="#2A4A70" BorderThickness="1"
+                            Padding="10,6" Margin="0,4,0,4" Cursor="Hand"
+                            MouseLeftButtonUp="JoinCodeBox_Click" ToolTip="Click to copy">
+                        <TextBlock x:Name="JoinCodeText" Text="—" FontSize="22" FontWeight="Black"
+                                   FontFamily="Consolas" Foreground="#58A6FF"
+                                   HorizontalAlignment="Center" TextAlignment="Center"/>
+                    </Border>
+
+                    <Border Background="#0D1117" BorderBrush="#1A3A6A" BorderThickness="1"
+                            Padding="6" HorizontalAlignment="Center" Margin="0,6,0,6">
+                        <Image x:Name="QrImage" Width="140" Height="140" Stretch="Uniform"
+                               SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                    </Border>
+
+                    <StackPanel x:Name="JoinUrlPanel" Visibility="Collapsed">
+                        <TextBlock Text="OR OPEN" FontSize="9" FontWeight="Black" Foreground="#7DA0CA"
+                                   HorizontalAlignment="Center" Margin="0,2,0,2"/>
+                        <TextBlock x:Name="JoinUrlText" Text="" FontSize="10" FontWeight="SemiBold"
+                                   Foreground="#9CC4F0" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                        <Button x:Name="CopyUrlButton" Content="Copy URL" Height="24" FontSize="9" FontWeight="Bold"
+                                Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1"
+                                Foreground="#58A6FF" Cursor="Hand" Margin="0,4,0,0"
+                                Click="CopyUrlButton_Click"/>
+                    </StackPanel>
+
+                    <Button x:Name="EndButton" Content="End session" Height="26" FontSize="10" FontWeight="Bold"
+                            Background="Transparent" BorderBrush="#3A2020" BorderThickness="1"
+                            Foreground="#FF6B6B" Cursor="Hand" Margin="0,10,0,0"
+                            Click="EndButton_Click"/>
+                </StackPanel>
+
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+</UserControl>

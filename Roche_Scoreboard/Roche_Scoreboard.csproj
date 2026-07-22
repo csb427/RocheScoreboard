@@ -18,7 +18,7 @@
     <AssemblyTitle>Roche Scoreboard</AssemblyTitle>
     <Product>Roche Scoreboard</Product>
     <Description>AFL broadcast scoreboard overlay</Description>
-    <Version>3.3.0</Version>
+    <Version>3.3.1</Version>
 
     <!-- App icon (taskbar, File Explorer, title bar) -->
     <ApplicationIcon>app.ico</ApplicationIcon>

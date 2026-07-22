@@ -53,7 +53,27 @@ public interface IRemoteCommandTarget
     // Layout / animation
     void SetLayout(string layout);
     void SetGoalAnimation(string style);
+
+    // Training
+    void TrainingStartPause();
+    void TrainingSkip();
+    void TrainingResetActive();
+    void TrainingAddTimer(string title, int seconds, TrainingIntervalSpec? interval);
+    void TrainingUpdateTimer(Guid id, string title, int seconds);
+    void TrainingRemoveTimer(Guid id);
+    void TrainingClearQueue();
+    void TrainingSetAutoAdvance(bool enabled);
+    void TrainingReorder(Guid id, string direction);
+    void TrainingAdjustActive(int seconds);
+    void TrainingExit();
 }
+
+/// <summary>
+/// Interval-builder payload accepted by
+/// <see cref="IRemoteCommandTarget.TrainingAddTimer"/>. When non-null,
+/// the host should expand it into N pairs of work + rest timers.
+/// </summary>
+public sealed record TrainingIntervalSpec(int Rounds, int WorkSeconds, int RestSeconds, string TitlePrefix);
 
 /// <summary>
 /// Marshals incoming <see cref="RemoteEvent"/> envelopes onto the WPF UI
@@ -169,6 +189,41 @@ public sealed class RemoteCommandDispatcher
                     _target.SetGoalAnimation(GetString(ev.Payload, "style", "broadcast"));
                     break;
 
+                // Training
+                case RemoteEventTypes.TrainingStartPause:  _target.TrainingStartPause(); break;
+                case RemoteEventTypes.TrainingSkip:        _target.TrainingSkip(); break;
+                case RemoteEventTypes.TrainingResetActive: _target.TrainingResetActive(); break;
+                case RemoteEventTypes.TrainingClearQueue:  _target.TrainingClearQueue(); break;
+                case RemoteEventTypes.TrainingSetAutoAdvance:
+                    _target.TrainingSetAutoAdvance(GetBool(ev.Payload, "enabled", true));
+                    break;
+                case RemoteEventTypes.TrainingAddTimer:
+                    _target.TrainingAddTimer(
+                        GetString(ev.Payload, "title", "Timer"),
+                        GetInt(ev.Payload, "seconds", 0),
+                        TryGetInterval(ev.Payload));
+                    break;
+                case RemoteEventTypes.TrainingUpdateTimer:
+                    _target.TrainingUpdateTimer(
+                        GetGuid(ev.Payload, "id"),
+                        GetString(ev.Payload, "title", "Timer"),
+                        GetInt(ev.Payload, "seconds", 0));
+                    break;
+                case RemoteEventTypes.TrainingRemoveTimer:
+                    _target.TrainingRemoveTimer(GetGuid(ev.Payload, "id"));
+                    break;
+                case RemoteEventTypes.TrainingReorder:
+                    _target.TrainingReorder(
+                        GetGuid(ev.Payload, "id"),
+                        GetString(ev.Payload, "direction", "down"));
+                    break;
+                case RemoteEventTypes.TrainingAdjustActive:
+                    _target.TrainingAdjustActive(GetInt(ev.Payload, "seconds", 0));
+                    break;
+                case RemoteEventTypes.TrainingExit:
+                    _target.TrainingExit();
+                    break;
+
                 // Lifecycle (informational only)
                 case RemoteEventTypes.SessionStarted:
                 case RemoteEventTypes.SessionEnded:
@@ -222,6 +277,28 @@ public sealed class RemoteCommandDispatcher
         foreach (var item in el.EnumerateArray())
             result[i++] = item.ValueKind == JsonValueKind.String ? (item.GetString() ?? "") : "";
         return result;
+    }
+
+    private static Guid GetGuid(JsonElement payload, string name)
+    {
+        if (payload.ValueKind != JsonValueKind.Object) return Guid.Empty;
+        if (!payload.TryGetProperty(name, out var el)) return Guid.Empty;
+        if (el.ValueKind != JsonValueKind.String) return Guid.Empty;
+        return Guid.TryParse(el.GetString(), out var g) ? g : Guid.Empty;
+    }
+
+    private static TrainingIntervalSpec? TryGetInterval(JsonElement payload)
+    {
+        if (payload.ValueKind != JsonValueKind.Object) return null;
+        if (!payload.TryGetProperty("interval", out var spec)) return null;
+        if (spec.ValueKind != JsonValueKind.Object) return null;
+
+        int rounds = GetInt(spec, "rounds", 0);
+        int work   = GetInt(spec, "workSeconds", 0);
+        int rest   = GetInt(spec, "restSeconds", 0);
+        string prefix = GetString(spec, "titlePrefix", "Set");
+        if (rounds <= 0 || work <= 0) return null;
+        return new TrainingIntervalSpec(rounds, work, rest, prefix);
     }
 
     /// <summary>

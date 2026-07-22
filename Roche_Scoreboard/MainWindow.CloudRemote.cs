@@ -134,11 +134,16 @@ public partial class MainWindow : IRemoteCommandTarget
             _cloudRemote.ConnectedChanged += HandleCloudConnectedChanged;
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
+            bool isTraining = _trainingSession is not null;
+            string sport = isTraining ? "training" : "afl";
+            string sessionHome = isTraining ? "Training" : _match.HomeName;
+            string sessionAway = isTraining ? "Session"  : _match.AwayName;
+
             LiveStateSnapshot initial = BuildLiveStateSnapshot() with { SessionStatus = "lobby" };
             await _cloudRemote.StartAsync(
-                sport: "afl",
-                homeName: _match.HomeName,
-                awayName: _match.AwayName,
+                sport: sport,
+                homeName: sessionHome,
+                awayName: sessionAway,
                 initialState: initial,
                 ct: cts.Token).ConfigureAwait(true);
 
@@ -186,11 +191,17 @@ public partial class MainWindow : IRemoteCommandTarget
 
     /// <summary>
     /// Builds a snapshot of everything the remote app needs to render the
-    /// current match. Mirrors <c>docs/cloud-remote/EVENT_CATALOG.md §1</c>.
-    /// Must run on the UI thread.
+    /// current host state. Routes by active sport — produces an AFL
+    /// payload normally, or a Training payload while training mode is
+    /// active. Must run on the UI thread.
     /// </summary>
     private LiveStateSnapshot BuildLiveStateSnapshot()
     {
+        if (_trainingSession is not null)
+        {
+            return BuildTrainingLiveStateSnapshot(_trainingSession);
+        }
+
         var dc = _match.DisplayClock;
         bool q4Ended = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) != null;
 
@@ -218,6 +229,7 @@ public partial class MainWindow : IRemoteCommandTarget
 
         return new LiveStateSnapshot
         {
+            Sport = "afl",
             HomeName = _match.HomeName,
             HomeAbbr = _match.HomeAbbr,
             AwayName = _match.AwayName,
