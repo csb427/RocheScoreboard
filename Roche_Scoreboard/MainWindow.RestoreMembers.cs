@@ -959,10 +959,22 @@ public partial class MainWindow
     {
         EnsureScoreboardWindow();
 
+        bool shouldControlStoppageCountdownOnly = _match.ClockMode == ClockMode.CountUp
+            && _showControlPanelCountdown
+            && _match.ClockRunning
+            && _match.ElapsedInQuarter.TotalSeconds >= 2;
+
+        if (shouldControlStoppageCountdownOnly)
+        {
+            ToggleControlPanelCountdown();
+            UpdateLiveUI();
+            return;
+        }
+
         if (_match.ClockRunning)
         {
             _match.PauseClock();
-            // Don't reset overlays on pause — let current overlay finish naturally
+            PauseControlPanelCountdown(forceAutoPausedFlag: false);
             UpdateLiveUI();
             return;
         }
@@ -977,7 +989,6 @@ public partial class MainWindow
             _scorebug?.ResumeScorelessFromBreak();
         }
 
-        // Cancel the pending break screen delay if the quarter was started before it triggered
         if (_breakScreenDelayTimer != null)
         {
             _breakScreenDelayTimer.Stop();
@@ -986,12 +997,22 @@ public partial class MainWindow
             _scorebug?.ResumeScorelessFromBreak();
         }
 
-        // Notify the scheduler at the start of a new quarter (first start or after break).
-        // Only fire when elapsed is near zero to avoid resetting mid-quarter on pause/resume.
-        if (!_match.ClockRunning && _match.ElapsedInQuarter.TotalSeconds < 2)
+        bool startingQuarter = !_match.ClockRunning && _match.ElapsedInQuarter.TotalSeconds < 2;
+        if (startingQuarter)
         {
             _overlayScheduler.NotifyQuarterStart();
             _scorebug?.SetQuarter(_match.Quarter);
+
+            if (_match.ClockMode == ClockMode.CountUp && _showControlPanelCountdown)
+            {
+                if (_controlPanelCountdownRemaining == TimeSpan.Zero)
+                {
+                    _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+                }
+
+                _controlPanelCountdownRunning = true;
+                _countdownNextTick = DateTime.UtcNow.AddSeconds(1);
+            }
         }
 
         _match.StartClock();
@@ -999,6 +1020,12 @@ public partial class MainWindow
     }
 
     private void ControlPanelCountdownStartPauseButton_Click(object sender, RoutedEventArgs e)
+    {
+        ToggleControlPanelCountdown();
+        UpdateLiveUI();
+    }
+
+    private void ToggleControlPanelCountdown()
     {
         if (!_showControlPanelCountdown || _match.ClockMode != ClockMode.CountUp)
         {
@@ -1011,25 +1038,184 @@ public partial class MainWindow
             _controlPanelCountdownAutoPausedClock = false;
         }
 
-        _controlPanelCountdownRunning = !_controlPanelCountdownRunning;
-        UpdateControlPanelCountdownUi();
+        bool starting = !_controlPanelCountdownRunning;
+        if (starting)
+        {
+            _controlPanelCountdownRunning = true;
+            _countdownNextTick = DateTime.UtcNow.AddSeconds(1);
+            return;
+        }
+
+        PauseControlPanelCountdown(forceAutoPausedFlag: false);
+    }
+
+    private void PauseControlPanelCountdown(bool forceAutoPausedFlag)
+    {
+        _controlPanelCountdownRunning = false;
+        _countdownNextTick = DateTime.MinValue;
+        if (forceAutoPausedFlag)
+            _controlPanelCountdownAutoPausedClock = true;
     }
 
     private void ControlPanelCountdownResetButton_Click(object sender, RoutedEventArgs e)
     {
-        _controlPanelCountdownRunning = false;
+        PauseControlPanelCountdown(forceAutoPausedFlag: false);
         _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
         _controlPanelCountdownAutoPausedClock = false;
         UpdateControlPanelCountdownUi();
     }
 
-    private void ControlPanelCountdownSyncButton_Click(object sender, RoutedEventArgs e)
+    private void ControlPanelCountdownEditButton_Click(object sender, RoutedEventArgs e)
     {
-        _controlPanelCountdownRunning = false;
-        _controlPanelCountdownDuration = _match.QuarterDuration;
-        _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
+        var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
+        var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as System.Windows.Controls.Button;
+        var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
+        var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as System.Windows.Controls.TextBox;
+
+        if (editPopup is null)
+            return;
+
+        if (editMinutesBox is not null)
+            editMinutesBox.Text = ((int)_controlPanelCountdownDuration.TotalMinutes).ToString("D2");
+
+        if (editSecondsBox is not null)
+            editSecondsBox.Text = _controlPanelCountdownDuration.Seconds.ToString("D2");
+
+        editPopup.BeginAnimation(UIElement.OpacityProperty, null);
+        popupScale?.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        popupScale?.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+
+        var editPopupHost = this.FindName("ControlPanelCountdownEditPopupHost") as System.Windows.Controls.Primitives.Popup;
+        if (editPopupHost is not null)
+            editPopupHost.IsOpen = true;
+
+        editPopup.Visibility = Visibility.Visible;
+        editPopup.Opacity = 0;
+        if (popupScale is not null)
+        {
+            popupScale.ScaleX = 0.96;
+            popupScale.ScaleY = 0.96;
+        }
+
+        editPopup.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(170))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        });
+
+        if (popupScale is not null)
+        {
+            popupScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(170))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            });
+            popupScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(170))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            });
+        }
+
+        if (cancelEditButton is not null)
+            cancelEditButton.Visibility = Visibility.Visible;
+
+        editMinutesBox?.Focus();
+        editMinutesBox?.SelectAll();
+    }
+
+    private void ControlPanelCountdownCancelEditButton_Click(object sender, RoutedEventArgs e)
+    {
+        CloseControlPanelCountdownEditPopup();
+    }
+
+    private void ControlPanelCountdownApplyButton_Click(object sender, RoutedEventArgs e)
+    {
+        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
+        var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as System.Windows.Controls.Button;
+        var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
+        var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as System.Windows.Controls.TextBox;
+        if (editMinutesBox is null || editSecondsBox is null)
+            return;
+
+        if (!int.TryParse(editMinutesBox.Text, out int minutes))
+            return;
+
+        if (!int.TryParse(editSecondsBox.Text, out int seconds))
+            return;
+
+        if (minutes < 0 || minutes > 99 || seconds < 0 || seconds > 59)
+            return;
+
+        if (minutes == 0 && seconds == 0)
+            return;
+
+        var editedDuration = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+
+        // Edit only the stoppages countdown timer — never touch the quarter duration
+        // or main scoreboard clock mode/state.
+        PauseControlPanelCountdown(forceAutoPausedFlag: false);
+        _controlPanelCountdownDuration = editedDuration;
+        _controlPanelCountdownRemaining = editedDuration;
         _controlPanelCountdownAutoPausedClock = false;
+
+        if (editPopup is not null)
+            editPopup.Visibility = Visibility.Collapsed;
+
+        var editPopupHost = this.FindName("ControlPanelCountdownEditPopupHost") as System.Windows.Controls.Primitives.Popup;
+        if (editPopupHost is not null)
+            editPopupHost.IsOpen = false;
+
+        if (cancelEditButton is not null)
+            cancelEditButton.Visibility = Visibility.Collapsed;
+
         UpdateControlPanelCountdownUi();
+    }
+
+    private void CloseControlPanelCountdownEditPopup()
+    {
+        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
+        var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
+        var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as System.Windows.Controls.Button;
+
+        if (editPopup is null)
+            return;
+
+        editPopup.BeginAnimation(UIElement.OpacityProperty, null);
+        popupScale?.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        popupScale?.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+
+        var fade = new DoubleAnimation(editPopup.Opacity, 0, TimeSpan.FromMilliseconds(140))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+        };
+        fade.Completed += (_, _) =>
+        {
+            editPopup.Visibility = Visibility.Collapsed;
+            editPopup.Opacity = 0;
+            var popupHostOnClose = this.FindName("ControlPanelCountdownEditPopupHost") as System.Windows.Controls.Primitives.Popup;
+            if (popupHostOnClose is not null)
+                popupHostOnClose.IsOpen = false;
+            if (popupScale is not null)
+            {
+                popupScale.ScaleX = 0.96;
+                popupScale.ScaleY = 0.96;
+            }
+        };
+        editPopup.BeginAnimation(UIElement.OpacityProperty, fade);
+
+        if (popupScale is not null)
+        {
+            popupScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(popupScale.ScaleX, 0.96, TimeSpan.FromMilliseconds(140))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            });
+            popupScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(popupScale.ScaleY, 0.96, TimeSpan.FromMilliseconds(140))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            });
+        }
+
+        if (cancelEditButton is not null)
+            cancelEditButton.Visibility = Visibility.Collapsed;
     }
 
     private void HomeGoal_Click(object sender, RoutedEventArgs e)
@@ -1206,12 +1392,25 @@ public partial class MainWindow
 
     private void Undo_Click(object sender, RoutedEventArgs e)
     {
+        int oldHomeGoals = _match.HomeGoals;
+        int oldHomeBehinds = _match.HomeBehinds;
+        int oldAwayGoals = _match.AwayGoals;
+        int oldAwayBehinds = _match.AwayBehinds;
+
         if (_match.UndoLastScore())
         {
             // Clear any pending score animation defer so undo shows immediately
             ResetScoreAnimationQueue();
             _scorebug?.ResetAllOverlayState();
-            _scorebug?.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
+            _scorebug?.AnimateScoreCorrectionFrom(
+                oldHomeGoals,
+                oldHomeBehinds,
+                oldAwayGoals,
+                oldAwayBehinds,
+                _match.HomeGoals,
+                _match.HomeBehinds,
+                _match.AwayGoals,
+                _match.AwayBehinds);
 
             _previousLeadChanges = MatchStats.Calculate(_match, _match.Quarter, _match.ElapsedInQuarter).LeadChanges;
 
@@ -1245,6 +1444,11 @@ public partial class MainWindow
         };
         editor.ShowDialog();
 
+        int oldHomeGoals = _match.HomeGoals;
+        int oldHomeBehinds = _match.HomeBehinds;
+        int oldAwayGoals = _match.AwayGoals;
+        int oldAwayBehinds = _match.AwayBehinds;
+
         bool changed = editor.Result switch
         {
             ScoreEventEditorWindow.EditorResult.Deleted => _match.RemoveEvent(eventIndex),
@@ -1268,7 +1472,15 @@ public partial class MainWindow
 
         ResetScoreAnimationQueue();
         _scorebug?.ResetAllOverlayState();
-        _scorebug?.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
+        _scorebug?.AnimateScoreCorrectionFrom(
+            oldHomeGoals,
+            oldHomeBehinds,
+            oldAwayGoals,
+            oldAwayBehinds,
+            _match.HomeGoals,
+            _match.HomeBehinds,
+            _match.AwayGoals,
+            _match.AwayBehinds);
 
         _previousLeadChanges = MatchStats.Calculate(_match, _match.Quarter, _match.ElapsedInQuarter).LeadChanges;
 
@@ -1408,29 +1620,38 @@ public partial class MainWindow
         ControlPanelCountdownPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         if (!visible)
         {
+            CloseControlPanelCountdownEditPopup();
             return;
         }
 
         ControlPanelCountdownText.Text = $"{(int)_controlPanelCountdownRemaining.TotalMinutes:D2}:{_controlPanelCountdownRemaining.Seconds:D2}";
-        ControlPanelCountdownStartPauseButton.Content = _controlPanelCountdownRunning ? "⏸ Pause countdown" : "▶ Start countdown";
+
+        var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
+        var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as System.Windows.Controls.TextBox;
+
+        if (editMinutesBox is not null)
+            editMinutesBox.Text = ((int)_controlPanelCountdownDuration.TotalMinutes).ToString("D2");
+
+        if (editSecondsBox is not null)
+            editSecondsBox.Text = _controlPanelCountdownDuration.Seconds.ToString("D2");
 
         if (_controlPanelCountdownRemaining == TimeSpan.Zero)
         {
             ControlPanelCountdownStatusText.Text = _controlPanelCountdownAutoPausedClock
-                ? "Countdown finished — live scoreboard clock paused"
-                : "Countdown finished";
+                ? "Finished — live clock paused"
+                : "Finished";
             ControlPanelCountdownStatusText.Foreground = MediaBrushes.White;
         }
         else if (_controlPanelCountdownRunning)
         {
-            ControlPanelCountdownStatusText.Text = "Countdown running independently";
+            ControlPanelCountdownStatusText.Text = "Running";
             ControlPanelCountdownStatusText.Foreground = FindResource("AccentBrush") as SolidColorBrush ?? MediaBrushes.White;
         }
         else
         {
             ControlPanelCountdownStatusText.Text = _match.ClockRunning
-                ? "Countdown paused — scoreboard clock can keep running"
-                : "Ready to run";
+                ? "Paused"
+                : "Ready";
             ControlPanelCountdownStatusText.Foreground = FindResource("TextMidBrush") as SolidColorBrush ?? MediaBrushes.White;
         }
     }
@@ -3455,24 +3676,74 @@ public partial class MainWindow
             return;
         }
 
+        bool wasRunning = _match.ClockRunning;
+        bool wasCountUp = _match.ClockMode == ClockMode.CountUp;
+        TimeSpan previousElapsed = _match.ElapsedInQuarter;
+        TimeSpan previousQuarterDuration = _match.QuarterDuration;
+
+        if (wasRunning)
+        {
+            _match.PauseClock();
+        }
+
         if (ClockModeCountdown.IsChecked == true)
         {
             _match.SetClockMode(ClockMode.Countdown);
             QuarterDurationPanel.Visibility = Visibility.Visible;
-            _controlPanelCountdownRunning = false;
 
-            // Apply the current duration so the clock resets to the configured countdown value
-            ApplyQuarterDuration_Click(sender, new RoutedEventArgs());
+            // Keep current game-time position where possible when switching mid-quarter.
+            var currentDuration = TimeSpan.FromMinutes(int.TryParse(QuarterMinutesBox.Text, out int mins) ? Math.Clamp(mins, 0, 60) : previousQuarterDuration.Minutes)
+                                + TimeSpan.FromSeconds(int.TryParse(QuarterSecondsBox.Text, out int secs) ? Math.Clamp(secs, 0, 59) : previousQuarterDuration.Seconds);
+            if (currentDuration <= TimeSpan.Zero)
+                currentDuration = previousQuarterDuration > TimeSpan.Zero ? previousQuarterDuration : TimeSpan.FromMinutes(20);
+
+            _match.SetQuarterDuration(currentDuration);
+
+            if (wasCountUp)
+            {
+                // Elapsed timeline can carry directly into countdown mode.
+                var clampedElapsed = previousElapsed > currentDuration ? currentDuration : previousElapsed;
+                _match.SetElapsed(clampedElapsed);
+            }
+
+            PauseControlPanelCountdown(forceAutoPausedFlag: false);
+            _showControlPanelCountdown = false;
         }
         else
         {
             _match.SetClockMode(ClockMode.CountUp);
             QuarterDurationPanel.Visibility = Visibility.Collapsed;
+
+            var settingsShowCountdownToggle = FindElement<System.Windows.Controls.CheckBox>("SettingsShowControlPanelCountdown");
+            _showControlPanelCountdown = settingsShowCountdownToggle?.IsChecked == true;
+
             if (_controlPanelCountdownDuration <= TimeSpan.Zero)
             {
-                _controlPanelCountdownDuration = TimeSpan.FromMinutes(20);
+                _controlPanelCountdownDuration = previousQuarterDuration > TimeSpan.Zero ? previousQuarterDuration : TimeSpan.FromMinutes(20);
             }
-            _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+
+            if (!wasCountUp)
+            {
+                // Preserve elapsed continuity when moving from countdown -> count up.
+                _match.SetElapsed(previousElapsed);
+                _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+            }
+            else if (!_controlPanelCountdownRunning)
+            {
+                // Safe fallback if count-up mode reselected mid-quarter.
+                _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
+            }
+        }
+
+        if (wasRunning)
+        {
+            _match.StartClock();
+            if (_match.ClockMode == ClockMode.CountUp && _showControlPanelCountdown && _controlPanelCountdownRemaining > TimeSpan.Zero)
+            {
+                _controlPanelCountdownRunning = true;
+                _countdownNextTick = DateTime.UtcNow.AddSeconds(1);
+                _controlPanelCountdownAutoPausedClock = false;
+            }
         }
 
         if (ClockStatusText != null)
@@ -3481,6 +3752,8 @@ public partial class MainWindow
         }
 
         UpdateSettingsClockCards();
+        UpdateSettingsControlPanelCountdownOptionVisuals();
+        UpdateControlPanelCountdownUi();
         PushAllToScoreboard();
         BroadcastWebState();
     }
@@ -3602,6 +3875,7 @@ public partial class MainWindow
     {
         string videoExts = "*.mp4;*.m4v;*.mov;*.mkv;*.webm;*.avi;*.wmv;*.flv;"
                          + "*.mpg;*.mpeg;*.ts;*.mts;*.m2ts;*.3gp;*.3g2;*.ogv;*.vob;*.asf";
+        string imageExts = "*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff;*.webp";
 
         if (_breakScreenDelayTimer != null)
         {
@@ -3612,8 +3886,8 @@ public partial class MainWindow
 
         Microsoft.Win32.OpenFileDialog picker = new()
         {
-            Title = "Select Video File",
-            Filter = $"Video Files|{videoExts}|All Files|*.*",
+            Title = "Select Media File",
+            Filter = $"Media Files|{videoExts};{imageExts}|Video Files|{videoExts}|Image Files|{imageExts}|All Files|*.*",
             CheckFileExists = true,
             DereferenceLinks = true,
             Multiselect = false
@@ -3622,18 +3896,33 @@ public partial class MainWindow
         if (picker.ShowDialog() != true) return;
 
         _customVideoPath = picker.FileName;
+        string pickedExtension = System.IO.Path.GetExtension(_customVideoPath);
+        _customMediaIsImage = !string.IsNullOrWhiteSpace(pickedExtension) &&
+            (pickedExtension.Equals(".png", StringComparison.OrdinalIgnoreCase)
+            || pickedExtension.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+            || pickedExtension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+            || pickedExtension.Equals(".bmp", StringComparison.OrdinalIgnoreCase)
+            || pickedExtension.Equals(".gif", StringComparison.OrdinalIgnoreCase)
+            || pickedExtension.Equals(".tif", StringComparison.OrdinalIgnoreCase)
+            || pickedExtension.Equals(".tiff", StringComparison.OrdinalIgnoreCase)
+            || pickedExtension.Equals(".webp", StringComparison.OrdinalIgnoreCase));
+
         VideoTabFilePathText.Text = System.IO.Path.GetFileName(_customVideoPath);
         VideoTabFilePathText.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#E6EDF3")!;
 
         // Persist so the VIDEO tab can restore this clip across app restarts.
         try { Services.DisplaySettings.LastVideoPath = _customVideoPath; } catch { /* best-effort */ }
 
-        _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(_customVideoPath);
+        if (!_customMediaIsImage)
+        {
+            _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(_customVideoPath);
+        }
 
         try
         {
             var info = new System.IO.FileInfo(_customVideoPath);
-            VideoTabFileMetaText.Text = $"{FormatFileSize(info.Length)} · {info.Extension.TrimStart('.').ToUpperInvariant()} · {info.Name}";
+            string mediaType = _customMediaIsImage ? "IMAGE" : "VIDEO";
+            VideoTabFileMetaText.Text = $"{FormatFileSize(info.Length)} · {mediaType} · {info.Extension.TrimStart('.').ToUpperInvariant()} · {info.Name}";
         }
         catch
         {
@@ -3641,7 +3930,9 @@ public partial class MainWindow
         }
 
         VideoTabApplyButton.IsEnabled = true;
-        VideoTabStatusText.Text = "✓ Upload successful · ready to load.";
+        VideoTabStatusText.Text = _customMediaIsImage
+            ? "✓ Image loaded · ready to show on scoreboard."
+            : "✓ Video loaded · ready to cue.";
 
         // Auto-load into the scoreboard player so the operator only has to
         // click "Show on Scoreboard" next. This collapses the old three-step
@@ -3675,22 +3966,28 @@ public partial class MainWindow
         _suppressVideoAutoPlay = true;
         try
         {
-            // Load the scoreboard's player paused on frame zero so the
-            // operator can scrub/cue in the preview before switching to it.
+            // Images are shown as a static frame; videos load paused on frame zero
+            // so operators can scrub/cue before switching to output.
             _videoPlayer.SetVideoSource(_customVideoPath);
+            if (_customMediaIsImage)
+            {
+                _videoPlayer.Pause();
+            }
         }
         finally
         {
             _suppressVideoAutoPlay = false;
         }
 
-        VideoTabPlayPauseButton.IsEnabled = true;
-        VideoTabRestartButton.IsEnabled = true;
+        VideoTabPlayPauseButton.IsEnabled = !_customMediaIsImage;
+        VideoTabRestartButton.IsEnabled = !_customMediaIsImage;
         if (VideoTabShowOnScoreboardButton != null) VideoTabShowOnScoreboardButton.IsEnabled = true;
         if (VideoTabUnloadButton != null) VideoTabUnloadButton.IsEnabled = true;
         EnsureVideoTabPreviewSyncTimer();
         UpdateVideoTabPlayPauseButton();
-        VideoTabStatusText.Text = "Loaded · paused on first frame. Use \"Show on Scoreboard\" to broadcast.";
+        VideoTabStatusText.Text = _customMediaIsImage
+            ? "Image loaded. Use \"Show on Scoreboard\" to display it."
+            : "Loaded · paused on first frame. Use \"Show on Scoreboard\" to broadcast.";
     }
 
     private void VideoTabShowOnScoreboard_Click(object sender, RoutedEventArgs e)
@@ -3721,14 +4018,22 @@ public partial class MainWindow
         CurrentDisplayText.Text = "Custom Video";
         SetSelectedPreview("presentation:video");
         UpdateVideoTabPlayPauseButton();
-        VideoTabStatusText.Text = "Showing on scoreboard · paused. Press Play to start.";
+        VideoTabStatusText.Text = _customMediaIsImage
+            ? "Image is live on scoreboard."
+            : "Showing on scoreboard · paused. Press Play to start.";
     }
 
     private void VideoTabPlayPause_Click(object sender, RoutedEventArgs e)
     {
         if (_videoPlayer is null || !_videoPlayer.HasSource)
         {
-            VideoTabStatusText.Text = "Load a video first.";
+            VideoTabStatusText.Text = "Load a media file first.";
+            return;
+        }
+
+        if (_customMediaIsImage)
+        {
+            VideoTabStatusText.Text = "Images are static. Use Show on Scoreboard to display.";
             return;
         }
 
@@ -3781,7 +4086,7 @@ public partial class MainWindow
         }
         if (VideoTabFileMetaText != null)
         {
-            VideoTabFileMetaText.Text = "Supported: mp4, mov, mkv, webm, avi, wmv, m4v, ts, mpg, mpeg, 3gp, flv and other Windows-supported formats.";
+            VideoTabFileMetaText.Text = "Supported: mp4, mov, mkv, webm, avi, wmv, m4v, ts, mpg, mpeg, 3gp, flv, png, jpg, jpeg, bmp, gif, tif, tiff, webp and other Windows-supported formats.";
         }
 
         if (VideoTabApplyButton != null) VideoTabApplyButton.IsEnabled = false;
@@ -4588,9 +4893,11 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            UpdateStatusText.Text = $"Update check failed: {ex.Message}";
+            UpdateStatusText.Text = $"Update check failed: {ex.Message} Open latest installer in browser.";
             UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
-            InstallUpdateButton.Visibility = Visibility.Collapsed;
+            InstallUpdateButton.Visibility = Visibility.Visible;
+            InstallUpdateButton.IsEnabled = true;
+            InstallUpdateButton.Content = "OPEN DOWNLOAD PAGE";
         }
         finally
         {
@@ -4604,7 +4911,42 @@ public partial class MainWindow
         if (System.Windows.Application.Current is not App app) return;
         if (!app.UpdateService.UpdateAvailable)
         {
-            UpdateStatusText.Text = "No update available.";
+            try
+            {
+                AutoUpdateService.OpenReleasePageInBrowser();
+                UpdateStatusText.Text = "Opened latest download page in your browser.";
+                UpdateStatusText.Foreground = MediaBrushes.LightGreen;
+            }
+            catch (InvalidOperationException ex)
+            {
+                UpdateStatusText.Text = $"Unable to open download page: {ex.Message}";
+                UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
+            }
+            return;
+        }
+
+        if (InstallUpdateButton.Content is string installButtonText && installButtonText.Equals("OPEN DIRECT DOWNLOAD", StringComparison.OrdinalIgnoreCase))
+        {
+            string? directAssetUrl = app.UpdateService.GetLatestAssetDownloadUrl();
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(directAssetUrl))
+                {
+                    AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
+                    UpdateStatusText.Text = "Opened direct installer download in your browser.";
+                }
+                else
+                {
+                    AutoUpdateService.OpenReleasePageInBrowser();
+                    UpdateStatusText.Text = "Direct download unavailable. Opened release page instead.";
+                }
+                UpdateStatusText.Foreground = MediaBrushes.LightGreen;
+            }
+            catch (InvalidOperationException ex)
+            {
+                UpdateStatusText.Text = $"Could not open download link: {ex.Message}";
+                UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
+            }
             return;
         }
 
@@ -4633,18 +4975,60 @@ public partial class MainWindow
             }
             else
             {
-                UpdateStatusText.Text = "Update failed. Please try again later.";
+                UpdateStatusText.Text = "Update failed. Opening direct-download fallback…";
                 UpdateProgressBar.Visibility = Visibility.Collapsed;
                 CheckForUpdateButton.IsEnabled = true;
                 InstallUpdateButton.IsEnabled = true;
+                InstallUpdateButton.Content = "OPEN DIRECT DOWNLOAD";
+                try
+                {
+                    string? directAssetUrl = app.UpdateService.GetLatestAssetDownloadUrl();
+                    if (!string.IsNullOrWhiteSpace(directAssetUrl))
+                    {
+                        AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
+                        UpdateStatusText.Text = "In-app update failed. Direct installer download opened in browser.";
+                    }
+                    else
+                    {
+                        AutoUpdateService.OpenReleasePageInBrowser();
+                        UpdateStatusText.Text = "In-app update failed. Direct asset missing; release page opened.";
+                    }
+                    UpdateStatusText.Foreground = MediaBrushes.LightGreen;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    UpdateStatusText.Text = $"Update failed and fallback could not open: {ex.Message}";
+                    UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
+                }
             }
         }
         catch (Exception ex)
         {
-            UpdateStatusText.Text = $"Update failed: {ex.Message}";
+            UpdateStatusText.Text = $"Update failed: {ex.Message}. Opening direct-download fallback…";
             UpdateProgressBar.Visibility = Visibility.Collapsed;
             CheckForUpdateButton.IsEnabled = true;
             InstallUpdateButton.IsEnabled = true;
+            InstallUpdateButton.Content = "OPEN DIRECT DOWNLOAD";
+            try
+            {
+                string? directAssetUrl = app.UpdateService.GetLatestAssetDownloadUrl();
+                if (!string.IsNullOrWhiteSpace(directAssetUrl))
+                {
+                    AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
+                    UpdateStatusText.Text = "In-app update failed. Direct installer download opened in browser.";
+                }
+                else
+                {
+                    AutoUpdateService.OpenReleasePageInBrowser();
+                    UpdateStatusText.Text = "In-app update failed. Direct asset missing; release page opened.";
+                }
+                UpdateStatusText.Foreground = MediaBrushes.LightGreen;
+            }
+            catch (InvalidOperationException fallbackEx)
+            {
+                UpdateStatusText.Text = $"Update failed and fallback could not open: {fallbackEx.Message}";
+                UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
+            }
         }
     }
 
@@ -4888,13 +5272,19 @@ public partial class MainWindow
     {
         ClockModeCountUp.IsChecked = true;
         UpdateSettingsClockCards();
+        UpdateSettingsControlPanelCountdownOptionVisuals();
     }
 
     private void SettingsCountdownCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         ClockModeCountdown.IsChecked = true;
         UpdateSettingsClockCards();
+        UpdateSettingsControlPanelCountdownOptionVisuals();
     }
+
+    // Tracks previous settings-card visibility state so entrance animation only plays on true re-entry.
+    private bool _settingsCountdownOptionWasCollapsed = true;
+    private DispatcherTimer? _settingsCountdownOptionHideTimer;
 
     private void UpdateSettingsClockCards()
     {
@@ -4915,6 +5305,137 @@ public partial class MainWindow
         SettingsCountdownCard.BorderThickness = new Thickness(!countUp ? 2 : 1);
         SettingsCountdownGlow.Opacity = !countUp ? 0.12 : 0;
         SettingsCountdownCheck.Visibility = !countUp ? Visibility.Visible : Visibility.Collapsed;
+
+        UpdateSettingsControlPanelCountdownOptionVisuals();
+    }
+
+    private static void AnimateSettingsDouble(DependencyObject target, DependencyProperty property, double to, int durationMs, IEasingFunction? easing = null)
+    {
+        var animation = new DoubleAnimation
+        {
+            To = to,
+            Duration = TimeSpan.FromMilliseconds(durationMs),
+            EasingFunction = easing
+        };
+
+        if (target is UIElement element)
+        {
+            element.BeginAnimation(property, animation);
+            return;
+        }
+
+        if (target is Animatable animatable)
+        {
+            animatable.BeginAnimation(property, animation);
+        }
+    }
+
+    private void SettingsControlPanelCountdownOptionCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (ClockModeCountUp.IsChecked != true)
+            return;
+
+        var settingsShowCountdownToggle = FindElement<System.Windows.Controls.CheckBox>("SettingsShowControlPanelCountdown");
+        if (settingsShowCountdownToggle is null)
+            return;
+
+        settingsShowCountdownToggle.IsChecked = settingsShowCountdownToggle.IsChecked != true;
+        UpdateSettingsControlPanelCountdownOptionVisuals();
+    }
+
+    private void UpdateSettingsControlPanelCountdownOptionVisuals()
+    {
+        var optionCard = FindElement<System.Windows.Controls.Border>("SettingsControlPanelCountdownOptionCard");
+        var settingsShowCountdownToggle = FindElement<System.Windows.Controls.CheckBox>("SettingsShowControlPanelCountdown");
+        var cardTranslate = FindElement<TranslateTransform>("SettingsControlPanelCountdownCardTranslate");
+        var cardScale = FindElement<ScaleTransform>("SettingsControlPanelCountdownCardScale");
+        var toggleTrack = FindElement<System.Windows.Controls.Border>("SettingsControlPanelCountdownToggleTrack");
+        var thumbTranslate = FindElement<TranslateTransform>("SettingsControlPanelCountdownThumbTranslate");
+        var toggleLabel = FindElement<System.Windows.Controls.TextBlock>("SettingsControlPanelCountdownToggleLabel");
+
+        if (optionCard is null || settingsShowCountdownToggle is null || cardTranslate is null || cardScale is null)
+            return;
+
+        bool isVisible = ClockModeCountUp.IsChecked == true;
+        bool isEnabled = settingsShowCountdownToggle.IsChecked == true;
+        bool wasCollapsed = _settingsCountdownOptionWasCollapsed;
+        _settingsCountdownOptionWasCollapsed = !isVisible;
+
+        _settingsCountdownOptionHideTimer?.Stop();
+        _settingsCountdownOptionHideTimer = null;
+
+        var easeOut = new QuadraticEase { EasingMode = EasingMode.EaseOut };
+
+        if (isVisible)
+        {
+            optionCard.BeginAnimation(UIElement.OpacityProperty, null);
+            cardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            cardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            cardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            optionCard.Visibility = Visibility.Visible;
+
+            if (wasCollapsed)
+            {
+                optionCard.Opacity = 0;
+                cardTranslate.Y = 18;
+                cardScale.ScaleX = 0.97;
+                cardScale.ScaleY = 0.97;
+
+                AnimateSettingsDouble(optionCard, UIElement.OpacityProperty, 1, 260, easeOut);
+                AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 0, 280, easeOut);
+                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 1, 260, easeOut);
+                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 1, 260, easeOut);
+            }
+            else
+            {
+                AnimateSettingsDouble(optionCard, UIElement.OpacityProperty, 1, 180, easeOut);
+                AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 0, 180, easeOut);
+                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 1, 180, easeOut);
+                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 1, 180, easeOut);
+            }
+        }
+        else
+        {
+            optionCard.BeginAnimation(UIElement.OpacityProperty, null);
+            cardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            cardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            cardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+
+            AnimateSettingsDouble(optionCard, UIElement.OpacityProperty, 0, 180, easeOut);
+            AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 14, 180, easeOut);
+            AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 0.98, 180, easeOut);
+            AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 0.98, 180, easeOut);
+
+            _settingsCountdownOptionHideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(190) };
+            _settingsCountdownOptionHideTimer.Tick += (_, _) =>
+            {
+                _settingsCountdownOptionHideTimer?.Stop();
+                _settingsCountdownOptionHideTimer = null;
+                if (ClockModeCountUp.IsChecked != true)
+                {
+                    optionCard.Visibility = Visibility.Collapsed;
+                }
+            };
+            _settingsCountdownOptionHideTimer.Start();
+        }
+
+        optionCard.Background = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#0E1B2B" : "#10161D"));
+        optionCard.BorderBrush = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#30363D"));
+        optionCard.BorderThickness = new Thickness(isEnabled ? 2 : 1);
+
+        if (toggleTrack is not null)
+            toggleTrack.Background = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#2D333B"));
+
+        if (thumbTranslate is not null)
+            thumbTranslate.X = isEnabled ? 24 : 0;
+
+        if (toggleLabel is not null)
+        {
+            toggleLabel.Text = isEnabled ? "ON" : "OFF";
+            toggleLabel.Foreground = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#8B949E"));
+        }
+
+        _showControlPanelCountdown = isVisible && isEnabled;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -5204,62 +5725,62 @@ public partial class MainWindow
     private void SettingsNav_Teams_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         ApplySettingsCategoryFilter("teams");
-        SettingsSection_Teams.BringIntoView();
     }
 
     private void SettingsNav_Match_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         ApplySettingsCategoryFilter("match");
-        SettingsSection_Match.BringIntoView();
+    }
+
+    private void SettingsNav_Keybinds_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        ApplySettingsCategoryFilter("keybinds");
     }
 
     private void SettingsNav_Display_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         ApplySettingsCategoryFilter("display");
-        SettingsSection_Display.BringIntoView();
     }
 
     private void SettingsNav_Overlays_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         ApplySettingsCategoryFilter("overlays");
-        SettingsSection_Overlays.BringIntoView();
     }
 
     private void SettingsNav_Media_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         ApplySettingsCategoryFilter("media");
-        SettingsSection_Media.BringIntoView();
     }
 
     private void SettingsNav_Advanced_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         ApplySettingsCategoryFilter("advanced");
-        SettingsSection_Advanced.BringIntoView();
     }
-
-    private void SettingsNav_All_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => ApplySettingsCategoryFilter("all");
 
     // ═══════════════════════════════════════════════════════════════
     // Settings tab — Search & category filtering
     // ═══════════════════════════════════════════════════════════════
 
-    private string _settingsActiveCategory = "all";
+    private string _settingsActiveCategory = "match";
 
     private void ApplySettingsCategoryFilter(string category)
     {
-        _settingsActiveCategory = string.IsNullOrWhiteSpace(category) ? "all" : category.ToLowerInvariant();
+        _settingsActiveCategory = string.IsNullOrWhiteSpace(category) ? "teams" : category.ToLowerInvariant();
+        if (SettingsScrollViewer is not null)
+        {
+            SettingsScrollViewer.ScrollToHome();
+        }
         UpdateSettingsCategoryPillStyles();
         ApplySettingsFilter();
     }
 
     private void UpdateSettingsCategoryPillStyles()
     {
-        var pills = new (System.Windows.Controls.Border Pill, string Key)[]
+        var pills = new (System.Windows.Controls.Border? Pill, string Key)[]
         {
-            (SettingsNavBtn_All, "all"),
             (SettingsNavBtn_Teams, "teams"),
             (SettingsNavBtn_Match, "match"),
+            (FindElement<System.Windows.Controls.Border>("SettingsNavBtn_Keybinds"), "keybinds"),
             (SettingsNavBtn_Display, "display"),
             (SettingsNavBtn_Overlays, "overlays"),
             (SettingsNavBtn_Media, "media"),
@@ -5272,8 +5793,11 @@ public partial class MainWindow
             pill.Background = active
                 ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1F, 0x29, 0x37))
                 : System.Windows.Media.Brushes.Transparent;
+            var activeBorder = string.Equals(key, "keybinds", System.StringComparison.OrdinalIgnoreCase)
+                ? System.Windows.Media.Color.FromRgb(0xA7, 0x8B, 0xFA)
+                : System.Windows.Media.Color.FromRgb(0x58, 0xA6, 0xFF);
             pill.BorderBrush = active
-                ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x58, 0xA6, 0xFF))
+                ? new System.Windows.Media.SolidColorBrush(activeBorder)
                 : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x21, 0x26, 0x2D));
         }
     }
@@ -5300,25 +5824,27 @@ public partial class MainWindow
     private void ApplySettingsFilter()
     {
         string query = SettingsSearchBox?.Text?.Trim().ToLowerInvariant() ?? string.Empty;
-        string category = _settingsActiveCategory ?? "all";
+        string category = string.IsNullOrWhiteSpace(_settingsActiveCategory) ? "teams" : _settingsActiveCategory;
 
-        var sections = new (System.Windows.Controls.Border Section, string Key)[]
+        var sections = new (System.Windows.Controls.Border? Section, string Key)[]
         {
             (SettingsSection_Teams,    "teams"),
             (SettingsSection_Match,    "match"),
+            (FindElement<System.Windows.Controls.Border>("SettingsSection_Keybinds"), "keybinds"),
             (SettingsSection_Display,  "display"),
             (SettingsSection_Overlays, "overlays"),
             (SettingsSection_Media,    "media"),
             (SettingsSection_Advanced, "advanced"),
         };
 
+        bool searching = !string.IsNullOrEmpty(query);
         int visibleCount = 0;
         foreach (var (section, key) in sections)
         {
             if (section is null) continue;
-            bool categoryMatch = category == "all" || string.Equals(category, key, System.StringComparison.OrdinalIgnoreCase);
-            bool queryMatch = string.IsNullOrEmpty(query) || SectionMatchesQuery(section, query);
-            bool show = categoryMatch && queryMatch;
+            bool categoryMatch = string.Equals(category, key, System.StringComparison.OrdinalIgnoreCase);
+            bool queryMatch = !searching || SectionMatchesQuery(section, query);
+            bool show = searching ? queryMatch : categoryMatch;
             section.Visibility = show ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
             if (show) visibleCount++;
         }

@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using Roche_Scoreboard.Models;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
@@ -41,6 +42,49 @@ namespace Roche_Scoreboard.Views
         public CricketControlPanel()
         {
             InitializeComponent();
+        }
+
+        private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.Source != MainTabControl)
+                return;
+
+            AnimateSelectedTabContent();
+        }
+
+        private void AnimateSelectedTabContent()
+        {
+            if (MainTabControl?.SelectedContent is not FrameworkElement content)
+                return;
+
+            if (content.RenderTransform is not TranslateTransform translate)
+            {
+                translate = new TranslateTransform();
+                content.RenderTransform = translate;
+            }
+
+            content.BeginAnimation(UIElement.OpacityProperty, null);
+            translate.BeginAnimation(TranslateTransform.XProperty, null);
+
+            content.Opacity = 0.82;
+            translate.X = 16;
+
+            var slide = new DoubleAnimation
+            {
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(210),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            var fade = new DoubleAnimation
+            {
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(200),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            translate.BeginAnimation(TranslateTransform.XProperty, slide);
+            content.BeginAnimation(UIElement.OpacityProperty, fade);
         }
 
         public void SetMatch(CricketMatchManager match)

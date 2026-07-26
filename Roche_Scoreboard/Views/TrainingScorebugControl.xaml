@@ -238,7 +238,7 @@
                         </TextBlock>
                         <TextBlock Text="ALL TIMERS FINISHED"
                                    FontSize="42" FontWeight="Black" FontFamily="Bahnschrift"
-                                   Foreground="#FF8888" TextAlignment="Center" Margin="0,12,0,0"/>
+                                   Foreground="#FFD1D1" TextAlignment="Center" Margin="0,12,0,0"/>
                     </StackPanel>
                 </Viewbox>
             </Grid>

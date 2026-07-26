@@ -34,7 +34,7 @@
         </Style>
 
         <Style x:Key="HelperText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#8B949E"/>
+            <Setter Property="Foreground" Value="#C9D1D9"/>
             <Setter Property="FontFamily" Value="Bahnschrift"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="11"/>
@@ -66,23 +66,72 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                SnapsToDevicePixels="True">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"
-                                              Margin="{TemplateBinding Padding}"
-                                              RecognizesAccessKey="True"/>
-                        </Border>
+                        <Grid RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="BtnSc" ScaleX="1" ScaleY="1"/>
+                                    <TranslateTransform x:Name="BtnLift" Y="0"/>
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="RewardFlash" Background="#6658A6FF" Opacity="0" IsHitTestVisible="False"/>
+                            <Border x:Name="Bd"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Opacity="1"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Margin="{TemplateBinding Padding}"
+                                                  RecognizesAccessKey="True"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
-                            </Trigger>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BtnSc" Storyboard.TargetProperty="ScaleX" To="1.06" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.35" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BtnSc" Storyboard.TargetProperty="ScaleY" To="1.06" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.35" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BtnLift" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.13"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" To="0.24" Duration="0:0:0.1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BtnSc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BtnSc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BtnLift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.18"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.13"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
                             </Trigger>
+                            <EventTrigger RoutedEvent="Button.Click">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BtnSc" Storyboard.TargetProperty="ScaleX" From="0.9" To="1.08" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.45" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BtnSc" Storyboard.TargetProperty="ScaleY" From="0.9" To="1.08" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.45" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BtnLift" Storyboard.TargetProperty="Y" From="1" To="-1" Duration="0:0:0.14"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" From="0.45" To="0" Duration="0:0:0.24"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.4"/>
                                 <Setter Property="Cursor" Value="Arrow"/>
@@ -186,7 +235,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="NOW PLAYING" Foreground="#8B949E" Style="{StaticResource SectionCaption}"
+                            <TextBlock Text="NOW PLAYING" Foreground="#C9D1D9" Style="{StaticResource SectionCaption}"
                                        FontSize="11"/>
                             <TextBlock x:Name="ActiveTitleText" Text="No timer"
                                        Foreground="White" FontFamily="Bahnschrift" FontWeight="Black" FontSize="42"
@@ -267,7 +316,7 @@
                             <Border Grid.Column="1" Background="#0D1117" BorderBrush="#30363D" BorderThickness="1"
                                     Padding="8,2" VerticalAlignment="Center" Margin="2,0,0,0">
                                 <TextBlock x:Name="QueueCountText" Text="0 timers"
-                                           Foreground="#8B949E" FontFamily="Bahnschrift" FontWeight="Bold" FontSize="11"/>
+                                           Foreground="#C9D1D9" FontFamily="Bahnschrift" FontWeight="Bold" FontSize="11"/>
                             </Border>
                             <TextBlock Grid.Column="2" Text="Drag rows to reorder · Click ✎ to edit · ▲ ▼ to move · ✕ to remove"
                                        Style="{StaticResource HelperText}" FontSize="11"
@@ -442,7 +491,7 @@
 
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0" Padding="14">
                             <StackPanel>
-                                <TextBlock Text="KEYBOARD SHORTCUTS" Foreground="#8B949E"
+                                <TextBlock Text="KEYBOARD SHORTCUTS" Foreground="#C9D1D9"
                                            Style="{StaticResource SectionCaption}" FontSize="11"/>
                                 <Grid Margin="0,8,0,0">
                                     <Grid.ColumnDefinitions>

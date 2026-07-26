@@ -24,7 +24,7 @@
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
 
-        <!-- ── Primary command button — scoring, with tactile feedback ── -->
+        <!-- ── Primary command button — scoring, with high-energy reward feedback ── -->
         <Style x:Key="ScoreButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Black"/>
@@ -35,52 +35,64 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" RenderTransformOrigin="0.5,0.5">
-                            <Border.RenderTransform><ScaleTransform x:Name="Sc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="Sc" ScaleX="1" ScaleY="1"/>
+                                    <TranslateTransform x:Name="Lift" Y="0"/>
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="RewardFlash" Background="#8C58A6FF" Opacity="0" IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" Opacity="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <EventTrigger RoutedEvent="MouseEnter">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1.02" Duration="0:0:0.15">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1.07" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1.02" Duration="0:0:0.15">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1.07" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" To="-3" Duration="0:0:0.16"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" To="0.34" Duration="0:0:0.11"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
                             <EventTrigger RoutedEvent="MouseLeave">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.19">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.2">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.19">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.19"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14"/>
+                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.17"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.75"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.82"/>
                             </Trigger>
                             <EventTrigger RoutedEvent="Button.Click">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" From="0.93" To="1.02" Duration="0:0:0.18">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" From="0.88" To="1.1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" From="0.93" To="1.02" Duration="0:0:0.18">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" From="0.88" To="1.1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" From="0.65" To="1" Duration="0:0:0.25">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" From="1" To="-2" Duration="0:0:0.16"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" From="0.58" To="0" Duration="0:0:0.3"/>
+                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" From="0.7" To="1" Duration="0:0:0.23"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -90,7 +102,7 @@
             </Setter>
         </Style>
 
-        <!-- ── Tool button — compact, hover glow ── -->
+        <!-- ── Tool button — compact, energetic utility feedback ── -->
         <Style x:Key="ToolBtn" TargetType="Button">
             <Setter Property="Height" Value="36"/>
             <Setter Property="FontSize" Value="12"/>
@@ -104,21 +116,31 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" RenderTransformOrigin="0.5,0.5">
-                            <Border.RenderTransform><ScaleTransform x:Name="TbSc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="TbSc" ScaleX="1" ScaleY="1"/>
+                                    <TranslateTransform x:Name="TbLift" Y="0"/>
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="RewardFlash" Background="#66484F58" Opacity="0" IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" Opacity="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <EventTrigger RoutedEvent="MouseEnter">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" To="1.03" Duration="0:0:0.12">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" To="1.05" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" To="1.03" Duration="0:0:0.12">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" To="1.05" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TbLift" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.12"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" To="0.24" Duration="0:0:0.1"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -126,11 +148,13 @@
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.18">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
                                         <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.18">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TbLift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.18"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.13"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -140,17 +164,19 @@
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#161B22"/>
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.84"/>
                             </Trigger>
                             <EventTrigger RoutedEvent="Button.Click">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" From="0.94" To="1.03" Duration="0:0:0.16">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.25" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" From="0.92" To="1.07" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" From="0.94" To="1.03" Duration="0:0:0.16">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.25" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" From="0.92" To="1.07" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TbLift" Storyboard.TargetProperty="Y" From="1" To="-1" Duration="0:0:0.14"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" From="0.42" To="0" Duration="0:0:0.24"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>

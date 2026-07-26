@@ -184,68 +184,87 @@ namespace Roche_Scoreboard.Views
         // visible when a contextual ticker message is queued, or when compact
         // clock mode needs the row to host the quarter+clock fallback.
         private bool _bottomBarVisible;
+        private bool _bottomBarAnimating;
+        private bool _bottomBarTargetVisible;
 
         private void UpdateBottomBarVisibility()
         {
-            if (ExpBottomBarRow is null) return;
+            if (ExpBottomBarRow is null || ExpBottomBarBorder is null || ExpBottomBarSlide is null) return;
             bool hasMessages = _marqueeMessages.Count > 0;
             bool needsRow = hasMessages || _compactClockActive;
 
-            if (needsRow == _bottomBarVisible)
+            if (needsRow == _bottomBarTargetVisible && (_bottomBarAnimating || needsRow == _bottomBarVisible))
             {
-                // Still ensure row height is correct (e.g. first run)
                 ExpBottomBarRow.Height = needsRow ? new GridLength(70, GridUnitType.Star) : new GridLength(0);
                 ExpBottomBarRow.MinHeight = needsRow ? 32 : 0;
                 return;
             }
 
-            _bottomBarVisible = needsRow;
+            _bottomBarTargetVisible = needsRow;
 
             if (needsRow)
             {
-                // Reveal the row first, then animate the border sliding up + fading in.
                 ExpBottomBarRow.Height = new GridLength(70, GridUnitType.Star);
                 ExpBottomBarRow.MinHeight = 32;
-                AnimateBottomBar(show: true);
             }
-            else
+
+            AnimateBottomBar(show: needsRow, onCompleted: () =>
             {
-                AnimateBottomBar(show: false, onCompleted: () =>
+                _bottomBarVisible = needsRow;
+                _bottomBarAnimating = false;
+                if (!needsRow)
                 {
                     ExpBottomBarRow.Height = new GridLength(0);
                     ExpBottomBarRow.MinHeight = 0;
-                });
-            }
+                }
+
+                if (_bottomBarTargetVisible != _bottomBarVisible)
+                {
+                    UpdateBottomBarVisibility();
+                }
+            });
         }
 
         private void AnimateBottomBar(bool show, Action? onCompleted = null)
         {
             if (ExpBottomBarBorder is null || ExpBottomBarSlide is null) return;
 
-            // Slightly longer durations + Quintic easing read as a smoother
-            // hand-off than the previous cubic curve, especially when the bar
-            // is sliding back out behind a finished marquee.
-            const double slideDistance = 48;
-            TimeSpan dur = TimeSpan.FromMilliseconds(show ? 460 : 380);
-            var ease = new QuinticEase { EasingMode = show ? EasingMode.EaseOut : EasingMode.EaseIn };
+            const double slideDistance = 34;
+            TimeSpan dur = TimeSpan.FromMilliseconds(show ? 420 : 300);
+            var ease = new CubicEase { EasingMode = show ? EasingMode.EaseOut : EasingMode.EaseInOut };
+            double currentOpacity = ExpBottomBarBorder.Opacity;
+            double currentY = ExpBottomBarSlide.Y;
+            double targetOpacity = show ? 1.0 : 0.0;
+            double targetY = show ? 0.0 : slideDistance;
+
+            ExpBottomBarBorder.BeginAnimation(UIElement.OpacityProperty, null);
+            ExpBottomBarSlide.BeginAnimation(TranslateTransform.YProperty, null);
+            _bottomBarAnimating = true;
+
+            if (show && currentOpacity <= 0.001)
+            {
+                ExpBottomBarBorder.Opacity = 0;
+                ExpBottomBarSlide.Y = slideDistance;
+                currentOpacity = 0;
+                currentY = slideDistance;
+            }
 
             var fade = new DoubleAnimation
             {
-                To = show ? 1.0 : 0.0,
+                From = currentOpacity,
+                To = targetOpacity,
                 Duration = dur,
                 EasingFunction = ease
             };
             var slide = new DoubleAnimation
             {
-                To = show ? 0.0 : slideDistance,
+                From = currentY,
+                To = targetY,
                 Duration = dur,
                 EasingFunction = ease
             };
 
-            if (onCompleted is not null)
-            {
-                slide.Completed += (_, _) => onCompleted();
-            }
+            slide.Completed += (_, _) => onCompleted?.Invoke();
 
             ExpBottomBarBorder.BeginAnimation(UIElement.OpacityProperty, fade);
             ExpBottomBarSlide.BeginAnimation(TranslateTransform.YProperty, slide);
@@ -447,6 +466,124 @@ namespace Roche_Scoreboard.Views
         }
 
         public void LockScoreUpdate(bool isHome) { if (isHome) _homeAnimating = true; else _awayAnimating = true; }
+
+        /// <summary>
+        /// Smoothly transitions score digits to a corrected state after undo/history edits.
+        /// Uses a lightweight fade/slide animation (no goal/behind swipe overlays).
+        /// </summary>
+        public void AnimateScoreCorrectionFrom(int oldHomeGoals, int oldHomeBehinds, int oldAwayGoals, int oldAwayBehinds,
+            int homeGoals, int homeBehinds, int awayGoals, int awayBehinds, Action? onCompleted = null)
+        {
+            HomeGoalsText.Text = oldHomeGoals.ToString();
+            HomeBehindsText.Text = oldHomeBehinds.ToString();
+            HomeTotalText.Text = (oldHomeGoals * 6 + oldHomeBehinds).ToString();
+            ExpHomeGoalsText.Text = oldHomeGoals.ToString();
+            ExpHomeBehindsText.Text = oldHomeBehinds.ToString();
+            ExpHomeTotalText.Text = (oldHomeGoals * 6 + oldHomeBehinds).ToString();
+
+            AwayGoalsText.Text = oldAwayGoals.ToString();
+            AwayBehindsText.Text = oldAwayBehinds.ToString();
+            AwayTotalText.Text = (oldAwayGoals * 6 + oldAwayBehinds).ToString();
+            ExpAwayGoalsText.Text = oldAwayGoals.ToString();
+            ExpAwayBehindsText.Text = oldAwayBehinds.ToString();
+            ExpAwayTotalText.Text = (oldAwayGoals * 6 + oldAwayBehinds).ToString();
+
+            AnimateScoreCorrection(homeGoals, homeBehinds, awayGoals, awayBehinds, onCompleted);
+        }
+
+        public void AnimateScoreCorrection(int homeGoals, int homeBehinds, int awayGoals, int awayBehinds, Action? onCompleted = null)
+        {
+            bool homeChanged = HomeGoalsText.Text != homeGoals.ToString() || HomeBehindsText.Text != homeBehinds.ToString();
+            bool awayChanged = AwayGoalsText.Text != awayGoals.ToString() || AwayBehindsText.Text != awayBehinds.ToString();
+
+            if (!homeChanged && !awayChanged)
+            {
+                SetScores(homeGoals, homeBehinds, awayGoals, awayBehinds);
+                onCompleted?.Invoke();
+                return;
+            }
+
+            if (homeChanged)
+                _homeAnimating = true;
+            if (awayChanged)
+                _awayAnimating = true;
+
+            int homeTotal = homeGoals * 6 + homeBehinds;
+            int awayTotal = awayGoals * 6 + awayBehinds;
+
+            if (homeChanged)
+            {
+                AnimateScoreTextSwap(HomeGoalsText, homeGoals.ToString());
+                AnimateScoreTextSwap(HomeBehindsText, homeBehinds.ToString());
+                AnimateScoreTextSwap(HomeTotalText, homeTotal.ToString());
+                AnimateScoreTextSwap(ExpHomeGoalsText, homeGoals.ToString());
+                AnimateScoreTextSwap(ExpHomeBehindsText, homeBehinds.ToString());
+                AnimateScoreTextSwap(ExpHomeTotalText, homeTotal.ToString());
+            }
+
+            if (awayChanged)
+            {
+                AnimateScoreTextSwap(AwayGoalsText, awayGoals.ToString());
+                AnimateScoreTextSwap(AwayBehindsText, awayBehinds.ToString());
+                AnimateScoreTextSwap(AwayTotalText, awayTotal.ToString());
+                AnimateScoreTextSwap(ExpAwayGoalsText, awayGoals.ToString());
+                AnimateScoreTextSwap(ExpAwayBehindsText, awayBehinds.ToString());
+                AnimateScoreTextSwap(ExpAwayTotalText, awayTotal.ToString());
+            }
+
+            var settleTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            settleTimer.Tick += (_, _) =>
+            {
+                settleTimer.Stop();
+                if (homeChanged) _homeAnimating = false;
+                if (awayChanged) _awayAnimating = false;
+                onCompleted?.Invoke();
+            };
+            settleTimer.Start();
+        }
+
+        private static void AnimateScoreTextSwap(TextBlock target, string newValue)
+        {
+            if (target.RenderTransform is not TranslateTransform translate)
+            {
+                translate = new TranslateTransform();
+                target.RenderTransform = translate;
+            }
+
+            target.BeginAnimation(OpacityProperty, null);
+            translate.BeginAnimation(TranslateTransform.YProperty, null);
+
+            var fadeOut = new DoubleAnimation(1, 0.15, TimeSpan.FromMilliseconds(110))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            };
+            var liftOut = new DoubleAnimation(0, -8, TimeSpan.FromMilliseconds(110))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            fadeOut.Completed += (_, _) =>
+            {
+                target.Text = newValue;
+                target.Opacity = 0.15;
+                translate.Y = 8;
+
+                var fadeIn = new DoubleAnimation(0.15, 1, TimeSpan.FromMilliseconds(170))
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+                var settleIn = new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(170))
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                target.BeginAnimation(OpacityProperty, fadeIn);
+                translate.BeginAnimation(TranslateTransform.YProperty, settleIn);
+            };
+
+            target.BeginAnimation(OpacityProperty, fadeOut);
+            translate.BeginAnimation(TranslateTransform.YProperty, liftOut);
+        }
 
         private bool _quarterAnimating;
         private int _currentQuarter = 1;

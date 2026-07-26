@@ -111,7 +111,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="TIME SINCE LAST SCORE" Foreground="#94A3B8" FontSize="15" FontWeight="Black" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="0" Text="TIME SINCE LAST SCORE" Foreground="#CBD5E1" FontSize="15" FontWeight="Black" VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="1" x:Name="ScorelessTimeText" Text="10:00" Foreground="White" FontSize="26" FontWeight="Black" FontFamily="Stolzl Bold" VerticalAlignment="Center"/>
             </Grid>
         </Border>

@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
+using System.Windows.Threading;
 using Roche_Scoreboard.Models;
 using Roche_Scoreboard.Services;
 using WinForms = System.Windows.Forms;
@@ -605,13 +606,15 @@ namespace Roche_Scoreboard.Views
             SetupAwayLogoPreview.Visibility = Visibility.Collapsed;
             SetupAwayVideoText.Text = "(none)";
 
-            SetupCountUp.IsChecked = true;
+            SetupCountdown.IsChecked = true;
             SetupControlPanelCountdown.IsChecked = true;
+            _wasCountUpMode = false;
             SetupQuarterMinutes.Text = "20";
             SetupQuarterSeconds.Text = "00";
             SetupFinalsMode.IsChecked = false;
             DurationMinutesDisplay.Text = "20";
             UpdateClockModeVisuals();
+            _countdownOptionCardWasCollapsed = true; // force entrance anim on next reveal
             UpdateControlPanelCountdownOptionVisuals();
             HighlightActivePresetTile(20);
             UpdateFinalsToggleVisuals();
@@ -705,11 +708,22 @@ namespace Roche_Scoreboard.Views
                 return;
 
             SetupControlPanelCountdown.IsChecked = SetupControlPanelCountdown.IsChecked != true;
+            UpdateClockModeVisuals();
             UpdateControlPanelCountdownOptionVisuals();
         }
 
+        private bool _wasCountUpMode;
+
         private void SetupClockMode_Changed(object sender, RoutedEventArgs e)
         {
+            bool isCountUp = SetupCountUp.IsChecked == true;
+            if (isCountUp && !_wasCountUpMode)
+            {
+                SetupControlPanelCountdown.IsChecked = true;
+            }
+
+            _wasCountUpMode = isCountUp;
+
             UpdateClockModeVisuals();
             UpdateControlPanelCountdownOptionVisuals();
             UpdateSetupClockSummary();
@@ -754,31 +768,134 @@ namespace Roche_Scoreboard.Views
                 : null;
             CountdownSelected.Visibility = isCountdown ? Visibility.Visible : Visibility.Collapsed;
 
+            bool keepDurationEditable = SetupCountUp.IsChecked == true && SetupControlPanelCountdown.IsChecked == true;
+
             // Duration panel and glow
-            DurationGlowBg.Opacity = isCountdown ? 0.08 : 0;
-            SetupDurationPanel.BorderBrush = new SolidColorBrush(isCountdown
+            DurationGlowBg.Opacity = isCountdown || keepDurationEditable ? 0.08 : 0;
+            SetupDurationPanel.BorderBrush = new SolidColorBrush(isCountdown || keepDurationEditable
                 ? (Color)ColorConverter.ConvertFromString("#6B5A00")
                 : (Color)ColorConverter.ConvertFromString("#3A3018"));
 
-            // Disable duration editing when count-up is selected
-            DurationDisabledOverlay.Visibility = isCountdown ? Visibility.Collapsed : Visibility.Visible;
+            // Keep duration editable for countdown and for count-up with timing stoppages enabled.
+            DurationDisabledOverlay.Visibility = isCountdown || keepDurationEditable ? Visibility.Collapsed : Visibility.Visible;
         }
+
+        // Tracks previous visibility state so we only play the entrance animation once per appearance.
+        private bool _countdownOptionCardWasCollapsed = true;
+        private DispatcherTimer? _countdownOptionHideTimer;
 
         private void UpdateControlPanelCountdownOptionVisuals()
         {
             if (ControlPanelCountdownOptionCard is null)
                 return;
 
+            var controlPanelCountdownHintText = FindName("ControlPanelCountdownHintText") as TextBlock;
+
             bool isVisible = SetupCountUp.IsChecked == true;
             bool isEnabled = SetupControlPanelCountdown.IsChecked == true;
+            bool wasCollapsed = _countdownOptionCardWasCollapsed;
+            _countdownOptionCardWasCollapsed = !isVisible;
 
-            ControlPanelCountdownOptionCard.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
-            ControlPanelCountdownOptionCard.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#0E1B2B" : "#10161D"));
-            ControlPanelCountdownOptionCard.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#30363D"));
+            _countdownOptionHideTimer?.Stop();
+            _countdownOptionHideTimer = null;
+
+            if (isVisible)
+            {
+                ControlPanelCountdownOptionCard.BeginAnimation(OpacityProperty, null);
+                ControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+
+                ControlPanelCountdownOptionCard.Visibility = Visibility.Visible;
+                ControlPanelCountdownOptionCard.IsHitTestVisible = true;
+
+                if (wasCollapsed)
+                {
+                    ControlPanelCountdownOptionCard.Opacity = 0;
+                    ControlPanelCountdownCardTranslate.Y = 12;
+                    ControlPanelCountdownCardScale.ScaleX = 0.98;
+                    ControlPanelCountdownCardScale.ScaleY = 0.98;
+
+                    Animate(ControlPanelCountdownOptionCard, OpacityProperty, 1, 220, easing: Smooth);
+                    Animate(ControlPanelCountdownCardTranslate, TranslateTransform.YProperty, 0, 220, easing: Smooth);
+                    Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleXProperty, 1, 220, easing: Smooth);
+                    Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleYProperty, 1, 220, easing: Smooth);
+                }
+                else
+                {
+                    ControlPanelCountdownOptionCard.Opacity = 1;
+                    ControlPanelCountdownCardTranslate.Y = 0;
+                    ControlPanelCountdownCardScale.ScaleX = 1;
+                    ControlPanelCountdownCardScale.ScaleY = 1;
+                }
+            }
+            else
+            {
+                ControlPanelCountdownOptionCard.BeginAnimation(OpacityProperty, null);
+                ControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+
+                ControlPanelCountdownOptionCard.IsHitTestVisible = false;
+                Animate(ControlPanelCountdownOptionCard, OpacityProperty, 0, 220, easing: Smooth);
+                Animate(ControlPanelCountdownCardTranslate, TranslateTransform.YProperty, 14, 220, easing: Smooth);
+                Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleXProperty, 0.98, 220, easing: Smooth);
+                Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleYProperty, 0.98, 220, easing: Smooth);
+
+                _countdownOptionHideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(230) };
+                _countdownOptionHideTimer.Tick += (_, _) =>
+                {
+                    _countdownOptionHideTimer?.Stop();
+                    _countdownOptionHideTimer = null;
+                    if (SetupCountUp.IsChecked != true)
+                    {
+                        ControlPanelCountdownOptionCard.Visibility = Visibility.Collapsed;
+                    }
+                };
+                _countdownOptionHideTimer.Start();
+            }
+
+            ControlPanelCountdownOptionCard.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#12253A" : "#151E29"));
+            ControlPanelCountdownOptionCard.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#6CB6FF" : "#4D637C"));
             ControlPanelCountdownOptionCard.BorderThickness = new Thickness(isEnabled ? 2 : 1);
-            ControlPanelCountdownOptionBadge.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#30363D"));
-            ControlPanelCountdownOptionBadge.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#484F58"));
-            ControlPanelCountdownOptionBadgeText.Text = isEnabled ? "ON" : "OFF";
+
+            if (ControlPanelCountdownToggleTrack?.Background is not SolidColorBrush trackBrush)
+            {
+                trackBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#4B5563"));
+                if (ControlPanelCountdownToggleTrack is not null)
+                {
+                    ControlPanelCountdownToggleTrack.Background = trackBrush;
+                }
+            }
+
+            Color targetTrackColor = (Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#4B5563");
+            trackBrush.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation
+            {
+                To = targetTrackColor,
+                Duration = TimeSpan.FromMilliseconds(220),
+                EasingFunction = Sine
+            });
+
+            if (ControlPanelCountdownThumbTranslate is not null)
+            {
+                ControlPanelCountdownThumbTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+                Animate(ControlPanelCountdownThumbTranslate, TranslateTransform.XProperty, isEnabled ? 26 : 0, 220, easing: Smooth);
+            }
+
+            if (ControlPanelCountdownToggleLabel is not null)
+            {
+                ControlPanelCountdownToggleLabel.BeginAnimation(OpacityProperty, null);
+                ControlPanelCountdownToggleLabel.Opacity = 0.65;
+                ControlPanelCountdownToggleLabel.Text = isEnabled ? "ON" : "OFF";
+                ControlPanelCountdownToggleLabel.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#A2ACB8"));
+                Animate(ControlPanelCountdownToggleLabel, OpacityProperty, 1, 180, easing: Smooth);
+            }
+
+            if (controlPanelCountdownHintText is not null)
+            {
+                controlPanelCountdownHintText.Text = isEnabled ? "Quarter length editable" : "Quarter length locked";
+                controlPanelCountdownHintText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#9CC9FF" : "#7D8792"));
+            }
         }
 
         private void MinutesMinus_Click(object sender, MouseButtonEventArgs e)

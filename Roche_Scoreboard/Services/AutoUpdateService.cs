@@ -20,6 +20,7 @@ public sealed class AutoUpdateService
     private const string GitHubOwner = "csb427";
     private const string GitHubRepo = "RocheScoreboard";
     private const string ReleasesApiUrl = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest";
+    private const string ReleasesPageUrl = $"https://github.com/{GitHubOwner}/{GitHubRepo}/releases/latest";
 
     private static readonly HttpClient s_http = CreateHttpClient();
 
@@ -204,17 +205,12 @@ public sealed class AutoUpdateService
 
             // Launch PowerShell hidden, bypassing execution policy. Detach from
             // this process so it survives our shutdown.
-            var psi = new ProcessStartInfo
+            bool launched = TryLaunchUpdaterScript(scriptPath, tempRoot);
+            if (!launched)
             {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{scriptPath}\"",
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                UseShellExecute = false,
-                WorkingDirectory = tempRoot
-            };
-            var proc = Process.Start(psi);
-            return proc is not null;
+                try { File.AppendAllText(logPath, $"[{DateTime.Now:O}] Failed to launch updater script using all runners.\r\n"); } catch { }
+            }
+            return launched;
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException or TaskCanceledException or OperationCanceledException)
         {
@@ -392,6 +388,58 @@ public sealed class AutoUpdateService
     }
 
 
+    private static bool TryLaunchUpdaterScript(string scriptPath, string workingDirectory)
+    {
+        string escapedScript = scriptPath.Replace("\"", "\"\"");
+
+        ProcessStartInfo[] candidates =
+        [
+            new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{escapedScript}\"",
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                UseShellExecute = false,
+                WorkingDirectory = workingDirectory
+            },
+            new ProcessStartInfo
+            {
+                FileName = "pwsh.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{escapedScript}\"",
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                UseShellExecute = false,
+                WorkingDirectory = workingDirectory
+            },
+            new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c start \"\" powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{escapedScript}\"",
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                UseShellExecute = false,
+                WorkingDirectory = workingDirectory
+            }
+        ];
+
+        foreach (var psi in candidates)
+        {
+            try
+            {
+                var proc = Process.Start(psi);
+                if (proc is not null)
+                    return true;
+            }
+            catch
+            {
+                // try next launcher
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Finds the best asset URL from the release. Prefers .exe, then .zip, then zipball fallback.
     /// Returns the URL and whether it is a direct exe download.
@@ -425,6 +473,36 @@ public sealed class AutoUpdateService
 
         // Fallback: GitHub auto-generated source zipball (not ideal but better than nothing)
         return (release.ZipballUrl, false);
+    }
+
+    public static string GetReleasePageUrl() => ReleasesPageUrl;
+
+    public static void OpenReleasePageInBrowser()
+    {
+        OpenUrlInBrowser(ReleasesPageUrl);
+    }
+
+    public string? GetLatestAssetDownloadUrl()
+    {
+        if (LatestRelease is null)
+            return null;
+
+        var (url, _) = FindAssetUrl(LatestRelease);
+        return url;
+    }
+
+    public static void OpenUrlInBrowser(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            throw new InvalidOperationException("No URL is available.");
+
+        ProcessStartInfo psi = new()
+        {
+            FileName = url,
+            UseShellExecute = true
+        };
+
+        Process.Start(psi);
     }
 
     private static HttpClient CreateHttpClient()

@@ -61,9 +61,9 @@ public partial class SportSelectionScreen : UserControl
         Animate(CricketCard, OpacityProperty, 1, 600, delay: 300);
         Animate(CricketCardTranslate, TranslateTransform.XProperty, 0, 700, delay: 300, easing: Smooth);
 
-        // Divider: grow from centre
-        Animate(DividerScale, ScaleTransform.ScaleYProperty, 1, 800, delay: 350, easing: Smooth);
-        Animate(DividerGlowLine, OpacityProperty, 0.6, 800, delay: 350);
+        // Training card: fade + drop in
+        Animate(TrainingCard, OpacityProperty, 1, 620, delay: 380, easing: Smooth);
+        Animate(TrainingTileTranslate, TranslateTransform.YProperty, 0, 700, delay: 380, easing: Smooth);
 
         // AFL icon: scale up with overshoot + fade
         Animate(AflIconGroup, OpacityProperty, 1, 500, delay: 500);
@@ -98,9 +98,9 @@ public partial class SportSelectionScreen : UserControl
         // Changelog version badge: fade in
         Animate(ChangelogToggle, OpacityProperty, 0.7, 400, delay: 1000, easing: Smooth);
 
-        // Training mode tile: fade + drop in from top
-        Animate(TrainingTile, OpacityProperty, 1, 600, delay: 850, easing: Smooth);
-        Animate(TrainingTileTranslate, TranslateTransform.YProperty, 0, 700, delay: 850, easing: Smooth);
+        // Settings tile: fade + drop in from top-left
+        Animate(SettingsTile, OpacityProperty, 1, 600, delay: 840, easing: Smooth);
+        Animate(SettingsTileTranslate, TranslateTransform.YProperty, 0, 700, delay: 840, easing: Smooth);
     }
 
     // ═══════════════════════════════════════════════════════
@@ -234,6 +234,24 @@ public partial class SportSelectionScreen : UserControl
         raise.Start();
     }
 
+    private void Settings_Click(object sender, MouseButtonEventArgs e)
+    {
+        SettingsTileScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+            new DoubleAnimation(1.08, 1.0, TimeSpan.FromMilliseconds(250)) { EasingFunction = Smooth });
+        SettingsTileScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+            new DoubleAnimation(1.08, 1.0, TimeSpan.FromMilliseconds(250)) { EasingFunction = Smooth });
+        SettingsTileGlow.BeginAnimation(DropShadowEffect.OpacityProperty,
+            new DoubleAnimation(0.92, 0.4, TimeSpan.FromMilliseconds(360)) { EasingFunction = Smooth });
+
+        var raise = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(210) };
+        raise.Tick += (_, _) =>
+        {
+            raise.Stop();
+            SportSelected?.Invoke(SportMode.Settings);
+        };
+        raise.Start();
+    }
+
     private void TrainingTile_MouseEnter(object sender, MouseEventArgs e)
     {
         TrainingTileScale.BeginAnimation(ScaleTransform.ScaleXProperty,
@@ -251,6 +269,26 @@ public partial class SportSelectionScreen : UserControl
         TrainingTileScale.BeginAnimation(ScaleTransform.ScaleYProperty,
             new DoubleAnimation(1.0, HoverOut) { EasingFunction = Smooth });
         TrainingTileGlow.BeginAnimation(DropShadowEffect.OpacityProperty,
+            new DoubleAnimation(0.4, HoverOut) { EasingFunction = Smooth });
+    }
+
+    private void SettingsTile_MouseEnter(object sender, MouseEventArgs e)
+    {
+        SettingsTileScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+            new DoubleAnimation(1.04, HoverIn) { EasingFunction = Smooth });
+        SettingsTileScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+            new DoubleAnimation(1.04, HoverIn) { EasingFunction = Smooth });
+        SettingsTileGlow.BeginAnimation(DropShadowEffect.OpacityProperty,
+            new DoubleAnimation(0.75, HoverIn) { EasingFunction = Smooth });
+    }
+
+    private void SettingsTile_MouseLeave(object sender, MouseEventArgs e)
+    {
+        SettingsTileScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+            new DoubleAnimation(1.0, HoverOut) { EasingFunction = Smooth });
+        SettingsTileScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+            new DoubleAnimation(1.0, HoverOut) { EasingFunction = Smooth });
+        SettingsTileGlow.BeginAnimation(DropShadowEffect.OpacityProperty,
             new DoubleAnimation(0.4, HoverOut) { EasingFunction = Smooth });
     }
 

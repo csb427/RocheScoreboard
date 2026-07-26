@@ -56,7 +56,7 @@
             <Setter Property="CaretBrush" Value="White"/>
         </Style>
 
-        <!-- ── Compact tool button ── -->
+        <!-- ── Compact tool button — cinematic reward pulse ── -->
         <Style x:Key="SmallBtn" TargetType="Button">
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -65,28 +65,66 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Padding="12,5" Background="#141C2A" BorderBrush="#2A3A52" BorderThickness="1"
-                                RenderTransformOrigin="0.5,0.5">
-                            <Border.RenderTransform><ScaleTransform x:Name="BdSc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="BdSc" ScaleX="1" ScaleY="1"/>
+                                    <TranslateTransform x:Name="BdLift" Y="0"/>
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="RewardFlash" Background="#6658A6FF" Opacity="0" IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Padding="12,5" Background="#141C2A" BorderBrush="#2A3A52" BorderThickness="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BdSc" Storyboard.TargetProperty="ScaleX" To="1.06" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.35" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BdSc" Storyboard.TargetProperty="ScaleY" To="1.06" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.35" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BdLift" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.13"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" To="0.25" Duration="0:0:0.1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BdSc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.17">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BdSc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.17">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BdLift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.17"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#1E2C40"/>
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="#3A5070"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#0A1018"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
                             </Trigger>
                             <EventTrigger RoutedEvent="Button.Click">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="BdSc" Storyboard.TargetProperty="ScaleX" From="0.95" To="1" Duration="0:0:0.1">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="BdSc" Storyboard.TargetProperty="ScaleX" From="0.9" To="1.08" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.45" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="BdSc" Storyboard.TargetProperty="ScaleY" From="0.95" To="1" Duration="0:0:0.1">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="BdSc" Storyboard.TargetProperty="ScaleY" From="0.9" To="1.08" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.45" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BdLift" Storyboard.TargetProperty="Y" From="1" To="-1" Duration="0:0:0.14"/>
+                                        <DoubleAnimation Storyboard.TargetName="RewardFlash" Storyboard.TargetProperty="Opacity" From="0.5" To="0" Duration="0:0:0.24"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -770,9 +808,9 @@
                     </Border>
 
                     <!-- Hidden backing controls read by FinishWizard / Reset -->
-                    <RadioButton x:Name="SetupCountUp" IsChecked="True" GroupName="SetupClock" Visibility="Collapsed"
+                    <RadioButton x:Name="SetupCountUp" GroupName="SetupClock" Visibility="Collapsed"
                                  Checked="SetupClockMode_Changed" Unchecked="SetupClockMode_Changed"/>
-                    <RadioButton x:Name="SetupCountdown" GroupName="SetupClock" Visibility="Collapsed"
+                    <RadioButton x:Name="SetupCountdown" IsChecked="True" GroupName="SetupClock" Visibility="Collapsed"
                                  Checked="SetupClockMode_Changed" Unchecked="SetupClockMode_Changed"/>
                     <CheckBox x:Name="SetupControlPanelCountdown" IsChecked="True" Visibility="Collapsed"/>
                     <TextBox x:Name="SetupQuarterMinutes" Text="20" Visibility="Collapsed"
@@ -815,15 +853,15 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- ══════ LEFT COLUMN: Clock Mode ══════ -->
-                            <Grid Grid.Column="0">
+                            <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,8,0,8">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="12"/>
-                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <!-- COUNT UP card — full clickable tile -->
-                                <Border x:Name="CountUpCard" Grid.Row="0" Cursor="Hand"
+                                <Border x:Name="CountUpCard" Grid.Row="0" Cursor="Hand" Margin="0,0,0,12" MinHeight="210"
                                         Background="#0A1628" BorderBrush="#58A6FF" BorderThickness="2"
                                         MouseLeftButtonUp="CountUpCard_Click">
                                     <Grid>
@@ -855,8 +893,73 @@
                                     </Grid>
                                 </Border>
 
+                                <Border x:Name="ControlPanelCountdownOptionCard" Grid.Row="1"
+                                        Margin="0,0,0,12" Padding="16,12"
+                                        Background="#0E1B2B" BorderBrush="#58A6FF" BorderThickness="2"
+                                        CornerRadius="12" Cursor="Hand" Visibility="Collapsed" Opacity="0"
+                                        MinHeight="90"
+                                        RenderTransformOrigin="0.5,0.5"
+                                        MouseLeftButtonUp="ControlPanelCountdownOptionCard_Click">
+                                    <Border.RenderTransform>
+                                        <TransformGroup>
+                                            <TranslateTransform x:Name="ControlPanelCountdownCardTranslate" Y="24"/>
+                                            <ScaleTransform x:Name="ControlPanelCountdownCardScale" ScaleX="0.96" ScaleY="0.96"/>
+                                        </TransformGroup>
+                                    </Border.RenderTransform>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                <TextBlock Text="&#x23F1;" FontSize="18" Foreground="#58A6FF" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#58A6FF" Opacity="0.7"/>
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                                <TextBlock Text="Timing stoppages"
+                                                           Foreground="White" FontSize="15" FontWeight="Black"
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Control stoppage timing from the panel during count-up matches."
+                                                       Foreground="#B1BAC4" FontSize="11" FontWeight="SemiBold"
+                                                       TextWrapping="Wrap" LineHeight="17"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center"
+                                                    Margin="18,0,0,0" HorizontalAlignment="Center">
+                                            <Border x:Name="ControlPanelCountdownToggleTrack"
+                                                    Width="54" Height="28" CornerRadius="14"
+                                                    Background="#1F6FEB">
+                                                <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#58A6FF" Opacity="0.5"/>
+                                                </Border.Effect>
+                                                <Canvas Width="54" Height="28" IsHitTestVisible="False" ClipToBounds="True">
+                                                    <Ellipse x:Name="ControlPanelCountdownToggleThumb"
+                                                             Width="22" Height="22"
+                                                             Canvas.Left="3" Canvas.Top="3"
+                                                             Fill="White">
+                                                        <Ellipse.RenderTransform>
+                                                            <TranslateTransform x:Name="ControlPanelCountdownThumbTranslate" X="26"/>
+                                                        </Ellipse.RenderTransform>
+                                                    </Ellipse>
+                                                </Canvas>
+                                            </Border>
+                                            <TextBlock x:Name="ControlPanelCountdownToggleLabel"
+                                                       Text="ON" HorizontalAlignment="Center" Margin="0,5,0,0"
+                                                       FontSize="10" FontWeight="Black" Foreground="#58A6FF"/>
+                                            <TextBlock x:Name="ControlPanelCountdownHintText"
+                                                       Text="Quarter length editable"
+                                                       HorizontalAlignment="Center" Margin="0,2,0,0"
+                                                       FontSize="9" FontWeight="SemiBold" Foreground="#9CC9FF"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
                                 <!-- COUNTDOWN card — full clickable tile -->
-                                <Border x:Name="CountdownCard" Grid.Row="2" Cursor="Hand"
+                                <Border x:Name="CountdownCard" Grid.Row="2" Cursor="Hand" MinHeight="210"
                                         Background="#0E0C08" BorderBrush="#3A3018" BorderThickness="1"
                                         MouseLeftButtonUp="CountdownCard_Click">
                                     <Grid>
@@ -972,7 +1075,7 @@
                                                            HorizontalAlignment="Center" Margin="0,0,0,8"/>
                                                 <TextBlock Text="NOT AVAILABLE" FontSize="13" FontWeight="Black"
                                                            Foreground="#3A4A60" HorizontalAlignment="Center"/>
-                                                <TextBlock Text="Select Countdown to set quarter length"
+                                                <TextBlock Text="Enable Timing stoppages (or use Countdown) to set quarter length"
                                                            FontSize="10" Foreground="#2A3A52" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                             </StackPanel>
                                         </Border>
@@ -981,30 +1084,6 @@
                             </Grid>
                         </Grid>
 
-                        <Border x:Name="ControlPanelCountdownOptionCard" Grid.Row="2"
-                                Margin="24,16,24,0" Padding="18,14"
-                                Background="#10161D" BorderBrush="#30363D" BorderThickness="1"
-                                CornerRadius="12" Cursor="Hand" Visibility="Visible"
-                                MouseLeftButtonUp="ControlPanelCountdownOptionCard_Click">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="Timing stoppages as well? Add a separate countdown clock to the control panel."
-                                               Foreground="White" FontSize="16" FontWeight="Bold" TextWrapping="Wrap"/>
-                                    <TextBlock Text="It runs separately from the scoreboard clock, and when it reaches zero we’ll pause the live count-up clock for you."
-                                               Foreground="#8B949E" FontSize="12" FontWeight="SemiBold" Margin="0,6,0,0" TextWrapping="Wrap"/>
-                                </StackPanel>
-                                <Border x:Name="ControlPanelCountdownOptionBadge" Grid.Column="1"
-                                        Background="#1F6FEB" BorderBrush="#58A6FF" BorderThickness="1"
-                                        CornerRadius="999" Padding="12,6" VerticalAlignment="Center" Margin="16,0,0,0">
-                                    <TextBlock x:Name="ControlPanelCountdownOptionBadgeText" Text="ON"
-                                               Foreground="White" FontSize="11" FontWeight="Black"/>
-                                </Border>
-                            </Grid>
-                        </Border>
                     </Grid>
                 </Grid>
             </Border>

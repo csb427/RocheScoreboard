@@ -4,6 +4,7 @@ namespace Roche_Scoreboard.Models
     {
         AFL,
         Cricket,
-        Training
+        Training,
+        Settings
     }
 }

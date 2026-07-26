@@ -36,7 +36,7 @@
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
 
-        <!-- ── Primary command button — scoring, with tactile depress and hover lift ── -->
+        <!-- ── Primary command button — scoring, with high-energy reward motion ── -->
         <Style x:Key="PrimaryCommandButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Black"/>
@@ -47,55 +47,68 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                                RenderTransformOrigin="0.5,0.5" Opacity="1">
-                            <Border.RenderTransform><ScaleTransform x:Name="Sc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="Sc" ScaleX="1" ScaleY="1"/>
+                                    <TranslateTransform x:Name="Lift" Y="0"/>
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="Glow" Background="#A858A6FF" CornerRadius="3" Opacity="0" IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
-                            <!-- Hover: subtle lift + brightness -->
                             <EventTrigger RoutedEvent="MouseEnter">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1.02" Duration="0:0:0.15">
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1.06" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.45" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1.06" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.45" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" To="-3" Duration="0:0:0.16">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1.02" Duration="0:0:0.15">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0.32" Duration="0:0:0.12"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
                             <EventTrigger RoutedEvent="MouseLeave">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2">
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.18">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.2">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14"/>
+                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
-                            <!-- Press: compress + dim for tactile feedback -->
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.75"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.82"/>
+                                <Setter TargetName="Glow" Property="Opacity" Value="0.42"/>
                             </Trigger>
-                            <!-- Click: snap-compress rebound -->
                             <EventTrigger RoutedEvent="Button.Click">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" From="0.93" To="1.02" Duration="0:0:0.18">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleX" From="0.9" To="1.08" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.55" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" From="0.93" To="1.02" Duration="0:0:0.18">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="Sc" Storyboard.TargetProperty="ScaleY" From="0.9" To="1.08" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.55" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" From="0.65" To="1" Duration="0:0:0.25">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" From="1" To="-2" Duration="0:0:0.16"/>
+                                        <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" From="0.55" To="0" Duration="0:0:0.3"/>
+                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" From="0.7" To="1" Duration="0:0:0.24"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -105,7 +118,7 @@
             </Setter>
         </Style>
 
-        <!-- ── Tool button — compact, hover glow, tactile press ── -->
+        <!-- ── Tool button — compact, punchy hover/click reward ── -->
         <Style x:Key="ToolBtn" TargetType="Button">
             <Setter Property="Height" Value="34"/>
             <Setter Property="FontSize" Value="11"/>
@@ -120,35 +133,45 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                                RenderTransformOrigin="0.5,0.5" Opacity="1">
-                            <Border.RenderTransform><ScaleTransform x:Name="TbSc" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="TbSc" ScaleX="1" ScaleY="1"/>
+                                    <TranslateTransform x:Name="TbLift" Y="0"/>
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="Glow" Background="#6C8FB5FF" CornerRadius="2" Opacity="0" IsHitTestVisible="False"/>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
-                            <!-- Hover: surface highlight + micro lift -->
                             <EventTrigger RoutedEvent="MouseEnter">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" To="1.03" Duration="0:0:0.12">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" To="1.05" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" To="1.03" Duration="0:0:0.12">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" To="1.05" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TbLift" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.12"/>
+                                        <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0.26" Duration="0:0:0.1"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
                             <EventTrigger RoutedEvent="MouseLeave">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.18">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.17">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.18">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.17">
+                                            <DoubleAnimation.EasingFunction><ElasticEase Oscillations="1" Springiness="5" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18"/>
+                                        <DoubleAnimation Storyboard.TargetName="TbLift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.17"/>
+                                        <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/>
+                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -158,21 +181,20 @@
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#161B22"/>
-                                <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.84"/>
                             </Trigger>
-                            <!-- Click: snap-compress rebound -->
                             <EventTrigger RoutedEvent="Button.Click">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" From="0.94" To="1.03" Duration="0:0:0.16">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.25" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleX" From="0.92" To="1.07" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" From="0.94" To="1.03" Duration="0:0:0.16">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.25" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="TbSc" Storyboard.TargetProperty="ScaleY" From="0.92" To="1.07" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" From="0.7" To="1" Duration="0:0:0.22">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TbLift" Storyboard.TargetProperty="Y" From="1" To="-1" Duration="0:0:0.14"/>
+                                        <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" From="0.45" To="0" Duration="0:0:0.24"/>
+                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" From="0.72" To="1" Duration="0:0:0.2"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -199,7 +221,6 @@
                                 <ContentPresenter x:Name="Cp" ContentSource="Header"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <!-- Active accent bar -->
                             <Border x:Name="AccBar" VerticalAlignment="Bottom" Height="2"
                                     Opacity="0" Margin="8,0,8,-1">
                                 <Border.Background>
@@ -222,7 +243,6 @@
                                 <Setter TargetName="Bd" Property="Background" Value="#0F1620"/>
                                 <Setter TargetName="Cp" Property="TextBlock.Foreground" Value="#B0C0D0"/>
                             </Trigger>
-                            <!-- Selected + hover keeps white -->
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
                                     <Condition Property="IsSelected" Value="True"/>
@@ -500,83 +520,165 @@
                                     </Border>
                                 </Grid>
 
-                                <!-- Scoring panels — asymmetric team-coloured zones -->
+                                <!-- Scoring panels — top-level stoppage countdown + team command zones -->
                                 <Grid Grid.Row="1">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="12"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="10"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
 
-                                    <!-- HOME scoring zone — thick top accent -->
-                                    <Border x:Name="HomeScoringBorder" Grid.Column="0" BorderBrush="#33579A" BorderThickness="1,3,1,1" Background="#0A1428" Padding="12">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="12"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0">
+                                        <Border x:Name="ControlPanelCountdownPanel" Grid.Row="0" Background="#080E1C" BorderBrush="#1F6FEB" BorderThickness="2" CornerRadius="6" Padding="14,10" Visibility="Collapsed">
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="18" ShadowDepth="0" Color="#1F6FEB" Opacity="0.22"/>
+                                            </Border.Effect>
+                                            <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                                            <TextBlock x:Name="HomeScoringLabel" Text="HOME" Foreground="#7EB4FF" FontSize="10" FontWeight="Black"/>
-                                            <TextBlock Grid.Row="1" x:Name="HomeScoreDisplay" Text="0.0.0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" Margin="0,4,0,0"/>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#x23F1;" FontSize="14" Foreground="#58A6FF" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="COUNTDOWN&#x0a;TIMER" FontSize="11" FontWeight="Black" Foreground="#58A6FF" LineHeight="11"/>
+                                                </StackPanel>
+                                                <TextBlock x:Name="ControlPanelCountdownStatusText" Text="" FontSize="10" FontWeight="SemiBold" Foreground="#C9D1D9" Margin="0,0,0,0" Visibility="Collapsed"/>
+                                            </StackPanel>
 
-                                            <Grid Grid.Row="3">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="8"/>
-                                                    <RowDefinition Height="*"/>
-                                                </Grid.RowDefinitions>
-                                                <Button x:Name="HomeGoalButton" Grid.Row="0" Click="HomeGoal_Click" Style="{StaticResource PrimaryCommandButton}" ToolTip="Goal (+6 points) — Ctrl+G" BorderBrush="#4D7DE7" Background="#2F63D1">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="+6 GOAL" VerticalAlignment="Center"/>
-                                                        <TextBlock Text=" Ctrl+G" FontSize="10" Foreground="#FFFFFF80" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button x:Name="HomeBehindButton" Grid.Row="2" Click="HomeBehind_Click" Style="{StaticResource PrimaryCommandButton}" FontSize="16" ToolTip="Behind (+1 point) — Ctrl+B" BorderBrush="#3A4E66" Background="#1A2636">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="+1 BEHIND" VerticalAlignment="Center"/>
-                                                        <TextBlock Text=" Ctrl+B" FontSize="10" Foreground="#FFFFFF80" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </Grid>
+                                            <TextBlock Grid.Column="2" x:Name="ControlPanelCountdownText" Text="20:00" FontSize="54" FontWeight="Black" FontFamily="Consolas" Foreground="White" VerticalAlignment="Center" Margin="0,-2,0,0">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect BlurRadius="14" ShadowDepth="0" Color="#58A6FF" Opacity="0.38"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+
+                                            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <Button x:Name="ControlPanelCountdownEditButton" Content="&#x270E; Edit" Margin="0,0,6,0" Click="ControlPanelCountdownEditButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" Foreground="#E6EDF3" BorderBrush="#3B82F6" Background="#0F223F" Padding="12,6"/>
+                                                <Button x:Name="ControlPanelCountdownCancelEditButton" Content="✕ Cancel" Margin="0,0,6,0" Click="ControlPanelCountdownCancelEditButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" Foreground="#E6EDF3" BorderBrush="#64748B" Background="#1F2937" Padding="12,6" Visibility="Collapsed"/>
+                                                <Button x:Name="ControlPanelCountdownResetButton" Content="&#x21BA; Reset" Margin="0" Click="ControlPanelCountdownResetButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" Foreground="#E6EDF3" BorderBrush="#3FB950" Background="#102A19" Padding="12,6"/>
+                                            </StackPanel>
                                         </Grid>
                                     </Border>
 
-                                    <!-- AWAY scoring zone — thick top accent -->
-                                    <Border x:Name="AwayScoringBorder" Grid.Column="2" BorderBrush="#8A3A3A" BorderThickness="1,3,1,1" Background="#1C0A0A" Padding="12">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="12"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
+                                    <Popup x:Name="ControlPanelCountdownEditPopupHost"
+                                           PlacementTarget="{Binding ElementName=ControlPanelCountdownPanel}"
+                                           Placement="Bottom"
+                                           HorizontalOffset="0"
+                                           VerticalOffset="4"
+                                           AllowsTransparency="True"
+                                           StaysOpen="False"
+                                           PopupAnimation="Fade">
+                                        <Border x:Name="ControlPanelCountdownEditPopup" Background="#0B1324" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="6" Padding="12,10" Visibility="Collapsed" Opacity="0" RenderTransformOrigin="1,0">
+                                            <Border.RenderTransform>
+                                                <ScaleTransform x:Name="ControlPanelCountdownEditPopupScale" ScaleX="0.96" ScaleY="0.96"/>
+                                            </Border.RenderTransform>
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="18" ShadowDepth="0" Color="#3B82F6" Opacity="0.25"/>
+                                            </Border.Effect>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="6"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="6"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Background="#0A1224" BorderBrush="#2A4F8A" BorderThickness="1" CornerRadius="4" Padding="6,3">
+                                                    <TextBox x:Name="ControlPanelCountdownEditMinutesBox" Width="34" MaxLength="2" Text="20" FontSize="14" FontWeight="Black" FontFamily="Consolas" Foreground="#E6EDF3" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                                </Border>
+                                                <TextBlock Grid.Column="2" Text=":" Foreground="#8FB8E8" FontSize="14" FontWeight="Black" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="4" Background="#0A1224" BorderBrush="#2A4F8A" BorderThickness="1" CornerRadius="4" Padding="6,3">
+                                                    <TextBox x:Name="ControlPanelCountdownEditSecondsBox" Width="34" MaxLength="2" Text="00" FontSize="14" FontWeight="Black" FontFamily="Consolas" Foreground="#E6EDF3" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                                </Border>
+                                                <Button Grid.Column="6" x:Name="ControlPanelCountdownApplyButton" Content="Apply" Click="ControlPanelCountdownApplyButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" Foreground="#E6EDF3" BorderBrush="#3B82F6" Background="#0F223F" Padding="10,6"/>
+                                            </Grid>
+                                        </Border>
+                                    </Popup>
+                                </Grid>
 
-                                            <TextBlock x:Name="AwayScoringLabel" Text="AWAY" Foreground="#FF9A9A" FontSize="10" FontWeight="Black"/>
-                                            <TextBlock Grid.Row="1" x:Name="AwayScoreDisplay" Text="0.0.0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" Margin="0,4,0,0"/>
+                                    <Grid Grid.Row="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="12"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                                            <Grid Grid.Row="3">
+                                        <!-- HOME scoring zone — thick top accent -->
+                                        <Border x:Name="HomeScoringBorder" Grid.Column="0" BorderBrush="#33579A" BorderThickness="1,3,1,1" Background="#0A1428" Padding="12">
+                                            <Grid>
                                                 <Grid.RowDefinitions>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="8"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="12"/>
                                                     <RowDefinition Height="*"/>
                                                 </Grid.RowDefinitions>
-                                                <Button x:Name="AwayGoalButton" Grid.Row="0" Click="AwayGoal_Click" Style="{StaticResource PrimaryCommandButton}" ToolTip="Goal (+6 points) — Alt+G" BorderBrush="#C56F6F" Background="#A63B3B">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="+6 GOAL" VerticalAlignment="Center"/>
-                                                        <TextBlock Text=" Alt+G" FontSize="10" Foreground="#FFFFFF80" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button x:Name="AwayBehindButton" Grid.Row="2" Click="AwayBehind_Click" Style="{StaticResource PrimaryCommandButton}" FontSize="16" ToolTip="Behind (+1 point) — Alt+B" BorderBrush="#5A3A3A" Background="#2A1A1A">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="+1 BEHIND" VerticalAlignment="Center"/>
-                                                        <TextBlock Text=" Alt+B" FontSize="10" Foreground="#FFFFFF80" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                                    </StackPanel>
-                                                </Button>
+
+                                                <TextBlock x:Name="HomeScoringLabel" Text="HOME" Foreground="#7EB4FF" FontSize="10" FontWeight="Black"/>
+                                                <TextBlock Grid.Row="1" x:Name="HomeScoreDisplay" Text="0.0.0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" Margin="0,4,0,0"/>
+
+                                                <Grid Grid.Row="3">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="8"/>
+                                                        <RowDefinition Height="*"/>
+                                                    </Grid.RowDefinitions>
+                                                    <Button x:Name="HomeGoalButton" Grid.Row="0" Click="HomeGoal_Click" Style="{StaticResource PrimaryCommandButton}" ToolTip="Goal (+6 points) — A" BorderBrush="#4D7DE7" Background="#2F63D1">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="+6 GOAL" VerticalAlignment="Center"/>
+                                                            <TextBlock x:Name="HomeGoalShortcutText" Text=" A" FontSize="10" Foreground="#E6EDF3" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                    <Button x:Name="HomeBehindButton" Grid.Row="2" Click="HomeBehind_Click" Style="{StaticResource PrimaryCommandButton}" FontSize="16" ToolTip="Behind (+1 point) — S" BorderBrush="#3A4E66" Background="#1A2636">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="+1 BEHIND" VerticalAlignment="Center"/>
+                                                            <TextBlock x:Name="HomeBehindShortcutText" Text=" S" FontSize="10" Foreground="#FFFFFF80" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </Grid>
                                             </Grid>
-                                        </Grid>
-                                    </Border>
+                                        </Border>
+
+                                        <!-- AWAY scoring zone — thick top accent -->
+                                        <Border x:Name="AwayScoringBorder" Grid.Column="2" BorderBrush="#8A3A3A" BorderThickness="1,3,1,1" Background="#1C0A0A" Padding="12">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="12"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+
+                                                <TextBlock x:Name="AwayScoringLabel" Text="AWAY" Foreground="#FF9A9A" FontSize="10" FontWeight="Black"/>
+                                                <TextBlock Grid.Row="1" x:Name="AwayScoreDisplay" Text="0.0.0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" Margin="0,4,0,0"/>
+
+                                                <Grid Grid.Row="3">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="8"/>
+                                                        <RowDefinition Height="*"/>
+                                                    </Grid.RowDefinitions>
+                                                    <Button x:Name="AwayGoalButton" Grid.Row="0" Click="AwayGoal_Click" Style="{StaticResource PrimaryCommandButton}" ToolTip="Goal (+6 points) — K" BorderBrush="#C56F6F" Background="#A63B3B">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="+6 GOAL" VerticalAlignment="Center"/>
+                                                            <TextBlock x:Name="AwayGoalShortcutText" Text=" K" FontSize="10" Foreground="#FFFFFF80" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                    <Button x:Name="AwayBehindButton" Grid.Row="2" Click="AwayBehind_Click" Style="{StaticResource PrimaryCommandButton}" FontSize="16" ToolTip="Behind (+1 point) — L" BorderBrush="#5A3A3A" Background="#2A1A1A">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="+1 BEHIND" VerticalAlignment="Center"/>
+                                                            <TextBlock x:Name="AwayBehindShortcutText" Text=" L" FontSize="10" Foreground="#FFFFFF80" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
                                 </Grid>
 
                                 <!-- Warning banner — amber accent -->
@@ -1126,9 +1228,9 @@
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock x:Name="VideoTabFilePathText" Text="No file selected" Foreground="#9CC4F0" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                        <Button Grid.Column="1" Content="📁 Browse" Width="100" Height="30" Click="VideoTabBrowse_Click" Style="{StaticResource ToolBtn}" Margin="10,0,0,0" BorderBrush="#6F86A8" FontWeight="Bold" ToolTip="Pick an MP4. It is auto-loaded into the scoreboard player, paused on frame 0."/>
+                                                        <Button Grid.Column="1" Content="📁 Browse" Width="100" Height="30" Click="VideoTabBrowse_Click" Style="{StaticResource ToolBtn}" Margin="10,0,0,0" BorderBrush="#6F86A8" FontWeight="Bold" ToolTip="Pick a video or image file. It is auto-loaded into the scoreboard player."/>
                                                     </Grid>
-                                                    <TextBlock x:Name="VideoTabFileMetaText" Text="Supported: mp4, mov, mkv, webm, avi, wmv, m4v, ts, mpg, mpeg, 3gp, flv and other Windows-supported formats." Foreground="#3F6F9F" FontSize="9" Margin="0,8,0,12" TextWrapping="Wrap"/>
+                                                    <TextBlock x:Name="VideoTabFileMetaText" Text="Supported: mp4, mov, mkv, webm, avi, wmv, m4v, ts, mpg, mpeg, 3gp, flv, png, jpg, jpeg, bmp, gif, tif, tiff, webp and other Windows-supported formats." Foreground="#3F6F9F" FontSize="9" Margin="0,8,0,12" TextWrapping="Wrap"/>
 
                                                     <Button x:Name="VideoTabShowOnScoreboardButton" Content="🖥  Show on Scoreboard" Height="38" FontSize="13" FontWeight="Black" Click="VideoTabShowOnScoreboard_Click" Style="{StaticResource ToolBtn}" IsEnabled="False" BorderBrush="#6F86A8" Margin="0,0,0,8" ToolTip="Take over the scoreboard output with this video."/>
                                                     <Button x:Name="VideoTabPlayPauseButton" Content="▶  Play" Height="40" FontSize="13" FontWeight="Black" Click="VideoTabPlayPause_Click" Style="{StaticResource ToolBtn}" IsEnabled="False" BorderBrush="#1F7A3F" Background="#0E2A18" Foreground="#7FE0A0"/>
@@ -1282,6 +1384,7 @@
                             <RadioButton x:Name="AnimClassicRadio" GroupName="AnimChoice" Checked="AnimationRadio_Changed" Visibility="Collapsed"/>
                             <RadioButton x:Name="AnimCustomVideoRadio" GroupName="AnimChoice" IsChecked="True" Checked="AnimationRadio_Changed" Visibility="Collapsed"/>
                             <!-- Hidden backing controls -->
+                            <CheckBox x:Name="SettingsShowControlPanelCountdown" IsChecked="True" Visibility="Collapsed"/>
                             <TextBlock x:Name="HomeLogoPathText" Visibility="Collapsed"/>
                             <TextBlock x:Name="AwayLogoPathText" Visibility="Collapsed"/>
 
@@ -1301,14 +1404,14 @@
 
                                         <!-- Category filter pills -->
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <Border x:Name="SettingsNavBtn_All" Padding="12,8" Margin="0,0,4,0" Cursor="Hand" Background="#1F2937" BorderBrush="#58A6FF" BorderThickness="1" MouseLeftButtonUp="SettingsNav_All_Click">
-                                                <TextBlock Text="ALL" FontSize="10" FontWeight="Black" Foreground="#E6EDF3"/>
-                                            </Border>
                                             <Border x:Name="SettingsNavBtn_Teams" Padding="12,8" Margin="0,0,4,0" Cursor="Hand" Background="Transparent" BorderBrush="#21262D" BorderThickness="1" MouseLeftButtonUp="SettingsNav_Teams_Click">
                                                 <TextBlock Text="TEAMS" FontSize="10" FontWeight="Black" Foreground="#58A6FF"/>
                                             </Border>
                                             <Border x:Name="SettingsNavBtn_Match" Padding="12,8" Margin="0,0,4,0" Cursor="Hand" Background="Transparent" BorderBrush="#21262D" BorderThickness="1" MouseLeftButtonUp="SettingsNav_Match_Click">
                                                 <TextBlock Text="MATCH" FontSize="10" FontWeight="Black" Foreground="#D29922"/>
+                                            </Border>
+                                            <Border x:Name="SettingsNavBtn_Keybinds" Padding="12,8" Margin="0,0,4,0" Cursor="Hand" Background="Transparent" BorderBrush="#21262D" BorderThickness="1" MouseLeftButtonUp="SettingsNav_Keybinds_Click">
+                                                <TextBlock Text="KEYBINDS" FontSize="10" FontWeight="Black" Foreground="#A78BFA"/>
                                             </Border>
                                             <Border x:Name="SettingsNavBtn_Display" Padding="12,8" Margin="0,0,4,0" Cursor="Hand" Background="Transparent" BorderBrush="#21262D" BorderThickness="1" MouseLeftButtonUp="SettingsNav_Display_Click">
                                                 <TextBlock Text="APPEARANCE" FontSize="10" FontWeight="Black" Foreground="#58A6FF"/>
@@ -1495,7 +1598,7 @@
                                                         <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#D29922" Opacity="0.3"/>
                                                     </TextBlock.Effect>
                                                 </TextBlock>
-                                                <TextBlock Text="Clock mode, quarter duration, and finals settings" FontSize="9" FontWeight="SemiBold" Foreground="#6B5A00"/>
+                                                <TextBlock Text="Clock mode, quarter duration, and finals settings" FontSize="9" FontWeight="SemiBold" Foreground="#C9A74A"/>
                                             </StackPanel>
 
                                             <!-- Clock mode cards -->
@@ -1553,6 +1656,43 @@
                                                 </Border>
                                             </Grid>
 
+                                            <Border x:Name="SettingsControlPanelCountdownOptionCard"
+                                                    Margin="0,0,0,8" Padding="14,10"
+                                                    Background="#10161D" BorderBrush="#30363D" BorderThickness="1"
+                                                    CornerRadius="12" Cursor="Hand" Visibility="Collapsed" Opacity="0"
+                                                    RenderTransformOrigin="0.5,0.5"
+                                                    MouseLeftButtonUp="SettingsControlPanelCountdownOptionCard_Click">
+                                                <Border.RenderTransform>
+                                                    <TransformGroup>
+                                                        <TranslateTransform x:Name="SettingsControlPanelCountdownCardTranslate" Y="18"/>
+                                                        <ScaleTransform x:Name="SettingsControlPanelCountdownCardScale" ScaleX="0.97" ScaleY="0.97"/>
+                                                    </TransformGroup>
+                                                </Border.RenderTransform>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                            <TextBlock Text="&#x23F1;" FontSize="16" Foreground="#58A6FF" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                            <TextBlock Text="Timing stoppages too?" Foreground="White" FontSize="14" FontWeight="Black" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                        <TextBlock Text="Show a separate countdown timer in the control panel." Foreground="#C9D1D9" FontSize="10" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,0,0" HorizontalAlignment="Center">
+                                                        <Border x:Name="SettingsControlPanelCountdownToggleTrack" Width="50" Height="26" CornerRadius="13" Background="#1F6FEB">
+                                                            <Ellipse x:Name="SettingsControlPanelCountdownToggleThumb" Width="20" Height="20" Fill="White" Margin="3,3,0,3" HorizontalAlignment="Left">
+                                                                <Ellipse.RenderTransform>
+                                                                    <TranslateTransform x:Name="SettingsControlPanelCountdownThumbTranslate" X="24"/>
+                                                                </Ellipse.RenderTransform>
+                                                            </Ellipse>
+                                                        </Border>
+                                                        <TextBlock x:Name="SettingsControlPanelCountdownToggleLabel" Text="ON" Foreground="#58A6FF" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+
                                             <!-- Quarter duration panel -->
                                             <StackPanel x:Name="QuarterDurationPanel" Visibility="Collapsed" Margin="0,0,0,8">
                                                 <Border Background="#0C0A04" BorderBrush="#C9B070" BorderThickness="1" Padding="14">
@@ -1594,22 +1734,9 @@
                                                     </StackPanel>
                                                 </Border>
                                             </StackPanel>
-                                            <TextBlock x:Name="ClockStatusText" Text="Count Up · Stopped · 00:00" Foreground="#6B5A00" FontSize="10" Margin="0,0,0,8"/>
+                                            <TextBlock x:Name="ClockStatusText" Text="Count Up · Stopped · 00:00" Foreground="#D29922" FontSize="10" Margin="0,0,0,8"/>
 
-                                            <Border x:Name="ControlPanelCountdownPanel" Background="#0A1220" BorderBrush="#1F6FEB" BorderThickness="1" Padding="14" Margin="0,0,0,8" Visibility="Collapsed">
-                                                <StackPanel>
-                                                    <TextBlock Text="STOPPAGE COUNTDOWN" FontSize="10" FontWeight="Black" Foreground="#58A6FF" HorizontalAlignment="Center"/>
-                                                    <TextBlock Text="Runs separately from the scoreboard clock and pauses live play when it reaches zero." FontSize="10" FontWeight="SemiBold" Foreground="#8B949E" TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,10"/>
-                                                    <TextBlock x:Name="ControlPanelCountdownText" Text="20:00" FontSize="34" FontWeight="Black" FontFamily="Consolas" Foreground="White" HorizontalAlignment="Center"/>
-                                                    <TextBlock x:Name="ControlPanelCountdownStatusText" Text="Ready to run" FontSize="10" FontWeight="SemiBold" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,10"/>
-                                                    <UniformGrid Columns="3" Margin="0,0,0,8">
-                                                        <Button x:Name="ControlPanelCountdownStartPauseButton" Content="▶ Start countdown" Margin="0,0,6,0" Click="ControlPanelCountdownStartPauseButton_Click" Style="{StaticResource ToolBtn}"/>
-                                                        <Button x:Name="ControlPanelCountdownResetButton" Content="↺ Reset" Margin="0,0,6,0" Click="ControlPanelCountdownResetButton_Click" Style="{StaticResource ToolBtn}"/>
-                                                        <Button x:Name="ControlPanelCountdownSyncButton" Content="Sync to quarter" Click="ControlPanelCountdownSyncButton_Click" Style="{StaticResource ToolBtn}"/>
-                                                    </UniformGrid>
-                                                </StackPanel>
-                                            </Border>
-
+											<Border Visibility="Collapsed" Height="0" Margin="0" Opacity="0" IsHitTestVisible="False"/>
                                             <!-- Live clock adjustment -->
                                             <Expander Style="{StaticResource SettingsExpander}" Header="ADJUST CLOCK MID-MATCH">
                                             <Border Background="#0C0A04" BorderBrush="#C9B070" BorderThickness="1" Padding="10" Margin="0,0,0,8">
@@ -1692,7 +1819,88 @@
                                     </Border>
 
                                     <!-- ══════════════════════════════════════ -->
-                                    <!-- SECTION 3: DISPLAY                    -->
+                                    <!-- SECTION 3: KEYBINDS                   -->
+                                    <!-- ══════════════════════════════════════ -->
+                                    <Border x:Name="SettingsSection_Keybinds" Tag="keybind keybinds keyboard hotkeys shortcuts toggle clock start pause home away goal behind end quarter" Margin="0,0,0,24" Visibility="Collapsed">
+                                        <StackPanel>
+                                            <Border Height="1" Margin="0,0,0,14">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                        <GradientStop Color="#00A78BFA" Offset="0"/>
+                                                        <GradientStop Color="#30A78BFA" Offset="0.5"/>
+                                                        <GradientStop Color="#00A78BFA" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                            </Border>
+
+                                            <StackPanel HorizontalAlignment="Left" Margin="0,0,0,10">
+                                                <TextBlock Text="KEYBINDS" FontSize="14" FontWeight="Black" Foreground="#A78BFA" Margin="0,0,0,2">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#A78BFA" Opacity="0.3"/>
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                                <TextBlock Text="Set your keyboard shortcuts for live control actions" FontSize="9" FontWeight="SemiBold" Foreground="#C4B5FD"/>
+                                            </StackPanel>
+
+                                            <Border Background="#120A20" BorderBrush="#3B2A62" BorderThickness="1" Padding="14">
+                                                <StackPanel>
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="120"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="Start / Pause Clock" Foreground="#E6EDF3" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        <Button x:Name="KeybindToggleClockButton" Grid.Column="1" Content="Space" Height="28" FontSize="11" FontWeight="Bold" Click="KeybindToggleClockButton_Click" Style="{StaticResource ToolBtn}" BorderBrush="#7C3AED" Foreground="#C4B5FD"/>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="120"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="Home Goal" Foreground="#E6EDF3" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        <Button x:Name="KeybindHomeGoalButton" Grid.Column="1" Content="A" Height="28" FontSize="11" FontWeight="Bold" Click="KeybindHomeGoalButton_Click" Style="{StaticResource ToolBtn}" BorderBrush="#7C3AED" Foreground="#C4B5FD"/>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="120"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="Home Behind" Foreground="#E6EDF3" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        <Button x:Name="KeybindHomeBehindButton" Grid.Column="1" Content="S" Height="28" FontSize="11" FontWeight="Bold" Click="KeybindHomeBehindButton_Click" Style="{StaticResource ToolBtn}" BorderBrush="#7C3AED" Foreground="#C4B5FD"/>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="120"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="Away Goal" Foreground="#E6EDF3" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        <Button x:Name="KeybindAwayGoalButton" Grid.Column="1" Content="K" Height="28" FontSize="11" FontWeight="Bold" Click="KeybindAwayGoalButton_Click" Style="{StaticResource ToolBtn}" BorderBrush="#7C3AED" Foreground="#C4B5FD"/>
+                                                    </Grid>
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="120"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="Away Behind" Foreground="#E6EDF3" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        <Button x:Name="KeybindAwayBehindButton" Grid.Column="1" Content="L" Height="28" FontSize="11" FontWeight="Bold" Click="KeybindAwayBehindButton_Click" Style="{StaticResource ToolBtn}" BorderBrush="#7C3AED" Foreground="#C4B5FD"/>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="120"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="End Quarter" Foreground="#E6EDF3" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        <Button x:Name="KeybindEndQuarterButton" Grid.Column="1" Content="N" Height="28" FontSize="11" FontWeight="Bold" Click="KeybindEndQuarterButton_Click" Style="{StaticResource ToolBtn}" BorderBrush="#7C3AED" Foreground="#C4B5FD"/>
+                                                    </Grid>
+
+                                                    <TextBlock x:Name="KeybindHintText" Text="Click a keybind, then press any key. Esc cancels." Foreground="#A8B0BA" FontSize="10" FontWeight="SemiBold" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- ══════════════════════════════════════ -->
+                                    <!-- SECTION 4: DISPLAY                    -->
                                     <!-- ══════════════════════════════════════ -->
                                     <Border x:Name="SettingsSection_Display" Tag="display appearance layout goal animation broadcast electric cinematic clean classic custom video scorebug theme" Margin="0,0,0,24">
                                         <StackPanel>
@@ -1735,7 +1943,7 @@
                                                     <Grid MinHeight="64">
                                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                                             <TextBlock Text="📡" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                            <TextBlock Text="BROADCAST" FontSize="9" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
+                                                            <TextBlock Text="BROADCAST" FontSize="9" FontWeight="Black" Foreground="#C9D1D9" HorizontalAlignment="Center"/>
                                                         </StackPanel>
                                                         <Border x:Name="AnimCheckBroadcast" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2" Visibility="Collapsed">
                                                             <TextBlock Text="✓" FontSize="8" FontWeight="Black" Foreground="#1A1400"/>
@@ -1746,7 +1954,7 @@
                                                     <Grid MinHeight="64">
                                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                                             <TextBlock Text="⚡" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                            <TextBlock Text="ELECTRIC" FontSize="9" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
+                                                            <TextBlock Text="ELECTRIC" FontSize="9" FontWeight="Black" Foreground="#C9D1D9" HorizontalAlignment="Center"/>
                                                         </StackPanel>
                                                         <Border x:Name="AnimCheckElectric" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2" Visibility="Collapsed">
                                                             <TextBlock Text="✓" FontSize="8" FontWeight="Black" Foreground="#1A1400"/>
@@ -1757,7 +1965,7 @@
                                                     <Grid MinHeight="64">
                                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                                             <TextBlock Text="🎬" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                            <TextBlock Text="CINEMATIC" FontSize="9" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
+                                                            <TextBlock Text="CINEMATIC" FontSize="9" FontWeight="Black" Foreground="#C9D1D9" HorizontalAlignment="Center"/>
                                                         </StackPanel>
                                                         <Border x:Name="AnimCheckCinematic" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2" Visibility="Collapsed">
                                                             <TextBlock Text="✓" FontSize="8" FontWeight="Black" Foreground="#1A1400"/>
@@ -1768,7 +1976,7 @@
                                                     <Grid MinHeight="64">
                                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                                             <TextBlock Text="✨" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                            <TextBlock Text="CLEAN" FontSize="9" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
+                                                            <TextBlock Text="CLEAN" FontSize="9" FontWeight="Black" Foreground="#C9D1D9" HorizontalAlignment="Center"/>
                                                         </StackPanel>
                                                         <Border x:Name="AnimCheckClean" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2" Visibility="Collapsed">
                                                             <TextBlock Text="✓" FontSize="8" FontWeight="Black" Foreground="#1A1400"/>
@@ -1779,7 +1987,7 @@
                                                     <Grid MinHeight="64">
                                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                                             <TextBlock Text="🎞" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                                            <TextBlock Text="CLASSIC" FontSize="9" FontWeight="Black" Foreground="#6A6A80" HorizontalAlignment="Center"/>
+                                                            <TextBlock Text="CLASSIC" FontSize="9" FontWeight="Black" Foreground="#C9D1D9" HorizontalAlignment="Center"/>
                                                         </StackPanel>
                                                         <Border x:Name="AnimCheckClassic" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2" Visibility="Collapsed">
                                                             <TextBlock Text="✓" FontSize="8" FontWeight="Black" Foreground="#1A1400"/>
@@ -1810,7 +2018,7 @@
                                             <Border BorderBrush="#1A2A40" BorderThickness="1" Background="#0A0E18" Padding="10,8" Margin="0,0,0,4">
                                                 <StackPanel>
                                                     <TextBlock x:Name="AnimPreviewTitle" Text="Custom Video" Foreground="White" FontSize="11" FontWeight="Bold" Margin="0,0,0,2"/>
-                                                    <TextBlock x:Name="AnimPreviewDesc" Text="Team-specific goal video playback if configured." Foreground="#6B5A00" FontSize="9" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                                    <TextBlock x:Name="AnimPreviewDesc" Text="Team-specific goal video playback if configured." Foreground="#C9A74A" FontSize="9" TextWrapping="Wrap" Margin="0,0,0,4"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <Border BorderBrush="#C9B070" BorderThickness="1" Background="#0C0A04" Padding="6,2" Margin="0,0,6,0">
                                                             <TextBlock x:Name="AnimPreviewDuration" Text="Video" Foreground="#8A7A40" FontSize="9" FontWeight="Bold"/>
@@ -2086,7 +2294,7 @@
                                                     <TextBlock Text="📱" FontSize="28" HorizontalAlignment="Center" Foreground="#58A6FF" Margin="0,0,0,4"/>
                                                     <TextBlock Text="CLOUD REMOTE" FontSize="14" FontWeight="Black" Foreground="#58A6FF" HorizontalAlignment="Center"/>
                                                     <TextBlock Text="Score from any phone, tablet, or laptop" FontSize="9" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,2,0,8"/>
-                                                    <TextBlock x:Name="CloudStatusText" Text="Checking configuration…" FontSize="10" FontWeight="SemiBold" Foreground="#6E7681" HorizontalAlignment="Center" Margin="0,0,0,10" TextWrapping="Wrap" TextAlignment="Center"/>
+                                                    <TextBlock x:Name="CloudStatusText" Text="Checking configuration…" FontSize="10" FontWeight="SemiBold" Foreground="#B1BAC4" HorizontalAlignment="Center" Margin="0,0,0,10" TextWrapping="Wrap" TextAlignment="Center"/>
 
                                                     <!-- IDLE STATE -->
                                                     <StackPanel x:Name="CloudIdleState" Visibility="Collapsed">
@@ -2109,8 +2317,8 @@
                                                     <StackPanel x:Name="CloudLiveState" Visibility="Collapsed">
                                                         <!-- Connection badge -->
                                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
-                                                            <Ellipse x:Name="CloudConnectionDot" Width="8" Height="8" Fill="#6E7681" VerticalAlignment="Center"/>
-                                                            <TextBlock x:Name="CloudConnectionLabel" Text="Connecting…" FontSize="10" FontWeight="Bold" Foreground="#6E7681" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                            <Ellipse x:Name="CloudConnectionDot" Width="8" Height="8" Fill="#B1BAC4" VerticalAlignment="Center"/>
+                                                            <TextBlock x:Name="CloudConnectionLabel" Text="Connecting…" FontSize="10" FontWeight="Bold" Foreground="#B1BAC4" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                         </StackPanel>
 
                                                         <!-- Join code: massive, readable from a projector -->
@@ -2206,7 +2414,7 @@
                         </StackPanel>
 
                         <!-- Description -->
-                        <TextBlock Grid.Row="2" TextAlignment="Center" Margin="40,14,40,0" FontSize="13" Foreground="#8B949E" TextWrapping="Wrap"
+                        <TextBlock Grid.Row="2" TextAlignment="Center" Margin="40,14,40,0" FontSize="13" Foreground="#C9D1D9" TextWrapping="Wrap"
                                    LineHeight="20">
                             All scores, events, and clock data will be permanently cleared. You'll return to the sport selection screen to start a new match.
                         </TextBlock>
@@ -2265,6 +2473,7 @@
         <views:CricketControlPanel x:Name="CricketControlPanelView" Panel.ZIndex="0" Visibility="Collapsed"/>
         <views:CricketSetupWizard x:Name="CricketSetupWizardPanel" Panel.ZIndex="100" Visibility="Collapsed"/>
         <views:TrainingControlPanel x:Name="TrainingControlPanelView" Panel.ZIndex="0" Visibility="Collapsed"/>
+        <views:GlobalSettingsScreen x:Name="GlobalSettingsPanel" Panel.ZIndex="150" Visibility="Collapsed"/>
         <views:SportSelectionScreen x:Name="SportSelectionPanel" Panel.ZIndex="200"/>
         <views:MatchLoadingScreen x:Name="MatchLoadingPanel" Panel.ZIndex="300" Visibility="Collapsed"/>
     </Grid>
