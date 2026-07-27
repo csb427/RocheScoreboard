@@ -1,4 +1,4 @@
-# Scoreflux Cloud Remote — Supabase Setup
+# Roche Scoreboard Cloud Remote — Supabase Setup
 
 The Scoreflux WPF app and the remote scoring web app both talk to a **single
 Supabase project** that you control. Follow these steps once per environment
@@ -54,21 +54,30 @@ In the Supabase Dashboard open **Project Settings → API** and copy:
 
 ## 4. Configure the WPF scoreboard
 
-Drop a `supabase.config.json` next to `Roche Scoreboard.exe`:
+The host scoreboard expects a `supabase.config.json` file at runtime. Place it in **one** of these locations:
+
+1. Next to the published `Roche Scoreboard.exe` in the release folder, or
+2. `%LOCALAPPDATA%\RocheScoreboard\supabase.config.json` as a fallback.
+
+Use this template:
 
 ```jsonc
 {
   "url":              "https://<your-ref>.supabase.co",
   "anonKey":          "<anon public key>",
   "serviceRoleKey":   "<service role key>",
+  "hostLabel":        "<optional operator label>",
   "remoteAppBaseUrl": "https://<your-deployed-remote>.pages.dev"
 }
 ```
 
-The app will auto-detect this on next launch. If the file is missing, the
-*Cloud Remote* settings card stays disabled and the rest of the desktop works
-normally.
+The app auto-detects the file on launch. If it is missing or incomplete, the
+*Cloud Remote* settings card stays disabled and the rest of the desktop keeps
+working normally.
 
+> `serviceRoleKey` is required only on the host scoreboard machine. Do **not**
+> ship it in the web app or commit it to source control.
+>
 > `remoteAppBaseUrl` is optional. When set, the desktop QR encodes
 > `<remoteAppBaseUrl>/?code=<JOIN-CODE>` so phones land in the right session
 > with one scan. Leave it blank during initial setup; you can fill it in once
@@ -97,7 +106,20 @@ Pages, S3, etc.). See `web/remote/README.md` for deploy details.
 4. Tap **+6 GOAL HOME** — the score should bump immediately on the scoreboard,
    exactly as if you'd clicked it locally, with the full goal animation.
 
-## 7. Migrations going forward
+## 7. Release checklist
+
+For the desktop release, include:
+
+- `Roche Scoreboard.exe` and its publish output
+- `libvlc\` native files created by the publish step
+- `supabase.config.json` **only if** you want cloud remote enabled on that machine
+- any additional assets that are already copied by the publish pipeline
+
+Do **not** include secret config in the web remote deployment. The web app only needs its own `.env` values at build time.
+
+If you ship a build without `supabase.config.json`, the app should still run; only the Cloud Remote card remains disabled until a valid file is added.
+
+## 8. Migrations going forward
 
 New migrations live in this folder as `0003_*.sql`, `0004_*.sql`, etc.
 Apply them in order in the SQL editor (or `npx supabase db push`).
