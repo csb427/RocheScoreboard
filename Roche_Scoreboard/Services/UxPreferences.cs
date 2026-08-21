@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Roche_Scoreboard.Services;
 
@@ -20,6 +21,54 @@ internal enum PersistedMode
     GlobalSettings = 4,
 }
 
+public enum AppTheme
+{
+    Light = 0,
+    Dark = 1,
+}
+
+public enum UiDensity
+{
+    Comfortable = 0,
+    Compact = 1,
+}
+
+/// <summary>
+/// Tolerant enum converter that defaults to the first enum value when
+/// encountering invalid JSON values, preventing entire document loss.
+/// </summary>
+internal sealed class TolerantEnumConverter<TEnum> : JsonConverter<TEnum> where TEnum : struct, Enum
+{
+    public override TEnum Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        try
+        {
+            if (reader.TokenType == JsonTokenType.String)
+            {
+                string? value = reader.GetString();
+                if (value is not null && Enum.TryParse<TEnum>(value, ignoreCase: true, out TEnum result))
+                    return result;
+            }
+
+            // Invalid value or unexpected token type: default to first enum value
+            return default;
+        }
+        catch
+        {
+            // Invalid value: default to first enum value
+            return default;
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)
+    {
+        // Use camelCase for enum output to match existing convention
+        string text = value.ToString();
+        string camelCase = char.ToLowerInvariant(text[0]) + text.Substring(1);
+        writer.WriteStringValue(camelCase);
+    }
+}
+
 internal sealed class UxPreferencesData
 {
     public StartupExperience StartupMode { get; set; } = StartupExperience.ResumeIfAvailable;
@@ -27,6 +76,12 @@ internal sealed class UxPreferencesData
     public string LastSettingsCategory { get; set; } = "teams";
     public int LastMainTabIndex { get; set; } = 0;
     public bool EnableQuickStartupHints { get; set; } = true;
+
+    [JsonConverter(typeof(TolerantEnumConverter<AppTheme>))]
+    public AppTheme Theme { get; set; } = AppTheme.Light;
+
+    [JsonConverter(typeof(TolerantEnumConverter<UiDensity>))]
+    public UiDensity Density { get; set; } = UiDensity.Comfortable;
 }
 
 internal static class UxPreferences
@@ -35,6 +90,7 @@ internal static class UxPreferences
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
     private static string GetStoragePath()

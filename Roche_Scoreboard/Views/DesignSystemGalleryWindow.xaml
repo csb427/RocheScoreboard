@@ -1,0 +1,252 @@
+<Window x:Class="Roche_Scoreboard.Views.DesignSystemGalleryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Score Grid Design System Gallery"
+        Width="1200" Height="900"
+        Background="{DynamicResource ScoreGrid.Brush.Background}">
+
+    <Window.Resources>
+        <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource ScoreGrid.Text.Title}">
+            <Setter Property="Margin" Value="0,24,0,16" />
+        </Style>
+        <Style x:Key="ComponentRow" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Margin" Value="0,8,0,8" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource ScoreGrid.Brush.Surface}"
+                BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}"
+                BorderThickness="0,0,0,1"
+                Padding="{DynamicResource ScoreGrid.Padding.Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Display}"
+                               Text="Score Grid" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Caption}"
+                               Text="Design System Gallery" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="BtnToggleTheme"
+                            AutomationProperties.AutomationId="BtnToggleTheme"
+                            AutomationProperties.Name="Toggle Theme"
+                            Content="Toggle Theme"
+                            Style="{StaticResource ScoreGrid.Button.Secondary}"
+                            Click="BtnToggleTheme_Click"
+                            ToolTip="Switch between Light and Dark themes"
+                            TabIndex="0" />
+                    <Button x:Name="BtnToggleDensity"
+                            AutomationProperties.AutomationId="BtnToggleDensity"
+                            AutomationProperties.Name="Toggle Density"
+                            Content="Toggle Density"
+                            Style="{StaticResource ScoreGrid.Button.Secondary}"
+                            Click="BtnToggleDensity_Click"
+                            Margin="12,0,0,0"
+                            ToolTip="Switch between Comfortable and Compact density"
+                            TabIndex="1" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Scrollable Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="GalleryContentPanel" Margin="{DynamicResource ScoreGrid.Padding.Card}">
+
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Diagnostics" />
+                <Border Background="{DynamicResource ScoreGrid.Brush.Surface}"
+                        BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16"
+                        Margin="0,0,0,8">
+                    <StackPanel>
+                        <TextBlock x:Name="ThemeStateText" AutomationProperties.AutomationId="ThemeStateText" Style="{StaticResource ScoreGrid.Text.BodyStrong}" Margin="0,0,0,4" />
+                        <TextBlock x:Name="DensityStateText" AutomationProperties.AutomationId="DensityStateText" Style="{StaticResource ScoreGrid.Text.Body}" Margin="0,0,0,4" />
+                        <TextBlock x:Name="FocusBrushText" AutomationProperties.AutomationId="FocusBrushText" Style="{StaticResource ScoreGrid.Text.Body}" Margin="0,0,0,4" />
+                        <TextBlock x:Name="ControlBorderBrushText" AutomationProperties.AutomationId="ControlBorderBrushText" Style="{StaticResource ScoreGrid.Text.Body}" Margin="0,0,0,4" />
+                        <TextBlock x:Name="WindowBackgroundText" AutomationProperties.AutomationId="WindowBackgroundText" Style="{StaticResource ScoreGrid.Text.Body}" Margin="0,0,0,4" />
+                        <TextBlock x:Name="TextPrimaryText" AutomationProperties.AutomationId="TextPrimaryText" Style="{StaticResource ScoreGrid.Text.Body}" Margin="0,0,0,4" />
+                        <TextBlock x:Name="ControlMetricsText" AutomationProperties.AutomationId="ControlMetricsText" Style="{StaticResource ScoreGrid.Text.Body}" Margin="0,0,0,8" />
+                        <TextBlock x:Name="SelfTestStatusText" AutomationProperties.AutomationId="SelfTestStatusText" Style="{StaticResource ScoreGrid.Text.BodyStrong}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Typography Section -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Typography" />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Display}" Text="Display" Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Title}" Text="Title" Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Heading}" Text="Heading" Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Subheading}" Text="Subheading" Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Body}"
+                               Text="Body text is readable and wraps naturally across multiple lines when needed." 
+                               Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.BodyStrong}" Text="Body Strong" Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Caption}"
+                               Text="Caption text provides supplementary information" 
+                               Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Overline}" Text="OVERLINE" Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource ScoreGrid.Text.Code}" Text="CODE { monospace: true; }" />
+                </StackPanel>
+
+                <!-- Buttons Section -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Buttons" />
+                <StackPanel>
+                    <StackPanel Style="{StaticResource ComponentRow}">
+                        <Button x:Name="PrimaryButtonSample" AutomationProperties.AutomationId="PrimaryButtonSample" AutomationProperties.Name="Primary Sample" Content="Primary" Style="{StaticResource ScoreGrid.Button.Primary}" TabIndex="2" />
+                        <Button Content="Primary Disabled" Style="{StaticResource ScoreGrid.Button.Primary}" IsEnabled="False" Margin="12,0,0,0" />
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource ComponentRow}">
+                        <Button x:Name="SecondaryButtonSample" AutomationProperties.AutomationId="SecondaryButtonSample" AutomationProperties.Name="Secondary Sample" Content="Secondary" Style="{StaticResource ScoreGrid.Button.Secondary}" TabIndex="3" />
+                        <Button Content="Secondary Disabled" Style="{StaticResource ScoreGrid.Button.Secondary}" IsEnabled="False" Margin="12,0,0,0" />
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource ComponentRow}">
+                        <Button x:Name="DangerButtonSample" AutomationProperties.AutomationId="DangerButtonSample" AutomationProperties.Name="Danger Sample" Content="Danger" Style="{StaticResource ScoreGrid.Button.Danger}" TabIndex="4" />
+                        <Button Content="Danger Disabled" Style="{StaticResource ScoreGrid.Button.Danger}" IsEnabled="False" Margin="12,0,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Inputs Section -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Inputs" />
+                <StackPanel x:Name="InputsSection">
+                    <TextBox x:Name="TextBoxSample" AutomationProperties.AutomationId="TextBoxSample" AutomationProperties.Name="TextBox Sample" Style="{StaticResource ScoreGrid.TextBox}" Text="Text input" Width="300" HorizontalAlignment="Left" Margin="0,0,0,12" TabIndex="5" ToolTip="Standard input field" />
+                    <TextBox x:Name="DisabledTextBoxSample" AutomationProperties.AutomationId="DisabledTextBoxSample" Style="{StaticResource ScoreGrid.TextBox}" Width="300" HorizontalAlignment="Left" IsEnabled="False" Text="Disabled input" Margin="0,0,0,12" ToolTip="Disabled input field" />
+
+                    <CheckBox x:Name="CheckBoxSample" AutomationProperties.AutomationId="CheckBoxSample" AutomationProperties.Name="CheckBox Sample" Style="{StaticResource ScoreGrid.CheckBox}" Content="Checkbox unchecked" Margin="0,0,0,12" TabIndex="6" ToolTip="Toggle option sample" />
+                    <CheckBox Style="{StaticResource ScoreGrid.CheckBox}" Content="Checkbox checked" IsChecked="True" Margin="0,0,0,12" />
+                    <CheckBox x:Name="DisabledCheckBoxSample" AutomationProperties.AutomationId="DisabledCheckBoxSample" Style="{StaticResource ScoreGrid.CheckBox}" Content="Checkbox disabled" IsEnabled="False" Margin="0,0,0,16" />
+
+                    <TextBlock Text="Radio Button Group:" Style="{StaticResource ScoreGrid.Text.Body}" Margin="0,0,0,8" />
+                    <RadioButton x:Name="RadioOptionA" AutomationProperties.AutomationId="RadioOptionA" AutomationProperties.Name="Radio Option A" Style="{StaticResource ScoreGrid.RadioButton}" Content="Option A" GroupName="demo" Margin="0,0,0,8" TabIndex="7" ToolTip="Radio choice A" />
+                    <RadioButton x:Name="RadioOptionB" AutomationProperties.AutomationId="RadioOptionB" AutomationProperties.Name="Radio Option B" Style="{StaticResource ScoreGrid.RadioButton}" Content="Option B" GroupName="demo" IsChecked="True" Margin="0,0,0,8" TabIndex="8" ToolTip="Radio choice B" />
+                    <RadioButton x:Name="RadioOptionC" AutomationProperties.AutomationId="RadioOptionC" AutomationProperties.Name="Radio Option C" Style="{StaticResource ScoreGrid.RadioButton}" Content="Option C" GroupName="demo" Margin="0,0,0,8" TabIndex="9" ToolTip="Radio choice C" />
+                    <RadioButton Style="{StaticResource ScoreGrid.RadioButton}" Content="Option Disabled" GroupName="demo" IsEnabled="False" Margin="0,0,0,16" />
+
+                    <ComboBox x:Name="ComboBoxSample" AutomationProperties.AutomationId="ComboBoxSample" AutomationProperties.Name="ComboBox Sample" Style="{StaticResource ScoreGrid.ComboBox}" Width="300" HorizontalAlignment="Left" SelectedIndex="0" Margin="0,0,0,12" TabIndex="10" ToolTip="Choose a sample option">
+                        <ComboBoxItem Content="ComboBox Item 1" />
+                        <ComboBoxItem Content="ComboBox Item 2" />
+                        <ComboBoxItem Content="ComboBox Item 3" />
+                        <ComboBoxItem Content="ComboBox Item 4" />
+                    </ComboBox>
+                    <ComboBox x:Name="DisabledComboBoxSample" AutomationProperties.AutomationId="DisabledComboBoxSample" Style="{StaticResource ScoreGrid.ComboBox}" Width="300" HorizontalAlignment="Left" IsEnabled="False" SelectedIndex="0" ToolTip="Disabled combo box">
+                        <ComboBoxItem Content="Disabled ComboBox" />
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Colors Section -->
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Theme Colors" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Brand -->
+                    <Border Grid.Row="0" Grid.Column="0" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.BrandPrimary}" Margin="4">
+                        <TextBlock Text="Brand Primary" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="1" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.BrandHover}" Margin="4">
+                        <TextBlock Text="Brand Hover" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="2" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.BrandPressed}" Margin="4">
+                        <TextBlock Text="Brand Pressed" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+
+                    <!-- Surfaces -->
+                    <Border Grid.Row="1" Grid.Column="0" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.Background}" BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}" BorderThickness="1" Margin="4">
+                        <TextBlock Text="Background" Foreground="{DynamicResource ScoreGrid.Brush.TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border x:Name="SurfaceCardSample" Grid.Row="1" Grid.Column="1" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}" BorderThickness="1" Margin="4">
+                        <TextBlock Text="Surface" Foreground="{DynamicResource ScoreGrid.Brush.TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="2" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.SurfaceSubtle}" BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}" BorderThickness="1" Margin="4">
+                        <TextBlock Text="Surface Subtle" Foreground="{DynamicResource ScoreGrid.Brush.TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+
+                    <!-- Semantic States -->
+                    <Border Grid.Row="2" Grid.Column="0" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.SuccessBackground}" Margin="4">
+                        <TextBlock Text="Success" Foreground="{DynamicResource ScoreGrid.Brush.SuccessForeground}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="SemiBold" />
+                    </Border>
+                    <Border x:Name="WarningBadgeSample" Grid.Row="2" Grid.Column="1" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.WarningBackground}" Margin="4">
+                        <TextBlock Text="Warning" Foreground="{DynamicResource ScoreGrid.Brush.WarningForeground}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="SemiBold" />
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="2" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.DangerBackground}" Margin="4">
+                        <TextBlock Text="Danger" Foreground="{DynamicResource ScoreGrid.Brush.DangerForeground}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="SemiBold" />
+                    </Border>
+
+                    <!-- Icons Section -->
+                    <TextBlock Grid.Row="3" Grid.ColumnSpan="3" Style="{StaticResource SectionTitle}" Text="Icons" Margin="0,24,0,8" />
+
+                    <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Horizontal">
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path x:Name="IconSample" Style="{StaticResource ScoreGrid.IconPath}" Data="{StaticResource ScoreGrid.IconGeometry.Check}" />
+                            <TextBlock Text="Check" Style="{StaticResource ScoreGrid.Text.Caption}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path Style="{StaticResource ScoreGrid.IconPath}" Data="{StaticResource ScoreGrid.IconGeometry.Close}" />
+                            <TextBlock Text="Close" Style="{StaticResource ScoreGrid.Text.Caption}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path Style="{StaticResource ScoreGrid.IconPath}" Data="{StaticResource ScoreGrid.IconGeometry.ChevronDown}" />
+                            <TextBlock Text="Chevron" Style="{StaticResource ScoreGrid.Text.Caption}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path Style="{StaticResource ScoreGrid.IconPath}" Data="{StaticResource ScoreGrid.IconGeometry.Info}" />
+                            <TextBlock Text="Info" Style="{StaticResource ScoreGrid.Text.Caption}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path Style="{StaticResource ScoreGrid.IconPath}" Data="{StaticResource ScoreGrid.IconGeometry.Warning}" />
+                            <TextBlock Text="Warning" Style="{StaticResource ScoreGrid.Text.Caption}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Center">
+                            <Path Style="{StaticResource ScoreGrid.IconPath}" Data="{StaticResource ScoreGrid.IconGeometry.Error}" />
+                            <TextBlock Text="Error" Style="{StaticResource ScoreGrid.Text.Caption}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Tooltip" />
+                <StackPanel>
+                    <Button x:Name="TooltipSampleButton"
+                            AutomationProperties.AutomationId="TooltipSampleButton"
+                            AutomationProperties.Name="Tooltip Sample Button"
+                            Content="Hover or focus for tooltip"
+                            Style="{StaticResource ScoreGrid.Button.Secondary}"
+                            HorizontalAlignment="Left"
+                            TabIndex="11"
+                            ToolTipService.ShowDuration="60000">
+                        <Button.ToolTip>
+                            <ToolTip x:Name="StandardTooltipSample" Content="Standard WPF tooltip sample for theme verification." />
+                        </Button.ToolTip>
+                    </Button>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

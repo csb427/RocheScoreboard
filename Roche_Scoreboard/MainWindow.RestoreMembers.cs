@@ -424,6 +424,7 @@ public partial class MainWindow
         _finalsMode = SettingsFinalsToggle.IsChecked == true;
         UpdateSettingsFinalsCardVisuals();
         _scorebug?.SetFinalsMode(_finalsMode);
+        _breakScreen?.SetFinalsMode(_finalsMode);
     }
 
     private void UpdateSettingsFinalsCardVisuals()
@@ -460,6 +461,55 @@ public partial class MainWindow
             ? System.Windows.HorizontalAlignment.Right
             : System.Windows.HorizontalAlignment.Left;
         SettingsFinalsThumb.Margin = on ? new Thickness(0, 0, 3, 0) : new Thickness(3, 0, 0, 0);
+    }
+
+    // ── Hide team names toggle (settings tab) ──
+
+    private bool _hideTeamNames;
+
+    private void SettingsHideTeamNamesCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        SettingsHideTeamNamesToggle.IsChecked = SettingsHideTeamNamesToggle.IsChecked != true;
+    }
+
+    private void SettingsHideTeamNamesToggle_Changed(object sender, RoutedEventArgs e)
+    {
+        _hideTeamNames = SettingsHideTeamNamesToggle.IsChecked == true;
+        UpdateSettingsHideTeamNamesCardVisuals();
+        _scorebug?.SetHideTeamNames(_hideTeamNames);
+    }
+
+    private void UpdateSettingsHideTeamNamesCardVisuals()
+    {
+        if (SettingsHideTeamNamesCard == null) return;
+
+        bool on = SettingsHideTeamNamesToggle.IsChecked == true;
+
+        SettingsHideTeamNamesCard.BorderBrush = new SolidColorBrush(on
+            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
+            : (MediaColor)MediaColorConverter.ConvertFromString("#1C2030"));
+        SettingsHideTeamNamesCard.BorderThickness = new Thickness(on ? 2 : 1);
+        SettingsHideTeamNamesCard.Background = new SolidColorBrush(on
+            ? (MediaColor)MediaColorConverter.ConvertFromString("#0A101C")
+            : (MediaColor)MediaColorConverter.ConvertFromString("#080A12"));
+
+        SettingsHideTeamNamesTitle.Foreground = new SolidColorBrush(on
+            ? (MediaColor)MediaColorConverter.ConvertFromString("#7AB8E8")
+            : (MediaColor)MediaColorConverter.ConvertFromString("#4A5A70"));
+
+        SettingsHideTeamNamesTrack.Background = new SolidColorBrush(on
+            ? (MediaColor)MediaColorConverter.ConvertFromString("#0A1828")
+            : (MediaColor)MediaColorConverter.ConvertFromString("#131620"));
+        SettingsHideTeamNamesTrack.BorderBrush = new SolidColorBrush(on
+            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
+            : (MediaColor)MediaColorConverter.ConvertFromString("#2A3040"));
+        SettingsHideTeamNamesThumb.Background = new SolidColorBrush(on
+            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
+            : (MediaColor)MediaColorConverter.ConvertFromString("#3A4050"));
+        SettingsHideTeamNamesThumb.HorizontalAlignment = on
+            ? System.Windows.HorizontalAlignment.Right
+            : System.Windows.HorizontalAlignment.Left;
+        SettingsHideTeamNamesThumb.Margin = on ? new Thickness(0, 0, 3, 0) : new Thickness(3, 0, 0, 0);
     }
 
     // ── Break screen toggle (settings tab) ──

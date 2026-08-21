@@ -144,6 +144,7 @@ namespace Roche_Scoreboard.Views
 
         public SetupResult? Result { get; private set; }
         public event Action<SetupResult>? SetupCompleted;
+        public event Action? BackToSportSelection;
 
         private const int TotalSteps = 3;
 
@@ -451,7 +452,7 @@ namespace Roche_Scoreboard.Views
                 activePanel.RenderTransform = null;
             }
 
-            BackButton.Visibility = step <= 1 ? Visibility.Collapsed : Visibility.Visible;
+            BackButton.Visibility = Visibility.Visible;
             NextButtonText.Text = step == TotalSteps ? "START MATCH →" : "NEXT →";
 
             UpdateStepDot(Step1Dot, Step1Label, true, step == 1);
@@ -563,6 +564,8 @@ namespace Roche_Scoreboard.Views
 
             if (_currentStep > 1)
                 ShowStep(_currentStep - 1);
+            else
+                BackToSportSelection?.Invoke();
         }
 
         private void GoToStep1_Click(object sender, MouseButtonEventArgs e) => ShowStep(1);

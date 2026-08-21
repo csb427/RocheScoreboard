@@ -1791,6 +1791,26 @@
                                                 </Grid>
                                             </Border>
 
+                                            <!-- Hide team name panels -->
+                                            <CheckBox x:Name="SettingsHideTeamNamesToggle" Checked="SettingsHideTeamNamesToggle_Changed" Unchecked="SettingsHideTeamNamesToggle_Changed" Visibility="Collapsed"/>
+                                            <Border x:Name="SettingsHideTeamNamesCard" Background="#080A12" BorderBrush="#1C2030" BorderThickness="1" Padding="14" Margin="0,0,0,8" Cursor="Hand" MouseLeftButtonUp="SettingsHideTeamNamesCard_Click">
+                                                <Grid>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🔠" FontSize="22" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                        <StackPanel VerticalAlignment="Center">
+                                                            <TextBlock x:Name="SettingsHideTeamNamesTitle" Text="HIDE TEAM NAMES" FontSize="13" FontWeight="Black" Foreground="#4A5A70" Margin="0,0,0,2"/>
+                                                            <TextBlock Text="Removes team name panels — goals, behinds and totals expand to fill the space with larger numbers" FontSize="9" FontWeight="SemiBold" Foreground="#5A6A80" TextWrapping="Wrap"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                    <Border HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
+                                                        <Grid Width="44" Height="24">
+                                                            <Border x:Name="SettingsHideTeamNamesTrack" CornerRadius="12" Background="#131620" BorderBrush="#2A3040" BorderThickness="1"/>
+                                                            <Border x:Name="SettingsHideTeamNamesThumb" Width="18" Height="18" CornerRadius="9" Background="#3A4050" HorizontalAlignment="Left" Margin="3,0,0,0"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+
                                             <!-- Custom current-label override -->
                                             <Border Background="#0A0806" BorderBrush="#2A2020" BorderThickness="1" Padding="14" Margin="0,0,0,8">
                                                 <StackPanel>

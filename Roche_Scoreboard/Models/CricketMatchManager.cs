@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Roche_Scoreboard.Models
 {
-    public enum CricketFormat { LimitedOvers, MultiDay }
+    public enum CricketFormat { LimitedOvers, MultiDay, MultiInnings }
 
     public enum CricketDeliveryType
     {

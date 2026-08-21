@@ -1,0 +1,12 @@
+{
+  "windowCount": 1,
+  "mainWindowType": "Roche_Scoreboard.MainWindow",
+  "galleryVisible": false,
+  "startupException": false,
+  "sportSelectionVisible": true,
+  "mainContentVisible": false,
+  "setupVisible": false,
+  "cricketSetupVisible": false,
+  "cricketControlVisible": false,
+  "globalSettingsVisible": false
+}

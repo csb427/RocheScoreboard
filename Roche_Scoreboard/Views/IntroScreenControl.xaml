@@ -175,6 +175,14 @@
                 </TextBlock.RenderTransform>
             </TextBlock>
 
+            <!-- Finals gold tint overlay — toggled by SetFinalsMode in code-behind -->
+            <Rectangle x:Name="IntroFinalsGoldOverlay" Panel.ZIndex="10"
+                       Width="707" Height="420" IsHitTestVisible="False" Opacity="0">
+                <Rectangle.Fill>
+                    <SolidColorBrush Color="#C8980A"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
         </Grid>
     </Viewbox>
 </UserControl>

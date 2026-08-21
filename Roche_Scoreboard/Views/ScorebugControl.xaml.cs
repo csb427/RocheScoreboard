@@ -52,6 +52,7 @@ namespace Roche_Scoreboard.Views
         private bool _gbAutoShowTriggered;
         private const double GBAutoShowIdleMinutes = 2.0;
         private bool _finalsMode;
+        private bool _hideTeamNames;
         private string? _weatherLocation;
         private WeatherSnapshot? _weatherSnapshot;
 
@@ -3945,7 +3946,80 @@ namespace Roche_Scoreboard.Views
                 ExpandGBColumns();
         }
 
-        public void SetFinalsMode(bool enabled) => _finalsMode = enabled;
+        public void SetFinalsMode(bool enabled)
+        {
+            _finalsMode = enabled;
+            ApplyFinalsModeVisuals();
+        }
+
+        private void ApplyFinalsModeVisuals()
+        {
+            var goldOverlay = FindName("ExpFinalsGoldOverlay") as System.Windows.Shapes.Rectangle;
+            if (goldOverlay is null) return;
+
+            if (_finalsMode)
+            {
+                // Subtle gold wash over the full scorebug — 10% opacity feels present
+                // without drowning team colours. Adjust here if needed.
+                goldOverlay.Opacity = 0.10;
+
+                // Warm the clock/quarter panel gradient toward gold-tinted dark
+                SetGradientStopColor("ExpClockPanelGradTop", "#241C0C");
+                SetGradientStopColor("ExpClockPanelGradMid", "#160F04");
+                SetGradientStopColor("ExpClockPanelGradBot", "#0A0700");
+            }
+            else
+            {
+                goldOverlay.Opacity = 0;
+
+                SetGradientStopColor("ExpClockPanelGradTop", "#1A1F2E");
+                SetGradientStopColor("ExpClockPanelGradMid", "#0A0D14");
+                SetGradientStopColor("ExpClockPanelGradBot", "#000000");
+            }
+        }
+
+        private void SetGradientStopColor(string name, string hex)
+        {
+            if (FindName(name) is GradientStop stop)
+                stop.Color = (Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
+        }
+
+        /// <summary>
+        /// Shows or hides the team name rows in the expanded scorebug.
+        /// When hidden the score cells (goals / behinds / total) expand to fill the
+        /// full panel height, making the numbers considerably larger.
+        /// </summary>
+        public void SetHideTeamNames(bool hide)
+        {
+            _hideTeamNames = hide;
+            ApplyHideTeamNamesVisuals();
+        }
+
+        private void ApplyHideTeamNamesVisuals()
+        {
+            var homeNameRow = FindName("ExpHomeNameRow") as RowDefinition;
+            var awayNameRow = FindName("ExpAwayNameRow") as RowDefinition;
+            if (homeNameRow is null || awayNameRow is null) return;
+
+            if (_hideTeamNames)
+            {
+                // Collapse name rows; score rows expand to fill via star sizing
+                homeNameRow.Height = new GridLength(0);
+                awayNameRow.Height = new GridLength(0);
+
+                // Hide separators that belong to the name row
+                if (ExpHomeNameSeparator is not null) ExpHomeNameSeparator.Visibility = Visibility.Collapsed;
+                if (ExpAwayNameSeparator is not null) ExpAwayNameSeparator.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                homeNameRow.Height = new GridLength(1.2, GridUnitType.Star);
+                awayNameRow.Height = new GridLength(1.2, GridUnitType.Star);
+
+                if (ExpHomeNameSeparator is not null) ExpHomeNameSeparator.Visibility = Visibility.Visible;
+                if (ExpAwayNameSeparator is not null) ExpAwayNameSeparator.Visibility = Visibility.Visible;
+            }
+        }
         public void SetWeatherLocation(string? location) => _weatherLocation = location;
 
         public void PauseScorelessForBreak() { }

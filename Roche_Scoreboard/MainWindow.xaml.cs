@@ -232,9 +232,11 @@ namespace Roche_Scoreboard
 
             // Wire up the embedded setup wizard (AFL)
             SetupWizardPanel.SetupCompleted += OnSetupCompleted;
+            SetupWizardPanel.BackToSportSelection += ShowSetupWizard;
 
             // Wire up the cricket setup wizard
             CricketSetupWizardPanel.SetupCompleted += OnCricketSetupCompleted;
+            CricketSetupWizardPanel.BackToSportSelection += ShowSetupWizard;
 
             // Populate the custom quarter / break labels in settings from
             // persisted overrides; live updates flow through QuarterLabelService.
@@ -2176,6 +2178,7 @@ namespace Roche_Scoreboard
 
             _scorebug = new ScorebugControl();
             _breakScreen = new BreakScreenControl { Visibility = Visibility.Collapsed };
+            _breakScreen.SetFinalsMode(_finalsMode);
             _scoreworm = new ScorewormControl { Visibility = Visibility.Collapsed };
             _statsScreen = new StatsScreenControl { Visibility = Visibility.Collapsed };
             _videoPlayer = new VideoPlayerControl { Visibility = Visibility.Collapsed };
@@ -2359,6 +2362,7 @@ namespace Roche_Scoreboard
             ApplyLogoCropToScorebug();
             _scorebug.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
             _scorebug.SetFinalsMode(_finalsMode);
+            _scorebug.SetHideTeamNames(_hideTeamNames);
             _scorebug.SetWeatherLocation(_weatherLocation);
 
             PushClockToScoreboard();

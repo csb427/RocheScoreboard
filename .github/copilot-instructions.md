@@ -4,7 +4,7 @@
 
 Roche Scoreboard is a C# WPF Windows application for operating live AFL scoreboards and training timers.
 
-The redesigned operator interface must be usable by untrained volunteers, parents, students, children and strangers without prior instruction.
+The redesigned operator interface must be usable by untrained volunteers, parents, students, children, and strangers without prior instruction.
 
 ## Redesign scope
 
@@ -17,7 +17,7 @@ Included:
 - Media controls
 - Settings
 - Training Timers
-- Dialogs, validation, errors, loading and feedback
+- Dialogs, validation, errors, loading, and feedback
 - Light and dark themes
 - Responsive operator-window layouts
 
@@ -31,10 +31,10 @@ Do not delete or break excluded functionality. Cricket should remain in the code
 ## Non-negotiable safeguards
 
 - Preserve all existing match calculations and business logic.
-- Preserve MatchManager, ScoreEvent, MatchStorage and GameStateService behaviour.
-- Preserve clock, quarter, undo and score-event editing behaviour.
+- Preserve MatchManager, ScoreEvent, MatchStorage, and GameStateService behaviour.
+- Preserve clock, quarter, undo, and score-event editing behaviour.
 - Preserve autosave and resume-match behaviour.
-- Preserve updater, media, weather, overlay and cloud-remote functionality.
+- Preserve updater, media, weather, overlay, and cloud-remote functionality.
 - Preserve output-window updates even though its UI is not being redesigned.
 - Preserve Training Timer behaviour.
 - Do not rewrite unrelated services during UI tasks.
@@ -47,7 +47,7 @@ Do not delete or break excluded functionality. Cricket should remain in the code
 
 Before changing code:
 
-1. Inspect all relevant XAML, code-behind, models and services.
+1. Inspect all relevant XAML, code-behind, models, and services.
 2. State which files will change.
 3. Explain how existing event handlers and state will be preserved.
 4. Identify regression risks.
@@ -101,7 +101,7 @@ Use `DynamicResource` for theme-dependent values.
 - Prefer Inter when available, with Segoe UI as the Windows fallback.
 - Use tabular numerals for clocks and scores.
 - Do not shrink text to make responsive layouts fit.
-- Use a four-pixel spacing system: 4, 8, 12, 16, 24 and 32.
+- Use a four-pixel spacing system: 4, 8, 12, 16, 24, and 32.
 - Default corner radius: 8.
 - Default border: 1 pixel.
 - Focus ring: 2 pixels with clear contrast.
@@ -170,7 +170,7 @@ Keyboard focus must always be visible. All mouse actions must have a keyboard-ac
 - Large text contrast: at least 3:1.
 - Interactive component and focus contrast: at least 3:1.
 - Do not communicate state through colour alone.
-- Use an icon, label or shape alongside colour.
+- Use an icon, label, or shape alongside colour.
 - Keep controls comfortably spaced.
 - Support Windows display scaling without clipping.
 - Respect reduced-motion settings.
@@ -183,3 +183,7 @@ The exact product name is `Roche Scoreboard`.
 Use the Score Grid modular-cell identity. Do not restore the former red-and-black identity. Red is reserved for destructive actions and errors.
 
 The final logo geometry must be supplied as a deliberate vector asset. Do not substitute a generic grid icon as the final logo.
+
+## AFL and Cricket Setup Wizards
+
+When matching AFL and cricket setup wizards, ensure an exact visual and interaction replica rather than an approximate parity implementation.

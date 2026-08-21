@@ -160,5 +160,13 @@
 
         <!-- BOTTOM SCORE BAR -->
         <local:PresentationScoreBar x:Name="ScoreBar" Grid.Row="3"/>
+
+        <!-- Finals gold tint overlay — toggled by SetFinalsMode in code-behind -->
+        <Rectangle x:Name="BreakFinalsGoldOverlay" Grid.RowSpan="4"
+                   Panel.ZIndex="200" IsHitTestVisible="False" Opacity="0">
+            <Rectangle.Fill>
+                <SolidColorBrush Color="#C8980A"/>
+            </Rectangle.Fill>
+        </Rectangle>
     </Grid>
 </UserControl>

@@ -1,9 +1,24 @@
 ﻿<Application x:Class="Roche_Scoreboard.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Roche_Scoreboard"
-             StartupUri="MainWindow.xaml">
+             xmlns:local="clr-namespace:Roche_Scoreboard">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Invariant tokens must come first -->
+                <ResourceDictionary Source="DesignSystem/Tokens.xaml" />
+
+                <!-- Theme dictionaries (one active, swapped by ThemeService) -->
+                <ResourceDictionary Source="DesignSystem/LightTheme.xaml" />
+
+                <!-- Density dictionaries (one active, swapped by ThemeService) -->
+                <ResourceDictionary Source="DesignSystem/ComfortableDensity.xaml" />
+
+                <!-- Typography, icons and components depend on both theme and density -->
+                <ResourceDictionary Source="DesignSystem/Typography.xaml" />
+                <ResourceDictionary Source="DesignSystem/Icons.xaml" />
+                <ResourceDictionary Source="DesignSystem/Components.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

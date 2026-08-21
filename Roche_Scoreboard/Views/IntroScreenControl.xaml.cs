@@ -299,5 +299,12 @@ namespace Roche_Scoreboard.Views
                 return (Color)ColorConverter.ConvertFromString(fallbackHex);
             }
         }
+
+        /// <summary>Applies or removes the finals gold tint overlay on the intro screen.</summary>
+        public void SetFinalsMode(bool enabled)
+        {
+            if (FindName("IntroFinalsGoldOverlay") is System.Windows.Shapes.Rectangle overlay)
+                overlay.Opacity = enabled ? 0.12 : 0;
+        }
     }
 }

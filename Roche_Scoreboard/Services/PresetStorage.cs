@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Roche_Scoreboard.Models;
@@ -112,11 +113,70 @@ public static class PresetStorage
         }
     }
 
+    private static List<TeamPreset> MergePresets(List<TeamPreset> primary, List<TeamPreset> secondary)
+    {
+        Dictionary<string, TeamPreset> byName = new(StringComparer.OrdinalIgnoreCase);
+
+        foreach (TeamPreset preset in primary.Where(static p => !string.IsNullOrWhiteSpace(p.PresetName)))
+            byName[preset.PresetName] = preset;
+
+        foreach (TeamPreset fallback in secondary.Where(static p => !string.IsNullOrWhiteSpace(p.PresetName)))
+        {
+            if (!byName.TryGetValue(fallback.PresetName, out TeamPreset? current))
+            {
+                byName[fallback.PresetName] = fallback;
+                continue;
+            }
+
+            if ((current.CricketPlayers is null || current.CricketPlayers.Count == 0)
+                && fallback.CricketPlayers is { Count: > 0 })
+            {
+                current.CricketPlayers = fallback.CricketPlayers;
+            }
+        }
+
+        return byName.Values
+            .OrderBy(static p => p.PresetName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static List<TeamPreset> LoadSharedPresetsWithLegacyCricketFallback()
+    {
+        List<TeamPreset> shared = LoadFromFile(GetPresetsPath());
+        List<TeamPreset> legacyCricket = LoadFromFile(GetCricketPresetsPath());
+
+        if (legacyCricket.Count == 0)
+            return shared;
+
+        List<TeamPreset> merged = MergePresets(shared, legacyCricket);
+
+        if (merged.Count != shared.Count)
+            SaveToFile(GetPresetsPath(), merged);
+
+        return merged;
+    }
+
+    private static async Task<List<TeamPreset>> LoadSharedPresetsWithLegacyCricketFallbackAsync()
+    {
+        List<TeamPreset> shared = await LoadFromFileAsync(GetPresetsPath()).ConfigureAwait(false);
+        List<TeamPreset> legacyCricket = await LoadFromFileAsync(GetCricketPresetsPath()).ConfigureAwait(false);
+
+        if (legacyCricket.Count == 0)
+            return shared;
+
+        List<TeamPreset> merged = MergePresets(shared, legacyCricket);
+
+        if (merged.Count != shared.Count)
+            await SaveToFileAsync(GetPresetsPath(), merged).ConfigureAwait(false);
+
+        return merged;
+    }
+
     public static List<TeamPreset> LoadAll() 
-        => LoadFromFile(GetPresetsPath());
+        => LoadSharedPresetsWithLegacyCricketFallback();
 
     public static Task<List<TeamPreset>> LoadAllAsync() 
-        => LoadFromFileAsync(GetPresetsPath());
+        => LoadSharedPresetsWithLegacyCricketFallbackAsync();
 
     public static void SaveAll(List<TeamPreset> presets) 
         => SaveToFile(GetPresetsPath(), presets);
@@ -125,14 +185,14 @@ public static class PresetStorage
         => SaveToFileAsync(GetPresetsPath(), presets);
 
     public static List<TeamPreset> LoadAllCricket() 
-        => LoadFromFile(GetCricketPresetsPath());
+        => LoadSharedPresetsWithLegacyCricketFallback();
 
     public static Task<List<TeamPreset>> LoadAllCricketAsync() 
-        => LoadFromFileAsync(GetCricketPresetsPath());
+        => LoadSharedPresetsWithLegacyCricketFallbackAsync();
 
     public static void SaveAllCricket(List<TeamPreset> presets) 
-        => SaveToFile(GetCricketPresetsPath(), presets);
+        => SaveToFile(GetPresetsPath(), presets);
 
     public static Task SaveAllCricketAsync(List<TeamPreset> presets) 
-        => SaveToFileAsync(GetCricketPresetsPath(), presets);
+        => SaveToFileAsync(GetPresetsPath(), presets);
 }

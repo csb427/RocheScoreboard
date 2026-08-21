@@ -1,0 +1,93 @@
+[
+  {
+    "Name": "missing-properties",
+    "loadedTheme": "Light",
+    "loadedDensity": "Comfortable",
+    "loadedStartupMode": "ResumeIfAvailable",
+    "loadedLastMode": "Training",
+    "loadedLastSettingsCategory": "audio",
+    "loadedLastMainTabIndex": 7,
+    "loadedEnableQuickStartupHints": false,
+    "exceptionOccurred": false,
+    "exceptionMessage": "",
+    "writtenBack": "{\r\n  \u0022startupMode\u0022: \u0022resumeIfAvailable\u0022,\r\n  \u0022lastMode\u0022: \u0022training\u0022,\r\n  \u0022lastSettingsCategory\u0022: \u0022audio\u0022,\r\n  \u0022lastMainTabIndex\u0022: 7,\r\n  \u0022enableQuickStartupHints\u0022: false,\r\n  \u0022theme\u0022: \u0022light\u0022,\r\n  \u0022density\u0022: \u0022comfortable\u0022\r\n}"
+  },
+  {
+    "Name": "valid-dark-compact",
+    "loadedTheme": "Dark",
+    "loadedDensity": "Compact",
+    "loadedStartupMode": "LastMode",
+    "loadedLastMode": "GlobalSettings",
+    "loadedLastSettingsCategory": "general",
+    "loadedLastMainTabIndex": 3,
+    "loadedEnableQuickStartupHints": true,
+    "exceptionOccurred": false,
+    "exceptionMessage": "",
+    "writtenBack": "{\r\n  \u0022startupMode\u0022: \u0022lastMode\u0022,\r\n  \u0022lastMode\u0022: \u0022globalSettings\u0022,\r\n  \u0022lastSettingsCategory\u0022: \u0022general\u0022,\r\n  \u0022lastMainTabIndex\u0022: 3,\r\n  \u0022enableQuickStartupHints\u0022: true,\r\n  \u0022theme\u0022: \u0022dark\u0022,\r\n  \u0022density\u0022: \u0022compact\u0022\r\n}"
+  },
+  {
+    "Name": "invalid-theme-valid-density",
+    "loadedTheme": "Light",
+    "loadedDensity": "Compact",
+    "loadedStartupMode": "SportSelection",
+    "loadedLastMode": "Afl",
+    "loadedLastSettingsCategory": "display",
+    "loadedLastMainTabIndex": 2,
+    "loadedEnableQuickStartupHints": false,
+    "exceptionOccurred": false,
+    "exceptionMessage": "",
+    "writtenBack": "{\r\n  \u0022startupMode\u0022: \u0022sportSelection\u0022,\r\n  \u0022lastMode\u0022: \u0022afl\u0022,\r\n  \u0022lastSettingsCategory\u0022: \u0022display\u0022,\r\n  \u0022lastMainTabIndex\u0022: 2,\r\n  \u0022enableQuickStartupHints\u0022: false,\r\n  \u0022theme\u0022: \u0022light\u0022,\r\n  \u0022density\u0022: \u0022compact\u0022\r\n}"
+  },
+  {
+    "Name": "valid-theme-invalid-density",
+    "loadedTheme": "Dark",
+    "loadedDensity": "Comfortable",
+    "loadedStartupMode": "ResumeIfAvailable",
+    "loadedLastMode": "Training",
+    "loadedLastSettingsCategory": "clock",
+    "loadedLastMainTabIndex": 5,
+    "loadedEnableQuickStartupHints": true,
+    "exceptionOccurred": false,
+    "exceptionMessage": "",
+    "writtenBack": "{\r\n  \u0022startupMode\u0022: \u0022resumeIfAvailable\u0022,\r\n  \u0022lastMode\u0022: \u0022training\u0022,\r\n  \u0022lastSettingsCategory\u0022: \u0022clock\u0022,\r\n  \u0022lastMainTabIndex\u0022: 5,\r\n  \u0022enableQuickStartupHints\u0022: true,\r\n  \u0022theme\u0022: \u0022dark\u0022,\r\n  \u0022density\u0022: \u0022comfortable\u0022\r\n}"
+  },
+  {
+    "Name": "both-invalid",
+    "loadedTheme": "Light",
+    "loadedDensity": "Comfortable",
+    "loadedStartupMode": "LastMode",
+    "loadedLastMode": "GlobalSettings",
+    "loadedLastSettingsCategory": "media",
+    "loadedLastMainTabIndex": 9,
+    "loadedEnableQuickStartupHints": false,
+    "exceptionOccurred": false,
+    "exceptionMessage": "",
+    "writtenBack": "{\r\n  \u0022startupMode\u0022: \u0022lastMode\u0022,\r\n  \u0022lastMode\u0022: \u0022globalSettings\u0022,\r\n  \u0022lastSettingsCategory\u0022: \u0022media\u0022,\r\n  \u0022lastMainTabIndex\u0022: 9,\r\n  \u0022enableQuickStartupHints\u0022: false,\r\n  \u0022theme\u0022: \u0022light\u0022,\r\n  \u0022density\u0022: \u0022comfortable\u0022\r\n}"
+  },
+  {
+    "Name": "wrong-token-types",
+    "loadedTheme": "Light",
+    "loadedDensity": "Comfortable",
+    "loadedStartupMode": "ResumeIfAvailable",
+    "loadedLastMode": "Training",
+    "loadedLastSettingsCategory": "network",
+    "loadedLastMainTabIndex": 4,
+    "loadedEnableQuickStartupHints": true,
+    "exceptionOccurred": false,
+    "exceptionMessage": "",
+    "writtenBack": "{\r\n  \u0022startupMode\u0022: \u0022resumeIfAvailable\u0022,\r\n  \u0022lastMode\u0022: \u0022training\u0022,\r\n  \u0022lastSettingsCategory\u0022: \u0022network\u0022,\r\n  \u0022lastMainTabIndex\u0022: 4,\r\n  \u0022enableQuickStartupHints\u0022: true,\r\n  \u0022theme\u0022: \u0022light\u0022,\r\n  \u0022density\u0022: \u0022comfortable\u0022\r\n}"
+  },
+  {
+    "Name": "corrupt-json",
+    "loadedTheme": "Light",
+    "loadedDensity": "Comfortable",
+    "loadedStartupMode": "ResumeIfAvailable",
+    "loadedLastMode": "SportSelection",
+    "loadedLastSettingsCategory": "teams",
+    "loadedLastMainTabIndex": 0,
+    "loadedEnableQuickStartupHints": true,
+    "exceptionOccurred": false,
+    "exceptionMessage": "",
+    "writtenBack": "{\r\n  \u0022startupMode\u0022: \u0022resumeIfAvailable\u0022,\r\n  \u0022lastMode\u0022: \u0022sportSelection\u0022,\r\n  \u0022lastSettingsCategory\u0022: \u0022teams\u0022,\r\n  \u0022lastMainTabIndex\u0022: 0,\r\n  \u0022enableQuickStartupHints\u0022: true,\r\n  \u0022theme\u0022: \u0022light\u0022,\r\n  \u0022density\u0022: \u0022comfortable\u0022\r\n}"
+  }
+]

@@ -1,0 +1,20 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SCORE GRID COMPACT DENSITY                                          -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- ─── Control Heights ─── -->
+    <sys:Double x:Key="ScoreGrid.Height.ControlDefault">32</sys:Double>
+    <sys:Double x:Key="ScoreGrid.Height.ControlImportant">40</sys:Double>
+    <sys:Double x:Key="ScoreGrid.Height.ControlCompact">24</sys:Double>
+
+    <!-- ─── Content Padding ─── -->
+    <Thickness x:Key="ScoreGrid.Padding.Control">8,4</Thickness>
+    <Thickness x:Key="ScoreGrid.Padding.ControlSmall">4,2</Thickness>
+    <Thickness x:Key="ScoreGrid.Padding.Content">12</Thickness>
+    <Thickness x:Key="ScoreGrid.Padding.Card">16</Thickness>
+
+</ResourceDictionary>

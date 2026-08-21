@@ -266,5 +266,13 @@
         <!-- Top + bottom hairlines for crisp scorebug edge -->
         <Border Grid.ColumnSpan="5" Height="1" VerticalAlignment="Top"  Background="#66000000" IsHitTestVisible="False"/>
         <Border Grid.ColumnSpan="5" Height="1" VerticalAlignment="Bottom" Background="#88000000" IsHitTestVisible="False"/>
+
+        <!-- Finals gold tint overlay — toggled by SetFinalsMode in code-behind -->
+        <Rectangle x:Name="ScoreBarFinalsGoldOverlay" Grid.ColumnSpan="5"
+                   Panel.ZIndex="200" IsHitTestVisible="False" Opacity="0">
+            <Rectangle.Fill>
+                <SolidColorBrush Color="#C8980A"/>
+            </Rectangle.Fill>
+        </Rectangle>
     </Grid>
 </UserControl>

@@ -600,6 +600,15 @@
             <RowDefinition x:Name="ExpBottomBarRow" Height="0"/>    <!-- bottom message bar: collapsed by default, only shown when marquee messages exist or compact-clock mode is active -->
         </Grid.RowDefinitions>
 
+        <!-- Finals gold tint overlay — spans all rows; toggled by SetFinalsMode in code-behind.
+             Panel.ZIndex=200 floats above all content. IsHitTestVisible=False passes clicks through. -->
+        <Rectangle x:Name="ExpFinalsGoldOverlay" Grid.Row="0" Grid.RowSpan="4"
+                   Panel.ZIndex="200" IsHitTestVisible="False" Opacity="0">
+            <Rectangle.Fill>
+                <SolidColorBrush Color="#C8980A"/>
+            </Rectangle.Fill>
+        </Rectangle>
+
         <!-- ============ TOP INFO BAR (weather | time | date) ============ -->
         <Border Grid.Row="0" Panel.ZIndex="0" ClipToBounds="True" BorderThickness="0">
             <Border.Background>
@@ -1051,9 +1060,9 @@
             <Grid x:Name="ExpClockPanel" Grid.Column="0">
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#1A1F2E" Offset="0.0"/>
-                        <GradientStop Color="#0A0D14" Offset="0.5"/>
-                        <GradientStop Color="#000000" Offset="1.0"/>
+                        <GradientStop x:Name="ExpClockPanelGradTop" Color="#1A1F2E" Offset="0.0"/>
+                        <GradientStop x:Name="ExpClockPanelGradMid" Color="#0A0D14" Offset="0.5"/>
+                        <GradientStop x:Name="ExpClockPanelGradBot" Color="#000000" Offset="1.0"/>
                     </LinearGradientBrush>
                 </Grid.Background>
                 <Grid.RowDefinitions>
@@ -1251,8 +1260,8 @@
                         <SolidColorBrush x:Key="ExpHomePanelBrushKey" Color="#C9483B"/>
                     </Grid.Resources>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="1.2*"/>   <!-- team name (slightly taller than the original 1*, so the bar + auto-scaled font grow a little) -->
-                        <RowDefinition Height="2.6*"/>   <!-- score cells (UNCHANGED from original so the goal/behind/total digit sizes stay exactly the same) -->
+                        <RowDefinition x:Name="ExpHomeNameRow" Height="1.2*"/>   <!-- team name -->
+                        <RowDefinition x:Name="ExpHomeScoreRow" Height="2.6*"/>  <!-- score cells -->
                     </Grid.RowDefinitions>
                     <!-- Top-light gradient overlay for 3D look -->
                     <Rectangle Grid.RowSpan="2" IsHitTestVisible="False">
@@ -1449,8 +1458,8 @@
                             <SolidColorBrush x:Key="ExpAwayPanelBrushKey" Color="#B68F12"/>
                         </Grid.Resources>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="1.2*"/>
-                            <RowDefinition Height="2.6*"/>
+                            <RowDefinition x:Name="ExpAwayNameRow" Height="1.2*"/>
+                            <RowDefinition x:Name="ExpAwayScoreRow" Height="2.6*"/>
                         </Grid.RowDefinitions>
                         <Rectangle Grid.RowSpan="2" IsHitTestVisible="False">
                             <Rectangle.Fill>
@@ -1689,4 +1698,5 @@
                                          not used here so animations stay within the team's row. -->
                                                  </Grid>
                                              </Grid>
-                                             </UserControl>
+
+</UserControl>

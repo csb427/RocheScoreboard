@@ -19,6 +19,8 @@ namespace Roche_Scoreboard.Models
         public string FirstName { get; set; } = "";
         public string LastName { get; set; } = "";
 
+        public bool IsWicketkeeper { get; set; }
+
         public string DisplayName => string.IsNullOrWhiteSpace(FirstName)
             ? LastName
             : $"{FirstName[0]}. {LastName}";

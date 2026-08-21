@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -18,6 +20,16 @@ public partial class App : Application
     /// Shared update service so both startup and shutdown can access the same state.
     /// </summary>
     internal AutoUpdateService UpdateService { get; } = new();
+
+    /// <summary>
+    /// Shared theme service for runtime theme and density switching
+    /// </summary>
+    internal ThemeService ThemeService { get; } = new();
+
+    /// <summary>
+    /// Loaded UX preferences including theme and density
+    /// </summary>
+    internal UxPreferencesData UxPreferences { get; private set; } = new();
 
     /// <summary>
     /// The background update check kicked off in <see cref="OnStartup"/>.
@@ -52,6 +64,12 @@ public partial class App : Application
 
         // Enable high DPI support for modern displays
         System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.Default;
+
+        // Load UX preferences early so theme/density can be initialized
+        UxPreferences = Services.UxPreferences.Load();
+
+        // Initialize theme service with persisted preferences
+        ThemeService.Initialize(UxPreferences.Theme, UxPreferences.Density);
 
         // Validate LibVLC native runtime up-front. A missing or broken VLC
         // install should surface as a clear startup diagnostic instead of
@@ -90,6 +108,45 @@ public partial class App : Application
             try { await UpdateService.CheckForUpdateAsync(); }
             catch { /* Never let an update check failure prevent the app from starting. */ }
         });
+
+        // Determine which window to show based on command-line arguments
+        bool isDesignGalleryMode = e.Args.Contains("--design-gallery", StringComparer.OrdinalIgnoreCase);
+        string? gallerySelfTestPath = GetArgumentValue(e.Args, "--gallery-self-test-output=");
+        string? startupSelfTestPath = GetArgumentValue(e.Args, "--startup-self-test-output=");
+        string? preferencesSelfTestPath = GetArgumentValue(e.Args, "--preferences-self-test-output=");
+
+        if (gallerySelfTestPath is not null)
+        {
+            RunGallerySelfTest(gallerySelfTestPath);
+            return;
+        }
+
+        if (startupSelfTestPath is not null)
+        {
+            RunStartupSelfTest(startupSelfTestPath);
+            return;
+        }
+
+        if (preferencesSelfTestPath is not null)
+        {
+            RunPreferencesSelfTest(preferencesSelfTestPath);
+            return;
+        }
+
+        if (isDesignGalleryMode)
+        {
+            // Design gallery mode: show gallery only, do not load production screens
+            Window galleryWindow = new DesignSystemGalleryWindow();
+            galleryWindow.Show();
+            MainWindow = galleryWindow;
+        }
+        else
+        {
+            // Normal production mode: show MainWindow
+            Window mainWindow = new MainWindow();
+            mainWindow.Show();
+            MainWindow = mainWindow;
+        }
     }
 
     /// <summary>
@@ -197,5 +254,193 @@ public partial class App : Application
         }
 
         return false;
+    }
+
+    private static string? GetArgumentValue(string[] args, string prefix)
+        => args.FirstOrDefault(arg => arg.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))?[prefix.Length..];
+
+    private void RunGallerySelfTest(string outputPath)
+    {
+        string resolvedOutputPath = ResolveSelfTestOutputPath(outputPath, "gallery-self-test.json");
+        DesignSystemGalleryWindow galleryWindow = new();
+        MainWindow = galleryWindow;
+        galleryWindow.Show();
+        galleryWindow.UpdateLayout();
+
+        galleryWindow.Dispatcher.InvokeAsync(() =>
+        {
+            try
+            {
+                object result = galleryWindow.RunSelfTest();
+                string json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(resolvedOutputPath, json);
+                File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "gallery-self-test.json"), json);
+            }
+            catch (Exception ex)
+            {
+                string errorJson = JsonSerializer.Serialize(new
+                {
+                    error = ex.ToString(),
+                }, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(resolvedOutputPath, errorJson);
+                File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "gallery-self-test.json"), errorJson);
+            }
+            finally
+            {
+                galleryWindow.Close();
+                Shutdown();
+            }
+        }, DispatcherPriority.ApplicationIdle);
+    }
+
+    private void RunStartupSelfTest(string outputPath)
+    {
+        string resolvedOutputPath = ResolveSelfTestOutputPath(outputPath, "startup-self-test.json");
+        MainWindow mainWindow = new();
+        Window startupWindow = mainWindow;
+        startupWindow.Show();
+        MainWindow = startupWindow;
+        startupWindow.UpdateLayout();
+
+        startupWindow.Dispatcher.InvokeAsync(() =>
+        {
+            try
+            {
+                object result = new
+                {
+                    windowCount = Windows.Count,
+                    mainWindowType = MainWindow?.GetType().FullName,
+                    galleryVisible = Windows.OfType<DesignSystemGalleryWindow>().Any(),
+                    startupException = false,
+                    sportSelectionVisible = mainWindow.SportSelectionPanel.Visibility == Visibility.Visible,
+                    mainContentVisible = mainWindow.MainContent.Visibility == Visibility.Visible,
+                    setupVisible = mainWindow.SetupWizardPanel.Visibility == Visibility.Visible,
+                    cricketSetupVisible = mainWindow.CricketSetupWizardPanel.Visibility == Visibility.Visible,
+                    cricketControlVisible = mainWindow.CricketControlPanelView.Visibility == Visibility.Visible,
+                    globalSettingsVisible = mainWindow.GlobalSettingsPanel.Visibility == Visibility.Visible,
+                };
+
+                string json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(resolvedOutputPath, json);
+                File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "startup-self-test.json"), json);
+            }
+            catch (Exception ex)
+            {
+                string errorJson = JsonSerializer.Serialize(new
+                {
+                    error = ex.ToString(),
+                }, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(resolvedOutputPath, errorJson);
+                File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "startup-self-test.json"), errorJson);
+            }
+            finally
+            {
+                startupWindow.Close();
+                Shutdown();
+            }
+        }, DispatcherPriority.ApplicationIdle);
+    }
+
+    private void RunPreferencesSelfTest(string outputPath)
+    {
+        string resolvedOutputPath = ResolveSelfTestOutputPath(outputPath, "preferences-self-test.json");
+        string preferencesPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "Roche_Scoreboard",
+            "ux_preferences.json");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(preferencesPath)!);
+
+        string? originalContent = File.Exists(preferencesPath)
+            ? File.ReadAllText(preferencesPath)
+            : null;
+
+        var cases = new[]
+        {
+            new { Name = "missing-properties", Json = "{ \"startupMode\": \"resumeIfAvailable\", \"lastMode\": \"training\", \"lastSettingsCategory\": \"audio\", \"lastMainTabIndex\": 7, \"enableQuickStartupHints\": false }" },
+            new { Name = "valid-dark-compact", Json = "{ \"theme\": \"dark\", \"density\": \"compact\", \"startupMode\": \"lastMode\", \"lastMode\": \"globalSettings\", \"lastSettingsCategory\": \"general\", \"lastMainTabIndex\": 3, \"enableQuickStartupHints\": true }" },
+            new { Name = "invalid-theme-valid-density", Json = "{ \"theme\": \"invalidTheme\", \"density\": \"compact\", \"startupMode\": \"sportSelection\", \"lastMode\": \"afl\", \"lastSettingsCategory\": \"display\", \"lastMainTabIndex\": 2, \"enableQuickStartupHints\": false }" },
+            new { Name = "valid-theme-invalid-density", Json = "{ \"theme\": \"dark\", \"density\": \"invalidDensity\", \"startupMode\": \"resumeIfAvailable\", \"lastMode\": \"training\", \"lastSettingsCategory\": \"clock\", \"lastMainTabIndex\": 5, \"enableQuickStartupHints\": true }" },
+            new { Name = "both-invalid", Json = "{ \"theme\": \"badTheme\", \"density\": \"badDensity\", \"startupMode\": \"lastMode\", \"lastMode\": \"globalSettings\", \"lastSettingsCategory\": \"media\", \"lastMainTabIndex\": 9, \"enableQuickStartupHints\": false }" },
+            new { Name = "wrong-token-types", Json = "{ \"theme\": 12, \"density\": true, \"startupMode\": \"resumeIfAvailable\", \"lastMode\": \"training\", \"lastSettingsCategory\": \"network\", \"lastMainTabIndex\": 4, \"enableQuickStartupHints\": true }" },
+            new { Name = "corrupt-json", Json = "{ \"theme\": \"dark\", \"density\": " },
+        };
+
+        var results = new List<object>();
+
+        try
+        {
+            foreach (var @case in cases)
+            {
+                File.WriteAllText(preferencesPath, @case.Json);
+                bool exceptionOccurred = false;
+                string exceptionMessage = string.Empty;
+                UxPreferencesData loaded;
+
+                try
+                {
+                    loaded = Services.UxPreferences.Load();
+                    Services.UxPreferences.Save(loaded);
+                }
+                catch (Exception ex)
+                {
+                    exceptionOccurred = true;
+                    exceptionMessage = ex.ToString();
+                    loaded = new UxPreferencesData();
+                }
+
+                string writtenBack = File.Exists(preferencesPath)
+                    ? File.ReadAllText(preferencesPath)
+                    : string.Empty;
+
+                results.Add(new
+                {
+                    @case.Name,
+                    loadedTheme = loaded.Theme.ToString(),
+                    loadedDensity = loaded.Density.ToString(),
+                    loadedStartupMode = loaded.StartupMode.ToString(),
+                    loadedLastMode = loaded.LastMode.ToString(),
+                    loadedLastSettingsCategory = loaded.LastSettingsCategory,
+                    loadedLastMainTabIndex = loaded.LastMainTabIndex,
+                    loadedEnableQuickStartupHints = loaded.EnableQuickStartupHints,
+                    exceptionOccurred,
+                    exceptionMessage,
+                    writtenBack,
+                });
+            }
+        }
+        finally
+        {
+            if (originalContent is null)
+            {
+                if (File.Exists(preferencesPath))
+                    File.Delete(preferencesPath);
+            }
+            else
+            {
+                File.WriteAllText(preferencesPath, originalContent);
+            }
+        }
+
+        string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(resolvedOutputPath, json);
+        File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "preferences-self-test.json"), json);
+        Shutdown();
+    }
+
+    private static string ResolveSelfTestOutputPath(string outputPath, string fallbackFileName)
+    {
+        if (!string.IsNullOrWhiteSpace(outputPath))
+        {
+            string directory = Path.GetDirectoryName(outputPath) ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(directory))
+                Directory.CreateDirectory(directory);
+
+            return outputPath;
+        }
+
+        string fallbackDirectory = Path.Combine(Path.GetTempPath(), "RocheScoreboardTask1");
+        Directory.CreateDirectory(fallbackDirectory);
+        return Path.Combine(fallbackDirectory, fallbackFileName);
     }
 }

@@ -1,0 +1,19 @@
+{
+  "Theme": "Theme: Light",
+  "Density": "Density: Comfortable",
+  "FocusBrush": "#FF0A57FF",
+  "ControlBorderBrush": "#FF7E8DA0",
+  "WindowBackground": "#FFF7F9FC",
+  "TextPrimary": "#FF0B1D3A",
+  "ButtonHeight": 36,
+  "TextBoxHeight": 36,
+  "ComboBoxHeight": 36,
+  "ControlPadding": "12,8,12,8",
+  "ThemeAndVisuals": "pass",
+  "DensityAndLayout": "pass",
+  "Keyboard": "pass",
+  "Tooltip": "pass",
+  "DisabledStates": "pass",
+  "CloseBehavior": "pass",
+  "Notes": "Compact metrics: density=Density: Compact, button=32, textbox=32, combo=32, padding=8,4,8,4, margin=16. "
+}

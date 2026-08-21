@@ -172,4 +172,11 @@ public partial class PresentationScoreBar : UserControl
             (byte)(c.G * (1 - amount)),
             (byte)(c.B * (1 - amount)));
     }
+
+    /// <summary>Applies or removes the finals gold tint overlay on the score bar.</summary>
+    public void SetFinalsMode(bool enabled)
+    {
+        if (FindName("ScoreBarFinalsGoldOverlay") is System.Windows.Shapes.Rectangle overlay)
+            overlay.Opacity = enabled ? 0.10 : 0;
+    }
 }

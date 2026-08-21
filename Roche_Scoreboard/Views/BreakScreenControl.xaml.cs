@@ -242,5 +242,16 @@ namespace Roche_Scoreboard.Views
                 (byte)(c.G * (1 - amount)),
                 (byte)(c.B * (1 - amount)));
         }
+
+        /// <summary>
+        /// Applies or removes the finals gold tint overlay on the break screen.
+        /// Also propagates to the embedded PresentationScoreBar.
+        /// </summary>
+        public void SetFinalsMode(bool enabled)
+        {
+            if (FindName("BreakFinalsGoldOverlay") is System.Windows.Shapes.Rectangle overlay)
+                overlay.Opacity = enabled ? 0.10 : 0;
+            ScoreBar?.SetFinalsMode(enabled);
+        }
     }
 }
