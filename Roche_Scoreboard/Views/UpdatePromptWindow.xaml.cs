@@ -83,7 +83,9 @@ public partial class UpdatePromptWindow : Window
             }
             else
             {
-                ProgressText.Text = "Update failed. Please try again later.";
+                ProgressText.Text = string.IsNullOrWhiteSpace(_updateService.LastError)
+                    ? "Update was not installed. You can retry safely."
+                    : "Package check failed. Open Settings > Updates for details.";
                 _isDownloading = false;
                 UpdateButton.IsEnabled = true;
                 UpdateButton.Content = "RETRY";
@@ -92,7 +94,7 @@ public partial class UpdatePromptWindow : Window
         }
         catch
         {
-            ProgressText.Text = "Update failed. Please try again later.";
+            ProgressText.Text = "Update was not installed. You can retry safely.";
             _isDownloading = false;
             UpdateButton.IsEnabled = true;
             UpdateButton.Content = "RETRY";

@@ -2,25 +2,31 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using System.Globalization;
 using Roche_Scoreboard.Models;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using Image = System.Windows.Controls.Image;
 using UserControl = System.Windows.Controls.UserControl;
+using Rectangle = System.Windows.Shapes.Rectangle;
 
 namespace Roche_Scoreboard.Views;
 
 /// <summary>
-/// Broadcast-style score bar mirroring the main scorebug layout:
-/// team-colour gradient panels, dark centre quarter/clock panel,
-/// scorebug-style separator splits, and Stolzl typography.
+/// Distance-first persistent score bar with team-colour panels, protected
+/// logos, a live quarter/clock cell and fixed-capacity total typography.
 /// </summary>
 public partial class PresentationScoreBar : UserControl
 {
     private MatchManager? _match;
-    private bool _showTimer = true;
+    private bool _timerAllowed = true;
     private readonly DispatcherTimer _clockTimer;
+    private DispatcherTimer? _homeDeltaTimer;
+    private DispatcherTimer? _awayDeltaTimer;
+    private Color _homeSecondary = Colors.White;
+    private Color _awaySecondary = Colors.White;
 
     public PresentationScoreBar()
     {
@@ -29,15 +35,24 @@ public partial class PresentationScoreBar : UserControl
         _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _clockTimer.Tick += OnClockTick;
 
-        Loaded += (_, _) => _clockTimer.Start();
+        Loaded += (_, _) =>
+        {
+            ApplyLiveMatchState();
+            Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
+            _clockTimer.Start();
+        };
         Unloaded += (_, _) => _clockTimer.Stop();
+        SizeChanged += (_, _) => Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
+        IsVisibleChanged += (_, e) =>
+        {
+            if (e.NewValue is true)
+                Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
+        };
     }
 
     private void OnClockTick(object? sender, EventArgs e)
     {
-        if (_match is null || !_showTimer) return;
-        TimeSpan dc = _match.DisplayClock;
-        TimerText.Text = $"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
+        ApplyLiveMatchState();
     }
 
     /// <summary>
@@ -57,8 +72,8 @@ public partial class PresentationScoreBar : UserControl
 
         Color homeColor = SafeColor(homeColorHex, "#C9483B");
         Color awayColor = SafeColor(awayColorHex, "#B68F12");
-        _ = homeSecondaryHex;
-        _ = awaySecondaryHex;
+        _homeSecondary = SafeColor(homeSecondaryHex, "#FFFFFF");
+        _awaySecondary = SafeColor(awaySecondaryHex, "#FFFFFF");
 
         // Panel gradients — same dark->bright sweep as the main scorebug.
         Color homeDark = Darken(homeColor, 0.55);
@@ -76,27 +91,20 @@ public partial class PresentationScoreBar : UserControl
         AwayLogoCellGradStart.Color = awayColor;
         AwayLogoCellGradEnd.Color   = awayDark;
 
-        // Score / total values
-        HomeGoalsText.Text   = match.HomeGoals.ToString();
-        HomeBehindsText.Text = match.HomeBehinds.ToString();
-        HomeTotalText.Text   = match.HomeTotal.ToString();
-        AwayGoalsText.Text   = match.AwayGoals.ToString();
-        AwayBehindsText.Text = match.AwayBehinds.ToString();
-        AwayTotalText.Text   = match.AwayTotal.ToString();
-
         // Smart contrast: pick readable text against each panel gradient.
         var homeFg = new SolidColorBrush(Services.SmartContrast.PickForeground(
             Services.SmartContrast.ContrastRatio(homeDark, Colors.White) < Services.SmartContrast.ContrastRatio(homeColor, Colors.White) ? homeDark : homeColor));
         var awayFg = new SolidColorBrush(Services.SmartContrast.PickForeground(
             Services.SmartContrast.ContrastRatio(awayDark, Colors.White) < Services.SmartContrast.ContrastRatio(awayColor, Colors.White) ? awayDark : awayColor));
-        HomeGoalsText.Foreground = homeFg;
-        HomeBehindsText.Foreground = homeFg;
         HomeTotalText.Foreground = homeFg;
-        AwayGoalsText.Foreground = awayFg;
-        AwayBehindsText.Foreground = awayFg;
         AwayTotalText.Foreground = awayFg;
         HomeLogoFallback.Foreground = homeFg;
         AwayLogoFallback.Foreground = awayFg;
+
+        HomeDeltaOverlay.Background = new SolidColorBrush(_homeSecondary);
+        AwayDeltaOverlay.Background = new SolidColorBrush(_awaySecondary);
+        HomeDeltaText.Foreground = new SolidColorBrush(Services.SmartContrast.PickForeground(_homeSecondary));
+        AwayDeltaText.Foreground = new SolidColorBrush(Services.SmartContrast.PickForeground(_awaySecondary));
 
         // Logo fallback letters
         HomeLogoFallback.Text = match.HomeAbbr.ToUpperInvariant();
@@ -112,35 +120,105 @@ public partial class PresentationScoreBar : UserControl
         // (clock stopped and no elapsed time in the current quarter) so the
         // scoreworm / weather / stats screens don't display a stale "00:00"
         // during the same window the break screen suppresses it.
-        bool atBreak = !match.ClockRunning && match.ElapsedInQuarter <= TimeSpan.Zero;
-        _showTimer = showTimer && !atBreak;
-        if (_showTimer)
-        {
-            TimeSpan dc = match.DisplayClock;
-            TimerText.Text = $"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
-            TimerText.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            TimerText.Visibility = Visibility.Collapsed;
-        }
+        _timerAllowed = showTimer;
+        ApplyLiveMatchState();
 
-        // Logos - hide both placeholders if either logo failed to load.
-        bool hideLogos = Services.ImageLoadHelper.Load(homeLogoPath) is null
-                      || Services.ImageLoadHelper.Load(awayLogoPath) is null;
-        ApplyLogo(HomeLogoImage, HomeLogoFallback, homeLogoPath, hideLogos);
-        ApplyLogo(AwayLogoImage, AwayLogoFallback, awayLogoPath, hideLogos);
+        // Each side falls back independently to its abbreviation. One missing
+        // logo must never erase both team identities from the persistent bar.
+        ApplyLogo(HomeLogoImage, HomeLogoFallback, homeLogoPath);
+        ApplyLogo(AwayLogoImage, AwayLogoFallback, awayLogoPath);
+        Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
     }
 
-    private static void ApplyLogo(Image image, TextBlock fallback, string? path, bool hideLogos)
+    /// <summary>
+    /// Mirrors scoring feedback on the persistent bar used by every full-screen
+    /// AFL presentation. Goals get a two-beat light hit before the +6 wipe;
+    /// behinds use a shorter +1 wipe so the two events remain distinguishable.
+    /// </summary>
+    public void PlayScoreAnimation(ScoreEvent scoreEvent)
     {
-        if (hideLogos)
+        bool home = scoreEvent.Team == TeamSide.Home;
+        bool goal = scoreEvent.Type == ScoreType.Goal;
+        Border overlay = home ? HomeDeltaOverlay : AwayDeltaOverlay;
+        TextBlock deltaText = home ? HomeDeltaText : AwayDeltaText;
+        TranslateTransform translate = home ? HomeDeltaTranslate : AwayDeltaTranslate;
+        Rectangle flash = home ? HomeGoalFlash : AwayGoalFlash;
+        TextBlock total = home ? HomeTotalText : AwayTotalText;
+
+        DispatcherTimer? previous = home ? _homeDeltaTimer : _awayDeltaTimer;
+        previous?.Stop();
+        overlay.BeginAnimation(OpacityProperty, null);
+        translate.BeginAnimation(TranslateTransform.YProperty, null);
+        flash.BeginAnimation(OpacityProperty, null);
+        total.BeginAnimation(OpacityProperty, null);
+
+        deltaText.Text = goal ? "+6" : "+1";
+        double height = Math.Max(ActualHeight, 32);
+        deltaText.FontSize = Math.Max(22, height * 0.72);
+        translate.Y = height;
+        overlay.Opacity = 1;
+
+        var enter = new DoubleAnimation(height, 0, TimeSpan.FromMilliseconds(goal ? 260 : 190))
         {
-            image.Source = null;
-            image.Visibility = Visibility.Collapsed;
-            fallback.Visibility = Visibility.Collapsed;
-            return;
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        translate.BeginAnimation(TranslateTransform.YProperty, enter);
+
+        if (goal)
+        {
+            var beats = new DoubleAnimationUsingKeyFrames();
+            beats.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.78, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(70))));
+            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.12, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(220))));
+            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.60, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(330))));
+            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(560))));
+            flash.BeginAnimation(OpacityProperty, beats);
         }
+
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(goal ? 720 : 480) };
+        if (home) _homeDeltaTimer = timer; else _awayDeltaTimer = timer;
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            var exitEase = new CubicEase { EasingMode = EasingMode.EaseIn };
+            var exit = new DoubleAnimation(0, -height, TimeSpan.FromMilliseconds(240)) { EasingFunction = exitEase };
+            var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = exitEase };
+            exit.Completed += (_, _) =>
+            {
+                overlay.Opacity = 0;
+                translate.BeginAnimation(TranslateTransform.YProperty, null);
+                translate.Y = height;
+            };
+            translate.BeginAnimation(TranslateTransform.YProperty, exit);
+            overlay.BeginAnimation(OpacityProperty, fade);
+        };
+        timer.Start();
+    }
+
+    private void ApplyLiveMatchState()
+    {
+        if (_match is null) return;
+
+        HomeTotalText.Text = _match.HomeTotal.ToString();
+        AwayTotalText.Text = _match.AwayTotal.ToString();
+
+        bool fullTime = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) is not null;
+        bool atBreak = !_match.ClockRunning && _match.ElapsedInQuarter <= TimeSpan.Zero
+                       && (_match.Quarter > 1 || fullTime);
+        QuarterText.Text = atBreak
+            ? Services.QuarterLabelService.GetBreakLabel(fullTime ? 4 : _match.Quarter - 1)
+            : Services.QuarterLabelService.GetQuarterLabel(_match.Quarter);
+
+        TimeSpan dc = _match.DisplayClock;
+        TimerText.Text = $"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
+        bool showTimer = _timerAllowed && !atBreak;
+        TimerText.Visibility = showTimer ? Visibility.Visible : Visibility.Collapsed;
+        CenterQuarterRow.Height = new GridLength(showTimer ? 0.72 : 1, GridUnitType.Star);
+        CenterTimerRow.Height = showTimer ? new GridLength(1.28, GridUnitType.Star) : new GridLength(0);
+    }
+
+    private static void ApplyLogo(Image image, TextBlock fallback, string? path)
+    {
 
         ImageSource? source = Services.ImageLoadHelper.LoadTrimmed(path);
         image.Source = source;
@@ -173,10 +251,62 @@ public partial class PresentationScoreBar : UserControl
             (byte)(c.B * (1 - amount)));
     }
 
-    /// <summary>Applies or removes the finals gold tint overlay on the score bar.</summary>
+    /// <summary>Applies the shared finals palette to the clock component only.</summary>
     public void SetFinalsMode(bool enabled)
     {
-        if (FindName("ScoreBarFinalsGoldOverlay") is System.Windows.Shapes.Rectangle overlay)
-            overlay.Opacity = enabled ? 0.10 : 0;
+        if (enabled)
+        {
+            CenterPanel.Background = Services.FinalsPalette.PanelBrush();
+        }
+        else
+        {
+            var normal = new LinearGradientBrush
+            {
+                StartPoint = new System.Windows.Point(0, 0),
+                EndPoint = new System.Windows.Point(0, 1)
+            };
+            normal.GradientStops.Add(new GradientStop(Color.FromRgb(0x1A, 0x1F, 0x2E), 0));
+            normal.GradientStops.Add(new GradientStop(Color.FromRgb(0x0A, 0x0D, 0x14), 0.5));
+            normal.GradientStops.Add(new GradientStop(Colors.Black, 1));
+            CenterPanel.Background = normal;
+        }
+        QuarterText.Foreground = TimerText.Foreground = enabled
+            ? new SolidColorBrush(Services.FinalsPalette.Ink)
+            : System.Windows.Media.Brushes.White;
+    }
+
+    private void UpdateResponsiveTypography()
+    {
+        if (ActualWidth <= 0 || ActualHeight <= 0) return;
+
+        // Keep the identity/clock cells proportional to bar height, but cap
+        // them so extremely narrow aspect ratios still leave score space.
+        double identityWidth = Math.Min(ActualHeight * 0.95, ActualWidth * 0.115);
+        HomeLogoColumn.Width = new GridLength(identityWidth);
+        AwayLogoColumn.Width = new GridLength(identityWidth);
+        CenterColumn.Width = new GridLength(Math.Min(ActualHeight * 2.35, ActualWidth * 0.27));
+
+        double scorePanelWidth = Math.Max(1, Math.Min(HomePanel.ActualWidth, AwayPanel.ActualWidth));
+        double totalCellWidth = Math.Max(1, scorePanelWidth - 8);
+        double availableHeight = Math.Max(1, ActualHeight - 4);
+
+        // Fit the three-digit worst case, never the current score. A one-point
+        // match and a 188-point match therefore use exactly the same font size.
+        double totalSize = FitFont("888", totalCellWidth, availableHeight, FontWeights.Black);
+        HomeTotalText.FontSize = AwayTotalText.FontSize = totalSize;
+        HomeLogoFallback.FontSize = AwayLogoFallback.FontSize = Math.Max(4, ActualHeight * 0.28);
+        QuarterText.FontSize = Math.Max(18, ActualHeight * 0.72);
+        TimerText.FontSize = Math.Max(6, ActualHeight * 0.43);
+    }
+
+    private double FitFont(string sample, double width, double height, FontWeight weight)
+    {
+        const double probeSize = 100;
+        var probe = new FormattedText(sample, CultureInfo.InvariantCulture, System.Windows.FlowDirection.LeftToRight,
+            new Typeface(new System.Windows.Media.FontFamily("Arial"), FontStyles.Normal, weight, FontStretches.Normal),
+            probeSize, System.Windows.Media.Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+        double byWidth = width / Math.Max(1, probe.WidthIncludingTrailingWhitespace) * probeSize;
+        double byHeight = height / Math.Max(1, probe.Height) * probeSize;
+        return Math.Max(3.5, Math.Min(byWidth, byHeight));
     }
 }

@@ -9,8 +9,59 @@ namespace Roche_Scoreboard.Services;
 /// </summary>
 internal static class ChangelogService
 {
-    public static IReadOnlyList<ChangelogVersion> Versions { get; } =
+    private static readonly IReadOnlyList<ChangelogVersion> RawVersions =
     [
+        new("4.1.0", "2026-08-29",
+        [
+            "[New] Australian Club Library now includes every AFL and VAFA club plus all APS and AGSV member schools",
+            "[New] Official club marks are cached as transparent PNGs with edge-aware background cleanup",
+            "[New] Team search adds league, state, saved-team and sorting controls, remembers its filters, and keeps clearer selection motion",
+            "[New] Goal moments use distinct broadcast styles with automatic text contrast",
+            "[Fixed] +6 and +1 cards now keep their numerals visible above the scorebug swipe in every team colour",
+            "[Fixed] The main scorebug information bar is larger while score rows remain fixed-capacity and space-efficient",
+            "[Fixed] AFL workspaces, setup defaults, venue weather and recent team presets are remembered so repeat matches need fewer clicks",
+            "[Fixed] Windows 10 and 11 releases use a verified self-contained package with one clear GitHub download"
+        ]),
+        new("4.0.0", "2026-08-22",
+        [
+            "[New] Australian Club Library adds fast team search, league and state filters, verified club identity data, one-click home or away setup and favourites that flow directly into saved team presets; the first verified catalogue includes every AFL club",
+            "[New] Club logos are downloaded only when selected, cached locally as transparent PNG files and passed through an edge-connected background remover when a source image has an opaque mat, preserving white details inside the crest",
+            "[Fixed] Every built-in goal animation now uses the GOAL wordmark, numeric +6 and +1 feedback is rendered above its swipe layer on the scorebug and every presentation, and quarter-break labels expand to fill the centre scorebar cell",
+            "[Redesigned] The AFL operator tabs now form four true edge-to-edge equal-width segments with a full-width selected rail and compact labels at narrower window sizes",
+            "[New] Finals presentation system adds a consistent restrained-gold broadcast palette across the live scorebug, quarter breakdown, margin flow, statistics and weather without covering the output in a global tint",
+            "[Redesigned] AFL scorebug establishes a distance-first hierarchy with dominant total scores, protected logo space, responsive team names and fixed-capacity score numerals that never jump in size as values change",
+            "[Redesigned] Quarter Breakdown presents true quarter-by-quarter scoring with permanent cells, 1ST–4TH labels, current-quarter emphasis and strong team-colour separation",
+            "[Improved] Presentation typography now uses the largest safe fixed-capacity sizing across quarter totals, goals.behinds, statistics, weather, graph axes and cricket data; decorative microtext has been removed or promoted into readable labels",
+            "[Redesigned] Margin Flow uses independent dynamic ranges above and below zero, sparse coloured axis labels, quarter markers and team-tinted graph halves without redundant scoring-zone labels",
+            "[Improved] Every AFL presentation now shares a live bottom score bar with maximum-size triple-digit totals, protected logos, quarter state and a continuously updating match clock; unreadable duplicate goals.behinds micro-text has been removed",
+            "[Redesigned] Quarter Score overlay replaces six cramped goals, behinds and points cells with large team abbreviations and triple-digit-safe quarter totals while the complete live score remains visible below",
+            "[Improved] Scorebug weather, forecast, rain and recent-score overlays show fewer, larger information groups so labels remain readable on compact physical scoreboards instead of shrinking to fit dense rows",
+            "[Improved] AFL presentation layouts are pixel-aware and reflow across changing output dimensions instead of relying on a fixed 386 × 193 surface",
+            "[Redesigned] Match Stats and Weather use the same presentation chrome, score hierarchy and contrast rules; fixed-size team abbreviations and proportional weather rows prevent unreadable or clipped text",
+            "[New] The five-minute warning is a dedicated full-width slide-down alert that preserves the live quarter, timer, teams and scores beneath it",
+            "[Redesigned] AFL Match Control, Output Studio, Media Desk and Match Setup share one navigation and card system with a persistent live match-state bar",
+            "[Redesigned] AFL control-panel navigation now uses a responsive four-destination dock with compact labels, optional context subtitles and equal-width ownership so tabs no longer clip or drift outside the window",
+            "[Redesigned] Built-in goal moments are now five clearly different packages: Signal television sweeps, Volt charge strobes, Epic team-identity drama, Pulse score-first restraint and Scoreboard retro lamp flicker; custom video remains unchanged",
+            "[Improved] Every full-screen AFL presentation now mirrors live scoring with a team-colour +6 or +1 wipe, while goals add a stronger two-beat light response without hiding the quarter or match clock",
+            "[Improved] Margin Flow now uses traditional straight horizontal runs and 90-degree score switches with square joins, sparse milestone markers and the existing independent team-side axis scaling",
+            "[Improved] Buttons, toggles, tabs, option reveals and setup transitions now use one consistent responsive motion system with clearer hover, press and selection feedback",
+            "[Redesigned] Global Settings has denser category navigation, clearer grouping, stronger contrast and improved responsive behaviour across narrow and large windows",
+            "[New] What’s New centre provides a searchable, filterable release history with version navigation and a concise current-release summary",
+            "[Improved] Auto-update checks distinguish failures from up-to-date results, select compatible release packages explicitly and verify downloaded package integrity before installation",
+            "[Fixed] Public-output switching and manual overlays recover and synchronise the live scorebug before firing, so presentation changes update immediately instead of leaving stale state",
+            "[Fixed] Saved matches are only deleted through an explicit Discard action, Cricket tab selection no longer hits invalid animation scopes, and presentation empty/error states fail visibly instead of showing fabricated data",
+            "[Fixed] Match Setup feature cards use high-contrast vector-style symbols and readable idle-state labels instead of dark colour-emoji glyphs disappearing into black panels",
+            "[Fixed] The Match Control result chip now identifies a scoreless draw instead of rendering as an unexplained empty outlined box",
+            "[Redesigned] Output Studio is a clearer broadcast workspace with larger presentation controls, a dedicated ticker editor, useful one-click message templates, an on-air count and an intentional empty state",
+            "[Improved] Ticker edits, highlights and removals now use one synchronised update path so the live output, cloud remote and saved match state cannot drift apart",
+            "[New] Appearance includes a safe goal-effect preview plus live score-capacity, responsive-output and smart-contrast checks, making presentation choices easier to validate before going on air",
+            "[Fixed] Training timer titles are length-limited and legacy recent timers are sanitised, preventing malformed saved labels from overrunning the operator console",
+            "[New] Cricket Match Centre adds live phase, run-rate trend, projection range, wickets in hand, chase equation, momentum, recent overs and fall-of-wickets analysis",
+            "[Improved] Cricket is now a first-class saved-match and cloud-remote mode with live innings recovery, dedicated remote state and delivery, undo, selection and next-innings commands",
+            "[Fixed] Cricket scoring now follows runs/wickets convention, preserves prior innings scorecards, restores exact pre-ball state on undo and prevents scoring through unresolved batter or bowler selections",
+            "[Fixed] Cricket no-balls, wides, balls faced, maidens, dot-ball percentage, powerplays and multi-innings results now use consistent cricket scoring rules",
+            "[Improved] Cricket setup validates playable squads, uses readable vector-style format/weather symbols and presents stronger idle-state contrast"
+        ]),
         new("3.4.0", "2026-05-10",
         [
             "[New] Scoreboard control panel countdown for Count Up matches — the setup wizard now offers a default-on countdown option, the control panel shows an independent stoppage timer once the game starts, and the scoreboard clock auto-pauses when that timer reaches zero without auto-ending the quarter",
@@ -338,6 +389,38 @@ internal static class ChangelogService
             "Initial release of Roche Scoreboard"
         ])
     ];
+
+    /// <summary>
+    /// Changelog copy is deliberately concise. This normalization also keeps
+    /// future entries to the two user-facing categories: New and Fixed.
+    /// </summary>
+    public static IReadOnlyList<ChangelogVersion> Versions { get; } = RawVersions
+        .Select(version => version with
+        {
+            Changes = version.Changes
+                .Select(Simplify)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(8)
+                .ToArray()
+        })
+        .ToArray();
+
+    private static string Simplify(string change)
+    {
+        string trimmed = change.Trim();
+        bool fixedItem = trimmed.StartsWith("[Fixed]", StringComparison.OrdinalIgnoreCase)
+                         || trimmed.StartsWith("[Removed]", StringComparison.OrdinalIgnoreCase);
+        int close = trimmed.IndexOf(']');
+        string text = close >= 0 ? trimmed[(close + 1)..].Trim() : trimmed;
+        int dash = text.IndexOf(" — ", StringComparison.Ordinal);
+        if (dash > 28) text = text[..dash];
+        if (text.Length > 150)
+        {
+            int cut = text.LastIndexOf(' ', 150);
+            text = text[..(cut > 80 ? cut : 150)].TrimEnd(',', ';', ':') + "…";
+        }
+        return $"[{(fixedItem ? "Fixed" : "New")}] {text.TrimEnd('.', ';')}";
+    }
 }
 
 /// <summary>

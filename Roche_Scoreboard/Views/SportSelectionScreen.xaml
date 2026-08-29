@@ -565,83 +565,116 @@
             </Border>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- BOTTOM ACCENT BAR + CHANGELOG — centred, hover-expand  -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <Grid VerticalAlignment="Bottom" Panel.ZIndex="20"
-              MouseEnter="ChangelogBar_MouseEnter" MouseLeave="ChangelogBar_MouseLeave">
-            <!-- Accent line at very bottom -->
-            <Border x:Name="BottomAccent" VerticalAlignment="Bottom" Height="3" Opacity="0"
-                    IsHitTestVisible="False">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#58A6FF" Offset="0"/>
-                        <GradientStop Color="#1AFFFFFF" Offset="0.5"/>
-                        <GradientStop Color="#3FB950" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-            </Border>
-
-            <!-- Changelog container -->
-            <Border x:Name="ChangelogBar" VerticalAlignment="Bottom"
-                    HorizontalAlignment="Center" Margin="0,0,0,3"
-                    MaxWidth="860" MinWidth="400">
-                <Border.RenderTransform>
-                    <TranslateTransform x:Name="ChangelogTranslate" Y="0"/>
-                </Border.RenderTransform>
-
-                <Grid>
-                    <!-- Collapsed state: version pill -->
-                    <Border x:Name="ChangelogToggle" Background="#18FFFFFF"
-                            BorderBrush="#20FFFFFF" BorderThickness="1"
-                            CornerRadius="10,10,0,0" Padding="20,7"
-                            HorizontalAlignment="Center" Cursor="Hand"
-                            Opacity="0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📋" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock x:Name="VersionLabel" Text="v2.0.0" FontSize="13" FontWeight="Bold"
-                                       Foreground="#8B949E" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
-                            <TextBlock Text="  ·  CHANGELOG" FontSize="10" FontWeight="Black"
-                                       Foreground="#484F58" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
-                        </StackPanel>
+        <!-- Persistent release entry point: click is intentional and stable. -->
+        <Button x:Name="ChangelogToggle" Panel.ZIndex="24" VerticalAlignment="Bottom"
+                HorizontalAlignment="Center" Margin="0,0,0,22" Padding="18,10"
+                Background="#E6111822" BorderBrush="#4558A6FF" BorderThickness="1"
+                Cursor="Hand" Opacity="0" Click="ChangelogToggle_Click">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Shell" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="18" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="#F0182738"/>
+                            <Setter TargetName="Shell" Property="BorderBrush" Value="#8858A6FF"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Shell" Property="Background" Value="#FF0B1420"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+            <Button.Effect>
+                <DropShadowEffect BlurRadius="18" ShadowDepth="4" Color="#000000" Opacity="0.55"/>
+            </Button.Effect>
+            <StackPanel Orientation="Horizontal">
+                <Border Width="28" Height="28" CornerRadius="9" Background="#2058A6FF" Margin="0,0,10,0">
+                    <TextBlock Text="✦" Foreground="#8CC8FF" FontSize="15" FontWeight="Black"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="WHAT’S NEW" FontFamily="Bahnschrift" FontWeight="Black"
+                               FontSize="12" Foreground="White"/>
+                    <TextBlock x:Name="VersionLabel" Text="CURRENT BUILD" FontFamily="Bahnschrift"
+                               FontWeight="SemiBold" FontSize="9" Foreground="#8FA5BD"/>
+                </StackPanel>
+                <TextBlock Text="  ›" FontSize="21" FontWeight="Black" Foreground="#58A6FF"
+                           VerticalAlignment="Center" Margin="8,0,0,0"/>
+            </StackPanel>
+        </Button>
 
-                    <!-- Expanded state: full changelog panel -->
-                    <Border x:Name="ChangelogPanel"
-                            Background="#0D1117" BorderBrush="#1C2838" BorderThickness="1,1,1,0"
-                            CornerRadius="10,10,0,0" ClipToBounds="True"
-                            MaxHeight="0" Opacity="0">
+        <Border x:Name="BottomAccent" VerticalAlignment="Bottom" Height="3" Panel.ZIndex="20"
+                Opacity="0" IsHitTestVisible="False">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#58A6FF" Offset="0"/>
+                    <GradientStop Color="#1AFFFFFF" Offset="0.5"/>
+                    <GradientStop Color="#3FB950" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- Full What’s New centre. It is modal so it cannot disappear while reading. -->
+        <Grid x:Name="ChangelogOverlay" Panel.ZIndex="100" Visibility="Collapsed" Opacity="0"
+              PreviewKeyDown="ChangelogOverlay_PreviewKeyDown">
+            <Border Background="#D904080D" MouseLeftButtonUp="ChangelogBackdrop_Click"/>
+            <Border x:Name="ChangelogPanel" Width="980" MaxWidth="980" Margin="44"
+                    HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                    Background="#F50B1119" BorderBrush="#354E6A" BorderThickness="1"
+                    CornerRadius="22" ClipToBounds="True" RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="ChangelogPanelScale" ScaleX="0.96" ScaleY="0.96"/>
+                        <TranslateTransform x:Name="ChangelogPanelTranslate" Y="24"/>
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Padding="30,24" BorderBrush="#243244" BorderThickness="0,0,0,1">
                         <Grid>
-                            <!-- Ambient glow -->
-                            <Border Opacity="0.06" IsHitTestVisible="False" CornerRadius="10,10,0,0">
-                                <Border.Background>
-                                    <RadialGradientBrush Center="0.5,0.2" RadiusX="0.6" RadiusY="0.5">
-                                        <GradientStop Color="#58A6FF" Offset="0"/>
-                                        <GradientStop Color="#00000000" Offset="1"/>
-                                    </RadialGradientBrush>
-                                </Border.Background>
-                            </Border>
-
                             <StackPanel>
-                                <!-- Header -->
-                                <Border Background="#111822" BorderBrush="#1C2838" BorderThickness="0,0,0,1" Padding="18,10">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="📋" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <TextBlock Text="CHANGELOG" FontSize="16" FontWeight="Black" Foreground="#58A6FF" FontFamily="Bahnschrift" VerticalAlignment="Center">
-                                            <TextBlock.Effect>
-                                                <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="#58A6FF" Opacity="0.3"/>
-                                            </TextBlock.Effect>
-                                        </TextBlock>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Scrollable entries -->
-                                <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto" Padding="20,14">
-                                    <StackPanel x:Name="ChangelogEntries"/>
-                                </ScrollViewer>
+                                <TextBlock Text="ROCHE SCOREBOARD" FontFamily="Bahnschrift" FontSize="11"
+                                           FontWeight="Black" Foreground="#58A6FF"/>
+                                <TextBlock Text="What’s New" FontFamily="Bahnschrift" FontSize="34"
+                                           FontWeight="Black" Foreground="White" Margin="0,3,0,0"/>
+                                <TextBlock Text="Every operator-facing improvement, fix and release—kept in one searchable timeline."
+                                           FontSize="13" Foreground="#9FB0C3" Margin="0,5,0,0"/>
                             </StackPanel>
+                            <Button HorizontalAlignment="Right" VerticalAlignment="Top" Width="44" Height="44"
+                                    Background="#182331" Foreground="White" BorderBrush="#31445A"
+                                    FontSize="18" FontWeight="Bold" Content="×" Cursor="Hand"
+                                    Click="ChangelogClose_Click"/>
                         </Grid>
                     </Border>
+
+                    <Grid Grid.Row="1" Margin="30,18,30,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="ChangelogSearchBox" Height="42" Padding="14,10"
+                                 Background="#111A25" Foreground="White" CaretBrush="#58A6FF"
+                                 BorderBrush="#31445A" FontSize="13"
+                                 TextChanged="ChangelogSearch_TextChanged"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="14,0,0,0">
+                            <Button Content="ALL" Tag="All" Click="ChangelogFilter_Click" Padding="16,8" Margin="0,0,6,0"/>
+                            <Button Content="NEW" Tag="New" Click="ChangelogFilter_Click" Padding="16,8" Margin="0,0,6,0"/>
+                            <Button Content="FIXED" Tag="Fixed" Click="ChangelogFilter_Click" Padding="16,8"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="30,8,30,28">
+                        <StackPanel x:Name="ChangelogEntries"/>
+                    </ScrollViewer>
                 </Grid>
             </Border>
         </Grid>

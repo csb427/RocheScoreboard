@@ -13,7 +13,7 @@
         <SolidColorBrush x:Key="RegionEdgeBrush" Color="#30363D"/>
         <SolidColorBrush x:Key="TextStrongBrush" Color="#E6EDF3"/>
         <SolidColorBrush x:Key="TextMidBrush" Color="#8B949E"/>
-        <SolidColorBrush x:Key="TextDimBrush" Color="#484F58"/>
+        <SolidColorBrush x:Key="TextDimBrush" Color="#8291A2"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#818CF8"/>
         <SolidColorBrush x:Key="LiveBrush" Color="#3FB950"/>
         <SolidColorBrush x:Key="WarnBrush" Color="#D29922"/>
@@ -24,12 +24,12 @@
         <SolidColorBrush x:Key="Surface3Brush" Color="#30363D"/>
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E6EDF3"/>
         <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8B949E"/>
-        <SolidColorBrush x:Key="TextMutedBrush" Color="#484F58"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#8291A2"/>
 
         <!-- ── Section heading — uppercase, tracked ── -->
         <Style x:Key="SectionHead" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource TextDimBrush}"/>
-            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Black"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
@@ -288,12 +288,9 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
-                        <Grid SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
+                        <Grid x:Name="TabRoot" SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
                             <Grid.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform x:Name="TabSc" ScaleX="1" ScaleY="1"/>
-                                    <TranslateTransform x:Name="TabLift" Y="0"/>
-                                </TransformGroup>
+                                <ScaleTransform ScaleX="1" ScaleY="1"/>
                             </Grid.RenderTransform>
                             <Border x:Name="Flash" Background="#66818CF8" Opacity="0" Margin="2,1,2,1" IsHitTestVisible="False"/>
                             <Border x:Name="Bd" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,3" Padding="{TemplateBinding Padding}" Margin="0,0,2,0" Opacity="1">
@@ -315,6 +312,10 @@
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
                                 <Setter TargetName="Cp" Property="TextBlock.Foreground" Value="White"/>
                                 <Setter TargetName="AccBar" Property="Opacity" Value="1"/>
+                                <!-- Selected content already receives a safe code-driven
+                                     transition. Avoid template-name storyboards here: older
+                                     builds could not resolve TabRoot during initial layout
+                                     and logged DispatcherUnhandledException on tab changes. -->
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="#1C2128"/>
@@ -340,21 +341,6 @@
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="Flash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14"/>
                                         <DoubleAnimation Storyboard.TargetName="AccBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                            <EventTrigger RoutedEvent="Selector.Selected">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="TabSc" Storyboard.TargetProperty="ScaleX" From="0.96" To="1.06" Duration="0:0:0.17">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.45" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="TabSc" Storyboard.TargetProperty="ScaleY" From="0.96" To="1.06" Duration="0:0:0.17">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.45" EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="TabLift" Storyboard.TargetProperty="Y" From="1" To="-2" Duration="0:0:0.16"/>
-                                        <DoubleAnimation Storyboard.TargetName="Flash" Storyboard.TargetProperty="Opacity" From="0.36" To="0" Duration="0:0:0.24"/>
-                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" From="0.8" To="1" Duration="0:0:0.2"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -597,24 +583,6 @@
                                         <Button Content="+3" Tag="3" Click="ExtrasRun_Click" Style="{StaticResource ToolBtn}"/>
                                         <Button Content="+4" Tag="4" Click="ExtrasRun_Click" Style="{StaticResource ToolBtn}"/>
                                     </UniformGrid>
-                                    <StackPanel x:Name="NoBallSubExtrasPanel" Visibility="Collapsed" Margin="0,4,0,0">
-                                        <TextBlock Text="Or no-ball with extra type:" Foreground="{StaticResource TextMidBrush}" FontSize="11" Margin="0,0,0,4"/>
-                                        <UniformGrid Columns="3" Margin="0,0,0,4">
-                                            <Button Content="NB + Wide" Tag="nbwide" Click="NoBallSubType_Click" Style="{StaticResource ToolBtn}"/>
-                                            <Button Content="NB + Bye" Tag="nbbye" Click="NoBallSubType_Click" Style="{StaticResource ToolBtn}"/>
-                                            <Button Content="NB + Leg Bye" Tag="nblb" Click="NoBallSubType_Click" Style="{StaticResource ToolBtn}"/>
-                                        </UniformGrid>
-                                        <StackPanel x:Name="NoBallSubRunsPanel" Visibility="Collapsed">
-                                            <TextBlock x:Name="NoBallSubRunsLabel" Text="NB + Wide — additional runs:" Foreground="{StaticResource TextMidBrush}" FontSize="11" Margin="0,2,0,4"/>
-                                            <UniformGrid Columns="5">
-                                                <Button Content="0" Tag="0" Click="NoBallSubRun_Click" Style="{StaticResource ToolBtn}"/>
-                                                <Button Content="+1" Tag="1" Click="NoBallSubRun_Click" Style="{StaticResource ToolBtn}"/>
-                                                <Button Content="+2" Tag="2" Click="NoBallSubRun_Click" Style="{StaticResource ToolBtn}"/>
-                                                <Button Content="+3" Tag="3" Click="NoBallSubRun_Click" Style="{StaticResource ToolBtn}"/>
-                                                <Button Content="+4" Tag="4" Click="NoBallSubRun_Click" Style="{StaticResource ToolBtn}"/>
-                                            </UniformGrid>
-                                        </StackPanel>
-                                    </StackPanel>
                                     <TextBlock x:Name="ExtrasHintText" Text="Total: 1 + additional runs" Foreground="{StaticResource TextDimBrush}" FontSize="10" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
@@ -702,7 +670,7 @@
                                     </StackPanel>
 
                                     <!-- Presentation cards -->
-                                    <UniformGrid Columns="4" Margin="0,0,0,6">
+                                    <UniformGrid Columns="3" Margin="0,0,0,6">
                                         <Border Cursor="Hand" Background="#0A1628" BorderBrush="#818CF8" BorderThickness="2" Margin="3" MouseLeftButtonUp="ShowScorebug_Click">
                                             <Grid MinHeight="80">
                                                 <Border Opacity="0.12" IsHitTestVisible="False">
@@ -732,6 +700,14 @@
                                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                                     <TextBlock Text="🎯" FontSize="20" HorizontalAlignment="Center"/>
                                                     <TextBlock Text="Bowling Card" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Black" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                        <Border Cursor="Hand" Background="#0A1628" BorderBrush="#30363D" BorderThickness="1" Margin="3" MouseLeftButtonUp="ShowMatchCentre_Click">
+                                            <Grid MinHeight="80">
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                    <TextBlock Text="◈" Foreground="#60A5FA" FontSize="22" FontWeight="Black" HorizontalAlignment="Center"/>
+                                                    <TextBlock Text="Match Centre" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Black" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                                 </StackPanel>
                                             </Grid>
                                         </Border>
@@ -807,13 +783,41 @@
             <!-- TAB 3: SETTINGS — team management          -->
             <!-- ══════════════════════════════════════════ -->
             <TabItem Header="SETTINGS">
-                <Border Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="20,16">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel>
-                            <TextBlock Text="BOWLER SELECTION" Style="{StaticResource SectionHead}"/>
-                            <ListBox x:Name="BowlerList" Background="Transparent" Foreground="White" FontSize="12" BorderThickness="0" MaxHeight="200" SelectionChanged="BowlerList_SelectionChanged"/>
+                <Border Background="#0D1117" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="20,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.05*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="1.4*"/></Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="MATCH HEALTH" Style="{StaticResource SectionHead}" Foreground="#818CF8"/>
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,10" Padding="16">
+                                <StackPanel>
+                                    <TextBlock x:Name="SettingsMatchText" Text="LIMITED OVERS • 20 OVERS" Foreground="White" FontSize="18" FontWeight="Black"/>
+                                    <TextBlock x:Name="SettingsStateText" Text="1ST INNINGS • 0/0 (0.0)" Foreground="#C4D0DD" FontSize="14" FontWeight="Bold" Margin="0,6,0,0"/>
+                                    <Border Height="1" Background="#30363D" Margin="0,12"/>
+                                    <TextBlock x:Name="SettingsAutosaveText" Text="● LIVE RECOVERY ARMED" Foreground="#67D17B" FontSize="13" FontWeight="Black"/>
+                                    <TextBlock Text="Every confirmed delivery is mirrored to the display, analytics, recovery state and connected remote." Foreground="#AAB7C5" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Card}" Padding="16">
+                                <StackPanel>
+                                    <TextBlock Text="OPERATOR GUARD" Foreground="#F0C96A" FontSize="13" FontWeight="Black"/>
+                                    <TextBlock x:Name="SettingsSelectionText" Text="Select both opening batters and a bowler to begin." Foreground="#D6E0EA" FontSize="13" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
-                    </ScrollViewer>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="BOWLING MANAGEMENT" Style="{StaticResource SectionHead}" Foreground="#818CF8"/>
+                            <Border Style="{StaticResource Card}" Padding="14">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <TextBlock Text="Change the bowler between overs. Mid-over changes are blocked to protect bowling figures." Foreground="#B6C2CF" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <ListBox Grid.Row="1" x:Name="BowlerList" Background="#0D131D" Foreground="White" FontSize="14" FontWeight="SemiBold" BorderBrush="#30363D" BorderThickness="1" MinHeight="220" Padding="6" SelectionChanged="BowlerList_SelectionChanged"/>
+                                    <TextBlock Grid.Row="2" Text="The active bowler, previous bowler and figures remain synchronised on every presentation." Foreground="#8291A2" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
                 </Border>
             </TabItem>
         </TabControl>
@@ -968,7 +972,10 @@
                         <TextBlock x:Name="WicketBowlerAutoLabel" Text="" Foreground="#4ADE80" FontSize="12" FontWeight="Bold" Margin="0,0,0,4"/>
                     </StackPanel>
 
-                    <Button Grid.Row="6" Content="Confirm Wicket" Height="36" FontSize="13" FontWeight="Bold" Margin="0,10,0,0" Click="ConfirmWicket_Click">
+                    <Grid Grid.Row="6" Margin="0,10,0,0">
+                      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                      <Button Grid.Column="0" Content="Cancel" Height="36" FontSize="13" FontWeight="Bold" Click="CancelWicket_Click" Style="{StaticResource ToolBtn}"/>
+                      <Button Grid.Column="2" Content="Confirm Wicket" Height="36" FontSize="13" FontWeight="Bold" Click="ConfirmWicket_Click">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="Foreground" Value="White"/>
@@ -1003,7 +1010,8 @@
                                 </Setter>
                             </Style>
                         </Button.Style>
-                    </Button>
+                      </Button>
+                    </Grid>
                 </Grid>
             </Border>
         </Border>

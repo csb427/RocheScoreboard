@@ -82,9 +82,7 @@ namespace Roche_Scoreboard.Models
             {
                 int completed = BallsBowled / 6;
                 int remaining = BallsBowled % 6;
-                return remaining == 0
-                    ? completed.ToString()
-                    : $"{completed}.{remaining}";
+                return $"{completed}.{remaining}";
             }
         }
 
@@ -108,5 +106,28 @@ namespace Roche_Scoreboard.Models
             BallsBowled = RunsConceded = Wickets = Maidens = Wides = NoBalls = 0;
             LastOverBowledAt = -1;
         }
+
+        public CricketPlayer Clone() => new()
+        {
+            FirstName = FirstName,
+            LastName = LastName,
+            IsWicketkeeper = IsWicketkeeper,
+            Runs = Runs,
+            BallsFaced = BallsFaced,
+            Fours = Fours,
+            Sixes = Sixes,
+            IsOut = IsOut,
+            DismissalText = DismissalText,
+            HowOut = HowOut,
+            DismissalBowler = DismissalBowler,
+            DismissalFielder = DismissalFielder,
+            BallsBowled = BallsBowled,
+            RunsConceded = RunsConceded,
+            Wickets = Wickets,
+            Maidens = Maidens,
+            Wides = Wides,
+            NoBalls = NoBalls,
+            LastOverBowledAt = LastOverBowledAt
+        };
     }
 }

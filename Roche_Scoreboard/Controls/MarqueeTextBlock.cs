@@ -21,7 +21,7 @@ public class MarqueeTextBlock : ContentControl
         DependencyProperty.Register(nameof(Text), typeof(string), typeof(MarqueeTextBlock),
             new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.AffectsMeasure, OnVisualChanged));
 
-    public static readonly DependencyProperty FontWeightProperty =
+    public new static readonly DependencyProperty FontWeightProperty =
         DependencyProperty.Register(nameof(FontWeight), typeof(FontWeight), typeof(MarqueeTextBlock),
             new FrameworkPropertyMetadata(FontWeights.Normal, FrameworkPropertyMetadataOptions.AffectsMeasure, OnVisualChanged));
 

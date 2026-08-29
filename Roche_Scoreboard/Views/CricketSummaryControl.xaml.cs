@@ -14,7 +14,7 @@ namespace Roche_Scoreboard.Views
 {
     public partial class CricketSummaryControl : UserControl
     {
-        private string _currentMode = ""; // "batting" or "bowling"
+        private string _currentMode = ""; // batting, bowling or centre
 
         public CricketSummaryControl()
         {
@@ -73,6 +73,129 @@ namespace Roche_Scoreboard.Views
             PopulateBowling(match, inn);
         }
 
+        public void ShowMatchCentre(CricketMatchManager match)
+        {
+            var inn = match.CurrentInnings;
+            if (inn == null) return;
+            Action populate = () => PopulateMatchCentre(match, inn);
+            if (Visibility == Visibility.Visible)
+                SlideTransition(populate, slideLeft: _currentMode != "centre");
+            else
+            {
+                populate();
+                ShowSummary();
+            }
+            _currentMode = "centre";
+        }
+
+        public void RefreshMatchCentre(CricketMatchManager match)
+        {
+            var inn = match.CurrentInnings;
+            if (inn == null || Visibility != Visibility.Visible) return;
+            PopulateMatchCentre(match, inn);
+        }
+
+        private void PopulateMatchCentre(CricketMatchManager match, CricketInnings inn)
+        {
+            CricketAnalyticsSnapshot analytics = CricketAnalyticsEngine.Create(match);
+            TrySetColor(HeaderBg, match.BattingTeamPrimaryColor);
+            TrySetColor(SeparatorBg, match.BowlingTeamPrimaryColor);
+            HeaderText.Text = $"MATCH CENTRE  •  {analytics.Phase}";
+            RowsPanel.Children.Clear();
+
+            var dashboard = new Grid { Margin = new Thickness(18, 16, 18, 8) };
+            dashboard.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            dashboard.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            dashboard.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            for (int i = 0; i < 4; i++)
+                dashboard.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            AddAnalyticsTile(dashboard, 0, 0, "CURRENT RATE", inn.RunRate.ToString("F2"), "runs per over", match.BattingTeamPrimaryColor);
+            AddAnalyticsTile(dashboard, 0, 1, "RECENT RATE", analytics.RecentRunRate.ToString("F2"), "last 30 legal balls", match.BattingTeamPrimaryColor);
+            AddAnalyticsTile(dashboard, 0, 2, "WICKETS IN HAND", analytics.WicketsInHand.ToString(), $"{inn.TotalWickets} down", match.BowlingTeamPrimaryColor);
+            AddAnalyticsTile(dashboard, 0, 3, "DOT BALLS", $"{analytics.DotBallPercentage:F1}%", $"drought {analytics.BoundaryDroughtBalls} balls", match.BowlingTeamPrimaryColor);
+
+            string projection = match.Format == CricketFormat.LimitedOvers
+                ? analytics.ProjectedScore.ToString()
+                : "—";
+            string projectionRange = match.Format == CricketFormat.LimitedOvers
+                ? $"range {analytics.ConservativeProjection}–{analytics.AttackingProjection}"
+                : "multi-innings match";
+            AddAnalyticsTile(dashboard, 1, 0, "PROJECTED", projection, projectionRange, match.BattingTeamPrimaryColor, columnSpan: 2);
+            AddAnalyticsTile(dashboard, 1, 2, match.Target is null ? "MATCH CONTEXT" : "CHASE", analytics.ChaseEquation,
+                match.RequiredRunRate is double rr ? $"required rate {rr:F2}" : "live innings context",
+                match.BowlingTeamPrimaryColor, columnSpan: 2, compactValue: true);
+
+            var momentum = CreateAnalyticsTile("LIVE READ", analytics.MomentumHeadline, analytics.MomentumDetail,
+                match.BattingTeamPrimaryColor, compactValue: true);
+            Grid.SetRow(momentum, 2);
+            Grid.SetColumn(momentum, 0);
+            Grid.SetColumnSpan(momentum, 4);
+            dashboard.Children.Add(momentum);
+            RowsPanel.Children.Add(dashboard);
+
+            string overLine = analytics.RecentOvers.Count == 0
+                ? "Waiting for the first delivery"
+                : string.Join("     ", analytics.RecentOvers.Select(o => $"OV {o.Over}  {o.Runs}/{o.Wickets}  [{o.Sequence}]"));
+            RowsPanel.Children.Add(CreateLabelValueRow("RECENT OVERS", overLine, null));
+
+            string wickets = analytics.FallOfWickets.Count == 0
+                ? "No wickets have fallen"
+                : string.Join("   •   ", analytics.FallOfWickets.TakeLast(5));
+            RowsPanel.Children.Add(CreateLabelValueRow("FALL OF WICKETS", wickets, null));
+            PopulateFooter(match, inn);
+        }
+
+        private static void AddAnalyticsTile(Grid grid, int row, int column, string label, string value,
+            string detail, string accent, int columnSpan = 1, bool compactValue = false)
+        {
+            Border tile = CreateAnalyticsTile(label, value, detail, accent, compactValue);
+            Grid.SetRow(tile, row);
+            Grid.SetColumn(tile, column);
+            Grid.SetColumnSpan(tile, columnSpan);
+            grid.Children.Add(tile);
+        }
+
+        private static Border CreateAnalyticsTile(string label, string value, string detail, string accent, bool compactValue)
+        {
+            Color accentColor = ParseColor(accent, Color.FromRgb(0x63, 0x66, 0xF1));
+            var stack = new StackPanel();
+            stack.Children.Add(new TextBlock
+            {
+                Text = label,
+                Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
+                FontSize = 15,
+                FontWeight = FontWeights.Black
+            });
+            stack.Children.Add(new TextBlock
+            {
+                Text = value,
+                Foreground = System.Windows.Media.Brushes.White,
+                FontSize = compactValue ? 24 : 34,
+                FontWeight = FontWeights.Black,
+                FontFamily = new FontFamily("Bahnschrift SemiCondensed"),
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                Margin = new Thickness(0, 4, 0, 1)
+            });
+            stack.Children.Add(new TextBlock
+            {
+                Text = detail,
+                Foreground = new SolidColorBrush(Color.FromRgb(0xBF, 0xCB, 0xD9)),
+                FontSize = 15,
+                FontWeight = FontWeights.SemiBold,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            });
+            return new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27)),
+                BorderBrush = new SolidColorBrush(accentColor),
+                BorderThickness = new Thickness(4, 1, 1, 1),
+                Padding = new Thickness(14, 10, 14, 10),
+                Margin = new Thickness(4),
+                Child = stack
+            };
+        }
+
         private void PopulateBatting(CricketMatchManager match, CricketInnings inn)
         {
             TrySetColor(HeaderBg, match.BattingTeamPrimaryColor);
@@ -127,7 +250,7 @@ namespace Roche_Scoreboard.Views
         private void PopulateFooter(CricketMatchManager match, CricketInnings inn)
         {
             FooterTeamName.Text = match.BattingTeamName.ToUpper();
-            FooterTeamScore.Text = $"{inn.TotalWickets}/{inn.TotalRuns}";
+            FooterTeamScore.Text = $"{inn.TotalRuns}/{inn.TotalWickets}";
             FooterOvers.Text = inn.OversDisplay;
 
             if (match.Target != null)
@@ -245,7 +368,7 @@ namespace Roche_Scoreboard.Views
                 var indicator = new TextBlock
                 {
                     Text = "▶ ",
-                    FontSize = 12,
+                    FontSize = 16,
                     Foreground = new SolidColorBrush(teamCol),
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -279,7 +402,7 @@ namespace Roche_Scoreboard.Views
             {
                 Text = p.DismissalSummary,
                 Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
-                FontSize = 12,
+                FontSize = 16,
                 FontWeight = FontWeights.Normal,
                 FontStyle = p.IsOut ? FontStyles.Normal : FontStyles.Italic,
                 TextTrimming = TextTrimming.CharacterEllipsis
@@ -308,7 +431,7 @@ namespace Roche_Scoreboard.Views
             {
                 Text = p.BallsFaced.ToString(),
                 Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
-                FontSize = 16,
+                FontSize = 20,
                 FontWeight = FontWeights.Bold,
                 FontFamily = new FontFamily("Bahnschrift"),
                 VerticalAlignment = VerticalAlignment.Center,
@@ -329,8 +452,8 @@ namespace Roche_Scoreboard.Views
             {
                 Text = p.BallsFaced > 0 ? sr.ToString("F0") : "—",
                 Foreground = new SolidColorBrush(srColor),
-                FontSize = 14,
-                FontWeight = FontWeights.Bold,
+                FontSize = 18,
+                FontWeight = FontWeights.Black,
                 FontFamily = new FontFamily("Bahnschrift"),
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center
@@ -355,7 +478,7 @@ namespace Roche_Scoreboard.Views
                 {
                     Text = text,
                     Foreground = new SolidColorBrush(color),
-                    FontSize = 11,
+                    FontSize = 16,
                     FontWeight = FontWeights.Black,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
@@ -396,7 +519,7 @@ namespace Roche_Scoreboard.Views
             {
                 Text = text,
                 Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
-                FontSize = 11,
+                FontSize = 16,
                 FontWeight = FontWeights.Black,
                 HorizontalAlignment = align,
                 VerticalAlignment = VerticalAlignment.Center
@@ -434,7 +557,7 @@ namespace Roche_Scoreboard.Views
                 nameRow.Children.Add(new TextBlock
                 {
                     Text = "▶ ",
-                    FontSize = 12,
+                    FontSize = 16,
                     Foreground = new SolidColorBrush(teamCol),
                     VerticalAlignment = VerticalAlignment.Center
                 });
@@ -443,7 +566,7 @@ namespace Roche_Scoreboard.Views
             {
                 Text = p.DisplayName.ToUpper(),
                 Foreground = new SolidColorBrush(Colors.White),
-                FontSize = 16,
+                FontSize = 20,
                 FontWeight = FontWeights.Black,
                 FontFamily = new FontFamily("Bahnschrift"),
                 VerticalAlignment = VerticalAlignment.Center,
@@ -508,7 +631,7 @@ namespace Roche_Scoreboard.Views
             {
                 Text = label,
                 Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
-                FontSize = 14,
+                FontSize = 18,
                 FontWeight = FontWeights.Black,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -521,7 +644,7 @@ namespace Roche_Scoreboard.Views
                 {
                     Text = detail,
                     Foreground = new SolidColorBrush(Color.FromRgb(0x64, 0x74, 0x8B)),
-                    FontSize = 12,
+                    FontSize = 16,
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(12, 0, 0, 0)
                 };

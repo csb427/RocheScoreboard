@@ -33,6 +33,7 @@ namespace Roche_Scoreboard.Views
         private readonly List<DispatcherTimer> _awayTimers = new();
         private ScorebugLayout _currentLayout = ScorebugLayout.Expanded;
         private const double ExpandedOverlayHeight = 40;
+        private const double ExpandedWarningHeight = 64;
 
         // Goal/Behind column expand/collapse state
         private string _homeFullName = "HOME TEAM";
@@ -91,16 +92,20 @@ namespace Roche_Scoreboard.Views
 
             MarqueeCanvas.SizeChanged += (_, __) => RestartMarqueeIfNeeded();
             ExpMarqueeCanvas.SizeChanged += (_, __) => RestartMarqueeIfNeeded();
+            ExpHomeScoreGrid.SizeChanged += (_, __) => UpdateExpandedScoreTypography();
+            ExpAwayScoreGrid.SizeChanged += (_, __) => UpdateExpandedScoreTypography();
             ExpandedLayout.SizeChanged += (_, __) =>
             {
                 UpdateCompactClockMode();
                 UpdateExpOverlayBleed();
+                UpdateExpandedScoreTypography();
             };
             Loaded += (_, __) =>
             {
                 StartActiveMarquee();
                 UpdateCompactClockMode();
                 UpdateExpOverlayBleed();
+                UpdateExpandedScoreTypography();
             };
 
             // Live custom quarter / break label refresh: when the operator
@@ -108,6 +113,53 @@ namespace Roche_Scoreboard.Views
             // immediately without waiting for the next quarter change.
             QuarterLabelService.LabelsChanged += OnQuarterLabelsChanged;
             Unloaded += (_, __) => QuarterLabelService.LabelsChanged -= OnQuarterLabelsChanged;
+        }
+
+        /// <summary>
+        /// Sizes score numerals against their maximum supported values, never the current value.
+        /// This keeps 1/9/99 identical for goals and behinds, and 1/99/999 identical for totals.
+        /// </summary>
+        private void UpdateExpandedScoreTypography()
+        {
+            if (!IsLoaded) return;
+
+            double gbSize = Math.Min(
+                FitScoreFont(ExpHomeGoalsCell, "88", ExpHomeGoalsText),
+                FitScoreFont(ExpAwayGoalsCell, "88", ExpAwayGoalsText));
+            gbSize = Math.Min(gbSize, Math.Min(
+                FitScoreFont(ExpHomeBehindsCell, "88", ExpHomeBehindsText),
+                FitScoreFont(ExpAwayBehindsCell, "88", ExpAwayBehindsText)));
+
+            double totalSize = Math.Min(
+                FitScoreFont(ExpHomeTotalCell, "888", ExpHomeTotalText),
+                FitScoreFont(ExpAwayTotalCell, "888", ExpAwayTotalText));
+
+            if (gbSize > 0)
+                ExpHomeGoalsText.FontSize = ExpHomeBehindsText.FontSize = ExpAwayGoalsText.FontSize = ExpAwayBehindsText.FontSize = gbSize;
+            if (totalSize > 0)
+                ExpHomeTotalText.FontSize = ExpAwayTotalText.FontSize = totalSize;
+        }
+
+        private static double FitScoreFont(FrameworkElement cell, string worstCase, TextBlock sample)
+        {
+            double width = Math.Max(0, cell.ActualWidth - 6);
+            double height = Math.Max(0, cell.ActualHeight - 4);
+            if (width <= 0 || height <= 0) return 0;
+
+            const double probeSize = 100;
+            var typeface = new Typeface(sample.FontFamily, sample.FontStyle, sample.FontWeight, sample.FontStretch);
+            var measured = new FormattedText(
+                worstCase,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Windows.FlowDirection.LeftToRight,
+                typeface,
+                probeSize,
+                Brushes.White,
+                VisualTreeHelper.GetDpi(sample).PixelsPerDip);
+
+            // Small optical inset prevents LED bloom and drop shadows touching separators.
+            return Math.Floor(Math.Min(width / measured.WidthIncludingTrailingWhitespace,
+                                       height / measured.Height) * probeSize * 0.94);
         }
 
         private void OnQuarterLabelsChanged()
@@ -761,9 +813,17 @@ namespace Roche_Scoreboard.Views
             ExpHomeGoalsText.Foreground = hSecBrush; ExpHomeBehindsText.Foreground = hSecBrush;
             ExpAwayGoalsText.Foreground = aSecBrush; ExpAwayBehindsText.Foreground = aSecBrush;
 
-            // Swipe overlays use team secondary as background and team primary as text colour
-            ExpHomeSwipeBg.Color = _homeSecondaryColor; ExpHomeSwipeFg.Color = _homeColor;
-            ExpAwaySwipeBg.Color = _awaySecondaryColor; ExpAwaySwipeFg.Color = _awayColor;
+            // The score-change card always covers the active total cell. Its
+            // foreground is chosen independently so +1/+6 cannot disappear on
+            // low-contrast team colour combinations.
+            Color homeSwipeText = Services.SmartContrast.IsLowContrast(_homeColor, _homeSecondaryColor)
+                ? Services.SmartContrast.PickForeground(_homeSecondaryColor) : _homeColor;
+            Color awaySwipeText = Services.SmartContrast.IsLowContrast(_awayColor, _awaySecondaryColor)
+                ? Services.SmartContrast.PickForeground(_awaySecondaryColor) : _awayColor;
+            HomeSwipeBg.Color = ExpHomeSwipeBg.Color = _homeSecondaryColor;
+            HomeSwipeFg.Color = ExpHomeSwipeFg.Color = homeSwipeText;
+            AwaySwipeBg.Color = ExpAwaySwipeBg.Color = _awaySecondaryColor;
+            AwaySwipeFg.Color = ExpAwaySwipeFg.Color = awaySwipeText;
 
             // Tint overlay border gradients with team primary colours
             ApplyOverlayBorderColors();
@@ -797,6 +857,12 @@ namespace Roche_Scoreboard.Views
             if (ExpQuarterScoresHomeBehindsBorder is not null) ExpQuarterScoresHomeBehindsBorder.Color = hSec;
             if (ExpQuarterScoresAwayGoalsBorder is not null) ExpQuarterScoresAwayGoalsBorder.Color = aSec;
             if (ExpQuarterScoresAwayBehindsBorder is not null) ExpQuarterScoresAwayBehindsBorder.Color = aSec;
+            var hQuarterText = new SolidColorBrush(Services.SmartContrast.PickForeground(hC));
+            var aQuarterText = new SolidColorBrush(Services.SmartContrast.PickForeground(aC));
+            ExpQuarterScoresHomeNameText.Foreground = hQuarterText;
+            ExpQuarterScoresHomeTotalText.Foreground = hQuarterText;
+            ExpQuarterScoresAwayNameText.Foreground = aQuarterText;
+            ExpQuarterScoresAwayTotalText.Foreground = aQuarterText;
         }
 
         public void SetLogos(string? homeLogoPath, string? awayLogoPath)
@@ -1282,6 +1348,17 @@ namespace Roche_Scoreboard.Views
         private RadialGradientBrush GetScoreGlowBrush(bool isHome, bool expanded) =>
             (RadialGradientBrush)GetScoreGlow(isHome, expanded).Background;
 
+        private void EnsureOverlayContrast(bool isHome, bool expanded, Color preferred)
+        {
+            Color background = GetOverlayBg(isHome, expanded).Color;
+            Color foreground = Services.SmartContrast.IsLowContrast(preferred, background)
+                ? Services.SmartContrast.PickForeground(background) : preferred;
+            TextBlock text = GetOverlayText(isHome, expanded);
+            text.Foreground = new SolidColorBrush(foreground);
+            if (text.Effect is System.Windows.Media.Effects.DropShadowEffect glow)
+                glow.Color = Services.SmartContrast.PickForeground(foreground);
+        }
+
         private void PrepareOverlay(bool isHome, bool expanded, Color primaryColor, Color secondaryColor)
         {
             var overlay = GetOverlay(isHome, expanded);
@@ -1293,9 +1370,16 @@ namespace Roche_Scoreboard.Views
             var gradBar = GetGradBar(isHome, expanded);
 
             overlayBg.Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
-            overlayText.Text = "GOAL!";
-            overlayText.Foreground = new SolidColorBrush(secondaryColor);
+            overlayText.Text = "GOAL";
+            Color readableText = Services.SmartContrast.IsLowContrast(secondaryColor, overlayBg.Color)
+                ? Services.SmartContrast.PickForeground(overlayBg.Color) : secondaryColor;
+            overlayText.Foreground = new SolidColorBrush(readableText);
             overlayText.FontSize = expanded ? 100 : 72;
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial");
+            overlayText.FontStyle = FontStyles.Normal;
+            overlayText.FontStretch = FontStretches.Normal;
+            overlayText.TextAlignment = TextAlignment.Center;
+            overlayText.LineHeight = double.NaN;
 
             // Reset overlay-level transform/opacity so a previous style cannot
             // leak a leftover TranslateTransform or stale opacity into the next
@@ -1326,7 +1410,7 @@ namespace Roche_Scoreboard.Views
             GetEdgeGlow(isHome, expanded).Opacity = 0;
 
             if (overlayText.Effect is System.Windows.Media.Effects.DropShadowEffect glow)
-            { glow.Color = secondaryColor; glow.BlurRadius = 40; glow.Opacity = 0.9; }
+            { glow.Color = readableText; glow.BlurRadius = 40; glow.Opacity = 0.9; }
         }
 
         private void PrepareScoreGlow(bool isHome, bool expanded, Color teamColor)
@@ -1363,7 +1447,12 @@ namespace Roche_Scoreboard.Views
             var scoreGlow = GetScoreGlow(isHome, expanded);
             var edgeGlow = GetEdgeGlow(isHome, expanded);
 
+            overlayText.Text = "GOAL";
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial");
+            overlayText.FontStretch = FontStretches.Expanded;
+
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
+            EnsureOverlayContrast(isHome, expanded, secondaryColor);
 
             // White ↔ team-secondary wash on the gradient bar
             var gradBrush = (LinearGradientBrush)gradBar.Fill;
@@ -1477,8 +1566,16 @@ namespace Roche_Scoreboard.Views
             var edgeGlow = GetEdgeGlow(isHome, expanded);
             var gradBar = GetGradBar(isHome, expanded);
 
+            overlayText.Text = "GOAL";
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
+            overlayText.FontStyle = FontStyles.Oblique;
+            overlayText.FontStretch = FontStretches.Expanded;
+
             // Hot white core wrapped in team colour
-            overlayBg.Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
+            overlayBg.Color = Color.FromRgb(
+                (byte)(primaryColor.R * 0.30),
+                (byte)(primaryColor.G * 0.30),
+                (byte)(primaryColor.B * 0.30));
             overlayText.FontSize = expanded ? 128 : 92;
             overlayText.Foreground = new SolidColorBrush(Colors.White);
             if (overlayText.Effect is System.Windows.Media.Effects.DropShadowEffect g)
@@ -1595,8 +1692,18 @@ namespace Roche_Scoreboard.Views
             var gradBar = GetGradBar(isHome, expanded);
             var scoreGlow = GetScoreGlow(isHome, expanded);
 
-            GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
-            overlayText.FontSize = expanded ? 118 : 82;
+            overlayText.Text = "GOAL";
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Georgia");
+            overlayText.FontStretch = FontStretches.Normal;
+            overlayText.TextAlignment = TextAlignment.Center;
+            overlayText.LineHeight = expanded ? 76 : 56;
+
+            GetOverlayBg(isHome, expanded).Color = Color.FromRgb(
+                (byte)(primaryColor.R * 0.22),
+                (byte)(primaryColor.G * 0.22),
+                (byte)(primaryColor.B * 0.22));
+            EnsureOverlayContrast(isHome, expanded, secondaryColor);
+            overlayText.FontSize = expanded ? 70 : 52;
 
             // Text at full scale, but starts invisible — pure opacity reveal
             if (expanded)
@@ -1708,7 +1815,12 @@ namespace Roche_Scoreboard.Views
             var scoreGlow = GetScoreGlow(isHome, expanded);
             var edgeGlow = GetEdgeGlow(isHome, expanded);
 
+            overlayText.Text = "GOAL";
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial");
+            overlayText.FontStretch = FontStretches.Normal;
+
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
+            EnsureOverlayContrast(isHome, expanded, secondaryColor);
             overlayText.FontSize = expanded ? 116 : 84;
 
             // No sweep, no shimmer — clean is defined by their absence.
@@ -1806,7 +1918,12 @@ namespace Roche_Scoreboard.Views
             var shimmer = GetShimmer(isHome, expanded);
             var scoreGlow = GetScoreGlow(isHome, expanded);
 
+            overlayText.Text = "GOAL";
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Consolas");
+            overlayText.FontStretch = FontStretches.Expanded;
+
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
+            EnsureOverlayContrast(isHome, expanded, secondaryColor);
             overlayText.FontSize = expanded ? 108 : 78;
 
             // Vintage hardware: no gradient sweep, no shimmer
@@ -2039,13 +2156,31 @@ namespace Roche_Scoreboard.Views
 
         private void PlayScoreSwipe(bool isHome, int delta, Action? onReveal = null)
         {
-            var overlay = isHome ? ExpHomeSwipeOverlay : ExpAwaySwipeOverlay;
-            var translate = isHome ? ExpHomeSwipeTranslate : ExpAwaySwipeTranslate;
-            var swipeText = isHome ? ExpHomeSwipeText : ExpAwaySwipeText;
+            var timers = isHome ? _homeTimers : _awayTimers;
+            var overlay = IsExpanded
+                ? (isHome ? ExpHomeSwipeOverlay : ExpAwaySwipeOverlay)
+                : (isHome ? HomeSwipeOverlay : AwaySwipeOverlay);
+            var translate = IsExpanded
+                ? (isHome ? ExpHomeSwipeTranslate : ExpAwaySwipeTranslate)
+                : (isHome ? HomeSwipeTranslate : AwaySwipeTranslate);
+            var swipeText = IsExpanded
+                ? (isHome ? ExpHomeSwipeText : ExpAwaySwipeText)
+                : (isHome ? HomeSwipeText : AwaySwipeText);
 
-            swipeText.Text = "+" + delta;
+            swipeText.Text = delta == 6 ? "+6" : "+1";
+            swipeText.Visibility = Visibility.Visible;
+            swipeText.BeginAnimation(OpacityProperty, null);
+            swipeText.Opacity = 1;
+
+            // Resolve contrast at display time, after the current team palette has
+            // been applied. This guarantees a visible numeral even for unusual
+            // primary/secondary combinations imported from the club library.
+            swipeText.Foreground = Services.SmartContrast.PickForegroundBrush(overlay.Background);
 
             double h = overlay.ActualHeight > 0 ? overlay.ActualHeight : 200;
+            double w = overlay.ActualWidth > 0 ? overlay.ActualWidth : 220;
+            swipeText.FontSize = Math.Max(34, Math.Floor(Math.Min(h * 0.72, w * 0.42)));
+            System.Windows.Controls.Panel.SetZIndex(swipeText, 101);
 
             // Reset any prior render transform / opacity animation.
             overlay.RenderTransform = translate;
@@ -2067,9 +2202,11 @@ namespace Roche_Scoreboard.Views
 
             // 2) After a short hold, swipe up off the top and reveal the new score.
             var holdAndExitDelay = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.78) };
+            timers.Add(holdAndExitDelay);
             holdAndExitDelay.Tick += (_, __) =>
             {
                 holdAndExitDelay.Stop();
+                timers.Remove(holdAndExitDelay);
                 onReveal?.Invoke();
 
                 var slideOut = new DoubleAnimation(0, -h, TimeSpan.FromSeconds(0.32)) { EasingFunction = exitEase };
@@ -2108,6 +2245,10 @@ namespace Roche_Scoreboard.Views
             scoreGlow.BeginAnimation(OpacityProperty, null); scoreGlow.Opacity = 0;
             var edgeGlow = isHome ? HomeEdgeGlow : AwayEdgeGlow;
             edgeGlow.BeginAnimation(OpacityProperty, null); edgeGlow.Opacity = 0;
+            var swipeOverlay = isHome ? HomeSwipeOverlay : AwaySwipeOverlay;
+            var swipeTr = isHome ? HomeSwipeTranslate : AwaySwipeTranslate;
+            swipeOverlay.BeginAnimation(OpacityProperty, null); swipeOverlay.Opacity = 0;
+            swipeTr.BeginAnimation(TranslateTransform.YProperty, null); swipeTr.Y = 0;
             if (isHome) _homeScoreSb = null; else _awayScoreSb = null;
         }
 
@@ -2234,14 +2375,14 @@ namespace Roche_Scoreboard.Views
         private SolidColorBrush AWinProbAwayBrush => IsExpanded ? ExpWinProbAwayBarBrush : WinProbAwayBarBrush;
         private ColumnDefinition AWinProbHomeCol => IsExpanded ? ExpWinProbHomeCol : WinProbHomeCol;
         private ColumnDefinition AWinProbAwayCol => IsExpanded ? ExpWinProbAwayCol : WinProbAwayCol;
-        private Border AWarningOverlay => IsExpanded ? ExpWarningOverlay : WarningOverlay;
-        private StackPanel AWarningLetterHost => IsExpanded ? ExpWarningLetterHost : WarningLetterHost;
-        private TranslateTransform AWarningStripes => IsExpanded ? ExpWarningStripesTranslate : WarningStripesTranslate;
-        private Border AWarningGlow => IsExpanded ? ExpWarningGlowBorder : WarningGlowBorder;
-        private TranslateTransform AWarningScanline => IsExpanded ? ExpWarningScanlineTranslate : WarningScanlineTranslate;
-        private System.Windows.Shapes.Rectangle AWarningScanlineRect => IsExpanded ? ExpWarningScanline : WarningScanline;
-        private System.Windows.Shapes.Rectangle AWarningFlash => IsExpanded ? ExpWarningFlash : WarningFlash;
-        private ScaleTransform AWarningPulse => IsExpanded ? ExpWarningLetterPulse : WarningLetterPulse;
+        private Border AWarningOverlay => IsExpanded ? ExpWarningBanner : WarningOverlay;
+        private StackPanel AWarningLetterHost => IsExpanded ? ExpWarningBannerLetterHost : WarningLetterHost;
+        private TranslateTransform AWarningStripes => IsExpanded ? ExpWarningBannerStripesTranslate : WarningStripesTranslate;
+        private Border AWarningGlow => IsExpanded ? ExpWarningBannerGlowBorder : WarningGlowBorder;
+        private TranslateTransform AWarningScanline => IsExpanded ? ExpWarningBannerScanlineTranslate : WarningScanlineTranslate;
+        private System.Windows.Shapes.Rectangle AWarningScanlineRect => IsExpanded ? ExpWarningBannerScanline : WarningScanline;
+        private System.Windows.Shapes.Rectangle AWarningFlash => IsExpanded ? ExpWarningBannerFlash : WarningFlash;
+        private ScaleTransform AWarningPulse => IsExpanded ? ExpWarningBannerLetterPulse : WarningLetterPulse;
         private TextBlock AQuarterText => IsExpanded ? ExpQuarterNumberText : QuarterNumberText;
         private TextBlock AClockText => IsExpanded ? ExpClockText : ClockText;
         private ScaleTransform AQuarterTextScale => IsExpanded ? ExpQuarterNumberTextScale : QuarterNumberTextScale;
@@ -2741,9 +2882,7 @@ namespace Roche_Scoreboard.Views
 
         private bool _warningVisible;
         private DispatcherTimer? _warningAutoHideTimer;
-        // Lines for the 5-minute alert. Primary line is rendered ~1.6x larger
-        // than the subtitle (see size multiplier in BuildWarningLetters).
-        private static readonly string[] WarningLines = new[] { "5 MIN", "WARNING" };
+        private static readonly string[] WarningLines = new[] { "5 MINUTE WARNING" };
         private static readonly TimeSpan WarningLetterStagger = TimeSpan.FromMilliseconds(35);
         private static readonly TimeSpan WarningLetterDuration = TimeSpan.FromMilliseconds(280);
         private static readonly TimeSpan WarningHoldDuration = TimeSpan.FromSeconds(10);
@@ -2926,11 +3065,20 @@ namespace Roche_Scoreboard.Views
             BuildWarningLetters(host, WarningLines, Colors.White,
                 IsExpanded ? 110 : 60, foldedOut: true);
 
-            // Stage 1: fold-out existing quarter+clock text.
-            FoldOutPanelText(() =>
+            void RevealWarning()
             {
-                // Stage 2: reveal hazard backdrop instantly under the now-empty panel.
                 wo.Opacity = 0;
+                if (IsExpanded)
+                {
+                    wo.Height = 0;
+                    ExpWarningBannerSlide.Y = -ScalePx(ExpandedWarningHeight);
+                    wo.BeginAnimation(FrameworkElement.HeightProperty,
+                        new DoubleAnimation(0, ScalePx(ExpandedWarningHeight), TimeSpan.FromMilliseconds(360))
+                        { EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut } });
+                    ExpWarningBannerSlide.BeginAnimation(TranslateTransform.YProperty,
+                        new DoubleAnimation(-ScalePx(ExpandedWarningHeight), 0, TimeSpan.FromMilliseconds(420))
+                        { EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.22 } });
+                }
                 wo.BeginAnimation(OpacityProperty,
                     new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220))
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
@@ -2999,10 +3147,8 @@ namespace Roche_Scoreboard.Views
                     pulse.BeginAnimation(ScaleTransform.ScaleYProperty, pa);
                 }
 
-                // Stage 3: fold-in warning letters one-by-one.
                 FoldInWarningLetters(host, () =>
                 {
-                    // Stage 4: hold, then fold-out warning, hide backdrop, fold-in panel text.
                     _warningAutoHideTimer = new DispatcherTimer { Interval = WarningHoldDuration };
                     _warningAutoHideTimer.Tick += (_, __) =>
                     {
@@ -3012,7 +3158,14 @@ namespace Roche_Scoreboard.Views
                     };
                     _warningAutoHideTimer.Start();
                 });
-            });
+            }
+
+            // The active expanded scorebug uses a dedicated full-width slide-down
+            // banner. The deprecated classic layout keeps its compact fold-over.
+            if (IsExpanded)
+                RevealWarning();
+            else
+                FoldOutPanelText(RevealWarning);
         }
 
         public void HideFiveMinuteWarning()
@@ -3057,14 +3210,30 @@ namespace Roche_Scoreboard.Views
 
                 var fo = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(260))
                 { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+                if (IsExpanded)
+                {
+                    wo.BeginAnimation(FrameworkElement.HeightProperty,
+                        new DoubleAnimation(wo.ActualHeight, 0, TimeSpan.FromMilliseconds(320))
+                        { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
+                    ExpWarningBannerSlide.BeginAnimation(TranslateTransform.YProperty,
+                        new DoubleAnimation(0, -ScalePx(ExpandedWarningHeight), TimeSpan.FromMilliseconds(300))
+                        { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
+                }
                 fo.Completed += (_, __) =>
                 {
                     wo.BeginAnimation(OpacityProperty, null);
                     wo.Opacity = 0;
+                    if (IsExpanded)
+                    {
+                        wo.BeginAnimation(FrameworkElement.HeightProperty, null);
+                        wo.Height = 0;
+                        ExpWarningBannerSlide.BeginAnimation(TranslateTransform.YProperty, null);
+                        ExpWarningBannerSlide.Y = -ScalePx(ExpandedWarningHeight);
+                    }
                     host.Children.Clear();
 
-                    // Stage 5: fold the original quarter+clock text back in.
-                    FoldInPanelText();
+                    if (!IsExpanded)
+                        FoldInPanelText();
 
                     _warningVisible = false;
                     OnOverlayHidden();
@@ -3449,6 +3618,7 @@ namespace Roche_Scoreboard.Views
 
             // Use full-opacity team colour overlay (not 0xEE)
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
+            EnsureOverlayContrast(isHome, expanded, secondaryColor);
 
             // Tint the gradient bar to team secondary (white?team instead of rainbow)
             var gradBrush = (LinearGradientBrush)gradBar.Fill;
@@ -3538,8 +3708,8 @@ namespace Roche_Scoreboard.Views
             int aTotal = p.Value.AwayGoals * 6 + p.Value.AwayBehinds;
 
             ExpQuarterScoresQtrLabelText.Text = FormatQuarterLabel(p.Value.Quarter);
-            ExpQuarterScoresHomeNameText.Text = _homeFullName;
-            ExpQuarterScoresAwayNameText.Text = _awayFullName;
+            ExpQuarterScoresHomeNameText.Text = _homeAbbr;
+            ExpQuarterScoresAwayNameText.Text = _awayAbbr;
             ExpQuarterScoresHomeGoalsText.Text = p.Value.HomeGoals.ToString();
             ExpQuarterScoresHomeBehindsText.Text = p.Value.HomeBehinds.ToString();
             ExpQuarterScoresHomeTotalText.Text = hTotal.ToString();
@@ -3573,7 +3743,7 @@ namespace Roche_Scoreboard.Views
 
         // ==================================================================
         // RECENT SCORES ° right-pushing mask overlay showing only the last
-        // five score events as "GOAL" / "BEHIND" with optional quarter splits.
+        // three score events as "GOAL" / "BEHIND" with optional quarter splits.
         // The total-score and logo columns remain visible behind it.
         // ==================================================================
 
@@ -3584,15 +3754,15 @@ namespace Roche_Scoreboard.Views
 
         private void DoShowRecentScores(IReadOnlyList<ScoreEvent>? events, int currentQuarter)
         {
-            // Build the inner list (newest at top). Take last 5 in chronological
-            // order, then iterate top?bottom newest-first. Insert quarter split
+            // Build the inner list (newest at top). Three rows preserve large
+            // event labels at constrained output sizes. Insert quarter split
             // separators wherever adjacent entries (in display order) span a
             // different quarter.
             ExpRecentScoresList.Children.Clear();
             ExpRecentScoresList.RowDefinitions.Clear();
 
             var src = events is null ? new List<ScoreEvent>() : new List<ScoreEvent>(events);
-            int take = Math.Min(5, src.Count);
+            int take = Math.Min(3, src.Count);
             var lastN = take == 0
                 ? new List<ScoreEvent>()
                 : src.GetRange(src.Count - take, take);
@@ -3924,7 +4094,7 @@ namespace Roche_Scoreboard.Views
                 Foreground = new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24)),
                 FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
                 FontWeight = FontWeights.Black,
-                FontSize = 9,
+                FontSize = 14,
                 HorizontalAlignment = HAlign.Center,
                 TextAlignment = TextAlignment.Center
             };
@@ -3954,27 +4124,21 @@ namespace Roche_Scoreboard.Views
 
         private void ApplyFinalsModeVisuals()
         {
-            var goldOverlay = FindName("ExpFinalsGoldOverlay") as System.Windows.Shapes.Rectangle;
-            if (goldOverlay is null) return;
-
             if (_finalsMode)
             {
-                // Subtle gold wash over the full scorebug — 10% opacity feels present
-                // without drowning team colours. Adjust here if needed.
-                goldOverlay.Opacity = 0.10;
-
-                // Warm the clock/quarter panel gradient toward gold-tinted dark
-                SetGradientStopColor("ExpClockPanelGradTop", "#241C0C");
-                SetGradientStopColor("ExpClockPanelGradMid", "#160F04");
-                SetGradientStopColor("ExpClockPanelGradBot", "#0A0700");
+                SetGradientStopColor("ExpClockPanelGradTop", "#F2D47A");
+                SetGradientStopColor("ExpClockPanelGradMid", "#C9982D");
+                SetGradientStopColor("ExpClockPanelGradBot", "#A9781D");
+                ExpQuarterNumberText.Foreground = new SolidColorBrush(Services.FinalsPalette.Ink);
+                ExpClockText.Foreground = new SolidColorBrush(Services.FinalsPalette.Ink);
             }
             else
             {
-                goldOverlay.Opacity = 0;
-
                 SetGradientStopColor("ExpClockPanelGradTop", "#1A1F2E");
                 SetGradientStopColor("ExpClockPanelGradMid", "#0A0D14");
                 SetGradientStopColor("ExpClockPanelGradBot", "#000000");
+                ExpQuarterNumberText.Foreground = Brushes.White;
+                ExpClockText.Foreground = Brushes.White;
             }
         }
 
@@ -3987,7 +4151,7 @@ namespace Roche_Scoreboard.Views
         /// <summary>
         /// Shows or hides the team name rows in the expanded scorebug.
         /// When hidden the score cells (goals / behinds / total) expand to fill the
-        /// full panel height, making the numbers considerably larger.
+        /// available panel height while keeping digit-safe typography stable.
         /// </summary>
         public void SetHideTeamNames(bool hide)
         {
@@ -4013,12 +4177,17 @@ namespace Roche_Scoreboard.Views
             }
             else
             {
-                homeNameRow.Height = new GridLength(1.2, GridUnitType.Star);
-                awayNameRow.Height = new GridLength(1.2, GridUnitType.Star);
+                homeNameRow.Height = new GridLength(1.3, GridUnitType.Star);
+                awayNameRow.Height = new GridLength(1.3, GridUnitType.Star);
 
                 if (ExpHomeNameSeparator is not null) ExpHomeNameSeparator.Visibility = Visibility.Visible;
                 if (ExpAwayNameSeparator is not null) ExpAwayNameSeparator.Visibility = Visibility.Visible;
             }
+
+            // Row changes are internal to the scorebug and do not necessarily
+            // resize ExpandedLayout itself. Re-measure once WPF has arranged
+            // the newly available score-cell space.
+            Dispatcher.BeginInvoke(new Action(UpdateExpandedScoreTypography), DispatcherPriority.Loaded);
         }
         public void SetWeatherLocation(string? location) => _weatherLocation = location;
 
@@ -4166,8 +4335,8 @@ namespace Roche_Scoreboard.Views
                     Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
                     FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
                     FontWeight = FontWeights.Black,
-                    FontSize = 14,
-                    LineHeight = 16,
+                    FontSize = 17,
+                    LineHeight = 19,
                     LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
                     HorizontalAlignment = HAlign.Center,
                     Margin = new Thickness(0)
@@ -4180,8 +4349,8 @@ namespace Roche_Scoreboard.Views
                     Foreground = Brushes.White,
                     FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
                     FontWeight = FontWeights.Black,
-                    FontSize = 26,
-                    LineHeight = 28,
+                    FontSize = 30,
+                    LineHeight = 32,
                     LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
                     HorizontalAlignment = HAlign.Center,
                     Margin = new Thickness(0)
@@ -4227,7 +4396,7 @@ namespace Roche_Scoreboard.Views
             if (_pendingRain is null) { OnOverlayHidden(); return; }
             var s = _pendingRain;
             ExpRainBars.Children.Clear();
-            int count = Math.Min(6, s.HourlyForecast?.Count ?? 0);
+            int count = Math.Min(4, s.HourlyForecast?.Count ?? 0);
             int peak = 0;
             for (int i = 0; i < count; i++)
             {
@@ -4269,7 +4438,7 @@ namespace Roche_Scoreboard.Views
                     Text = $"{h.PrecipitationProbability}%",
                     Foreground = Brushes.White,
                     FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
-                    FontSize = 11,
+                    FontSize = 16,
                     FontWeight = FontWeights.Black,
                     HorizontalAlignment = HAlign.Center
                 });
@@ -4278,8 +4447,8 @@ namespace Roche_Scoreboard.Views
                     Text = h.Time.ToString("htt", System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant(),
                     Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
                     FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
-                    FontSize = 9,
-                    FontWeight = FontWeights.SemiBold,
+                    FontSize = 13,
+                    FontWeight = FontWeights.Black,
                     HorizontalAlignment = HAlign.Center
                 });
                 Grid.SetRow(stack, 1);

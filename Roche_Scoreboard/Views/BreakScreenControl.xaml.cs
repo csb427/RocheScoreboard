@@ -45,6 +45,30 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         private void ApplyResponsiveScale()
         {
+            ResponsivePresentationTypography.Apply(this, ScaleUnit);
+
+            bool compact = ActualWidth < 320 || ActualHeight < 160;
+            BreakTitleText.Text = compact ? "QTR BREAKDOWN" : "QUARTER BY QUARTER";
+            BreakTimeText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+
+            double teamColumnMax = Math.Max(48, ScalePx(78));
+            BreakTeamColumn.Width = new GridLength(Math.Clamp(ActualWidth * 0.20, 48, teamColumnMax));
+            double quarterHeaderMax = Math.Max(17, ActualHeight * 0.16);
+            BreakQuarterHeaderRow.Height = new GridLength(Math.Clamp(ScalePx(24), 17, quarterHeaderMax));
+
+            TextBlock[] details = [H1Detail, H2Detail, H3Detail, H4Detail,
+                                   A1Detail, A2Detail, A3Detail, A4Detail];
+            foreach (TextBlock detail in details)
+            {
+                detail.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+                if (detail.Parent is Grid cellGrid && cellGrid.RowDefinitions.Count == 2)
+                {
+                    cellGrid.RowDefinitions[0].Height = new GridLength(compact ? 1 : 3, GridUnitType.Star);
+                    cellGrid.RowDefinitions[1].Height = compact
+                        ? new GridLength(0)
+                        : new GridLength(2, GridUnitType.Star);
+                }
+            }
         }
 
         private void OnWallClockTick(object? sender, EventArgs e)
@@ -111,32 +135,34 @@ namespace Roche_Scoreboard.Views
             BreakHomeAbbr.Text = SafeAbbr(match.HomeAbbr, match.HomeName);
             BreakAwayAbbr.Text = SafeAbbr(match.AwayAbbr, match.AwayName);
 
-            // Bottom score bar - the break screen IS the quarter break, so the
-            // bar only shows the quarter label (QT/HT/3QT/FT). Never show the
-            // running game clock here regardless of any caller-supplied title.
+            // This screen can be selected during live play as well as at a
+            // break. The shared bar decides whether the timer is live from the
+            // actual match state instead of assuming this is always a break.
             ScoreBar.Populate(match, endedQuarter, homeColorHex, awayColorHex,
                 homeSecondaryHex, awaySecondaryHex, homeLogoPath, awayLogoPath,
-                barTitleOverride, showTimer: false);
+                barTitleOverride, showTimer: true);
 
             // Zoomed logo backgrounds (faint art behind the abbreviation)
             ApplyLogoBg(BreakHomeLogoBg, homeLogoPath);
             ApplyLogoBg(BreakAwayLogoBg, awayLogoPath);
 
-            // Per-quarter scores (per-quarter only - overall totals already shown by ScoreBar)
-            var homeCellFg = new SolidColorBrush(Lighten(homeColor, 0.5));
-            var awayCellFg = new SolidColorBrush(Lighten(awayColor, 0.5));
-
             Border[] homeQuarterCells = { H1T, H2T, H3T, H4T };
             Border[] awayQuarterCells = { A1T, A2T, A3T, A4T };
+            TextBlock[] homeQuarterTotals = { H1Total, H2Total, H3Total, H4Total };
+            TextBlock[] awayQuarterTotals = { A1Total, A2Total, A3Total, A4Total };
+            TextBlock[] homeQuarterDetails = { H1Detail, H2Detail, H3Detail, H4Detail };
+            TextBlock[] awayQuarterDetails = { A1Detail, A2Detail, A3Detail, A4Detail };
+
+            bool atQuarterBreak = !match.ClockRunning && match.ElapsedInQuarter <= TimeSpan.Zero
+                                  && (match.Quarter > 1 || match.GetQuarterSnapshot(4) is not null);
 
             for (int q = 0; q < 4; q++)
             {
                 var snap = match.GetQuarterSnapshot(q + 1);
                 bool played = snap != null;
+                bool current = q + 1 == match.Quarter && !atQuarterBreak && snap is null;
 
-                if (!played && q + 1 == match.Quarter &&
-                    match.ElapsedInQuarter > TimeSpan.Zero &&
-                    (match.HomeGoals + match.HomeBehinds + match.AwayGoals + match.AwayBehinds) > 0)
+                if (current)
                 {
                     played = true;
                     snap = new QuarterSnapshot
@@ -148,48 +174,58 @@ namespace Roche_Scoreboard.Views
                     };
                 }
 
-                string homeText, awayText;
+                string homeBreakdown, awayBreakdown, homeTotal, awayTotal;
                 if (played && snap != null)
                 {
-                    homeText = snap.HomeTotal.ToString();
-                    awayText = snap.AwayTotal.ToString();
+                    var previous = q > 0 ? match.GetQuarterSnapshot(q) : null;
+                    int homeGoals = Math.Max(0, snap.HomeGoals - (previous?.HomeGoals ?? 0));
+                    int homeBehinds = Math.Max(0, snap.HomeBehinds - (previous?.HomeBehinds ?? 0));
+                    int awayGoals = Math.Max(0, snap.AwayGoals - (previous?.AwayGoals ?? 0));
+                    int awayBehinds = Math.Max(0, snap.AwayBehinds - (previous?.AwayBehinds ?? 0));
+                    homeBreakdown = $"{homeGoals}.{homeBehinds}";
+                    awayBreakdown = $"{awayGoals}.{awayBehinds}";
+                    homeTotal = (homeGoals * 6 + homeBehinds).ToString();
+                    awayTotal = (awayGoals * 6 + awayBehinds).ToString();
                 }
                 else
                 {
-                    homeText = "–";
-                    awayText = "–";
+                    homeBreakdown = awayBreakdown = "—";
+                    homeTotal = awayTotal = "—";
                 }
 
-                StyleQuarterCell(homeQuarterCells[q], homeText, homeCellFg, played);
-                StyleQuarterCell(awayQuarterCells[q], awayText, awayCellFg, played);
+                StyleQuarterCell(homeQuarterCells[q], homeQuarterTotals[q], homeQuarterDetails[q],
+                    homeBreakdown, homeTotal, homeColor, played, current);
+                StyleQuarterCell(awayQuarterCells[q], awayQuarterTotals[q], awayQuarterDetails[q],
+                    awayBreakdown, awayTotal, awayColor, played, current);
             }
+
+            // Populate may run while the presentation is collapsed. Re-apply
+            // responsive sizing once WPF has made the surface visible and its
+            // real dimensions are available.
+            Dispatcher.BeginInvoke(ApplyResponsiveScale, DispatcherPriority.Loaded);
         }
 
-        private static void StyleQuarterCell(Border border, string text, Brush fg, bool played)
+        private static void StyleQuarterCell(Border border, TextBlock totalText, TextBlock detailText,
+            string breakdown, string total, Color teamColor, bool played, bool current)
         {
-            border.Background = System.Windows.Media.Brushes.Transparent;
-            border.BorderThickness = new Thickness(0);
-            border.Margin = new Thickness(0);
-            border.Padding = new Thickness(0);
-            border.Opacity = played ? 1.0 : 0.35;
+            Color panelColor = Darken(teamColor, played ? 0.63 : 0.82);
+            border.Background = new SolidColorBrush(panelColor);
+            border.BorderBrush = new SolidColorBrush(Color.FromArgb(current ? (byte)0xFF : played ? (byte)0xC8 : (byte)0x58, teamColor.R, teamColor.G, teamColor.B));
+            border.BorderThickness = new Thickness(current ? 2 : 1);
+            border.CornerRadius = new CornerRadius(5);
+            border.Margin = new Thickness(1);
+            border.Padding = new Thickness(2, 0, 2, 0);
+            border.Opacity = played ? 1.0 : 0.62;
 
-            var textBlock = new TextBlock
-            {
-                Text = text,
-                Foreground = fg,
-                FontSize = 48,
-                FontWeight = FontWeights.Black,
-                FontFamily = new System.Windows.Media.FontFamily("Bahnschrift"),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            border.Child = new Viewbox
-            {
-                Stretch = Stretch.Uniform,
-                Margin = new Thickness(1, 2, 1, 2),
-                Child = textBlock
-            };
+            Color totalColor = Lighten(teamColor, 0.62);
+            if (SmartContrast.IsLowContrast(totalColor, panelColor))
+                totalColor = SmartContrast.PickForeground(panelColor);
+            totalText.Text = total;
+            totalText.Foreground = new SolidColorBrush(played ? totalColor : Color.FromRgb(0x7F, 0x8C, 0x9A));
+            detailText.Text = breakdown;
+            detailText.Foreground = new SolidColorBrush(played
+                ? SmartContrast.PickForeground(panelColor)
+                : Color.FromRgb(0x70, 0x7D, 0x8A));
         }
 
         private static void ApplyLogoBg(System.Windows.Controls.Image image, string? path)
@@ -244,14 +280,17 @@ namespace Roche_Scoreboard.Views
         }
 
         /// <summary>
-        /// Applies or removes the finals gold tint overlay on the break screen.
-        /// Also propagates to the embedded PresentationScoreBar.
+        /// Applies the shared finals palette to meaningful components only.
         /// </summary>
         public void SetFinalsMode(bool enabled)
         {
-            if (FindName("BreakFinalsGoldOverlay") is System.Windows.Shapes.Rectangle overlay)
-                overlay.Opacity = enabled ? 0.10 : 0;
+            BreakTitlePanel.Background = enabled ? Services.FinalsPalette.PanelBrush() : new SolidColorBrush(Color.FromRgb(0x0D, 0x11, 0x17));
+            BreakTitleText.Foreground = enabled ? new SolidColorBrush(Services.FinalsPalette.Ink) : new SolidColorBrush(Color.FromRgb(0xF0, 0xC0, 0x40));
+            BreakTimeText.Foreground = enabled ? new SolidColorBrush(Services.FinalsPalette.Ink) : new SolidColorBrush(Color.FromRgb(0x58, 0xA6, 0xFF));
             ScoreBar?.SetFinalsMode(enabled);
         }
+
+        public void PlayScoreAnimation(ScoreEvent scoreEvent)
+            => ScoreBar?.PlayScoreAnimation(scoreEvent);
     }
 }

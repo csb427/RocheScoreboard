@@ -83,6 +83,13 @@ public static class RemoteEventTypes
     public const string SetLayout        = "set_layout";
     public const string SetGoalAnimation = "set_goal_animation";
 
+    // Cricket
+    public const string CricketDelivery     = "cricket_delivery";
+    public const string CricketUndo         = "cricket_undo";
+    public const string CricketSelectBatter = "cricket_select_batter";
+    public const string CricketSelectBowler = "cricket_select_bowler";
+    public const string CricketNextInnings  = "cricket_next_innings";
+
     // Training
     public const string TrainingStartPause     = "training_start_pause";
     public const string TrainingSkip           = "training_skip";

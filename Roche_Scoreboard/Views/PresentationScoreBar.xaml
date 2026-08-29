@@ -5,30 +5,28 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="44" d:DesignWidth="386"
-             Height="44">
+             SnapsToDevicePixels="True" UseLayoutRounding="True"
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType"
+             TextOptions.TextHintingMode="Fixed">
 
     <!--
-        Broadcast-style compact score bar.
-        Mirrors the main scorebug layout: team-colour gradient panels, dark
-        centre quarter/clock panel, scorebug-style 3D separator bars between
-        Goals | Behinds | Total cells, Stolzl typography, transparent score
-        cells sharing the panel gradient.
+        Distance-first persistent score bar. Goals and behinds remain available
+        on the live scorebug and Quarter Breakdown; this compact bar dedicates
+        each team panel to the match total so no unreadable micro-score is shown.
 
         Layout columns (left -> right):
             HOME panel  | LOGO | CENTRE quarter+clock | LOGO | AWAY panel
-        Score order:
-            HOME:   Total  Behinds  Goals     (logo on right edge of home panel)
-            AWAY:   Goals  Behinds  Total     (logo on left edge of away panel)
-        - Totals are kept adjacent to the centre so the headline score reads
-          across like a real scorebug.
+        Totals stay adjacent to the team logos and centre match-state cell,
+        producing one consistent score hierarchy on every presentation.
     -->
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>      <!-- Home panel (scores) -->
-            <ColumnDefinition Width="44"/>     <!-- Home logo -->
-            <ColumnDefinition Width="62"/>     <!-- Centre: quarter / clock -->
-            <ColumnDefinition Width="44"/>     <!-- Away logo -->
-            <ColumnDefinition Width="*"/>      <!-- Away panel (scores) -->
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition x:Name="HomeLogoColumn" Width="42"/>
+            <ColumnDefinition x:Name="CenterColumn" Width="80"/>
+            <ColumnDefinition x:Name="AwayLogoColumn" Width="42"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- =========================== HOME PANEL =========================== -->
@@ -51,52 +49,27 @@
             </Rectangle>
 
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.25*"/>   <!-- Goals -->
-                    <ColumnDefinition Width="2"/>
-                    <ColumnDefinition Width="1.25*"/>   <!-- Behinds -->
-                    <ColumnDefinition Width="2"/>
-                    <ColumnDefinition Width="2.2*"/>    <!-- Total -->
-                </Grid.ColumnDefinitions>
-
-                <!-- Goals -->
-                <TextBlock Grid.Column="0" x:Name="HomeGoalsText" Text="0" Foreground="White"
-                           FontFamily="Stolzl" FontSize="22" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
-
-                <!-- 3D separator -->
-                <Rectangle Grid.Column="1" IsHitTestVisible="False">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#55000000" Offset="0"/>
-                            <GradientStop Color="#66FFFFFF" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-
-                <!-- Behinds -->
-                <TextBlock Grid.Column="2" x:Name="HomeBehindsText" Text="0" Foreground="White"
-                           FontFamily="Stolzl" FontSize="22" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
-
-                <!-- 3D separator -->
-                <Rectangle Grid.Column="3" IsHitTestVisible="False">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#55000000" Offset="0"/>
-                            <GradientStop Color="#66FFFFFF" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-
-                <!-- Total -->
-                <TextBlock Grid.Column="4" x:Name="HomeTotalText" Text="0" Foreground="White"
-                           FontFamily="Stolzl Bold" FontSize="30" FontWeight="Black"
+                <TextBlock x:Name="HomeTotalText" Text="0" Foreground="White"
+                           FontFamily="Arial" FontStretch="Normal" FontSize="30" FontWeight="Black"
                            HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect BlurRadius="6" ShadowDepth="2" Direction="270" Color="Black" Opacity="0.5"/>
                     </TextBlock.Effect>
                 </TextBlock>
+                <Rectangle x:Name="HomeGoalFlash" Opacity="0" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#00FFFFFF" Offset="0"/>
+                            <GradientStop Color="#CCFFFFFF" Offset="0.5"/>
+                            <GradientStop Color="#00FFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <Border x:Name="HomeDeltaOverlay" Opacity="0" IsHitTestVisible="False" Background="White" Panel.ZIndex="20">
+                    <Border.RenderTransform><TranslateTransform x:Name="HomeDeltaTranslate"/></Border.RenderTransform>
+                    <TextBlock x:Name="HomeDeltaText" Text="+6" FontFamily="Arial" FontSize="32" FontWeight="Black"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+                </Border>
             </Grid>
         </Grid>
 
@@ -120,7 +93,7 @@
             </Border.Background>
             <Grid Margin="3">
                 <TextBlock x:Name="HomeLogoFallback" Text="HOM" Foreground="#EEEEEE"
-                           FontWeight="Black" FontFamily="Stolzl Bold" FontSize="14"
+                           FontWeight="Black" FontFamily="Bahnschrift" FontSize="14"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <Image x:Name="HomeLogoImage" Stretch="Uniform" Visibility="Collapsed"/>
             </Grid>
@@ -145,17 +118,20 @@
                     <GradientStop Color="#000000" Offset="1.0"/>
                 </LinearGradientBrush>
             </Grid.Background>
-            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="2,3">
-                <StackPanel x:Name="CenterStack" Orientation="Vertical" HorizontalAlignment="Center">
-                    <TextBlock x:Name="QuarterText" Text="QT" Foreground="White"
-                               FontFamily="Stolzl Bold" FontSize="40" FontWeight="Bold"
-                               HorizontalAlignment="Center" TextAlignment="Center"/>
-                    <TextBlock x:Name="TimerText" Text="14:37" Foreground="White"
-                               FontFamily="Stolzl Bold" FontSize="32" FontWeight="Bold"
-                               HorizontalAlignment="Center" TextAlignment="Center"
-                               Margin="0,2,0,0"/>
-                </StackPanel>
-            </Viewbox>
+            <Grid Margin="3,1">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="CenterQuarterRow" Height="0.72*"/>
+                    <RowDefinition x:Name="CenterTimerRow" Height="1.28*"/>
+                </Grid.RowDefinitions>
+                <Viewbox Stretch="Uniform" StretchDirection="Both" Margin="3,1">
+                    <TextBlock x:Name="QuarterText" Text="Q1" Foreground="White"
+                               FontFamily="Arial" FontSize="36" FontWeight="Black"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+                </Viewbox>
+                <TextBlock x:Name="TimerText" Grid.Row="1" Text="14:37" Foreground="White"
+                           FontFamily="Arial" FontSize="20" FontWeight="Black"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+            </Grid>
         </Grid>
 
         <!-- 3D separator: centre -> away logo -->
@@ -178,7 +154,7 @@
             </Border.Background>
             <Grid Margin="3">
                 <TextBlock x:Name="AwayLogoFallback" Text="AWA" Foreground="#EEEEEE"
-                           FontWeight="Black" FontFamily="Stolzl Bold" FontSize="14"
+                           FontWeight="Black" FontFamily="Bahnschrift" FontSize="14"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <Image x:Name="AwayLogoImage" Stretch="Uniform" Visibility="Collapsed"/>
             </Grid>
@@ -214,52 +190,29 @@
             </Rectangle>
 
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.25*"/>   <!-- Goals -->
-                    <ColumnDefinition Width="2"/>
-                    <ColumnDefinition Width="1.25*"/>   <!-- Behinds -->
-                    <ColumnDefinition Width="2"/>
-                    <ColumnDefinition Width="2.2*"/>    <!-- Total -->
-                </Grid.ColumnDefinitions>
-
-                <!-- Goals -->
-                <TextBlock Grid.Column="0" x:Name="AwayGoalsText" Text="0" Foreground="White"
-                           FontFamily="Stolzl" FontSize="22" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
-
-                <!-- 3D separator -->
-                <Rectangle Grid.Column="1" IsHitTestVisible="False">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#55000000" Offset="0"/>
-                            <GradientStop Color="#66FFFFFF" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-
-                <!-- Behinds -->
-                <TextBlock Grid.Column="2" x:Name="AwayBehindsText" Text="0" Foreground="White"
-                           FontFamily="Stolzl" FontSize="22" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
-
-                <!-- 3D separator -->
-                <Rectangle Grid.Column="3" IsHitTestVisible="False">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#55000000" Offset="0"/>
-                            <GradientStop Color="#66FFFFFF" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-
-                <!-- Total -->
-                <TextBlock Grid.Column="4" x:Name="AwayTotalText" Text="0" Foreground="White"
-                           FontFamily="Stolzl Bold" FontSize="30" FontWeight="Black"
+                <TextBlock x:Name="AwayTotalText" Text="0" Foreground="White"
+                           FontFamily="Arial" FontStretch="Normal" FontSize="30" FontWeight="Black"
                            HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect BlurRadius="6" ShadowDepth="2" Direction="270" Color="Black" Opacity="0.5"/>
                     </TextBlock.Effect>
                 </TextBlock>
+
+                <Rectangle x:Name="AwayGoalFlash" Opacity="0" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
+                            <GradientStop Color="#00FFFFFF" Offset="0"/>
+                            <GradientStop Color="#CCFFFFFF" Offset="0.5"/>
+                            <GradientStop Color="#00FFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <Border x:Name="AwayDeltaOverlay" Opacity="0" IsHitTestVisible="False" Background="White" Panel.ZIndex="20">
+                    <Border.RenderTransform><TranslateTransform x:Name="AwayDeltaTranslate"/></Border.RenderTransform>
+                    <TextBlock x:Name="AwayDeltaText" Text="+6" FontFamily="Arial" FontSize="32" FontWeight="Black"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+                </Border>
+
             </Grid>
         </Grid>
 
@@ -267,12 +220,5 @@
         <Border Grid.ColumnSpan="5" Height="1" VerticalAlignment="Top"  Background="#66000000" IsHitTestVisible="False"/>
         <Border Grid.ColumnSpan="5" Height="1" VerticalAlignment="Bottom" Background="#88000000" IsHitTestVisible="False"/>
 
-        <!-- Finals gold tint overlay — toggled by SetFinalsMode in code-behind -->
-        <Rectangle x:Name="ScoreBarFinalsGoldOverlay" Grid.ColumnSpan="5"
-                   Panel.ZIndex="200" IsHitTestVisible="False" Opacity="0">
-            <Rectangle.Fill>
-                <SolidColorBrush Color="#C8980A"/>
-            </Rectangle.Fill>
-        </Rectangle>
     </Grid>
 </UserControl>

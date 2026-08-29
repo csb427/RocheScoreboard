@@ -423,8 +423,9 @@ public partial class MainWindow
     {
         _finalsMode = SettingsFinalsToggle.IsChecked == true;
         UpdateSettingsFinalsCardVisuals();
-        _scorebug?.SetFinalsMode(_finalsMode);
-        _breakScreen?.SetFinalsMode(_finalsMode);
+        ApplyFinalsModeToOutputs();
+        SaveGameState();
+        BroadcastWebState();
     }
 
     private void UpdateSettingsFinalsCardVisuals()
@@ -477,6 +478,9 @@ public partial class MainWindow
         _hideTeamNames = SettingsHideTeamNamesToggle.IsChecked == true;
         UpdateSettingsHideTeamNamesCardVisuals();
         _scorebug?.SetHideTeamNames(_hideTeamNames);
+        _uxPreferences.HideTeamNames = _hideTeamNames;
+        UxPreferences.Save(_uxPreferences);
+        BroadcastWebState();
     }
 
     private void UpdateSettingsHideTeamNamesCardVisuals()
@@ -1755,12 +1759,12 @@ public partial class MainWindow
 
     private string? GetMatchStateBarTitle()
     {
-        if (_match.ClockRunning)
-        {
-            return $"Q{_match.Quarter}";
-        }
-
-        return null;
+        bool fullTime = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) is not null;
+        bool atQuarterBreak = !_match.ClockRunning && _match.ElapsedInQuarter <= TimeSpan.Zero
+                              && (_match.Quarter > 1 || fullTime);
+        return atQuarterBreak
+            ? QuarterLabelService.GetBreakLabel(GetEndedQuarter())
+            : QuarterLabelService.GetQuarterLabel(_match.Quarter);
     }
 
     private int GetEndedQuarter()
@@ -1874,8 +1878,7 @@ public partial class MainWindow
     {
         if (_weatherScreen == null) return;
 
-        var snapshot = _scorebug?.GetWeatherSnapshot()
-            ?? new WeatherSnapshot(0, 0, 0, 0, 0, string.Empty, string.Empty, Array.Empty<HourlyForecast>());
+        var snapshot = _scorebug?.GetWeatherSnapshot();
 
         _weatherScreen.Populate(snapshot, _weatherLocation,
             _match, GetEndedQuarter(),
@@ -3017,6 +3020,15 @@ public partial class MainWindow
 
     private bool _isBreakRotating;
 
+    private void UpdateActiveDisplayLabel(string label)
+    {
+        CurrentDisplayText.Text = string.IsNullOrWhiteSpace(label)
+            ? "OFF AIR"
+            : $"ON AIR · {label.ToUpperInvariant()}";
+        HeaderOutputText.Text = string.IsNullOrWhiteSpace(label) ? "No active output" : label;
+        InteractionMotion.Pulse(HeaderOutputBadge);
+    }
+
     private void SwitchToScreen(UIElement target, string label, bool fromRotation = false)
     {
         EnsureScoreboardWindow();
@@ -3041,7 +3053,7 @@ public partial class MainWindow
         var current = GetCurrentlyVisibleScreen();
         if (current == target)
         {
-            CurrentDisplayText.Text = label;
+            UpdateActiveDisplayLabel(label);
             return;
         }
 
@@ -3059,7 +3071,7 @@ public partial class MainWindow
         }
 
         _showingBreakScreen = target != _scorebug;
-        CurrentDisplayText.Text = label;
+        UpdateActiveDisplayLabel(label);
 
         // Note: switching to the video surface intentionally does NOT auto-play
         // the clip. The operator loads a video paused on its first frame and
@@ -3256,6 +3268,19 @@ public partial class MainWindow
         sb.Begin();
     }
 
+    private void PreviewSelectedGoalAnimation_Click(object sender, RoutedEventArgs e)
+    {
+        SwitchToScorebug_Click(sender, new RoutedEventArgs());
+        if (_scorebug is null) return;
+
+        _scorebug.PlayScoreAnimation(
+            isHome: true,
+            isGoal: true,
+            newGoals: _match.HomeGoals,
+            newBehinds: _match.HomeBehinds,
+            newTotal: _match.HomeTotal);
+    }
+
     private void AnimationRadio_Changed(object sender, RoutedEventArgs e)
     {
         if (_scorebug == null) return;
@@ -3269,32 +3294,32 @@ public partial class MainWindow
         if (AnimElectricRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Electric;
-            title = "Electric";
-            desc = "Stadium hype — pre-charge edge zaps, horizontal surge entry, 5-beat strobe rhythm, reverse-direction gradient dashes, crackling exit.";
+            title = "Volt";
+            desc = "A hard stadium charge: edge ignition, compressed GOAL wordmark, irregular strobes and a sharp energy cut.";
             duration = "~2.9s";
             intensity = "High";
         }
         else if (AnimCinematicRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Cinematic;
-            title = "Cinematic";
-            desc = "Champions League drama — slow slide entry, three breathing glow cycles, team logo gently zooms forward, slow slide exit.";
+            title = "Epic";
+            desc = "A deliberate identity moment: the GOAL wordmark arrives slowly, breathes in light, then drifts away.";
             duration = "~5.0s";
             intensity = "Low";
         }
         else if (AnimCleanRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Clean;
-            title = "Clean";
-            desc = "Modern minimalist — no overlay, no text. Two-stage heartbeat on the score area and an elastic swell on the total digit.";
+            title = "Pulse";
+            desc = "Minimal and score-first: one calm GOAL wordmark, a restrained edge pulse and an elastic total-score heartbeat.";
             duration = "~2.2s";
             intensity = "Minimal";
         }
         else if (AnimClassicRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Classic;
-            title = "Classic";
-            desc = "Retro arcade — overlay stutters on like 1980s scoreboard bulbs warming up, irregular mid-hold flicker, bulb-burnout exit.";
+            title = "Scoreboard";
+            desc = "A vintage lamp-board treatment: monospace GOAL display, stepped warm-up, uneven hold and bulb-burnout exit.";
             duration = "~2.4s";
             intensity = "Medium";
         }
@@ -3309,8 +3334,8 @@ public partial class MainWindow
         else
         {
             style = GoalAnimationStyle.Broadcast;
-            title = "Broadcast";
-            desc = "Premium TV package — vertical-unfurl entry, signature double-tap score glow, dual shimmer passes, controlled fade.";
+            title = "Signal";
+            desc = "A premium television package: vertical wordmark reveal, two channel sweeps, double score-glow beat and clean close.";
             duration = "~3.5s";
             intensity = "Medium";
         }
@@ -3440,15 +3465,13 @@ public partial class MainWindow
 
         if (_displayWindow is { IsVisible: true })
         {
-            _displayWindow.Width = w;
-            _displayWindow.Height = h;
-            WindowDimensionsStatus.Text = $"Resized to {w} × {h}";
+            PixelSizeHelper.SetWindowPixels(_displayWindow, w, h);
+            WindowDimensionsStatus.Text = $"Output set to {w} × {h} physical pixels";
         }
         else if (_cricketDisplayWindow is { IsVisible: true })
         {
-            _cricketDisplayWindow.Width = w;
-            _cricketDisplayWindow.Height = h;
-            WindowDimensionsStatus.Text = $"Resized to {w} × {h}";
+            PixelSizeHelper.SetWindowPixels(_cricketDisplayWindow, w, h);
+            WindowDimensionsStatus.Text = $"Output set to {w} × {h} physical pixels";
         }
         else
         {
@@ -3565,7 +3588,6 @@ public partial class MainWindow
 
         var msg = new Roche_Scoreboard.Models.MarqueeMessage(text, textColor, hi);
         _styledMessages.Add(msg);
-        _messages.Add(text);
         if (MessageList.ItemsSource is null)
             MessageList.ItemsSource = _styledMessages;
 
@@ -3574,7 +3596,67 @@ public partial class MainWindow
         // a consistent style across consecutive messages. They can change them
         // any time via the swatch buttons.
 
+        SyncTickerMessages();
+        NewMessageBox.Focus();
+    }
+
+    private void SyncTickerMessages()
+    {
+        _messages.Clear();
+        foreach (var message in _styledMessages)
+            _messages.Add(message.Text?.Trim() ?? string.Empty);
+
         _scorebug?.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+        UpdateTickerEditorState();
+        PublishCloudSnapshot();
+        SaveGameState();
+    }
+
+    private void UpdateTickerEditorState()
+    {
+        bool hasMessages = _styledMessages.Count > 0;
+        if (TickerEmptyState is not null)
+            TickerEmptyState.Visibility = hasMessages ? Visibility.Collapsed : Visibility.Visible;
+        if (TickerMessageCountText is not null)
+            TickerMessageCountText.Text = $"{_styledMessages.Count} ON AIR";
+        if (TickerClearAllButton is not null)
+            TickerClearAllButton.IsEnabled = hasMessages;
+    }
+
+    private void TickerTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.Button { Tag: string template }) return;
+        NewMessageBox.Text = template;
+        NewMessageBox.Focus();
+        NewMessageBox.CaretIndex = NewMessageBox.Text.Length;
+    }
+
+    private void NewMessageBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        if (TickerCharacterCountText is null || NewMessageBox is null) return;
+        int count = NewMessageBox.Text?.Length ?? 0;
+        TickerCharacterCountText.Text = $"{count} / 140 · ENTER TO ADD";
+        TickerCharacterCountText.Foreground = count >= 126
+            ? new SolidColorBrush(MediaColor.FromRgb(255, 185, 80))
+            : new SolidColorBrush(MediaColor.FromRgb(115, 132, 151));
+    }
+
+    private void ClearTickerMessages_Click(object sender, RoutedEventArgs e)
+    {
+        if (_styledMessages.Count == 0) return;
+
+        MessageBoxResult result = System.Windows.MessageBox.Show(
+            this,
+            "Remove every ticker message from the live rotation?",
+            "Clear ticker messages",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question,
+            MessageBoxResult.No);
+        if (result != MessageBoxResult.Yes) return;
+
+        _styledMessages.Clear();
+        SyncTickerMessages();
+        NewMessageBox.Focus();
     }
 
     // ── Colour-picker state for the "new message" row ──
@@ -3646,7 +3728,7 @@ public partial class MainWindow
         var initial = ParseDrawingColor(msg.TextColor, System.Drawing.Color.White);
         if (!TryPickColor(initial, out var picked)) return;
         msg.TextColor = ToHex(picked);
-        _scorebug?.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+        SyncTickerMessages();
     }
 
     private void PickItemHighlightColor_Click(object sender, RoutedEventArgs e)
@@ -3656,7 +3738,7 @@ public partial class MainWindow
         var initial = ParseDrawingColor(msg.HighlightColor, System.Drawing.Color.FromArgb(255, 30, 64, 175));
         if (!TryPickColor(initial, out var picked)) return;
         msg.HighlightColor = ToHex(picked);
-        _scorebug?.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+        SyncTickerMessages();
     }
 
     private void ClearItemHighlightColor_Click(object sender, MouseButtonEventArgs e)
@@ -3664,7 +3746,7 @@ public partial class MainWindow
         if (sender is not System.Windows.Controls.Button btn) return;
         if (btn.Tag is not Roche_Scoreboard.Models.MarqueeMessage msg) return;
         msg.HighlightColor = null;
-        _scorebug?.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+        SyncTickerMessages();
     }
 
     private void RemoveMessageItem_Click(object sender, RoutedEventArgs e)
@@ -3676,9 +3758,7 @@ public partial class MainWindow
         if (index < 0) return;
 
         _styledMessages.RemoveAt(index);
-        if (index < _messages.Count) _messages.RemoveAt(index);
-
-        _scorebug?.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+        SyncTickerMessages();
     }
 
     /// <summary>
@@ -3690,19 +3770,14 @@ public partial class MainWindow
         if (_styledMessages.Count == 0) return;
         int index = _styledMessages.Count - 1;
         _styledMessages.RemoveAt(index);
-        if (index < _messages.Count) _messages.RemoveAt(index);
-        _scorebug?.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+        SyncTickerMessages();
     }
 
     private void MessageItem_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
     {
         // Keep the plain-text mirror in sync with the styled collection so persistence
         // and any string-based callers see the latest text.
-        _messages.Clear();
-        foreach (var m in _styledMessages)
-            _messages.Add(m.Text ?? string.Empty);
-
-        _scorebug?.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+        SyncTickerMessages();
     }
 
     private void NewMessageBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -4013,20 +4088,12 @@ public partial class MainWindow
         _videoPlayer.MediaLoadFailed -= VideoPlayer_MediaLoadFailed;
         _videoPlayer.MediaLoadFailed += VideoPlayer_MediaLoadFailed;
 
-        _suppressVideoAutoPlay = true;
-        try
+        // SetVideoSource is deliberately followed by an explicit pause; the
+        // operator remains in control of when media reaches the public output.
+        _videoPlayer.SetVideoSource(_customVideoPath);
+        if (_customMediaIsImage)
         {
-            // Images are shown as a static frame; videos load paused on frame zero
-            // so operators can scrub/cue before switching to output.
-            _videoPlayer.SetVideoSource(_customVideoPath);
-            if (_customMediaIsImage)
-            {
-                _videoPlayer.Pause();
-            }
-        }
-        finally
-        {
-            _suppressVideoAutoPlay = false;
+            _videoPlayer.Pause();
         }
 
         VideoTabPlayPauseButton.IsEnabled = !_customMediaIsImage;
@@ -4058,14 +4125,13 @@ public partial class MainWindow
         // Switching to the video surface intentionally does NOT auto-play.
         // The clip is shown paused on its current frame; the operator must
         // explicitly press Play (or Restart) to start broadcast playback.
-        _suppressVideoAutoPlay = true;
         try
         {
             _videoPlayer.Pause();
         }
         catch { /* ignore — VLC may still be wiring up */ }
 
-        CurrentDisplayText.Text = "Custom Video";
+        UpdateActiveDisplayLabel("Custom Video");
         SetSelectedPreview("presentation:video");
         UpdateVideoTabPlayPauseButton();
         VideoTabStatusText.Text = _customMediaIsImage
@@ -4490,11 +4556,20 @@ public partial class MainWindow
         ShowResetOverlay();
     }
 
+    [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(_scorebug))]
+    private bool TryEnsureOverlaySurface()
+    {
+        if (_sportMode != SportMode.AFL) return false;
+        EnsureScoreboardWindow();
+        if (_scorebug is null) return false;
+        if (_showingBreakScreen || _scorebug.Visibility != Visibility.Visible) ShowScorebug();
+        return true;
+    }
+
     private void ManualStatsBar_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:statsbar");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         var stats = MatchStats.Calculate(_match, _match.Quarter, _match.ElapsedInQuarter);
         _scorebug.ShowStatsBar(stats);
@@ -4503,8 +4578,7 @@ public partial class MainWindow
     private void ManualWarning_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:warning");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         _overlayScheduler.NotifyEventDrivenOverlay();
         _scorebug.ShowFiveMinuteWarning();
@@ -4513,8 +4587,7 @@ public partial class MainWindow
     private void ManualScoreless_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:lastscore");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         _overlayScheduler.NotifyEventDrivenOverlay();
         _scorebug.ShowLastScoreTime();
@@ -4523,8 +4596,7 @@ public partial class MainWindow
     private void ManualScoringRun_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:run");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
 
         ApplyCurrentTeamColorsToScorebug();
 
@@ -4565,8 +4637,7 @@ public partial class MainWindow
     private void ManualHomeDrought_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:homedrought");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         var since = _scorebug.HomeLastScoreTime;
         if (since == DateTime.MinValue) since = DateTime.Now - _match.ElapsedInQuarter;
@@ -4579,8 +4650,7 @@ public partial class MainWindow
     private void ManualAwayDrought_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:awaydrought");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         var since = _scorebug.AwayLastScoreTime;
         if (since == DateTime.MinValue) since = DateTime.Now - _match.ElapsedInQuarter;
@@ -4593,8 +4663,7 @@ public partial class MainWindow
     private void ManualWinProb_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:winprob");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         ComputeAndShowWinProbability();
     }
@@ -4602,8 +4671,7 @@ public partial class MainWindow
     private void ManualGBCounts_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:gbcounts");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         _overlayScheduler.NotifyEventDrivenOverlay();
         _scorebug.ToggleGBColumns();
     }
@@ -4611,8 +4679,7 @@ public partial class MainWindow
     private void ManualWeatherForecast_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:forecast");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         var snapshot = _scorebug.GetWeatherSnapshot();
         if (snapshot == null) return;
         _scorebug.ShowWeatherForecast(snapshot);
@@ -4621,8 +4688,7 @@ public partial class MainWindow
     private void ManualWeatherStats_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:weather");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         var snapshot = _scorebug.GetWeatherSnapshot();
         if (snapshot == null) return;
         _scorebug.ShowWeatherStats(snapshot);
@@ -4631,8 +4697,7 @@ public partial class MainWindow
     private void ManualRainForecast_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:rain");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         var snapshot = _scorebug.GetWeatherSnapshot();
         if (snapshot == null) return;
         _scorebug.ShowRainForecast(snapshot);
@@ -4806,7 +4871,7 @@ public partial class MainWindow
 
         EventList.Children.Clear();
         LastEventText.Text = string.Empty;
-        CurrentDisplayText.Text = "";
+        UpdateActiveDisplayLabel("No active output");
 
         // Restore the match log empty state
         if (MatchLogCountBadge is not null)
@@ -4891,7 +4956,26 @@ public partial class MainWindow
 
         UpdateCurrentVersionText.Text = $"Current version: v{AutoUpdateService.CurrentVersion.ToString(3)}";
 
-        if (System.Windows.Application.Current is App app && app.UpdateService.UpdateAvailable)
+        if (System.Windows.Application.Current is not App app) return;
+
+        InstallUpdateButton.Content = "DOWNLOAD & INSTALL";
+        if (app.UpdateService.LastCheckState == UpdateCheckState.Failed)
+        {
+            UpdateStatusText.Text = $"Update check failed: {app.UpdateService.LastError}  Diagnostic: {AutoUpdateService.DiagnosticsPath}";
+            UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x8A, 0x80));
+            InstallUpdateButton.Visibility = Visibility.Visible;
+            InstallUpdateButton.IsEnabled = true;
+            InstallUpdateButton.Content = "OPEN DOWNLOAD PAGE";
+        }
+        else if (app.UpdateService.LastCheckState == UpdateCheckState.UpdateAvailableWithoutCompatibleAsset)
+        {
+            UpdateStatusText.Text = "A newer release exists, but its complete Windows x64 portable ZIP is missing.";
+            UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0xC8, 0x57));
+            InstallUpdateButton.Visibility = Visibility.Visible;
+            InstallUpdateButton.IsEnabled = true;
+            InstallUpdateButton.Content = "OPEN DOWNLOAD PAGE";
+        }
+        else if (app.UpdateService.UpdateAvailable)
         {
             string? tag = app.UpdateService.LatestRelease?.TagName?.TrimStart('v', 'V');
             UpdateStatusText.Text = string.IsNullOrWhiteSpace(tag)
@@ -4922,28 +5006,12 @@ public partial class MainWindow
             UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0x8A, 0x95, 0xA3));
             InstallUpdateButton.Visibility = Visibility.Collapsed;
 
-            bool available = await app.UpdateService.CheckForUpdateAsync();
-
-            if (available)
-            {
-                string? tag = app.UpdateService.LatestRelease?.TagName?.TrimStart('v', 'V');
-                UpdateStatusText.Text = string.IsNullOrWhiteSpace(tag)
-                    ? "An update is available."
-                    : $"Update available: v{tag}.";
-                UpdateStatusText.Foreground = MediaBrushes.LightGreen;
-                InstallUpdateButton.Visibility = Visibility.Visible;
-                InstallUpdateButton.IsEnabled = true;
-            }
-            else
-            {
-                UpdateStatusText.Text = "No updates available — you're on the latest version.";
-                UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0x8A, 0x95, 0xA3));
-                InstallUpdateButton.Visibility = Visibility.Collapsed;
-            }
+            await app.UpdateService.CheckForUpdateAsync();
+            RefreshUpdateStatusUi();
         }
         catch (Exception ex)
         {
-            UpdateStatusText.Text = $"Update check failed: {ex.Message} Open latest installer in browser.";
+            UpdateStatusText.Text = $"Update check failed: {ex.Message} Open the latest release in your browser.";
             UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
             InstallUpdateButton.Visibility = Visibility.Visible;
             InstallUpdateButton.IsEnabled = true;
@@ -4959,7 +5027,8 @@ public partial class MainWindow
     private async void InstallUpdate_Click(object sender, RoutedEventArgs e)
     {
         if (System.Windows.Application.Current is not App app) return;
-        if (!app.UpdateService.UpdateAvailable)
+        if (!app.UpdateService.UpdateAvailable ||
+            app.UpdateService.LastCheckState == UpdateCheckState.UpdateAvailableWithoutCompatibleAsset)
         {
             try
             {
@@ -4983,7 +5052,7 @@ public partial class MainWindow
                 if (!string.IsNullOrWhiteSpace(directAssetUrl))
                 {
                     AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
-                    UpdateStatusText.Text = "Opened direct installer download in your browser.";
+                    UpdateStatusText.Text = "Portable ZIP download opened. Extract the entire folder before running the app.";
                 }
                 else
                 {
@@ -5036,7 +5105,7 @@ public partial class MainWindow
                     if (!string.IsNullOrWhiteSpace(directAssetUrl))
                     {
                         AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
-                        UpdateStatusText.Text = "In-app update failed. Direct installer download opened in browser.";
+                        UpdateStatusText.Text = "In-app update failed. Portable ZIP opened—extract the entire folder before running it.";
                     }
                     else
                     {
@@ -5065,7 +5134,7 @@ public partial class MainWindow
                 if (!string.IsNullOrWhiteSpace(directAssetUrl))
                 {
                     AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
-                    UpdateStatusText.Text = "In-app update failed. Direct installer download opened in browser.";
+                    UpdateStatusText.Text = "In-app update failed. Portable ZIP opened—extract the entire folder before running it.";
                 }
                 else
                 {
@@ -5154,22 +5223,22 @@ public partial class MainWindow
         // Colour updates
         WindowToggleTrack.Background = new SolidColorBrush(isOpen
             ? (MediaColor)MediaColorConverter.ConvertFromString("#0D4429")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#21262D"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#18212C"));
         WindowToggleTrack.BorderBrush = new SolidColorBrush(isOpen
             ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#30363D"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#304055"));
         WindowToggleThumb.Background = new SolidColorBrush(isOpen
             ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#6A6A80"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#8191A4"));
 
         WindowToggleLabel.Text = isOpen ? "Close" : "Open";
         WindowToggleLabel.Foreground = new SolidColorBrush(isOpen
             ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#4A4A60"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#8191A4"));
 
         PresCardWindow.BorderBrush = new SolidColorBrush(isOpen
             ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A2A40"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#304055"));
     }
 
     private void UpdatePresentationCards(string active)
@@ -5188,10 +5257,10 @@ public partial class MainWindow
             bool selected = key == active;
             card.Background = new SolidColorBrush(selected
                 ? (MediaColor)MediaColorConverter.ConvertFromString("#0A1628")
-                : (MediaColor)MediaColorConverter.ConvertFromString("#0E0E1A"));
+                : (MediaColor)MediaColorConverter.ConvertFromString("#101721"));
             card.BorderBrush = new SolidColorBrush(selected
                 ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-                : (MediaColor)MediaColorConverter.ConvertFromString("#2A2A40"));
+                : (MediaColor)MediaColorConverter.ConvertFromString("#304055"));
             card.BorderThickness = new Thickness(selected ? 2 : 1);
             check.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
             if (glow != null)
@@ -5209,7 +5278,7 @@ public partial class MainWindow
                 if (tb.FontWeight == FontWeights.Black && tb.FontSize >= 10)
                     tb.Foreground = new SolidColorBrush(selected
                         ? Colors.White
-                        : (MediaColor)MediaColorConverter.ConvertFromString("#6A6A80"));
+                        : (MediaColor)MediaColorConverter.ConvertFromString("#8191A4"));
             }
         }
     }
@@ -5277,8 +5346,7 @@ public partial class MainWindow
     private void OverlayLeadChanges_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         SetSelectedPreview("overlay:leadchanges");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         _overlayScheduler.NotifyEventDrivenOverlay();
         var stats = MatchStats.Calculate(_match, _match.Quarter, _match.ElapsedInQuarter);
         _scorebug.ShowLeadChangesBar(stats.LeadChanges);
@@ -5287,8 +5355,7 @@ public partial class MainWindow
     private void OverlayQtrScores_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         SetSelectedPreview("overlay:qtrscores");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         _overlayScheduler.NotifyEventDrivenOverlay();
         int q = _match.Quarter;
@@ -5303,8 +5370,7 @@ public partial class MainWindow
     private void OverlayRecentScores_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         SetSelectedPreview("overlay:recentscores");
-        if (_scorebug == null) return;
-        if (_showingBreakScreen) ShowScorebug();
+        if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         _overlayScheduler.NotifyEventDrivenOverlay();
         // Manual click should always (re-)show. Clear any active/queued overlay
@@ -5697,25 +5763,23 @@ public partial class MainWindow
 
     private void UpdateAnimCards()
     {
-        var cards = new (Border card, Border check, Border? glow, bool selected)[]
+        var cards = new (Border card, Border check, Border? glow, bool selected, string idle, string accent)[]
         {
-            (AnimCardBroadcast,   AnimCheckBroadcast,   null,                AnimBroadcastRadio.IsChecked == true),
-            (AnimCardElectric,    AnimCheckElectric,     null,                AnimElectricRadio.IsChecked == true),
-            (AnimCardCinematic,   AnimCheckCinematic,    null,                AnimCinematicRadio.IsChecked == true),
-            (AnimCardClean,       AnimCheckClean,        null,                AnimCleanRadio.IsChecked == true),
-            (AnimCardClassic,     AnimCheckClassic,      null,                AnimClassicRadio.IsChecked == true),
-            (AnimCardCustomVideo, AnimCheckCustomVideo,  AnimGlowCustomVideo, AnimCustomVideoRadio.IsChecked == true),
+            (AnimCardBroadcast,   AnimCheckBroadcast,   null,                AnimBroadcastRadio.IsChecked == true,   "#0B1726", "#63B3FF"),
+            (AnimCardElectric,    AnimCheckElectric,     null,                AnimElectricRadio.IsChecked == true,    "#091C21", "#59F3FF"),
+            (AnimCardCinematic,   AnimCheckCinematic,    null,                AnimCinematicRadio.IsChecked == true,   "#171126", "#C6A5FF"),
+            (AnimCardClean,       AnimCheckClean,        null,                AnimCleanRadio.IsChecked == true,       "#0B1D18", "#68E0B7"),
+            (AnimCardClassic,     AnimCheckClassic,      null,                AnimClassicRadio.IsChecked == true,     "#201808", "#FFC857"),
+            (AnimCardCustomVideo, AnimCheckCustomVideo,  AnimGlowCustomVideo, AnimCustomVideoRadio.IsChecked == true, "#1A1408", "#D29922"),
         };
 
-        foreach (var (card, check, glow, selected) in cards)
+        foreach (var (card, check, glow, selected, idle, accent) in cards)
         {
-            bool isCustom = card == AnimCardCustomVideo;
             card.Background = new SolidColorBrush(selected
-                ? (MediaColor)MediaColorConverter.ConvertFromString(isCustom ? "#1A1408" : "#0A1628")
-                : (MediaColor)MediaColorConverter.ConvertFromString("#0E0E1A"));
-            card.BorderBrush = new SolidColorBrush(selected
-                ? (MediaColor)MediaColorConverter.ConvertFromString(isCustom ? "#6B5A00" : "#D29922")
-                : (MediaColor)MediaColorConverter.ConvertFromString("#2A2A40"));
+                ? (MediaColor)MediaColorConverter.ConvertFromString(idle)
+                : (MediaColor)MediaColorConverter.ConvertFromString("#0C1119"));
+            card.BorderBrush = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(
+                selected ? accent : "#2D3948"));
             card.BorderThickness = new Thickness(selected ? 2 : 1);
             check.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
             if (glow != null)
@@ -5727,8 +5791,8 @@ public partial class MainWindow
             {
                 if (tb.FontWeight == FontWeights.Black && tb.FontSize >= 8)
                     tb.Foreground = new SolidColorBrush(selected
-                        ? (MediaColor)MediaColorConverter.ConvertFromString(isCustom ? "#D29922" : "White")
-                        : (MediaColor)MediaColorConverter.ConvertFromString("#6A6A80"));
+                        ? (MediaColor)MediaColorConverter.ConvertFromString(accent)
+                        : (MediaColor)MediaColorConverter.ConvertFromString("#8191A3"));
             }
         }
     }
@@ -5816,6 +5880,8 @@ public partial class MainWindow
     private void ApplySettingsCategoryFilter(string category)
     {
         _settingsActiveCategory = string.IsNullOrWhiteSpace(category) ? "teams" : category.ToLowerInvariant();
+        _uxPreferences.LastSettingsCategory = _settingsActiveCategory;
+        UxPreferences.Save(_uxPreferences);
         if (SettingsScrollViewer is not null)
         {
             SettingsScrollViewer.ScrollToHome();
@@ -5840,15 +5906,34 @@ public partial class MainWindow
         {
             if (pill is null) continue;
             bool active = string.Equals(key, _settingsActiveCategory, System.StringComparison.OrdinalIgnoreCase);
-            pill.Background = active
-                ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1F, 0x29, 0x37))
-                : System.Windows.Media.Brushes.Transparent;
             var activeBorder = string.Equals(key, "keybinds", System.StringComparison.OrdinalIgnoreCase)
                 ? System.Windows.Media.Color.FromRgb(0xA7, 0x8B, 0xFA)
                 : System.Windows.Media.Color.FromRgb(0x58, 0xA6, 0xFF);
+            pill.Background = active
+                ? new System.Windows.Media.LinearGradientBrush(
+                    System.Windows.Media.Color.FromRgb(0x20, 0x31, 0x49),
+                    System.Windows.Media.Color.FromRgb(0x12, 0x1C, 0x2A), 90)
+                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x0A, 0x10, 0x1A));
             pill.BorderBrush = active
                 ? new System.Windows.Media.SolidColorBrush(activeBorder)
-                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x21, 0x26, 0x2D));
+                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x2B, 0x3A, 0x4E));
+            pill.BorderThickness = new Thickness(active ? 2 : 1);
+            pill.Effect = active
+                ? new System.Windows.Media.Effects.DropShadowEffect
+                {
+                    BlurRadius = 14,
+                    ShadowDepth = 0,
+                    Color = activeBorder,
+                    Opacity = 0.32
+                }
+                : null;
+            pill.BeginAnimation(OpacityProperty, new DoubleAnimation
+            {
+                From = active ? 0.72 : pill.Opacity,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(active ? 220 : 130),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            });
         }
     }
 
@@ -5896,13 +5981,48 @@ public partial class MainWindow
             bool queryMatch = !searching || SectionMatchesQuery(section, query);
             bool show = searching ? queryMatch : categoryMatch;
             section.Visibility = show ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            if (show) visibleCount++;
+            if (show)
+            {
+                AnimateSettingsSectionIn(section, visibleCount);
+                visibleCount++;
+            }
         }
 
         if (SettingsNoResults is not null)
             SettingsNoResults.Visibility = visibleCount == 0
                 ? System.Windows.Visibility.Visible
                 : System.Windows.Visibility.Collapsed;
+    }
+
+    private static void AnimateSettingsSectionIn(FrameworkElement section, int order)
+    {
+        if (!SystemParameters.ClientAreaAnimation)
+        {
+            section.Opacity = 1;
+            return;
+        }
+
+        section.BeginAnimation(OpacityProperty, null);
+        section.Opacity = 0;
+        var translate = section.RenderTransform as TranslateTransform;
+        if (translate is null)
+        {
+            translate = new TranslateTransform();
+            section.RenderTransform = translate;
+        }
+        translate.Y = 18;
+
+        var delay = TimeSpan.FromMilliseconds(Math.Min(order, 4) * 45);
+        section.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260))
+        {
+            BeginTime = delay,
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        });
+        translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(18, 0, TimeSpan.FromMilliseconds(320))
+        {
+            BeginTime = delay,
+            EasingFunction = new BackEase { Amplitude = 0.28, EasingMode = EasingMode.EaseOut }
+        });
     }
 
     private static bool SectionMatchesQuery(System.Windows.DependencyObject root, string query)

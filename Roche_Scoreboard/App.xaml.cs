@@ -39,6 +39,9 @@ public partial class App : Application
     /// </summary>
     internal Task UpdateCheckTask { get; private set; } = Task.CompletedTask;
 
+    /// <summary>True only for the isolated command-line regression surfaces.</summary>
+    internal bool IsSelfTestMode { get; private set; }
+
     /// <summary>
     /// Path to the crash log file. Each unhandled exception is appended with a
     /// timestamp so the next crash is diagnosable even if no WER dump is produced.
@@ -52,10 +55,26 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        IsSelfTestMode = e.Args.Any(arg =>
+            arg.StartsWith("--gallery-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--startup-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--preferences-self-test-output=", StringComparison.OrdinalIgnoreCase));
+
         // Install global exception handlers up-front so any error from here on
         // is logged (and, where possible, non-fatal ones are swallowed) rather
         // than tearing the process down silently mid-game.
         InstallGlobalExceptionHandlers();
+
+        // The AFL presentation gallery is a fully isolated visual QA surface.
+        // Open it before production services so update, video, saved-state and
+        // operator-preference initialisation cannot affect the regression view.
+        if (e.Args.Contains("--afl-presentation-gallery", StringComparer.OrdinalIgnoreCase))
+        {
+            Window presentationGallery = new AflPresentationGalleryWindow();
+            MainWindow = presentationGallery;
+            presentationGallery.Show();
+            return;
+        }
 
         // Persist the live game state when Windows is logging off / shutting
         // down / restarting. Without this hook the app is killed by the
@@ -274,7 +293,7 @@ public partial class App : Application
                 object result = galleryWindow.RunSelfTest();
                 string json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(resolvedOutputPath, json);
-                File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "gallery-self-test.json"), json);
+                TryWriteDiagnosticMirror("gallery-self-test.json", json);
             }
             catch (Exception ex)
             {
@@ -283,7 +302,7 @@ public partial class App : Application
                     error = ex.ToString(),
                 }, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(resolvedOutputPath, errorJson);
-                File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "gallery-self-test.json"), errorJson);
+                TryWriteDiagnosticMirror("gallery-self-test.json", errorJson);
             }
             finally
             {
@@ -322,7 +341,7 @@ public partial class App : Application
 
                 string json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(resolvedOutputPath, json);
-                File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "startup-self-test.json"), json);
+                TryWriteDiagnosticMirror("startup-self-test.json", json);
             }
             catch (Exception ex)
             {
@@ -331,7 +350,7 @@ public partial class App : Application
                     error = ex.ToString(),
                 }, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(resolvedOutputPath, errorJson);
-                File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "startup-self-test.json"), errorJson);
+                TryWriteDiagnosticMirror("startup-self-test.json", errorJson);
             }
             finally
             {
@@ -424,8 +443,24 @@ public partial class App : Application
 
         string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(resolvedOutputPath, json);
-        File.WriteAllText(Path.Combine(Path.GetDirectoryName(CrashLogPath)!, "preferences-self-test.json"), json);
+        TryWriteDiagnosticMirror("preferences-self-test.json", json);
         Shutdown();
+    }
+
+    private static void TryWriteDiagnosticMirror(string fileName, string content)
+    {
+        try
+        {
+            string directory = Path.GetDirectoryName(CrashLogPath)!;
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(Path.Combine(directory, fileName), content);
+        }
+        catch
+        {
+            // The caller's requested output is authoritative. A locked or
+            // restricted diagnostic mirror must never turn a passing self-test
+            // into a failure or interfere with production startup.
+        }
     }
 
     private static string ResolveSelfTestOutputPath(string outputPath, string fallbackFileName)

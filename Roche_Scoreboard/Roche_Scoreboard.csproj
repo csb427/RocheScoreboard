@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- Windows 10 19041+ TFM unlocks the WinRT projection so we can use
-         Windows.Media.Control (GSMTC) for Music Mode's now-playing detection. -->
+    <!-- Windows 10 19041+ TFM enables the WinRT APIs used by the display and media stack. -->
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
-    <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -17,22 +15,26 @@
     <AssemblyName>Roche Scoreboard</AssemblyName>
     <AssemblyTitle>Roche Scoreboard</AssemblyTitle>
     <Product>Roche Scoreboard</Product>
-    <Description>AFL broadcast scoreboard overlay</Description>
-    <Version>3.4.0</Version>
+    <Description>AFL and Cricket broadcast scoreboard application</Description>
+    <Version>4.1.0</Version>
 
     <!-- App icon (taskbar, File Explorer, title bar) -->
     <ApplicationIcon>app.ico</ApplicationIcon>
 
-    <!-- Publishing as single-file EXE -->
-    <PublishSingleFile>true</PublishSingleFile>
+    <!-- Release as a conventional, self-contained WPF folder. A multi-file
+         publish avoids native single-file extraction and lets LibVLC keep its
+         native libraries and plugin tree in their required relative paths. -->
+    <PublishSingleFile>false</PublishSingleFile>
     <SelfContained>true</SelfContained>
+    <PublishTrimmed>false</PublishTrimmed>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.7.1" />
+    <!-- 3.10 separates UWP/WinUI from the core package. Earlier 3.9.7.1
+         pulled Microsoft.WindowsAppSDK into this WPF app and generated a
+         duplicate SessionHandleIPCProxyStub.dll activation-manifest entry. -->
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.10.0" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
     <PackageReference Include="SharpVectors.Reloaded" Version="1.8.5" />
     <PackageReference Include="Supabase" Version="1.1.1" />
@@ -41,13 +43,9 @@
 
   <!--
     LibVLCSharp's native loader requires libvlc.dll, libvlccore.dll and the
-    plugins folder to sit as LOOSE files next to the executable under
-    libvlc\win-x64\. With PublishSingleFile=true the VideoLAN.LibVLC.Windows
-    content items aren't reliably emitted to the publish directory, which
-    leaves the runtime unable to initialise on first launch. This target
-    copies the native runtime from the build output into the publish folder
-    after publishing finishes, so the deployed EXE always has its native
-    dependencies sitting beside it.
+    plugins folder to remain as loose files under libvlc\win-x64\. This target
+    guarantees those native files are included in the self-contained publish
+    folder that is distributed as a zip.
   -->
   <Target Name="CopyLibVlcNativesToPublish" AfterTargets="Publish">
     <ItemGroup>

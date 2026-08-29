@@ -3,14 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="Transparent">
 
-    <!-- Master Viewbox: 960×540 design canvas. Host window is locked to
-         16:9 so Uniform produces zero letterbox at any size. -->
-    <!-- Master Viewbox: 960×540 design canvas. Stretch="Fill" so the
-         cricket scorebug fills any host aspect ratio with no letterbox bars. -->
-    <Viewbox Stretch="Fill" StretchDirection="Both">
+    <!-- Uniform scaling preserves score digits, logos and circular geometry. -->
+    <Viewbox Stretch="Uniform" StretchDirection="Both">
         <Grid Width="960" Height="540">
             <Grid.RowDefinitions>
-                <RowDefinition Height="20"/>    <!-- top bar with time -->
+                <RowDefinition Height="32"/>    <!-- readable live-state header -->
                 <RowDefinition Height="Auto"/>  <!-- overlay bars (AFL-style) -->
                 <RowDefinition Height="*"/>     <!-- main scoreboard -->
                 <RowDefinition Height="80"/>    <!-- bottom bar: stats + marquee -->
@@ -33,8 +30,8 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Ellipse Grid.Column="0" Width="6" Height="6" Fill="#3FB950" Margin="8,0,4,0" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="1" x:Name="TopInningsText" Text="" Foreground="#94A3B8" FontWeight="Bold" FontSize="10" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="3" x:Name="TopTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Column="1" x:Name="TopInningsText" Text="" Foreground="#D6E3EF" FontWeight="Black" FontSize="17" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" x:Name="TopTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="18" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 </Grid>
             </Border>
 
@@ -81,11 +78,11 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="RUN RATE" Foreground="#4ADE80" FontSize="18" FontWeight="Black" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="CRR" Foreground="#94A3B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Text="CRR" Foreground="#D6E3EF" FontSize="18" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock x:Name="RunRateBarCRR" Text="0.00" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
                     </StackPanel>
                     <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="RRR" Foreground="#F59E0B" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Text="RRR" Foreground="#FCD34D" FontSize="18" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock x:Name="RunRateBarRRR" Text="—" Foreground="#FCD34D" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
@@ -113,11 +110,11 @@
                     <TextBlock Grid.Column="0" Text="TARGET" Foreground="#58A6FF" FontSize="18" FontWeight="Black" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="2" x:Name="TargetBarTarget" Text="—" Foreground="White" FontSize="32" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="NEED" Foreground="#94A3B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Text="NEED" Foreground="#D6E3EF" FontSize="18" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock x:Name="TargetBarNeed" Text="—" Foreground="#FF6B6B" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
                     </StackPanel>
                     <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="BALLS" Foreground="#94A3B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Text="BALLS" Foreground="#D6E3EF" FontSize="18" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock x:Name="TargetBarBalls" Text="—" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
@@ -302,13 +299,13 @@
                                 <Image x:Name="BattingLogo" MaxHeight="50" MaxWidth="50" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                                 <TextBlock x:Name="BattingAbbrText" Text="TMA" Foreground="White" FontSize="20" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                             </StackPanel>
-                            <!-- Score: wickets / runs with independent scroll -->
+                            <!-- Score: runs / wickets (standard cricket convention) -->
                             <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <!-- Wickets -->
+                                <!-- Runs: sized for a stable three-digit total -->
                                 <Grid ClipToBounds="True" Height="60" MinWidth="20">
-                                    <TextBlock x:Name="ScoreWickets" Text="0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock x:Name="ScoreRuns" Text="0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift SemiCondensed" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
-                                            <TranslateTransform x:Name="ScoreWicketsTranslate" Y="0"/>
+                                            <TranslateTransform x:Name="ScoreRunsTranslate" Y="0"/>
                                         </TextBlock.RenderTransform>
                                     </TextBlock>
                                 </Grid>
@@ -318,11 +315,11 @@
                                         <DropShadowEffect x:Name="ScoreGlow" BlurRadius="12" ShadowDepth="0" Color="White" Opacity="0.3"/>
                                     </TextBlock.Effect>
                                 </TextBlock>
-                                <!-- Runs -->
+                                <!-- Wickets -->
                                 <Grid ClipToBounds="True" Height="60" MinWidth="20">
-                                    <TextBlock x:Name="ScoreRuns" Text="0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock x:Name="ScoreWickets" Text="0" Foreground="White" FontSize="52" FontWeight="Black" FontFamily="Bahnschrift SemiCondensed" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
-                                            <TranslateTransform x:Name="ScoreRunsTranslate" Y="0"/>
+                                            <TranslateTransform x:Name="ScoreWicketsTranslate" Y="0"/>
                                         </TextBlock.RenderTransform>
                                     </TextBlock>
                                 </Grid>
@@ -339,7 +336,7 @@
                             </LinearGradientBrush>
                         </Border.Background>
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <TextBlock Text="OVERS" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <TextBlock Text="OVERS" Foreground="#D6E3EF" FontSize="18" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                             <Grid ClipToBounds="True" Height="38" HorizontalAlignment="Center">
                                 <TextBlock x:Name="OversText" Text="0" Foreground="White" FontSize="30" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <TextBlock.RenderTransform>
@@ -359,7 +356,7 @@
                             </LinearGradientBrush>
                         </Border.Background>
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <TextBlock x:Name="InfoLabel" Text="RUN RATE" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <TextBlock x:Name="InfoLabel" Text="RUN RATE" Foreground="#D6E3EF" FontSize="18" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                             <TextBlock x:Name="InfoValue" Text="0.00" Foreground="White" FontSize="28" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
@@ -390,7 +387,7 @@
                                     </LinearGradientBrush>
                                 </Border.Background>
                             </Border>
-                            <TextBlock x:Name="BattingHeaderText" Text="TEAM A BATTING" Foreground="White" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="BattingHeaderText" Text="TEAM A BATTING" Foreground="White" FontSize="19" FontWeight="Black" VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
 
@@ -426,7 +423,7 @@
                                         <SolidColorBrush x:Name="BattingIndicatorBrush" Color="#CC0000"/>
                                     </TextBlock.Foreground>
                                 </TextBlock>
-                                <TextBlock Grid.Column="1" x:Name="StrikerName" Text="J. SMITH" Foreground="White" FontSize="17" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="1" x:Name="StrikerName" Text="J. SMITH" Foreground="White" FontSize="22" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 <Grid Grid.Column="2" ClipToBounds="True" Height="28" VerticalAlignment="Center" Margin="0,0,6,0">
                                     <TextBlock x:Name="StrikerRuns" Text="0" Foreground="White" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
@@ -435,7 +432,7 @@
                                     </TextBlock>
                                 </Grid>
                                 <Grid Grid.Column="3" ClipToBounds="True" Height="18" VerticalAlignment="Center" Margin="0,4,0,0">
-                                    <TextBlock x:Name="StrikerBalls" Text="0" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock x:Name="StrikerBalls" Text="0" Foreground="#D6E3EF" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform x:Name="StrikerBallsTranslate" Y="0"/>
                                         </TextBlock.RenderTransform>
@@ -464,7 +461,7 @@
                                         <SolidColorBrush x:Name="NonStrikerIndicatorBrush" Color="#CC0000"/>
                                     </TextBlock.Foreground>
                                 </TextBlock>
-                                <TextBlock Grid.Column="1" x:Name="NonStrikerName" Text="L. JONES" Foreground="White" FontSize="17" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="1" x:Name="NonStrikerName" Text="L. JONES" Foreground="White" FontSize="22" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 <Grid Grid.Column="2" ClipToBounds="True" Height="28" VerticalAlignment="Center" Margin="0,0,6,0">
                                     <TextBlock x:Name="NonStrikerRuns" Text="0" Foreground="White" FontSize="22" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
@@ -473,7 +470,7 @@
                                     </TextBlock>
                                 </Grid>
                                 <Grid Grid.Column="3" ClipToBounds="True" Height="18" VerticalAlignment="Center" Margin="0,4,0,0">
-                                    <TextBlock x:Name="NonStrikerBalls" Text="0" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock x:Name="NonStrikerBalls" Text="0" Foreground="#D6E3EF" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform x:Name="NonStrikerBallsTranslate" Y="0"/>
                                         </TextBlock.RenderTransform>
@@ -499,7 +496,7 @@
                                     </LinearGradientBrush>
                                 </Border.Background>
                             </Border>
-                            <TextBlock x:Name="BowlingHeaderText" Text="TEAM B BOWLING" Foreground="White" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="BowlingHeaderText" Text="TEAM B BOWLING" Foreground="White" FontSize="19" FontWeight="Black" VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
 
@@ -535,7 +532,7 @@
                                         <SolidColorBrush x:Name="BowlingIndicatorBrush" Color="#000080"/>
                                     </TextBlock.Foreground>
                                 </TextBlock>
-                                <TextBlock Grid.Column="1" x:Name="BowlerName" Text="M. STARC" Foreground="White" FontSize="16" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="1" x:Name="BowlerName" Text="M. STARC" Foreground="White" FontSize="21" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 <Grid Grid.Column="2" ClipToBounds="True" Height="26" VerticalAlignment="Center" Margin="0,0,6,0">
                                     <TextBlock x:Name="BowlerFigures" Text="0-0" Foreground="White" FontSize="20" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
@@ -544,7 +541,7 @@
                                     </TextBlock>
                                 </Grid>
                                 <Grid Grid.Column="3" ClipToBounds="True" Height="18" VerticalAlignment="Center" Margin="0,4,0,0">
-                                    <TextBlock x:Name="BowlerOvers" Text="0" Foreground="#94A3B8" FontSize="13" FontWeight="Bold" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock x:Name="BowlerOvers" Text="0" Foreground="#D6E3EF" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform x:Name="BowlerOversTranslate" Y="0"/>
                                         </TextBlock.RenderTransform>
@@ -569,9 +566,9 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="   " FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Grid.Column="1" x:Name="PrevBowlerName" Text="" Foreground="#94A3B8" FontSize="16" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="1" x:Name="PrevBowlerName" Text="" Foreground="#D6E3EF" FontSize="20" FontWeight="Black" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 <TextBlock Grid.Column="2" x:Name="PrevBowlerFigures" Text="" Foreground="#94A3B8" FontSize="20" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <TextBlock Grid.Column="3" x:Name="PrevBowlerOvers" Text="" Foreground="#64748B" FontSize="13" FontWeight="Bold" FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Column="3" x:Name="PrevBowlerOvers" Text="" Foreground="#B7C5D3" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,4,0,0"/>
                             </Grid>
                         </Border>
                     </Grid>
@@ -612,25 +609,25 @@
                         <UniformGrid Columns="4" Rows="1">
                             <Border CornerRadius="8" Background="#111B2E" Margin="3,0" Padding="8,4">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="Stat1Label" Text="EXTRAS" Foreground="#94A3B8" FontSize="10" FontWeight="Black" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="Stat1Label" Text="EXTRAS" Foreground="#D6E3EF" FontSize="17" FontWeight="Black" HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="Stat1Value" Text="0" Foreground="White" FontSize="24" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                             <Border CornerRadius="8" Background="#111B2E" Margin="3,0" Padding="8,4">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="Stat2Label" Text="P'SHIP" Foreground="#94A3B8" FontSize="10" FontWeight="Black" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="Stat2Label" Text="P'SHIP" Foreground="#D6E3EF" FontSize="17" FontWeight="Black" HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="Stat2Value" Text="0(0)" Foreground="White" FontSize="24" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                             <Border CornerRadius="8" Background="#111B2E" Margin="3,0" Padding="8,4">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="Stat3Label" Text="RUN RATE" Foreground="#94A3B8" FontSize="10" FontWeight="Black" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="Stat3Label" Text="RUN RATE" Foreground="#D6E3EF" FontSize="17" FontWeight="Black" HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="Stat3Value" Text="0.00" Foreground="White" FontSize="24" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                             <Border CornerRadius="8" Background="#111B2E" Margin="3,0" Padding="8,4">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <TextBlock x:Name="Stat4Label" Text="" Foreground="#94A3B8" FontSize="10" FontWeight="Black" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="Stat4Label" Text="" Foreground="#D6E3EF" FontSize="17" FontWeight="Black" HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="Stat4Value" Text="" Foreground="White" FontSize="24" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
@@ -670,7 +667,7 @@
                             <StackPanel Grid.Column="1" x:Name="OverBallsPanel" Orientation="Horizontal" VerticalAlignment="Center"/>
                             <!-- Over runs total -->
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                                <TextBlock x:Name="OverRunsLabel" Text="" Foreground="#64748B" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <TextBlock x:Name="OverRunsLabel" Text="" Foreground="#C4D0DB" FontSize="17" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                 <TextBlock x:Name="OverRunsValue" Text="" Foreground="White" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Grid>

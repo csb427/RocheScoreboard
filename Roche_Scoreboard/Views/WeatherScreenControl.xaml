@@ -6,27 +6,33 @@
              xmlns:local="clr-namespace:Roche_Scoreboard.Views"
              mc:Ignorable="d"
              d:DesignHeight="193" d:DesignWidth="386"
-             Width="386" Height="193">
+             SnapsToDevicePixels="True" UseLayoutRounding="True"
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType"
+             TextOptions.TextHintingMode="Fixed">
 
     <!-- Native 386x193 weather layout. No scaling/Viewbox. -->
     <Grid Background="#0D1117">
         <Grid.RowDefinitions>
-            <RowDefinition Height="14"/>   <!-- title -->
-            <RowDefinition Height="*"/>    <!-- content -->
-            <RowDefinition Height="44"/>   <!-- score bar -->
+            <RowDefinition Height="24*"/>
+            <RowDefinition Height="125*"/>
+            <RowDefinition Height="44*"/>
         </Grid.RowDefinitions>
 
         <!-- TITLE -->
-        <Border Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1"/>
+        <Border x:Name="WeatherTitlePanel" Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1"/>
         <Grid Grid.Row="0" Margin="6,0">
-            <TextBlock x:Name="LocationText" Text="WEATHER" Foreground="#F0C040"
-                       FontSize="10" FontWeight="Black"
-                       HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            <TextBlock Text="WEATHER FORECAST" Foreground="#F0C040"
-                       FontSize="12" FontWeight="Black" FontFamily="Bahnschrift"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock x:Name="WeatherTimeText" Text="1:26 PM" Foreground="#58A6FF"
-                       FontSize="10" FontWeight="Bold"
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="LocationText" Text="WEATHER" Foreground="White"
+                       FontSize="16" FontWeight="Black" FontFamily="Bahnschrift" Margin="0,0,8,0"
+                       HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
+            <TextBlock x:Name="WeatherTitleText" Visibility="Collapsed"/>
+            <TextBlock x:Name="WeatherTimeText" Grid.Column="1" Text="1:26 PM" Foreground="#D6E3EF"
+                       FontSize="14" FontWeight="Black"
                        HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </Grid>
 
@@ -34,12 +40,12 @@
         <Border Grid.Row="1" Background="#0D1117" BorderBrush="#F0C040" BorderThickness="2" Margin="4,2,4,2">
             <Grid Margin="6,4,6,4">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>      <!-- hero: icon + temp + description -->
-                    <RowDefinition Height="36"/>     <!-- min / feels / max strip -->
+                    <RowDefinition x:Name="WeatherHeroRow" Height="87*"/>    <!-- hero: icon + temp + description -->
+                    <RowDefinition x:Name="WeatherStatsRow" Height="42*"/>    <!-- min / feels / max strip -->
                 </Grid.RowDefinitions>
 
                 <!-- HERO: icon on left, temp + description stacked on right -->
-                <Grid Grid.Row="0">
+                <Grid x:Name="WeatherDataPanel" Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="2*"/>
@@ -68,14 +74,14 @@
                                        Foreground="#FFD54A" FontSize="160" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"/>
                         </Viewbox>
                         <TextBlock Grid.Row="1" x:Name="CurrentDescription" Text="Clear Sky"
-                                   Foreground="White" FontSize="16" FontWeight="Black" FontFamily="Bahnschrift"
+                                   Foreground="White" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift"
                                    HorizontalAlignment="Center" TextAlignment="Center"
                                    TextTrimming="CharacterEllipsis" Margin="0,0,0,1"/>
                     </Grid>
                 </Grid>
 
                 <!-- BOTTOM STRIP: three equal cells, unified style -->
-                <Border Grid.Row="1" BorderBrush="#30363D" BorderThickness="0,1,0,0" Margin="0,2,0,0">
+                <Border x:Name="WeatherStatsPanel" Grid.Row="1" BorderBrush="#30363D" BorderThickness="0,1,0,0" Margin="0,2,0,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -88,9 +94,9 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="MIN" Foreground="#7AB8FF" FontSize="11" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Text="MIN" Foreground="#9ACBFF" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
                             <TextBlock Grid.Row="1" x:Name="DayMinTemp" Text="14&#176;" Foreground="#7AB8FF"
-                                       FontSize="22" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
+                                       FontSize="28" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
 
@@ -99,9 +105,9 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="FEELS" Foreground="#B0BEC5" FontSize="11" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Text="FEELS" Foreground="#D6E3EF" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
                             <TextBlock Grid.Row="1" x:Name="FeelsLikeTemp" Text="20&#176;" Foreground="White"
-                                       FontSize="22" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
+                                       FontSize="28" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
 
@@ -110,13 +116,30 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="MAX" Foreground="#FF6E6E" FontSize="11" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Text="MAX" Foreground="#FF9292" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
                             <TextBlock Grid.Row="1" x:Name="DayMaxTemp" Text="26&#176;" Foreground="#FF6E6E"
-                                       FontSize="22" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
+                                       FontSize="28" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
                     </Grid>
                 </Border>
+
+                <!-- Deliberate empty state. Never fabricate zero-degree readings when
+                     the weather service has not received a forecast yet. -->
+                <Grid x:Name="WeatherUnavailablePanel" Grid.RowSpan="2" Visibility="Collapsed"
+                      Margin="12,5" IsHitTestVisible="False">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="WEATHER DATA UNAVAILABLE"
+                                   Foreground="#FFD54A" FontFamily="Bahnschrift, Arial"
+                                   FontSize="18" FontWeight="Black"
+                                   HorizontalAlignment="Center" TextAlignment="Center"/>
+                        <Border Height="2" Width="72" Margin="0,7,0,7" Background="#58A6FF"/>
+                        <TextBlock Text="SET A LOCATION OR CHECK THE CONNECTION"
+                                   Foreground="#C9D1D9" FontFamily="Arial"
+                                   FontSize="14" FontWeight="Black"
+                                   HorizontalAlignment="Center" TextAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Border>
 

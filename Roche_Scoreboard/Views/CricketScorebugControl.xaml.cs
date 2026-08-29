@@ -1555,7 +1555,7 @@ namespace Roche_Scoreboard.Views
             if (_lastMatch?.CurrentInnings == null) { OnOverlayFinished(); return; }
             var inn = _lastMatch.CurrentInnings;
             int oversUsed = Math.Min(inn.CompletedOvers, 6);
-            PowerplayBarOvers.Text = $"{oversUsed}/6";
+            PowerplayBarOvers.Text = $"{oversUsed}/{_lastMatch?.PowerplayOvers ?? 6}";
             ShowOverlayBarInternal("powerplay");
         }
 
@@ -1658,7 +1658,7 @@ namespace Roche_Scoreboard.Views
             if (match.IsInPowerplay)
             {
                 int currentOver = inn.CompletedOvers;
-                if (currentOver != _lastPowerplayOver && currentOver < 6)
+                if (currentOver != _lastPowerplayOver && currentOver < match.PowerplayOvers)
                 {
                     _lastPowerplayOver = currentOver;
                     if (!_powerplayBarShownThisInnings || currentOver == 0)

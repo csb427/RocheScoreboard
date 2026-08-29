@@ -438,6 +438,8 @@
                             </StackPanel>
                             <WrapPanel x:Name="HomePresetPanel" Grid.Row="1"/>
                             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
+                                <Button Content="⌕  Find Club" Height="28" Margin="0,0,6,0"
+                                        Click="BrowseHomeTeam_Click" Style="{StaticResource SmallBtn}"/>
                                 <Button Content="Save Current" Height="26" Margin="0,0,6,0"
                                         Click="SaveHomePreset_Click" Style="{StaticResource SmallBtn}"/>
                                 <Button Content="Delete" Height="26"
@@ -469,6 +471,8 @@
                             </StackPanel>
                             <WrapPanel x:Name="AwayPresetPanel" Grid.Row="1"/>
                             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
+                                <Button Content="⌕  Find Club" Height="28" Margin="0,0,6,0"
+                                        Click="BrowseAwayTeam_Click" Style="{StaticResource SmallBtn}"/>
                                 <Button Content="Save Current" Height="26" Margin="0,0,6,0"
                                         Click="SaveAwayPreset_Click" Style="{StaticResource SmallBtn}"/>
                                 <Button Content="Delete" Height="26"
@@ -1144,8 +1148,8 @@
                                     <DropShadowEffect BlurRadius="25" ShadowDepth="0" Color="#3FB950" Opacity="0.5"/>
                                 </TextBlock.Effect>
                             </TextBlock>
-                            <TextBlock Text="MATCH OPTIONS &amp; TICKER" FontSize="9" FontWeight="SemiBold"
-                                       Foreground="#403FB950" TextAlignment="Center" Margin="0,2,0,0"/>
+                            <TextBlock Text="MATCH OPTIONS &amp; TICKER" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="#86C997" TextAlignment="Center" Margin="0,2,0,0"/>
                         </StackPanel>
 
                         <!-- ── MAIN CONTENT — 2-column layout fills the screen ── -->
@@ -1178,12 +1182,13 @@
                                             </Border.Background>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock x:Name="FinalsIcon" Text="🏆" FontSize="48"
+                                            <TextBlock x:Name="FinalsIcon" Text="★" FontSize="48"
+                                                       FontFamily="Bahnschrift" FontWeight="Black" Foreground="#D8B84F"
                                                        HorizontalAlignment="Center" Margin="0,0,0,8"/>
                                             <TextBlock Text="FINALS MODE" FontSize="22" FontWeight="Black"
-                                                       Foreground="#5A4A20" HorizontalAlignment="Center"/>
+                                                       Foreground="#D8B84F" HorizontalAlignment="Center"/>
                                             <TextBlock Text="Tap to enable" FontSize="10"
-                                                       FontWeight="SemiBold" Foreground="#5A5030"
+                                                       FontWeight="SemiBold" Foreground="#B8A56B"
                                                        HorizontalAlignment="Center" Margin="0,6,0,0"/>
                                         </StackPanel>
                                         <!-- Selected indicator (hidden by default) -->
@@ -1208,12 +1213,13 @@
                                             </Border.Background>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="☁" FontSize="48"
+                                            <TextBlock Text="☁" FontSize="48" FontFamily="Segoe UI Symbol"
+                                                       Foreground="#8AC5FF"
                                                        HorizontalAlignment="Center" Margin="0,0,0,8"/>
                                             <TextBlock Text="LIVE WEATHER" FontSize="22" FontWeight="Black"
                                                        Foreground="#58A6FF" HorizontalAlignment="Center"/>
                                             <TextBlock Text="Location for real-time conditions" FontSize="10"
-                                                       FontWeight="SemiBold" Foreground="#3A6090"
+                                                       FontWeight="SemiBold" Foreground="#87B4E5"
                                                        HorizontalAlignment="Center" Margin="0,6,0,14"/>
                                             <Border Background="#06091A" BorderBrush="#2A4A70" BorderThickness="1"
                                                     HorizontalAlignment="Center" MinWidth="260" Padding="4">
@@ -1251,11 +1257,12 @@
 
                                         <!-- Section header -->
                                         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,10">
-                                            <TextBlock Text="📺" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                            <TextBlock Text="▣" FontSize="28" FontFamily="Bahnschrift" FontWeight="Black"
+                                                       Foreground="#67D17B" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                                             <TextBlock Text="TICKER MESSAGES" FontSize="16" FontWeight="Black"
                                                        Foreground="#3FB950" HorizontalAlignment="Center"/>
-                                            <TextBlock Text="Scroll across the bottom bar during the game" FontSize="9"
-                                                       FontWeight="SemiBold" Foreground="#2A6030"
+                                            <TextBlock Text="Scroll across the bottom bar during the game" FontSize="10"
+                                                       FontWeight="SemiBold" Foreground="#75C985"
                                                        HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                         </StackPanel>
 

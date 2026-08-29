@@ -384,6 +384,7 @@
                                 <TextBlock Text="Title" Style="{StaticResource FieldLabel}"/>
                                 <TextBox x:Name="NewTitleBox" Text="WARM-UP"
                                          Style="{StaticResource InputBox}" FontSize="15"
+                                         MaxLength="40"
                                          KeyDown="OnNewTitleBoxKeyDown"
                                          PreviewMouseLeftButtonDown="OnNewTitleBoxPreviewMouseLeftButtonDown"
                                          ToolTip="Press Enter to add this timer to the queue"/>

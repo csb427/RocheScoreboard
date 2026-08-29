@@ -40,6 +40,23 @@
                        Text="0 x 0"/>
         </Border>
 
+        <!-- Worst-case AFL numeral proof. These are the exact digit counts the
+             live layouts reserve, making oval-side validation repeatable. -->
+        <Border Background="#E6080B10" BorderBrush="#FF58A6FF" BorderThickness="2"
+                CornerRadius="12" Padding="20,12" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock Text="DISTANCE READABILITY TEST" Foreground="#FF9CCBFF"
+                           FontFamily="Arial" FontSize="16" FontWeight="Black" HorizontalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,2">
+                    <TextBlock Text="88" Foreground="White" FontFamily="Arial" FontSize="72" FontWeight="Bold"/>
+                    <Border Width="2" Background="#FF304055" Margin="20,5"/>
+                    <TextBlock Text="888" Foreground="White" FontFamily="Arial" FontSize="96" FontWeight="Black"/>
+                </StackPanel>
+                <TextBlock Text="GOALS / BEHINDS · TOTAL" Foreground="#FFC6D1DE"
+                           FontFamily="Arial" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
         <!-- Hint, bottom-center -->
         <Border Background="#C0000000" Padding="10,5" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40">
             <TextBlock Foreground="White" FontFamily="Consolas" FontSize="14"

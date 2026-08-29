@@ -76,6 +76,41 @@ public sealed record LiveStateSnapshot
     /// Training mode. <c>null</c> for AFL sessions.
     /// </summary>
     public TrainingSnapshotDto? Training { get; init; }
+
+    /// <summary>Optional cricket payload. Present while Cricket mode is active.</summary>
+    public CricketSnapshotDto? Cricket { get; init; }
+}
+
+public sealed record CricketSnapshotDto
+{
+    public int Innings { get; init; } = 1;
+    public string Format { get; init; } = "LimitedOvers";
+    public int TotalOvers { get; init; }
+    public string BattingTeam { get; init; } = "";
+    public string BowlingTeam { get; init; } = "";
+    public int Runs { get; init; }
+    public int Wickets { get; init; }
+    public string Overs { get; init; } = "0.0";
+    public double RunRate { get; init; }
+    public int? Target { get; init; }
+    public int? RunsRequired { get; init; }
+    public int? BallsRemaining { get; init; }
+    public double? RequiredRunRate { get; init; }
+    public string Striker { get; init; } = "";
+    public int StrikerRuns { get; init; }
+    public int StrikerBalls { get; init; }
+    public string NonStriker { get; init; } = "";
+    public int NonStrikerRuns { get; init; }
+    public int NonStrikerBalls { get; init; }
+    public string Bowler { get; init; } = "";
+    public string BowlerFigures { get; init; } = "";
+    public string BowlerOvers { get; init; } = "0.0";
+    public IReadOnlyList<string> ThisOver { get; init; } = Array.Empty<string>();
+    public string Phase { get; init; } = "";
+    public int ProjectedScore { get; init; }
+    public string Momentum { get; init; } = "";
+    public bool NeedsBatterSelection { get; init; }
+    public bool NeedsBowlerSelection { get; init; }
 }
 
 public sealed record QuarterSnapshotDto

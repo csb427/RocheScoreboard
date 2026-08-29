@@ -46,7 +46,6 @@ namespace Roche_Scoreboard
         private bool _customMediaIsImage;
         // When true, SwitchToScreen will NOT auto-play the video — used so
         // Apply loads the video paused on its first frame for operator review.
-        private bool _suppressVideoAutoPlay;
 
         // Clock state tracking for animations
         private bool _previousClockRunning;
@@ -144,10 +143,43 @@ namespace Roche_Scoreboard
         private Dictionary<AflAction, Key> _aflKeybinds = new();
         private AflAction? _pendingKeybindAction;
         private UxPreferencesData _uxPreferences = new();
+        private bool _suppressNavigationPersistence = true;
 
         public MainWindow()
         {
             InitializeComponent();
+            InteractionMotion.Enable(this);
+            _styledMessages.CollectionChanged += (_, _) => UpdateTickerEditorState();
+            UpdateTickerEditorState();
+
+            MainContent.SizeChanged += (_, e) =>
+            {
+                // Protect the live match identity at narrow operator-window
+                // widths. Secondary hints progressively yield before team,
+                // score, quarter and clock information can be clipped.
+                HeaderShortcutText.Visibility = Visibility.Collapsed;
+                HeaderOutputBadge.Visibility = e.NewSize.Width >= 780
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+
+                if (MainTabControl.Items.Count > 0)
+                {
+                    bool compactTabs = e.NewSize.Width < 900;
+                    MatchControlTab.Header = "MATCH";
+                    OutputStudioTab.Header = "OUTPUT";
+                    MediaDeskTab.Header = "MEDIA";
+                    MatchSetupTab.Header = "SETUP";
+                    MatchControlTab.Tag = compactTabs ? null : "SCORING & CLOCK";
+                    OutputStudioTab.Tag = compactTabs ? null : "PRESENTATIONS";
+                    MediaDeskTab.Tag = compactTabs ? null : "VIDEO & TICKER";
+                    MatchSetupTab.Tag = compactTabs ? null : "TEAMS & OPTIONS";
+
+                    foreach (var item in MainTabControl.Items.OfType<System.Windows.Controls.TabItem>())
+                    {
+                        item.FontSize = compactTabs ? 11 : 13;
+                    }
+                }
+            };
 
             _match.SetTeams("Home Team", "HOM", "Away Team", "AWA");
 
@@ -157,6 +189,10 @@ namespace Roche_Scoreboard
             {
                 Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Q{_match.Quarter} | {_match.HomeTotal} – {_match.AwayTotal}";
                 PushAllToScoreboard();
+                // Every presentation is a live view of the same match. Refresh
+                // the visible surface for undo, corrections, quarter changes
+                // and clock-state changes as well as newly-added scores.
+                RefreshVisibleScreens();
                 UpdateLiveUI();
                 BroadcastWebState();
                 SaveGameState();
@@ -228,6 +264,15 @@ namespace Roche_Scoreboard
 
                 // Push updated data to any visible overlay or screen
                 RefreshVisibleScreens();
+
+                // Full-screen presentations share the same score-feedback
+                // language as the live scorebug. Animate only the surface the
+                // audience can currently see so hidden controls never queue a
+                // stale +6/+1 wipe for later.
+                if (_breakScreen?.Visibility == Visibility.Visible) _breakScreen.PlayScoreAnimation(ev);
+                if (_scoreworm?.Visibility == Visibility.Visible) _scoreworm.PlayScoreAnimation(ev);
+                if (_statsScreen?.Visibility == Visibility.Visible) _statsScreen.PlayScoreAnimation(ev);
+                if (_weatherScreen?.Visibility == Visibility.Visible) _weatherScreen.PlayScoreAnimation(ev);
             };
 
             // Wire up the embedded setup wizard (AFL)
@@ -269,7 +314,11 @@ namespace Roche_Scoreboard
             RegisterScheduledOverlays();
             ApplyAflKeybindsToUi();
             _uxPreferences = UxPreferences.Load();
+            _hideTeamNames = _uxPreferences.HideTeamNames;
+            SettingsHideTeamNamesToggle.IsChecked = _hideTeamNames;
+            UpdateSettingsHideTeamNamesCardVisuals();
             ApplyStartupPreferenceSelectionToUi();
+            _suppressNavigationPersistence = false;
         }
 
         private void MainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -277,20 +326,17 @@ namespace Roche_Scoreboard
             if (e.Source != MainTabControl)
                 return;
 
-            // Hide the match strip when the scoring tab is active (index 0)
-            // because scoring already displays scores prominently
-            MatchStripBorder.Visibility = MainTabControl.SelectedIndex == 0
-                ? Visibility.Collapsed
-                : Visibility.Visible;
+            // Keep match identity, clock and output state visible everywhere.
+            // Operators should never have to leave Media, Display or Settings
+            // merely to confirm the live score or whether the clock is running.
+            MatchStripBorder.Visibility = Visibility.Visible;
 
             // Only paint the VIDEO-tab live mirror while the tab is visible.
             // VisualBrush of a 1080p container is a heavy per-frame operation
             // on slower devices, so we keep it disconnected when the operator
             // is on any other tab.
-            bool onVideoTab = MainTabControl?.SelectedItem is System.Windows.Controls.TabItem ti
-                              && ti.Header is string h && h.Contains("VIDEO", StringComparison.OrdinalIgnoreCase);
-            bool onSettingsTab = MainTabControl?.SelectedItem is System.Windows.Controls.TabItem settingsTi
-                                 && settingsTi.Header is string settingsHeader && settingsHeader.Contains("SETTINGS", StringComparison.OrdinalIgnoreCase);
+            bool onVideoTab = ReferenceEquals(MainTabControl?.SelectedItem, MediaDeskTab);
+            bool onSettingsTab = ReferenceEquals(MainTabControl?.SelectedItem, MatchSetupTab);
             if (onVideoTab)
             {
                 // Make sure the scoreboard window exists so the live mirror
@@ -325,10 +371,28 @@ namespace Roche_Scoreboard
                 UpdateSettingsControlPanelCountdownOptionVisuals();
             }
 
-            if (MainTabControl is not null && MainTabControl.SelectedIndex >= 0)
+            if (!_suppressNavigationPersistence && MainTabControl is not null && MainTabControl.SelectedIndex >= 0)
             {
                 _uxPreferences.LastMainTabIndex = MainTabControl.SelectedIndex;
                 UxPreferences.Save(_uxPreferences);
+            }
+        }
+
+        private void RestoreLastMainTabSelection()
+        {
+            if (MainTabControl is null || MainTabControl.Items.Count == 0)
+                return;
+
+            int index = Math.Clamp(_uxPreferences.LastMainTabIndex, 0, MainTabControl.Items.Count - 1);
+            bool wasSuppressed = _suppressNavigationPersistence;
+            _suppressNavigationPersistence = true;
+            try
+            {
+                MainTabControl.SelectedIndex = index;
+            }
+            finally
+            {
+                _suppressNavigationPersistence = wasSuppressed;
             }
         }
 
@@ -388,22 +452,25 @@ namespace Roche_Scoreboard
                 if (Top < workArea.Top) Top = workArea.Top;
             }
 
-            // Cloud remote session startup is wired up in MainWindow.CloudRemote.cs.
-            StartCloudRemoteOnLoad();
+            bool selfTest = System.Windows.Application.Current is App { IsSelfTestMode: true };
+            if (!selfTest)
+            {
+                // Cloud remote session startup is wired up in MainWindow.CloudRemote.cs.
+                StartCloudRemoteOnLoad();
 
-            // Embed the AFL Scoring & Clock cloud remote launcher so the
-            // operator can spin up / show the QR without flipping to
-            // Settings. The Training Mode launcher is registered in
-            // EnterTrainingMode() because that control is created lazily.
-            RegisterCloudRemoteLauncher(ScoringTabCloudLauncher);
+                // Embed the AFL Scoring & Clock cloud remote launcher so the
+                // operator can spin up / show the QR without flipping to
+                // Settings. The Training Mode launcher is registered in
+                // EnterTrainingMode() because that control is created lazily.
+                RegisterCloudRemoteLauncher(ScoringTabCloudLauncher);
 
-            // Restore last-loaded custom MP4 in the VIDEO tab (best-effort).
-            TryRestoreLastVideoPath();
+                // Restore last-loaded custom MP4 in the VIDEO tab (best-effort).
+                TryRestoreLastVideoPath();
 
-            // Defer alerts so the window is fully visible first
-            ApplyQuickStartupNavigation();
-
-            await Dispatcher.InvokeAsync(async () => await ShowDeferredAlerts(), System.Windows.Threading.DispatcherPriority.Background);
+                // Defer alerts so the window is fully visible first.
+                ApplyQuickStartupNavigation();
+                await Dispatcher.InvokeAsync(async () => await ShowDeferredAlerts(), System.Windows.Threading.DispatcherPriority.Background);
+            }
         }
 
         /// <summary>
@@ -444,12 +511,14 @@ namespace Roche_Scoreboard
             displayWindow.SizeChanged += (_, e) =>
             {
                 if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0) return;
-                UpdateDimensionBoxes(e.NewSize.Width, e.NewSize.Height);
+                var pixels = PixelSizeHelper.GetWindowPixels(displayWindow, e.NewSize.Width, e.NewSize.Height);
+                UpdateDimensionBoxes(pixels.Width, pixels.Height);
             };
 
             displayWindow.Loaded += (_, __) =>
             {
-                UpdateDimensionBoxes(displayWindow.ActualWidth, displayWindow.ActualHeight);
+                var pixels = PixelSizeHelper.GetWindowPixels(displayWindow, displayWindow.ActualWidth, displayWindow.ActualHeight);
+                UpdateDimensionBoxes(pixels.Width, pixels.Height);
             };
         }
 
@@ -517,7 +586,7 @@ namespace Roche_Scoreboard
             if (shouldOfferResume && GameStateService.HasSavedState())
             {
                 GameState? saved = GameStateService.Load();
-                if (saved?.MatchState is not null)
+                if (saved?.MatchState is not null || saved?.CricketMatchState is not null)
                 {
                     var dialog = new Views.ResumeGameDialog(saved)
                     {
@@ -530,7 +599,7 @@ namespace Roche_Scoreboard
                     {
                         RestoreFromSavedState(saved);
                     }
-                    else
+                    else if (dialog.DiscardChosen)
                     {
                         GameStateService.Clear();
                     }
@@ -594,6 +663,43 @@ namespace Roche_Scoreboard
 
         private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            bool ctrlPressed = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+            bool settingsVisible = ReferenceEquals(MainTabControl?.SelectedItem, MatchSetupTab);
+
+            if (settingsVisible && ctrlPressed && e.Key == Key.F)
+            {
+                SettingsSearchBox.Focus();
+                SettingsSearchBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (settingsVisible && e.Key == Key.Escape && SettingsSearchBox.IsKeyboardFocusWithin)
+            {
+                SettingsSearchBox.Clear();
+                Keyboard.ClearFocus();
+                e.Handled = true;
+                return;
+            }
+
+            if (ctrlPressed && MainTabControl is not null)
+            {
+                int tabIndex = e.Key switch
+                {
+                    Key.D1 or Key.NumPad1 => 0,
+                    Key.D2 or Key.NumPad2 => 1,
+                    Key.D3 or Key.NumPad3 => 2,
+                    Key.D4 or Key.NumPad4 => 3,
+                    _ => -1
+                };
+                if (tabIndex >= 0)
+                {
+                    MainTabControl.SelectedIndex = tabIndex;
+                    e.Handled = true;
+                    return;
+                }
+            }
+
             // Don't intercept when typing in a TextBox
             if (e.OriginalSource is System.Windows.Controls.TextBox) return;
             if (_sportMode != SportMode.AFL) return;
@@ -604,7 +710,7 @@ namespace Roche_Scoreboard
                 return;
             }
 
-            bool ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+            bool ctrl = ctrlPressed;
             bool alt = (Keyboard.Modifiers & ModifierKeys.Alt) != 0;
             bool shift = (Keyboard.Modifiers & ModifierKeys.Shift) != 0;
             bool q4Ended = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) != null;
@@ -952,6 +1058,12 @@ namespace Roche_Scoreboard
 
                 CheckPeriodicOverlays();
                 BroadcastWebState();
+
+                // Time-in-front and other clock-derived values remain live
+                // while the stats presentation is on air, even in a quiet
+                // passage with no scoring events.
+                if (_statsScreen?.Visibility == Visibility.Visible)
+                    PopulateStatsScreen();
             }
 
             if (countdownSecondChanged || scorebugSecondChanged)
@@ -1175,7 +1287,7 @@ namespace Roche_Scoreboard
             else if (_match.HomeTotal > 0 || _match.AwayTotal > 0)
                 MatchResultText.Text = "Scores are level";
             else
-                MatchResultText.Text = "";
+                MatchResultText.Text = "Scores level";
 
             // Start button tooltip — context-sensitive hint
             UpdateStartButtonTooltip(q4Ended);
@@ -1674,7 +1786,7 @@ namespace Roche_Scoreboard
                 onReady: () => FinalizeCricketSetup(result));
         }
 
-        private void FinalizeCricketSetup(CricketSetupResult result)
+        private void FinalizeCricketSetup(CricketSetupResult result, bool promptForInitialSelection = true)
         {
             // Create and configure the cricket match manager
             _cricketMatch = new CricketMatchManager
@@ -1696,6 +1808,7 @@ namespace Roche_Scoreboard
             _cricketMatch.SetTeams(result.TeamAName, result.TeamAAbbr,
                                    result.TeamBName, result.TeamBAbbr);
             _cricketMatch.StartMatch();
+            _cricketMatch.MatchChanged += OnCricketMatchChanged;
 
             // Create the cricket scorebug
             _cricketScorebug = new CricketScorebugControl();
@@ -1740,7 +1853,8 @@ namespace Roche_Scoreboard
             {
                 CricketControlPanelView.RenderTransform = null;
                 // Prompt for opening batters + bowler right after panel appears
-                CricketControlPanelView.TriggerInitialSelection();
+                if (promptForInitialSelection)
+                    CricketControlPanelView.TriggerInitialSelection();
             };
             sb.Begin();
 
@@ -1817,10 +1931,20 @@ namespace Roche_Scoreboard
             EnsureCricketDisplayWindow();
         }
 
+        private void OnCricketMatchChanged()
+        {
+            SaveGameState();
+            PublishCloudSnapshot();
+        }
+
         private void OnCricketResetRequested()
         {
             GameStateService.Clear();
-            _cricketMatch?.ResetForNewGame();
+            if (_cricketMatch != null)
+            {
+                _cricketMatch.MatchChanged -= OnCricketMatchChanged;
+                _cricketMatch.ResetForNewGame();
+            }
             CricketControlPanelView.PresentationChanged -= OnCricketPresentationChanged;
             _cricketDisplayWindow?.Close();
             _cricketDisplayWindow = null;
@@ -1947,7 +2071,36 @@ namespace Roche_Scoreboard
         // ----------------------------
         private void SaveGameState()
         {
-            // Only persist AFL games that are in progress
+            if (_sportMode == SportMode.Cricket)
+            {
+                if (_cricketMatch?.CurrentInnings is null) return;
+                bool hasStarted = _cricketMatch.AllInnings.Any(i => i.Deliveries.Count > 0)
+                    || _cricketMatch.CurrentInnings.StrikerIndex >= 0
+                    || _cricketMatch.CurrentInnings.CurrentBowlerIndex >= 0;
+                if (!hasStarted) return;
+
+                if (_cricketMatch.MatchResult is not null)
+                {
+                    GameStateService.Clear();
+                    return;
+                }
+
+                GameStateService.Save(new GameState
+                {
+                    Sport = "cricket",
+                    CricketMatchState = _cricketMatch.ToState(),
+                    HomePrimaryColor = _cricketMatch.TeamAPrimaryColor,
+                    HomeSecondaryColor = _cricketMatch.TeamASecondaryColor,
+                    AwayPrimaryColor = _cricketMatch.TeamBPrimaryColor,
+                    AwaySecondaryColor = _cricketMatch.TeamBSecondaryColor,
+                    HomeLogoPath = _cricketMatch.TeamALogoPath,
+                    AwayLogoPath = _cricketMatch.TeamBLogoPath,
+                    Messages = [.. _cricketMatch.Messages]
+                });
+                return;
+            }
+
+            // Persist AFL games that are in progress.
             if (_sportMode != SportMode.AFL) return;
             if (_match.Events.Count == 0 && !_match.ClockRunning && _match.Quarter == 1) return;
 
@@ -1961,6 +2114,7 @@ namespace Roche_Scoreboard
 
             var state = new GameState
             {
+                Sport = "afl",
                 MatchState = _match.ToState(),
                 HomePrimaryColor = HomeColorBox.Text,
                 HomeSecondaryColor = HomeSecondaryColorBox.Text,
@@ -2022,6 +2176,12 @@ namespace Roche_Scoreboard
 
         private void RestoreFromSavedState(GameState state)
         {
+            if (state.CricketMatchState is not null || string.Equals(state.Sport, "cricket", StringComparison.OrdinalIgnoreCase))
+            {
+                RestoreCricketFromSavedState(state);
+                return;
+            }
+
             if (state.MatchState is null) return;
 
             _match.LoadState(state.MatchState);
@@ -2138,6 +2298,7 @@ namespace Roche_Scoreboard
             SetupWizardPanel.Visibility = Visibility.Collapsed;
             MainContent.Opacity = 1;
             MainContent.Visibility = Visibility.Visible;
+            RestoreLastMainTabSelection();
 
             _sportMode = SportMode.AFL;
             EnsureScoreboardWindow();
@@ -2197,6 +2358,8 @@ namespace Roche_Scoreboard
             // scorebug/other screens so toggling Visibility=Visible cleanly
             // takes over the output window.
             Panel.SetZIndex(_videoPlayer, 200);
+
+            ApplyFinalsModeToOutputs();
 
             // The live VisualBrush mirror is attached lazily when the operator
             // opens the VIDEO tab — see MainTabControl_SelectionChanged. A
@@ -2335,6 +2498,67 @@ namespace Roche_Scoreboard
             UpdateWindowToggleVisual();
 
             AnimationRadio_Changed(this, new RoutedEventArgs());
+        }
+
+        private void RestoreCricketFromSavedState(GameState state)
+        {
+            var saved = state.CricketMatchState;
+            if (saved is null || saved.AllInnings.Count == 0) return;
+
+            _sportMode = SportMode.Cricket;
+            PersistLastMode(SportMode.Cricket);
+            SportSelectionPanel.Visibility = Visibility.Collapsed;
+            SetupWizardPanel.Visibility = Visibility.Collapsed;
+            CricketSetupWizardPanel.Visibility = Visibility.Collapsed;
+
+            var setup = new CricketSetupResult
+            {
+                TeamAName = saved.TeamAName,
+                TeamAAbbr = saved.TeamAAbbr,
+                TeamAPrimaryColor = saved.TeamAPrimaryColor,
+                TeamASecondaryColor = saved.TeamASecondaryColor,
+                TeamALogoPath = saved.TeamALogoPath,
+                TeamAPlayers = saved.TeamAPlayers.Select(p => p.Clone()).ToList(),
+                TeamBName = saved.TeamBName,
+                TeamBAbbr = saved.TeamBAbbr,
+                TeamBPrimaryColor = saved.TeamBPrimaryColor,
+                TeamBSecondaryColor = saved.TeamBSecondaryColor,
+                TeamBLogoPath = saved.TeamBLogoPath,
+                TeamBPlayers = saved.TeamBPlayers.Select(p => p.Clone()).ToList(),
+                Format = saved.Format,
+                TotalOvers = saved.TotalOvers,
+                TeamABatsFirst = saved.TeamABatsFirst,
+                Messages = [.. saved.Messages]
+            };
+
+            FinalizeCricketSetup(setup, promptForInitialSelection: false);
+            _cricketMatch?.LoadState(saved);
+            if (_cricketMatch != null)
+            {
+                _cricketScorebug?.UpdateFromMatch(_cricketMatch);
+                CricketControlPanelView.ResumePendingSelection();
+            }
+        }
+
+        private void ApplyFinalsModeToOutputs()
+        {
+            _scorebug?.SetFinalsMode(_finalsMode);
+            _breakScreen?.SetFinalsMode(_finalsMode);
+            _scoreworm?.SetFinalsMode(_finalsMode);
+            _statsScreen?.SetFinalsMode(_finalsMode);
+            _weatherScreen?.SetFinalsMode(_finalsMode);
+
+            // LibVLC renders through a native child HWND, so WPF overlays
+            // cannot paint on top of the video surface. A gold container and
+            // inset frame keep finals identity visible in video mode without
+            // touching or recolouring the footage itself.
+            if (_displayContainer is not null)
+            {
+                _displayContainer.Background = _finalsMode ? Services.FinalsPalette.FrameBrush() : Brushes.Black;
+            }
+            if (_videoPlayer is not null)
+                _videoPlayer.Margin = _finalsMode ? new Thickness(3) : new Thickness(0);
+
         }
 
         private void PushAllToScoreboard()

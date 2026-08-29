@@ -66,6 +66,13 @@ public interface IRemoteCommandTarget
     void TrainingReorder(Guid id, string direction);
     void TrainingAdjustActive(int seconds);
     void TrainingExit();
+
+    // Cricket
+    void CricketDelivery(string type, int runs, string? dismissal);
+    void CricketUndo();
+    void CricketSelectBatter(int index, string role);
+    void CricketSelectBowler(int index);
+    void CricketNextInnings();
 }
 
 /// <summary>
@@ -189,6 +196,28 @@ public sealed class RemoteCommandDispatcher
                     _target.SetGoalAnimation(GetString(ev.Payload, "style", "broadcast"));
                     break;
 
+                // Cricket
+                case RemoteEventTypes.CricketDelivery:
+                    _target.CricketDelivery(
+                        GetString(ev.Payload, "type", "Dot"),
+                        GetInt(ev.Payload, "runs", 0),
+                        GetNullableString(ev.Payload, "dismissal"));
+                    break;
+                case RemoteEventTypes.CricketUndo:
+                    _target.CricketUndo();
+                    break;
+                case RemoteEventTypes.CricketSelectBatter:
+                    _target.CricketSelectBatter(
+                        GetInt(ev.Payload, "index", -1),
+                        GetString(ev.Payload, "role", "new"));
+                    break;
+                case RemoteEventTypes.CricketSelectBowler:
+                    _target.CricketSelectBowler(GetInt(ev.Payload, "index", -1));
+                    break;
+                case RemoteEventTypes.CricketNextInnings:
+                    _target.CricketNextInnings();
+                    break;
+
                 // Training
                 case RemoteEventTypes.TrainingStartPause:  _target.TrainingStartPause(); break;
                 case RemoteEventTypes.TrainingSkip:        _target.TrainingSkip(); break;
@@ -245,6 +274,12 @@ public sealed class RemoteCommandDispatcher
         if (payload.ValueKind != JsonValueKind.Object) return fallback;
         if (!payload.TryGetProperty(name, out var el)) return fallback;
         return el.ValueKind == JsonValueKind.String ? (el.GetString() ?? fallback) : fallback;
+    }
+
+    private static string? GetNullableString(JsonElement payload, string name)
+    {
+        if (payload.ValueKind != JsonValueKind.Object || !payload.TryGetProperty(name, out var el)) return null;
+        return el.ValueKind == JsonValueKind.String ? el.GetString() : null;
     }
 
     private static int GetInt(JsonElement payload, string name, int fallback)

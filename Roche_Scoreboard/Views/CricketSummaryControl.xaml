@@ -3,10 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="Transparent">
 
-    <!-- Master Viewbox: 960×540 design canvas. Host window is locked to 16:9. -->
-    <!-- Master Viewbox: 960×540 design canvas. Stretch="Fill" so the
-         cricket summary fills any host aspect ratio with no letterbox bars. -->
-    <Viewbox Stretch="Fill" StretchDirection="Both">
+    <!-- Uniform scaling preserves typography and logo proportions. -->
+    <Viewbox Stretch="Uniform" StretchDirection="Both">
         <Grid x:Name="RootGrid" Width="960" Height="540" Background="#0B1120" ClipToBounds="True">
             <Grid.RenderTransform>
                 <TranslateTransform x:Name="RootTranslate" X="0"/>
@@ -115,7 +113,7 @@
                             <ColumnDefinition Width="Auto"/>  <!-- stat2 label -->
                             <ColumnDefinition Width="Auto"/>  <!-- stat2 value -->
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" x:Name="FooterTeamName" Text="TEAM" Foreground="#94A3B8" FontSize="15" FontWeight="Black"
+                        <TextBlock Grid.Column="0" x:Name="FooterTeamName" Text="TEAM" Foreground="#D6E3EF" FontSize="20" FontWeight="Black"
                                    VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <TextBlock Grid.Column="1" x:Name="FooterTeamScore" Text="0/0" Foreground="White" FontSize="28" FontWeight="Black"
                                    FontFamily="Bahnschrift" VerticalAlignment="Center">
@@ -123,19 +121,19 @@
                                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="White" Opacity="0.2"/>
                             </TextBlock.Effect>
                         </TextBlock>
-                        <TextBlock Grid.Column="3" x:Name="FooterOversLabel" Text="OVERS" Foreground="#64748B" FontSize="11" FontWeight="Bold"
+                        <TextBlock Grid.Column="3" x:Name="FooterOversLabel" Text="OVERS" Foreground="#D6E3EF" FontSize="16" FontWeight="Black"
                                    VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Grid.Column="4" x:Name="FooterOvers" Text="0" Foreground="White" FontSize="18" FontWeight="Black"
                                    FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,14,0"/>
                         <!-- Thin divider -->
                         <Border Grid.Column="5" Width="1" Height="28" VerticalAlignment="Center" Margin="0,0,14,0" Opacity="0.15" Background="White"/>
-                        <TextBlock Grid.Column="6" x:Name="FooterStatLabel" Text="RUN RATE" Foreground="#64748B" FontSize="11" FontWeight="Bold"
+                        <TextBlock Grid.Column="6" x:Name="FooterStatLabel" Text="RUN RATE" Foreground="#D6E3EF" FontSize="16" FontWeight="Black"
                                    VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Grid.Column="7" x:Name="FooterStatValue" Text="0.00" Foreground="White" FontSize="18" FontWeight="Black"
                                    FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,14,0"/>
                         <!-- Thin divider -->
                         <Border Grid.Column="8" Width="1" Height="28" VerticalAlignment="Center" Margin="0,0,14,0" Opacity="0.15" Background="White"/>
-                        <TextBlock Grid.Column="9" x:Name="FooterStat2Label" Text="P'SHIP" Foreground="#64748B" FontSize="11" FontWeight="Bold"
+                        <TextBlock Grid.Column="9" x:Name="FooterStat2Label" Text="P'SHIP" Foreground="#D6E3EF" FontSize="16" FontWeight="Black"
                                    VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Grid.Column="10" x:Name="FooterStat2Value" Text="0(0)" Foreground="White" FontSize="18" FontWeight="Black"
                                    FontFamily="Bahnschrift" VerticalAlignment="Center"/>

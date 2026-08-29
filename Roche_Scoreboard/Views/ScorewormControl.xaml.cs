@@ -25,6 +25,18 @@ namespace Roche_Scoreboard.Views
         private readonly DispatcherTimer _wallClockTimer;
         private bool _isDisposed;
 
+        public void SetFinalsMode(bool enabled)
+        {
+            WormTitlePanel.Background = enabled ? FinalsPalette.PanelBrush() : new SolidColorBrush(Color.FromRgb(0x0D, 0x11, 0x17));
+            WormTitleText.Foreground = WormTimeText.Foreground = enabled
+                ? new SolidColorBrush(FinalsPalette.Ink)
+                : System.Windows.Media.Brushes.White;
+            ScoreBar?.SetFinalsMode(enabled);
+        }
+
+        public void PlayScoreAnimation(ScoreEvent scoreEvent)
+            => ScoreBar?.PlayScoreAnimation(scoreEvent);
+
         // Cached params from the most recent Populate so we can redraw the
         // graph when the host control is resized (canvas dimensions change).
         private MatchManager? _lastMatch;
@@ -58,6 +70,21 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         private void ApplyResponsiveScale()
         {
+            ResponsivePresentationTypography.Apply(this, ScoreboardScaleHelper.GetScale(ActualWidth, ActualHeight));
+            if (_lastMatch is not null)
+                UpdateMarginHeadline(_lastMatch);
+        }
+
+        private void UpdateMarginHeadline(MatchManager match)
+        {
+            int margin = match.Margin;
+            string leadingTeam = margin > 0 ? match.HomeAbbr ?? "HOM" : match.AwayAbbr ?? "AWY";
+            bool compact = ActualWidth < 320;
+            WormMarginText.Text = margin == 0
+                ? (compact ? "LEVEL" : "SCORES LEVEL")
+                : compact
+                    ? $"{leadingTeam.ToUpperInvariant()} +{Math.Abs(margin)}"
+                    : $"{leadingTeam.ToUpperInvariant()} BY {Math.Abs(margin)}";
         }
 
         private void OnGraphCanvasSizeChanged(object sender, SizeChangedEventArgs e)
@@ -108,27 +135,9 @@ namespace Roche_Scoreboard.Views
             WormTitleAccent.GradientStops.Add(new System.Windows.Media.GradientStop(Color.FromArgb(0x60, awayColor.R, awayColor.G, awayColor.B), 0.65));
             WormTitleAccent.GradientStops.Add(new System.Windows.Media.GradientStop(awayColor, 1.0));
 
-            // Indicator column: vertical brush splits home (top) / away
-            // (bottom), each half carries the team abbreviation rotated 90°
-            // and a zoomed-in logo. No gradients overlaid on the graph
-            // itself — the side column does all the team-identity work.
-            WormSideStripBrush.GradientStops.Clear();
-            WormSideStripBrush.GradientStops.Add(new System.Windows.Media.GradientStop(homeColor, 0.0));
-            WormSideStripBrush.GradientStops.Add(new System.Windows.Media.GradientStop(homeColor, 0.5));
-            WormSideStripBrush.GradientStops.Add(new System.Windows.Media.GradientStop(awayColor, 0.5));
-            WormSideStripBrush.GradientStops.Add(new System.Windows.Media.GradientStop(awayColor, 1.0));
-
-            WormHomeAbbrText.Text = (match.HomeAbbr ?? "HOM").ToUpperInvariant();
-            WormHomeAbbrText.Foreground = Services.ContrastHelper.GetContrastBrush(homeColor);
-
-            WormAwayAbbrText.Text = (match.AwayAbbr ?? "AWY").ToUpperInvariant();
-            WormAwayAbbrText.Foreground = Services.ContrastHelper.GetContrastBrush(awayColor);
-
-            // Hide all logo placeholders if at least one team has no logo
-            bool hideLogos = Services.ImageLoadHelper.Load(homeLogoPath) is null
-                          || Services.ImageLoadHelper.Load(awayLogoPath) is null;
-            ApplyLogo(WormHomeLogoImage, WormHomeLogoFallback, homeLogoPath, hideLogos);
-            ApplyLogo(WormAwayLogoImage, WormAwayLogoFallback, awayLogoPath, hideLogos);
+            int margin = match.Margin;
+            UpdateMarginHeadline(match);
+            WormMarginText.Foreground = new SolidColorBrush(margin > 0 ? homeColor : margin < 0 ? awayColor : Colors.White);
 
             // Bottom score bar
             ScoreBar.Populate(match, endedQuarter, homeColorHex, awayColorHex,
@@ -144,22 +153,6 @@ namespace Roche_Scoreboard.Views
             DrawGraph(match, endedQuarter, homeColor, awayColor);
         }
 
-        private static void ApplyLogo(System.Windows.Controls.Image image, Ellipse fallback, string? path, bool hideLogos = false)
-        {
-            if (hideLogos)
-            {
-                image.Source = null;
-                image.Visibility = Visibility.Collapsed;
-                fallback.Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            var source = Services.ImageLoadHelper.LoadTrimmed(path);
-            image.Source = source;
-            image.Visibility = source is not null ? Visibility.Visible : Visibility.Collapsed;
-            fallback.Visibility = source is not null ? Visibility.Collapsed : Visibility.Visible;
-        }
-
         private double ScaleUnit => ScoreboardScaleHelper.GetScale(ActualWidth, ActualHeight);
 
         private double ScalePx(double designValue)
@@ -169,14 +162,9 @@ namespace Roche_Scoreboard.Views
         {
             GraphCanvas.Children.Clear();
             YAxisCanvas.Children.Clear();
+            ZoneCanvas.Children.Clear();
 
             var events = match.Events;
-            if (events.Count == 0)
-            {
-                DrawEmptyMessage();
-                return;
-            }
-
             GraphCanvas.UpdateLayout();
             double canvasW = GraphCanvas.ActualWidth;
             double canvasH = GraphCanvas.ActualHeight;
@@ -192,19 +180,28 @@ namespace Roche_Scoreboard.Views
             foreach (var ev in events)
                 margins.Add(ev.Margin);
 
-            int maxAbsMargin = margins.Max(m => Math.Abs(m));
-            if (maxAbsMargin == 0) maxAbsMargin = 6;
-            // Round up to nice number
-            maxAbsMargin = NiceMax(maxAbsMargin);
+            int observedHome = Math.Max(0, margins.Max());
+            int observedAway = Math.Max(0, -margins.Min());
+            int dominant = Math.Max(observedHome, observedAway);
+            // Let each side size itself independently.  A small reserve keeps an
+            // unused side visible without forcing a one-point lead to consume the
+            // same height as a much larger margin on the other side.
+            int quietSideReserve = Math.Max(1, (int)Math.Ceiling(dominant * 0.20));
+            int homeRange = NiceBound(observedHome > 0 ? observedHome : quietSideReserve);
+            int awayRange = NiceBound(observedAway > 0 ? observedAway : quietSideReserve);
+            if (dominant == 0) homeRange = awayRange = 6;
 
-            double yScale = (graphH / 2.0) / maxAbsMargin;
-            double yCenter = padTop + graphH / 2.0;
+            double yCenter = padTop + graphH * homeRange / (homeRange + (double)awayRange);
+            double homeScale = (yCenter - padTop) / Math.Max(1, homeRange);
+            double awayScale = (padTop + graphH - yCenter) / Math.Max(1, awayRange);
+
+            DrawTeamZones(canvasH, yCenter, homeColor, awayColor);
 
             int totalPoints = margins.Count;
             double xStep = canvasW / Math.Max(1, totalPoints - 1);
 
             // ---- Draw gridlines ----
-            DrawGridlines(canvasW, canvasH, padTop, padBottom, yCenter, yScale, maxAbsMargin, homeColor, awayColor, scale);
+            DrawGridlines(canvasW, yCenter, homeScale, awayScale, homeRange, awayRange, scale);
 
             // ---- Draw quarter dividers ----
             DrawQuarterDividers(events, canvasH, xStep, scale);
@@ -221,13 +218,24 @@ namespace Roche_Scoreboard.Views
             };
             GraphCanvas.Children.Add(zeroLine);
 
-            // ---- Build point list ----
-            var points = new List<Point>();
-            for (int i = 0; i < totalPoints; i++)
+            // ---- Build a true scoreworm step path ----
+            // The margin is constant between score events, then changes at the
+            // event itself. Horizontal travel followed by a vertical switch
+            // produces the familiar 90-degree broadcast scoreworm geometry.
+            var points = new List<Point> { new(0, yCenter) };
+            for (int i = 1; i < totalPoints; i++)
             {
                 double x = i * xStep;
-                double y = yCenter - margins[i] * yScale;
-                points.Add(new Point(x, y));
+                int previousMargin = margins[i - 1];
+                int currentMargin = margins[i];
+                double previousY = previousMargin >= 0
+                    ? yCenter - previousMargin * homeScale
+                    : yCenter - previousMargin * awayScale;
+                double currentY = currentMargin >= 0
+                    ? yCenter - currentMargin * homeScale
+                    : yCenter - currentMargin * awayScale;
+                points.Add(new Point(x, previousY));
+                points.Add(new Point(x, currentY));
             }
 
             // ---- Draw filled areas (start invisible, fade in) ----
@@ -251,9 +259,9 @@ namespace Roche_Scoreboard.Views
             {
                 Stroke = new SolidColorBrush(Colors.White),
                 StrokeThickness = ScoreboardScaleHelper.Scale(2.4, scale),
-                StrokeLineJoin = PenLineJoin.Round,
-                StrokeStartLineCap = PenLineCap.Round,
-                StrokeEndLineCap = PenLineCap.Round,
+                StrokeLineJoin = PenLineJoin.Miter,
+                StrokeStartLineCap = PenLineCap.Square,
+                StrokeEndLineCap = PenLineCap.Square,
                 StrokeDashArray = new DoubleCollection { totalLength, totalLength },
                 StrokeDashOffset = totalLength,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
@@ -286,47 +294,43 @@ namespace Roche_Scoreboard.Views
                 fill.BeginAnimation(OpacityProperty, fillFade);
             }
 
-            // ---- Identify which event points get an emphasized dot ----
-            // To avoid clutter we only emphasize: first point, quarter-end points,
-            // and the final/current point. All others get a small marker.
-            var emphasizedIdx = new HashSet<int> { 0, totalPoints - 1 };
+            // ---- Identify only meaningful step corners for markers ----
+            // The final point and quarter transitions are enough; marking every
+            // score would fight the crisp right-angle geometry.
+            var emphasizedMarginIdx = new HashSet<int> { 0, totalPoints - 1 };
             for (int i = 0; i < events.Count - 1; i++)
             {
                 if (events[i].Quarter != events[i + 1].Quarter)
-                    emphasizedIdx.Add(i + 1);
+                    emphasizedMarginIdx.Add(i + 1);
             }
 
-            // ---- Draw dots (fade in as line reaches each point) ----
-            for (int i = 0; i < totalPoints; i++)
+            // ---- Draw markers (fade in as the step reaches each corner) ----
+            foreach (int marginIndex in emphasizedMarginIdx.OrderBy(i => i))
             {
-                bool isHomeAbove = margins[i] > 0;
-                bool isZero = margins[i] == 0;
+                int pointIndex = marginIndex == 0 ? 0 : marginIndex * 2;
+                if (pointIndex >= points.Count) continue;
+                bool isHomeAbove = margins[marginIndex] > 0;
+                bool isZero = margins[marginIndex] == 0;
                 var dotColor = isZero ? Colors.White : (isHomeAbove ? homeColor : awayColor);
-                bool emphasize = emphasizedIdx.Contains(i);
-
-                double dotSize = emphasize
-                    ? ScoreboardScaleHelper.Scale(i == totalPoints - 1 ? 11 : 8, scale)
-                    : 0;
-
-                if (dotSize <= 0)
-                    continue;
+                double dotSize = ScoreboardScaleHelper.Scale(
+                    marginIndex == totalPoints - 1 ? 10 : 7, scale);
 
                 var dot = new Ellipse
                 {
                     Width = dotSize,
                     Height = dotSize,
                     Fill = new SolidColorBrush(dotColor),
-                    Stroke = emphasize ? new SolidColorBrush(Colors.White) : null,
-                    StrokeThickness = emphasize ? ScoreboardScaleHelper.Scale(1.2, scale) : 0,
+                    Stroke = new SolidColorBrush(Colors.White),
+                    StrokeThickness = ScoreboardScaleHelper.Scale(1.1, scale),
                     Opacity = 0
                 };
 
-                Canvas.SetLeft(dot, points[i].X - dot.Width / 2);
-                Canvas.SetTop(dot, points[i].Y - dot.Height / 2);
+                Canvas.SetLeft(dot, points[pointIndex].X - dot.Width / 2);
+                Canvas.SetTop(dot, points[pointIndex].Y - dot.Height / 2);
                 GraphCanvas.Children.Add(dot);
 
                 // Delay each dot's appearance to match the line reaching it
-                double fraction = cumLengths[i] / totalLength;
+                double fraction = cumLengths[pointIndex] / totalLength;
                 double delay = fraction * drawSeconds;
                 var dotFade = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.2))
                 {
@@ -336,33 +340,65 @@ namespace Roche_Scoreboard.Views
             }
 
             // ---- Y-axis labels ----
-            DrawYAxisLabels(yCenter, yScale, maxAbsMargin, canvasH, scale);
+            DrawYAxisLabels(yCenter, homeScale, awayScale, homeRange, awayRange, scale, homeColor, awayColor);
+
+            if (events.Count == 0)
+                DrawEmptyMessage(canvasW, yCenter, scale);
         }
 
-        private void DrawGridlines(double canvasW, double canvasH, double padTop, double padBottom,
-            double yCenter, double yScale, int maxAbsMargin, Color homeColor, Color awayColor, double scale)
+        private void DrawTeamZones(double canvasH, double yCenter, Color homeColor, Color awayColor)
         {
-            int step = NiceStep(maxAbsMargin);
-            var gridBrush = new SolidColorBrush(Color.FromArgb(18, 255, 255, 255));
-            double gridThickness = ScoreboardScaleHelper.Scale(0.6, scale);
-
-            for (int val = step; val <= maxAbsMargin; val += step)
+            var homeZone = new System.Windows.Shapes.Rectangle
             {
-                // Home side (positive = above center)
-                double yUp = yCenter - val * yScale;
-                if (yUp >= padTop)
-                {
-                    var line = new Line { X1 = 0, Y1 = yUp, X2 = canvasW, Y2 = yUp, Stroke = gridBrush, StrokeThickness = gridThickness };
-                    GraphCanvas.Children.Add(line);
-                }
+                Width = Math.Max(0, ZoneCanvas.ActualWidth),
+                Height = Math.Max(0, yCenter + 3),
+                Fill = new SolidColorBrush(Color.FromArgb(0x36, homeColor.R, homeColor.G, homeColor.B))
+            };
+            ZoneCanvas.Children.Add(homeZone);
 
-                // Away side (negative = below center)
-                double yDown = yCenter + val * yScale;
-                if (yDown <= canvasH - padBottom)
-                {
-                    var line = new Line { X1 = 0, Y1 = yDown, X2 = canvasW, Y2 = yDown, Stroke = gridBrush, StrokeThickness = gridThickness };
-                    GraphCanvas.Children.Add(line);
-                }
+            var awayZone = new System.Windows.Shapes.Rectangle
+            {
+                Width = Math.Max(0, ZoneCanvas.ActualWidth),
+                Height = Math.Max(0, canvasH - yCenter + 3),
+                Fill = new SolidColorBrush(Color.FromArgb(0x36, awayColor.R, awayColor.G, awayColor.B))
+            };
+            Canvas.SetTop(awayZone, yCenter + 3);
+            ZoneCanvas.Children.Add(awayZone);
+
+            // Thin edge rails make ownership clear without consuming a labelled
+            // row or competing with the graph itself.
+            double railWidth = Math.Max(2, ScalePx(3));
+            ZoneCanvas.Children.Add(new System.Windows.Shapes.Rectangle
+            {
+                Width = railWidth,
+                Height = Math.Max(0, yCenter),
+                Fill = new SolidColorBrush(homeColor)
+            });
+            var awayRail = new System.Windows.Shapes.Rectangle
+            {
+                Width = railWidth,
+                Height = Math.Max(0, canvasH - yCenter),
+                Fill = new SolidColorBrush(awayColor)
+            };
+            Canvas.SetTop(awayRail, yCenter);
+            ZoneCanvas.Children.Add(awayRail);
+        }
+
+        private void DrawGridlines(double canvasW, double yCenter, double homeScale, double awayScale,
+            int homeRange, int awayRange, double scale)
+        {
+            var gridBrush = new SolidColorBrush(Color.FromArgb(28, 255, 255, 255));
+            double gridThickness = ScoreboardScaleHelper.Scale(0.65, scale);
+
+            foreach (int val in AxisTicks(homeRange))
+            {
+                double y = yCenter - val * homeScale;
+                GraphCanvas.Children.Add(new Line { X1 = 0, Y1 = y, X2 = canvasW, Y2 = y, Stroke = gridBrush, StrokeThickness = gridThickness });
+            }
+            foreach (int val in AxisTicks(awayRange))
+            {
+                double y = yCenter + val * awayScale;
+                GraphCanvas.Children.Add(new Line { X1 = 0, Y1 = y, X2 = canvasW, Y2 = y, Stroke = gridBrush, StrokeThickness = gridThickness });
             }
         }
 
@@ -397,15 +433,16 @@ namespace Roche_Scoreboard.Views
                 };
                 GraphCanvas.Children.Add(line);
 
-                // Quarter label (AFL: QT, HT, 3QT)
+                // Label the section that begins after this divider. This uses the
+                // same ordinal language as the quarter-by-quarter presentation.
                 int q = events[idx - 1].Quarter;
-                string qLabel = q switch { 1 => "QT", 2 => "HT", 3 => "3QT", _ => $"Q{q}" };
+                string qLabel = (q + 1) switch { 2 => "2ND", 3 => "3RD", 4 => "4TH", _ => $"Q{q + 1}" };
                 var label = new TextBlock
                 {
                     Text = qLabel,
                     Foreground = new SolidColorBrush(Color.FromArgb(140, 255, 255, 255)),
-                    FontSize = ScoreboardScaleHelper.Scale(9, scale),
-                    FontWeight = FontWeights.Bold,
+                    FontSize = ScoreboardScaleHelper.Scale(12, scale),
+                    FontWeight = FontWeights.Black,
                     FontFamily = new System.Windows.Media.FontFamily("Bahnschrift")
                 };
                 Canvas.SetLeft(label, x + ScoreboardScaleHelper.Scale(3, scale));
@@ -446,18 +483,16 @@ namespace Roche_Scoreboard.Views
             return result;
         }
 
-        private void DrawYAxisLabels(double yCenter, double yScale, int maxAbsMargin, double canvasH, double scale)
+        private void DrawYAxisLabels(double yCenter, double homeScale, double awayScale,
+            int homeRange, int awayRange, double scale, Color homeColor, Color awayColor)
         {
-            int step = NiceStep(maxAbsMargin);
-
-            var labelBrush = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));
             double labelWidth = YAxisCanvas.ActualWidth > 0
                 ? YAxisCanvas.ActualWidth
                 : ScoreboardScaleHelper.Scale(34, scale);
             // Right-pad so labels don't kiss the chart border
             double rightPad = ScoreboardScaleHelper.Scale(3, scale);
-            double zeroFontSize = ScoreboardScaleHelper.Scale(13, scale);
-            double minorFontSize = ScoreboardScaleHelper.Scale(11, scale);
+            double zeroFontSize = ScoreboardScaleHelper.Scale(15, scale);
+            double minorFontSize = ScoreboardScaleHelper.Scale(13, scale);
             double zeroYOffset = ScoreboardScaleHelper.Scale(8, scale);
             double minorYOffset = ScoreboardScaleHelper.Scale(7, scale);
 
@@ -469,7 +504,7 @@ namespace Roche_Scoreboard.Views
                     Foreground = brush,
                     FontSize = fontSize,
                     FontWeight = weight,
-                    FontFamily = new System.Windows.Media.FontFamily("Bahnschrift"),
+                    FontFamily = new System.Windows.Media.FontFamily("Arial"),
                     Width = labelWidth - rightPad,
                     TextAlignment = TextAlignment.Right
                 };
@@ -482,57 +517,69 @@ namespace Roche_Scoreboard.Views
             AddLabel("0", yCenter, zeroFontSize, zeroYOffset, FontWeights.Bold,
                 new SolidColorBrush(Color.FromArgb(220, 255, 255, 255)));
 
-            for (int val = step; val <= maxAbsMargin; val += step)
-            {
-                double yUp = yCenter - val * yScale;
-                AddLabel("+" + val, yUp, minorFontSize, minorYOffset, FontWeights.SemiBold, labelBrush);
+            var homeBrush = new SolidColorBrush(Lighten(homeColor, 0.38));
+            var awayBrush = new SolidColorBrush(Lighten(awayColor, 0.38));
 
-                double yDown = yCenter + val * yScale;
-                AddLabel("-" + val, yDown, minorFontSize, minorYOffset, FontWeights.SemiBold, labelBrush);
+            foreach (int val in AxisTicks(homeRange))
+            {
+                double yUp = yCenter - val * homeScale;
+                AddLabel(val.ToString(), yUp, minorFontSize, minorYOffset, FontWeights.SemiBold, homeBrush);
+            }
+            foreach (int val in AxisTicks(awayRange))
+            {
+                double yDown = yCenter + val * awayScale;
+                AddLabel(val.ToString(), yDown, minorFontSize, minorYOffset, FontWeights.SemiBold, awayBrush);
             }
         }
 
-        private static void DrawEmptyMessage()
+        private void DrawEmptyMessage(double canvasW, double yCenter, double scale)
         {
-            // Intentional no-op: the empty graph background communicates the
-            // pre-game state. Adding text here would clutter the small panel.
-        }
-
-        private static int NiceMax(int val)
-        {
-            if (val <= 0) return 1;
-            int magnitude = 1;
-            while (magnitude * 10 <= val) magnitude *= 10;
-            if (val <= magnitude * 2) return magnitude * 2;
-            if (val <= magnitude * 3) return magnitude * 3;
-            if (val <= magnitude * 5) return magnitude * 5;
-            return magnitude * 10;
-        }
-
-        private static int NiceStep(int range)
-        {
-            // Aim for roughly 2-3 labelled ticks on each side of zero so the
-            // axis stays readable and uncluttered regardless of margin magnitude.
-            // For small ranges this returns small steps (1, 2, 5); for large
-            // ranges it climbs through 10, 20, 50, 100... dynamically.
-            if (range <= 0) return 1;
-            if (range <= 3) return 1;
-            if (range <= 6) return 2;
-            if (range <= 12) return 5;
-
-            const int targetTicksPerSide = 3;
-            double raw = (double)range / targetTicksPerSide;
-            int magnitude = 1;
-            while (magnitude * 10 <= raw) magnitude *= 10;
-            double normalized = raw / magnitude;
-            int niceNormalized = normalized switch
+            var message = new TextBlock
             {
-                <= 1.5 => 1,
-                <= 3.5 => 2,
-                <= 7.5 => 5,
-                _ => 10
+                Text = "MARGIN FLOW BEGINS WITH THE FIRST SCORE",
+                Foreground = new SolidColorBrush(Color.FromArgb(150, 255, 255, 255)),
+                FontFamily = new System.Windows.Media.FontFamily("Bahnschrift"),
+                FontSize = ScoreboardScaleHelper.Scale(14, scale),
+                FontWeight = FontWeights.Black,
+                TextAlignment = TextAlignment.Center,
+                Width = canvasW,
+                IsHitTestVisible = false
             };
-            return niceNormalized * magnitude;
+            Canvas.SetLeft(message, 0);
+            Canvas.SetTop(message, yCenter + ScoreboardScaleHelper.Scale(12, scale));
+            GraphCanvas.Children.Add(message);
+        }
+
+        private static int NiceBound(int value)
+        {
+            if (value <= 1) return 1;
+            if (value <= 3) return 3;
+            if (value <= 6) return 6;
+            if (value <= 12) return 12;
+            if (value <= 18) return 18;
+            if (value <= 24) return 24;
+            if (value <= 30) return 30;
+            if (value <= 40) return 40;
+            if (value <= 50) return 50;
+            return (int)Math.Ceiling(value / 10d) * 10;
+        }
+
+        private static IEnumerable<int> AxisTicks(int range)
+        {
+            if (range <= 0)
+                yield break;
+
+            // At most two labels per side. The bound itself is always shown;
+            // larger ranges gain one useful midpoint without a picket fence of
+            // numbers competing with the scoreworm.
+            if (range > 18)
+            {
+                int midpoint = NiceBound((int)Math.Ceiling(range / 2d));
+                if (midpoint < range)
+                    yield return midpoint;
+            }
+
+            yield return range;
         }
 
         private static Color SafeColor(string? hex, string fallbackHex)

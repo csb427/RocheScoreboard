@@ -300,11 +300,12 @@ namespace Roche_Scoreboard.Views
             }
         }
 
-        /// <summary>Applies or removes the finals gold tint overlay on the intro screen.</summary>
+        /// <summary>Applies a component-level finals accent without recolouring the teams.</summary>
         public void SetFinalsMode(bool enabled)
         {
-            if (FindName("IntroFinalsGoldOverlay") is System.Windows.Shapes.Rectangle overlay)
-                overlay.Opacity = enabled ? 0.12 : 0;
+            VsText.Foreground = enabled
+                ? new SolidColorBrush(Services.FinalsPalette.GoldLight)
+                : System.Windows.Media.Brushes.White;
         }
     }
 }

@@ -12,6 +12,7 @@ using Roche_Scoreboard.Services;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Orientation = System.Windows.Controls.Orientation;
 using UserControl = System.Windows.Controls.UserControl;
 
@@ -316,24 +317,39 @@ public partial class SportSelectionScreen : UserControl
     // ═══════════════════════════════════════════════════════
 
     private bool _changelogOpen;
+    private string _changelogFilter = "All";
 
     // ── Tag colour mapping for changelog entries ──
     private static readonly Dictionary<string, (string bg, string fg, string border)> TagColors = new()
     {
         ["New"]      = ("#0D2818", "#3FB950", "#1A4028"),
-        ["Improved"] = ("#0D1A30", "#58A6FF", "#1A3050"),
         ["Fixed"]    = ("#2D1A0D", "#F0C040", "#3D2A1A"),
         ["Changed"]  = ("#1A0D2D", "#C084FC", "#2A1A3D"),
     };
 
     private void PopulateChangelog()
     {
-        VersionLabel.Text = $"v{AutoUpdateService.CurrentVersion.ToString(3)}";
+        VersionLabel.Text = $"v{AutoUpdateService.CurrentVersion.ToString(3)}  ·  LIVE CHANGELOG";
         ChangelogEntries.Children.Clear();
+
+        string query = ChangelogSearchBox?.Text?.Trim() ?? string.Empty;
 
         bool isFirst = true;
         foreach (var ver in ChangelogService.Versions)
         {
+            var visibleChanges = new List<string>();
+            foreach (string change in ver.Changes)
+            {
+                bool categoryMatch = _changelogFilter == "All" ||
+                    change.StartsWith($"[{_changelogFilter}]", StringComparison.OrdinalIgnoreCase);
+                bool queryMatch = string.IsNullOrWhiteSpace(query) ||
+                    change.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    ver.Version.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    ver.Date.Contains(query, StringComparison.OrdinalIgnoreCase);
+                if (categoryMatch && queryMatch) visibleChanges.Add(change);
+            }
+            if (visibleChanges.Count == 0) continue;
+
             if (!isFirst)
                 ChangelogEntries.Children.Add(new Border
                 {
@@ -378,7 +394,7 @@ public partial class SportSelectionScreen : UserControl
             ChangelogEntries.Children.Add(header);
 
             // Change items — parse [Tag] prefix into coloured badge
-            foreach (string change in ver.Changes)
+            foreach (string change in visibleChanges)
             {
                 var item = new StackPanel
                 {
@@ -441,7 +457,8 @@ public partial class SportSelectionScreen : UserControl
                     Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C9D1D9")),
                     FontSize = 13,
                     TextWrapping = TextWrapping.Wrap,
-                    MaxWidth = 660
+                    MaxWidth = 720,
+                    LineHeight = 19
                 });
 
                 ChangelogEntries.Children.Add(item);
@@ -449,51 +466,67 @@ public partial class SportSelectionScreen : UserControl
         }
     }
 
-    private void ChangelogBar_MouseEnter(object sender, MouseEventArgs e)
+    private void ChangelogToggle_Click(object sender, RoutedEventArgs e)
     {
-        if (!_changelogOpen)
-            ShowChangelog();
+        ShowChangelog();
     }
 
-    private void ChangelogBar_MouseLeave(object sender, MouseEventArgs e)
+    private void ChangelogClose_Click(object sender, RoutedEventArgs e) => HideChangelog();
+
+    private void ChangelogBackdrop_Click(object sender, MouseButtonEventArgs e)
     {
-        if (_changelogOpen)
+        if (ReferenceEquals(e.OriginalSource, sender)) HideChangelog();
+    }
+
+    private void ChangelogOverlay_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
             HideChangelog();
+            e.Handled = true;
+        }
+    }
+
+    private void ChangelogSearch_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (IsLoaded) PopulateChangelog();
+    }
+
+    private void ChangelogFilter_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button { Tag: string filter })
+        {
+            _changelogFilter = filter;
+            PopulateChangelog();
+        }
     }
 
     private void ShowChangelog()
     {
+        if (_changelogOpen) return;
         _changelogOpen = true;
-
-        // Fade out the small toggle pill
-        Animate(ChangelogToggle, OpacityProperty, 0, 150, easing: Smooth);
-
-        // Expand and show the full panel
-        Animate(ChangelogPanel, OpacityProperty, 1, 250, delay: 100, easing: Smooth);
-        var expandAnim = new DoubleAnimation(560, TimeSpan.FromMilliseconds(300))
-        {
-            BeginTime = TimeSpan.FromMilliseconds(50),
-            EasingFunction = Smooth
-        };
-        ChangelogPanel.BeginAnimation(FrameworkElement.MaxHeightProperty, expandAnim);
+        PopulateChangelog();
+        ChangelogOverlay.Visibility = Visibility.Visible;
+        ChangelogOverlay.Focus();
+        Animate(ChangelogOverlay, OpacityProperty, 1, 220, easing: Smooth);
+        Animate(ChangelogPanelScale, ScaleTransform.ScaleXProperty, 1, 320, easing: Overshoot);
+        Animate(ChangelogPanelScale, ScaleTransform.ScaleYProperty, 1, 320, easing: Overshoot);
+        Animate(ChangelogPanelTranslate, TranslateTransform.YProperty, 0, 300, easing: Smooth);
+        ChangelogSearchBox.Focus();
     }
 
     private void HideChangelog()
     {
+        if (!_changelogOpen) return;
         _changelogOpen = false;
-
-        // Collapse the panel
-        var collapseAnim = new DoubleAnimation(0, TimeSpan.FromMilliseconds(250))
+        var fadeOut = new DoubleAnimation(0, TimeSpan.FromMilliseconds(180)) { EasingFunction = Smooth };
+        fadeOut.Completed += (_, _) =>
         {
-            EasingFunction = Smooth
+            ChangelogOverlay.Visibility = Visibility.Collapsed;
+            ChangelogPanelScale.ScaleX = ChangelogPanelScale.ScaleY = 0.96;
+            ChangelogPanelTranslate.Y = 24;
         };
-        ChangelogPanel.BeginAnimation(FrameworkElement.MaxHeightProperty, collapseAnim);
-
-        var fadeOut = new DoubleAnimation(0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth };
-        ChangelogPanel.BeginAnimation(OpacityProperty, fadeOut);
-
-        // Restore the toggle pill
-        Animate(ChangelogToggle, OpacityProperty, 0.7, 300, delay: 200, easing: Smooth);
+        ChangelogOverlay.BeginAnimation(OpacityProperty, fadeOut);
     }
 
     // ═══════════════════════════════════════════════════════
@@ -510,7 +543,10 @@ public partial class SportSelectionScreen : UserControl
     {
         var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(durationMs))
         {
-            BeginTime = delay > 0 ? TimeSpan.FromMilliseconds(delay) : null,
+            // A null BeginTime disables a WPF timeline entirely. Zero-delay
+            // interactions must start at TimeSpan.Zero or a visible modal can
+            // remain transparent while still intercepting every input event.
+            BeginTime = delay > 0 ? TimeSpan.FromMilliseconds(delay) : TimeSpan.Zero,
             EasingFunction = easing
         };
         target.BeginAnimation(prop, anim);

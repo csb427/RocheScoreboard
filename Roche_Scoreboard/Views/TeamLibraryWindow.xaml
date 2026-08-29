@@ -1,0 +1,97 @@
+<Window x:Class="Roche_Scoreboard.Views.TeamLibraryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Australian Football Club Library" Width="1080" Height="720" MinWidth="860" MinHeight="560"
+        WindowStartupLocation="CenterOwner" Background="#080D14" Foreground="White"
+        FontFamily="Segoe UI" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+    <Window.Resources>
+        <Style x:Key="LibraryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="#162334"/>
+            <Setter Property="BorderBrush" Value="#36506D"/><Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="15,10"/><Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value><ControlTemplate TargetType="Button">
+                    <Border x:Name="Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="Background" Value="#203754"/><Setter TargetName="Surface" Property="BorderBrush" Value="#61AFFF"/></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="Surface" Property="RenderTransformOrigin" Value="0.5,0.5"/><Setter TargetName="Surface" Property="RenderTransform"><Setter.Value><ScaleTransform ScaleX="0.96" ScaleY="0.96"/></Setter.Value></Setter></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Surface" Property="Opacity" Value="0.38"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBox"><Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="#111827"/><Setter Property="BorderBrush" Value="#31465D"/><Setter Property="Padding" Value="9,7"/></Style>
+        <Style TargetType="ComboBoxItem"><Setter Property="Foreground" Value="#111827"/><Setter Property="Background" Value="White"/><Setter Property="Padding" Value="8,6"/></Style>
+        <Style TargetType="TextBox"><Setter Property="Background" Value="#101A28"/><Setter Property="Foreground" Value="White"/><Setter Property="CaretBrush" Value="White"/><Setter Property="BorderBrush" Value="#3B5673"/><Setter Property="Padding" Value="12,9"/><Setter Property="FontSize" Value="15"/></Style>
+    </Window.Resources>
+
+    <Grid Margin="22">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Grid>
+            <StackPanel>
+                <TextBlock Text="AUSTRALIAN CLUB LIBRARY" FontSize="12" FontWeight="Black" Foreground="#58A6FF"/>
+                <TextBlock x:Name="TargetHeading" Text="Choose a team" FontSize="28" FontWeight="Black" Margin="0,3,0,0"/>
+                <TextBlock Text="AFL · VAFA · APS · AGSV  ·  transparent marks prepared and cached automatically" Foreground="#93A7BB" FontSize="12" Margin="0,5,0,0"/>
+            </StackPanel>
+            <Button Content="CLOSE" HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource LibraryButton}" Click="Close_Click"/>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,20,0,16">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/><ColumnDefinition Width="125"/><ColumnDefinition Width="135"/><ColumnDefinition Width="120"/></Grid.ColumnDefinitions>
+            <TextBox x:Name="SearchBox" Grid.Column="0" TextChanged="Filter_Changed" ToolTip="Search by club name or abbreviation"/>
+            <ComboBox x:Name="LeagueFilter" Grid.Column="1" Margin="10,0,0,0" SelectionChanged="Filter_Changed"><ComboBoxItem Content="All leagues" IsSelected="True"/><ComboBoxItem Content="AFL"/><ComboBoxItem Content="VAFA"/><ComboBoxItem Content="APS"/><ComboBoxItem Content="AGSV"/></ComboBox>
+            <ComboBox x:Name="StateFilter" Grid.Column="2" Margin="10,0,0,0" SelectionChanged="Filter_Changed"><ComboBoxItem Content="All states" IsSelected="True"/><ComboBoxItem Content="VIC"/><ComboBoxItem Content="NSW"/><ComboBoxItem Content="QLD"/><ComboBoxItem Content="SA"/><ComboBoxItem Content="WA"/></ComboBox>
+            <ComboBox x:Name="SortFilter" Grid.Column="3" Margin="10,0,0,0" SelectionChanged="Filter_Changed"><ComboBoxItem Content="A–Z" IsSelected="True"/><ComboBoxItem Content="Favourites"/><ComboBoxItem Content="League"/><ComboBoxItem Content="State"/></ComboBox>
+            <CheckBox x:Name="FavouriteOnly" Grid.Column="4" Margin="12,0,0,0" Content="★ SAVED" Foreground="#FFD166" FontWeight="Bold" VerticalAlignment="Center" Checked="Filter_Changed" Unchecked="Filter_Changed" Cursor="Hand"/>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="0.8*"/></Grid.ColumnDefinitions>
+            <Border Background="#0D151F" BorderBrush="#26384C" BorderThickness="1" CornerRadius="12" Padding="8">
+                <ListBox x:Name="TeamList" Background="Transparent" BorderThickness="0" SelectionChanged="TeamList_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,6"/>
+                            <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="Card" Background="#111C29" BorderBrush="#263A50" BorderThickness="1" CornerRadius="9" Padding="12,10">
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <Border Width="38" Height="38" CornerRadius="8" Background="{Binding PrimaryColor}"><TextBlock Text="{Binding Abbreviation}" FontSize="10" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/></Border>
+                                        <StackPanel Grid.Column="1" Margin="10,0"><TextBlock Text="{Binding TeamName}" Foreground="#F3F7FB" FontSize="15" FontWeight="Bold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Abbreviation}" FontSize="10" Foreground="#91A5BA" Margin="0,2,0,0"/></StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"><TextBlock x:Name="SavedStar" Text="★" Foreground="#FFD166" FontSize="15" Margin="0,0,8,0" Visibility="Collapsed"/><Border Background="#192A3D" CornerRadius="5" Padding="8,4"><TextBlock Text="{Binding League}" Foreground="#87BFFF" FontSize="10" FontWeight="Black"/></Border></StackPanel>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers><DataTrigger Binding="{Binding IsFavourite}" Value="True"><Setter TargetName="SavedStar" Property="Visibility" Value="Visible"/></DataTrigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Card" Property="Background" Value="#17283A"/><Setter TargetName="Card" Property="BorderBrush" Value="#4F759B"/></Trigger><Trigger Property="IsSelected" Value="True"><Setter TargetName="Card" Property="Background" Value="#173453"/><Setter TargetName="Card" Property="BorderBrush" Value="#58A6FF"/><Setter TargetName="Card" Property="BorderThickness" Value="2"/></Trigger></ControlTemplate.Triggers>
+                            </ControlTemplate></Setter.Value></Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </Border>
+
+            <Border Grid.Column="2" Background="#0D151F" BorderBrush="#26384C" BorderThickness="1" CornerRadius="12" Padding="20">
+                <Grid><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <StackPanel x:Name="DetailContent" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                        <StackPanel.RenderTransform><TranslateTransform x:Name="DetailTranslate"/></StackPanel.RenderTransform>
+                        <Border Height="190" Background="#0A1018" CornerRadius="12" Padding="18">
+                            <Grid><TextBlock x:Name="LogoPlaceholder" Text="SELECT A CLUB" Foreground="#4E6276" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="LogoPreview" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/></Grid>
+                        </Border>
+                        <TextBlock x:Name="SelectedName" Text="No club selected" FontSize="24" FontWeight="Black" TextAlignment="Center" Margin="0,18,0,0" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="SelectedMeta" Foreground="#91A5BA" FontSize="12" TextAlignment="Center" Margin="0,6,0,0"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0"><Border x:Name="PrimarySwatch" Width="72" Height="16" CornerRadius="4"/><Border x:Name="SecondarySwatch" Width="72" Height="16" CornerRadius="4" Margin="8,0,0,0"/></StackPanel>
+                        <TextBlock x:Name="StatusText" Foreground="#83B8E8" TextAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1">
+                        <Button x:Name="FavouriteButton" Content="☆  ADD TO PRESETS" Style="{StaticResource LibraryButton}" Click="Favourite_Click" IsEnabled="False" Margin="0,0,0,8"/>
+                        <Button x:Name="UseButton" Content="USE THIS TEAM" Style="{StaticResource LibraryButton}" Background="#155A93" BorderBrush="#58A6FF" Click="Use_Click" IsEnabled="False"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <TextBlock x:Name="ResultCount" Grid.Row="3" Foreground="#6F8498" FontSize="11" Margin="2,12,0,0"/>
+    </Grid>
+</Window>

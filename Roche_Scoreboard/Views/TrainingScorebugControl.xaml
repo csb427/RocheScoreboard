@@ -7,9 +7,8 @@
              d:DesignHeight="540" d:DesignWidth="960"
              Background="#080C12">
 
-    <!-- Master Viewbox: 960×540 canvas. Stretch="Fill" so the training
-         scorebug fills any host aspect ratio with no letterbox bars. -->
-    <Viewbox Stretch="Fill" StretchDirection="Both">
+    <!-- Uniform scaling keeps stopwatch digits and graphics undistorted. -->
+    <Viewbox Stretch="Uniform" StretchDirection="Both">
         <Grid x:Name="RootGrid" Width="960" Height="540" ClipToBounds="True">
         <Grid.Background>
             <!-- Solid base colour we animate to red during finish flashes

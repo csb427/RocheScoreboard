@@ -2,9 +2,11 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +25,15 @@ public sealed class AutoUpdateService
     private const string ReleasesPageUrl = $"https://github.com/{GitHubOwner}/{GitHubRepo}/releases/latest";
 
     private static readonly HttpClient s_http = CreateHttpClient();
+    private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(15);
+    private static readonly string UpdateDataDirectory = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Roche_Scoreboard");
+
+    public static string DiagnosticsPath => Path.Combine(UpdateDataDirectory, "update.log");
+
+    public UpdateCheckState LastCheckState { get; private set; } = UpdateCheckState.NotChecked;
+    public string? LastError { get; private set; }
+    public DateTimeOffset? LastCheckedAt { get; private set; }
 
     /// <summary>
     /// Latest release info discovered by <see cref="CheckForUpdateAsync"/>.
@@ -53,35 +64,56 @@ public sealed class AutoUpdateService
     /// </summary>
     public async Task<bool> CheckForUpdateAsync(CancellationToken ct = default)
     {
+        LastCheckState = UpdateCheckState.Checking;
+        LastError = null;
+        LatestRelease = null;
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(CheckTimeout);
+
         try
         {
-            var release = await s_http.GetFromJsonAsync<GitHubRelease>(ReleasesApiUrl, ct);
+            using var request = new HttpRequestMessage(HttpMethod.Get, ReleasesApiUrl);
+            using var response = await s_http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
+            response.EnsureSuccessStatusCode();
+            await using Stream stream = await response.Content.ReadAsStreamAsync(timeout.Token);
+            var release = await JsonSerializer.DeserializeAsync<GitHubRelease>(stream, cancellationToken: timeout.Token);
 
             if (release is null || string.IsNullOrWhiteSpace(release.TagName))
-                return false;
+                throw new InvalidDataException("GitHub returned a release without a version tag.");
 
-            string tag = release.TagName.TrimStart('v', 'V');
-
-            if (!Version.TryParse(tag, out Version? remoteVersion))
-                return false;
+            if (!TryParseReleaseVersion(release.TagName, out Version? remoteVersion) || remoteVersion is null)
+                throw new InvalidDataException($"Release tag '{release.TagName}' is not a valid version.");
 
             if (remoteVersion > CurrentVersion)
             {
                 LatestRelease = release;
+                LastCheckState = FindAsset(release) is null
+                    ? UpdateCheckState.UpdateAvailableWithoutCompatibleAsset
+                    : UpdateCheckState.UpdateAvailable;
+                LastCheckedAt = DateTimeOffset.Now;
+                WriteDiagnostic($"Update check: {CurrentVersion.ToString(3)} -> {remoteVersion.ToString(3)}; state={LastCheckState}.");
                 return true;
             }
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException or System.Text.Json.JsonException)
-        {
-            // Network or deserialization issues — silently ignore; the user can try later.
-        }
 
-        LatestRelease = null;
-        return false;
+            LastCheckState = UpdateCheckState.UpToDate;
+            LastCheckedAt = DateTimeOffset.Now;
+            WriteDiagnostic($"Update check: current={CurrentVersion.ToString(3)}, latest={remoteVersion.ToString(3)}.");
+            return false;
+        }
+        catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
+        {
+            SetCheckFailure($"The update server did not respond within {CheckTimeout.TotalSeconds:0} seconds.", ex);
+            return false;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException or InvalidDataException)
+        {
+            SetCheckFailure(ex.Message, ex);
+            return false;
+        }
     }
 
     /// <summary>
-    /// Downloads the release asset (zip or exe) from <see cref="LatestRelease"/>,
+    /// Downloads the complete portable ZIP from <see cref="LatestRelease"/>,
     /// stages it outside the application folder, and launches a PowerShell
     /// updater that waits for this process to exit, replaces the application
     /// files (with retry on file-in-use), and re-launches the app.
@@ -93,18 +125,20 @@ public sealed class AutoUpdateService
         if (LatestRelease is null)
             return false;
 
-        var (assetUrl, isExe) = FindAssetUrl(LatestRelease);
-        if (assetUrl is null)
+        GitHubReleaseAsset? asset = FindAsset(LatestRelease);
+        if (asset?.BrowserDownloadUrl is null)
+        {
+            LastError = "This release has no compatible Roche Scoreboard Windows x64 ZIP package.";
+            WriteDiagnostic(LastError);
             return false;
+        }
 
-        // CRITICAL: when the app is published as a single-file self-contained
-        // exe (PublishSingleFile=true + IncludeNativeLibrariesForSelfExtract=true),
-        // AppContext.BaseDirectory is the per-launch EXTRACTION folder under
-        // %TEMP%\.net\<app>\<hash>\, NOT the directory of the actual exe on
-        // disk. Copying the update over that temp folder leaves the real exe
-        // untouched, so the next launch just re-extracts the old bundle and
-        // the user sees "no update applied". Always derive the install
-        // directory from the running process path instead.
+        string assetUrl = asset.BrowserDownloadUrl;
+        bool isExe = asset.Name?.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) == true;
+
+        // Always derive the install directory from the running process path.
+        // This is correct for the current self-contained folder package and
+        // remains safe if a future release returns to single-file extraction.
         string? exePath = Environment.ProcessPath;
         string appDir = !string.IsNullOrEmpty(exePath)
             ? Path.GetDirectoryName(exePath)!
@@ -117,7 +151,7 @@ public sealed class AutoUpdateService
         string tempRoot = Path.Combine(Path.GetTempPath(), "Roche_Scoreboard_Update_" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempRoot);
 
-        string logPath = Path.Combine(Path.GetTempPath(), "Roche_Scoreboard_Update.log");
+        string logPath = DiagnosticsPath;
 
         try
         {
@@ -149,6 +183,8 @@ public sealed class AutoUpdateService
                 }
                 progress?.Report(1.0);
 
+                ValidateDownload(downloadedExe, bytesRead, totalBytes, asset);
+
                 sourceDir = tempRoot;
             }
             else
@@ -171,6 +207,8 @@ public sealed class AutoUpdateService
                 }
                 progress?.Report(1.0);
 
+                ValidateDownload(zipPath, bytesRead, totalBytes, asset);
+
                 ZipFile.ExtractToDirectory(zipPath, extractDir, overwriteFiles: true);
 
                 // The extract may have a single subfolder; detect it
@@ -191,6 +229,9 @@ public sealed class AutoUpdateService
                 if (candidates.Length == 1)
                 {
                     stagedExe = candidates[0];
+                    string normalizedExe = Path.Combine(sourceDir, currentExeName);
+                    File.Copy(stagedExe, normalizedExe, overwrite: true);
+                    stagedExe = normalizedExe;
                 }
                 else
                 {
@@ -198,9 +239,16 @@ public sealed class AutoUpdateService
                 }
             }
 
+            ValidatePortableExecutable(stagedExe);
+            ValidateReleasePackage(sourceDir, currentExeName);
+
+            if (!TryParseReleaseVersion(LatestRelease.TagName ?? string.Empty, out Version? expectedVersion) || expectedVersion is null)
+                throw new InvalidDataException("The update release version could not be validated.");
+
             int currentPid = Environment.ProcessId;
             string scriptPath = Path.Combine(tempRoot, "apply_update.ps1");
-            string script = BuildUpdaterScript(currentPid, currentExeName, currentExe, appDir, sourceDir, tempRoot, logPath);
+            string script = BuildUpdaterScript(currentPid, currentExeName, currentExe, appDir, sourceDir,
+                tempRoot, logPath, expectedVersion.ToString(3));
             await File.WriteAllTextAsync(scriptPath, script, ct);
 
             // Launch PowerShell hidden, bypassing execution policy. Detach from
@@ -214,7 +262,8 @@ public sealed class AutoUpdateService
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException or TaskCanceledException or OperationCanceledException)
         {
-            try { File.AppendAllText(logPath, $"[{DateTime.Now:O}] Download/stage failed: {ex}\r\n"); } catch { }
+            LastError = ex.Message;
+            WriteDiagnostic($"Download/stage failed: {ex}");
             try { if (Directory.Exists(tempRoot)) Directory.Delete(tempRoot, recursive: true); } catch { }
             return false;
         }
@@ -228,7 +277,8 @@ public sealed class AutoUpdateService
     /// 4. Schedules deletion of the staged temp directory so the script can self-clean.
     /// 5. Logs every step to <paramref name="logPath"/> for post-mortem diagnostics.
     /// </summary>
-    private static string BuildUpdaterScript(int pid, string exeName, string currentExe, string appDir, string sourceDir, string tempRoot, string logPath)
+    private static string BuildUpdaterScript(int pid, string exeName, string currentExe, string appDir,
+        string sourceDir, string tempRoot, string logPath, string expectedVersion)
     {
         // PowerShell escaping: single-quote string literals, double any embedded single quotes.
         static string Esc(string s) => s.Replace("'", "''");
@@ -325,7 +375,28 @@ public sealed class AutoUpdateService
                 }
                 $copied = $false
             } else {
-                Write-Log "New EXE present at '$exePath'."
+                try {
+                    $writtenVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exePath).ProductVersion
+                    if ([string]::IsNullOrWhiteSpace($writtenVersion)) {
+                        $writtenVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exePath).FileVersion
+                    }
+                    Write-Log "New EXE present at '$exePath'; version='$writtenVersion', expected='{{Esc(expectedVersion)}}'."
+                    if (-not $writtenVersion.StartsWith('{{Esc(expectedVersion)}}', [System.StringComparison]::OrdinalIgnoreCase)) {
+                        Write-Log "Version verification failed — rolling back."
+                        Remove-Item -LiteralPath $exePath -Force -ErrorAction SilentlyContinue
+                        if (Test-Path -LiteralPath "$exePath.old") {
+                            Rename-Item -LiteralPath "$exePath.old" -NewName ([System.IO.Path]::GetFileName($exePath)) -Force
+                        }
+                        $copied = $false
+                    }
+                } catch {
+                    Write-Log "Version verification error: $_"
+                    Remove-Item -LiteralPath $exePath -Force -ErrorAction SilentlyContinue
+                    if (Test-Path -LiteralPath "$exePath.old") {
+                        try { Rename-Item -LiteralPath "$exePath.old" -NewName ([System.IO.Path]::GetFileName($exePath)) -Force } catch {}
+                    }
+                    $copied = $false
+                }
             }
 
             if (-not $copied) {
@@ -370,17 +441,30 @@ public sealed class AutoUpdateService
             }
 
             if (-not $launched) {
-                Write-Log "Final fallback: cmd /c start"
-                try { Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c', 'start', '""', "`"$exe`"") -WindowStyle Hidden } catch { Write-Log "Fallback launch failed: $_" }
+                Write-Log "Updated app did not stay running — restoring the previous executable."
+                if (Test-Path -LiteralPath "$exePath.old") {
+                    try {
+                        Remove-Item -LiteralPath $exePath -Force -ErrorAction SilentlyContinue
+                        Rename-Item -LiteralPath "$exePath.old" -NewName ([System.IO.Path]::GetFileName($exePath)) -Force -ErrorAction Stop
+                        Unblock-File -LiteralPath $exePath -ErrorAction SilentlyContinue
+                        Start-Process -FilePath $exePath -WorkingDirectory $dst -ErrorAction Stop
+                        Write-Log "Rollback succeeded and the previous version was relaunched."
+                    } catch { Write-Log "Rollback launch failed: $_" }
+                }
+                $copied = $false
             }
 
             # 4. Self-clean staged temp dir AFTER this script ends, so we don't
             #    try to delete the directory we are running from. Also queues
             #    deletion of the .old EXE backup once it's no longer locked.
             $temp = '{{Esc(tempRoot)}}'
-            $oldExeForCleanup = "$exePath.old"
+            $oldExeForCleanup = if ($copied -and $launched) { "$exePath.old" } else { '' }
             try {
-                $cleanupCmd = "ping 127.0.0.1 -n 5 >nul & del /f /q `"$oldExeForCleanup`" 2>nul & rmdir /s /q `"$temp`""
+                $cleanupCmd = if ($oldExeForCleanup) {
+                    "ping 127.0.0.1 -n 5 >nul & del /f /q `"$oldExeForCleanup`" 2>nul & rmdir /s /q `"$temp`""
+                } else {
+                    "ping 127.0.0.1 -n 5 >nul & rmdir /s /q `"$temp`""
+                }
                 Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c', $cleanupCmd) -WindowStyle Hidden
             } catch {}
             Write-Log "Updater finished. launched=$launched copied=$copied"
@@ -441,38 +525,63 @@ public sealed class AutoUpdateService
     }
 
     /// <summary>
-    /// Finds the best asset URL from the release. Prefers .exe, then .zip, then zipball fallback.
-    /// Returns the URL and whether it is a direct exe download.
+    /// Selects a complete portable release package. GitHub's generated source
+    /// archives and loose executables are deliberately excluded: this app needs
+    /// its managed dependencies, self-contained .NET runtime and LibVLC plugin
+    /// tree beside the executable.
     /// </summary>
-    private static (string? Url, bool IsExe) FindAssetUrl(GitHubRelease release)
+    private static GitHubReleaseAsset? FindAsset(GitHubRelease release)
     {
-        if (release.Assets is not null)
-        {
-            // Prefer .exe asset
-            foreach (var asset in release.Assets)
-            {
-                if (asset.BrowserDownloadUrl is not null &&
-                    asset.Name is not null &&
-                    asset.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-                {
-                    return (asset.BrowserDownloadUrl, true);
-                }
-            }
+        if (release.Assets is null) return null;
 
-            // Fall back to .zip asset
-            foreach (var asset in release.Assets)
-            {
-                if (asset.BrowserDownloadUrl is not null &&
-                    asset.Name is not null &&
-                    asset.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    return (asset.BrowserDownloadUrl, false);
-                }
-            }
+        static int Rank(GitHubReleaseAsset asset)
+        {
+            string name = asset.Name ?? "";
+            if (string.IsNullOrWhiteSpace(asset.BrowserDownloadUrl) || asset.Size <= 0) return int.MaxValue;
+            bool appName = name.Contains("Roche", StringComparison.OrdinalIgnoreCase) &&
+                           name.Contains("Scoreboard", StringComparison.OrdinalIgnoreCase);
+            bool x64 = name.Contains("x64", StringComparison.OrdinalIgnoreCase) ||
+                       !name.Contains("arm", StringComparison.OrdinalIgnoreCase);
+            bool canonical = name.StartsWith("Roche-Scoreboard-v", StringComparison.OrdinalIgnoreCase) &&
+                             name.Contains("Windows-x64", StringComparison.OrdinalIgnoreCase);
+            if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) && appName && x64)
+                return canonical ? 0 : 1;
+            return int.MaxValue;
         }
 
-        // Fallback: GitHub auto-generated source zipball (not ideal but better than nothing)
-        return (release.ZipballUrl, false);
+        return release.Assets.OrderBy(Rank).FirstOrDefault(a => Rank(a) < int.MaxValue);
+    }
+
+    private static void ValidateReleasePackage(string sourceDir, string exeName)
+    {
+        string appStem = Path.GetFileNameWithoutExtension(exeName);
+        string[] requiredFiles =
+        [
+            exeName,
+            appStem + ".dll",
+            appStem + ".deps.json",
+            appStem + ".runtimeconfig.json",
+            "coreclr.dll",
+            "hostfxr.dll",
+            Path.Combine("libvlc", "win-x64", "libvlc.dll"),
+            Path.Combine("libvlc", "win-x64", "libvlccore.dll")
+        ];
+
+        string[] missing = requiredFiles
+            .Where(relative => !File.Exists(Path.Combine(sourceDir, relative)))
+            .ToArray();
+        if (missing.Length > 0)
+            throw new InvalidDataException(
+                "The downloaded release is incomplete and was not installed. Missing: " +
+                string.Join(", ", missing));
+
+        string pluginDirectory = Path.Combine(sourceDir, "libvlc", "win-x64", "plugins");
+        int pluginCount = Directory.Exists(pluginDirectory)
+            ? Directory.GetFiles(pluginDirectory, "*.dll", SearchOption.AllDirectories).Length
+            : 0;
+        if (pluginCount < 100)
+            throw new InvalidDataException(
+                $"The downloaded release contains an incomplete LibVLC plugin set ({pluginCount} files). It was not installed.");
     }
 
     public static string GetReleasePageUrl() => ReleasesPageUrl;
@@ -487,8 +596,7 @@ public sealed class AutoUpdateService
         if (LatestRelease is null)
             return null;
 
-        var (url, _) = FindAssetUrl(LatestRelease);
-        return url;
+        return FindAsset(LatestRelease)?.BrowserDownloadUrl;
     }
 
     public static void OpenUrlInBrowser(string url)
@@ -520,6 +628,72 @@ public sealed class AutoUpdateService
         client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
         return client;
     }
+
+    private static bool TryParseReleaseVersion(string tag, out Version? version)
+    {
+        string value = tag.Trim().TrimStart('v', 'V');
+        int suffix = value.IndexOfAny(['-', '+']);
+        if (suffix >= 0) value = value[..suffix];
+        return Version.TryParse(value, out version);
+    }
+
+    private void SetCheckFailure(string message, Exception exception)
+    {
+        LatestRelease = null;
+        LastCheckState = UpdateCheckState.Failed;
+        LastCheckedAt = DateTimeOffset.Now;
+        LastError = message;
+        WriteDiagnostic($"Update check failed: {exception}");
+    }
+
+    private static void ValidateDownload(string path, long downloadedBytes, long contentLength, GitHubReleaseAsset asset)
+    {
+        if (downloadedBytes <= 0 || !File.Exists(path))
+            throw new InvalidDataException("The downloaded update is empty.");
+        if (contentLength > 0 && downloadedBytes != contentLength)
+            throw new InvalidDataException($"The download was incomplete ({downloadedBytes:N0} of {contentLength:N0} bytes).");
+        if (asset.Size > 0 && downloadedBytes != asset.Size)
+            throw new InvalidDataException($"The download size did not match GitHub ({downloadedBytes:N0} of {asset.Size:N0} bytes).");
+
+        if (asset.Digest?.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            string expected = asset.Digest[7..];
+            using var stream = File.OpenRead(path);
+            string actual = Convert.ToHexString(SHA256.HashData(stream));
+            if (!actual.Equals(expected, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("The update failed its SHA-256 integrity check.");
+        }
+    }
+
+    private static void ValidatePortableExecutable(string path)
+    {
+        var info = new FileInfo(path);
+        if (!info.Exists || info.Length < 1024)
+            throw new InvalidDataException("The staged application executable is missing or invalid.");
+        using FileStream stream = File.OpenRead(path);
+        if (stream.ReadByte() != 'M' || stream.ReadByte() != 'Z')
+            throw new InvalidDataException("The staged application is not a valid Windows executable.");
+    }
+
+    private static void WriteDiagnostic(string message)
+    {
+        try
+        {
+            Directory.CreateDirectory(UpdateDataDirectory);
+            File.AppendAllText(DiagnosticsPath, $"[{DateTimeOffset.Now:O}] {message}{Environment.NewLine}");
+        }
+        catch { }
+    }
+}
+
+public enum UpdateCheckState
+{
+    NotChecked,
+    Checking,
+    UpToDate,
+    UpdateAvailable,
+    UpdateAvailableWithoutCompatibleAsset,
+    Failed
 }
 
 /// <summary>
@@ -559,4 +733,7 @@ public sealed class GitHubReleaseAsset
 
     [JsonPropertyName("size")]
     public long Size { get; set; }
+
+    [JsonPropertyName("digest")]
+    public string? Digest { get; set; }
 }

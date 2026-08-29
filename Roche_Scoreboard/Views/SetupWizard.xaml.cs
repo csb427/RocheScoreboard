@@ -578,6 +578,7 @@ namespace Roche_Scoreboard.Views
 
         public void Reset()
         {
+            OperatorWorkflowPreferencesData remembered = OperatorWorkflowPreferences.Load();
             Result = null;
             _homeLogoPath = null;
             _awayLogoPath = null;
@@ -609,17 +610,18 @@ namespace Roche_Scoreboard.Views
             SetupAwayLogoPreview.Visibility = Visibility.Collapsed;
             SetupAwayVideoText.Text = "(none)";
 
-            SetupCountdown.IsChecked = true;
-            SetupControlPanelCountdown.IsChecked = true;
-            _wasCountUpMode = false;
-            SetupQuarterMinutes.Text = "20";
-            SetupQuarterSeconds.Text = "00";
+            SetupCountdown.IsChecked = remembered.AflCountdown;
+            SetupCountUp.IsChecked = !remembered.AflCountdown;
+            SetupControlPanelCountdown.IsChecked = remembered.AflControlPanelCountdown;
+            _wasCountUpMode = !remembered.AflCountdown;
+            SetupQuarterMinutes.Text = remembered.AflQuarterMinutes.ToString();
+            SetupQuarterSeconds.Text = remembered.AflQuarterSeconds.ToString("00");
             SetupFinalsMode.IsChecked = false;
-            DurationMinutesDisplay.Text = "20";
+            DurationMinutesDisplay.Text = remembered.AflQuarterMinutes.ToString();
             UpdateClockModeVisuals();
             _countdownOptionCardWasCollapsed = true; // force entrance anim on next reveal
             UpdateControlPanelCountdownOptionVisuals();
-            HighlightActivePresetTile(20);
+            HighlightActivePresetTile(remembered.AflQuarterMinutes);
             UpdateFinalsToggleVisuals();
             UpdateSetupClockSummary();
 
@@ -627,11 +629,17 @@ namespace Roche_Scoreboard.Views
 
             _suppressWeatherFilter = true;
             _weatherBoxActivated = false;
-            SetupWeatherLocation.Text = "Melbourne, Australia";
+            SetupWeatherLocation.Text = remembered.AflWeatherLocation;
             _suppressWeatherFilter = false;
 
             _presets = PresetStorage.LoadAll();
             RefreshPresetPanels();
+            // The snapshot reflects what was actually used, including any
+            // colour/name adjustments made after selecting a preset.
+            TeamPreset? rememberedHome = remembered.LastHomeTeam ?? FindRememberedPreset(remembered.LastHomePresetKey);
+            TeamPreset? rememberedAway = remembered.LastAwayTeam ?? FindRememberedPreset(remembered.LastAwayPresetKey);
+            if (rememberedHome is not null) ApplyPresetToHome(rememberedHome);
+            if (rememberedAway is not null) ApplyPresetToAway(rememberedAway);
             ShowStep(1, animate: false);
 
             // Replay the cinematic entry
@@ -688,8 +696,55 @@ namespace Roche_Scoreboard.Views
                 Messages = messages
             };
 
+            // Remember venue/operator defaults only after a valid setup is
+            // completed. Finals mode and messages remain deliberately per-match.
+            OperatorWorkflowPreferences.Update(remembered =>
+            {
+                remembered.AflCountdown = SetupCountdown.IsChecked == true;
+                remembered.AflQuarterMinutes = Result.QuarterMinutes;
+                remembered.AflQuarterSeconds = Result.QuarterSeconds;
+                remembered.AflControlPanelCountdown = SetupControlPanelCountdown.IsChecked == true;
+                remembered.AflWeatherLocation = Result.WeatherLocation ?? "Melbourne, Australia";
+                remembered.LastHomePresetKey = GetPresetKey(_selectedHomePreset);
+                remembered.LastAwayPresetKey = GetPresetKey(_selectedAwayPreset);
+                remembered.LastHomeTeam = CreateRememberedTeam(
+                    Result.HomeName, Result.HomeAbbr, Result.HomePrimaryColor, Result.HomeSecondaryColor,
+                    Result.HomeLogoPath, Result.HomeGoalVideoPath, _selectedHomePreset?.LibraryTeamId);
+                remembered.LastAwayTeam = CreateRememberedTeam(
+                    Result.AwayName, Result.AwayAbbr, Result.AwayPrimaryColor, Result.AwaySecondaryColor,
+                    Result.AwayLogoPath, Result.AwayGoalVideoPath, _selectedAwayPreset?.LibraryTeamId);
+            });
+
             SetupCompleted?.Invoke(Result);
         }
+
+        private TeamPreset? FindRememberedPreset(string? key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return null;
+            return _presets.FirstOrDefault(p => string.Equals(GetPresetKey(p), key, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string? GetPresetKey(TeamPreset? preset)
+        {
+            if (preset is null) return null;
+            return !string.IsNullOrWhiteSpace(preset.LibraryTeamId)
+                ? "library:" + preset.LibraryTeamId
+                : "preset:" + preset.PresetName.Trim();
+        }
+
+        private static TeamPreset CreateRememberedTeam(
+            string name, string abbreviation, string primary, string secondary,
+            string? logoPath, string? goalVideoPath, string? libraryTeamId) => new()
+        {
+            PresetName = name,
+            TeamName = name,
+            Abbreviation = abbreviation,
+            PrimaryColor = primary,
+            SecondaryColor = secondary,
+            LogoPath = logoPath,
+            GoalVideoPath = goalVideoPath,
+            LibraryTeamId = libraryTeamId
+        };
 
         // ═══════════════════════════════════════════════════════
         //  CLOCK MODE
@@ -1245,6 +1300,45 @@ namespace Roche_Scoreboard.Views
         //  PRESETS
         // ═══════════════════════════════════════════════════════
 
+        private void BrowseHomeTeam_Click(object sender, RoutedEventArgs e)
+            => BrowseTeamLibrary(isHome: true);
+
+        private void BrowseAwayTeam_Click(object sender, RoutedEventArgs e)
+            => BrowseTeamLibrary(isHome: false);
+
+        private void BrowseTeamLibrary(bool isHome)
+        {
+            TeamLibraryWindow browser = new(isHome ? "Home" : "Away")
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            bool? accepted = browser.ShowDialog();
+            if (browser.PresetsChanged)
+            {
+                _presets = PresetStorage.LoadAll();
+                RefreshPresetPanels();
+            }
+
+            if (accepted != true || browser.Selection is null) return;
+            TeamLibrarySelection selection = browser.Selection;
+            TeamPreset preset = new()
+            {
+                PresetName = selection.Team.TeamName,
+                TeamName = selection.Team.TeamName,
+                Abbreviation = selection.Team.Abbreviation,
+                PrimaryColor = selection.Team.PrimaryColor,
+                SecondaryColor = selection.Team.SecondaryColor,
+                LogoPath = selection.TransparentLogoPath,
+                LibraryTeamId = selection.Team.Id
+            };
+
+            if (isHome)
+                ApplyPresetToHome(preset);
+            else
+                ApplyPresetToAway(preset);
+        }
+
         private void RefreshPresetPanels()
         {
             BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
@@ -1783,7 +1877,7 @@ namespace Roche_Scoreboard.Views
         {
             var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(durationMs))
             {
-                BeginTime = delay > 0 ? TimeSpan.FromMilliseconds(delay) : null,
+                BeginTime = delay > 0 ? TimeSpan.FromMilliseconds(delay) : TimeSpan.Zero,
                 EasingFunction = easing
             };
             target.BeginAnimation(prop, anim);

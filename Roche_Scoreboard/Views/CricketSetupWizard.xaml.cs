@@ -653,6 +653,17 @@ namespace Roche_Scoreboard.Views
 
         private void FinishWizard()
         {
+            if (_homePlayers.Count < 2 || _awayPlayers.Count < 2)
+            {
+                System.Windows.MessageBox.Show(
+                    "Each cricket team needs at least two registered players so the innings can have a striker and non-striker. Add the available squad now; you can use a short community squad.",
+                    "Complete Both Squads",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information);
+                ShowStep(2);
+                return;
+            }
+
             var messages = new List<string>();
             foreach (var item in _setupMessages)
             {
@@ -1569,7 +1580,7 @@ namespace Roche_Scoreboard.Views
         {
             var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(durationMs))
             {
-                BeginTime = delay > 0 ? TimeSpan.FromMilliseconds(delay) : null,
+                BeginTime = delay > 0 ? TimeSpan.FromMilliseconds(delay) : TimeSpan.Zero,
                 EasingFunction = easing
             };
             target.BeginAnimation(prop, anim);

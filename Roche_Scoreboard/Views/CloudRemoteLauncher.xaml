@@ -42,8 +42,8 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="📱" FontSize="18" Foreground="#58A6FF" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="CLOUD REMOTE" FontSize="11" FontWeight="Black" Foreground="#58A6FF"/>
-                        <TextBlock x:Name="CollapsedStatusText" Text="Tap to start" FontSize="9" Foreground="#9CC4F0"/>
+                        <TextBlock Text="CLOUD REMOTE" FontSize="13" FontWeight="Black" Foreground="#78B7FF"/>
+                        <TextBlock x:Name="CollapsedStatusText" Text="Tap to start" FontSize="11" FontWeight="SemiBold" Foreground="#B9D8FA"/>
                     </StackPanel>
                     <TextBlock x:Name="CollapsedChevron" Grid.Column="2" Text="▾" FontSize="12" FontWeight="Black" Foreground="#58A6FF" VerticalAlignment="Center"/>
                 </Grid>
@@ -55,19 +55,19 @@
                 <Border Height="1" Background="#1A3A6A" Margin="0,0,0,8"/>
 
                 <TextBlock x:Name="StatusText" Text="Checking configuration…"
-                           FontSize="10" FontWeight="SemiBold" Foreground="#6E7681"
+                           FontSize="12" FontWeight="SemiBold" Foreground="#A9BDD2"
                            HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
                            Margin="0,0,0,8"/>
 
                 <!-- IDLE STATE -->
                 <StackPanel x:Name="IdleState" Visibility="Collapsed">
                     <Button x:Name="StartButton" Content="Start cloud session"
-                            Height="30" FontSize="11" FontWeight="Black"
+                            Height="36" FontSize="12" FontWeight="Black"
                             Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1"
                             Foreground="#58A6FF" Cursor="Hand"
                             Click="StartButton_Click"/>
                     <TextBlock Text="A new join code is created each time."
-                               FontSize="9" Foreground="#6E7B8A"
+                               FontSize="11" Foreground="#A9BDD2"
                                TextWrapping="Wrap" HorizontalAlignment="Center"
                                TextAlignment="Center" Margin="0,6,0,0"/>
                 </StackPanel>
@@ -76,10 +76,10 @@
                 <StackPanel x:Name="DisabledState" Visibility="Collapsed">
                     <Border Background="#1C140A" BorderBrush="#4A3A1A" BorderThickness="1" Padding="8">
                         <StackPanel>
-                            <TextBlock Text="Setup required" FontSize="11" FontWeight="Bold" Foreground="#D29922"
+                            <TextBlock Text="Setup required" FontSize="13" FontWeight="Black" Foreground="#E7B94F"
                                        HorizontalAlignment="Center" Margin="0,0,0,4"/>
                             <TextBlock Text="Add supabase.config.json next to the executable."
-                                       FontSize="9" Foreground="#C9B070" TextWrapping="Wrap" TextAlignment="Center"/>
+                                       FontSize="11" FontWeight="SemiBold" Foreground="#D8C483" TextWrapping="Wrap" TextAlignment="Center"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -89,11 +89,11 @@
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
                         <Ellipse x:Name="ConnectionDot" Width="8" Height="8" Fill="#6E7681" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="ConnectionLabel" Text="Connecting…" FontSize="10" FontWeight="Bold"
+                        <TextBlock x:Name="ConnectionLabel" Text="Connecting…" FontSize="11" FontWeight="Bold"
                                    Foreground="#6E7681" Margin="6,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
 
-                    <TextBlock Text="JOIN CODE" FontSize="9" FontWeight="Black" Foreground="#7DA0CA" HorizontalAlignment="Center"/>
+                    <TextBlock Text="JOIN CODE" FontSize="11" FontWeight="Black" Foreground="#9CC4F0" HorizontalAlignment="Center"/>
                     <Border Background="#060A10" BorderBrush="#2A4A70" BorderThickness="1"
                             Padding="10,6" Margin="0,4,0,4" Cursor="Hand"
                             MouseLeftButtonUp="JoinCodeBox_Click" ToolTip="Click to copy">
@@ -109,17 +109,17 @@
                     </Border>
 
                     <StackPanel x:Name="JoinUrlPanel" Visibility="Collapsed">
-                        <TextBlock Text="OR OPEN" FontSize="9" FontWeight="Black" Foreground="#7DA0CA"
+                        <TextBlock Text="OR OPEN" FontSize="11" FontWeight="Black" Foreground="#9CC4F0"
                                    HorizontalAlignment="Center" Margin="0,2,0,2"/>
-                        <TextBlock x:Name="JoinUrlText" Text="" FontSize="10" FontWeight="SemiBold"
+                        <TextBlock x:Name="JoinUrlText" Text="" FontSize="11" FontWeight="SemiBold"
                                    Foreground="#9CC4F0" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-                        <Button x:Name="CopyUrlButton" Content="Copy URL" Height="24" FontSize="9" FontWeight="Bold"
+                        <Button x:Name="CopyUrlButton" Content="Copy URL" Height="30" FontSize="11" FontWeight="Bold"
                                 Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1"
                                 Foreground="#58A6FF" Cursor="Hand" Margin="0,4,0,0"
                                 Click="CopyUrlButton_Click"/>
                     </StackPanel>
 
-                    <Button x:Name="EndButton" Content="End session" Height="26" FontSize="10" FontWeight="Bold"
+                    <Button x:Name="EndButton" Content="End session" Height="32" FontSize="11" FontWeight="Bold"
                             Background="Transparent" BorderBrush="#3A2020" BorderThickness="1"
                             Foreground="#FF6B6B" Cursor="Hand" Margin="0,10,0,0"
                             Click="EndButton_Click"/>

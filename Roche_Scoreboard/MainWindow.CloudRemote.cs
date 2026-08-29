@@ -135,9 +135,10 @@ public partial class MainWindow : IRemoteCommandTarget
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
             bool isTraining = _trainingSession is not null;
-            string sport = isTraining ? "training" : "afl";
-            string sessionHome = isTraining ? "Training" : _match.HomeName;
-            string sessionAway = isTraining ? "Session"  : _match.AwayName;
+            bool isCricket = _sportMode == SportMode.Cricket && _cricketMatch is not null;
+            string sport = isTraining ? "training" : isCricket ? "cricket" : "afl";
+            string sessionHome = isTraining ? "Training" : isCricket ? _cricketMatch!.TeamAName : _match.HomeName;
+            string sessionAway = isTraining ? "Session" : isCricket ? _cricketMatch!.TeamBName : _match.AwayName;
 
             LiveStateSnapshot initial = BuildLiveStateSnapshot() with { SessionStatus = "lobby" };
             await _cloudRemote.StartAsync(
@@ -201,6 +202,8 @@ public partial class MainWindow : IRemoteCommandTarget
         {
             return BuildTrainingLiveStateSnapshot(_trainingSession);
         }
+        if (_sportMode == SportMode.Cricket && _cricketMatch?.CurrentInnings is not null)
+            return BuildCricketLiveStateSnapshot(_cricketMatch);
 
         var dc = _match.DisplayClock;
         bool q4Ended = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) != null;
@@ -264,6 +267,65 @@ public partial class MainWindow : IRemoteCommandTarget
             QuarterSnapshots = quarterSnapshots,
             SessionStatus = q4Ended ? "fullTime" : (_match.ClockRunning ? "live" : "lobby"),
             UpdatedAt = DateTimeOffset.UtcNow,
+        };
+    }
+
+    private LiveStateSnapshot BuildCricketLiveStateSnapshot(CricketMatchManager match)
+    {
+        CricketInnings innings = match.CurrentInnings!;
+        CricketAnalyticsSnapshot analytics = CricketAnalyticsEngine.Create(match);
+        CricketPlayer? striker = innings.Striker;
+        CricketPlayer? nonStriker = innings.NonStriker;
+        CricketPlayer? bowler = innings.CurrentBowler;
+        return new LiveStateSnapshot
+        {
+            Sport = "cricket",
+            HomeName = match.TeamAName,
+            HomeAbbr = match.TeamAAbbr,
+            AwayName = match.TeamBName,
+            AwayAbbr = match.TeamBAbbr,
+            HomePrimaryColor = match.TeamAPrimaryColor,
+            HomeSecondaryColor = match.TeamASecondaryColor,
+            AwayPrimaryColor = match.TeamBPrimaryColor,
+            AwaySecondaryColor = match.TeamBSecondaryColor,
+            ActiveScreen = "scorebug",
+            EventCount = innings.Deliveries.Count,
+            LastEvent = innings.Deliveries.LastOrDefault()?.Description ?? "",
+            MatchResult = match.MatchResult ?? "",
+            Messages = match.Messages,
+            SessionStatus = match.MatchResult is not null ? "fullTime" : innings.Deliveries.Count > 0 ? "live" : "lobby",
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Cricket = new CricketSnapshotDto
+            {
+                Innings = match.CurrentInningsNumber,
+                Format = match.Format.ToString(),
+                TotalOvers = match.TotalOvers,
+                BattingTeam = match.BattingTeamName,
+                BowlingTeam = match.BowlingTeamName,
+                Runs = innings.TotalRuns,
+                Wickets = innings.TotalWickets,
+                Overs = innings.OversDisplay,
+                RunRate = innings.RunRate,
+                Target = match.Target,
+                RunsRequired = match.RunsRequired,
+                BallsRemaining = match.BallsRemaining,
+                RequiredRunRate = match.RequiredRunRate,
+                Striker = striker?.DisplayName ?? "",
+                StrikerRuns = striker?.Runs ?? 0,
+                StrikerBalls = striker?.BallsFaced ?? 0,
+                NonStriker = nonStriker?.DisplayName ?? "",
+                NonStrikerRuns = nonStriker?.Runs ?? 0,
+                NonStrikerBalls = nonStriker?.BallsFaced ?? 0,
+                Bowler = bowler?.DisplayName ?? "",
+                BowlerFigures = bowler?.BowlingFigures ?? "",
+                BowlerOvers = bowler?.OversDisplay ?? "0.0",
+                ThisOver = innings.CurrentOverBalls,
+                Phase = analytics.Phase,
+                ProjectedScore = analytics.ProjectedScore,
+                Momentum = analytics.MomentumHeadline,
+                NeedsBatterSelection = innings.NeedsBatterSelection,
+                NeedsBowlerSelection = innings.NeedsBowlerSelection
+            }
         };
     }
 
@@ -453,5 +515,41 @@ public partial class MainWindow : IRemoteCommandTarget
             case "customVideo": if (AnimCustomVideoRadio is not null) AnimCustomVideoRadio.IsChecked = true; break;
         }
         UpdateAnimCards();
+    }
+
+    void IRemoteCommandTarget.CricketDelivery(string type, int runs, string? dismissal)
+    {
+        if (_sportMode != SportMode.Cricket || _cricketMatch is null) return;
+        if (!Enum.TryParse(type, true, out CricketDeliveryType deliveryType)) return;
+        _cricketMatch.RecordDelivery(Math.Max(0, runs), deliveryType, dismissal);
+    }
+
+    void IRemoteCommandTarget.CricketUndo()
+    {
+        if (_sportMode == SportMode.Cricket)
+            _cricketMatch?.UndoLastDelivery();
+    }
+
+    void IRemoteCommandTarget.CricketSelectBatter(int index, string role)
+    {
+        if (_sportMode != SportMode.Cricket || _cricketMatch is null) return;
+        if (string.Equals(role, "striker", StringComparison.OrdinalIgnoreCase))
+            _cricketMatch.SetStriker(index);
+        else if (string.Equals(role, "nonStriker", StringComparison.OrdinalIgnoreCase))
+            _cricketMatch.SetNonStriker(index);
+        else
+            _cricketMatch.SelectNewBatter(index);
+    }
+
+    void IRemoteCommandTarget.CricketSelectBowler(int index)
+    {
+        if (_sportMode == SportMode.Cricket)
+            _cricketMatch?.ConfirmBowler(index);
+    }
+
+    void IRemoteCommandTarget.CricketNextInnings()
+    {
+        if (_sportMode == SportMode.Cricket)
+            _cricketMatch?.StartNextInnings();
     }
 }

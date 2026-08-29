@@ -14,6 +14,7 @@ namespace Roche_Scoreboard.Services;
 public static class RecentTrainingTimerStorage
 {
     private const int MaxEntries = 12;
+    public const int MaxTitleLength = 40;
 
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
 
@@ -43,6 +44,12 @@ public static class RecentTrainingTimerStorage
             var entries = JsonSerializer.Deserialize<List<Entry>>(json, Options) ?? new List<Entry>();
             return entries
                 .Where(e => e.Seconds > 0)
+                .Select(e => new Entry
+                {
+                    Title = NormalizeTitle(e.Title),
+                    Seconds = e.Seconds,
+                    LastUsedUtc = e.LastUsedUtc
+                })
                 .OrderByDescending(e => e.LastUsedUtc)
                 .Take(MaxEntries)
                 .ToList();
@@ -76,7 +83,7 @@ public static class RecentTrainingTimerStorage
         if (string.IsNullOrWhiteSpace(title)) title = "TIMER";
         if (seconds <= 0) return;
 
-        string normalizedTitle = title.Trim();
+        string normalizedTitle = NormalizeTitle(title);
 
         var entries = Load();
         entries.RemoveAll(e =>
@@ -94,5 +101,13 @@ public static class RecentTrainingTimerStorage
             entries = entries.Take(MaxEntries).ToList();
 
         Save(entries);
+    }
+
+    private static string NormalizeTitle(string? title)
+    {
+        string normalized = string.IsNullOrWhiteSpace(title) ? "TIMER" : title.Trim();
+        return normalized.Length <= MaxTitleLength
+            ? normalized
+            : normalized[..MaxTitleLength].TrimEnd();
     }
 }

@@ -89,6 +89,14 @@ namespace Roche_Scoreboard.Views
 
         public void SetMatch(CricketMatchManager match)
         {
+            if (_match != null)
+            {
+                _match.MatchChanged -= UpdateUI;
+                _match.DeliveryAdded -= OnDeliveryAdded;
+                _match.BatterSelectionNeeded -= OnBatterSelectionNeeded;
+                _match.BowlerSelectionNeeded -= OnBowlerSelectionNeeded;
+                _match.MilestoneReached -= OnMilestoneReached;
+            }
             _match = match;
             _match.MatchChanged += UpdateUI;
             _match.DeliveryAdded += OnDeliveryAdded;
@@ -97,10 +105,13 @@ namespace Roche_Scoreboard.Views
             _match.MilestoneReached += OnMilestoneReached;
             UpdateUI();
             RefreshBowlerList();
+            RebuildDeliveryLog();
         }
 
         public void SetScorebug(CricketScorebugControl scorebug)
         {
+            if (_scorebug != null)
+                _scorebug.OverlayQueueChanged -= OnOverlayQueueChanged;
             _scorebug = scorebug;
             _scorebug.OverlayQueueChanged += OnOverlayQueueChanged;
         }
@@ -151,6 +162,21 @@ namespace Roche_Scoreboard.Views
             ShowBatterSelection("SELECT OPENING STRIKER");
         }
 
+        public void ResumePendingSelection()
+        {
+            var innings = _match?.CurrentInnings;
+            if (innings == null || innings.IsComplete) return;
+            if (innings.NeedsBatterSelection)
+            {
+                _batterSelectionMode = innings.StrikerIndex < 0 ? "striker" : "wicket";
+                ShowBatterSelection(innings.StrikerIndex < 0 ? "SELECT OPENING STRIKER" : "SELECT NEW BATTER");
+            }
+            else if (innings.NeedsBowlerSelection)
+            {
+                ShowBowlerSelection(innings.LegalBallsBowled > 0);
+            }
+        }
+
         // ---- Scoring ----
 
         private void Dot_Click(object sender, RoutedEventArgs e) =>
@@ -174,10 +200,9 @@ namespace Roche_Scoreboard.Views
             var striker = inn.Striker;
             if (striker == null) return;
 
-            // Record the wicket immediately so scores update and animation fires
-            _match.RecordDelivery(0, CricketDeliveryType.Wicket, "out");
-
-            // Now show details popup to fill in how out (updates the already-dismissed player)
+            // Gather the dismissal once, then commit it atomically. Recording here
+            // used to open the batter selector underneath this dialog and could
+            // credit a run-out to the bowler before the dismissal type was known.
             WicketBatsmanLabel.Text = $"Batter: {striker.DisplayName}";
             _pendingDismissalType = DismissalType.Other;
             _pendingWicketBatter = striker;
@@ -254,12 +279,21 @@ namespace Roche_Scoreboard.Views
                 _ => "out"
             };
 
-            // Update the already-dismissed batter's details
-            _pendingWicketBatter.DismissalText = dismissalText;
-            _pendingWicketBatter.HowOut = _pendingDismissalType;
-            _pendingWicketBatter.DismissalBowler = bowlerName;
-            _pendingWicketBatter.DismissalFielder = fielder;
+            CricketPlayer dismissedBatter = _pendingWicketBatter;
+            WicketDetailsOverlay.Visibility = Visibility.Collapsed;
+            _match.RecordDelivery(0, CricketDeliveryType.Wicket, dismissalText);
+            // Apply the descriptive scorecard detail after the engine captures
+            // its undo snapshot, so undo restores a genuinely clean not-out state.
+            dismissedBatter.DismissalText = dismissalText;
+            dismissedBatter.HowOut = _pendingDismissalType;
+            dismissedBatter.DismissalBowler = bowlerName;
+            dismissedBatter.DismissalFielder = fielder;
+            _match.RaiseMatchChanged();
+            _pendingWicketBatter = null;
+        }
 
+        private void CancelWicket_Click(object sender, RoutedEventArgs e)
+        {
             _pendingWicketBatter = null;
             WicketDetailsOverlay.Visibility = Visibility.Collapsed;
         }
@@ -274,13 +308,9 @@ namespace Roche_Scoreboard.Views
         private void ShowExtrasPopup(CricketDeliveryType type, string title)
         {
             _pendingExtraType = type;
-            _pendingNoBallSubType = null;
             ExtrasPopupTitle.Text = title;
-            NoBallSubExtrasPanel.Visibility = type == CricketDeliveryType.NoBall
-                ? Visibility.Visible : Visibility.Collapsed;
-            NoBallSubRunsPanel.Visibility = Visibility.Collapsed;
             ExtrasHintText.Text = type == CricketDeliveryType.NoBall
-                ? "Total: 1 no-ball + additional runs"
+                ? "Total: 1 no-ball + runs off the bat"
                 : "Total: 1 + additional runs";
             ExtrasPopup.Visibility = Visibility.Visible;
         }
@@ -297,42 +327,6 @@ namespace Roche_Scoreboard.Views
 
             int totalRuns = 1 + additionalRuns;
             _match?.RecordDelivery(totalRuns, _pendingExtraType);
-            ExtrasPopup.Visibility = Visibility.Collapsed;
-        }
-
-        // No-ball sub-type state
-        private string? _pendingNoBallSubType;
-
-        private void NoBallSubType_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button btn || btn.Tag is not string tag) return;
-            _pendingNoBallSubType = tag;
-
-            string label = tag switch
-            {
-                "nbwide" => "NB + Wide",
-                "nbbye" => "NB + Bye",
-                "nblb" => "NB + Leg Bye",
-                _ => "NB"
-            };
-            NoBallSubRunsLabel.Text = $"{label} — additional runs:";
-            NoBallSubRunsPanel.Visibility = Visibility.Visible;
-        }
-
-        private void NoBallSubRun_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button btn || btn.Tag is not string tagStr) return;
-            if (!int.TryParse(tagStr, out int additionalRuns)) return;
-
-            // No-ball base = 1, sub-extra base = 1 (for wide), + additional
-            int totalRuns = _pendingNoBallSubType switch
-            {
-                "nbwide" => 2 + additionalRuns,  // 1 NB + 1 Wide + extra
-                "nbbye" => 1 + additionalRuns,   // 1 NB + extra byes
-                "nblb" => 1 + additionalRuns,     // 1 NB + extra leg byes
-                _ => 1 + additionalRuns
-            };
-            _match?.RecordDelivery(totalRuns, CricketDeliveryType.NoBall);
             ExtrasPopup.Visibility = Visibility.Collapsed;
         }
 
@@ -385,7 +379,6 @@ namespace Roche_Scoreboard.Views
         private void SwapStrike_Click(object sender, RoutedEventArgs e)
         {
             _match?.RotateStrike();
-            _match?.RaiseMatchChanged();
         }
 
         // ---- Batter selection ----
@@ -538,30 +531,8 @@ namespace Roche_Scoreboard.Views
 
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            _match?.UndoLastDelivery();
-            // Remove last delivery from grouped log
-            if (_logCurrentOverPanel != null && _logCurrentOverPanel.Children.Count > 0)
-            {
-                _logCurrentOverPanel.Children.RemoveAt(_logCurrentOverPanel.Children.Count - 1);
-                // If over group is now empty, remove the whole group
-                if (_logCurrentOverPanel.Children.Count == 0 && _logCurrentOverPanel.Parent is StackPanel group)
-                {
-                    EventLog.Children.Remove(group);
-                    _logCurrentOverPanel = null;
-                    _logCurrentOver = -1;
-                    // Find the previous over group if any
-                    if (EventLog.Children.Count > 0
-                        && EventLog.Children[0] is StackPanel prevGroup
-                        && prevGroup.Children.Count >= 2
-                        && prevGroup.Children[1] is StackPanel prevPanel)
-                    {
-                        _logCurrentOverPanel = prevPanel;
-                        // Recover over number from the match state
-                        if (_match?.CurrentInnings != null)
-                            _logCurrentOver = _match.CurrentInnings.CompletedOvers;
-                    }
-                }
-            }
+            if (_match?.UndoLastDelivery() == true)
+                RebuildDeliveryLog();
         }
 
         private void EndInnings_Click(object sender, RoutedEventArgs e)
@@ -575,7 +546,7 @@ namespace Roche_Scoreboard.Views
                 var res = MessageBox.Show("End the current innings?", "End Innings",
                     MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (res != MessageBoxResult.Yes) return;
-                inn.IsComplete = true;
+                _match.EndCurrentInnings();
             }
 
             if (_match.CanStartNextInnings())
@@ -655,7 +626,7 @@ namespace Roche_Scoreboard.Views
         }
 
         private CricketSummaryControl? _summaryControl;
-        private string _currentPresentation = "scorebug"; // "scorebug", "batting", "bowling"
+        private string _currentPresentation = "scorebug"; // scorebug, batting, bowling, centre
 
         /// <summary>Fires when the user switches presentation screen. Arg = "scorebug", "batting", "bowling".</summary>
         public event Action<string>? PresentationChanged;
@@ -687,6 +658,12 @@ namespace Roche_Scoreboard.Views
         {
             if (_match == null) return;
             SwitchPresentation("bowling");
+        }
+
+        private void ShowMatchCentre_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (_match == null) return;
+            SwitchPresentation("centre");
         }
 
         // ---- Bowler settings list ----
@@ -753,6 +730,11 @@ namespace Roche_Scoreboard.Views
                 _summaryControl?.ShowBowlingSummary(_match);
                 _currentPresentation = "bowling";
             }
+            else if (target == "centre")
+            {
+                _summaryControl?.ShowMatchCentre(_match);
+                _currentPresentation = "centre";
+            }
 
             PresentationChanged?.Invoke(target);
         }
@@ -765,6 +747,8 @@ namespace Roche_Scoreboard.Views
                 _summaryControl.RefreshBattingSummary(_match);
             else if (_currentPresentation == "bowling")
                 _summaryControl.RefreshBowlingSummary(_match);
+            else if (_currentPresentation == "centre")
+                _summaryControl.RefreshMatchCentre(_match);
         }
 
         // ---- Messages ----
@@ -796,6 +780,11 @@ namespace Roche_Scoreboard.Views
                 if (!string.IsNullOrWhiteSpace(s)) messages.Add(s);
             }
             _scorebug?.SetMarqueeMessages(messages);
+            if (_match != null)
+            {
+                _match.Messages = messages;
+                _match.RaiseMatchChanged();
+            }
         }
 
         // ---- Reset ----
@@ -810,10 +799,12 @@ namespace Roche_Scoreboard.Views
 
         // ---- Delivery log grouped by over ----
 
-        private void OnDeliveryAdded(CricketDelivery delivery)
+        private void OnDeliveryAdded(CricketDelivery delivery) => AppendDelivery(delivery, triggerPresentation: true);
+
+        private void AppendDelivery(CricketDelivery delivery, bool triggerPresentation)
         {
             // Trigger event banner animations for boundaries and wickets
-            if (_match != null && (delivery.Type == CricketDeliveryType.Four
+            if (triggerPresentation && _match != null && (delivery.Type == CricketDeliveryType.Four
                 || delivery.Type == CricketDeliveryType.Six
                 || delivery.Type == CricketDeliveryType.Wicket))
             {
@@ -870,7 +861,7 @@ namespace Roche_Scoreboard.Views
                 var scoreLabel = new TextBlock
                 {
                     Tag = "overScore",
-                    Text = $"{delivery.WicketsAfter}/{delivery.TotalAfter}",
+                    Text = $"{delivery.TotalAfter}/{delivery.WicketsAfter}",
                     Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
                     FontSize = 11,
                     FontWeight = FontWeights.Bold,
@@ -898,7 +889,7 @@ namespace Roche_Scoreboard.Views
                 {
                     if (child is TextBlock tb && tb.Tag is string tag && tag == "overScore")
                     {
-                        tb.Text = $"{delivery.WicketsAfter}/{delivery.TotalAfter}";
+                        tb.Text = $"{delivery.TotalAfter}/{delivery.WicketsAfter}";
                         break;
                     }
                 }
@@ -1004,7 +995,7 @@ namespace Roche_Scoreboard.Views
             // Running score
             var score = new TextBlock
             {
-                Text = $"{delivery.WicketsAfter}/{delivery.TotalAfter}",
+                Text = $"{delivery.TotalAfter}/{delivery.WicketsAfter}",
                 Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
                 FontSize = 11,
                 FontWeight = FontWeights.Bold,
@@ -1017,6 +1008,17 @@ namespace Roche_Scoreboard.Views
 
             border.Child = grid;
             return border;
+        }
+
+        private void RebuildDeliveryLog()
+        {
+            EventLog.Children.Clear();
+            _logCurrentOver = -1;
+            _logCurrentOverPanel = null;
+            var deliveries = _match?.CurrentInnings?.Deliveries;
+            if (deliveries == null) return;
+            foreach (CricketDelivery delivery in deliveries)
+                AppendDelivery(delivery, triggerPresentation: false);
         }
 
         // ---- UI updates ----
@@ -1035,8 +1037,17 @@ namespace Roche_Scoreboard.Views
                 3 => "3rd Innings",
                 _ => $"{_match.CurrentInningsNumber}th Innings"
             };
-            HeaderScore.Text = $"{inn.TotalWickets}/{inn.TotalRuns}";
+            HeaderScore.Text = $"{inn.TotalRuns}/{inn.TotalWickets}";
             HeaderOvers.Text = $"Over {inn.OversDisplay}";
+            SettingsMatchText.Text = $"{_match.Format.ToString().ToUpperInvariant()}  •  {(_match.Format == CricketFormat.LimitedOvers ? $"{_match.TotalOvers} OVERS" : "MULTI INNINGS")}";
+            SettingsStateText.Text = $"INNINGS {_match.CurrentInningsNumber}  •  {inn.TotalRuns}/{inn.TotalWickets} ({inn.OversDisplay})";
+            SettingsSelectionText.Text = inn.IsComplete
+                ? (_match.MatchResult ?? "Innings complete — advance when ready.")
+                : inn.NeedsBatterSelection
+                    ? "Scoring is safely paused until the next batter is selected."
+                    : inn.NeedsBowlerSelection
+                        ? "Scoring is safely paused until the next bowler is selected."
+                        : "Scoring is live. Undo restores the exact state before the last delivery.";
 
             // Batter display — keep rows stable, only move the indicator
             int si = inn.StrikerIndex;

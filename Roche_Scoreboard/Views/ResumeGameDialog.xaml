@@ -204,6 +204,8 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="12"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <Button x:Name="DiscardButton" Grid.Column="0" Content="DISCARD" Height="46"
@@ -228,7 +230,29 @@
                     </Button.Template>
                 </Button>
 
-                <Button x:Name="ResumeButton" Grid.Column="2" Content="RESUME GAME" Height="46"
+                <Button x:Name="KeepSavedButton" Grid.Column="2" Content="KEEP SAVED" Height="46"
+                        FontSize="12" FontWeight="Black" FontFamily="Bahnschrift" Cursor="Hand"
+                        Click="KeepSaved_Click"
+                        Background="#0D1117" Foreground="#8B949E" BorderBrush="#59636E" BorderThickness="1.5">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Cursor="Hand">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="#18202A"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button x:Name="ResumeButton" Grid.Column="4" Content="RESUME GAME" Height="46"
                         FontSize="13" FontWeight="Black" FontFamily="Bahnschrift" Cursor="Hand"
                         Click="Resume_Click"
                         Background="#0D1117" Foreground="#3FB950" BorderBrush="#3FB950" BorderThickness="2">

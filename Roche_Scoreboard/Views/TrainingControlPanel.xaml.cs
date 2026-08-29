@@ -817,7 +817,15 @@ public partial class TrainingControlPanel : UserControl
     private void OnPresetClicked(object sender, RoutedEventArgs e)
     {
         if (_session is null) return;
-        if (sender is not Button b || b.Tag is not string tag) return;
+        if (sender is not Button b) return;
+        if (b.Tag is RecentTrainingTimerStorage.Entry recent)
+        {
+            _session.AddTimer(new TrainingTimer(recent.Title, TimeSpan.FromSeconds(recent.Seconds)));
+            RecentTrainingTimerStorage.Record(recent.Title, recent.Seconds);
+            RefreshRecentTimers();
+            return;
+        }
+        if (b.Tag is not string tag) return;
         string[] parts = tag.Split('|');
         if (parts.Length != 2) return;
         if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int seconds)) return;
@@ -845,12 +853,27 @@ public partial class TrainingControlPanel : UserControl
         {
             int mins = entry.Seconds / 60;
             int secs = entry.Seconds % 60;
+            var chipContent = new StackPanel { Orientation = Orientation.Horizontal };
+            chipContent.Children.Add(new TextBlock
+            {
+                Text = entry.Title,
+                MaxWidth = 150,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            chipContent.Children.Add(new TextBlock
+            {
+                Text = $" · {mins}:{secs:D2}",
+                FontWeight = FontWeights.Black,
+                VerticalAlignment = VerticalAlignment.Center
+            });
             var btn = new Button
             {
                 Style = chipStyle,
-                Content = $"{entry.Title} · {mins}:{secs:D2}",
-                Tag = $"{entry.Title}|{entry.Seconds.ToString(CultureInfo.InvariantCulture)}",
-                ToolTip = "Click to append this timer to the queue"
+                Content = chipContent,
+                Tag = entry,
+                MaxWidth = 250,
+                ToolTip = $"{entry.Title} · {mins}:{secs:D2}\nClick to append this timer to the queue"
             };
             btn.Click += OnPresetClicked;
             RecentTimersPanel.Children.Add(btn);

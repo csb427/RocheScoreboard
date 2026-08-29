@@ -1100,7 +1100,9 @@
 										</Border.Background>
 									</Border>
 									<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20,24">
-										<TextBlock Text="&#x1F3CF;" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+										<TextBlock Text="◆" FontFamily="Bahnschrift" Foreground="#73B8FF" FontSize="42" HorizontalAlignment="Center" Margin="0,0,0,12">
+                                            <TextBlock.Effect><DropShadowEffect Color="#58A6FF" BlurRadius="14" ShadowDepth="0" Opacity="0.35"/></TextBlock.Effect>
+                                        </TextBlock>
 										<TextBlock Text="LIMITED OVERS" FontSize="22" FontWeight="Black"
 												   Foreground="White" HorizontalAlignment="Center"/>
 										<TextBlock Text="T20, ODI, or custom overs" FontSize="10" FontWeight="SemiBold"
@@ -1178,13 +1180,13 @@
 										</Border.Background>
 									</Border>
 									<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20,24">
-										<TextBlock Text="&#x1F4CB;" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-										<TextBlock Text="MULTI INNINGS" FontSize="22" FontWeight="Black"
-												   Foreground="#3A4A60" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="▤" FontFamily="Bahnschrift" Foreground="#8CA7C4" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                                        <TextBlock Text="MULTI INNINGS" FontSize="22" FontWeight="Black"
+                                                   Foreground="#C6D3E1" HorizontalAlignment="Center"/>
 										<TextBlock Text="Club cricket, Tests &amp; more" FontSize="10" FontWeight="SemiBold"
-												   Foreground="#243040" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                                   Foreground="#8294A8" HorizontalAlignment="Center" Margin="0,6,0,0"/>
 										<TextBlock Text="No over limit" FontSize="10"
-												   Foreground="#1E2C3A" HorizontalAlignment="Center" Margin="0,14,0,0"/>
+                                                   Foreground="#64778C" HorizontalAlignment="Center" Margin="0,14,0,0"/>
 									</StackPanel>
 									<Border x:Name="MultiInningsSelected" HorizontalAlignment="Right" VerticalAlignment="Top"
 											Background="#3FB950" Padding="8,4" Visibility="Collapsed">
@@ -1274,7 +1276,9 @@
                                         </Border.Background>
                                     </Border>
                                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock Text="&#x2601;" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                        <TextBlock Text="☁" FontFamily="Segoe UI Symbol" Foreground="#8CCBFF" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                            <TextBlock.Effect><DropShadowEffect Color="#58A6FF" BlurRadius="14" ShadowDepth="0" Opacity="0.35"/></TextBlock.Effect>
+                                        </TextBlock>
                                         <TextBlock Text="LIVE WEATHER" FontSize="22" FontWeight="Black"
                                                    Foreground="#58A6FF" HorizontalAlignment="Center"/>
                                         <TextBlock Text="Location for real-time conditions" FontSize="10"
@@ -1315,7 +1319,8 @@
 
                                         <!-- Section header -->
                                         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,10">
-                                            <TextBlock Text="📺" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                            <TextBlock Text="▣" FontSize="28" FontFamily="Bahnschrift" FontWeight="Black"
+                                                       Foreground="#67D17B" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                                             <TextBlock Text="TICKER MESSAGES" FontSize="16" FontWeight="Black"
                                                        Foreground="#3FB950" HorizontalAlignment="Center"/>
                                             <TextBlock Text="Scroll across the bottom bar during the game" FontSize="9"

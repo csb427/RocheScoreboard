@@ -1,0 +1,67 @@
+name: Publish Windows release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag matching the project version, for example v4.1.0"
+        required: true
+        type: string
+      prerelease:
+        description: "Publish as a pre-release"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Verify and publish Windows x64 package
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Validate requested version
+        shell: pwsh
+        run: |
+          [xml]$project = Get-Content -LiteralPath "Roche_Scoreboard/Roche_Scoreboard.csproj"
+          $version = [string]$project.Project.PropertyGroup.Version | Select-Object -First 1
+          $expectedTag = "v$version"
+          if ("${{ inputs.tag }}" -ne $expectedTag) {
+            throw "Requested tag '${{ inputs.tag }}' does not match project version '$expectedTag'."
+          }
+
+      - name: Build, validate and package
+        shell: pwsh
+        run: ./Build-Release.ps1 -OutputRoot "${{ runner.temp }}/roche-release"
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ inputs.tag }}".TrimStart('v')
+          $package = "${{ runner.temp }}/roche-release/Roche-Scoreboard-v$version-Windows-x64.zip"
+          $checksum = "${{ runner.temp }}/roche-release/Roche-Scoreboard-v$version-SHA256.txt"
+          $arguments = @(
+            "release", "create", "${{ inputs.tag }}",
+            $package, $checksum,
+            "--target", "${{ github.sha }}",
+            "--title", "Roche Scoreboard ${{ inputs.tag }}",
+            "--generate-notes"
+          )
+          if ([System.Convert]::ToBoolean("${{ inputs.prerelease }}")) {
+            $arguments += "--prerelease"
+          } else {
+            $arguments += "--latest"
+          }
+          & gh @arguments
+          if ($LASTEXITCODE -ne 0) { throw "GitHub release creation failed." }

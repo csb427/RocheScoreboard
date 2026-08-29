@@ -76,6 +76,7 @@ internal sealed class UxPreferencesData
     public string LastSettingsCategory { get; set; } = "teams";
     public int LastMainTabIndex { get; set; } = 0;
     public bool EnableQuickStartupHints { get; set; } = true;
+    public bool HideTeamNames { get; set; }
 
     [JsonConverter(typeof(TolerantEnumConverter<AppTheme>))]
     public AppTheme Theme { get; set; } = AppTheme.Light;

@@ -11,6 +11,7 @@ namespace Roche_Scoreboard.Models
         public string SecondaryColor { get; set; } = "#FFFFFF";
         public string? LogoPath { get; set; }
         public string? GoalVideoPath { get; set; }
+        public string? LibraryTeamId { get; set; }
 
         /// <summary>Cricket player list (first/last names). Null for AFL-only presets.</summary>
         public List<CricketPlayerEntry>? CricketPlayers { get; set; }

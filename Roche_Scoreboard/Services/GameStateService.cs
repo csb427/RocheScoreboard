@@ -84,8 +84,13 @@ internal static class GameStateService
 /// </summary>
 internal sealed class GameState
 {
+    public string Sport { get; set; } = "afl";
+
     /// <summary>The match manager's serialisable state (scores, events, clock, quarter).</summary>
     public SerializableState? MatchState { get; set; }
+
+    /// <summary>The Cricket engine state when <see cref="Sport"/> is cricket.</summary>
+    public CricketSerializableState? CricketMatchState { get; set; }
 
     // Colours
     public string HomePrimaryColor { get; set; } = "";

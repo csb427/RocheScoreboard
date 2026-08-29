@@ -19,6 +19,18 @@ namespace Roche_Scoreboard.Views
         private readonly DispatcherTimer _wallClockTimer;
         private bool _isDisposed;
 
+        public void SetFinalsMode(bool enabled)
+        {
+            StatsTitlePanel.Background = enabled ? FinalsPalette.PanelBrush() : new SolidColorBrush(Color.FromRgb(0x0D, 0x11, 0x17));
+            StatsTitleText.Foreground = StatsTimeText.Foreground = enabled
+                ? new SolidColorBrush(FinalsPalette.Ink)
+                : System.Windows.Media.Brushes.White;
+            ScoreBar?.SetFinalsMode(enabled);
+        }
+
+        public void PlayScoreAnimation(ScoreEvent scoreEvent)
+            => ScoreBar?.PlayScoreAnimation(scoreEvent);
+
         public StatsScreenControl()
         {
             InitializeComponent();
@@ -45,6 +57,30 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         private void ApplyResponsiveScale()
         {
+            ResponsivePresentationTypography.Apply(this, ScaleUnit);
+
+            bool compact = ActualWidth < 320 || ActualHeight < 160;
+            StatsTimeText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+
+            // Numeric columns track the available width instead of remaining
+            // fixed at their 386px design-canvas size. This lets the values use
+            // the same strong proportion on narrow and high-resolution outputs.
+            double valueWidth = Math.Clamp(ActualWidth * 0.22, 48, ActualWidth * 0.28);
+            TextBlock[] homeValues =
+            [
+                StatsScrHomeShots, StatsScrHomeAcc,
+                StatsScrHomeTime, StatsScrHomeLead
+            ];
+            foreach (TextBlock value in homeValues)
+            {
+                if (value.Parent is Viewbox valueBox &&
+                    valueBox.Parent is Grid row &&
+                    row.ColumnDefinitions.Count >= 3)
+                {
+                    row.ColumnDefinitions[0].Width = new GridLength(valueWidth);
+                    row.ColumnDefinitions[2].Width = new GridLength(valueWidth);
+                }
+            }
         }
 
         private void OnWallClockTick(object? sender, EventArgs e)
@@ -102,8 +138,11 @@ namespace Roche_Scoreboard.Views
             StatsAwayTeamHeader.BorderThickness = new Thickness(ScalePx(2));
             StatsHomeGlow.Color = System.Windows.Media.Color.FromArgb(0xFF, homeColor.R, homeColor.G, homeColor.B);
             StatsAwayGlow.Color = System.Windows.Media.Color.FromArgb(0xFF, awayColor.R, awayColor.G, awayColor.B);
-            StatsHomeTeamText.Text = match.HomeName.ToUpperInvariant();
-            StatsAwayTeamText.Text = match.AwayName.ToUpperInvariant();
+            // The header is intentionally compact. Use the configured scoreboard
+            // abbreviations so both teams remain identifiable at oval distance;
+            // full names are already represented by the logos and match state.
+            StatsHomeTeamText.Text = match.HomeAbbr.ToUpperInvariant();
+            StatsAwayTeamText.Text = match.AwayAbbr.ToUpperInvariant();
             StatsHomeTeamText.Foreground = new SolidColorBrush(Lighten(homeColor, 0.4));
             StatsAwayTeamText.Foreground = new SolidColorBrush(Lighten(awayColor, 0.4));
 
