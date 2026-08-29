@@ -53,6 +53,12 @@ namespace Roche_Scoreboard.Views
         private const double GBAutoShowIdleMinutes = 2.0;
         private bool _finalsMode;
         private bool _hideTeamNames;
+        private double _teamNameRevealProgress = 1;
+        private DispatcherTimer? _teamNamePanelAnimationTimer;
+        private DateTime _teamNamePanelAnimationStarted;
+        private double _teamNamePanelAnimationFrom;
+        private double _teamNamePanelAnimationTo = 1;
+        private static readonly TimeSpan TeamNamePanelAnimationDuration = TimeSpan.FromMilliseconds(320);
         private string? _weatherLocation;
         private WeatherSnapshot? _weatherSnapshot;
 
@@ -89,6 +95,22 @@ namespace Roche_Scoreboard.Views
 
         public ScorebugLayout CurrentLayout => _currentLayout;
 
+        internal (double GoalsBehinds, double Total) GetScoreFontSizesForQa()
+            => (ExpHomeGoalsText.FontSize, ExpHomeTotalText.FontSize);
+
+        internal (double Home, double Away) GetTeamNamePanelHeightsForQa()
+            => (ExpHomeNameRow.ActualHeight, ExpAwayNameRow.ActualHeight);
+
+        internal void FreezeWallClockForQa(DateTime value)
+        {
+            _wallClockTimer.Stop();
+            string time = value.ToString("h:mm tt");
+            TopTimeText.Text = time;
+            ExpTopTimeText.Text = time;
+            ExpTopClockText.Text = time;
+            ExpTopDateText.Text = value.ToString("ddd d MMM");
+        }
+
         public ScorebugControl()
         {
             InitializeComponent();
@@ -114,22 +136,17 @@ namespace Roche_Scoreboard.Views
 
             MarqueeCanvas.SizeChanged += (_, __) => RestartMarqueeIfNeeded();
             ExpMarqueeCanvas.SizeChanged += (_, __) => RestartMarqueeIfNeeded();
-            ExpHomeScoreGrid.SizeChanged += (_, __) => UpdateExpandedScoreTypography();
-            ExpAwayScoreGrid.SizeChanged += (_, __) => UpdateExpandedScoreTypography();
-            ExpandedLayout.SizeChanged += (_, __) =>
+            ExpHomeScoreGrid.SizeChanged += (_, __) => QueueExpandedResponsiveLayout();
+            ExpAwayScoreGrid.SizeChanged += (_, __) => QueueExpandedResponsiveLayout();
+            ExpandedLayout.SizeChanged += (_, __) => QueueExpandedResponsiveLayout();
+            IsVisibleChanged += (_, __) =>
             {
-                UpdateCompactClockMode();
-                UpdateCompactOverlayDetails();
-                UpdateExpOverlayBleed();
-                UpdateExpandedScoreTypography();
+                if (IsVisible) QueueExpandedResponsiveLayout();
             };
             Loaded += (_, __) =>
             {
                 StartActiveMarquee();
-                UpdateCompactClockMode();
-                UpdateCompactOverlayDetails();
-                UpdateExpOverlayBleed();
-                UpdateExpandedScoreTypography();
+                QueueExpandedResponsiveLayout();
             };
 
             // Live custom quarter / break label refresh: when the operator
@@ -217,6 +234,84 @@ namespace Roche_Scoreboard.Views
         private const double CompactAspectThreshold = 1.30;
         private const double CompactAspectHysteresis = 0.05;
         private bool _compactClockActive;
+        private bool _expandedResponsiveLayoutQueued;
+
+        private void QueueExpandedResponsiveLayout()
+        {
+            if (_expandedResponsiveLayoutQueued) return;
+            _expandedResponsiveLayoutQueued = true;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _expandedResponsiveLayoutQueued = false;
+                if (!IsLoaded || !IsVisible || ExpandedLayout.ActualWidth <= 0 || ExpandedLayout.ActualHeight <= 0)
+                    return;
+
+                ApplyExpandedResponsiveProportions();
+                UpdateCompactClockMode();
+                UpdateBottomBarVisibility();
+                UpdateCompactOverlayDetails();
+                UpdateExpOverlayBleed();
+                UpdateExpandedScoreTypography();
+            }), DispatcherPriority.Render);
+        }
+
+        private void ApplyExpandedResponsiveProportions()
+        {
+            double width = ExpandedLayout.ActualWidth;
+            double height = ExpandedLayout.ActualHeight;
+
+            // Keep fixed design floors from consuming a disproportionate share
+            // of compact outputs. The star ratios preserve a substantial clock
+            // and logo while reserving most of the width for score numerals.
+            ExpClockColumn.MinWidth = _compactClockActive ? 0 : Math.Clamp(width * 0.12, 38, 80);
+            ExpLogoColumn.MinWidth = Math.Clamp(width * 0.09, 30, 50);
+            ExpClockColumn.Width = _compactClockActive
+                ? new GridLength(0)
+                : new GridLength(225, GridUnitType.Star);
+            ExpLogoColumn.Width = new GridLength(165, GridUnitType.Star);
+            ExpScoresColumn.Width = new GridLength(610, GridUnitType.Star);
+
+            // A 28px minimum is useful at full size but used almost a quarter of
+            // a 120px-high scoreboard. Scale that safety floor with height.
+            ExpTopInfoRow.MinHeight = Math.Clamp(height * 0.145, 16, 32);
+
+            // Short screens devote more of each team panel to the score line.
+            // Both teams use identical weights, so typography remains stable.
+            double heightProgress = Math.Clamp((height - 110) / 120, 0, 1);
+            double nameWeight = 0.97 + (0.50 * heightProgress);
+            double scoreWeight = 2.85 - (0.35 * heightProgress);
+            double revealProgress = _hideTeamNames ? 0 : _teamNameRevealProgress;
+            ExpHomeNameRow.Height = revealProgress <= 0.001
+                ? new GridLength(0)
+                : new GridLength(nameWeight * revealProgress, GridUnitType.Star);
+            ExpAwayNameRow.Height = revealProgress <= 0.001
+                ? new GridLength(0)
+                : new GridLength(nameWeight * revealProgress, GridUnitType.Star);
+            ExpHomeScoreRow.Height = new GridLength(scoreWeight, GridUnitType.Star);
+            ExpAwayScoreRow.Height = new GridLength(scoreWeight, GridUnitType.Star);
+            ExpHomeNameSeparator.Opacity = revealProgress;
+            ExpAwayNameSeparator.Opacity = revealProgress;
+            ExpHomeNameSeparator.Visibility = revealProgress <= 0.001
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ExpAwayNameSeparator.Visibility = revealProgress <= 0.001
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+
+            // Fixed inner padding becomes expensive at small widths. Scale it
+            // continuously rather than jumping at a breakpoint.
+            double scorePadding = Math.Clamp(width / 280, 1, 4);
+            var scoreMargin = new Thickness(scorePadding);
+            ExpHomeGoalsCell.Margin = scoreMargin;
+            ExpHomeBehindsCell.Margin = scoreMargin;
+            ExpAwayGoalsCell.Margin = scoreMargin;
+            ExpAwayBehindsCell.Margin = scoreMargin;
+
+            double logoPadding = Math.Clamp(width / 160, 2, 6);
+            var logoMargin = new Thickness(logoPadding);
+            ExpHomeLogoHost.Margin = logoMargin;
+            ExpAwayLogoHost.Margin = logoMargin;
+        }
 
         private void UpdateCompactClockMode()
         {
@@ -243,8 +338,9 @@ namespace Roche_Scoreboard.Views
             }
             else
             {
-                ExpClockColumn.MinWidth = 120;
-                ExpClockColumn.Width = new GridLength(210, GridUnitType.Star);
+                double width = ExpandedLayout.ActualWidth;
+                ExpClockColumn.MinWidth = Math.Clamp(width * 0.12, 38, 80);
+                ExpClockColumn.Width = new GridLength(225, GridUnitType.Star);
                 ExpClockPanel.Visibility = Visibility.Visible;
                 ExpCompactClockBar.Visibility = Visibility.Collapsed;
                 ExpMarqueeCanvas.Visibility = Visibility.Visible;
@@ -268,6 +364,26 @@ namespace Roche_Scoreboard.Views
                 ? Visibility.Collapsed
                 : Visibility.Visible;
             ExpRecentScoresTitleText.FontSize = shortOutput ? 20 : 23;
+
+            bool narrowOutput = ExpandedLayout.ActualWidth > 0 && ExpandedLayout.ActualWidth < 340;
+            ExpScoringRunDetailText.Visibility = shortOutput || narrowOutput
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ExpRecentScoresHeader.Visibility = narrowOutput
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ExpRecentScoresSpacerColumn.Width = narrowOutput
+                ? new GridLength(0)
+                : new GridLength(14);
+            double valueColumnWidth = Math.Clamp(ExpandedLayout.ActualWidth * 0.18, 40, 70);
+            ExpStatsHomeValueColumn.Width = new GridLength(valueColumnWidth);
+            ExpStatsAwayValueColumn.Width = new GridLength(valueColumnWidth);
+            ExpWinProbHomeValueColumn.Width = new GridLength(valueColumnWidth);
+            ExpWinProbAwayValueColumn.Width = new GridLength(valueColumnWidth);
+            ExpStatsBarContent.Margin = narrowOutput ? new Thickness(6, 2, 6, 2) : new Thickness(12, 2, 12, 2);
+            ExpWinProbContent.Margin = narrowOutput ? new Thickness(6, 2, 6, 2) : new Thickness(12, 2, 12, 2);
+            ExpScoringRunContent.Margin = narrowOutput ? new Thickness(7, 3, 7, 3) : new Thickness(14, 5, 14, 5);
+            ExpRecentScoresContent.Margin = narrowOutput ? new Thickness(6, 3, 6, 3) : new Thickness(12, 4, 12, 4);
         }
 
         // The bottom message bar is hidden by default to reclaim vertical space
@@ -283,11 +399,12 @@ namespace Roche_Scoreboard.Views
             if (ExpBottomBarRow is null || ExpBottomBarBorder is null || ExpBottomBarSlide is null) return;
             bool hasMessages = _marqueeMessages.Count > 0;
             bool needsRow = hasMessages || _compactClockActive;
+            double minHeight = Math.Clamp(ExpandedLayout.ActualHeight * 0.18, 22, 44);
 
             if (needsRow == _bottomBarTargetVisible && (_bottomBarAnimating || needsRow == _bottomBarVisible))
             {
                 ExpBottomBarRow.Height = needsRow ? new GridLength(70, GridUnitType.Star) : new GridLength(0);
-                ExpBottomBarRow.MinHeight = needsRow ? 32 : 0;
+                ExpBottomBarRow.MinHeight = needsRow ? minHeight : 0;
                 return;
             }
 
@@ -296,7 +413,7 @@ namespace Roche_Scoreboard.Views
             if (needsRow)
             {
                 ExpBottomBarRow.Height = new GridLength(70, GridUnitType.Star);
-                ExpBottomBarRow.MinHeight = 32;
+                ExpBottomBarRow.MinHeight = minHeight;
             }
 
             AnimateBottomBar(show: needsRow, onCompleted: () =>
@@ -2425,11 +2542,13 @@ namespace Roche_Scoreboard.Views
         private double ScalePx(double designValue) => ScoreboardScaleHelper.Scale(designValue, ScaleUnit);
         private double OverlayH(double designHeight)
         {
-            double scaled = ScalePx(designHeight);
-            // Informational overlays occupy an Auto row and therefore borrow
-            // height from the score rows. Cap that borrowing by output height
-            // so small scoreboards retain dominant, distance-readable scores.
-            double heightBudget = Math.Max(12, ActualHeight * 0.20);
+            // Overlay constants are authored for the real 386x193 operating
+            // canvas, not the old 960x540 mock-up canvas. Scale from that real
+            // height, while reserving at least three quarters of the output for
+            // the information bar and live score panels.
+            double defaultScale = Math.Clamp(ActualHeight / 193.0, 0.62, 1.60);
+            double scaled = designHeight * defaultScale;
+            double heightBudget = Math.Clamp(ActualHeight * 0.26, 22, 92);
             return Math.Min(scaled, heightBudget);
         }
 
@@ -2484,8 +2603,14 @@ namespace Roche_Scoreboard.Views
 
         private void ProcessNextOverlay()
         {
-            if (_overlayQueue.Count == 0) { _activeOverlay = null; return; }
+            if (_overlayQueue.Count == 0)
+            {
+                _activeOverlay = null;
+                AnimateTeamNamePanelsForOverlay(hide: false);
+                return;
+            }
             var next = _overlayQueue.Dequeue(); _activeOverlay = next;
+            AnimateTeamNamePanelsForOverlay(hide: true);
             switch (next)
             {
                 case OverlayKind.StatsBar: DoShowStatsBar(); break;
@@ -3844,7 +3969,8 @@ namespace Roche_Scoreboard.Views
             ExpRecentScoresCards.Children.Clear();
 
             var src = events is null ? new List<ScoreEvent>() : new List<ScoreEvent>(events);
-            int take = Math.Min(3, src.Count);
+            int cardLimit = ActualWidth > 0 && ActualWidth < 420 ? 2 : 3;
+            int take = Math.Min(cardLimit, src.Count);
             var lastN = take == 0
                 ? new List<ScoreEvent>()
                 : src.GetRange(src.Count - take, take);
@@ -3868,7 +3994,7 @@ namespace Roche_Scoreboard.Views
             }
             else
             {
-                ExpRecentScoresCards.Columns = 3;
+                ExpRecentScoresCards.Columns = Math.Max(1, lastN.Count);
                 foreach (var ev in lastN)
                 {
                     ExpRecentScoresCards.Children.Add(BuildRecentScoreRow(ev, firstRow));
@@ -3992,7 +4118,14 @@ namespace Roche_Scoreboard.Views
             Grid.SetColumn(timing, 2);
             grid.Children.Add(timing);
 
-            box.Child = grid;
+            box.Child = new Viewbox
+            {
+                Stretch = Stretch.Uniform,
+                StretchDirection = StretchDirection.DownOnly,
+                HorizontalAlignment = HAlign.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                Child = grid
+            };
             return box;
         }
 
@@ -4025,6 +4158,13 @@ namespace Roche_Scoreboard.Views
                 SetGradientStopColor("ExpClockPanelGradBot", "#A9781D");
                 ExpQuarterNumberText.Foreground = new SolidColorBrush(Services.FinalsPalette.Ink);
                 ExpClockText.Foreground = new SolidColorBrush(Services.FinalsPalette.Ink);
+                // Let the clean gold gradient remain the visible surface. The
+                // normal-mode dark half-panels would otherwise muddy the gold
+                // and put finals ink over a dark background.
+                ExpClockQuarterSurface.Opacity = 0;
+                ExpClockTimerSurface.Opacity = 0;
+                ExpClockDivider.Background = new SolidColorBrush(Services.FinalsPalette.Ink);
+                ExpClockDivider.Opacity = 0.58;
             }
             else
             {
@@ -4033,6 +4173,12 @@ namespace Roche_Scoreboard.Views
                 SetGradientStopColor("ExpClockPanelGradBot", "#000000");
                 ExpQuarterNumberText.Foreground = Brushes.White;
                 ExpClockText.Foreground = Brushes.White;
+                ExpClockQuarterSurface.Background = new SolidColorBrush(Color.FromRgb(0x12, 0x1A, 0x2A));
+                ExpClockQuarterSurface.Opacity = 0.72;
+                ExpClockTimerSurface.Background = new SolidColorBrush(Color.FromRgb(0x02, 0x04, 0x09));
+                ExpClockTimerSurface.Opacity = 0.38;
+                ExpClockDivider.Background = new SolidColorBrush(Color.FromArgb(0x70, 0xFF, 0xFF, 0xFF));
+                ExpClockDivider.Opacity = 1;
             }
         }
 
@@ -4050,38 +4196,56 @@ namespace Roche_Scoreboard.Views
         public void SetHideTeamNames(bool hide)
         {
             _hideTeamNames = hide;
-            ApplyHideTeamNamesVisuals();
+            AnimateTeamNamePanelsForOverlay(_activeOverlay is not null);
         }
 
-        private void ApplyHideTeamNamesVisuals()
+        private void AnimateTeamNamePanelsForOverlay(bool hide, bool animate = true)
         {
-            var homeNameRow = FindName("ExpHomeNameRow") as RowDefinition;
-            var awayNameRow = FindName("ExpAwayNameRow") as RowDefinition;
-            if (homeNameRow is null || awayNameRow is null) return;
+            double target = _hideTeamNames || hide ? 0 : 1;
+            _teamNamePanelAnimationTimer?.Stop();
+            _teamNamePanelAnimationTimer = null;
 
-            if (_hideTeamNames)
+            if (!animate || !IsLoaded || Math.Abs(_teamNameRevealProgress - target) < 0.001)
             {
-                // Collapse name rows; score rows expand to fill via star sizing
-                homeNameRow.Height = new GridLength(0);
-                awayNameRow.Height = new GridLength(0);
-
-                // Hide separators that belong to the name row
-                if (ExpHomeNameSeparator is not null) ExpHomeNameSeparator.Visibility = Visibility.Collapsed;
-                if (ExpAwayNameSeparator is not null) ExpAwayNameSeparator.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                homeNameRow.Height = new GridLength(1.3, GridUnitType.Star);
-                awayNameRow.Height = new GridLength(1.3, GridUnitType.Star);
-
-                if (ExpHomeNameSeparator is not null) ExpHomeNameSeparator.Visibility = Visibility.Visible;
-                if (ExpAwayNameSeparator is not null) ExpAwayNameSeparator.Visibility = Visibility.Visible;
+                _teamNameRevealProgress = target;
+                ApplyExpandedResponsiveProportions();
+                QueueExpandedResponsiveLayout();
+                return;
             }
 
-            // Row changes are internal to the scorebug and do not necessarily
-            // resize ExpandedLayout itself. Re-measure once WPF has arranged
-            // the newly available score-cell space.
-            Dispatcher.BeginInvoke(new Action(UpdateExpandedScoreTypography), DispatcherPriority.Loaded);
+            _teamNamePanelAnimationFrom = _teamNameRevealProgress;
+            _teamNamePanelAnimationTo = target;
+            _teamNamePanelAnimationStarted = DateTime.UtcNow;
+            _teamNamePanelAnimationTimer = new DispatcherTimer(DispatcherPriority.Render)
+            {
+                Interval = TimeSpan.FromMilliseconds(16)
+            };
+            _teamNamePanelAnimationTimer.Tick += TeamNamePanelAnimationTick;
+            _teamNamePanelAnimationTimer.Start();
+        }
+
+        private void TeamNamePanelAnimationTick(object? sender, EventArgs e)
+        {
+            double linear = Math.Clamp(
+                (DateTime.UtcNow - _teamNamePanelAnimationStarted).TotalMilliseconds /
+                TeamNamePanelAnimationDuration.TotalMilliseconds,
+                0,
+                1);
+            // Smoothstep keeps both the initial collapse and final settle calm,
+            // while the changing star ratio continuously gives space to scores.
+            double eased = linear * linear * (3 - (2 * linear));
+            _teamNameRevealProgress = _teamNamePanelAnimationFrom
+                + ((_teamNamePanelAnimationTo - _teamNamePanelAnimationFrom) * eased);
+            ApplyExpandedResponsiveProportions();
+            UpdateExpandedScoreTypography();
+
+            if (linear < 1) return;
+
+            _teamNamePanelAnimationTimer?.Stop();
+            _teamNamePanelAnimationTimer = null;
+            _teamNameRevealProgress = _teamNamePanelAnimationTo;
+            ApplyExpandedResponsiveProportions();
+            QueueExpandedResponsiveLayout();
         }
         public void SetWeatherLocation(string? location) => _weatherLocation = location;
 
@@ -4451,6 +4615,7 @@ namespace Roche_Scoreboard.Views
         {
             _overlayQueue.Clear();
             _activeOverlay = null;
+            AnimateTeamNamePanelsForOverlay(hide: false, animate: false);
 
             _statsBarVisible = false;
             _scorelessBarVisible = false;

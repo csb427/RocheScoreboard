@@ -19,6 +19,9 @@ public partial class AflPresentationGalleryWindow : Window
     private readonly Dictionary<int, Action> _repeatRefreshes = new();
     private readonly Dictionary<int, Action> _quarterBreakRefreshes = new();
     private readonly Dictionary<int, List<FrameworkElement>> _presentationViews = new();
+    private readonly List<(string Name, ScorebugControl View)> _scorebugPreviews = new();
+    private readonly List<(string Name, ScorebugControl View)> _overlayPreviews = new();
+    private StatsScreenControl? _whitePrimaryStatsPreview;
     private const string HomePrimary = "#FF3338";
     private const string AwayPrimary = "#FACC0D";
     private const string HomeSecondary = "#FFFFFF";
@@ -59,10 +62,19 @@ public partial class AflPresentationGalleryWindow : Window
         MatchManager quarterBreakMatch = BuildRepresentativeMatch();
         quarterBreakMatch.EndQuarter();
         string halfTimeLabel = QuarterLabelService.GetBreakLabel(2);
-        AddPreview(ScorebugHost, "DESIGN 707 × 420", CreateScorebug(), 707, 420);
-        AddPreview(ScorebugHost, "COMPACT 386 × 193", CreateScorebug(), 386, 193);
-        AddPreview(ScorebugHost, "THIN 240 × 320", CreateScorebug(), 240, 320);
-        AddPreview(ScorebugHost, "SMALL WIDE 320 × 120", CreateScorebug(), 320, 120);
+        AddScorebugPreview("default-386x193", "DEFAULT 386 × 193", 386, 193);
+        AddScorebugPreview("compact-286x193", "COMPACT 286 × 193", 286, 193);
+        AddScorebugPreview("finals-386x193", "FINALS 386 × 193", 386, 193,
+            view => view.SetFinalsMode(true));
+        AddScorebugPreview("finals-286x193", "FINALS 286 × 193", 286, 193,
+            view => view.SetFinalsMode(true));
+        AddScorebugPreview("design-707x420", "LARGE 707 × 420", 707, 420);
+        AddScorebugPreview("thin-240x320", "THIN 240 × 320", 240, 320);
+        AddScorebugPreview("small-wide-320x120", "SMALL WIDE 320 × 120", 320, 120);
+        AddScorebugPreview("short-wide-480x135", "SHORT WIDE 480 × 135", 480, 135);
+        AddScorebugPreview("ultra-compact-280x105", "ULTRA COMPACT 280 × 105", 280, 105);
+        AddScorebugPreview("hidden-names-320x120", "HIDDEN NAMES 320 × 120", 320, 120,
+            view => view.SetHideTeamNames(true));
 
         AddOverlayPreview("SCORING RUN", view =>
             view.ShowScoringRun("Xavier", 24, 2, TimeSpan.FromMinutes(6.2), 5, HomePrimary));
@@ -81,6 +93,11 @@ public partial class AflPresentationGalleryWindow : Window
             view.ShowTeamDrought("Carey", DateTime.Now.AddMinutes(-8.5), AwayPrimary, AwaySecondary));
         AddOverlayPreview("LAST SCORE", view => view.ShowLastScoreTime());
         AddOverlayPreview("LEAD CHANGES", view => view.ShowLeadChangesBar(7));
+        AddOverlayPreview("WHITE PRIMARY STAT", view =>
+        {
+            view.SetTeamColors("#FFFFFF", AwayPrimary, "#111827", AwaySecondary);
+            view.ShowStatsBar(MatchStats.Calculate(match, match.Quarter, match.ElapsedInQuarter));
+        });
 
         var breakViews = new List<BreakScreenControl>();
         var breakLifecycleViews = new List<FrameworkElement>();
@@ -137,6 +154,11 @@ public partial class AflPresentationGalleryWindow : Window
             statsLifecycleViews.Add(view);
             return view;
         });
+        var whitePrimaryStats = new StatsScreenControl();
+        whitePrimaryStats.Populate(match, MatchStats.Calculate(match, match.Quarter, match.ElapsedInQuarter), 1,
+            "#FFFFFF", AwayPrimary, "#111827", AwaySecondary, SampleLogoPath, SampleLogoPath, "Q2");
+        AddPreview(StatsHost, "WHITE PRIMARY 386 × 193", whitePrimaryStats, 386, 193);
+        _whitePrimaryStatsPreview = whitePrimaryStats;
         _presentationViews[4] = statsLifecycleViews;
         _repeatRefreshes[4] = () =>
         {
@@ -191,6 +213,45 @@ public partial class AflPresentationGalleryWindow : Window
             using FileStream output = File.Create(Path.Combine(outputDirectory, name + ".png"));
             encoder.Save(output);
         }
+
+        // Save every scorebug dimension independently as well. The live gallery
+        // intentionally scrolls when its preview cards exceed the window width;
+        // isolated captures ensure compact cases can never escape visual review.
+        foreach ((string name, ScorebugControl view) in _scorebugPreviews)
+        {
+            view.UpdateLayout();
+            await Dispatcher.InvokeAsync(view.UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+            CaptureElement(view, outputDirectory, "scorebug-" + name);
+        }
+        File.WriteAllLines(Path.Combine(outputDirectory, "scorebug-typography.txt"),
+            _scorebugPreviews.Select(preview =>
+            {
+                (double gb, double total) = preview.View.GetScoreFontSizesForQa();
+                return $"{preview.Name}: goals/behinds={gb:0.##}px, total={total:0.##}px";
+            }));
+        foreach ((string name, ScorebugControl view) in _overlayPreviews)
+        {
+            view.UpdateLayout();
+            await Dispatcher.InvokeAsync(view.UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+            CaptureElement(view, outputDirectory, "overlay-" + name);
+        }
+        File.WriteAllLines(Path.Combine(outputDirectory, "overlay-scorebug-metrics.txt"),
+            _overlayPreviews.Select(preview =>
+            {
+                (double gb, double total) = preview.View.GetScoreFontSizesForQa();
+                (double homeName, double awayName) = preview.View.GetTeamNamePanelHeightsForQa();
+                return $"{preview.Name}: goals/behinds={gb:0.##}px, total={total:0.##}px, " +
+                       $"name-rows={homeName:0.##}/{awayName:0.##}px";
+            }));
+        if (_whitePrimaryStatsPreview is not null)
+        {
+            _whitePrimaryStatsPreview.UpdateLayout();
+            await Dispatcher.InvokeAsync(_whitePrimaryStatsPreview.UpdateLayout,
+                System.Windows.Threading.DispatcherPriority.Render);
+            CaptureElement(_whitePrimaryStatsPreview, outputDirectory, "match-stats-white-primary-386x193");
+        }
+        await CaptureScorebugLifecycleStressAsync(outputDirectory);
+        await CaptureOverlayNamePanelStressAsync(outputDirectory);
 
         // Capture the three stateful data presentations again after the same
         // Populate calls production makes during clock ticks and repeated
@@ -307,6 +368,103 @@ public partial class AflPresentationGalleryWindow : Window
         encoder.Save(output);
     }
 
+    private static void CaptureElement(FrameworkElement element, string outputDirectory, string name)
+    {
+        int width = Math.Max(1, (int)Math.Ceiling(element.ActualWidth));
+        int height = Math.Max(1, (int)Math.Ceiling(element.ActualHeight));
+        RenderTargetBitmap bitmap = new(width, height, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(element);
+
+        PngBitmapEncoder encoder = new();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using FileStream output = File.Create(Path.Combine(outputDirectory, name + ".png"));
+        encoder.Save(output);
+    }
+
+    private async Task CaptureScorebugLifecycleStressAsync(string outputDirectory)
+    {
+        if (_scorebugPreviews.Count == 0) return;
+
+        GalleryTabs.SelectedIndex = 0;
+        UpdateLayout();
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+
+        ScorebugControl view = _scorebugPreviews[0].View;
+        double originalWidth = view.Width;
+        double originalHeight = view.Height;
+        CaptureElement(view, outputDirectory, "scorebug-responsive-baseline");
+
+        for (int cycle = 0; cycle < 8; cycle++)
+        {
+            view.Visibility = Visibility.Collapsed;
+            UpdateLayout();
+            await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Background);
+            view.Visibility = Visibility.Visible;
+            await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+
+            foreach ((double width, double height) in new[]
+                     {
+                         (320d, 120d), (480d, 135d), (240d, 320d),
+                         (280d, 105d), (386d, 193d), (707d, 420d)
+                     })
+            {
+                view.Width = width;
+                view.Height = height;
+                await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+            }
+        }
+
+        view.Width = originalWidth;
+        view.Height = originalHeight;
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+        CaptureElement(view, outputDirectory, "scorebug-responsive-after");
+    }
+
+    private async Task CaptureOverlayNamePanelStressAsync(string outputDirectory)
+    {
+        if (_scorebugPreviews.Count == 0) return;
+
+        GalleryTabs.SelectedIndex = 0;
+        ScorebugControl view = _scorebugPreviews[0].View;
+        view.ResetAllOverlayState();
+        UpdateLayout();
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+        CaptureElement(view, outputDirectory, "overlay-name-lifecycle-baseline");
+
+        MatchStats stats = MatchStats.Calculate(BuildRepresentativeMatch(), 2, TimeSpan.FromMinutes(8));
+        for (int cycle = 0; cycle < 8; cycle++)
+        {
+            view.ShowStatsBar(stats);
+            await Task.Delay(380);
+            view.ResetAllOverlayState();
+            await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+        }
+        CaptureElement(view, outputDirectory, "overlay-name-lifecycle-after");
+
+        view.ShowStatsBar(stats);
+        await Task.Delay(380);
+        UpdateLayout();
+        CaptureElement(view, outputDirectory, "overlay-name-panels-collapsed-386x193");
+        (double gb, double total) = view.GetScoreFontSizesForQa();
+        (double homeName, double awayName) = view.GetTeamNamePanelHeightsForQa();
+        File.WriteAllText(Path.Combine(outputDirectory, "overlay-name-panel-stress.txt"),
+            $"cycles=8{Environment.NewLine}" +
+            $"active-overlay-goals/behinds={gb:0.##}px{Environment.NewLine}" +
+            $"active-overlay-total={total:0.##}px{Environment.NewLine}" +
+            $"active-overlay-name-rows={homeName:0.##}/{awayName:0.##}px{Environment.NewLine}");
+        view.ResetAllOverlayState();
+    }
+
+    private void AddScorebugPreview(string name, string label, double width, double height,
+        Action<ScorebugControl>? configure = null)
+    {
+        ScorebugControl view = CreateScorebug();
+        configure?.Invoke(view);
+        _scorebugPreviews.Add((name, view));
+        AddPreview(ScorebugHost, label, view, width, height);
+    }
+
     private static void AddPresentationPair(System.Windows.Controls.Panel host, Func<System.Windows.Controls.UserControl> factory)
     {
         AddPreview(host, "LARGE 772 × 386", factory(), 772, 386);
@@ -316,24 +474,39 @@ public partial class AflPresentationGalleryWindow : Window
     private static ScorebugControl CreateScorebug()
     {
         var view = new ScorebugControl();
+        view.FreezeWallClockForQa(new DateTime(2026, 8, 30, 8, 5, 0));
         view.SetTeams("Xavier", "XC", "Carey", "CY");
         view.SetTeamColors(HomePrimary, AwayPrimary, HomeSecondary, AwaySecondary);
         view.SetScores(18, 12, 17, 11);
         view.SetQuarter(4);
         view.SetClock("04:59");
         view.SetLogos(SampleLogoPath, SampleLogoPath);
+        view.UpdateWeatherSnapshot(new WeatherSnapshot(
+            22, 20, 14, 27, 0, "☀", "Clear sky", Array.Empty<HourlyForecast>()));
         return view;
     }
 
     private void AddOverlayPreview(string label, Action<ScorebugControl> showOverlay)
+    {
+        AddOverlayPreviewAtSize(label, showOverlay, 386, 193, "386x193");
+        AddOverlayPreviewAtSize(label, showOverlay, 286, 193, "286x193");
+    }
+
+    private void AddOverlayPreviewAtSize(string label, Action<ScorebugControl> showOverlay,
+        double width, double height, string suffix)
     {
         ScorebugControl view = CreateScorebug();
         // Overlay animations need a measured visual tree. Starting them before
         // the preview is loaded can leave the gallery showing the zero-height
         // first frame even though the production scorebug works correctly.
         view.Loaded += (_, _) => showOverlay(view);
-        AddPreview(OverlayHost, label, view, 300, 150);
+        _overlayPreviews.Add(($"{SanitizeFileName(label)}-{suffix}", view));
+        AddPreview(OverlayHost, $"{label} {width:0} × {height:0}", view, width, height);
     }
+
+    private static string SanitizeFileName(string value)
+        => string.Join("-", value.ToLowerInvariant().Split(
+            [' ', '/', '\\', ':'], StringSplitOptions.RemoveEmptyEntries));
 
     private static void AddPreview(System.Windows.Controls.Panel host, string label, FrameworkElement view, double width, double height)
     {

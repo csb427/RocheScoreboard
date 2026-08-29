@@ -11,6 +11,13 @@ internal static class ChangelogService
 {
     private static readonly IReadOnlyList<ChangelogVersion> RawVersions =
     [
+        new("4.1.2", "2026-08-30",
+        [
+            "[New] Scorebug overlays now smoothly reclaim the team-name rows so live scores remain dominant and digit-safe",
+            "[Fixed] Finals mode now keeps a clean consistent gold clock panel with reliable high-contrast quarter and timer text",
+            "[Fixed] Compact scorebugs balance the information bar, team names, logos and maximum-size fixed-capacity scores",
+            "[Fixed] AFL overlays and presentation screens remain stable through repeated switching, resizing and quarter changes"
+        ]),
         new("4.1.1", "2026-08-29",
         [
             "[Fixed] Quarter Breakdown, Margin Flow and Match Stats now keep identical typography and layout through repeated switching, scoring and output resizing",

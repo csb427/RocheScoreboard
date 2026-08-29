@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:Roche_Scoreboard.Views"
-        Title="Roche Scoreboard v4.1.1"
+        Title="Roche Scoreboard v4.1.2"
         Height="1050"
         Width="1550"
         MinWidth="420"
@@ -2079,7 +2079,7 @@
                                                             <TextBlock Text="SIGNAL" FontSize="13" FontWeight="Black" Foreground="#E6EDF3" HorizontalAlignment="Center"/>
                                                             <TextBlock Text="Layered reveal · dual sweep" FontSize="9" FontWeight="SemiBold" Foreground="#7E9DBB" HorizontalAlignment="Center" Margin="0,3,0,0"/>
                                                         </StackPanel>
-                                                        <Border x:Name="AnimCheckBroadcast" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2" Visibility="Collapsed">
+                                                        <Border x:Name="AnimCheckBroadcast" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2" Visibility="Visible">
                                                             <TextBlock Text="✓" FontSize="8" FontWeight="Black" Foreground="#1A1400"/>
                                                         </Border>
                                                     </Grid>
@@ -2146,7 +2146,7 @@
                                                             <TextBlock Text="🎥" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,5"/>
                                                             <TextBlock Text="CUSTOM" FontSize="12" FontWeight="Black" Foreground="#E7B94F" HorizontalAlignment="Center"/>
                                                         </StackPanel>
-                                                        <Border x:Name="AnimCheckCustomVideo" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2">
+                                                        <Border x:Name="AnimCheckCustomVideo" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="4,2" Visibility="Collapsed">
                                                             <TextBlock Text="✓" FontSize="8" FontWeight="Black" Foreground="#1A1400"/>
                                                         </Border>
                                                     </Grid>
@@ -2157,14 +2157,14 @@
                                                 <Grid>
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                                 <StackPanel>
-                                                    <TextBlock x:Name="AnimPreviewTitle" Text="Custom Video" Foreground="White" FontSize="16" FontWeight="Black" Margin="0,0,0,3"/>
-                                                    <TextBlock x:Name="AnimPreviewDesc" Text="Team-specific goal video playback if configured." Foreground="#D9C279" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                                    <TextBlock x:Name="AnimPreviewTitle" Text="TV Signal" Foreground="White" FontSize="16" FontWeight="Black" Margin="0,0,0,3"/>
+                                                    <TextBlock x:Name="AnimPreviewDesc" Text="Layered television reveal with dual broadcast sweeps." Foreground="#D9C279" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <Border BorderBrush="#C9B070" BorderThickness="1" Background="#0C0A04" Padding="6,2" Margin="0,0,6,0">
-                                                            <TextBlock x:Name="AnimPreviewDuration" Text="Video" Foreground="#D2B45D" FontSize="11" FontWeight="Black"/>
+                                                            <TextBlock x:Name="AnimPreviewDuration" Text="3.5 SEC" Foreground="#D2B45D" FontSize="11" FontWeight="Black"/>
                                                         </Border>
                                                         <Border BorderBrush="#C9B070" BorderThickness="1" Background="#0C0A04" Padding="6,2">
-                                                            <TextBlock x:Name="AnimPreviewIntensity" Text="Custom" Foreground="#D2B45D" FontSize="11" FontWeight="Black"/>
+                                                            <TextBlock x:Name="AnimPreviewIntensity" Text="BROADCAST" Foreground="#D2B45D" FontSize="11" FontWeight="Black"/>
                                                         </Border>
                                                     </StackPanel>
                                                 </StackPanel>
