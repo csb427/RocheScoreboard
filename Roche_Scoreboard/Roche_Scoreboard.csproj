@@ -16,7 +16,7 @@
     <AssemblyTitle>Roche Scoreboard</AssemblyTitle>
     <Product>Roche Scoreboard</Product>
     <Description>AFL and Cricket broadcast scoreboard application</Description>
-    <Version>4.1.0</Version>
+    <Version>4.1.1</Version>
 
     <!-- App icon (taskbar, File Explorer, title bar) -->
     <ApplicationIcon>app.ico</ApplicationIcon>

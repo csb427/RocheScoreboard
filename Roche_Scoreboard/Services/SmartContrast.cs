@@ -52,6 +52,36 @@ public static class SmartContrast
     }
 
     /// <summary>
+    /// Picks the foreground whose worst contrast ratio is strongest across
+    /// every supplied background. This is the safe choice for gradients,
+    /// hover states and other surfaces whose colour is not constant.
+    /// </summary>
+    public static Color PickForeground(params Color[] backgrounds)
+    {
+        if (backgrounds is null || backgrounds.Length == 0)
+            return Colors.White;
+
+        double whiteMinimum = MinimumContrast(Colors.White, backgrounds);
+        double blackMinimum = MinimumContrast(Colors.Black, backgrounds);
+        return whiteMinimum >= blackMinimum ? Colors.White : Colors.Black;
+    }
+
+    /// <summary>
+    /// Keeps a preferred brand colour only when it meets normal-text WCAG AA
+    /// against every background; otherwise returns the safest black/white ink.
+    /// </summary>
+    public static Color PickReadableForeground(Color preferred, params Color[] backgrounds)
+    {
+        if (backgrounds is not null && backgrounds.Length > 0 &&
+            MinimumContrast(preferred, backgrounds) >= 4.5)
+        {
+            return preferred;
+        }
+
+        return PickForeground(backgrounds ?? []);
+    }
+
+    /// <summary>
     /// Picks white or black for a brush; for gradient brushes the worst-case
     /// (lowest-contrast) midpoint is used so the result reads across the gradient.
     /// </summary>
@@ -65,17 +95,10 @@ public static class SmartContrast
                 return PickForeground(solid.Color);
             case GradientBrush grad when grad.GradientStops.Count > 0:
             {
-                // Approximate by averaging gradient stops weighted equally.
-                double r = 0, g = 0, b = 0;
-                int n = grad.GradientStops.Count;
-                foreach (var stop in grad.GradientStops)
-                {
-                    r += stop.Color.R;
-                    g += stop.Color.G;
-                    b += stop.Color.B;
-                }
-                var avg = Color.FromRgb((byte)(r / n), (byte)(g / n), (byte)(b / n));
-                return PickForeground(avg);
+                var stops = new Color[grad.GradientStops.Count];
+                for (int i = 0; i < grad.GradientStops.Count; i++)
+                    stops[i] = grad.GradientStops[i].Color;
+                return PickForeground(stops);
             }
             default:
                 return Colors.White;
@@ -99,4 +122,12 @@ public static class SmartContrast
     /// </summary>
     public static SolidColorBrush PickForegroundBrush(Color background) =>
         new(PickForeground(background));
+
+    private static double MinimumContrast(Color foreground, Color[] backgrounds)
+    {
+        double minimum = double.MaxValue;
+        foreach (Color background in backgrounds)
+            minimum = Math.Min(minimum, ContrastRatio(foreground, background));
+        return minimum;
+    }
 }

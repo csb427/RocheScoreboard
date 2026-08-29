@@ -18,6 +18,7 @@ namespace Roche_Scoreboard.Views
     {
         private readonly DispatcherTimer _wallClockTimer;
         private bool _isDisposed;
+        private bool _responsiveLayoutQueued;
 
         public BreakScreenControl()
         {
@@ -28,7 +29,12 @@ namespace Roche_Scoreboard.Views
             _wallClockTimer.Tick += OnWallClockTick;
             _wallClockTimer.Start();
 
-            SizeChanged += (_, _) => ApplyResponsiveScale();
+            SizeChanged += (_, _) => QueueResponsiveLayout();
+            IsVisibleChanged += (_, e) =>
+            {
+                if (e.NewValue is true) QueueResponsiveLayout();
+            };
+            Loaded += (_, _) => QueueResponsiveLayout();
 
             Unloaded += (_, _) => Cleanup();
         }
@@ -45,14 +51,17 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         private void ApplyResponsiveScale()
         {
+            if (!IsVisible || ActualWidth <= 0 || ActualHeight <= 0)
+                return;
+
             ResponsivePresentationTypography.Apply(this, ScaleUnit);
 
             bool compact = ActualWidth < 320 || ActualHeight < 160;
             BreakTitleText.Text = compact ? "QTR BREAKDOWN" : "QUARTER BY QUARTER";
             BreakTimeText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
 
-            double teamColumnMax = Math.Max(48, ScalePx(78));
-            BreakTeamColumn.Width = new GridLength(Math.Clamp(ActualWidth * 0.20, 48, teamColumnMax));
+            double teamColumnMax = Math.Max(58, ScalePx(92));
+            BreakTeamColumn.Width = new GridLength(Math.Clamp(ActualWidth * 0.24, 58, teamColumnMax));
             double quarterHeaderMax = Math.Max(17, ActualHeight * 0.16);
             BreakQuarterHeaderRow.Height = new GridLength(Math.Clamp(ScalePx(24), 17, quarterHeaderMax));
 
@@ -69,6 +78,19 @@ namespace Roche_Scoreboard.Views
                         : new GridLength(2, GridUnitType.Star);
                 }
             }
+        }
+
+        private void QueueResponsiveLayout()
+        {
+            if (_responsiveLayoutQueued || _isDisposed)
+                return;
+
+            _responsiveLayoutQueued = true;
+            Dispatcher.BeginInvoke(() =>
+            {
+                _responsiveLayoutQueued = false;
+                ApplyResponsiveScale();
+            }, DispatcherPriority.Render);
         }
 
         private void OnWallClockTick(object? sender, EventArgs e)
@@ -117,10 +139,10 @@ namespace Roche_Scoreboard.Views
             TitleAccentGradient.GradientStops.Add(new GradientStop(awayColor, 1.0));
 
             // Team panel background and border washes, scorebug-style
-            HomeHeaderBorder.Color = homeColor;
-            AwayHeaderBorder.Color = awayColor;
             HomeHeaderBg.Color = Darken(homeColor, 0.55);
             AwayHeaderBg.Color = Darken(awayColor, 0.55);
+            HomeHeaderBorder.Color = ContrastHelper.GetVisibleBorderColor(HomeHeaderBg.Color, homeColor, homeSecondary);
+            AwayHeaderBorder.Color = ContrastHelper.GetVisibleBorderColor(AwayHeaderBg.Color, awayColor, awaySecondary);
             HomeNameFg.Color = Lighten(homeColor, 0.55);
             AwayNameFg.Color = Lighten(awayColor, 0.55);
 
@@ -202,7 +224,7 @@ namespace Roche_Scoreboard.Views
             // Populate may run while the presentation is collapsed. Re-apply
             // responsive sizing once WPF has made the surface visible and its
             // real dimensions are available.
-            Dispatcher.BeginInvoke(ApplyResponsiveScale, DispatcherPriority.Loaded);
+            QueueResponsiveLayout();
         }
 
         private static void StyleQuarterCell(Border border, TextBlock totalText, TextBlock detailText,
@@ -221,11 +243,13 @@ namespace Roche_Scoreboard.Views
             if (SmartContrast.IsLowContrast(totalColor, panelColor))
                 totalColor = SmartContrast.PickForeground(panelColor);
             totalText.Text = total;
-            totalText.Foreground = new SolidColorBrush(played ? totalColor : Color.FromRgb(0x7F, 0x8C, 0x9A));
+            Color emptyTotal = SmartContrast.PickReadableForeground(Color.FromRgb(0x7F, 0x8C, 0x9A), panelColor);
+            totalText.Foreground = new SolidColorBrush(played ? totalColor : emptyTotal);
             detailText.Text = breakdown;
+            Color emptyDetail = SmartContrast.PickReadableForeground(Color.FromRgb(0x70, 0x7D, 0x8A), panelColor);
             detailText.Foreground = new SolidColorBrush(played
                 ? SmartContrast.PickForeground(panelColor)
-                : Color.FromRgb(0x70, 0x7D, 0x8A));
+                : emptyDetail);
         }
 
         private static void ApplyLogoBg(System.Windows.Controls.Image image, string? path)

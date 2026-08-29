@@ -11,6 +11,12 @@ internal static class ChangelogService
 {
     private static readonly IReadOnlyList<ChangelogVersion> RawVersions =
     [
+        new("4.1.1", "2026-08-29",
+        [
+            "[Fixed] Quarter Breakdown, Margin Flow and Match Stats now keep identical typography and layout through repeated switching, scoring and output resizing",
+            "[Fixed] The scorebug moves its quarter and timer to the bottom only for horizontally thin output shapes, not simply smaller windows",
+            "[Fixed] Compact overlays protect score readability, simplify secondary detail and keep the top information bar from overlapping"
+        ]),
         new("4.1.0", "2026-08-29",
         [
             "[New] Australian Club Library now includes every AFL and VAFA club plus all APS and AGSV member schools",
@@ -20,7 +26,14 @@ internal static class ChangelogService
             "[Fixed] +6 and +1 cards now keep their numerals visible above the scorebug swipe in every team colour",
             "[Fixed] The main scorebug information bar is larger while score rows remain fixed-capacity and space-efficient",
             "[Fixed] AFL workspaces, setup defaults, venue weather and recent team presets are remembered so repeat matches need fewer clicks",
-            "[Fixed] Windows 10 and 11 releases use a verified self-contained package with one clear GitHub download"
+            "[Fixed] Windows 10 and 11 releases use a verified self-contained package with one clear GitHub download",
+            "[Fixed] Scoring runs use the latest quarter sequence, recognise dominant bursts with limited replies and trigger during timing stoppages",
+            "[Fixed] Match Log score cards now carry clear home and away team colouring",
+            "[Fixed] Smart contrast now checks full gradients and hover states across Match Log cards and every AFL presentation",
+            "[Fixed] Goal animation choice is remembered, with TV used as the reliable default and missing-video fallback",
+            "[Fixed] Timing stoppages stay in the operator-selected state when setup or Settings is reopened",
+            "[Fixed] Repeated presentation selections no longer layer old transitions, and compact screens protect logos, totals and overlays",
+            "[Fixed] Quarter Breakdown, Margin Flow and Match Stats now retain one stable live layout instead of replaying stale refresh states"
         ]),
         new("4.0.0", "2026-08-22",
         [

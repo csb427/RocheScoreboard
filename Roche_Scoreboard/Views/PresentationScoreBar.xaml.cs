@@ -92,10 +92,8 @@ public partial class PresentationScoreBar : UserControl
         AwayLogoCellGradEnd.Color   = awayDark;
 
         // Smart contrast: pick readable text against each panel gradient.
-        var homeFg = new SolidColorBrush(Services.SmartContrast.PickForeground(
-            Services.SmartContrast.ContrastRatio(homeDark, Colors.White) < Services.SmartContrast.ContrastRatio(homeColor, Colors.White) ? homeDark : homeColor));
-        var awayFg = new SolidColorBrush(Services.SmartContrast.PickForeground(
-            Services.SmartContrast.ContrastRatio(awayDark, Colors.White) < Services.SmartContrast.ContrastRatio(awayColor, Colors.White) ? awayDark : awayColor));
+        var homeFg = new SolidColorBrush(Services.SmartContrast.PickForeground(homeDark, homeColor));
+        var awayFg = new SolidColorBrush(Services.SmartContrast.PickForeground(awayDark, awayColor));
         HomeTotalText.Foreground = homeFg;
         AwayTotalText.Foreground = awayFg;
         HomeLogoFallback.Foreground = homeFg;
@@ -282,11 +280,16 @@ public partial class PresentationScoreBar : UserControl
         // Keep the identity/clock cells proportional to bar height, but cap
         // them so extremely narrow aspect ratios still leave score space.
         double identityWidth = Math.Min(ActualHeight * 0.95, ActualWidth * 0.115);
+        double centerWidth = Math.Min(ActualHeight * 2.35, ActualWidth * 0.27);
         HomeLogoColumn.Width = new GridLength(identityWidth);
         AwayLogoColumn.Width = new GridLength(identityWidth);
-        CenterColumn.Width = new GridLength(Math.Min(ActualHeight * 2.35, ActualWidth * 0.27));
+        CenterColumn.Width = new GridLength(centerWidth);
 
-        double scorePanelWidth = Math.Max(1, Math.Min(HomePanel.ActualWidth, AwayPanel.ActualWidth));
+        // Derive the score width from the same column calculation instead of
+        // reading ActualWidth before WPF has completed the new layout pass.
+        // This removes the one-frame compact-layout mismatch seen when a
+        // presentation is selected for the first time.
+        double scorePanelWidth = Math.Max(1, (ActualWidth - centerWidth - identityWidth * 2) / 2);
         double totalCellWidth = Math.Max(1, scorePanelWidth - 8);
         double availableHeight = Math.Max(1, ActualHeight - 4);
 
@@ -294,6 +297,10 @@ public partial class PresentationScoreBar : UserControl
         // match and a 188-point match therefore use exactly the same font size.
         double totalSize = FitFont("888", totalCellWidth, availableHeight, FontWeights.Black);
         HomeTotalText.FontSize = AwayTotalText.FontSize = totalSize;
+        HomeTotalText.MaxWidth = AwayTotalText.MaxWidth = totalCellWidth;
+        HomeTotalText.MaxHeight = AwayTotalText.MaxHeight = availableHeight;
+        HomeLogoImage.MaxWidth = AwayLogoImage.MaxWidth = Math.Max(1, identityWidth - 6);
+        HomeLogoImage.MaxHeight = AwayLogoImage.MaxHeight = Math.Max(1, ActualHeight - 6);
         HomeLogoFallback.FontSize = AwayLogoFallback.FontSize = Math.Max(4, ActualHeight * 0.28);
         QuarterText.FontSize = Math.Max(18, ActualHeight * 0.72);
         TimerText.FontSize = Math.Max(6, ActualHeight * 0.43);

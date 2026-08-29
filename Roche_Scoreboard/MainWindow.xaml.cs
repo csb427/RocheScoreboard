@@ -102,6 +102,7 @@ namespace Roche_Scoreboard
 
         // Retro CRT transition overlay
         private Border? _retroCrtOverlay;
+        private int _screenTransitionVersion;
 
         // Calibration overlay (Ctrl+Shift+C on the display window) — helps the
         // operator manually align the output window with the mirrored capture
@@ -144,6 +145,7 @@ namespace Roche_Scoreboard
         private AflAction? _pendingKeybindAction;
         private UxPreferencesData _uxPreferences = new();
         private bool _suppressNavigationPersistence = true;
+        private bool _initializingGoalAnimation = true;
 
         public MainWindow()
         {
@@ -258,9 +260,11 @@ namespace Roche_Scoreboard
                     () => { if (_scorebug != null) EnqueueAutoOverlay(() => CheckScoringRunAfterScore(capturedEv), isPriority: true); },
                     ScoringRunOverlayDelay,
                     () => _scoringRunDelayTimer,
-                    t => _scoringRunDelayTimer = t);
+                    t => _scoringRunDelayTimer = t,
+                    allowWhenClockStopped: true);
                 ScheduleAutoOverlay(
-                    () => { if (_scorebug != null) EnqueueAutoOverlay(() => CheckLeadChangesAfterScore(), isPriority: true); });
+                    () => { if (_scorebug != null) EnqueueAutoOverlay(() => CheckLeadChangesAfterScore(), isPriority: true); },
+                    allowWhenClockStopped: true);
 
                 // Push updated data to any visible overlay or screen
                 RefreshVisibleScreens();
@@ -314,6 +318,11 @@ namespace Roche_Scoreboard
             RegisterScheduledOverlays();
             ApplyAflKeybindsToUi();
             _uxPreferences = UxPreferences.Load();
+            OperatorWorkflowPreferencesData workflowPreferences = OperatorWorkflowPreferences.Load();
+            ApplyRememberedGoalAnimation(workflowPreferences.AflGoalAnimation);
+            SettingsShowControlPanelCountdown.IsChecked = workflowPreferences.AflControlPanelCountdown;
+            _initializingGoalAnimation = false;
+            UpdateAnimCards();
             _hideTeamNames = _uxPreferences.HideTeamNames;
             SettingsHideTeamNamesToggle.IsChecked = _hideTeamNames;
             UpdateSettingsHideTeamNamesCardVisuals();
@@ -1995,6 +2004,7 @@ namespace Roche_Scoreboard
             }
 
             _showControlPanelCountdown = r.ClockMode == ClockMode.CountUp && r.ShowControlPanelCountdown;
+            SettingsShowControlPanelCountdown.IsChecked = OperatorWorkflowPreferences.Load().AflControlPanelCountdown;
             _controlPanelCountdownRunning = false;
             _controlPanelCountdownDuration = TimeSpan.FromMinutes(r.ControlPanelCountdownMinutes) + TimeSpan.FromSeconds(r.ControlPanelCountdownSeconds);
             if (_controlPanelCountdownDuration <= TimeSpan.Zero)
@@ -2236,6 +2246,7 @@ namespace Roche_Scoreboard
             UpdateSettingsFinalsCardVisuals();
             _weatherLocation = state.WeatherLocation;
             _showControlPanelCountdown = state.ShowControlPanelCountdown && _match.ClockMode == ClockMode.CountUp;
+            SettingsShowControlPanelCountdown.IsChecked = state.ShowControlPanelCountdown;
             _controlPanelCountdownRunning = false;
             _controlPanelCountdownDuration = state.ControlPanelCountdownDurationSeconds > 0
                 ? TimeSpan.FromSeconds(state.ControlPanelCountdownDurationSeconds)
@@ -2338,6 +2349,7 @@ namespace Roche_Scoreboard
             if (_displayWindow != null && _displayWindow.IsVisible) return;
 
             _scorebug = new ScorebugControl();
+            _scorebug.SetGoalAnimationStyle(GetSelectedGoalAnimationStyle());
             _breakScreen = new BreakScreenControl { Visibility = Visibility.Collapsed };
             _breakScreen.SetFinalsMode(_finalsMode);
             _scoreworm = new ScorewormControl { Visibility = Visibility.Collapsed };
@@ -2467,6 +2479,12 @@ namespace Roche_Scoreboard
                 _calibrationOverlay = null;
                 _displayContainer = null;
                 _showingBreakScreen = false;
+                _overlayQueueWired = false;
+                _overlayQueue.Clear();
+                _autoOverlayDelayTimer?.Stop();
+                _autoOverlayDelayTimer = null;
+                _scoringRunDelayTimer?.Stop();
+                _scoringRunDelayTimer = null;
                 UpdateWindowToggleVisual();
             };
 
@@ -2598,13 +2616,20 @@ namespace Roche_Scoreboard
 
             var dc = _match.DisplayClock;
             _scorebug.SetClock($"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}");
+            // Keep pause-aware overlay clocks synchronized even when the
+            // scorebug control is recreated while a match is already running.
+            if (_match.ClockRunning) _scorebug.NotifyClockStarted();
+            else _scorebug.NotifyClockStopped();
 
             // Fire the 5-minute warning the instant the countdown ticks through
             // 5:00. This runs every second via OnFrameRendering so a quiet game
             // (no goals/behinds) can never delay the trigger past the mark.
             CheckFiveMinuteWarning(dc);
 
-            if (!_showingBreakScreen)
+            // Automatic match-time overlays must not age or appear while the
+            // operator has paused the clock, or while a quarter-break screen is
+            // active. Manual overlay buttons remain available in either state.
+            if (!_showingBreakScreen && _match.ClockRunning)
             {
                 bool scorelessTriggered = false;
                 if (_scorebug.CheckScorelessTimer())

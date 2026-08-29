@@ -23,8 +23,9 @@
             </StackPanel>
         </Border>
 
-        <TabControl Grid.Row="1" Margin="14" Background="#080D14" BorderBrush="#2B3B50" Foreground="White">
+        <TabControl x:Name="GalleryTabs" Grid.Row="1" Margin="14" Background="#080D14" BorderBrush="#2B3B50" Foreground="White">
             <TabItem Header="LIVE SCOREBUG"><ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"><WrapPanel x:Name="ScorebugHost" Margin="14"/></ScrollViewer></TabItem>
+            <TabItem Header="OVERLAYS"><ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"><WrapPanel x:Name="OverlayHost" Margin="14"/></ScrollViewer></TabItem>
             <TabItem Header="QUARTER BREAKDOWN"><ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"><WrapPanel x:Name="BreakHost" Margin="14"/></ScrollViewer></TabItem>
             <TabItem Header="MARGIN FLOW"><ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"><WrapPanel x:Name="WormHost" Margin="14"/></ScrollViewer></TabItem>
             <TabItem Header="MATCH STATS"><ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"><WrapPanel x:Name="StatsHost" Margin="14"/></ScrollViewer></TabItem>

@@ -24,14 +24,13 @@ public partial class MainWindow
 
     private TeamSide _lastShownRunTeam;
     private int _lastShownRunMargin;
-    private DateTime _lastShownRunTime;          // wall-clock time of last show (kept for backward compatibility)
     private TimeSpan _lastShownRunMatchClock = TimeSpan.MinValue; // match-clock position when last shown
     private RunTier _lastShownRunTier = RunTier.None;
+    private DateTime _lastShownRunStartTimestamp = DateTime.MinValue;
     // Per-team cooldown is generous (a re-show needs the run to grow), but
     // when momentum flips to the OTHER team a much shorter cross-team cooldown
     // applies — a momentum swap is itself the story.
     private static readonly TimeSpan RunCooldown = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan RunCrossTeamCooldown = TimeSpan.FromSeconds(45);
     // Same-team escalation — to re-show inside the cooldown the run must have
     // grown by at least this many points (2 goals) AND maintained dominance.
     private const int RunSameTeamGrowthPoints = 12;
@@ -52,96 +51,13 @@ public partial class MainWindow
         Mega = 5
     }
 
-    // ── Scoring-run thresholds (tiered, multi-window) ─────────────────────
-    //
-    // A scoring run is recognised across SEVERAL rolling windows simultaneously
-    // (short event windows, medium event windows, long event windows, plus
-    // short/medium/long time windows). For each window we compute the run
-    // team's points, opposition points, span, and dominance ratio. Each window
-    // is then evaluated against the tier table — the best qualifying window
-    // wins.
-    //
-    // Tier definitions (highest qualifying tier wins per window):
-    //
-    //   BURST     18 pts (3 goals), ratio ≥ 3.0, span ≤ 4 match-min
-    //             — short flurry of momentum the viewer just saw (18-0 / 18-1).
-    //
-    //   STANDARD  24 pts, ratio ≥ 2.5, opp ≤ 9 (1 goal + 3 behinds), span ≤ 12 min
-    //             — the classic 24-6 / 24-3 / 30-6 stretch.
-    //
-    //   SUSTAINED 36 pts, ratio ≥ 2.5, opp ≤ 12, span ≤ 22 min
-    //             — long, evenly-paced dominance (36-12 / 42-12).
-    //
-    //   MAJOR     42 pts, ratio ≥ 2.3, opp ≤ 18, span ≤ 32 min
-    //             — quarter-plus of clear control (42-18).
-    //
-    //   MEGA      48 pts (8 goals), ratio ≥ 2.3, opp ≤ 18, no span limit
-    //             — overwhelming, multi-quarter dominance (48-12 / 60-18).
-    //
-    // Important: opposition scoring is TOLERATED. A run is not killed by an
-    // occasional behind or even a goal as long as the windowed dominance still
-    // holds. The system fades a run only when the opposition meaningfully
-    // responds and the dominance ratio drops below the tier minimum.
-
-    private const int RunBurstMinPoints = 18;            // 3 unanswered-ish goals
-    private const double RunBurstMinRatio = 3.0;
-    private const int RunBurstMaxOppPoints = 1;          // tolerate at most 1 behind
-    private static readonly TimeSpan RunBurstMaxSpan = TimeSpan.FromMinutes(4);
-
-    private const int RunStandardMinPoints = 24;         // 4 goals
-    private const double RunStandardMinRatio = 2.5;
-    private const int RunStandardMaxOppPoints = 9;       // 1 goal + 3 behinds
-    private static readonly TimeSpan RunStandardMaxSpan = TimeSpan.FromMinutes(12);
-
-    private const int RunSustainedMinPoints = 36;        // 6 goals
-    private const double RunSustainedMinRatio = 2.5;
-    private const int RunSustainedMaxOppPoints = 12;
-    private static readonly TimeSpan RunSustainedMaxSpan = TimeSpan.FromMinutes(22);
-
-    private const int RunMajorMinPoints = 42;            // 7 goals
-    private const double RunMajorMinRatio = 2.3;
-    private const int RunMajorMaxOppPoints = 18;
-    private static readonly TimeSpan RunMajorMaxSpan = TimeSpan.FromMinutes(32);
-
-    private const int RunMegaMinPoints = 48;             // 8 goals
-    private const double RunMegaMinRatio = 2.3;
-    private const int RunMegaMaxOppPoints = 18;
-
-    // Outer scan caps — the multi-window evaluator never looks past this much
-    // history, regardless of how many events the match has accumulated.
-    private const int RunMaxEventWindow = 60;
-    private static readonly TimeSpan RunMaxTimeWindow = TimeSpan.FromMinutes(35);
-
-    // Candidate window sizes (in events). The evaluator scores each of these
-    // back from the most recent event and qualifies against the tier table.
-    private static readonly int[] RunCandidateEventWindows = { 4, 6, 8, 10, 12, 16, 20, 24, 30 };
-
-    // Candidate window sizes (in match minutes). Same idea, time-based.
-    private static readonly TimeSpan[] RunCandidateTimeWindows =
-    {
-        TimeSpan.FromMinutes(4),
-        TimeSpan.FromMinutes(8),
-        TimeSpan.FromMinutes(12),
-        TimeSpan.FromMinutes(18),
-        TimeSpan.FromMinutes(25),
-        TimeSpan.FromMinutes(35)
-    };
-
-    private const double RunRedundancyRatio = 0.92;      // suppress if run net >= this fraction of overall margin
-    private static readonly TimeSpan RunStalenessLimit = TimeSpan.FromMinutes(5);
-    // Recent-tail guard: of the most recent RunRecentTailSize events that fell
-    // within RunRecentTailWindow match-minutes, at least RunRecentTailDominance
-    // fraction of the points must go to the run team. This is a tight,
-    // momentum-focused window — independent of the much longer scan window —
-    // so a 30 min sustained run has to still be HOT in the last few minutes
-    // to qualify for re-display.
-    private const int RunRecentTailSize = 4;
-    private const double RunRecentTailDominance = 0.7;
-    private static readonly TimeSpan RunRecentTailWindow = TimeSpan.FromMinutes(4);
-
-    // Minimum events required to count as a run. Single-event "runs" are
-    // nonsense — a run is a SEQUENCE of dominant scoring.
-    private const int RunMinEventCount = 2;
+    // AFL-specific scoring-run model. A run is an observable dominant scoring
+    // stretch, not a claim that an unmeasured psychological momentum variable
+    // exists. Every possible suffix beginning with the featured team's score
+    // is evaluated, but only inside the current quarter: the quarter break is
+    // a real interruption and must terminate the broadcast story.
+    private static readonly TimeSpan RunMaxTimeWindow = TimeSpan.FromMinutes(20);
+    private static readonly TimeSpan RunNewStoryCooldown = TimeSpan.FromSeconds(75);
     private int _previousLeadChanges;
     private const int LeadChangeOverlayThreshold = 1;
     private const int LeadChangeMinTotal = 5;
@@ -169,15 +85,15 @@ public partial class MainWindow
     private static readonly TimeSpan AutoOverlayDelay = TimeSpan.FromSeconds(2);
     // Scoring run is a contextual analysis overlay — it should land AFTER
     // the goal animation, "+6" swipe, and any goal video have all cleared.
-    // Per spec: an intentional ~10s post-animation breath so the run feels
+    // Keep a short post-animation breath so the run feels
     // like a follow-up commentary graphic rather than an interruption.
-    private static readonly TimeSpan ScoringRunOverlayDelay = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan ScoringRunOverlayDelay = TimeSpan.FromSeconds(2);
     private DispatcherTimer? _autoOverlayDelayTimer;
     private DispatcherTimer? _scoringRunDelayTimer;
     private DispatcherTimer? _breakScreenDelayTimer;
 
     // ── Overlay queue — ensures each overlay gets its full display time ──
-    private readonly Queue<Action> _overlayQueue = new();
+    private readonly Queue<(Action Show, bool AllowWhenClockStopped)> _overlayQueue = new();
     private bool _overlayQueueWired;
 
     /// <summary>
@@ -196,13 +112,13 @@ public partial class MainWindow
         // Notify the scheduler that the overlay zone is now free
         _overlayScheduler.NotifyOverlayHidden();
 
-        // Block both queued and non-queued overlays for the next 90 seconds so
+        // Block both queued and non-queued overlays for a short clean-air beat so
         // the viewer gets a clear beat of scorebug-only between them.
         _nextOverlayAllowedAtUtc = DateTime.UtcNow + OverlayCooldown;
 
         if (_overlayQueue.Count == 0) return;
 
-        Action next = _overlayQueue.Dequeue();
+        var next = _overlayQueue.Dequeue();
 
         // Solid cooldown between consecutive overlays so the operator (and the
         // viewer) gets a clear beat of scorebug-only between them.
@@ -221,24 +137,24 @@ public partial class MainWindow
                     if (_scorebug == null || !_scorebug.IsScoreAnimating)
                     {
                         poll.Stop();
-                        if (!_autoOverlaysEnabled || !_match.ClockRunning) return;
-                        next();
+                        if (!_autoOverlaysEnabled || (!next.AllowWhenClockStopped && !_match.ClockRunning)) return;
+                        next.Show();
                     }
                 };
                 poll.Start();
             }
             else
             {
-                if (!_autoOverlaysEnabled || !_match.ClockRunning) return;
-                next();
+                if (!_autoOverlaysEnabled || (!next.AllowWhenClockStopped && !_match.ClockRunning)) return;
+                next.Show();
             }
         };
         gap.Start();
     }
 
-    // Solid 90-second cooldown between the end of one overlay and the start
+    // Short cooldown between the end of one overlay and the start
     // of the next. Applies to both queued and non-queued auto overlays.
-    private static readonly TimeSpan OverlayCooldown = TimeSpan.FromSeconds(90);
+    private static readonly TimeSpan OverlayCooldown = TimeSpan.FromSeconds(25);
     private DateTime _nextOverlayAllowedAtUtc = DateTime.MinValue;
 
     /// <summary>
@@ -247,7 +163,7 @@ public partial class MainWindow
     /// the current overlay finishes.
     /// <para>
     /// When <paramref name="isPriority"/> is <c>true</c> (event-driven overlays
-    /// like scoring runs and lead changes), the 90-second post-overlay cooldown
+    /// like scoring runs and lead changes), the informational cooldown
     /// is bypassed so the overlay lands close to the moment that triggered it.
     /// The overlay still waits politely if another overlay is currently showing.
     /// </para>
@@ -276,28 +192,28 @@ public partial class MainWindow
             if (isPriority && _scorebug.CancelInformationalOverlay())
             {
                 // CancelInformationalOverlay raises OverlayHidden which queues
-                // a 90-second gap drain — but for priority overlays we want
+                // a cooldown drain — but for priority overlays we want
                 // the new one to start now. Reset the cooldown gate and run
                 // the standard short delay so the goal animation can settle.
                 _nextOverlayAllowedAtUtc = DateTime.MinValue;
                 _overlayQueue.Clear();
-                ScheduleAutoOverlay(showAction);
+                ScheduleAutoOverlay(showAction, allowWhenClockStopped: true);
                 return;
             }
 
-            _overlayQueue.Enqueue(showAction);
+            _overlayQueue.Enqueue((showAction, isPriority));
             return;
         }
 
         // Nothing active — but an overlay might have just finished. Enforce the
-        // 90-second cooldown so the viewer gets a real beat of scorebug-only
+        // cooldown so the viewer gets a real beat of scorebug-only
         // between any two overlays. Priority overlays bypass this cooldown so
         // event-driven moments (scoring run, lead changes, drought, scoreless)
         // land close to the event that triggered them.
         DateTime now = DateTime.UtcNow;
         if (!isPriority && now < _nextOverlayAllowedAtUtc)
         {
-            _overlayQueue.Enqueue(showAction);
+            _overlayQueue.Enqueue((showAction, false));
             TimeSpan remaining = _nextOverlayAllowedAtUtc - now;
             DispatcherTimer wait = new() { Interval = remaining };
             wait.Tick += (_, _) =>
@@ -312,7 +228,7 @@ public partial class MainWindow
         }
 
         // Nothing active — show after the standard delay
-        ScheduleAutoOverlay(showAction);
+        ScheduleAutoOverlay(showAction, allowWhenClockStopped: isPriority);
     }
 
     /// <summary>
@@ -326,7 +242,8 @@ public partial class MainWindow
         Action showAction,
         TimeSpan delay,
         Func<DispatcherTimer?> getTimer,
-        Action<DispatcherTimer?> setTimer)
+        Action<DispatcherTimer?> setTimer,
+        bool allowWhenClockStopped = false)
     {
         getTimer()?.Stop();
         DispatcherTimer timer = new() { Interval = delay };
@@ -357,7 +274,7 @@ public partial class MainWindow
                         setTimer(null);
                         // Final pause check — the clock may have stopped while
                         // we were waiting for the score animation/video/overlay.
-                        if (!_autoOverlaysEnabled || !_match.ClockRunning) return;
+                        if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning)) return;
                         showAction();
                     }
                 };
@@ -366,7 +283,7 @@ public partial class MainWindow
             else
             {
                 setTimer(null);
-                if (!_autoOverlaysEnabled || !_match.ClockRunning) return;
+                if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning)) return;
                 showAction();
             }
         };
@@ -374,10 +291,11 @@ public partial class MainWindow
     }
 
     /// <summary>Schedules an auto overlay with the default 2-second delay.</summary>
-    private void ScheduleAutoOverlay(Action showAction)
+    private void ScheduleAutoOverlay(Action showAction, bool allowWhenClockStopped = false)
     {
         ScheduleAutoOverlay(showAction, AutoOverlayDelay,
-            () => _autoOverlayDelayTimer, t => _autoOverlayDelayTimer = t);
+            () => _autoOverlayDelayTimer, t => _autoOverlayDelayTimer = t,
+            allowWhenClockStopped);
     }
 
     // ── Automatic overlay toggle ──
@@ -662,13 +580,20 @@ public partial class MainWindow
         MediaColor awayColor = GetTeamColor(false);
 
         // Colours
-        MediaColor restBg = MediaColor.FromRgb(0x14, 0x1A, 0x24);
-        MediaColor hoverBg = MediaColor.FromArgb(0xFF, 0x1C, 0x24, 0x33);
-        MediaColor restBorder = MediaColor.FromArgb(0x30, teamColor.R, teamColor.G, teamColor.B);
-        MediaColor hoverBorder = MediaColor.FromArgb(0x80, teamColor.R, teamColor.G, teamColor.B);
+        // Make the whole event card belong to the scoring team, not just a
+        // three-pixel stripe. The colour is mixed into a dark broadcast-safe
+        // surface so even bright yellow/white club palettes retain contrast.
+        MediaColor restBg = BlendMatchLogColor(MediaColor.FromRgb(0x0C, 0x13, 0x1D), teamColor, 0.30);
+        MediaColor hoverBg = BlendMatchLogColor(MediaColor.FromRgb(0x10, 0x19, 0x25), teamColor, 0.42);
+        MediaColor cardInk = SmartContrast.PickForeground(restBg, hoverBg);
+        MediaColor restBorder = ContrastHelper.GetVisibleBorderColor(restBg, teamColor, cardInk);
+        MediaColor hoverBorder = ContrastHelper.GetVisibleBorderColor(hoverBg, teamColor, cardInk);
         MediaColor typeColor = ev.Type == ScoreType.Goal
             ? MediaColor.FromRgb(0x3F, 0xB9, 0x50)
             : MediaColor.FromRgb(0xD2, 0x99, 0x22);
+        MediaColor badgeBg = BlendMatchLogColor(restBg, typeColor, 0.22);
+        MediaColor badgeInk = SmartContrast.PickReadableForeground(typeColor, badgeBg);
+        MediaColor typeInk = SmartContrast.PickReadableForeground(typeColor, restBg, hoverBg);
 
         // ── Accent stripe (left edge, team colour) ──
         Border accentStripe = new()
@@ -684,15 +609,15 @@ public partial class MainWindow
         TextBlock pointsBadge = new()
         {
             Text = points,
-            Foreground = new SolidColorBrush(typeColor),
+            Foreground = new SolidColorBrush(badgeInk),
             FontSize = 10,
             FontWeight = FontWeights.Black,
             VerticalAlignment = System.Windows.VerticalAlignment.Center
         };
         Border pointsBorder = new()
         {
-            Background = new SolidColorBrush(MediaColor.FromArgb(0x20, typeColor.R, typeColor.G, typeColor.B)),
-            BorderBrush = new SolidColorBrush(MediaColor.FromArgb(0x40, typeColor.R, typeColor.G, typeColor.B)),
+            Background = new SolidColorBrush(badgeBg),
+            BorderBrush = new SolidColorBrush(ContrastHelper.GetVisibleBorderColor(badgeBg, typeColor, badgeInk)),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(3),
             Padding = new Thickness(5, 1, 5, 1),
@@ -705,7 +630,7 @@ public partial class MainWindow
         TextBlock typeLabel = new()
         {
             Text = type,
-            Foreground = new SolidColorBrush(typeColor),
+            Foreground = new SolidColorBrush(typeInk),
             FontSize = 11,
             FontWeight = FontWeights.Black,
             Margin = new Thickness(0, 0, 6, 0),
@@ -715,7 +640,7 @@ public partial class MainWindow
         TextBlock teamLabel = new()
         {
             Text = teamName.ToUpper(),
-            Foreground = MediaBrushes.White,
+            Foreground = new SolidColorBrush(cardInk),
             FontSize = 11,
             FontWeight = FontWeights.Bold,
             VerticalAlignment = System.Windows.VerticalAlignment.Center
@@ -724,7 +649,7 @@ public partial class MainWindow
         TextBlock clockLabel = new()
         {
             Text = clock,
-            Foreground = new SolidColorBrush(MediaColor.FromRgb(0x58, 0x65, 0x78)),
+            Foreground = new SolidColorBrush(cardInk),
             FontSize = 10,
             FontFamily = new System.Windows.Media.FontFamily("Consolas"),
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
@@ -745,13 +670,13 @@ public partial class MainWindow
         headerRow.Children.Add(clockLabel);
 
         // ── Scoreline row: HOME G.B.T — AWAY G.B.T ──
-        var dimBrush = new SolidColorBrush(MediaColor.FromRgb(0x50, 0x5E, 0x70));
-        var brightBrush = new SolidColorBrush(MediaColor.FromRgb(0xC9, 0xD1, 0xD9));
+        var dimBrush = new SolidColorBrush(cardInk) { Opacity = 0.78 };
+        var brightBrush = new SolidColorBrush(cardInk);
 
         TextBlock homeNameScore = new()
         {
             Text = _match.HomeName.ToUpper(),
-            Foreground = isHome ? new SolidColorBrush(ContrastHelper.GetReadableTextColor(restBg, homeColor)) : dimBrush,
+            Foreground = isHome ? brightBrush : dimBrush,
             FontSize = 10,
             FontWeight = isHome ? FontWeights.Bold : FontWeights.Normal,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
@@ -771,7 +696,7 @@ public partial class MainWindow
         TextBlock separator = new()
         {
             Text = "–",
-            Foreground = new SolidColorBrush(MediaColor.FromRgb(0x3A, 0x44, 0x52)),
+            Foreground = new SolidColorBrush(cardInk) { Opacity = 0.65 },
             FontSize = 11,
             FontWeight = FontWeights.Bold,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
@@ -791,7 +716,7 @@ public partial class MainWindow
         TextBlock awayNameScore = new()
         {
             Text = _match.AwayName.ToUpper(),
-            Foreground = !isHome ? new SolidColorBrush(ContrastHelper.GetReadableTextColor(restBg, awayColor)) : dimBrush,
+            Foreground = !isHome ? brightBrush : dimBrush,
             FontSize = 10,
             FontWeight = !isHome ? FontWeights.Bold : FontWeights.Normal,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
@@ -813,7 +738,7 @@ public partial class MainWindow
         TextBlock editHint = new()
         {
             Text = "✎ Click to edit",
-            Foreground = new SolidColorBrush(MediaColor.FromRgb(0x81, 0x8C, 0xF8)),
+            Foreground = new SolidColorBrush(cardInk),
             FontSize = 9,
             FontWeight = FontWeights.SemiBold,
             Opacity = 0.0,
@@ -929,6 +854,16 @@ public partial class MainWindow
         return bar;
     }
 
+    private static MediaColor BlendMatchLogColor(MediaColor surface, MediaColor team, double teamWeight)
+    {
+        teamWeight = Math.Clamp(teamWeight, 0, 1);
+        double surfaceWeight = 1 - teamWeight;
+        return MediaColor.FromRgb(
+            (byte)Math.Round(surface.R * surfaceWeight + team.R * teamWeight),
+            (byte)Math.Round(surface.G * surfaceWeight + team.G * teamWeight),
+            (byte)Math.Round(surface.B * surfaceWeight + team.B * teamWeight));
+    }
+
     /// <summary>
     /// Creates a styled separator bar for the match log that marks the start of a quarter.
     /// </summary>
@@ -1006,6 +941,11 @@ public partial class MainWindow
         if (_statsScreen?.Visibility == Visibility.Visible)
         {
             PopulateStatsScreen();
+        }
+
+        if (_weatherScreen?.Visibility == Visibility.Visible)
+        {
+            PopulateWeatherScreen();
         }
     }
 
@@ -1315,7 +1255,7 @@ public partial class MainWindow
         GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
         if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
         {
-            style = GoalAnimationStyle.Classic;
+            style = GoalAnimationStyle.Broadcast;
         }
 
         // CRITICAL: lock the score display BEFORE mutating the model.
@@ -1378,7 +1318,7 @@ public partial class MainWindow
         GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
         if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
         {
-            style = GoalAnimationStyle.Classic;
+            style = GoalAnimationStyle.Broadcast;
         }
 
         BeginScoreAnimation(GetGoalAnimationDuration(style));
@@ -2462,10 +2402,10 @@ public partial class MainWindow
         _overlayScheduler.Reset();
         _previousLeadChanges = 0;
         _lastShownRunTeam = TeamSide.Home;
-        _lastShownRunTime = DateTime.MinValue;
         _lastShownRunMargin = 0;
         _lastShownRunMatchClock = TimeSpan.MinValue;
         _lastShownRunTier = RunTier.None;
+        _lastShownRunStartTimestamp = DateTime.MinValue;
         _autoOverlayDelayTimer?.Stop();
         _autoOverlayDelayTimer = null;
         _scoringRunDelayTimer?.Stop();
@@ -2482,27 +2422,8 @@ public partial class MainWindow
         ScoreEvent? Newest, ScoreEvent? Oldest);
 
     /// <summary>
-    /// Scans recent events backwards from <paramref name="runTeam"/> to detect a
-    /// scoring run. Returns null if there are no events.
-    /// <para>
-    /// The main scan stays inside <see cref="RunMaxTimeWindow"/> and the event cap
-    /// <see cref="RunMaxEventWindow"/>. If the run already qualifies by the end of
-    /// that scan (strong dominance + minimum points), a follow-up extension pass
-    /// continues absorbing contiguous earlier events that still satisfy the
-    /// dominance constraints. This picks up "big" runs like a 40-2 spanning the
-    /// start of Q1 all the way into Q2.
-    /// </para>
-    /// <para>
-    /// A "recent-tail" guard also applies: the most recent few events in the
-    /// window must be dominated by the run team, otherwise the run is cooling
-    /// and the overlay would mislead the viewer.
-    /// </para>
-    /// </summary>
-    /// <summary>
-    /// Multi-window scoring-run scan. Evaluates the candidate event-count
-    /// windows and time windows defined by <see cref="RunCandidateEventWindows"/>
-    /// and <see cref="RunCandidateTimeWindows"/> against the tier table, then
-    /// returns the highest-tier window. Returns null if no window qualifies.
+    /// Scans every plausible current-quarter start point and returns the most
+    /// salient dominant suffix ending at the latest score.
     /// <para>
     /// Unlike the older "consecutive scoring" detector, this engine TOLERATES
     /// occasional opposition scoring. Each window is judged on overall
@@ -2516,43 +2437,32 @@ public partial class MainWindow
     {
         var events = _match.Events;
         var empty = new ScoringRunResult(team, 0, 0, 0, DateTime.MinValue, DateTime.MinValue, null, null);
-        if (events.Count == 0)
-            return new RunEvaluation(empty, RunTier.None, false, TimeSpan.Zero, 0.0, TimeSpan.MaxValue);
+        if (events.Count == 0 || events[^1].Team != team)
+            return new RunEvaluation(empty, RunTier.None, false, TimeSpan.Zero, 0, 0);
 
-        // Anchor every window on the most recent event in the match (not the
-        // most recent for the run team — momentum is about the live tail).
-        TimeSpan newestMatchClock = MatchClockOfEvent(events[^1], quarterDuration);
-
+        int endIdx = events.Count - 1;
+        int quarter = events[endIdx].Quarter;
+        TimeSpan newestClock = MatchClockOfEvent(events[endIdx], quarterDuration);
         RunEvaluation? best = null;
 
-        // Event-count windows.
-        foreach (int win in RunCandidateEventWindows)
+        // Evaluate every plausible start, rather than a handful of arbitrary
+        // window sizes. This is equivalent to finding the most meaningful
+        // dominant suffix ending at the latest score.
+        for (int startIdx = endIdx; startIdx >= 0; startIdx--)
         {
-            int upper = Math.Min(win, RunMaxEventWindow);
-            int startIdx = Math.Max(0, events.Count - upper);
-            var candidate = ScoreWindow(team, startIdx, events.Count - 1, quarterDuration, newestMatchClock);
-            if (candidate is null) continue;
-            best = PickBetter(best, candidate);
+            ScoreEvent start = events[startIdx];
+            if (start.Quarter != quarter) break;
+            if (start.Team != team) continue;
+
+            TimeSpan span = newestClock - MatchClockOfEvent(start, quarterDuration);
+            if (span > RunMaxTimeWindow) break;
+
+            RunEvaluation? candidate = ScoreWindow(team, startIdx, endIdx, quarterDuration);
+            if (candidate is not null)
+                best = PickBetter(best, candidate);
         }
 
-        // Time-windowed scans.
-        foreach (TimeSpan win in RunCandidateTimeWindows)
-        {
-            TimeSpan capped = win < RunMaxTimeWindow ? win : RunMaxTimeWindow;
-            int startIdx = -1;
-            for (int i = events.Count - 1; i >= 0; i--)
-            {
-                TimeSpan emc = MatchClockOfEvent(events[i], quarterDuration);
-                if (newestMatchClock - emc > capped) break;
-                startIdx = i;
-            }
-            if (startIdx < 0) continue;
-            var candidate = ScoreWindow(team, startIdx, events.Count - 1, quarterDuration, newestMatchClock);
-            if (candidate is null) continue;
-            best = PickBetter(best, candidate);
-        }
-
-        return best ?? new RunEvaluation(empty, RunTier.None, false, TimeSpan.Zero, 0.0, TimeSpan.MaxValue);
+        return best ?? new RunEvaluation(empty, RunTier.None, false, TimeSpan.Zero, 0, 0);
     }
 
     /// <summary>
@@ -2560,66 +2470,67 @@ public partial class MainWindow
     /// score event list against the tier table. Returns the highest-tier
     /// qualifying evaluation for that window, or null if it doesn't qualify.
     /// </summary>
-    private RunEvaluation? ScoreWindow(TeamSide team, int startIdx, int endIdx, TimeSpan quarterDuration, TimeSpan newestMatchClock)
+    private RunEvaluation? ScoreWindow(TeamSide team, int startIdx, int endIdx, TimeSpan quarterDuration)
     {
         var events = _match.Events;
         if (startIdx < 0 || endIdx < startIdx || endIdx >= events.Count) return null;
 
-        int runPts = 0, oppPts = 0, eventCount = 0;
+        int runPts = 0, oppPts = 0, teamEventCount = 0;
         ScoreEvent? oldest = null;
         ScoreEvent? newest = null;
         DateTime runStart = DateTime.MinValue;
         DateTime newestTs = DateTime.MinValue;
 
-        // Trim leading opposition-only history: the run "starts" at the first
-        // event from the run team inside the window. This prevents an empty
-        // 5-min stretch of opposition scoring from inflating opp pts.
-        int firstRunIdx = -1;
         for (int i = startIdx; i <= endIdx; i++)
-        {
-            if (events[i].Team == team) { firstRunIdx = i; break; }
-        }
-        if (firstRunIdx < 0) return null;
-
-        for (int i = firstRunIdx; i <= endIdx; i++)
         {
             var e = events[i];
             int pts = e.Type == ScoreType.Goal ? 6 : 1;
-            if (e.Team == team) runPts += pts;
+            if (e.Team == team)
+            {
+                runPts += pts;
+                teamEventCount++;
+            }
             else oppPts += pts;
             oldest ??= e;
             newest = e;
             runStart = oldest.Timestamp;
             newestTs = e.Timestamp;
-            eventCount++;
         }
-        if (eventCount == 0 || newest is null || oldest is null) return null;
+        if (teamEventCount == 0 || newest is null || oldest is null) return null;
 
         TimeSpan span = MatchClockOfEvent(newest, quarterDuration) - MatchClockOfEvent(oldest, quarterDuration);
         if (span < TimeSpan.Zero) span = TimeSpan.Zero;
 
+        int totalPoints = runPts + oppPts;
+        int netSwing = runPts - oppPts;
+        double share = totalPoints > 0 ? (double)runPts / totalPoints : 0;
         double ratio = (double)runPts / Math.Max(1, oppPts);
-        TimeSpan since = newestMatchClock - MatchClockOfEvent(newest, quarterDuration);
-        if (since < TimeSpan.Zero) since = TimeSpan.Zero;
-
-        // Tier qualification — pick highest tier that accepts the window.
-        // Order matters: bigger tiers tested first.
-        RunTier tier = RunTier.None;
-        if (runPts >= RunMegaMinPoints && ratio >= RunMegaMinRatio && oppPts <= RunMegaMaxOppPoints)
-            tier = RunTier.Mega;
-        else if (runPts >= RunMajorMinPoints && ratio >= RunMajorMinRatio && oppPts <= RunMajorMaxOppPoints && span <= RunMajorMaxSpan)
-            tier = RunTier.Major;
-        else if (runPts >= RunSustainedMinPoints && ratio >= RunSustainedMinRatio && oppPts <= RunSustainedMaxOppPoints && span <= RunSustainedMaxSpan)
-            tier = RunTier.Sustained;
-        else if (runPts >= RunStandardMinPoints && ratio >= RunStandardMinRatio && oppPts <= RunStandardMaxOppPoints && span <= RunStandardMaxSpan)
-            tier = RunTier.Standard;
-        else if (runPts >= RunBurstMinPoints && ratio >= RunBurstMinRatio && oppPts <= RunBurstMaxOppPoints && span <= RunBurstMaxSpan)
-            tier = RunTier.Burst;
+        RunTier tier = ClassifyScoringRun(runPts, netSwing, teamEventCount, share, span);
 
         if (tier == RunTier.None) return null;
 
-        var result = new ScoringRunResult(team, runPts, oppPts, eventCount, runStart, newestTs, newest, oldest);
-        return new RunEvaluation(result, tier, true, span, ratio, since);
+        // Salience favours net scoreboard impact, dominance and pace without
+        // letting one very old high-volume window beat the current sharp run.
+        double salience = netSwing + runPts * 0.25 + share * 12
+                          + (int)tier * 8 - span.TotalMinutes * 0.20;
+        var result = new ScoringRunResult(team, runPts, oppPts, teamEventCount, runStart, newestTs, newest, oldest);
+        return new RunEvaluation(result, tier, true, span, ratio, salience);
+    }
+
+    private static RunTier ClassifyScoringRun(int points, int netSwing, int scoringEvents,
+        double pointShare, TimeSpan span)
+    {
+        if (points >= 60 && netSwing >= 36 && scoringEvents >= 8 && pointShare >= 0.75 && span <= TimeSpan.FromMinutes(20))
+            return RunTier.Mega;
+        if (points >= 48 && netSwing >= 30 && scoringEvents >= 7 && pointShare >= 0.72 && span <= TimeSpan.FromMinutes(20))
+            return RunTier.Major;
+        if (points >= 36 && netSwing >= 24 && scoringEvents >= 5 && pointShare >= 0.72 && span <= TimeSpan.FromMinutes(18))
+            return RunTier.Sustained;
+        if (points >= 24 && netSwing >= 18 && scoringEvents >= 4 && pointShare >= 0.75 && span <= TimeSpan.FromMinutes(12))
+            return RunTier.Standard;
+        if (points >= 18 && netSwing >= 17 && scoringEvents >= 3 && pointShare >= 0.90 && span <= TimeSpan.FromMinutes(7))
+            return RunTier.Burst;
+        return RunTier.None;
     }
 
     private static RunEvaluation PickBetter(RunEvaluation? current, RunEvaluation candidate)
@@ -2665,93 +2576,30 @@ public partial class MainWindow
         return TimeSpan.FromTicks(quarterDuration.Ticks * (q - 1)) + ev.GameTime;
     }
 
-    /// <summary>
-    /// Computes the match-clock distance from <paramref name="ev"/> to the
-    /// current live match position ((Quarter-1) × QuarterDuration + ElapsedInQuarter).
-    /// Returns <see cref="TimeSpan.Zero"/> if the event is somehow ahead of
-    /// the live position (defensive — shouldn't happen).
-    /// </summary>
-    private TimeSpan ComputeMatchClockSinceEvent(ScoreEvent? ev, TimeSpan quarterDuration)
-    {
-        if (ev is null) return TimeSpan.Zero;
-        TimeSpan eventClock = MatchClockOfEvent(ev, quarterDuration);
-        TimeSpan liveClock = TimeSpan.FromTicks(quarterDuration.Ticks * (Math.Clamp(_match.Quarter, 1, 4) - 1)) + _match.ElapsedInQuarter;
-        return liveClock > eventClock ? liveClock - eventClock : TimeSpan.Zero;
-    }
-
-    /// <summary>Convenience overload for the most recent event in the window.</summary>
-    private TimeSpan ComputeMatchClockSinceLatest(ScoreEvent ev, TimeSpan quarterDuration)
-        => ComputeMatchClockSinceEvent(ev, quarterDuration);
-
     private void CheckScoringRunAfterScore(ScoreEvent ev)
     {
         if (_scorebug == null || _showingBreakScreen) return;
 
         var events = _match.Events;
-        if (events.Count < 3) return;
+        // A delayed/queued callback becomes obsolete the instant another score
+        // is entered or the event is corrected. Never narrate stale history.
+        if (events.Count < 3 || !ReferenceEquals(events[^1], ev) || ev.Quarter != _match.Quarter)
+            return;
 
         TimeSpan quarterDuration = _match.QuarterDuration;
-
-        // Evaluate both teams' candidate runs, then rank them by (tier,
-        // freshness, ratio). The team that triggered the score does NOT
-        // automatically win — what matters is which run currently has the
-        // momentum.
-        var homeEval = EvaluateRunForTeam(TeamSide.Home, quarterDuration);
-        var awayEval = EvaluateRunForTeam(TeamSide.Away, quarterDuration);
-
-        // Pick the better-ranked qualifying run.
-        RunEvaluation? best = null;
-        if (homeEval.Qualifies && awayEval.Qualifies)
-            best = CompareRuns(homeEval, awayEval) >= 0 ? homeEval : awayEval;
-        else if (homeEval.Qualifies)
-            best = homeEval;
-        else if (awayEval.Qualifies)
-            best = awayEval;
-
-        if (best is null) return;
+        RunEvaluation best = EvaluateRunForTeam(ev.Team, quarterDuration);
+        if (!best.Qualifies) return;
 
         var run = best.Run;
         var tier = best.Tier;
         int runPoints = run.RunPoints;
         int opponentPoints = run.OpponentPoints;
-        DateTime newestTimestamp = run.NewestTimestamp;
-        DateTime now = DateTime.Now;
-
-        // Minimum-event guard — a "run" needs at least 2 dominant scores.
-        if (run.EventCount < RunMinEventCount) return;
-
-        // Staleness — match-clock only. The most recent run event must be
-        // within RunStalenessLimit match-minutes of the live match position.
-        // This is the same yardstick used everywhere else in the run logic
-        // and avoids wall-clock surprises after saved-game restores.
-        TimeSpan stalenessMatchClock = ComputeMatchClockSinceEvent(run.Newest, quarterDuration);
-        if (stalenessMatchClock > RunStalenessLimit) return;
-
-        // Redundancy filter — see the inline comments below for the exception
-        // table. A run that just restates the overall match margin adds no
-        // information beyond the scorebug.
-        int overallMargin = Math.Abs(_match.HomeTotal - _match.AwayTotal);
-        int runNet = runPoints - opponentPoints;
-        if (overallMargin > 0 && runNet >= overallMargin * RunRedundancyRatio)
-        {
-            // Exceptions — the run is still worth showing when any of these hold:
-            //   1. Burst (clean & concentrated) — pure momentum the viewer just saw.
-            //   2. Strong dominance ratio (e.g. 18-1, 21-1) — the score gap alone
-            //      doesn't convey how lopsided the recent play has been.
-            //   3. Sustained or Mega tier — sheer volume / duration is itself the story.
-            double dominanceRatio = (double)runPoints / Math.Max(1, opponentPoints);
-            bool isBurst = tier == RunTier.Burst;
-            bool isDominant = runPoints >= RunStandardMinPoints && dominanceRatio >= 4.0;
-            bool isLargeRun = tier >= RunTier.Sustained;
-            if (!isBurst && !isDominant && !isLargeRun) return;
-        }
-
         // Cooldown — match-clock-based, with three escape hatches:
         //   1. Different team than last shown (momentum has flipped) — fresh
         //      story, only the short cross-team cooldown applies.
         //   2. Tier has escalated (e.g. Standard → Sustained) — the run grew
         //      from "good" to "remarkable", re-show even within cooldown.
-        //   3. Same team, same tier — run must have grown by ≥6 pts (1 goal)
+        //   3. Same team, same tier — run must have grown by ≥12 pts (2 goals)
         //      to merit re-display, or cooldown must have elapsed.
         TimeSpan currentMatchClock = TimeSpan.FromTicks(quarterDuration.Ticks * (Math.Clamp(_match.Quarter, 1, 4) - 1)) + _match.ElapsedInQuarter;
         TimeSpan elapsedSinceLastShow = _lastShownRunMatchClock == TimeSpan.MinValue
@@ -2759,10 +2607,12 @@ public partial class MainWindow
             : currentMatchClock - _lastShownRunMatchClock;
         if (elapsedSinceLastShow < TimeSpan.Zero) elapsedSinceLastShow = TimeSpan.MaxValue;
 
-        if (run.Team == _lastShownRunTeam)
+        bool sameRun = run.Team == _lastShownRunTeam
+                       && run.Oldest?.Timestamp == _lastShownRunStartTimestamp;
+        if (sameRun)
         {
             // Same-team re-show: allow if tier escalated, or run has grown
-            // by ≥1 goal, or the per-team cooldown has elapsed.
+            // by ≥2 goals, or the per-team cooldown has elapsed.
             bool tierEscalated = tier > _lastShownRunTier;
             bool grewMeaningfully = runPoints >= _lastShownRunMargin + RunSameTeamGrowthPoints;
             bool cooldownElapsed = elapsedSinceLastShow >= RunCooldown;
@@ -2771,31 +2621,32 @@ public partial class MainWindow
         }
         else
         {
-            // Cross-team re-show: short cooldown so a momentum flip lands
-            // close to the moment it happened, without trampling a freshly
-            // shown overlay.
-            if (elapsedSinceLastShow < RunCrossTeamCooldown)
+            // A different start event is a new story, even for the same team.
+            // Keep a short clean-air gap without inheriting the previous run's
+            // point total or tier-escalation state.
+            if (elapsedSinceLastShow < RunNewStoryCooldown)
                 return;
         }
 
         _lastShownRunTeam = run.Team;
         _lastShownRunMargin = runPoints;
-        _lastShownRunTime = now;
         _lastShownRunMatchClock = currentMatchClock;
         _lastShownRunTier = tier;
+        _lastShownRunStartTimestamp = run.Oldest?.Timestamp ?? DateTime.MinValue;
 
         _overlayScheduler.NotifyEventDrivenOverlay();
 
         string teamName = run.Team == TeamSide.Home ? _match.HomeName : _match.AwayName;
         var runColor = GetTeamColor(run.Team == TeamSide.Home);
         string colorHex = $"#{runColor.R:X2}{runColor.G:X2}{runColor.B:X2}";
-        _scorebug.ShowScoringRun(teamName, runPoints, opponentPoints, run.Start, colorHex);
+        _scorebug.ShowScoringRun(teamName, runPoints, opponentPoints,
+            best.MatchClockSpan, run.EventCount, colorHex);
     }
 
     /// <summary>
     /// Result of evaluating a single team's candidate scoring run against the
     /// tier table. <see cref="Qualifies"/> is true only when at least one
-    /// tier accepts the run AND the recent-tail guard is satisfied. The tier
+    /// tier accepts the run. The tier
     /// is the <em>highest</em> qualifying tier (so a run that satisfies both
     /// Standard and Sustained reports as Sustained).
     /// </summary>
@@ -2805,7 +2656,7 @@ public partial class MainWindow
         bool Qualifies,
         TimeSpan MatchClockSpan,
         double DominanceRatio,
-        TimeSpan SinceLatest);
+        double Salience);
 
     /// <summary>
     /// Calculates a candidate run for <paramref name="team"/> and evaluates
@@ -2821,12 +2672,9 @@ public partial class MainWindow
     /// should win, 0 if they're equivalent.
     /// <para>
     /// Ranking criteria, in order:
-    ///   1. Higher tier always wins (a Mega run beats a Burst even if the
-    ///      Burst is fresher — sheer dominance is the bigger story).
-    ///   2. Within the same tier, the FRESHER run wins (smaller "since
-    ///      latest event" match-clock distance) — momentum is about now.
-    ///   3. As a final tiebreaker, the run with the higher dominance ratio
-    ///      wins — more lopsided is more interesting.
+    ///   1. Higher tier always wins.
+    ///   2. Within a tier, the strongest net/dominance/pace salience wins.
+    ///   3. Ties prefer the tighter span, then the higher dominance ratio.
     /// </para>
     /// </summary>
     private static int CompareRuns(RunEvaluation a, RunEvaluation b)
@@ -2834,10 +2682,12 @@ public partial class MainWindow
         int tierCmp = a.Tier.CompareTo(b.Tier);
         if (tierCmp != 0) return tierCmp;
 
-        // Within the same tier, fresher wins (smaller "since latest" is better).
-        int freshCmp = b.SinceLatest.CompareTo(a.SinceLatest);
-        if (freshCmp != 0) return freshCmp;
+        int salienceCmp = a.Salience.CompareTo(b.Salience);
+        if (salienceCmp != 0) return salienceCmp;
 
+        // If two starts tell the same-strength story, prefer the tighter one.
+        int spanCmp = b.MatchClockSpan.CompareTo(a.MatchClockSpan);
+        if (spanCmp != 0) return spanCmp;
         return a.DominanceRatio.CompareTo(b.DominanceRatio);
     }
 
@@ -3050,19 +2900,35 @@ public partial class MainWindow
             _videoPlayer?.Pause();
         }
 
+        int transitionVersion = ++_screenTransitionVersion;
+        CancelPresentationAnimations();
+
         var current = GetCurrentlyVisibleScreen();
         if (current == target)
         {
+            NormalizePresentationSurfaces(target);
+            _showingBreakScreen = target != _scorebug;
             UpdateActiveDisplayLabel(label);
             return;
         }
 
+        // A rapid second selection can arrive before the previous transition
+        // completes. Keep exactly one outgoing surface and one incoming surface
+        // so stale animation clocks cannot leave duplicate screens visible.
+        foreach (UIElement surface in GetPresentationSurfaces())
+        {
+            if (surface != current && surface != target)
+                NormalizePresentationSurface(surface, visible: false);
+        }
+        if (current != null) NormalizePresentationSurface(current, visible: true);
+        NormalizePresentationSurface(target, visible: false);
+
         if (current != null)
         {
             if (_scorebug != null && _scorebug.IsRetroLayout)
-                RetroTransition(current, target);
+                RetroTransition(current, target, transitionVersion);
             else
-                SlideTransition(current, target, true);
+                SlideTransition(current, target, true, transitionVersion);
         }
         else
         {
@@ -3079,7 +2945,7 @@ public partial class MainWindow
         // Goal videos drive their own playback start via PlayCustomGoalVideoIfConfigured.
     }
 
-    private void SlideTransition(UIElement from, UIElement to, bool slideLeft)
+    private void SlideTransition(UIElement from, UIElement to, bool slideLeft, int transitionVersion)
     {
         // Modern "blackout pulse" transition:
         //   1. Black overlay fades in (covers desktop / any compositor flash)
@@ -3111,6 +2977,8 @@ public partial class MainWindow
         var fadeToBlack = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(fadeInMs)) { EasingFunction = ease };
         fadeToBlack.Completed += (_, _) =>
         {
+            if (transitionVersion != _screenTransitionVersion) return;
+
             // Swap behind the curtain
             from.Visibility = Visibility.Collapsed;
             from.Opacity = 1;
@@ -3136,6 +3004,7 @@ public partial class MainWindow
             };
             fadeFromBlack.Completed += (_, _) =>
             {
+                if (transitionVersion != _screenTransitionVersion) return;
                 if (_retroCrtOverlay != null)
                 {
                     _retroCrtOverlay.Visibility = Visibility.Collapsed;
@@ -3153,7 +3022,7 @@ public partial class MainWindow
     /// Retro CRT-style screen transition — fast blackout, scanline sweep, static noise flash,
     /// then the new screen resolves through a vertical-roll / brightness reveal.
     /// </summary>
-    private void RetroTransition(UIElement from, UIElement to)
+    private void RetroTransition(UIElement from, UIElement to, int transitionVersion)
     {
         if (_retroCrtOverlay == null)
         {
@@ -3253,6 +3122,7 @@ public partial class MainWindow
         // Cleanup
         sb.Completed += (_, _) =>
         {
+            if (transitionVersion != _screenTransitionVersion) return;
             from.Visibility = Visibility.Collapsed;
             from.Opacity = 1;
             from.RenderTransform = new TranslateTransform(0, 0);
@@ -3266,6 +3136,52 @@ public partial class MainWindow
         };
 
         sb.Begin();
+    }
+
+    private IEnumerable<UIElement> GetPresentationSurfaces()
+    {
+        UIElement?[] surfaces =
+        [
+            _scorebug, _breakScreen, _scoreworm, _statsScreen,
+            _weatherScreen, _videoPlayer
+        ];
+        foreach (UIElement? surface in surfaces)
+        {
+            if (surface != null) yield return surface;
+        }
+    }
+
+    private void CancelPresentationAnimations()
+    {
+        foreach (UIElement surface in GetPresentationSurfaces())
+        {
+            surface.BeginAnimation(UIElement.OpacityProperty, null);
+            surface.Opacity = 1;
+            surface.RenderTransform = new TranslateTransform(0, 0);
+        }
+
+        if (_retroCrtOverlay != null)
+        {
+            _retroCrtOverlay.BeginAnimation(UIElement.OpacityProperty, null);
+            _retroCrtOverlay.Visibility = Visibility.Collapsed;
+            _retroCrtOverlay.Opacity = 0;
+            _retroCrtOverlay.RenderTransform = new ScaleTransform(1, 1);
+        }
+    }
+
+    private void NormalizePresentationSurfaces(UIElement selected)
+    {
+        foreach (UIElement surface in GetPresentationSurfaces())
+            NormalizePresentationSurface(surface, surface == selected);
+    }
+
+    private static void NormalizePresentationSurface(UIElement surface, bool visible)
+    {
+        surface.BeginAnimation(UIElement.OpacityProperty, null);
+        surface.Opacity = 1;
+        surface.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+        surface.RenderTransform = new TranslateTransform(0, 0);
+        surface.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void PreviewSelectedGoalAnimation_Click(object sender, RoutedEventArgs e)
@@ -3283,7 +3199,7 @@ public partial class MainWindow
 
     private void AnimationRadio_Changed(object sender, RoutedEventArgs e)
     {
-        if (_scorebug == null) return;
+        if (AnimBroadcastRadio is null) return;
 
         GoalAnimationStyle style;
         string title;
@@ -3334,13 +3250,21 @@ public partial class MainWindow
         else
         {
             style = GoalAnimationStyle.Broadcast;
-            title = "Signal";
+            title = "TV";
             desc = "A premium television package: vertical wordmark reveal, two channel sweeps, double score-glow beat and clean close.";
             duration = "~3.5s";
             intensity = "Medium";
         }
 
-        _scorebug.SetGoalAnimationStyle(style);
+        _scorebug?.SetGoalAnimationStyle(style);
+
+        if (!_initializingGoalAnimation)
+        {
+            string persistedStyle = style == GoalAnimationStyle.CustomVideo
+                ? "customVideo"
+                : char.ToLowerInvariant(style.ToString()[0]) + style.ToString()[1..];
+            OperatorWorkflowPreferences.Update(p => p.AflGoalAnimation = persistedStyle);
+        }
 
         if (AnimPreviewTitle != null)
         {
@@ -3349,6 +3273,45 @@ public partial class MainWindow
             AnimPreviewDuration.Text = duration;
             AnimPreviewIntensity.Text = intensity;
         }
+
+        // Programmatic selections (restored preferences and cloud remote)
+        // must paint the same selected card state as a direct card click.
+        if (AnimCardBroadcast is not null && AnimCardCustomVideo is not null)
+            UpdateAnimCards();
+    }
+
+    private void ApplyRememberedGoalAnimation(string? value)
+    {
+        GoalAnimationStyle style = value?.Trim().ToLowerInvariant() switch
+        {
+            "electric" => GoalAnimationStyle.Electric,
+            "cinematic" => GoalAnimationStyle.Cinematic,
+            "clean" => GoalAnimationStyle.Clean,
+            "classic" => GoalAnimationStyle.Classic,
+            "customvideo" => GoalAnimationStyle.CustomVideo,
+            _ => GoalAnimationStyle.Broadcast
+        };
+
+        System.Windows.Controls.RadioButton target = style switch
+        {
+            GoalAnimationStyle.Electric => AnimElectricRadio,
+            GoalAnimationStyle.Cinematic => AnimCinematicRadio,
+            GoalAnimationStyle.Clean => AnimCleanRadio,
+            GoalAnimationStyle.Classic => AnimClassicRadio,
+            GoalAnimationStyle.CustomVideo => AnimCustomVideoRadio,
+            _ => AnimBroadcastRadio
+        };
+        target.IsChecked = true;
+    }
+
+    private GoalAnimationStyle GetSelectedGoalAnimationStyle()
+    {
+        if (AnimElectricRadio?.IsChecked == true) return GoalAnimationStyle.Electric;
+        if (AnimCinematicRadio?.IsChecked == true) return GoalAnimationStyle.Cinematic;
+        if (AnimCleanRadio?.IsChecked == true) return GoalAnimationStyle.Clean;
+        if (AnimClassicRadio?.IsChecked == true) return GoalAnimationStyle.Classic;
+        if (AnimCustomVideoRadio?.IsChecked == true) return GoalAnimationStyle.CustomVideo;
+        return GoalAnimationStyle.Broadcast;
     }
 
     private MediaColor GetTeamColor(bool home)
@@ -4608,19 +4571,25 @@ public partial class MainWindow
 
         int runPoints;
         int opponentPoints;
-        DateTime runStart;
+        TimeSpan runDuration;
+        int runEventCount;
         var run = events.Count > 0 ? CalculateScoringRun(team) : null;
         if (run is not null && run.RunPoints > 0)
         {
             runPoints = run.RunPoints;
             opponentPoints = run.OpponentPoints;
-            runStart = run.Start;
+            runEventCount = run.EventCount;
+            runDuration = run.Oldest is not null && run.Newest is not null
+                ? MatchClockOfEvent(run.Newest, _match.QuarterDuration) - MatchClockOfEvent(run.Oldest, _match.QuarterDuration)
+                : TimeSpan.Zero;
+            if (runDuration < TimeSpan.Zero) runDuration = TimeSpan.Zero;
         }
         else
         {
             runPoints = 1;
             opponentPoints = 0;
-            runStart = DateTime.Now;
+            runEventCount = 1;
+            runDuration = TimeSpan.Zero;
         }
 
         string teamName = team == TeamSide.Home ? _match.HomeName : _match.AwayName;
@@ -4631,7 +4600,7 @@ public partial class MainWindow
         // first so EnqueueOverlay doesn't early-return when ScoringRun is
         // already the active or queued overlay.
         _scorebug.ClearOverlayQueue();
-        _scorebug.ShowScoringRun(teamName, runPoints, opponentPoints, runStart, srHex);
+        _scorebug.ShowScoringRun(teamName, runPoints, opponentPoints, runDuration, runEventCount, srHex);
     }
 
     private void ManualHomeDrought_Click(object sender, RoutedEventArgs e)
@@ -5456,7 +5425,12 @@ public partial class MainWindow
             return;
 
         settingsShowCountdownToggle.IsChecked = settingsShowCountdownToggle.IsChecked != true;
+        _showControlPanelCountdown = settingsShowCountdownToggle.IsChecked == true;
+        OperatorWorkflowPreferences.Update(p => p.AflControlPanelCountdown = _showControlPanelCountdown);
+        if (!_showControlPanelCountdown)
+            PauseControlPanelCountdown(forceAutoPausedFlag: false);
         UpdateSettingsControlPanelCountdownOptionVisuals();
+        UpdateControlPanelCountdownUi();
     }
 
     private void UpdateSettingsControlPanelCountdownOptionVisuals()
@@ -5551,7 +5525,9 @@ public partial class MainWindow
             toggleLabel.Foreground = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#8B949E"));
         }
 
-        _showControlPanelCountdown = isVisible && isEnabled;
+        // Rendering this settings card must be side-effect free. The live
+        // preference changes only from an explicit operator click, setup
+        // completion, clock-mode change or saved-state restore.
     }
 
     // ═══════════════════════════════════════════════════════════════

@@ -613,7 +613,6 @@ namespace Roche_Scoreboard.Views
             SetupCountdown.IsChecked = remembered.AflCountdown;
             SetupCountUp.IsChecked = !remembered.AflCountdown;
             SetupControlPanelCountdown.IsChecked = remembered.AflControlPanelCountdown;
-            _wasCountUpMode = !remembered.AflCountdown;
             SetupQuarterMinutes.Text = remembered.AflQuarterMinutes.ToString();
             SetupQuarterSeconds.Text = remembered.AflQuarterSeconds.ToString("00");
             SetupFinalsMode.IsChecked = false;
@@ -770,18 +769,8 @@ namespace Roche_Scoreboard.Views
             UpdateControlPanelCountdownOptionVisuals();
         }
 
-        private bool _wasCountUpMode;
-
         private void SetupClockMode_Changed(object sender, RoutedEventArgs e)
         {
-            bool isCountUp = SetupCountUp.IsChecked == true;
-            if (isCountUp && !_wasCountUpMode)
-            {
-                SetupControlPanelCountdown.IsChecked = true;
-            }
-
-            _wasCountUpMode = isCountUp;
-
             UpdateClockModeVisuals();
             UpdateControlPanelCountdownOptionVisuals();
             UpdateSetupClockSummary();

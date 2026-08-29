@@ -16,6 +16,7 @@ internal sealed class OperatorWorkflowPreferencesData
     public int AflQuarterMinutes { get; set; } = 20;
     public int AflQuarterSeconds { get; set; }
     public bool AflControlPanelCountdown { get; set; } = true;
+    public string AflGoalAnimation { get; set; } = "broadcast";
     public string AflWeatherLocation { get; set; } = "Melbourne, Australia";
     public string? LastHomePresetKey { get; set; }
     public string? LastAwayPresetKey { get; set; }
@@ -101,6 +102,8 @@ internal static class OperatorWorkflowPreferences
         data.AflWeatherLocation = string.IsNullOrWhiteSpace(data.AflWeatherLocation)
             ? "Melbourne, Australia"
             : data.AflWeatherLocation.Trim();
+        data.AflGoalAnimation = NormalizeChoice(data.AflGoalAnimation,
+            ["broadcast", "electric", "cinematic", "clean", "classic", "customVideo"], "broadcast");
         data.TeamLibraryLeague = NormalizeChoice(data.TeamLibraryLeague,
             ["All leagues", "AFL", "VAFA", "APS", "AGSV"], "All leagues");
         data.TeamLibraryState = NormalizeChoice(data.TeamLibraryState,

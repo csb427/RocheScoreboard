@@ -18,6 +18,7 @@ namespace Roche_Scoreboard.Views
     {
         private readonly DispatcherTimer _wallClockTimer;
         private bool _isDisposed;
+        private bool _responsiveLayoutQueued;
 
         public void SetFinalsMode(bool enabled)
         {
@@ -40,7 +41,12 @@ namespace Roche_Scoreboard.Views
             _wallClockTimer.Tick += OnWallClockTick;
             _wallClockTimer.Start();
 
-            SizeChanged += (_, _) => ApplyResponsiveScale();
+            SizeChanged += (_, _) => QueueResponsiveLayout();
+            IsVisibleChanged += (_, e) =>
+            {
+                if (e.NewValue is true) QueueResponsiveLayout();
+            };
+            Loaded += (_, _) => QueueResponsiveLayout();
 
             Unloaded += (_, _) => Cleanup();
         }
@@ -57,15 +63,32 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         private void ApplyResponsiveScale()
         {
+            if (!IsVisible || ActualWidth <= 0 || ActualHeight <= 0)
+                return;
+
             ResponsivePresentationTypography.Apply(this, ScaleUnit);
 
             bool compact = ActualWidth < 320 || ActualHeight < 160;
             StatsTimeText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
 
+            double logoSize = Math.Clamp(ScalePx(24), 18, Math.Max(18, ActualHeight * 0.16));
+            StatsHomeLogoImage.Width = StatsHomeLogoImage.Height = logoSize;
+            StatsAwayLogoImage.Width = StatsAwayLogoImage.Height = logoSize;
+            StatsHomeLogoFallback.Width = StatsHomeLogoFallback.Height = logoSize;
+            StatsAwayLogoFallback.Width = StatsAwayLogoFallback.Height = logoSize;
+
+            // Size-dependent chrome belongs here, not in Populate. Populate can
+            // run while the screen is still collapsed and ActualWidth is zero;
+            // calculating borders there made the second exposure thicker than
+            // the first at large output sizes.
+            double teamBorder = Math.Clamp(ScalePx(1.5), 1, 3);
+            StatsHomeTeamHeader.BorderThickness = new Thickness(teamBorder);
+            StatsAwayTeamHeader.BorderThickness = new Thickness(teamBorder);
+
             // Numeric columns track the available width instead of remaining
             // fixed at their 386px design-canvas size. This lets the values use
             // the same strong proportion on narrow and high-resolution outputs.
-            double valueWidth = Math.Clamp(ActualWidth * 0.22, 48, ActualWidth * 0.28);
+            double valueWidth = Math.Clamp(ActualWidth * 0.24, 52, ActualWidth * 0.29);
             TextBlock[] homeValues =
             [
                 StatsScrHomeShots, StatsScrHomeAcc,
@@ -81,6 +104,19 @@ namespace Roche_Scoreboard.Views
                     row.ColumnDefinitions[2].Width = new GridLength(valueWidth);
                 }
             }
+        }
+
+        private void QueueResponsiveLayout()
+        {
+            if (_responsiveLayoutQueued || _isDisposed)
+                return;
+
+            _responsiveLayoutQueued = true;
+            Dispatcher.BeginInvoke(() =>
+            {
+                _responsiveLayoutQueued = false;
+                ApplyResponsiveScale();
+            }, DispatcherPriority.Render);
         }
 
         private void OnWallClockTick(object? sender, EventArgs e)
@@ -133,9 +169,7 @@ namespace Roche_Scoreboard.Views
             StatsHomeTeamHeader.Background = new SolidColorBrush(statsHomeHeaderBg);
             StatsAwayTeamHeader.Background = new SolidColorBrush(statsAwayHeaderBg);
             StatsHomeTeamHeader.BorderBrush = Services.ContrastHelper.GetVisibleBorderBrush(statsHomeHeaderBg, homeColor, homeSecondary);
-            StatsHomeTeamHeader.BorderThickness = new Thickness(ScalePx(2));
             StatsAwayTeamHeader.BorderBrush = Services.ContrastHelper.GetVisibleBorderBrush(statsAwayHeaderBg, awayColor, awaySecondary);
-            StatsAwayTeamHeader.BorderThickness = new Thickness(ScalePx(2));
             StatsHomeGlow.Color = System.Windows.Media.Color.FromArgb(0xFF, homeColor.R, homeColor.G, homeColor.B);
             StatsAwayGlow.Color = System.Windows.Media.Color.FromArgb(0xFF, awayColor.R, awayColor.G, awayColor.B);
             // The header is intentionally compact. Use the configured scoreboard
@@ -143,12 +177,18 @@ namespace Roche_Scoreboard.Views
             // full names are already represented by the logos and match state.
             StatsHomeTeamText.Text = match.HomeAbbr.ToUpperInvariant();
             StatsAwayTeamText.Text = match.AwayAbbr.ToUpperInvariant();
-            StatsHomeTeamText.Foreground = new SolidColorBrush(Lighten(homeColor, 0.4));
-            StatsAwayTeamText.Foreground = new SolidColorBrush(Lighten(awayColor, 0.4));
+            StatsHomeTeamText.Foreground = new SolidColorBrush(
+                SmartContrast.PickReadableForeground(Lighten(homeColor, 0.4), statsHomeHeaderBg));
+            StatsAwayTeamText.Foreground = new SolidColorBrush(
+                SmartContrast.PickReadableForeground(Lighten(awayColor, 0.4), statsAwayHeaderBg));
 
             // Value text: team primary colours with glow
-            var homeLightened = Lighten(homeColor, 0.3);
-            var awayLightened = Lighten(awayColor, 0.3);
+            Color homeEdgeBackground = Darken(homeColor, 0.85);
+            Color awayEdgeBackground = Darken(awayColor, 0.85);
+            var homeLightened = SmartContrast.PickReadableForeground(
+                Lighten(homeColor, 0.3), homeEdgeBackground, Color.FromRgb(0x0D, 0x11, 0x17));
+            var awayLightened = SmartContrast.PickReadableForeground(
+                Lighten(awayColor, 0.3), awayEdgeBackground, Color.FromRgb(0x0D, 0x11, 0x17));
             HomeValueBrush1.Color = homeLightened;
             HomeValueBrush2.Color = homeLightened;
             HomeValueBrush3.Color = homeLightened;
@@ -179,11 +219,10 @@ namespace Roche_Scoreboard.Views
             TimeBarBorder.Color = barBorderColor;
             LeadBarBorder.Color = barBorderColor;
 
-            // Hide all logo placeholders if at least one team has no logo
-            bool hideLogos = Services.ImageLoadHelper.Load(homeLogoPath) is null
-                          || Services.ImageLoadHelper.Load(awayLogoPath) is null;
-            ApplyLogo(StatsHomeLogoImage, StatsHomeLogoFallback, homeLogoPath, hideLogos);
-            ApplyLogo(StatsAwayLogoImage, StatsAwayLogoFallback, awayLogoPath, hideLogos);
+            // Resolve each logo independently. One missing club asset must not
+            // make the other team's valid logo disappear.
+            ApplyLogo(StatsHomeLogoImage, StatsHomeLogoFallback, homeLogoPath);
+            ApplyLogo(StatsAwayLogoImage, StatsAwayLogoFallback, awayLogoPath);
 
             // Bottom score bar
             ScoreBar.Populate(match, endedQuarter, homeColorHex, awayColorHex,
@@ -212,6 +251,8 @@ namespace Roche_Scoreboard.Views
             StatsScrAwayLead.Text = stats.AwayLargestLead > 0 ? stats.AwayLargestLead.ToString() : "–";
             SetClashBar(LeadHomeCol, LeadAwayCol, LeadHomeBrush, LeadAwayBrush,
                 stats.HomeLargestLead, stats.AwayLargestLead, homeColor, awayColor);
+
+            QueueResponsiveLayout();
         }
 
         private static void SetGlowColor(System.Windows.Controls.TextBlock tb, Color color)

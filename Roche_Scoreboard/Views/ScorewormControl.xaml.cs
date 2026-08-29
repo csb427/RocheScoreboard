@@ -5,7 +5,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Roche_Scoreboard.Models;
@@ -24,6 +23,7 @@ namespace Roche_Scoreboard.Views
     {
         private readonly DispatcherTimer _wallClockTimer;
         private bool _isDisposed;
+        private bool _responsiveLayoutQueued;
 
         public void SetFinalsMode(bool enabled)
         {
@@ -43,6 +43,7 @@ namespace Roche_Scoreboard.Views
         private int _lastEndedQuarter;
         private Color _lastHomeColor;
         private Color _lastAwayColor;
+        private int? _lastGraphSignature;
 
         public ScorewormControl()
         {
@@ -58,7 +59,12 @@ namespace Roche_Scoreboard.Views
             // pixel coordinates from the first Populate.
             GraphCanvas.SizeChanged += OnGraphCanvasSizeChanged;
 
-            SizeChanged += (_, _) => ApplyResponsiveScale();
+            SizeChanged += (_, _) => QueueResponsiveLayout();
+            IsVisibleChanged += (_, e) =>
+            {
+                if (e.NewValue is true) QueueResponsiveLayout();
+            };
+            Loaded += (_, _) => QueueResponsiveLayout();
 
             Unloaded += (_, _) => Cleanup();
         }
@@ -70,9 +76,27 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         private void ApplyResponsiveScale()
         {
+            if (!IsVisible || ActualWidth <= 0 || ActualHeight <= 0)
+                return;
+
             ResponsivePresentationTypography.Apply(this, ScoreboardScaleHelper.GetScale(ActualWidth, ActualHeight));
             if (_lastMatch is not null)
                 UpdateMarginHeadline(_lastMatch);
+        }
+
+        private void QueueResponsiveLayout()
+        {
+            if (_responsiveLayoutQueued || _isDisposed)
+                return;
+
+            _responsiveLayoutQueued = true;
+            Dispatcher.BeginInvoke(() =>
+            {
+                _responsiveLayoutQueued = false;
+                ApplyResponsiveScale();
+                if (_lastMatch is not null)
+                    DrawGraphIfChanged(_lastMatch, _lastEndedQuarter, _lastHomeColor, _lastAwayColor);
+            }, DispatcherPriority.Render);
         }
 
         private void UpdateMarginHeadline(MatchManager match)
@@ -91,7 +115,7 @@ namespace Roche_Scoreboard.Views
         {
             if (_isDisposed || _lastMatch is null) return;
             if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0) return;
-            DrawGraph(_lastMatch, _lastEndedQuarter, _lastHomeColor, _lastAwayColor);
+            DrawGraphIfChanged(_lastMatch, _lastEndedQuarter, _lastHomeColor, _lastAwayColor);
         }
 
         private void OnWallClockTick(object? sender, EventArgs e)
@@ -137,7 +161,11 @@ namespace Roche_Scoreboard.Views
 
             int margin = match.Margin;
             UpdateMarginHeadline(match);
-            WormMarginText.Foreground = new SolidColorBrush(margin > 0 ? homeColor : margin < 0 ? awayColor : Colors.White);
+            Color preferredMargin = margin > 0 ? Lighten(homeColor, 0.30)
+                : margin < 0 ? Lighten(awayColor, 0.30)
+                : Colors.White;
+            WormMarginText.Foreground = new SolidColorBrush(SmartContrast.PickReadableForeground(
+                preferredMargin, Color.FromRgb(0x0D, 0x11, 0x17)));
 
             // Bottom score bar
             ScoreBar.Populate(match, endedQuarter, homeColorHex, awayColorHex,
@@ -150,13 +178,44 @@ namespace Roche_Scoreboard.Views
             _lastHomeColor = homeColor;
             _lastAwayColor = awayColor;
 
-            DrawGraph(match, endedQuarter, homeColor, awayColor);
+            DrawGraphIfChanged(match, endedQuarter, homeColor, awayColor);
         }
 
         private double ScaleUnit => ScoreboardScaleHelper.GetScale(ActualWidth, ActualHeight);
 
         private double ScalePx(double designValue)
             => ScoreboardScaleHelper.Scale(designValue, ScaleUnit);
+
+        private void DrawGraphIfChanged(MatchManager match, int endedQuarter, Color homeColor, Color awayColor)
+        {
+            int signature = BuildGraphSignature(match, endedQuarter, homeColor, awayColor,
+                GraphCanvas.ActualWidth, GraphCanvas.ActualHeight);
+            if (_lastGraphSignature == signature)
+                return;
+
+            DrawGraph(match, endedQuarter, homeColor, awayColor);
+            if (GraphCanvas.ActualWidth > 0 && GraphCanvas.ActualHeight > 0)
+                _lastGraphSignature = signature;
+        }
+
+        private static int BuildGraphSignature(MatchManager match, int endedQuarter,
+            Color homeColor, Color awayColor, double width, double height)
+        {
+            HashCode hash = new();
+            hash.Add(endedQuarter);
+            hash.Add(homeColor);
+            hash.Add(awayColor);
+            hash.Add((int)Math.Round(width));
+            hash.Add((int)Math.Round(height));
+            foreach (ScoreEvent scoreEvent in match.Events)
+            {
+                hash.Add(scoreEvent.Quarter);
+                hash.Add(scoreEvent.Team);
+                hash.Add(scoreEvent.Type);
+                hash.Add(scoreEvent.Margin);
+            }
+            return hash.ToHashCode();
+        }
 
         private void DrawGraph(MatchManager match, int endedQuarter, Color homeColor, Color awayColor)
         {
@@ -238,23 +297,13 @@ namespace Roche_Scoreboard.Views
                 points.Add(new Point(x, currentY));
             }
 
-            // ---- Draw filled areas (start invisible, fade in) ----
-            var fills = DrawFilledAreas(points, yCenter, canvasW, homeColor, awayColor);
+            // ---- Draw filled areas and the stable step path ----
+            DrawFilledAreas(points, yCenter, canvasW, homeColor, awayColor);
 
-            // ---- Calculate cumulative path lengths ----
-            var cumLengths = new List<double> { 0 };
-            for (int i = 1; i < points.Count; i++)
-            {
-                double dx = points[i].X - points[i - 1].X;
-                double dy = points[i].Y - points[i - 1].Y;
-                cumLengths.Add(cumLengths[i - 1] + Math.Sqrt(dx * dx + dy * dy));
-            }
-            double totalLength = cumLengths[^1];
-            if (totalLength < 1) totalLength = 1;
-
-            // ---- Draw line with dash-offset draw animation ----
-            // Slimmer line for a more modern look, with a soft glow + bright stroke
-            // so the path remains highly visible against the dark graph background.
+            // The screen is refreshed while the clock runs. A per-populate draw
+            // animation used to restart during those refreshes, making repeated
+            // exposure look like a different layout. Keep the graph itself
+            // deterministic; the presentation transition supplies the motion.
             var polyline = new Polyline
             {
                 Stroke = new SolidColorBrush(Colors.White),
@@ -262,8 +311,6 @@ namespace Roche_Scoreboard.Views
                 StrokeLineJoin = PenLineJoin.Miter,
                 StrokeStartLineCap = PenLineCap.Square,
                 StrokeEndLineCap = PenLineCap.Square,
-                StrokeDashArray = new DoubleCollection { totalLength, totalLength },
-                StrokeDashOffset = totalLength,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.White,
@@ -275,24 +322,6 @@ namespace Roche_Scoreboard.Views
             foreach (var p in points)
                 polyline.Points.Add(p);
             GraphCanvas.Children.Add(polyline);
-
-            const double drawSeconds = 1.6;
-            var drawAnim = new DoubleAnimation(totalLength, 0, TimeSpan.FromSeconds(drawSeconds))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
-            };
-            polyline.BeginAnimation(Shape.StrokeDashOffsetProperty, drawAnim);
-
-            // ---- Fade in fills as line progresses ----
-            foreach (var fill in fills)
-            {
-                fill.Opacity = 0;
-                var fillFade = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.6))
-                {
-                    BeginTime = TimeSpan.FromSeconds(drawSeconds * 0.3)
-                };
-                fill.BeginAnimation(OpacityProperty, fillFade);
-            }
 
             // ---- Identify only meaningful step corners for markers ----
             // The final point and quarter transitions are enough; marking every
@@ -322,21 +351,13 @@ namespace Roche_Scoreboard.Views
                     Fill = new SolidColorBrush(dotColor),
                     Stroke = new SolidColorBrush(Colors.White),
                     StrokeThickness = ScoreboardScaleHelper.Scale(1.1, scale),
-                    Opacity = 0
+                    Opacity = 1
                 };
 
                 Canvas.SetLeft(dot, points[pointIndex].X - dot.Width / 2);
                 Canvas.SetTop(dot, points[pointIndex].Y - dot.Height / 2);
                 GraphCanvas.Children.Add(dot);
 
-                // Delay each dot's appearance to match the line reaching it
-                double fraction = cumLengths[pointIndex] / totalLength;
-                double delay = fraction * drawSeconds;
-                var dotFade = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.2))
-                {
-                    BeginTime = TimeSpan.FromSeconds(delay)
-                };
-                dot.BeginAnimation(OpacityProperty, dotFade);
             }
 
             // ---- Y-axis labels ----
@@ -517,8 +538,11 @@ namespace Roche_Scoreboard.Views
             AddLabel("0", yCenter, zeroFontSize, zeroYOffset, FontWeights.Bold,
                 new SolidColorBrush(Color.FromArgb(220, 255, 255, 255)));
 
-            var homeBrush = new SolidColorBrush(Lighten(homeColor, 0.38));
-            var awayBrush = new SolidColorBrush(Lighten(awayColor, 0.38));
+            Color graphSurface = Color.FromRgb(0x08, 0x0D, 0x14);
+            var homeBrush = new SolidColorBrush(SmartContrast.PickReadableForeground(
+                Lighten(homeColor, 0.38), graphSurface, Darken(homeColor, 0.70)));
+            var awayBrush = new SolidColorBrush(SmartContrast.PickReadableForeground(
+                Lighten(awayColor, 0.38), graphSurface, Darken(awayColor, 0.70)));
 
             foreach (int val in AxisTicks(homeRange))
             {

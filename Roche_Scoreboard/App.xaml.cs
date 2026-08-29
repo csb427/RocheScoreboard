@@ -58,7 +58,8 @@ public partial class App : Application
         IsSelfTestMode = e.Args.Any(arg =>
             arg.StartsWith("--gallery-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--startup-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
-            arg.StartsWith("--preferences-self-test-output=", StringComparison.OrdinalIgnoreCase));
+            arg.StartsWith("--preferences-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--afl-presentation-snapshots=", StringComparison.OrdinalIgnoreCase));
 
         // Install global exception handlers up-front so any error from here on
         // is logged (and, where possible, non-fatal ones are swallowed) rather
@@ -68,11 +69,25 @@ public partial class App : Application
         // The AFL presentation gallery is a fully isolated visual QA surface.
         // Open it before production services so update, video, saved-state and
         // operator-preference initialisation cannot affect the regression view.
-        if (e.Args.Contains("--afl-presentation-gallery", StringComparer.OrdinalIgnoreCase))
+        string? aflSnapshotDirectory = GetArgumentValue(e.Args, "--afl-presentation-snapshots=");
+        if (e.Args.Contains("--afl-presentation-gallery", StringComparer.OrdinalIgnoreCase) ||
+            aflSnapshotDirectory is not null)
         {
-            Window presentationGallery = new AflPresentationGalleryWindow();
+            AflPresentationGalleryWindow presentationGallery = new();
             MainWindow = presentationGallery;
             presentationGallery.Show();
+            if (aflSnapshotDirectory is not null)
+            {
+                presentationGallery.Dispatcher.InvokeAsync(async () =>
+                {
+                    try { await presentationGallery.CaptureSnapshotsAsync(aflSnapshotDirectory); }
+                    finally
+                    {
+                        presentationGallery.Close();
+                        Shutdown();
+                    }
+                }, DispatcherPriority.ApplicationIdle);
+            }
             return;
         }
 
