@@ -108,6 +108,7 @@ internal sealed class GameState
 
     // Settings
     public List<string> Messages { get; set; } = [];
+    public List<Roche_Scoreboard.Models.MarqueeMessage> TickerSlots { get; set; } = [];
     public bool FinalsMode { get; set; }
     public string? WeatherLocation { get; set; }
     public bool ShowControlPanelCountdown { get; set; }

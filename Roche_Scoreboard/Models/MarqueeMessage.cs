@@ -20,14 +20,16 @@ public sealed class MarqueeMessage : INotifyPropertyChanged
     private string _text = string.Empty;
     private string? _textColor;
     private string? _highlightColor;
+    private bool _isEnabled;
 
     public MarqueeMessage() { }
 
-    public MarqueeMessage(string text, string? textColor = null, string? highlightColor = null)
+    public MarqueeMessage(string text, string? textColor = null, string? highlightColor = null, bool isEnabled = true)
     {
         _text = text ?? string.Empty;
         _textColor = textColor;
         _highlightColor = highlightColor;
+        _isEnabled = isEnabled;
     }
 
     public string Text
@@ -64,6 +66,13 @@ public sealed class MarqueeMessage : INotifyPropertyChanged
         }
     }
 
+    /// <summary>Whether this preset slot is currently included in the live ticker rotation.</summary>
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set { if (_isEnabled != value) { _isEnabled = value; OnChanged(); } }
+    }
+
     public Brush TextBrush => ParseBrush(_textColor, Brushes.White);
     public Brush HighlightBrush => ParseBrush(_highlightColor, Brushes.Transparent);
 
@@ -86,7 +95,8 @@ public sealed class MarqueeMessage : INotifyPropertyChanged
         if (other is null) return false;
         return string.Equals(Text, other.Text, StringComparison.Ordinal)
             && string.Equals(TextColor ?? string.Empty, other.TextColor ?? string.Empty, StringComparison.OrdinalIgnoreCase)
-            && string.Equals(HighlightColor ?? string.Empty, other.HighlightColor ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+            && string.Equals(HighlightColor ?? string.Empty, other.HighlightColor ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+            && IsEnabled == other.IsEnabled;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

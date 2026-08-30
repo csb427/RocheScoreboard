@@ -171,6 +171,7 @@ public partial class MainWindow
     private void EnqueueAutoOverlay(Action showAction, bool isPriority = false)
     {
         if (!_autoOverlaysEnabled) return;
+        if (_scorebug?.IsTickerActive == true) return;
 
         // Suppress informational (non-priority) overlays while the clock isn't
         // running. This catches the "continuance" case where the operator has
@@ -2328,6 +2329,7 @@ public partial class MainWindow
     {
         if (!_autoOverlaysEnabled) return;
         if (_scorebug == null || _showingBreakScreen) return;
+        if (_scorebug.IsTickerActive) return;
         if (_match.Events.Count == 0) return;
         // Don't trigger periodic overlays while the clock is paused — the
         // operator is between plays / mid-continuance and the broadcast
@@ -3541,6 +3543,16 @@ public partial class MainWindow
         return dlg.ShowDialog() == true ? dlg.FileName : null;
     }
 
+    private const int TickerSlotCount = 8;
+
+    private void EnsureTickerSlots()
+    {
+        while (_styledMessages.Count > TickerSlotCount)
+            _styledMessages.RemoveAt(_styledMessages.Count - 1);
+        while (_styledMessages.Count < TickerSlotCount)
+            _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(string.Empty, isEnabled: false));
+    }
+
     private void AddMessage_Click(object sender, RoutedEventArgs e)
     {
         string text = NewMessageBox.Text?.Trim() ?? string.Empty;
@@ -3549,10 +3561,14 @@ public partial class MainWindow
         string? textColor = _newMessageTextColor;
         string? hi = _newMessageHighlightColor;
 
-        var msg = new Roche_Scoreboard.Models.MarqueeMessage(text, textColor, hi);
-        _styledMessages.Add(msg);
-        if (MessageList.ItemsSource is null)
-            MessageList.ItemsSource = _styledMessages;
+        EnsureTickerSlots();
+        Roche_Scoreboard.Models.MarqueeMessage? msg = _styledMessages
+            .FirstOrDefault(slot => string.IsNullOrWhiteSpace(slot.Text));
+        if (msg is null) return;
+        msg.Text = text;
+        msg.TextColor = textColor;
+        msg.HighlightColor = hi;
+        msg.IsEnabled = true;
 
         NewMessageBox.Text = string.Empty;
         // Keep selected colours for the next message — operators usually want
@@ -3565,25 +3581,40 @@ public partial class MainWindow
 
     private void SyncTickerMessages()
     {
+        EnsureTickerSlots();
         _messages.Clear();
-        foreach (var message in _styledMessages)
-            _messages.Add(message.Text?.Trim() ?? string.Empty);
+        List<Roche_Scoreboard.Models.MarqueeMessage> activeMessages = GetActiveTickerMessages();
+        foreach (Roche_Scoreboard.Models.MarqueeMessage message in activeMessages)
+            _messages.Add(message.Text);
 
-        _scorebug?.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+        if (activeMessages.Count > 0)
+            _overlayQueue.Clear();
+        _scorebug?.SetMarqueeMessages(activeMessages);
         UpdateTickerEditorState();
         PublishCloudSnapshot();
         SaveGameState();
     }
 
+    private List<Roche_Scoreboard.Models.MarqueeMessage> GetActiveTickerMessages()
+    {
+        return _styledMessages
+            .Where(message => message.IsEnabled && !string.IsNullOrWhiteSpace(message.Text))
+            .Select(message => new Roche_Scoreboard.Models.MarqueeMessage(
+                message.Text.Trim(), message.TextColor, message.HighlightColor, isEnabled: true))
+            .ToList();
+    }
+
     private void UpdateTickerEditorState()
     {
-        bool hasMessages = _styledMessages.Count > 0;
+        int activeCount = _styledMessages.Count(message =>
+            message.IsEnabled && !string.IsNullOrWhiteSpace(message.Text));
+        bool hasMessages = activeCount > 0;
         if (TickerEmptyState is not null)
-            TickerEmptyState.Visibility = hasMessages ? Visibility.Collapsed : Visibility.Visible;
+            TickerEmptyState.Visibility = Visibility.Collapsed;
         if (TickerMessageCountText is not null)
-            TickerMessageCountText.Text = $"{_styledMessages.Count} ON AIR";
+            TickerMessageCountText.Text = $"{activeCount} / {TickerSlotCount} ON AIR";
         if (TickerClearAllButton is not null)
-            TickerClearAllButton.IsEnabled = hasMessages;
+            TickerClearAllButton.IsEnabled = _styledMessages.Any(message => !string.IsNullOrWhiteSpace(message.Text));
     }
 
     private void TickerTemplate_Click(object sender, RoutedEventArgs e)
@@ -3606,7 +3637,7 @@ public partial class MainWindow
 
     private void ClearTickerMessages_Click(object sender, RoutedEventArgs e)
     {
-        if (_styledMessages.Count == 0) return;
+        if (!_styledMessages.Any(message => !string.IsNullOrWhiteSpace(message.Text))) return;
 
         MessageBoxResult result = System.Windows.MessageBox.Show(
             this,
@@ -3617,9 +3648,14 @@ public partial class MainWindow
             MessageBoxResult.No);
         if (result != MessageBoxResult.Yes) return;
 
-        _styledMessages.Clear();
+        foreach (Roche_Scoreboard.Models.MarqueeMessage slot in _styledMessages)
+        {
+            slot.Text = string.Empty;
+            slot.TextColor = null;
+            slot.HighlightColor = null;
+            slot.IsEnabled = false;
+        }
         SyncTickerMessages();
-        NewMessageBox.Focus();
     }
 
     // ── Colour-picker state for the "new message" row ──
@@ -3717,10 +3753,10 @@ public partial class MainWindow
         if (sender is not System.Windows.Controls.Button btn) return;
         if (btn.Tag is not Roche_Scoreboard.Models.MarqueeMessage msg) return;
 
-        int index = _styledMessages.IndexOf(msg);
-        if (index < 0) return;
-
-        _styledMessages.RemoveAt(index);
+        msg.Text = string.Empty;
+        msg.TextColor = null;
+        msg.HighlightColor = null;
+        msg.IsEnabled = false;
         SyncTickerMessages();
     }
 
@@ -3730,14 +3766,30 @@ public partial class MainWindow
     /// </summary>
     private void RemoveMessage_Click(object sender, RoutedEventArgs e)
     {
-        if (_styledMessages.Count == 0) return;
-        int index = _styledMessages.Count - 1;
-        _styledMessages.RemoveAt(index);
+        Roche_Scoreboard.Models.MarqueeMessage? last = _styledMessages
+            .LastOrDefault(message => !string.IsNullOrWhiteSpace(message.Text));
+        if (last is null) return;
+        last.Text = string.Empty;
+        last.IsEnabled = false;
+        SyncTickerMessages();
+    }
+
+    private void TickerSlotEnabled_Changed(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.CheckBox { DataContext: Roche_Scoreboard.Models.MarqueeMessage slot }) return;
+        if (slot.IsEnabled && string.IsNullOrWhiteSpace(slot.Text))
+        {
+            slot.IsEnabled = false;
+            return;
+        }
         SyncTickerMessages();
     }
 
     private void MessageItem_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
     {
+        if (sender is System.Windows.Controls.TextBox { DataContext: Roche_Scoreboard.Models.MarqueeMessage slot }
+            && string.IsNullOrWhiteSpace(slot.Text))
+            slot.IsEnabled = false;
         // Keep the plain-text mirror in sync with the styled collection so persistence
         // and any string-based callers see the latest text.
         SyncTickerMessages();
@@ -4526,6 +4578,7 @@ public partial class MainWindow
         EnsureScoreboardWindow();
         if (_scorebug is null) return false;
         if (_showingBreakScreen || _scorebug.Visibility != Visibility.Visible) ShowScorebug();
+        if (_scorebug.IsTickerActive) return false;
         return true;
     }
 

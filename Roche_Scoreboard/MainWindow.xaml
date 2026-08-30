@@ -1129,7 +1129,7 @@
                                                         <DropShadowEffect BlurRadius="15" ShadowDepth="0" Color="#3FB950" Opacity="0.4"/>
                                                     </TextBlock.Effect>
                                                 </TextBlock>
-                                                <TextBlock Text="Broadcast concise updates across the live bottom bar" FontSize="11" FontWeight="SemiBold" Foreground="#78B985" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                                <TextBlock Text="Eight reusable slots · check only the messages you want on air" FontSize="11" FontWeight="SemiBold" Foreground="#78B985" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,9,0,0">
                                                     <Border Background="#0C2112" BorderBrush="#245C31" BorderThickness="1" CornerRadius="10" Padding="9,3" Margin="0,0,8,0">
                                                         <TextBlock x:Name="TickerMessageCountText" Text="0 ON AIR" FontSize="10" FontWeight="Black" Foreground="#75E18A"/>
@@ -1158,63 +1158,56 @@
                                                         <TextBlock Text="Choose a quick template or type a short update below. Press Enter to add it instantly." FontSize="12" FontWeight="SemiBold" Foreground="#8FA99A" TextAlignment="Center" TextWrapping="Wrap"/>
                                                     </StackPanel>
                                                 <ScrollViewer VerticalScrollBarVisibility="Auto" Panel.ZIndex="1">
-                                                    <ItemsControl x:Name="MessageList">
+                                                    <ItemsControl x:Name="MessageList" AlternationCount="8">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
-                                                                <Border Margin="0,0,0,6" Padding="8,6" Background="#0A1018" BorderBrush="#1E3050" BorderThickness="1" CornerRadius="3">
+                                                                <Border Margin="0,0,0,5" Padding="7,5" Background="#0A1018" BorderBrush="#1E3050" BorderThickness="1" CornerRadius="5">
                                                                     <Grid>
                                                                         <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto"/>
                                                                             <ColumnDefinition Width="*"/>
                                                                             <ColumnDefinition Width="Auto"/>
                                                                             <ColumnDefinition Width="Auto"/>
                                                                             <ColumnDefinition Width="Auto"/>
                                                                         </Grid.ColumnDefinitions>
-                                                                        <Grid.RowDefinitions>
-                                                                            <RowDefinition Height="Auto"/>
-                                                                            <RowDefinition Height="Auto"/>
-                                                                        </Grid.RowDefinitions>
 
-                                                                        <!-- Preview row -->
-                                                                        <Border Grid.Row="0" Grid.ColumnSpan="4" CornerRadius="2" Padding="6,3" Margin="0,0,0,4"
-                                                                                Background="{Binding HighlightBrush}">
-                                                                            <TextBlock Text="{Binding Text}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                                                                       Foreground="{Binding TextBrush}"/>
-                                                                        </Border>
+                                                                        <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                                                                  Checked="TickerSlotEnabled_Changed" Unchecked="TickerSlotEnabled_Changed"
+                                                                                  VerticalAlignment="Center" Margin="2,0,8,0"
+                                                                                  ToolTip="Include this slot in the live ticker rotation"/>
 
-                                                                        <!-- Edit row: text + colour pickers + remove -->
-                                                                        <TextBox Grid.Row="1" Grid.Column="0"
+                                                                        <TextBox Grid.Column="1"
                                                                                  Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
-                                                                                 FontSize="12" Background="#060A10" Foreground="#E6EDF3"
+                                                                                 FontSize="12" FontWeight="SemiBold" Background="#060A10" Foreground="#E6EDF3"
                                                                                  BorderBrush="#1E3050" CaretBrush="White"
                                                                                  Padding="6,4" VerticalContentAlignment="Center"
                                                                                  Margin="0,0,6,0"
+                                                                                 MaxLength="140"
                                                                                  TextChanged="MessageItem_TextChanged"/>
 
-                                                                        <!-- Text colour picker -->
-                                                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" Margin="0,0,4,0" VerticalAlignment="Center">
+                                                                        <StackPanel Grid.Column="2" Orientation="Vertical" Margin="0,0,4,0" VerticalAlignment="Center">
                                                                             <TextBlock Text="TEXT" FontSize="8" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1"/>
-                                                                            <Button Width="34" Height="22" Padding="0" BorderBrush="#1E3050" BorderThickness="1"
+                                                                            <Button Width="30" Height="20" Padding="0" BorderBrush="#1E3050" BorderThickness="1"
                                                                                     Click="PickItemTextColor_Click" Tag="{Binding}"
                                                                                     ToolTip="Click to choose text colour"
                                                                                     Background="{Binding TextBrush}"/>
                                                                         </StackPanel>
 
-                                                                        <!-- Highlight colour picker -->
-                                                                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Vertical" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                                        <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0,0,6,0" VerticalAlignment="Center">
                                                                             <TextBlock Text="HIGHLIGHT" FontSize="8" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1"/>
-                                                                            <Button Width="50" Height="22" Padding="0" BorderBrush="#1E3050" BorderThickness="1"
+                                                                            <Button Width="46" Height="20" Padding="0" BorderBrush="#1E3050" BorderThickness="1"
                                                                                     Click="PickItemHighlightColor_Click" Tag="{Binding}"
                                                                                     ToolTip="Click to choose highlight colour. Right-click to clear."
                                                                                     MouseRightButtonUp="ClearItemHighlightColor_Click"
                                                                                     Background="{Binding HighlightBrush}"/>
                                                                         </StackPanel>
 
-                                                                        <Button Grid.Row="1" Grid.Column="3"
-                                                                                Content="✕" Width="30" Height="40" FontSize="12" FontWeight="Black"
+                                                                        <Button Grid.Column="4"
+                                                                                Content="CLEAR" Width="42" Height="34" FontSize="8" FontWeight="Black"
                                                                                 Click="RemoveMessageItem_Click" Tag="{Binding}"
                                                                                 Style="{StaticResource ToolBtn}" BorderBrush="#3A1A1A"
-                                                                                VerticalAlignment="Bottom"
-                                                                                ToolTip="Remove this message"/>
+                                                                                VerticalAlignment="Center"
+                                                                                ToolTip="Clear this preset slot"/>
                                                                     </Grid>
                                                                 </Border>
                                                             </DataTemplate>
@@ -1225,7 +1218,7 @@
                                             </Border>
 
                                             <!-- Add controls (text + colour pickers + add) -->
-                                            <StackPanel Grid.Row="3" Margin="0,10,0,0">
+                                            <StackPanel Grid.Row="3" Margin="0" Visibility="Collapsed">
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
                                                     <TextBlock Text="QUICK ADD" FontSize="11" FontWeight="Black" Foreground="#A8BBAE" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                                     <Button Content="WELCOME" Tag="Welcome to today's match" Click="TickerTemplate_Click" FontSize="10" FontWeight="Black" Padding="8,3" Margin="0,0,5,0" Style="{StaticResource ToolBtn}"/>

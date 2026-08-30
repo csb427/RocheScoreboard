@@ -20,7 +20,7 @@ public partial class AflPresentationGalleryWindow : Window
     private readonly Dictionary<int, Action> _quarterBreakRefreshes = new();
     private readonly Dictionary<int, List<FrameworkElement>> _presentationViews = new();
     private readonly List<(string Name, ScorebugControl View)> _scorebugPreviews = new();
-    private readonly List<(string Name, ScorebugControl View)> _overlayPreviews = new();
+    private readonly List<(string Name, ScorebugControl View, Action<ScorebugControl> Refresh)> _overlayPreviews = new();
     private StatsScreenControl? _whitePrimaryStatsPreview;
     private const string HomePrimary = "#FF3338";
     private const string AwayPrimary = "#FACC0D";
@@ -75,6 +75,17 @@ public partial class AflPresentationGalleryWindow : Window
         AddScorebugPreview("ultra-compact-280x105", "ULTRA COMPACT 280 × 105", 280, 105);
         AddScorebugPreview("hidden-names-320x120", "HIDDEN NAMES 320 × 120", 320, 120,
             view => view.SetHideTeamNames(true));
+        AddScorebugPreview("long-team-names-386x193", "LONG TEAM NAMES 386 × 193", 386, 193,
+            view => view.SetTeams("University Blacks Football Club", "UBL", "Old Paradians Football Club", "OPC"));
+        AddScorebugPreview("ticker-lock-386x193", "TICKER LOCK 386 × 193", 386, 193,
+            view =>
+            {
+                view.SetMarqueeMessages(new List<MarqueeMessage>
+                {
+                    new("Welcome to today's match", "#FFFFFF", "#1E40AF", isEnabled: true)
+                });
+                view.ShowStatsBar(MatchStats.Calculate(match, match.Quarter, match.ElapsedInQuarter));
+            });
 
         AddOverlayPreview("SCORING RUN", view =>
             view.ShowScoringRun("Xavier", 24, 2, TimeSpan.FromMinutes(6.2), 5, HomePrimary));
@@ -93,6 +104,7 @@ public partial class AflPresentationGalleryWindow : Window
             view.ShowTeamDrought("Carey", DateTime.Now.AddMinutes(-8.5), AwayPrimary, AwaySecondary));
         AddOverlayPreview("LAST SCORE", view => view.ShowLastScoreTime());
         AddOverlayPreview("LEAD CHANGES", view => view.ShowLeadChangesBar(7));
+        AddOverlayPreview("FIVE MINUTE WARNING", view => view.ShowFiveMinuteWarning());
         AddOverlayPreview("WHITE PRIMARY STAT", view =>
         {
             view.SetTeamColors("#FFFFFF", AwayPrimary, "#111827", AwaySecondary);
@@ -217,6 +229,9 @@ public partial class AflPresentationGalleryWindow : Window
         // Save every scorebug dimension independently as well. The live gallery
         // intentionally scrolls when its preview cards exceed the window width;
         // isolated captures ensure compact cases can never escape visual review.
+        GalleryTabs.SelectedIndex = 0;
+        UpdateLayout();
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
         foreach ((string name, ScorebugControl view) in _scorebugPreviews)
         {
             view.UpdateLayout();
@@ -229,8 +244,28 @@ public partial class AflPresentationGalleryWindow : Window
                 (double gb, double total) = preview.View.GetScoreFontSizesForQa();
                 return $"{preview.Name}: goals/behinds={gb:0.##}px, total={total:0.##}px";
             }));
-        foreach ((string name, ScorebugControl view) in _overlayPreviews)
+        ScorebugControl? tickerLock = _scorebugPreviews
+            .FirstOrDefault(preview => preview.Name == "ticker-lock-386x193").View;
+        if (tickerLock is not null)
         {
+            File.WriteAllText(Path.Combine(outputDirectory, "ticker-overlay-lock.txt"),
+                $"ticker-active={tickerLock.IsTickerActive}{Environment.NewLine}" +
+                $"overlay-active={tickerLock.IsOverlayActive}{Environment.NewLine}");
+        }
+        // Overlay previews live in the second tab. Keep their ancestor visible
+        // while refreshing dynamic card content; WPF intentionally skips layout
+        // for descendants of a collapsed TabItem.
+        GalleryTabs.SelectedIndex = 1;
+        UpdateLayout();
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+        foreach ((string name, ScorebugControl view, Action<ScorebugControl> refresh) in _overlayPreviews)
+        {
+            // Each isolated frame must show the settled, fully-open state. Some
+            // overlays intentionally auto-hide in production, and gallery-wide
+            // capture can legitimately take longer than that timeout.
+            view.ResetAllOverlayState();
+            refresh(view);
+            await Task.Delay(500);
             view.UpdateLayout();
             await Dispatcher.InvokeAsync(view.UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
             CaptureElement(view, outputDirectory, "overlay-" + name);
@@ -243,6 +278,10 @@ public partial class AflPresentationGalleryWindow : Window
                 return $"{preview.Name}: goals/behinds={gb:0.##}px, total={total:0.##}px, " +
                        $"name-rows={homeName:0.##}/{awayName:0.##}px";
             }));
+        File.WriteAllLines(Path.Combine(outputDirectory, "recent-scores-layout.txt"),
+            _overlayPreviews
+                .Where(preview => preview.Name.StartsWith("recent-scores", StringComparison.Ordinal))
+                .Select(preview => $"{preview.Name}: {preview.View.GetRecentScoresDiagnosticsForQa()}"));
         if (_whitePrimaryStatsPreview is not null)
         {
             _whitePrimaryStatsPreview.UpdateLayout();
@@ -500,7 +539,7 @@ public partial class AflPresentationGalleryWindow : Window
         // the preview is loaded can leave the gallery showing the zero-height
         // first frame even though the production scorebug works correctly.
         view.Loaded += (_, _) => showOverlay(view);
-        _overlayPreviews.Add(($"{SanitizeFileName(label)}-{suffix}", view));
+        _overlayPreviews.Add(($"{SanitizeFileName(label)}-{suffix}", view, showOverlay));
         AddPreview(OverlayHost, $"{label} {width:0} × {height:0}", view, width, height);
     }
 

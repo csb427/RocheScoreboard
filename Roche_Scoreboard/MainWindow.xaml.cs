@@ -152,6 +152,8 @@ namespace Roche_Scoreboard
             InitializeComponent();
             InteractionMotion.Enable(this);
             _styledMessages.CollectionChanged += (_, _) => UpdateTickerEditorState();
+            EnsureTickerSlots();
+            MessageList.ItemsSource = _styledMessages;
             UpdateTickerEditorState();
 
             MainContent.SizeChanged += (_, e) =>
@@ -2019,11 +2021,12 @@ namespace Roche_Scoreboard
             _styledMessages.Clear();
             foreach (var msg in r.Messages)
             {
-                _messages.Add(msg.Text ?? string.Empty);
-                _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(msg.Text ?? string.Empty, msg.TextColor, msg.HighlightColor));
+                if (_styledMessages.Count >= TickerSlotCount) break;
+                _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(
+                    msg.Text ?? string.Empty, msg.TextColor, msg.HighlightColor, isEnabled: true));
             }
-            if (MessageList.ItemsSource is null)
-                MessageList.ItemsSource = _styledMessages;
+            EnsureTickerSlots();
+            SyncTickerMessages();
 
             _finalsMode = r.FinalsMode;
             SettingsFinalsToggle.IsChecked = _finalsMode;
@@ -2135,6 +2138,8 @@ namespace Roche_Scoreboard
                 HomeGoalVideoPath = _homeGoalVideoPath,
                 AwayGoalVideoPath = _awayGoalVideoPath,
                 Messages = [.. _messages],
+                TickerSlots = _styledMessages.Select(message => new Roche_Scoreboard.Models.MarqueeMessage(
+                    message.Text, message.TextColor, message.HighlightColor, message.IsEnabled)).ToList(),
                 FinalsMode = _finalsMode,
                 WeatherLocation = _weatherLocation,
                 ShowControlPanelCountdown = _showControlPanelCountdown,
@@ -2234,12 +2239,15 @@ namespace Roche_Scoreboard
             }
 
             _messages.Clear();
-            _messages.AddRange(state.Messages);
             _styledMessages.Clear();
-            foreach (string msg in _messages)
-                _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(msg));
-            if (MessageList.ItemsSource is null)
-                MessageList.ItemsSource = _styledMessages;
+            IEnumerable<Roche_Scoreboard.Models.MarqueeMessage> restoredSlots = state.TickerSlots.Count > 0
+                ? state.TickerSlots
+                : state.Messages.Select(message => new Roche_Scoreboard.Models.MarqueeMessage(message));
+            foreach (Roche_Scoreboard.Models.MarqueeMessage slot in restoredSlots.Take(TickerSlotCount))
+                _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(
+                    slot.Text, slot.TextColor, slot.HighlightColor, slot.IsEnabled));
+            EnsureTickerSlots();
+            SyncTickerMessages();
 
             _finalsMode = state.FinalsMode;
             SettingsFinalsToggle.IsChecked = _finalsMode;
@@ -2602,7 +2610,7 @@ namespace Roche_Scoreboard
                 HomeSecondaryColorBox.Text, AwaySecondaryColorBox.Text);
             _scorebug.SetLogos(_homeLogoPath, _awayLogoPath);
             ApplyLogoCropToScorebug();
-            _scorebug.SetMarqueeMessages((System.Collections.Generic.IList<Roche_Scoreboard.Models.MarqueeMessage>)_styledMessages);
+            _scorebug.SetMarqueeMessages(GetActiveTickerMessages());
             _scorebug.SetFinalsMode(_finalsMode);
             _scorebug.SetHideTeamNames(_hideTeamNames);
             _scorebug.SetWeatherLocation(_weatherLocation);

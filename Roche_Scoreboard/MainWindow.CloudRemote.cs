@@ -456,41 +456,36 @@ public partial class MainWindow : IRemoteCommandTarget
     void IRemoteCommandTarget.AddMessage(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
-
-        var styled = new Models.MarqueeMessage(text);
-        _styledMessages.Add(styled);
-        _messages.Add(text);
-        if (MessageList.ItemsSource is null)
-            MessageList.ItemsSource = _styledMessages;
-
-        _scorebug?.SetMarqueeMessages((IList<Models.MarqueeMessage>)_styledMessages);
-        PublishCloudSnapshot();
+        EnsureTickerSlots();
+        Models.MarqueeMessage? slot = _styledMessages.FirstOrDefault(message => string.IsNullOrWhiteSpace(message.Text));
+        if (slot is null) return;
+        slot.Text = text.Trim();
+        slot.IsEnabled = true;
+        SyncTickerMessages();
     }
 
     void IRemoteCommandTarget.RemoveMessage(int index)
     {
-        if (index < 0 || index >= _styledMessages.Count) return;
-        _styledMessages.RemoveAt(index);
-        if (index < _messages.Count) _messages.RemoveAt(index);
-        _scorebug?.SetMarqueeMessages((IList<Models.MarqueeMessage>)_styledMessages);
-        PublishCloudSnapshot();
+        List<Models.MarqueeMessage> active = _styledMessages
+            .Where(message => message.IsEnabled && !string.IsNullOrWhiteSpace(message.Text))
+            .ToList();
+        if (index < 0 || index >= active.Count) return;
+        active[index].Text = string.Empty;
+        active[index].IsEnabled = false;
+        SyncTickerMessages();
     }
 
     void IRemoteCommandTarget.SetMessages(string[] messages)
     {
         ArgumentNullException.ThrowIfNull(messages);
         _styledMessages.Clear();
-        _messages.Clear();
-        foreach (string text in messages)
+        foreach (string text in messages.Take(TickerSlotCount))
         {
             if (string.IsNullOrWhiteSpace(text)) continue;
-            _styledMessages.Add(new Models.MarqueeMessage(text));
-            _messages.Add(text);
+            _styledMessages.Add(new Models.MarqueeMessage(text.Trim(), isEnabled: true));
         }
-        if (MessageList.ItemsSource is null)
-            MessageList.ItemsSource = _styledMessages;
-        _scorebug?.SetMarqueeMessages((IList<Models.MarqueeMessage>)_styledMessages);
-        PublishCloudSnapshot();
+        EnsureTickerSlots();
+        SyncTickerMessages();
     }
 
     void IRemoteCommandTarget.SetLayout(string layout)

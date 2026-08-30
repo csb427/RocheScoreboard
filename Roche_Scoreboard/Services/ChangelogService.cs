@@ -13,7 +13,13 @@ internal static class ChangelogService
     [
         new("4.1.2", "2026-08-30",
         [
-            "[New] Scorebug overlays now smoothly reclaim the team-name rows so live scores remain dominant and digit-safe",
+            "[New] Ticker messages now use eight reusable on-air slots with individual colour, highlight and clear controls",
+            "[New] Scoring runs and team droughts now use club colours, logos and simplified distance-readable information",
+            "[Fixed] Recent scores returns as a smooth right-side drawer while team names and detail scores collapse to protect the live totals",
+            "[Fixed] Ticker messages block other overlays until the ticker is switched off",
+            "[Fixed] Five-minute warning and quarter-score overlays now use compact, uncluttered broadcast layouts",
+            "[Fixed] Long team names move slowly within their panel instead of shrinking below a readable size",
+            "[Fixed] Scorebug overlays smoothly reclaim the team-name rows so live scores remain dominant and digit-safe",
             "[Fixed] Finals mode now keeps a clean consistent gold clock panel with reliable high-contrast quarter and timer text",
             "[Fixed] Compact scorebugs balance the information bar, team names, logos and maximum-size fixed-capacity scores",
             "[Fixed] AFL overlays and presentation screens remain stable through repeated switching, resizing and quarter changes"
