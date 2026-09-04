@@ -11,6 +11,17 @@ internal static class ChangelogService
 {
     private static readonly IReadOnlyList<ChangelogVersion> RawVersions =
     [
+        new("4.1.3", "2026-09-05",
+        [
+            "[Fixed] Goal-run text is centred and drought timers are larger with consistent scorebug typography",
+            "[Fixed] Gold team-direction arrows flash clearly without stretching or moving overlay text",
+            "[Fixed] Stoppage time uses one clear live editor with smooth cancellation and shared match clock controls",
+            "[New] Stoppage editor keyboard adjustments: Up/Down changes by one, Shift changes by ten",
+            "[Fixed] Automatic overlays recover after clock corrections and match restoration",
+            "[Fixed] Informational overlays stay clear of the final 30 seconds of a quarter",
+            "[Fixed] Overlay scheduling handles invalid animation durations and clears old activity records",
+            "[Fixed] Safer saved-window and training-timer recovery, with lighter club-logo processing"
+        ]),
         new("4.1.2", "2026-09-04",
         [
             "[New] Distance scorebug removes the top bar to give team names and fixed-capacity scores more room, with wall time integrated beside the match clock",

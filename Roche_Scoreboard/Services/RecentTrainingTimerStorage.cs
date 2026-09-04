@@ -40,7 +40,19 @@ public static class RecentTrainingTimerStorage
         {
             string path = GetPath();
             var entries = AtomicFile.TryReadJson<List<Entry>>(path, Options) ?? new List<Entry>();
-            return entries
+            return NormalizeEntries(entries);
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
+        {
+            System.Diagnostics.Debug.WriteLine($"RecentTrainingTimerStorage.Load failed: {ex.Message}");
+            return new List<Entry>();
+        }
+    }
+
+    internal static List<Entry> NormalizeEntries(IEnumerable<Entry?> entries)
+    {
+        return entries
+                .OfType<Entry>()
                 .Where(e => e.Seconds > 0)
                 .Select(e => new Entry
                 {
@@ -49,14 +61,9 @@ public static class RecentTrainingTimerStorage
                     LastUsedUtc = e.LastUsedUtc
                 })
                 .OrderByDescending(e => e.LastUsedUtc)
+                .DistinctBy(e => (e.Title.ToUpperInvariant(), e.Seconds))
                 .Take(MaxEntries)
                 .ToList();
-        }
-        catch (Exception ex) when (ex is IOException or JsonException)
-        {
-            System.Diagnostics.Debug.WriteLine($"RecentTrainingTimerStorage.Load failed: {ex.Message}");
-            return new List<Entry>();
-        }
     }
 
     private static void Save(List<Entry> entries)
@@ -65,7 +72,7 @@ public static class RecentTrainingTimerStorage
         {
             AtomicFile.WriteAllText(GetPath(), JsonSerializer.Serialize(entries, Options));
         }
-        catch (IOException ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             System.Diagnostics.Debug.WriteLine($"RecentTrainingTimerStorage.Save failed: {ex.Message}");
         }

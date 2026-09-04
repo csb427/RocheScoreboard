@@ -282,6 +282,13 @@ internal static class AflReliabilityStressSuite
             validStoppage && parsedStoppage == TimeSpan.FromMinutes(12) + TimeSpan.FromSeconds(34)
             && rejectsInvalidStoppage,
             $"valid={validStoppage}; parsed={parsedStoppage}; invalidRejected={rejectsInvalidStoppage}");
+        verify("stoppage-editor-keyboard-bounds",
+            MainWindow.AdjustStoppageEditorField("59", 1, 59) == "59"
+            && MainWindow.AdjustStoppageEditorField("00", -10, 99) == "00"
+            && MainWindow.AdjustStoppageEditorField("09", 10, 99) == "19"
+            && MainWindow.AdjustStoppageEditorField("invalid", 1, 59) == "01"
+            && MainWindow.AdjustStoppageEditorField("2147483647", 10, 99) == "99",
+            "keyboard corrections clamp without wrapping or overflowing");
 
 
         MatchManager highScore = NewMatch();
@@ -442,6 +449,23 @@ internal static class AflReliabilityStressSuite
 
     private static void RunOverlayChecks(Action<string, bool, string> verify)
     {
+        var recentTimers = RecentTrainingTimerStorage.NormalizeEntries(
+        [
+            null,
+            new() { Title = " Warm up ", Seconds = 120, LastUsedUtc = new DateTime(2026, 1, 1) },
+            new() { Title = "WARM UP", Seconds = 120, LastUsedUtc = new DateTime(2026, 2, 1) },
+            new() { Title = null!, Seconds = 30 },
+            new() { Title = "Invalid", Seconds = -1 }
+        ]);
+        verify("training-history-recovers-and-deduplicates", recentTimers.Count == 2
+            && recentTimers.Any(e => e.Title == "TIMER")
+            && recentTimers.Any(e => e.Title == "WARM UP"), "null entries skipped; newest duplicate retained; blank title repaired");
+        foreach (var size in new[] { (1000000d, 1d), (1d, 1000000d), (1920d, 1080d), (double.NaN, 10d), (0d, 0d) })
+        {
+            var scan = ImageLoadHelper.GetTrimScanSize(size.Item1, size.Item2);
+            verify($"logo-trim-bounded-{size}", scan.Width is >= 1 and <= 512
+                && scan.Height is >= 1 and <= 256, $"scan={scan}");
+        }
         DateTime now = new(2026, 8, 30, 12, 0, 0, DateTimeKind.Utc);
         OverlayScheduler scheduler = new(() => now);
         scheduler.RegisterOverlays(
@@ -526,6 +550,40 @@ internal static class AflReliabilityStressSuite
         verify("overlay-clock-rewind-does-not-freeze-scheduler",
             afterClockCorrection is not null,
             $"selected={afterClockCorrection?.Kind}");
+
+        scheduler.Reset();
+        scheduler.NotifyGoalAnimation(TimeSpan.FromSeconds(8));
+        now += TimeSpan.FromSeconds(19);
+        verify("overlay-goal-animation-includes-recovery-gap", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(20), true, false) is null, "8s animation plus 12s cooldown");
+        now += TimeSpan.FromSeconds(1);
+        verify("overlay-goal-animation-recovers-on-boundary", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(20), true, false) is not null, "rotation resumes at 20s");
+        scheduler.NotifyGoalAnimation(TimeSpan.FromSeconds(8));
+        now -= TimeSpan.FromMinutes(5);
+        verify("overlay-clock-rewind-during-goal-recovers", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(20), true, false) is not null, "future animation timestamp must expire");
+
+        scheduler.NotifyOverlayShown(OverlayKind.StatsBar);
+        scheduler.NotifyGameResumed();
+        verify("overlay-restore-has-calm-buffer", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(20), true, false) is null, "no overlay immediately after resume");
+        now += TimeSpan.FromMinutes(4);
+        verify("overlay-restore-clears-orphaned-active-state", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(20), true, false) is not null, "lost hide callback must not freeze restored match");
+        verify("overlay-final-thirty-seconds-suppressed", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(20) - TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(20), true, false) is null, "protect final seconds from informational cards");
+        verify("overlay-late-window-retains-priority-card", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(20) - TimeSpan.FromSeconds(31), TimeSpan.FromMinutes(20), true, false)?.Kind == OverlayKind.Weather, "priority selection before final suppression");
+        scheduler.Reset();
+        scheduler.NotifyGoalAnimation(TimeSpan.MaxValue);
+        verify("overlay-extreme-duration-does-not-overflow", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(20), true, false) is null, "corrupt media duration cannot crash scheduling");
+        scheduler.Reset();
+        scheduler.NotifyGoalAnimation(TimeSpan.MinValue);
+        now += TimeSpan.FromSeconds(12);
+        verify("overlay-negative-duration-recovers", scheduler.TryGetNextOverlay(
+            TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(20), true, false) is not null, "invalid negative duration treated as zero");
     }
 
     private static MatchManager NewMatch()

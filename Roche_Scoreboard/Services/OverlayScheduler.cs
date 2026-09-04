@@ -199,6 +199,7 @@ public sealed class OverlayScheduler
 
     /// <summary>UTC time the most recent goal animation ended (estimated).</summary>
     private DateTime _goalAnimationEndUtc = DateTime.MinValue;
+    private DateTime _goalAnimationStartedUtc = DateTime.MinValue;
 
     /// <summary>Whether an informational overlay is currently being displayed.</summary>
     private bool _overlayActive;
@@ -264,7 +265,14 @@ public sealed class OverlayScheduler
     /// </summary>
     public void NotifyGoalAnimation(TimeSpan animationDuration)
     {
-        DateTime endEstimate = _utcNow() + animationDuration;
+        DateTime now = _utcNow();
+        if (now < _goalAnimationStartedUtc)
+            _goalAnimationEndUtc = DateTime.MinValue;
+        _goalAnimationStartedUtc = now;
+        // Bad media metadata must neither overflow DateTime nor shorten an
+        // existing animation reservation. Negative durations mean zero.
+        long ticks = Math.Clamp(animationDuration.Ticks, 0, (DateTime.MaxValue - now).Ticks);
+        DateTime endEstimate = now.AddTicks(ticks);
         if (endEstimate > _goalAnimationEndUtc)
         {
             _goalAnimationEndUtc = endEstimate;
@@ -282,6 +290,7 @@ public sealed class OverlayScheduler
         DateTime now = _utcNow();
         _lastEventDrivenOverlayUtc = now;
         _lastAnyOverlayActivityUtc = now;
+        PruneRecentEventOverlays(now);
         _recentEventOverlays.Add(now);
     }
 
@@ -322,6 +331,7 @@ public sealed class OverlayScheduler
         _lastOverlayHiddenUtc = DateTime.MinValue;
         _lastScoringEventUtc = DateTime.MinValue;
         _goalAnimationEndUtc = DateTime.MinValue;
+        _goalAnimationStartedUtc = DateTime.MinValue;
         _lastEventDrivenOverlayUtc = DateTime.MinValue;
         _lastAnyOverlayActivityUtc = now;
         _overlayActive = false;
@@ -349,6 +359,12 @@ public sealed class OverlayScheduler
     public void NotifyGameResumed()
     {
         DateTime now = _utcNow();
+        // Transient visuals do not survive restore. Retaining the active flag
+        // can otherwise block the rotation forever waiting for a lost hide event.
+        _overlayActive = false;
+        _goalAnimationEndUtc = DateTime.MinValue;
+        _goalAnimationStartedUtc = DateTime.MinValue;
+        _recentEventOverlays.Clear();
         _quarterStartUtc = now;
         _lastOverlayHiddenUtc = now;
         _lastAnyOverlayActivityUtc = now;
@@ -361,6 +377,7 @@ public sealed class OverlayScheduler
         _lastOverlayHiddenUtc = DateTime.MinValue;
         _lastScoringEventUtc = DateTime.MinValue;
         _goalAnimationEndUtc = DateTime.MinValue;
+        _goalAnimationStartedUtc = DateTime.MinValue;
         _lastEventDrivenOverlayUtc = DateTime.MinValue;
         _lastAnyOverlayActivityUtc = DateTime.MinValue;
         _overlayActive = false;
@@ -387,7 +404,7 @@ public sealed class OverlayScheduler
             return QuarterPhase.EarlyBuffer;
 
         TimeSpan remaining = quarterDuration - elapsed;
-        if (remaining <= TimeSpan.Zero)
+        if (remaining <= TimeSpan.FromSeconds(30))
             return QuarterPhase.Suppressed;
 
         if (remaining <= LateQuarterThreshold)
@@ -527,7 +544,13 @@ public sealed class OverlayScheduler
         }
 
         // Goal animation cooldown
-        if (now < _goalAnimationEndUtc + GoalAnimationCooldown)
+        if (now < _goalAnimationStartedUtc)
+        {
+            _goalAnimationEndUtc = DateTime.MinValue;
+            _goalAnimationStartedUtc = DateTime.MinValue;
+        }
+        if (_goalAnimationEndUtc != DateTime.MinValue &&
+            (now < _goalAnimationEndUtc || now - _goalAnimationEndUtc < GoalAnimationCooldown))
             return null;
 
         // Event-driven overlay cooldown

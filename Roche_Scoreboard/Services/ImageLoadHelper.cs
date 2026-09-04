@@ -93,7 +93,17 @@ internal static class ImageLoadHelper
     {
         var source = Load(path, decodePixelHeight);
         if (source is null) return null;
-        return TrimTransparent(source);
+        try { return TrimTransparent(source); }
+        catch { return source; } // A usable logo is preferable to a failed optional crop.
+    }
+
+    internal static (int Width, int Height) GetTrimScanSize(double width, double height)
+    {
+        if (!double.IsFinite(width) || !double.IsFinite(height) || width <= 0 || height <= 0)
+            return (1, 1);
+        double scale = Math.Min(256 / height, 512 / width);
+        return (Math.Max(1, (int)Math.Min(512, width * scale)),
+                Math.Max(1, (int)Math.Min(256, height * scale)));
     }
 
     /// <summary>
@@ -103,10 +113,9 @@ internal static class ImageLoadHelper
     /// </summary>
     private static ImageSource TrimTransparent(ImageSource source)
     {
-        // Render to a 256-pixel-high bitmap for scanning (small enough to be fast)
-        const int scanHeight = 256;
-        double aspect = source.Width / source.Height;
-        int scanWidth = Math.Max(1, (int)(scanHeight * aspect));
+        // Bound both dimensions so panoramic club artwork cannot allocate an
+        // enormous temporary bitmap while looking for transparent padding.
+        var (scanWidth, scanHeight) = GetTrimScanSize(source.Width, source.Height);
 
         RenderTargetBitmap rtb = new(scanWidth, scanHeight, 96, 96, PixelFormats.Pbgra32);
         DrawingVisual dv = new();

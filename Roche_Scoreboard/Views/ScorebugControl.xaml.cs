@@ -138,7 +138,7 @@ namespace Roche_Scoreboard.Views
                $"warning-height={ExpWarningBanner.ActualHeight:0.##}; warning-opacity={ExpWarningBanner.Opacity:0.##}; " +
                $"team-story={_teamStoryVisible}/{(_teamStoryIsHome ? "home" : "away")}; " +
                $"story-scale={ExpTeamStoryReveal.ScaleY:0.###}; opponent-y={GetTeamStoryOpponentOffset():0.##}; " +
-               $"story-direction={ExpTeamStoryDirectionIndicator.Text}/{ExpTeamStoryDirectionIndicator.VerticalAlignment}; " +
+               $"story-direction={ExpTeamStoryDirectionIndicator.Text}/{ExpTeamStoryDirectionHost.VerticalAlignment}; " +
                $"drought-label={ExpTeamDroughtLabelText.Text}; " +
                $"drought-lane/text={ExpTeamDroughtLabelLane.ActualWidth:0.##}/{ExpTeamDroughtLabelText.ActualWidth:0.##}; " +
                $"home-name-lane/text={ExpHomeNameHost.ActualWidth:0.##}/{ExpHomeNameText.ActualWidth:0.##}; " +
@@ -4279,13 +4279,13 @@ namespace Roche_Scoreboard.Views
             ExpTeamStoryMetricColumn.Width = new GridLength(44, GridUnitType.Star);
             ExpTeamStoryDescriptorColumn.Width = new GridLength(56, GridUnitType.Star);
             ExpTeamStoryHeadline.Width = 172;
-            ExpTeamStoryHeadline.Height = 112;
+            ExpTeamStoryHeadline.Height = double.NaN;
             ExpTeamStoryHeadline.FontSize = 112;
             ExpTeamStoryHeadline.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
             ExpTeamStoryKicker.FontSize = 42;
             ExpTeamStoryKicker.LineHeight = 37;
             ExpTeamStoryTimerHost.Visibility = Visibility.Collapsed;
-            ExpTeamStoryContent.Margin = new Thickness(12, 8, 12, 4);
+            ExpTeamStoryContent.Margin = new Thickness(5, 8, 5, 8);
             ExpTeamStoryHeadline.Text = (_pendingGoalRunResting ? 0 : _pendingGoalRunGoals).ToString();
             ExpTeamStoryHeadline.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xE3, 0x67));
             if (_pendingGoalRunConsecutive)
@@ -4306,34 +4306,31 @@ namespace Roche_Scoreboard.Views
             ExpTeamStoryTeamName.Text = string.IsNullOrWhiteSpace(fullName)
                 ? _pendingDroughtAbbreviation
                 : fullName;
-            ExpTeamStoryMetricColumn.Width = new GridLength(54, GridUnitType.Star);
-            ExpTeamStoryDescriptorColumn.Width = new GridLength(46, GridUnitType.Star);
+            ExpTeamStoryMetricColumn.Width = new GridLength(65, GridUnitType.Star);
+            ExpTeamStoryDescriptorColumn.Width = new GridLength(35, GridUnitType.Star);
             // 88:88 is the width contract. The previous 250-unit box clipped
             // double-digit minutes internally before its Viewbox could scale.
-            ExpTeamStoryHeadline.Width = 330;
-            ExpTeamStoryHeadline.Height = 112;
-            ExpTeamStoryHeadline.FontFamily = new System.Windows.Media.FontFamily("Bahnschrift SemiCondensed");
+            ExpTeamStoryHeadline.Width = 380;
+            ExpTeamStoryHeadline.Height = double.NaN;
+            ExpTeamStoryHeadline.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
             ExpTeamStoryHeadline.FontSize = 112;
             ExpTeamStoryKicker.FontSize = 54;
             ExpTeamStoryKicker.LineHeight = 46;
             ExpTeamStoryKicker.Text = $"LAST\n{_pendingDroughtEventKind}";
             ExpTeamStoryHeadline.Text = "00:00";
             ExpTeamStoryTimerHost.Visibility = Visibility.Collapsed;
-            ExpTeamStoryContent.Margin = new Thickness(10, 4, 10, 4);
+            ExpTeamStoryContent.Margin = new Thickness(5, 8, 5, 8);
         }
 
         private void ConfigureTeamStoryDirection(bool isHome)
         {
-            ExpTeamStoryDirectionIndicator.BeginAnimation(OpacityProperty, null);
-            ExpTeamStoryDirectionTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            ExpTeamStoryDirectionIndicator.Text = isHome ? "▲  ▲  ▲" : "▼  ▼  ▼";
-            ExpTeamStoryDirectionIndicator.VerticalAlignment = isHome
+            ExpTeamStoryDirectionHost.BeginAnimation(OpacityProperty, null);
+            ExpTeamStoryDirectionIndicator.Text = isHome ? "▲" : "▼";
+            ExpTeamStoryDirectionFlip.ScaleY = isHome ? 1 : -1;
+            ExpTeamStoryDirectionHost.VerticalAlignment = isHome
                 ? VerticalAlignment.Top
                 : VerticalAlignment.Bottom;
-            ExpTeamStoryDirectionIndicator.Margin = isHome
-                ? new Thickness(0, 0, 0, 0)
-                : new Thickness(0, 0, 0, -1);
-            ExpTeamStoryDirectionIndicator.Opacity = 1;
+            ExpTeamStoryDirectionHost.Opacity = 1;
 
             var flash = new DoubleAnimationUsingKeyFrames
             {
@@ -4341,29 +4338,15 @@ namespace Roche_Scoreboard.Views
                 RepeatBehavior = RepeatBehavior.Forever
             };
             flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(1, KeyTime.FromPercent(0)));
-            flash.KeyFrames.Add(new LinearDoubleKeyFrame(0.18, KeyTime.FromPercent(0.34)));
-            flash.KeyFrames.Add(new LinearDoubleKeyFrame(1, KeyTime.FromPercent(0.68)));
-            flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(1, KeyTime.FromPercent(1)));
-            ExpTeamStoryDirectionIndicator.BeginAnimation(OpacityProperty, flash,
-                HandoffBehavior.SnapshotAndReplace);
-
-            var pulse = new DoubleAnimation(isHome ? 4 : -4, isHome ? -1 : 1,
-                TimeSpan.FromMilliseconds(360))
-            {
-                AutoReverse = true,
-                RepeatBehavior = RepeatBehavior.Forever,
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut }
-            };
-            ExpTeamStoryDirectionTranslate.BeginAnimation(TranslateTransform.YProperty, pulse,
+            flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromPercent(0.5)));
+            ExpTeamStoryDirectionHost.BeginAnimation(OpacityProperty, flash,
                 HandoffBehavior.SnapshotAndReplace);
         }
 
         private void StopTeamStoryDirection()
         {
-            ExpTeamStoryDirectionIndicator.BeginAnimation(OpacityProperty, null);
-            ExpTeamStoryDirectionTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            ExpTeamStoryDirectionIndicator.Opacity = 0;
-            ExpTeamStoryDirectionTranslate.Y = 0;
+            ExpTeamStoryDirectionHost.BeginAnimation(OpacityProperty, null);
+            ExpTeamStoryDirectionHost.Opacity = 0;
         }
 
         private void AnimateTeamStoryIn(bool isHome)

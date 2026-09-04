@@ -1871,18 +1871,27 @@
                             </Rectangle>
                             <Border x:Name="ExpTeamStoryPushEdge" Height="5" VerticalAlignment="Bottom"
                                     Background="#FFFFFFFF" Opacity="0.9"/>
-                            <TextBlock x:Name="ExpTeamStoryDirectionIndicator" Text="▲  ▲  ▲"
-                                       Panel.ZIndex="5" Foreground="White" FontFamily="Arial Black"
-                                       FontSize="17" FontWeight="Black"
-                                       HorizontalAlignment="Center" VerticalAlignment="Top"
-                                       TextAlignment="Center" Opacity="0">
-                                <TextBlock.RenderTransform>
-                                    <TranslateTransform x:Name="ExpTeamStoryDirectionTranslate"/>
-                                </TextBlock.RenderTransform>
-                                <TextBlock.Effect>
-                                    <DropShadowEffect BlurRadius="9" ShadowDepth="0" Color="White" Opacity="0.75"/>
-                                </TextBlock.Effect>
-                            </TextBlock>
+                            <TextBlock x:Name="ExpTeamStoryDirectionIndicator" Text="▲" Visibility="Collapsed"/>
+                            <UniformGrid x:Name="ExpTeamStoryDirectionHost" Rows="1" Columns="3"
+                                         Panel.ZIndex="5" Height="8" VerticalAlignment="Top" Opacity="0"
+                                         IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                                <UniformGrid.RenderTransform><ScaleTransform x:Name="ExpTeamStoryDirectionFlip"/></UniformGrid.RenderTransform>
+                                <UniformGrid.Resources>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Data" Value="M 1,5.5 L 6,0.5 L 11,5.5 Z"/>
+                                        <Setter Property="Width" Value="12"/>
+                                        <Setter Property="Height" Value="8"/>
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="Fill" Value="#FFFFD447"/>
+                                        <Setter Property="Stroke" Value="#FF101820"/>
+                                        <Setter Property="StrokeThickness" Value="0.8"/>
+                                        <Setter Property="StrokeLineJoin" Value="Round"/>
+                                    </Style>
+                                </UniformGrid.Resources>
+                                <Path/>
+                                <Path/>
+                                <Path/>
+                            </UniformGrid>
                             <Grid x:Name="ExpTeamStoryContent" Margin="12,5" Opacity="0"
                                   RenderTransformOrigin="0.5,0.5">
                                 <Grid.RenderTransform><TranslateTransform x:Name="ExpTeamStoryContentTranslate" Y="16"/></Grid.RenderTransform>
@@ -1891,9 +1900,9 @@
                                     <ColumnDefinition x:Name="ExpTeamStoryDescriptorColumn" Width="66*"/>
                                 </Grid.ColumnDefinitions>
                                 <Viewbox Stretch="Uniform" StretchDirection="DownOnly"
-                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0,6,0">
+                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,4,0">
                                     <TextBlock x:Name="ExpTeamStoryHeadline" Text="7"
-                                               Foreground="White" FontFamily="Arial Black" Width="250" Height="112"
+                                               Foreground="White" FontFamily="Arial Black" Width="250"
                                                FontSize="104" FontWeight="Black" TextAlignment="Center"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Viewbox>

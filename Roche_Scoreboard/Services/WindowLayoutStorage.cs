@@ -46,9 +46,9 @@ internal static class WindowLayoutStorage
 
     private static Dictionary<string, WindowLayout> Load()
     {
-        string path = GetStoragePath();
         try
         {
+            string path = GetStoragePath();
             var data = AtomicFile.TryReadJson<Dictionary<string, WindowLayout>>(path, JsonOptions);
             return data ?? new();
         }

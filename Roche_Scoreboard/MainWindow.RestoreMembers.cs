@@ -1281,8 +1281,11 @@ public partial class MainWindow
         return true;
     }
 
+    private int _countdownEditorGeneration;
+
     private void ControlPanelCountdownEditButton_Click(object sender, RoutedEventArgs e)
     {
+        _countdownEditorGeneration++;
         var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
         var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
         var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
@@ -1373,6 +1376,7 @@ public partial class MainWindow
         if (_controlPanelCountdownRunning)
             _countdownNextTick = DateTime.UtcNow.AddSeconds(1);
 
+        _countdownEditorGeneration++;
         if (editPopup is not null)
             editPopup.Visibility = Visibility.Collapsed;
 
@@ -1385,7 +1389,18 @@ public partial class MainWindow
 
     private void ControlPanelCountdownEditBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
-        if (e.Key == System.Windows.Input.Key.Enter)
+        if ((e.Key == System.Windows.Input.Key.Up || e.Key == System.Windows.Input.Key.Down)
+            && sender is System.Windows.Controls.TextBox field)
+        {
+            int limit = field == ControlPanelCountdownEditMinutesBox ? 99 : 59;
+            int step = (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Shift) != 0 ? 10 : 1;
+            if (e.Key == System.Windows.Input.Key.Down) step = -step;
+            field.Text = AdjustStoppageEditorField(field.Text, step, limit);
+            field.SelectAll();
+            // This only edits the draft. Nothing reaches the live clock until Apply.
+            e.Handled = true;
+        }
+        else if (e.Key == System.Windows.Input.Key.Enter)
         {
             ControlPanelCountdownApplyButton_Click(sender, e);
             e.Handled = true;
@@ -1397,6 +1412,12 @@ public partial class MainWindow
         }
     }
 
+    internal static string AdjustStoppageEditorField(string? text, int step, int limit)
+    {
+        int.TryParse(text, out int current);
+        return Math.Clamp((long)current + step, 0, limit).ToString("D2");
+    }
+
     private void CloseControlPanelCountdownEditPopup()
     {
         var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
@@ -1404,12 +1425,20 @@ public partial class MainWindow
         var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as System.Windows.Controls.Button;
         var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as System.Windows.Controls.TextBlock;
 
-        if (editPopup is null)
+        if (editPopup is null || editPopup.Visibility != Visibility.Visible)
             return;
 
+        int generation = ++_countdownEditorGeneration;
+        // Capture the rendered values before removing opening animations: their
+        // base values are still zero/.96 and otherwise make Cancel snap shut.
+        double visibleOpacity = editPopup.Opacity;
+        double visibleScale = popupScale?.ScaleX ?? 1;
         editPopup.BeginAnimation(UIElement.OpacityProperty, null);
         popupScale?.BeginAnimation(ScaleTransform.ScaleXProperty, null);
         popupScale?.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        editPopup.Opacity = visibleOpacity;
+        if (popupScale is not null)
+            popupScale.ScaleX = popupScale.ScaleY = visibleScale;
 
         var fade = new DoubleAnimation(editPopup.Opacity, 0, TimeSpan.FromMilliseconds(140))
         {
@@ -1417,6 +1446,7 @@ public partial class MainWindow
         };
         fade.Completed += (_, _) =>
         {
+            if (generation != _countdownEditorGeneration) return;
             editPopup.Visibility = Visibility.Collapsed;
             editPopup.Opacity = 0;
             var popupHostOnClose = this.FindName("ControlPanelCountdownEditPopupHost") as System.Windows.Controls.Primitives.Popup;
@@ -1849,17 +1879,6 @@ public partial class MainWindow
 
         if (editPopupHost?.IsOpen != true && editSecondsBox is not null)
             editSecondsBox.Text = _controlPanelCountdownDuration.Seconds.ToString("D2");
-
-        if (ControlPanelCountdownStartPauseButton is not null)
-        {
-            ControlPanelCountdownStartPauseButton.Content = _controlPanelCountdownRunning ? "PAUSE" : "START";
-            ControlPanelCountdownStartPauseButton.BorderBrush = _controlPanelCountdownRunning
-                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xD2, 0x99, 0x22))
-                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x3F, 0xB9, 0x50));
-            ControlPanelCountdownStartPauseButton.Background = _controlPanelCountdownRunning
-                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x35, 0x25, 0x10))
-                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x12, 0x30, 0x1D));
-        }
 
         if (_controlPanelCountdownRemaining == TimeSpan.Zero)
         {

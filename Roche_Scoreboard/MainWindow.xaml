@@ -700,13 +700,7 @@
                                             </TextBlock>
 
                                             <WrapPanel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                                <Button x:Name="ControlPanelCountdownStartPauseButton" Content="START" Margin="0,2,5,2" Click="ControlPanelCountdownStartPauseButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" Foreground="White" BorderBrush="#3FB950" Background="#12301D" Padding="11,6"/>
-                                                <Button Content="−1m" Margin="0,2,4,2" Click="ControlPanelCountdownMinusMinuteButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" BorderBrush="#334A68" Padding="8,6" ToolTip="Subtract one minute from the stoppage clock"/>
-                                                <Button Content="−10s" Margin="0,2,4,2" Click="ControlPanelCountdownMinus10Button_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" BorderBrush="#334A68" Padding="8,6" ToolTip="Subtract ten seconds from the stoppage clock"/>
-                                                <Button Content="+10s" Margin="0,2,4,2" Click="ControlPanelCountdownPlus10Button_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" BorderBrush="#334A68" Padding="8,6" ToolTip="Add ten seconds to the stoppage clock"/>
-                                                <Button Content="+1m" Margin="0,2,5,2" Click="ControlPanelCountdownPlusMinuteButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" BorderBrush="#334A68" Padding="8,6" ToolTip="Add one minute to the stoppage clock"/>
                                                 <Button x:Name="ControlPanelCountdownEditButton" Content="SET TIME" Margin="0,2,5,2" Click="ControlPanelCountdownEditButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" Foreground="#E6EDF3" BorderBrush="#3B82F6" Background="#0F223F" Padding="10,6"/>
-                                                <Button x:Name="ControlPanelCountdownResetButton" Content="&#x21BA; RESET" Margin="0,2,0,2" Click="ControlPanelCountdownResetButton_Click" Style="{StaticResource ToolBtn}" FontWeight="Black" Foreground="#E6EDF3" BorderBrush="#64748B" Background="#18212D" Padding="10,6"/>
                                                 <Button x:Name="ControlPanelCountdownCancelEditButton" Content="Cancel" Click="ControlPanelCountdownCancelEditButton_Click" Visibility="Collapsed"/>
                                             </WrapPanel>
                                         </Grid>
@@ -733,11 +727,11 @@
                                                            Foreground="#AAB8CA" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,10"/>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                     <Border Background="#0A1224" BorderBrush="#2A4F8A" BorderThickness="1" CornerRadius="5" Padding="6,3">
-                                                        <TextBox x:Name="ControlPanelCountdownEditMinutesBox" Width="56" MaxLength="2" Text="20" FontSize="24" FontWeight="Black" FontFamily="Consolas" Foreground="#E6EDF3" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" KeyDown="ControlPanelCountdownEditBox_KeyDown"/>
+                                                        <TextBox x:Name="ControlPanelCountdownEditMinutesBox" AutomationProperties.Name="Stoppage minutes" ToolTip="Minutes: Up/Down adjusts by 1; Shift adjusts by 10. Enter applies, Escape cancels." Width="56" MaxLength="2" Text="20" FontSize="24" FontWeight="Black" FontFamily="Consolas" Foreground="#E6EDF3" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" KeyDown="ControlPanelCountdownEditBox_KeyDown"/>
                                                     </Border>
                                                     <TextBlock Text=":" Foreground="#8FB8E8" FontSize="24" FontWeight="Black" VerticalAlignment="Center" Margin="7,0"/>
                                                     <Border Background="#0A1224" BorderBrush="#2A4F8A" BorderThickness="1" CornerRadius="5" Padding="6,3">
-                                                        <TextBox x:Name="ControlPanelCountdownEditSecondsBox" Width="56" MaxLength="2" Text="00" FontSize="24" FontWeight="Black" FontFamily="Consolas" Foreground="#E6EDF3" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" KeyDown="ControlPanelCountdownEditBox_KeyDown"/>
+                                                        <TextBox x:Name="ControlPanelCountdownEditSecondsBox" AutomationProperties.Name="Stoppage seconds" ToolTip="Seconds: Up/Down adjusts by 1; Shift adjusts by 10. Enter applies, Escape cancels." Width="56" MaxLength="2" Text="00" FontSize="24" FontWeight="Black" FontFamily="Consolas" Foreground="#E6EDF3" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" KeyDown="ControlPanelCountdownEditBox_KeyDown"/>
                                                     </Border>
                                                 </StackPanel>
                                                 <Grid Margin="0,3,0,0">
