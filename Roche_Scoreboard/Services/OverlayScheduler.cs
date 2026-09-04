@@ -35,6 +35,12 @@ public enum OverlayKind
     RecentScores
 }
 
+public enum OverlayFamily
+{
+    MatchStory,
+    Conditions
+}
+
 /// <summary>
 /// Metadata for a single informational overlay type, describing how long it
 /// should stay visible, how frequently it may appear, its relative priority,
@@ -59,6 +65,9 @@ public sealed class OverlayDefinition
     /// no precipitation probability).
     /// </summary>
     public required Func<bool> IsRelevant { get; init; }
+
+    /// <summary>Used to prevent visually similar cards clustering together.</summary>
+    public OverlayFamily Family { get; init; } = OverlayFamily.MatchStory;
 
     /// <summary>UTC timestamp of the last time this overlay was shown.</summary>
     internal DateTime LastShownUtc { get; set; } = DateTime.MinValue;
@@ -87,35 +96,42 @@ public sealed class OverlayDefinition
 /// </summary>
 public sealed class OverlayScheduler
 {
+    private readonly Func<DateTime> _utcNow;
+
+    public OverlayScheduler(Func<DateTime>? utcNow = null)
+    {
+        _utcNow = utcNow ?? (() => DateTime.UtcNow);
+    }
+
     // ── Fixed timing constants ──
 
     /// <summary>No overlays during the first N seconds of a quarter.</summary>
-    private static readonly TimeSpan EarlyBufferDuration = TimeSpan.FromSeconds(100);
+    private static readonly TimeSpan EarlyBufferDuration = TimeSpan.FromSeconds(75);
 
     /// <summary>Suppress or heavily reduce overlays in the final N seconds.</summary>
-    private static readonly TimeSpan LateQuarterThreshold = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan LateQuarterThreshold = TimeSpan.FromSeconds(90);
 
     /// <summary>
     /// Hard minimum gap between any two informational overlays regardless of
     /// adaptive spacing. Prevents back-to-back informational overlays even in
     /// very long quarters.
     /// </summary>
-    private static readonly TimeSpan HardMinSpacing = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan HardMinSpacing = TimeSpan.FromSeconds(75);
 
     /// <summary>Cooldown after a scoring event before informational overlays resume.</summary>
-    private static readonly TimeSpan ScoringCooldown = TimeSpan.FromSeconds(18);
+    private static readonly TimeSpan ScoringCooldown = TimeSpan.FromSeconds(22);
 
     /// <summary>Cooldown after a goal animation finishes.</summary>
-    private static readonly TimeSpan GoalAnimationCooldown = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan GoalAnimationCooldown = TimeSpan.FromSeconds(12);
 
     /// <summary>
     /// Cooldown after an event-driven overlay (scoring run, drought, lead change,
     /// G/B counts, 5-minute warning) before informational overlays resume.
     /// </summary>
-    private static readonly TimeSpan EventDrivenCooldown = TimeSpan.FromSeconds(25);
+    private static readonly TimeSpan EventDrivenCooldown = TimeSpan.FromSeconds(35);
 
     /// <summary>Solid cooldown after the previous overlay finishes before the next may start.</summary>
-    private static readonly TimeSpan PostOverlayBuffer = TimeSpan.FromSeconds(90);
+    private static readonly TimeSpan PostOverlayBuffer = TimeSpan.FromSeconds(35);
 
     /// <summary>Late-quarter mode only allows overlays with priority at or above this.</summary>
     private const int LateQuarterMinPriority = 80;
@@ -127,7 +143,7 @@ public sealed class OverlayScheduler
     /// divides the available active window (after early buffer and before late
     /// suppression) into this many evenly-spaced slots.
     /// </summary>
-    private const int TargetOverlaysPerQuarter = 10;
+    private const int TargetOverlaysPerQuarter = 7;
 
     /// <summary>
     /// When the game has been quiet (no overlays of any kind) for this long,
@@ -139,7 +155,7 @@ public sealed class OverlayScheduler
     /// The reduced spacing applied during quiet periods to ensure the display
     /// stays active and informative.
     /// </summary>
-    private static readonly TimeSpan QuietModeSpacing = TimeSpan.FromSeconds(70);
+    private static readonly TimeSpan QuietModeSpacing = TimeSpan.FromSeconds(95);
 
     /// <summary>
     /// When multiple event-driven overlays have fired recently, the scheduler
@@ -152,7 +168,7 @@ public sealed class OverlayScheduler
     /// Extra spacing added on top of the adaptive interval when the game is
     /// detected as busy (many event-driven overlays recently).
     /// </summary>
-    private static readonly TimeSpan BusyExtraDelay = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan BusyExtraDelay = TimeSpan.FromSeconds(45);
 
     /// <summary>
     /// Number of event-driven overlays within <see cref="BusyActivityWindow"/>
@@ -165,12 +181,12 @@ public sealed class OverlayScheduler
     private readonly List<OverlayDefinition> _definitions = new();
 
     /// <summary>
-    /// Random source for tiebreaker jitter when several overlays have identical
-    /// staleness scores (typical at quarter start when none has been shown yet).
-    /// Without this, registration order would deterministically pick the first
-    /// definition every time, breaking the equal-chance fairness contract.
+    /// Deterministic cursor used for fair ties. Public output should be
+    /// predictable during rehearsal; random selection made identical match
+    /// states produce different overlay sequences.
     /// </summary>
-    private readonly Random _tieBreaker = new();
+    private int _selectionCursor;
+    private OverlayFamily? _lastShownFamily;
 
     /// <summary>UTC time the last informational overlay was shown (any kind).</summary>
     private DateTime _lastOverlayShownUtc = DateTime.MinValue;
@@ -219,7 +235,16 @@ public sealed class OverlayScheduler
     public void RegisterOverlays(IEnumerable<OverlayDefinition> overlays)
     {
         _definitions.Clear();
-        _definitions.AddRange(overlays);
+        HashSet<OverlayKind> registeredKinds = [];
+        foreach (OverlayDefinition overlay in overlays)
+        {
+            // Duplicate registrations otherwise create two independently aged
+            // entries for the same visual and can make one card dominate the
+            // rotation after a control is recreated.
+            if (registeredKinds.Add(overlay.Kind))
+                _definitions.Add(overlay);
+        }
+        Reset();
     }
 
     /// <summary>Returns the registered definitions (read-only).</summary>
@@ -230,7 +255,7 @@ public sealed class OverlayScheduler
     /// <summary>Call when a score event occurs (goal or behind).</summary>
     public void NotifyScoreEvent()
     {
-        _lastScoringEventUtc = DateTime.UtcNow;
+        _lastScoringEventUtc = _utcNow();
     }
 
     /// <summary>
@@ -239,7 +264,7 @@ public sealed class OverlayScheduler
     /// </summary>
     public void NotifyGoalAnimation(TimeSpan animationDuration)
     {
-        DateTime endEstimate = DateTime.UtcNow + animationDuration;
+        DateTime endEstimate = _utcNow() + animationDuration;
         if (endEstimate > _goalAnimationEndUtc)
         {
             _goalAnimationEndUtc = endEstimate;
@@ -254,7 +279,7 @@ public sealed class OverlayScheduler
     /// </summary>
     public void NotifyEventDrivenOverlay()
     {
-        DateTime now = DateTime.UtcNow;
+        DateTime now = _utcNow();
         _lastEventDrivenOverlayUtc = now;
         _lastAnyOverlayActivityUtc = now;
         _recentEventOverlays.Add(now);
@@ -263,7 +288,7 @@ public sealed class OverlayScheduler
     /// <summary>Call when an informational overlay begins displaying.</summary>
     public void NotifyOverlayShown(OverlayKind kind)
     {
-        DateTime now = DateTime.UtcNow;
+        DateTime now = _utcNow();
         _overlayActive = true;
         _lastOverlayShownUtc = now;
         _lastAnyOverlayActivityUtc = now;
@@ -273,6 +298,9 @@ public sealed class OverlayScheduler
         {
             def.LastShownUtc = now;
             def.ShowCountThisQuarter++;
+            _lastShownFamily = def.Family;
+            int index = _definitions.IndexOf(def);
+            _selectionCursor = _definitions.Count == 0 ? 0 : (index + 1) % _definitions.Count;
         }
     }
 
@@ -280,7 +308,7 @@ public sealed class OverlayScheduler
     public void NotifyOverlayHidden()
     {
         _overlayActive = false;
-        DateTime now = DateTime.UtcNow;
+        DateTime now = _utcNow();
         _lastOverlayHiddenUtc = now;
         _lastAnyOverlayActivityUtc = now;
     }
@@ -288,13 +316,24 @@ public sealed class OverlayScheduler
     /// <summary>Call when a new quarter starts or the clock is first started.</summary>
     public void NotifyQuarterStart()
     {
-        _quarterStartUtc = DateTime.UtcNow;
+        DateTime now = _utcNow();
+        _quarterStartUtc = now;
         _lastOverlayShownUtc = DateTime.MinValue;
         _lastOverlayHiddenUtc = DateTime.MinValue;
+        _lastScoringEventUtc = DateTime.MinValue;
+        _goalAnimationEndUtc = DateTime.MinValue;
+        _lastEventDrivenOverlayUtc = DateTime.MinValue;
+        _lastAnyOverlayActivityUtc = now;
+        _overlayActive = false;
         _recentEventOverlays.Clear();
+        _selectionCursor = 0;
+        _lastShownFamily = null;
 
         foreach (OverlayDefinition def in _definitions)
         {
+            // Fairness is quarter-local. A card shown at the end of the prior
+            // quarter must not begin the next quarter looking less eligible.
+            def.LastShownUtc = DateTime.MinValue;
             def.ShowCountThisQuarter = 0;
         }
     }
@@ -309,7 +348,7 @@ public sealed class OverlayScheduler
     /// </summary>
     public void NotifyGameResumed()
     {
-        DateTime now = DateTime.UtcNow;
+        DateTime now = _utcNow();
         _quarterStartUtc = now;
         _lastOverlayHiddenUtc = now;
         _lastAnyOverlayActivityUtc = now;
@@ -327,6 +366,8 @@ public sealed class OverlayScheduler
         _overlayActive = false;
         _quarterStartUtc = DateTime.MinValue;
         _recentEventOverlays.Clear();
+        _selectionCursor = 0;
+        _lastShownFamily = null;
 
         foreach (OverlayDefinition def in _definitions)
         {
@@ -357,6 +398,16 @@ public sealed class OverlayScheduler
 
     // ── Adaptive spacing ──
 
+    private static TimeSpan SafeElapsed(DateTime now, DateTime then)
+    {
+        if (then == DateTime.MinValue) return TimeSpan.MaxValue;
+        TimeSpan elapsed = now - then;
+        // Windows can correct its wall clock backwards (NTP, sleep/resume or
+        // an operator time change). Treat that as an expired cooldown instead
+        // of freezing automatic overlays until the old timestamp catches up.
+        return elapsed < TimeSpan.Zero ? TimeSpan.MaxValue : elapsed;
+    }
+
     /// <summary>
     /// Computes the ideal spacing between informational overlays based on the
     /// quarter duration and current game activity. Adapts to any quarter length
@@ -377,7 +428,7 @@ public sealed class OverlayScheduler
         // If the game has been quiet (no overlays at all for a while), shorten the
         // spacing so the display doesn't sit idle for too long.
         if (_lastAnyOverlayActivityUtc != DateTime.MinValue &&
-            (now - _lastAnyOverlayActivityUtc) > QuietThreshold &&
+            SafeElapsed(now, _lastAnyOverlayActivityUtc) > QuietThreshold &&
             adaptiveSpacing > QuietModeSpacing)
         {
             adaptiveSpacing = QuietModeSpacing;
@@ -397,7 +448,7 @@ public sealed class OverlayScheduler
     /// <summary>Removes entries from <see cref="_recentEventOverlays"/> that are older than the activity window.</summary>
     private void PruneRecentEventOverlays(DateTime now)
     {
-        _recentEventOverlays.RemoveAll(t => (now - t) > BusyActivityWindow);
+        _recentEventOverlays.RemoveAll(t => SafeElapsed(now, t) > BusyActivityWindow);
     }
 
     // ── Staleness-based selection ──
@@ -412,7 +463,7 @@ public sealed class OverlayScheduler
     {
         double timeSinceShown = def.LastShownUtc == DateTime.MinValue
             ? 600.0  // never shown this quarter — treat as very stale
-            : (now - def.LastShownUtc).TotalSeconds;
+            : SafeElapsed(now, def.LastShownUtc).TotalSeconds;
 
         // Penalise overlays that have already been shown many times this quarter
         // so less-shown overlays are promoted. Each prior show reduces staleness
@@ -446,7 +497,7 @@ public sealed class OverlayScheduler
         if (_definitions.Count == 0)
             return null;
 
-        DateTime now = DateTime.UtcNow;
+        DateTime now = _utcNow();
 
         // Phase check
         QuarterPhase phase = GetPhase(elapsed, quarterDuration);
@@ -456,21 +507,21 @@ public sealed class OverlayScheduler
         // Adaptive spacing since last informational overlay
         TimeSpan adaptiveSpacing = ComputeAdaptiveSpacing(quarterDuration, now);
         if (_lastOverlayShownUtc != DateTime.MinValue &&
-            (now - _lastOverlayShownUtc) < adaptiveSpacing)
+            SafeElapsed(now, _lastOverlayShownUtc) < adaptiveSpacing)
         {
             return null;
         }
 
         // Post-overlay buffer — wait a few seconds after the previous overlay hid
         if (_lastOverlayHiddenUtc != DateTime.MinValue &&
-            (now - _lastOverlayHiddenUtc) < PostOverlayBuffer)
+            SafeElapsed(now, _lastOverlayHiddenUtc) < PostOverlayBuffer)
         {
             return null;
         }
 
         // Scoring event cooldown
         if (_lastScoringEventUtc != DateTime.MinValue &&
-            (now - _lastScoringEventUtc) < ScoringCooldown)
+            SafeElapsed(now, _lastScoringEventUtc) < ScoringCooldown)
         {
             return null;
         }
@@ -481,7 +532,7 @@ public sealed class OverlayScheduler
 
         // Event-driven overlay cooldown
         if (_lastEventDrivenOverlayUtc != DateTime.MinValue &&
-            (now - _lastEventDrivenOverlayUtc) < EventDrivenCooldown)
+            SafeElapsed(now, _lastEventDrivenOverlayUtc) < EventDrivenCooldown)
         {
             return null;
         }
@@ -489,7 +540,7 @@ public sealed class OverlayScheduler
         // Quarter-start wall-clock buffer (provides a hard guarantee even if
         // elapsed resets oddly)
         if (_quarterStartUtc != DateTime.MinValue &&
-            (now - _quarterStartUtc) < EarlyBufferDuration)
+            SafeElapsed(now, _quarterStartUtc) < EarlyBufferDuration)
         {
             return null;
         }
@@ -498,15 +549,27 @@ public sealed class OverlayScheduler
         OverlayDefinition? best = null;
         double bestScore = double.MinValue;
 
-        foreach (OverlayDefinition candidate in _definitions)
+        for (int index = 0; index < _definitions.Count; index++)
         {
-            // Relevance check
-            if (!candidate.IsRelevant())
+            OverlayDefinition candidate = _definitions[index];
+            // A data provider (weather, forecast, stats) may briefly be
+            // unavailable while state changes. Treat that overlay as irrelevant
+            // for this pass rather than allowing a scheduler tick to escape.
+            bool isRelevant;
+            try
+            {
+                isRelevant = candidate.IsRelevant();
+            }
+            catch
+            {
+                isRelevant = false;
+            }
+            if (!isRelevant)
                 continue;
 
             // Per-overlay minimum interval
             if (candidate.LastShownUtc != DateTime.MinValue &&
-                (now - candidate.LastShownUtc) < candidate.MinInterval)
+                SafeElapsed(now, candidate.LastShownUtc) < candidate.MinInterval)
             {
                 continue;
             }
@@ -515,14 +578,12 @@ public sealed class OverlayScheduler
             if (phase == QuarterPhase.LateReduced && candidate.Priority < LateQuarterMinPriority)
                 continue;
 
-            // Add a small random jitter (±5 seconds equivalent) so when two or
-            // more overlays have effectively the same staleness — typically at
-            // quarter start when none has been shown yet — selection is fair
-            // rather than always picking the first registered. Across many
-            // scheduling decisions this produces an even distribution among
-            // tied candidates.
+            int cyclicDistance = (index - _selectionCursor + _definitions.Count) % _definitions.Count;
+            double familyPenalty = _lastShownFamily == candidate.Family ? 50 : 0;
             double score = ComputeStaleness(candidate, now)
-                         + (_tieBreaker.NextDouble() * 10.0 - 5.0);
+                         + candidate.Priority * 0.10
+                         - familyPenalty
+                         - cyclicDistance * 0.01;
             if (score > bestScore)
             {
                 bestScore = score;

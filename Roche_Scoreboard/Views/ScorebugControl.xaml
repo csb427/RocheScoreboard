@@ -11,6 +11,14 @@
         <SolidColorBrush x:Key="AwayTeamBrush" Color="#7A1A1A"/>
         <SolidColorBrush x:Key="HomeLogoDarkBrush" Color="#081F50"/>
         <SolidColorBrush x:Key="AwayLogoDarkBrush" Color="#5D1414"/>
+        <!-- A moving glyph should disappear deliberately at a viewport edge,
+             never be guillotined halfway through a letter. -->
+        <LinearGradientBrush x:Key="MarqueeEdgeMask" StartPoint="0,0.5" EndPoint="1,0.5">
+            <GradientStop Color="#00FFFFFF" Offset="0"/>
+            <GradientStop Color="#FFFFFFFF" Offset="0.09"/>
+            <GradientStop Color="#FFFFFFFF" Offset="0.91"/>
+            <GradientStop Color="#00FFFFFF" Offset="1"/>
+        </LinearGradientBrush>
     </UserControl.Resources>
 
     <UserControl.Background>
@@ -111,8 +119,9 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="TIME SINCE LAST SCORE" Foreground="#CBD5E1" FontSize="15" FontWeight="Black" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1" x:Name="ScorelessTimeText" Text="10:00" Foreground="White" FontSize="26" FontWeight="Black" FontFamily="Stolzl Bold" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="0" x:Name="ScorelessLabelText" Text="TIME SINCE LAST SCORE" Foreground="#CBD5E1" FontSize="15" FontWeight="Black" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" x:Name="ScorelessTimeText" Text="10:00" Foreground="White" FontSize="26" FontWeight="Black"
+                           FontFamily="Stolzl Bold" Width="88" TextAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
@@ -130,14 +139,13 @@
                     <ColumnDefinition Width="5"/>
                     <ColumnDefinition Width="12"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Background="#4ADE80"/>
-                <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                    <TextBlock x:Name="ScoringRunLabelText" Text="HOME SCORING RUN" Foreground="White" FontSize="16" FontWeight="Black" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="ScoringRunDetailText" Text="4 SCORES · 06:12" Foreground="#D1D5DB" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                </StackPanel>
-                <TextBlock Grid.Column="3" x:Name="ScoringRunValueText" Text="20–0" Foreground="White" FontSize="30" FontWeight="Black" FontFamily="Stolzl Bold" VerticalAlignment="Center"/>
+                <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="2,4">
+                    <TextBlock x:Name="ScoringRunLabelText" Text="HOME 4 GOALS IN A ROW"
+                               Foreground="White" FontFamily="Stolzl Bold" FontSize="30"
+                               FontWeight="Black" VerticalAlignment="Center"/>
+                </Viewbox>
             </Grid>
         </Border>
 
@@ -625,7 +633,7 @@
         </Grid.RowDefinitions>
 
         <!-- ============ TOP INFO BAR (weather | time | date) ============ -->
-        <Border Grid.Row="0" Panel.ZIndex="0" ClipToBounds="True" BorderThickness="0">
+        <Border x:Name="ExpTopInfoBar" Grid.Row="0" Panel.ZIndex="0" ClipToBounds="True" BorderThickness="0">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#020614" Offset="0.0"/>
@@ -635,9 +643,9 @@
             </Border.Background>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition x:Name="ExpTopWeatherColumn" Width="*"/>
+                    <ColumnDefinition x:Name="ExpTopClockColumn" Width="*"/>
+                    <ColumnDefinition x:Name="ExpTopDateColumn" Width="*"/>
                 </Grid.ColumnDefinitions>
                 <!-- Each cell uses a DownOnly Viewbox so the FontSize=30 text scales
                      down cleanly when the output window (and therefore the top bar
@@ -654,7 +662,7 @@
                                Foreground="#FFFFFF" FontFamily="Stolzl Bold" FontSize="52" FontWeight="Black"
                                HorizontalAlignment="Center" TextAlignment="Center"/>
                 </Viewbox>
-                <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly"
+                <Viewbox x:Name="ExpTopDateHost" Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly"
                          HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,2,8,2">
                     <TextBlock x:Name="ExpTopDateText" Text="---"
                                Foreground="White" FontFamily="Stolzl Bold" FontSize="52" FontWeight="Black"
@@ -696,12 +704,16 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition x:Name="ExpCompactWallTimeColumn" Width="0"/>
                     </Grid.ColumnDefinitions>
                     <Viewbox Grid.Column="0" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,4" HorizontalAlignment="Left" VerticalAlignment="Center">
                         <TextBlock x:Name="ExpCompactQuarterText" Text="1ST" Foreground="White" FontFamily="Stolzl Bold" FontSize="60" FontWeight="Bold"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,4" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <TextBlock x:Name="ExpCompactClockText" Text="14:37" Foreground="White" FontFamily="Stolzl Bold" FontSize="60" FontWeight="Bold"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,5" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock x:Name="ExpCompactWallTimeText" Text="1:26 PM" Foreground="#C8D8EA" FontFamily="Stolzl Bold" FontSize="46" FontWeight="Bold"/>
                     </Viewbox>
                 </Grid>
             </Grid>
@@ -738,7 +750,7 @@
                                 <Border.Background><SolidColorBrush x:Name="ExpStatsAwayBarBrush" Color="#FF6644"/></Border.Background>
                             </Border>
                             <Viewbox Grid.ColumnSpan="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="10,3">
-                                <TextBlock x:Name="ExpStatsLabelText" Text="SCORING SHOTS" Foreground="White" Background="#E607101A"
+                                <TextBlock x:Name="ExpStatsLabelText" Text="SCORING SHOTS" Foreground="White"
                                            Padding="8,2" FontFamily="Stolzl Bold" FontSize="36" FontWeight="Black">
                                     <TextBlock.Effect><DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="Black" Opacity="0.9"/></TextBlock.Effect>
                                 </TextBlock>
@@ -758,19 +770,31 @@
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
             </Border.Effect>
-            <Viewbox Stretch="Uniform" StretchDirection="Both" Margin="12,2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                <Grid VerticalAlignment="Center">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="16"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock Text="TIME SINCE LAST SCORE" Foreground="White" FontFamily="Stolzl Bold" FontSize="28" FontWeight="Black" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="2" x:Name="ExpScorelessTimeText" Text="10:00" Foreground="#FFD54A" FontFamily="Stolzl Bold" FontSize="38" FontWeight="Black" VerticalAlignment="Center"/>
-                </Grid>
-            </Viewbox>
+            <Grid Margin="10,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="7*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+                <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <TextBlock x:Name="ExpScorelessLabelText" Text="TIME SINCE LAST SCORE" Foreground="White"
+                               FontFamily="Stolzl Bold" FontSize="34" FontWeight="Black" TextAlignment="Center"
+                               TextWrapping="NoWrap" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+                <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly"
+                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <Grid>
+                        <!-- The widest legal clock reserves a stable size, so the live text never jumps. -->
+                        <TextBlock Text="88:88" Opacity="0" FontFamily="Stolzl Bold" FontSize="48" FontWeight="Black"/>
+                        <TextBlock x:Name="ExpScorelessTimeText" Text="10:00" Foreground="#FFD54A"
+                                   FontFamily="Stolzl Bold" FontSize="48" FontWeight="Black"
+                                   TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                    </Grid>
+                </Viewbox>
+            </Grid>
         </Border>
 
         <Border x:Name="ExpScoringRunBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="7" BorderThickness="0,0,0,1" BorderBrush="#55FFFFFF">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
-            </Border.Effect>
             <Border.Background>
                 <LinearGradientBrush x:Name="ExpScoringRunGradient" StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#07111B" Offset="0"/>
@@ -779,65 +803,51 @@
                 </LinearGradientBrush>
             </Border.Background>
             <Grid>
-                <Image x:Name="ExpScoringRunLogoBackdrop" Opacity="0.22" Stretch="UniformToFill"
-                       HorizontalAlignment="Right" Width="180" RenderTransformOrigin="0.5,0.5">
+                <Image x:Name="ExpScoringRunLogoBackdrop" Opacity="0.18" Stretch="UniformToFill"
+                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <Image.Effect><BlurEffect Radius="7"/></Image.Effect>
-                    <Image.RenderTransform><ScaleTransform ScaleX="1.35" ScaleY="1.35"/></Image.RenderTransform>
                 </Image>
             <Grid x:Name="ExpScoringRunContent" Margin="10,3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="7"/>
                     <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="10"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" x:Name="ExpScoringRunAccent" Background="#4ADE80"/>
-                <Border Grid.Column="2" Width="42" Height="42" CornerRadius="21" Background="#44000000" ClipToBounds="True" VerticalAlignment="Center">
-                    <Image x:Name="ExpScoringRunLogo" Stretch="Uniform" Margin="3"/>
-                </Border>
-                <StackPanel Grid.Column="4" VerticalAlignment="Center">
-                    <TextBlock Text="SCORING RUN" Visibility="Collapsed"/>
-                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
-                        <TextBlock x:Name="ExpScoringRunLabelText" Text="HOME" Foreground="White" FontFamily="Stolzl Bold" FontSize="30" FontWeight="Black"/>
-                    </Viewbox>
-                    <TextBlock x:Name="ExpScoringRunDetailText" Visibility="Collapsed"/>
-                </StackPanel>
-                <Viewbox Grid.Column="5" Stretch="Uniform" StretchDirection="DownOnly" Margin="10,0,4,0">
-                    <TextBlock x:Name="ExpScoringRunValueText" Text="20–0" Foreground="White" FontSize="58" FontWeight="Black" FontFamily="Arial" FontStretch="Condensed"/>
+                <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly"
+                         HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0,0,5,0">
+                    <TextBlock x:Name="ExpScoringRunLabelText" Text="HOME 4 GOALS IN A ROW"
+                               Foreground="White" FontFamily="Stolzl Bold" FontSize="28" FontWeight="Black"/>
                 </Viewbox>
             </Grid>
             </Grid>
         </Border>
 
         <Border x:Name="ExpTeamDroughtBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" Panel.ZIndex="8" BorderThickness="0">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#F0C040" Opacity="0.45"/>
-            </Border.Effect>
             <Border.Background>
                 <SolidColorBrush x:Name="ExpTeamDroughtGradient" Color="#0D1117"/>
             </Border.Background>
             <Grid>
-                <Image x:Name="ExpTeamDroughtLogoBackdrop" Opacity="0.24" Stretch="UniformToFill"
-                       HorizontalAlignment="Right" Width="190" RenderTransformOrigin="0.5,0.5">
+                <Image x:Name="ExpTeamDroughtLogoBackdrop" Opacity="0.18" Stretch="UniformToFill"
+                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <Image.Effect><BlurEffect Radius="8"/></Image.Effect>
-                    <Image.RenderTransform><ScaleTransform ScaleX="1.45" ScaleY="1.45"/></Image.RenderTransform>
                 </Image>
                 <Grid Margin="10,3">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/><ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="7"/><ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Border Width="40" Height="40" CornerRadius="20" Background="#44000000" ClipToBounds="True" VerticalAlignment="Center">
-                        <Image x:Name="ExpTeamDroughtLogo" Stretch="Uniform" Margin="3"/>
-                    </Border>
-                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                        <TextBlock Text="WITHOUT A SCORE" Foreground="#DCE5EF" FontFamily="Stolzl Bold" FontSize="13" FontWeight="Black"/>
-                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
-                            <TextBlock x:Name="ExpTeamDroughtLabelText" Text="HOME" Foreground="White" FontFamily="Stolzl Bold" FontSize="28" FontWeight="Black"/>
-                        </Viewbox>
-                    </StackPanel>
+                    <Border Grid.Column="0" x:Name="ExpTeamDroughtAccent" Background="#F59E0B"/>
+                    <Grid Grid.Column="2" x:Name="ExpTeamDroughtLabelLane" ClipToBounds="True" Margin="0,0,4,0">
+                        <TextBlock x:Name="ExpTeamDroughtLabelText" Text="TIME SINCE LAST HOME SCORE" Foreground="White" Margin="4,0"
+                                   FontFamily="Stolzl Bold" FontSize="34" FontWeight="Black"
+                                   VerticalAlignment="Center" HorizontalAlignment="Left" TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis">
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform x:Name="ExpTeamDroughtLabelTranslate"/>
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </Grid>
                     <Viewbox Grid.Column="3" Stretch="Uniform" StretchDirection="DownOnly" Margin="10,0,4,0">
                         <TextBlock x:Name="ExpTeamDroughtTimeText" Text="08:30" Foreground="#FFFFFF" FontSize="46" FontWeight="Black" FontFamily="Arial" FontStretch="Condensed"/>
                     </Viewbox>
@@ -889,7 +899,7 @@
                                 <Border.Background><SolidColorBrush x:Name="ExpWinProbAwayBarBrush" Color="#FF6644"/></Border.Background>
                             </Border>
                             <Viewbox Grid.ColumnSpan="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="10,3">
-                                <TextBlock x:Name="ExpWinProbInsideLabelText" Text="WIN PROBABILITY" Foreground="White" Background="#E607101A"
+                                <TextBlock x:Name="ExpWinProbInsideLabelText" Text="WIN PROBABILITY" Foreground="White"
                                            Padding="8,2" FontFamily="Stolzl Bold" FontSize="36" FontWeight="Black">
                                     <TextBlock.Effect><DropShadowEffect BlurRadius="6" ShadowDepth="0" Color="Black" Opacity="0.9"/></TextBlock.Effect>
                                 </TextBlock>
@@ -1025,39 +1035,55 @@
             <Grid Margin="7,3" VerticalAlignment="Stretch">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="72"/>
+                    <ColumnDefinition Width="76"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Border x:Name="ExpQuarterScoresHomeTotalBox" Grid.Column="0" CornerRadius="4" BorderThickness="0" Margin="0,0,5,0" ClipToBounds="True">
-                        <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresHomeTotalBg" Color="#0A2A6A"/></Border.Background>
+                <Border x:Name="ExpQuarterScoresHomeTotalBox" Grid.Column="0" BorderThickness="0" ClipToBounds="True">
+                        <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresHomeTotalBg" Color="#0A2A6A" Opacity="0.58"/></Border.Background>
                         <Border.BorderBrush><SolidColorBrush x:Name="ExpQuarterScoresHomeTotalBorder" Color="#FFFFFF"/></Border.BorderBrush>
-                    <Grid Margin="5,1">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <Image x:Name="ExpQuarterScoresHomeLogo" Stretch="Uniform" Margin="2"/>
-                        <TextBlock x:Name="ExpQuarterScoresHomeNameText" Grid.Column="1" Text="HOM" FontFamily="Stolzl Bold" FontSize="22" FontWeight="Black"
-                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="5,0,2,0">
-                            <TextBlock x:Name="ExpQuarterScoresHomeTotalText" Text="0" FontFamily="Arial" FontStretch="Condensed" FontSize="58" FontWeight="Black" Foreground="White"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="48*"/><ColumnDefinition Width="52*"/></Grid.ColumnDefinitions>
+                        <Image Grid.ColumnSpan="2" x:Name="ExpQuarterScoresHomeLogo" Stretch="UniformToFill" Opacity="0" Visibility="Collapsed" Margin="-12,-18">
+                            <Image.Effect><BlurEffect Radius="7"/></Image.Effect>
+                        </Image>
+                        <Border Grid.ColumnSpan="2" Width="6" HorizontalAlignment="Left" Background="{Binding BorderBrush, ElementName=ExpQuarterScoresHomeTotalBox}" Opacity="0.95"/>
+                        <TextBlock x:Name="ExpQuarterScoresHomeNameText" Text="HOM" FontFamily="Bahnschrift SemiCondensed"
+                                   FontSize="20" FontWeight="Black" Foreground="White" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,2,1,2"/>
+                        <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" Margin="2,1,5,1">
+                            <Grid>
+                                <TextBlock Text="888" Opacity="0" FontFamily="Arial Black" FontSize="72" FontWeight="Black"/>
+                                <TextBlock x:Name="ExpQuarterScoresHomeTotalText" Text="20" FontFamily="Arial Black" FontSize="72" FontWeight="Black" Foreground="White" HorizontalAlignment="Center"/>
+                            </Grid>
                         </Viewbox>
                     </Grid>
                 </Border>
 
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock x:Name="ExpQuarterScoresQtrLabelText" Text="Q1" FontFamily="Stolzl Bold" FontSize="20" FontWeight="Black" Foreground="#F5CE64" HorizontalAlignment="Center"/>
-                    <TextBlock Text="SCORES" FontFamily="Stolzl Bold" FontSize="13" FontWeight="Black" Foreground="White" HorizontalAlignment="Center"/>
-                </StackPanel>
+                <Border Grid.Column="1" Panel.ZIndex="20" Background="#FF0A111B" BorderBrush="#55FFFFFF" BorderThickness="1,0">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock x:Name="ExpQuarterScoresQtrLabelText" Text="Q1" FontFamily="Arial Black" FontSize="26" FontWeight="Black" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SCORES" FontFamily="Arial Black" FontSize="16" FontWeight="Black" Foreground="#D5E2EF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
 
-                <Border x:Name="ExpQuarterScoresAwayTotalBox" Grid.Column="2" CornerRadius="4" BorderThickness="0" Margin="5,0,0,0" ClipToBounds="True">
-                        <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresAwayTotalBg" Color="#7A1A1A"/></Border.Background>
+                <Border x:Name="ExpQuarterScoresAwayTotalBox" Grid.Column="2" BorderThickness="0" ClipToBounds="True">
+                        <Border.Background><SolidColorBrush x:Name="ExpQuarterScoresAwayTotalBg" Color="#7A1A1A" Opacity="0.58"/></Border.Background>
                         <Border.BorderBrush><SolidColorBrush x:Name="ExpQuarterScoresAwayTotalBorder" Color="#FFFFFF"/></Border.BorderBrush>
-                    <Grid Margin="5,1">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="2,0,5,0">
-                            <TextBlock x:Name="ExpQuarterScoresAwayTotalText" Text="0" FontFamily="Arial" FontStretch="Condensed" FontSize="58" FontWeight="Black" Foreground="White"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="52*"/><ColumnDefinition Width="48*"/></Grid.ColumnDefinitions>
+                        <Image Grid.ColumnSpan="2" x:Name="ExpQuarterScoresAwayLogo" Stretch="UniformToFill" Opacity="0" Visibility="Collapsed" Margin="-12,-18">
+                            <Image.Effect><BlurEffect Radius="7"/></Image.Effect>
+                        </Image>
+                        <Border Grid.ColumnSpan="2" Width="6" HorizontalAlignment="Right" Background="{Binding BorderBrush, ElementName=ExpQuarterScoresAwayTotalBox}" Opacity="0.95"/>
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="5,1,2,1">
+                            <Grid>
+                                <TextBlock Text="888" Opacity="0" FontFamily="Arial Black" FontSize="72" FontWeight="Black"/>
+                                <TextBlock x:Name="ExpQuarterScoresAwayTotalText" Text="20" FontFamily="Arial Black" FontSize="72" FontWeight="Black" Foreground="White" HorizontalAlignment="Center"/>
+                            </Grid>
                         </Viewbox>
-                        <TextBlock x:Name="ExpQuarterScoresAwayNameText" Grid.Column="1" Text="AWA" FontFamily="Stolzl Bold" FontSize="22" FontWeight="Black"
-                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Image x:Name="ExpQuarterScoresAwayLogo" Grid.Column="2" Stretch="Uniform" Margin="2"/>
+                        <TextBlock Grid.Column="1" x:Name="ExpQuarterScoresAwayNameText" Text="AWA" FontFamily="Bahnschrift SemiCondensed"
+                                   FontSize="20" FontWeight="Black" Foreground="White" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" Margin="1,2,6,2"/>
                     </Grid>
                 </Border>
 
@@ -1074,41 +1100,53 @@
              live quarter and clock remain visible while the alert slides down. -->
         <Border x:Name="ExpWarningBanner" Grid.Row="1" Height="0" Opacity="0"
                 IsHitTestVisible="False" Panel.ZIndex="250" ClipToBounds="True"
-                BorderThickness="0,1,0,1" BorderBrush="#FFFFC44D"
+                BorderThickness="0,0,0,2" BorderBrush="#FFFFB85C"
                 RenderTransformOrigin="0.5,0">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="ExpWarningBannerSlide" Y="-64"/>
             </Border.RenderTransform>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="#FF07111B" Offset="0"/>
-                    <GradientStop Color="#FF14283A" Offset="0.55"/>
-                    <GradientStop Color="#FF07111B" Offset="1"/>
+                    <GradientStop Color="#FF21030A" Offset="0"/>
+                    <GradientStop Color="#FFC01532" Offset="0.42"/>
+                    <GradientStop Color="#FF620817" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
             <Grid>
-                <Border Width="7" HorizontalAlignment="Left" Background="#FFFFC44D"/>
-                <Grid Margin="16,3">
+                <Border Width="7" HorizontalAlignment="Left" Background="#FFFFB85C"/>
+                <Border x:Name="ExpWarningAlertGlow" BorderBrush="#FFFF5A70" BorderThickness="1" Opacity="0.28"/>
+                <Rectangle x:Name="ExpWarningMotionBand" Opacity="0.09" Width="1600" HorizontalAlignment="Left" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <DrawingBrush TileMode="Tile" Stretch="None" Viewport="0,0,64,64" ViewportUnits="Absolute">
+                            <DrawingBrush.Drawing>
+                                <GeometryDrawing Brush="#FFFFFFFF">
+                                    <GeometryDrawing.Geometry>
+                                        <PathGeometry Figures="M 0,48 L 48,0 L 64,0 L 0,64 Z"/>
+                                    </GeometryDrawing.Geometry>
+                                </GeometryDrawing>
+                            </DrawingBrush.Drawing>
+                        </DrawingBrush>
+                    </Rectangle.Fill>
+                    <Rectangle.RenderTransform><TranslateTransform x:Name="ExpWarningBannerStripesTranslate"/></Rectangle.RenderTransform>
+                </Rectangle>
+                <Grid Margin="18,3,14,3" RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform><ScaleTransform x:Name="ExpWarningAlertScale"/></Grid.RenderTransform>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/><ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="0.27*"/><ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Width="36" Height="36" CornerRadius="18" Background="#FFFFC44D" VerticalAlignment="Center">
-                        <TextBlock Text="5" Foreground="#FF07111B" FontFamily="Arial" FontWeight="Black" FontSize="27"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly"
-                             HorizontalAlignment="Left" VerticalAlignment="Stretch">
-                        <TextBlock Text="FIVE MINUTES" Foreground="White" FontFamily="Stolzl Bold"
-                                   FontSize="34" FontWeight="Black"/>
+                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,-2,0,-2">
+                        <TextBlock Text="5" Foreground="#FFFFC76F" FontFamily="Arial Black"
+                                   FontSize="76" FontWeight="Black" TextAlignment="Center"/>
                     </Viewbox>
-                    <Viewbox Grid.Column="3" Stretch="Uniform" StretchDirection="DownOnly" Margin="10,0,0,0">
-                        <TextBlock Text="5:00" Foreground="White" FontFamily="Arial" FontStretch="Condensed" FontSize="50" FontWeight="Black"/>
+                    <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly"
+                             HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,4,0,4">
+                        <TextBlock Text="MINUTE WARNING" Foreground="White" FontFamily="Arial Black"
+                                   FontSize="38" FontWeight="Black" TextAlignment="Left"/>
                     </Viewbox>
                 </Grid>
+                <Rectangle x:Name="ExpWarningAlertFlash" Fill="White" Opacity="0" IsHitTestVisible="False"/>
 
                 <!-- Compatibility animation targets retained off-canvas for the classic layout. -->
-                <Rectangle Width="0" Opacity="0"><Rectangle.RenderTransform><TranslateTransform x:Name="ExpWarningBannerStripesTranslate"/></Rectangle.RenderTransform></Rectangle>
                 <Border x:Name="ExpWarningBannerGlowBorder" Opacity="0"/>
                 <StackPanel x:Name="ExpWarningBannerLetterHost" Visibility="Collapsed"><StackPanel.RenderTransform><ScaleTransform x:Name="ExpWarningBannerLetterPulse"/></StackPanel.RenderTransform></StackPanel>
                 <Rectangle x:Name="ExpWarningBannerScanline" Width="0" Opacity="0"><Rectangle.RenderTransform><TranslateTransform x:Name="ExpWarningBannerScanlineTranslate"/></Rectangle.RenderTransform></Rectangle>
@@ -1123,21 +1161,19 @@
               VerticalAlignment="Top" Opacity="1" ClipToBounds="True">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
             <Image x:Name="ExpSharedOverlayHomeLogo" Stretch="UniformToFill" Opacity="0.15"
-                   HorizontalAlignment="Left" Width="150" RenderTransformOrigin="0.5,0.5">
+                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <Image.Effect><BlurEffect Radius="7"/></Image.Effect>
-                <Image.RenderTransform><ScaleTransform ScaleX="1.45" ScaleY="1.45"/></Image.RenderTransform>
             </Image>
             <Image x:Name="ExpSharedOverlayAwayLogo" Grid.Column="1" Stretch="UniformToFill" Opacity="0.15"
-                   HorizontalAlignment="Right" Width="150" RenderTransformOrigin="0.5,0.5">
+                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <Image.Effect><BlurEffect Radius="7"/></Image.Effect>
-                <Image.RenderTransform><ScaleTransform ScaleX="1.45" ScaleY="1.45"/></Image.RenderTransform>
             </Image>
         </Grid>
 
         <!-- Legacy compact warning retained for the deprecated classic layout. -->
 
         <!-- Main content: Clock | Logo column | Score column (broadcast style matching reference image) -->
-        <Grid x:Name="ExpMainContentGrid" Grid.Row="2">
+        <Grid x:Name="ExpMainContentGrid" Grid.Row="2" ClipToBounds="True">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ExpClockColumn" Width="225*" MinWidth="80"/>    <!-- black quarter / clock panel -->
                 <ColumnDefinition x:Name="ExpLogoColumn" Width="165*" MinWidth="50"/>    <!-- logo column -->
@@ -1157,17 +1193,27 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition x:Name="ExpPanelWallTimeRow" Height="0"/>
                 </Grid.RowDefinitions>
                 <Border x:Name="ExpClockQuarterSurface" Grid.Row="0" Background="#121A2A" Opacity="0.72"/>
                 <Border x:Name="ExpClockTimerSurface" Grid.Row="1" Background="#020409" Opacity="0.38"/>
+                <Border x:Name="ExpClockWallTimeSurface" Grid.Row="2" Background="#10192A" Opacity="0"/>
                 <!-- One shared fit keeps quarter and timer at an identical visual
-                     size. Condensed Arial preserves the larger compact treatment
-                     without letting the five-character timer crowd the column. -->
+                     size. Bahnschrift SemiCondensed is a Windows signage face:
+                     its open counters and distinct numerals remain clearer than
+                     artificially compressed Arial while still fitting 00:00. -->
                 <Viewbox Grid.RowSpan="2" Stretch="Uniform" StretchDirection="DownOnly"
-                         Margin="3,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                         Margin="1,3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <!-- Keep the measured width constant at the widest clock value.
+                         Otherwise the enclosing Viewbox recalculates its scale for
+                         every different set of timer glyphs (for example 11:11 to
+                         10:59), which makes both labels visibly breathe each tick. -->
+                    <Grid HorizontalAlignment="Center">
+                    <TextBlock Text="88:88" Opacity="0" IsHitTestVisible="False"
+                               FontFamily="Bahnschrift SemiCondensed" FontSize="120" FontWeight="Bold"/>
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock x:Name="ExpQuarterNumberText" Text="1ST" Foreground="White"
-                                   FontFamily="Arial" FontSize="120" FontWeight="Black" FontStretch="Condensed"
+                                   FontFamily="Bahnschrift SemiCondensed" FontSize="120" FontWeight="Bold"
                                    HorizontalAlignment="Center" TextAlignment="Center" RenderTransformOrigin="0.5,0.5"
                                    SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display"
                                    TextOptions.TextHintingMode="Fixed" TextOptions.TextRenderingMode="ClearType">
@@ -1175,9 +1221,9 @@
                                 <ScaleTransform x:Name="ExpQuarterNumberTextScale" ScaleX="1" ScaleY="1"/>
                             </TextBlock.RenderTransform>
                         </TextBlock>
-                        <Border x:Name="ExpClockDivider" Height="2" Margin="18,6" Background="#70FFFFFF" SnapsToDevicePixels="True"/>
+                        <Border x:Name="ExpClockDivider" Height="2" Margin="14,3" Background="#70FFFFFF" SnapsToDevicePixels="True"/>
                         <TextBlock x:Name="ExpClockText" Text="14:37" Foreground="White"
-                                   FontFamily="Arial" FontSize="120" FontWeight="Black" FontStretch="Condensed"
+                                   FontFamily="Bahnschrift SemiCondensed" FontSize="120" FontWeight="Bold"
                                    HorizontalAlignment="Center" TextAlignment="Center" RenderTransformOrigin="0.5,0.5"
                                    SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display"
                                    TextOptions.TextHintingMode="Fixed" TextOptions.TextRenderingMode="ClearType">
@@ -1185,6 +1231,18 @@
                                 <ScaleTransform x:Name="ExpClockTextScale" ScaleX="1" ScaleY="1"/>
                             </TextBlock.RenderTransform>
                         </TextBlock>
+                    </StackPanel>
+                    </Grid>
+                </Viewbox>
+                <Viewbox x:Name="ExpPanelWallTimeView" Grid.Row="2" Visibility="Collapsed"
+                         Stretch="Uniform" StretchDirection="DownOnly" Margin="2,1">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock x:Name="ExpPanelWallTimeText" Text="1:26" Foreground="#FFFFFF"
+                                   FontFamily="Bahnschrift SemiCondensed" FontSize="86" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+                        <TextBlock x:Name="ExpPanelWallTimeSuffixText" Text="PM" Foreground="#BFD0E2"
+                                   FontFamily="Bahnschrift SemiCondensed" FontSize="70" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Margin="3,5,0,0"/>
                     </StackPanel>
                 </Viewbox>
                 <!-- Hidden wall-clock (kept for code-behind compatibility) -->
@@ -1195,7 +1253,7 @@
                      compact overlay: vignette, scrolling hazard stripes,
                      scanline shimmer, pulsing border glow, italic-skewed
                      heartbeat text, white entry flash. -->
-                <Border x:Name="ExpWarningOverlay" Grid.RowSpan="2" Opacity="0" IsHitTestVisible="False" Panel.ZIndex="100" ClipToBounds="True" BorderThickness="0">
+                <Border x:Name="ExpWarningOverlay" Grid.RowSpan="3" Opacity="0" IsHitTestVisible="False" Panel.ZIndex="100" ClipToBounds="True" BorderThickness="0">
                     <Border.Background>
                         <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.95" RadiusY="1.15">
                             <GradientStop Color="#FFE0001E" Offset="0.0"/>
@@ -1274,7 +1332,8 @@
             </Grid>
 
             <!-- ============ MIDDLE: LOGO COLUMN (HOME TOP / AWAY BOTTOM) ============ -->
-            <Grid Grid.Column="1">
+            <Grid x:Name="ExpLogoPanels" Grid.Column="1" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform><TranslateTransform x:Name="ExpLogoPanelsTranslate"/></Grid.RenderTransform>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
@@ -1290,7 +1349,8 @@
                 </Rectangle>
 
                 <!-- Home logo cell -->
-                <Border x:Name="ExpHomeLogoCell" Grid.Row="0" ClipToBounds="True">
+                <Border x:Name="ExpHomeLogoCell" Grid.Row="0" ClipToBounds="True" RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform><TranslateTransform x:Name="ExpHomeLogoStoryTranslate"/></Border.RenderTransform>
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                             <GradientStop x:Name="ExpHomeLogoCellGradStart" Color="#5C2118" Offset="0.0"/>
@@ -1316,7 +1376,8 @@
                 </Border>
 
                 <!-- Away logo cell -->
-                <Border x:Name="ExpAwayLogoCell" Grid.Row="1" ClipToBounds="True">
+                <Border x:Name="ExpAwayLogoCell" Grid.Row="1" ClipToBounds="True" RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform><TranslateTransform x:Name="ExpAwayLogoStoryTranslate"/></Border.RenderTransform>
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                             <GradientStop x:Name="ExpAwayLogoCellGradStart" Color="#5C470A" Offset="0.0"/>
@@ -1344,14 +1405,16 @@
             <!-- ============ RIGHT: SCORES COLUMN ============ -->
             <!-- ClipToBounds disabled so the goal overlay + score swipe can visually extend
                  left across the logo column when a goal preset plays. -->
-            <Grid Grid.Column="2" ClipToBounds="False">
+            <Grid x:Name="ExpScorePanels" Grid.Column="2" ClipToBounds="False" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform><TranslateTransform x:Name="ExpScorePanelsTranslate"/></Grid.RenderTransform>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <!-- ===== HOME SCORE PANEL ===== -->
-                <Grid Grid.Row="0" x:Name="ExpHomePanel" ClipToBounds="True">
+                <Grid Grid.Row="0" x:Name="ExpHomePanel" ClipToBounds="True" RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform><TranslateTransform x:Name="ExpHomeScoreStoryTranslate"/></Grid.RenderTransform>
                     <Grid.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                             <GradientStop x:Name="ExpHomePanelGradStart" Color="#C9483B" Offset="0.0"/>
@@ -1378,13 +1441,12 @@
                     <!-- Team name header. Stretch=Uniform with Both, filling the
                          entire row, so the name is always as big as possible
                          within the team-name row regardless of scorebug size. -->
-                    <Grid x:Name="ExpHomeNameHost" Grid.Row="0" Margin="2,1" ClipToBounds="True">
-                        <TextBlock x:Name="ExpHomeNameText" Text="OLD XAVIERIANS" Foreground="White" FontFamily="Stolzl Bold" FontSize="24" FontWeight="Black"
-                                   TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap">
+                    <Grid x:Name="ExpHomeNameHost" Grid.Row="0" Margin="2,1" ClipToBounds="True"
+                          SizeChanged="ExpandedTeamNameHost_SizeChanged">
+                        <TextBlock x:Name="ExpHomeNameText" Text="OLD XAVIERIANS" Foreground="White" FontFamily="Stolzl Bold" FontSize="24" FontWeight="Black" Margin="2,0"
+                                   TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
                             <TextBlock.RenderTransform><TranslateTransform x:Name="ExpHomeNameSlide"/></TextBlock.RenderTransform>
-                            <TextBlock.Effect>
-                                <DropShadowEffect BlurRadius="6" ShadowDepth="2" Direction="270" Color="Black" Opacity="0.5"/>
-                            </TextBlock.Effect>
                         </TextBlock>
                     </Grid>
 
@@ -1541,8 +1603,27 @@
                             </Rectangle.RenderTransform>
                         </Rectangle>
 
+                        <!-- Preset-specific structural chrome. Motion alone is too
+                             subtle on a small physical scoreboard, so each package
+                             also has a recognisable silhouette. -->
+                        <Grid x:Name="ExpHomeBroadcastChrome" Opacity="0">
+                            <Border Width="8" HorizontalAlignment="Left" Background="#CCFFFFFF"/>
+                            <Border Width="8" HorizontalAlignment="Right" Background="#CCFFFFFF"/>
+                        </Grid>
+                        <Rectangle x:Name="ExpHomeElectricChrome" Opacity="0">
+                            <Rectangle.Fill><DrawingBrush TileMode="Tile" Viewport="0,0,48,48" ViewportUnits="Absolute"><DrawingBrush.Drawing><GeometryDrawing Brush="#35FFFFFF" Geometry="M0,36 L36,0 48,0 0,48Z"/></DrawingBrush.Drawing></DrawingBrush></Rectangle.Fill>
+                        </Rectangle>
+                        <Grid x:Name="ExpHomeCinematicChrome" Opacity="0">
+                            <Border Height="12" VerticalAlignment="Top" Background="#B0000000"/>
+                            <Border Height="12" VerticalAlignment="Bottom" Background="#B0000000"/>
+                        </Grid>
+                        <Border x:Name="ExpHomeCleanChrome" Opacity="0" Margin="10" BorderBrush="#CCFFFFFF" BorderThickness="2"/>
+                        <Rectangle x:Name="ExpHomeClassicChrome" Opacity="0">
+                            <Rectangle.Fill><DrawingBrush TileMode="Tile" Viewport="0,0,22,22" ViewportUnits="Absolute"><DrawingBrush.Drawing><GeometryDrawing Brush="#42FFD070"><GeometryDrawing.Geometry><EllipseGeometry Center="4,4" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry></GeometryDrawing></DrawingBrush.Drawing></DrawingBrush></Rectangle.Fill>
+                        </Rectangle>
+
                         <!-- GOAL! text -->
-                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32,12">
+                        <Viewbox x:Name="ExpHomeGoalTextViewbox" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32,12">
                             <TextBlock x:Name="ExpHomeOverlayText" Text="GOAL!" Foreground="White" FontSize="100" FontWeight="Black"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                                 <TextBlock.Effect>
@@ -1556,7 +1637,8 @@
                     </Grid>
                 </Border>
                     <!-- ===== AWAY SCORE PANEL ===== -->
-                    <Grid Grid.Row="1" x:Name="ExpAwayPanel" ClipToBounds="True">
+                    <Grid Grid.Row="1" x:Name="ExpAwayPanel" ClipToBounds="True" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform><TranslateTransform x:Name="ExpAwayScoreStoryTranslate"/></Grid.RenderTransform>
                         <Grid.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                 <GradientStop x:Name="ExpAwayPanelGradStart" Color="#B68F12" Offset="0.0"/>
@@ -1581,13 +1663,12 @@
 
                         <!-- Team name header. Fills the row so the name is always
                              as big as possible within the team-name row. -->
-                        <Grid x:Name="ExpAwayNameHost" Grid.Row="0" Margin="2,1" ClipToBounds="True">
-                            <TextBlock x:Name="ExpAwayNameText" Text="OLD CAULFIELD" Foreground="White" FontFamily="Stolzl Bold" FontSize="24" FontWeight="Black"
-                                       TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap">
+                        <Grid x:Name="ExpAwayNameHost" Grid.Row="0" Margin="2,1" ClipToBounds="True"
+                              SizeChanged="ExpandedTeamNameHost_SizeChanged">
+                            <TextBlock x:Name="ExpAwayNameText" Text="OLD CAULFIELD" Foreground="White" FontFamily="Stolzl Bold" FontSize="24" FontWeight="Black" Margin="2,0"
+                                       TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
                                 <TextBlock.RenderTransform><TranslateTransform x:Name="ExpAwayNameSlide"/></TextBlock.RenderTransform>
-                                <TextBlock.Effect>
-                                    <DropShadowEffect BlurRadius="6" ShadowDepth="2" Direction="270" Color="Black" Opacity="0.5"/>
-                                </TextBlock.Effect>
                             </TextBlock>
                         </Grid>
 
@@ -1726,7 +1807,22 @@
                                     <TranslateTransform x:Name="ExpAwayShimmerScroll" X="-250"/>
                                 </Rectangle.RenderTransform>
                             </Rectangle>
-                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32,12">
+                            <Grid x:Name="ExpAwayBroadcastChrome" Opacity="0">
+                                <Border Width="8" HorizontalAlignment="Left" Background="#CCFFFFFF"/>
+                                <Border Width="8" HorizontalAlignment="Right" Background="#CCFFFFFF"/>
+                            </Grid>
+                            <Rectangle x:Name="ExpAwayElectricChrome" Opacity="0">
+                                <Rectangle.Fill><DrawingBrush TileMode="Tile" Viewport="0,0,48,48" ViewportUnits="Absolute"><DrawingBrush.Drawing><GeometryDrawing Brush="#35FFFFFF" Geometry="M0,36 L36,0 48,0 0,48Z"/></DrawingBrush.Drawing></DrawingBrush></Rectangle.Fill>
+                            </Rectangle>
+                            <Grid x:Name="ExpAwayCinematicChrome" Opacity="0">
+                                <Border Height="12" VerticalAlignment="Top" Background="#B0000000"/>
+                                <Border Height="12" VerticalAlignment="Bottom" Background="#B0000000"/>
+                            </Grid>
+                            <Border x:Name="ExpAwayCleanChrome" Opacity="0" Margin="10" BorderBrush="#CCFFFFFF" BorderThickness="2"/>
+                            <Rectangle x:Name="ExpAwayClassicChrome" Opacity="0">
+                                <Rectangle.Fill><DrawingBrush TileMode="Tile" Viewport="0,0,22,22" ViewportUnits="Absolute"><DrawingBrush.Drawing><GeometryDrawing Brush="#42FFD070"><GeometryDrawing.Geometry><EllipseGeometry Center="4,4" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry></GeometryDrawing></DrawingBrush.Drawing></DrawingBrush></Rectangle.Fill>
+                            </Rectangle>
+                            <Viewbox x:Name="ExpAwayGoalTextViewbox" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32,12">
                                 <TextBlock x:Name="ExpAwayOverlayText" Text="GOAL!" Foreground="White" FontSize="100" FontWeight="Black"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                                     <TextBlock.Effect>
@@ -1741,20 +1837,106 @@
                     </Border>
                 </Grid>
 
+                <!-- Team-story takeover. Scoring runs and individual droughts use
+                     the whole team area instead of another cramped top strip. The
+                     reveal grows from the featured team's half and physically
+                     sweeps the ordinary logo/score panels out of view. -->
+                <Grid x:Name="ExpTeamStoryTakeover" Grid.Column="1" Grid.ColumnSpan="2"
+                      Panel.ZIndex="205" Visibility="Collapsed" IsHitTestVisible="False"
+                      ClipToBounds="True" RenderTransformOrigin="0.5,0">
+                    <Grid.RenderTransform>
+                        <ScaleTransform x:Name="ExpTeamStoryReveal" ScaleY="0"/>
+                    </Grid.RenderTransform>
+                    <Border x:Name="ExpTeamStorySurface" BorderThickness="0">
+                        <Border.Background>
+                            <LinearGradientBrush x:Name="ExpTeamStoryGradient" StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop x:Name="ExpTeamStoryGradientStrong" Color="#B8172C" Offset="0"/>
+                                <GradientStop x:Name="ExpTeamStoryGradientMid" Color="#5E0D18" Offset="0.56"/>
+                                <GradientStop x:Name="ExpTeamStoryGradientDark" Color="#100308" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <Image x:Name="ExpTeamStoryLogo" Stretch="UniformToFill" Opacity="0.24"
+                                   Margin="-28,-46" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <Image.Effect><BlurEffect Radius="10"/></Image.Effect>
+                            </Image>
+                            <Rectangle Opacity="0.38">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#14000000" Offset="0"/>
+                                        <GradientStop Color="#78000000" Offset="0.58"/>
+                                        <GradientStop Color="#B8000000" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <Border x:Name="ExpTeamStoryPushEdge" Height="5" VerticalAlignment="Bottom"
+                                    Background="#FFFFFFFF" Opacity="0.9"/>
+                            <TextBlock x:Name="ExpTeamStoryDirectionIndicator" Text="▲  ▲  ▲"
+                                       Panel.ZIndex="5" Foreground="White" FontFamily="Arial Black"
+                                       FontSize="17" FontWeight="Black"
+                                       HorizontalAlignment="Center" VerticalAlignment="Top"
+                                       TextAlignment="Center" Opacity="0">
+                                <TextBlock.RenderTransform>
+                                    <TranslateTransform x:Name="ExpTeamStoryDirectionTranslate"/>
+                                </TextBlock.RenderTransform>
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="9" ShadowDepth="0" Color="White" Opacity="0.75"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <Grid x:Name="ExpTeamStoryContent" Margin="12,5" Opacity="0"
+                                  RenderTransformOrigin="0.5,0.5">
+                                <Grid.RenderTransform><TranslateTransform x:Name="ExpTeamStoryContentTranslate" Y="16"/></Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="ExpTeamStoryMetricColumn" Width="34*"/>
+                                    <ColumnDefinition x:Name="ExpTeamStoryDescriptorColumn" Width="66*"/>
+                                </Grid.ColumnDefinitions>
+                                <Viewbox Stretch="Uniform" StretchDirection="DownOnly"
+                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0,6,0">
+                                    <TextBlock x:Name="ExpTeamStoryHeadline" Text="7"
+                                               Foreground="White" FontFamily="Arial Black" Width="250" Height="112"
+                                               FontSize="104" FontWeight="Black" TextAlignment="Center"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock x:Name="ExpTeamStoryKicker" Text="GOALS&#x0a;IN A ROW"
+                                               Foreground="#D7E4F2" FontFamily="Stolzl Bold"
+                                               FontSize="38" FontWeight="Black" LineHeight="34"
+                                               LineStackingStrategy="BlockLineHeight" TextWrapping="NoWrap"
+                                               TextAlignment="Center" HorizontalAlignment="Center"/>
+                                </Viewbox>
+                                <!-- Compatibility elements retained for existing state/palette code. -->
+                                <TextBlock x:Name="ExpTeamStoryTeamName" Text="HOME TEAM"
+                                           Foreground="White" FontFamily="Stolzl Bold" FontSize="24" FontWeight="Black"
+                                           TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                                           HorizontalAlignment="Stretch" TextAlignment="Left" Visibility="Collapsed"/>
+                                <TextBlock x:Name="ExpTeamStoryFooter" Text="" Visibility="Collapsed"/>
+                                <Viewbox x:Name="ExpTeamStoryTimerHost" Visibility="Collapsed">
+                                    <TextBlock x:Name="ExpTeamStoryTimer" Text="18:00"/>
+                                </Viewbox>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+
                 <!-- Recent Scores is intentionally a distinct right-side drawer.
                      It contracts the name/G/B region and leaves the live total scores
                      readable instead of borrowing height from both team rows. -->
                 <Border x:Name="ExpRecentScoresBarBorder" Grid.Column="3" ClipToBounds="True"
                         Panel.ZIndex="160" BorderThickness="1,0,0,0" BorderBrush="#667A8DA6" Background="#07111B">
-                    <Grid x:Name="ExpRecentScoresContent" Margin="7,5">
+                    <Grid x:Name="ExpRecentScoresContent" Margin="5,3">
                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                        <StackPanel x:Name="ExpRecentScoresHeader" Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0,2,4">
-                            <TextBlock x:Name="ExpRecentScoresRecentText" Text="RECENT" Foreground="#8FA5BC" FontFamily="Stolzl Bold" FontSize="12" FontWeight="Black"/>
-                            <TextBlock x:Name="ExpRecentScoresTitleText" Text=" SCORES" Foreground="White" FontFamily="Stolzl Bold" FontSize="15" FontWeight="Black"/>
-                        </StackPanel>
+                        <Viewbox x:Name="ExpRecentScoresHeader" Stretch="Uniform" StretchDirection="DownOnly"
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="1,0,1,4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="ExpRecentScoresRecentText" Text="RECENT" Foreground="#AFC6DC" FontFamily="Stolzl Bold" FontSize="16" FontWeight="Black"/>
+                                <TextBlock x:Name="ExpRecentScoresTitleText" Text=" SCORES" Foreground="White" FontFamily="Stolzl Bold" FontSize="16" FontWeight="Black"/>
+                            </StackPanel>
+                        </Viewbox>
                         <Grid Visibility="Collapsed"><Grid.ColumnDefinitions><ColumnDefinition x:Name="ExpRecentScoresSpacerColumn" Width="0"/></Grid.ColumnDefinitions></Grid>
                         <Grid Grid.Row="1" x:Name="ExpRecentScoresCards">
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>

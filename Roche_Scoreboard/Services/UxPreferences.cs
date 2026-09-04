@@ -77,6 +77,8 @@ internal sealed class UxPreferencesData
     public int LastMainTabIndex { get; set; } = 0;
     public bool EnableQuickStartupHints { get; set; } = true;
     public bool HideTeamNames { get; set; }
+    public string ScorebugLayout { get; set; } = "classic";
+    public bool GuidedOperatorMode { get; set; } = true;
 
     [JsonConverter(typeof(TolerantEnumConverter<AppTheme>))]
     public AppTheme Theme { get; set; } = AppTheme.Light;
@@ -106,13 +108,9 @@ internal static class UxPreferences
     public static UxPreferencesData Load()
     {
         string path = GetStoragePath();
-        if (!File.Exists(path))
-            return new UxPreferencesData();
-
         try
         {
-            string json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<UxPreferencesData>(json, JsonOptions) ?? new UxPreferencesData();
+            return AtomicFile.TryReadJson<UxPreferencesData>(path, JsonOptions) ?? new UxPreferencesData();
         }
         catch
         {
@@ -127,7 +125,7 @@ internal static class UxPreferences
         try
         {
             string json = JsonSerializer.Serialize(data, JsonOptions);
-            File.WriteAllText(GetStoragePath(), json);
+            AtomicFile.WriteAllText(GetStoragePath(), json);
         }
         catch
         {

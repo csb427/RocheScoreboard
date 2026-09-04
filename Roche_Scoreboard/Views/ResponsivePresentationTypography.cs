@@ -20,6 +20,12 @@ internal static class ResponsivePresentationTypography
     private static void ApplyRecursive(DependencyObject current, double scale, bool isRoot = false)
     {
         if (!isRoot && current is PresentationScoreBar) return;
+        // Canvas content in the presentation graphs is created dynamically
+        // with its final scoreboard-scaled size. Walking those children again
+        // made the result depend on whether Populate or the responsive layout
+        // callback happened first, so repeated Margin Flow exposure could
+        // double-scale and stack its axis labels.
+        if (!isRoot && current is Canvas) return;
 
         if (current is TextBlock text)
         {

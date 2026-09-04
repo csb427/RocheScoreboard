@@ -283,7 +283,7 @@ public partial class TrainingControlPanel : UserControl
         {
             Background = ColorFromHex("#10161D"),
             BorderBrush = ColorFromHex(isEditing ? "#FBBF24" : isActive ? "#58A6FF" : "#1F2937"),
-            BorderThickness = new Thickness(isActive || isEditing ? 2 : 1),
+            BorderThickness = new Thickness(2),
             Margin = new Thickness(8, 6, 8, 0),
             Padding = new Thickness(12, 8, 12, 8),
             Opacity = isFinished ? 0.45 : 1.0

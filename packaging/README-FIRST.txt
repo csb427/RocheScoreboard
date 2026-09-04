@@ -6,7 +6,9 @@ Supported computers
 • 64-bit Windows 11
 • 64-bit Windows 10, version 2004 (build 19041) or newer
 
-Visual Studio and the .NET SDK are NOT required.
+No dependencies need to be installed. Visual Studio, the .NET SDK, the .NET
+Desktop Runtime, VC++ Redistributables and a separate VLC installation are
+NOT required.
 
 Install and run
 ---------------
@@ -28,3 +30,6 @@ identify the publisher.
 
 Official downloads:
 https://github.com/csb427/RocheScoreboard/releases/latest
+
+Direct latest Windows download:
+https://github.com/csb427/RocheScoreboard/releases/latest/download/Roche-Scoreboard-Windows-x64.zip

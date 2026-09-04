@@ -7,7 +7,7 @@
             <Setter Property="Foreground" Value="#EAF2FC"/>
             <Setter Property="Background" Value="#131D2B"/>
             <Setter Property="BorderBrush" Value="#38506A"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="Padding" Value="18,15"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -37,7 +37,6 @@
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Card" Property="BorderBrush" Value="#FFF0A8"/>
-                                <Setter TargetName="Card" Property="BorderThickness" Value="2"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -55,7 +54,7 @@
             </Border.Background>
         </Border>
 
-        <Grid Margin="48,38">
+        <Grid Margin="32,26">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="18"/>
@@ -73,27 +72,79 @@
                 </Border.Background>
                 <StackPanel>
                     <TextBlock Text="GLOBAL SETTINGS" FontSize="30" FontWeight="Black" Foreground="#F2F7FD"/>
-                    <TextBlock Text="App-wide preferences and shortcuts that stay consistent across every sport." Margin="0,6,0,0" FontSize="13" FontWeight="SemiBold" Foreground="#AABBD0"/>
+                    <TextBlock Text="Application-only preferences. Live match and scoreboard options remain inside each sport's control panel." Margin="0,6,0,0" FontSize="13" FontWeight="SemiBold" Foreground="#AABBD0" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
-            <UniformGrid Grid.Row="2" Rows="1" Columns="5" Margin="-6,2,-6,0">
-                <Button Tag="keybinds" Margin="6" Click="CategoryButton_Click" Style="{StaticResource SettingsLaunchButton}" BorderBrush="#A78BFA">
-                    <StackPanel><TextBlock Text="⌨  KEYBINDS" FontSize="17" FontWeight="Black"/><TextBlock Text="Scoring and clock shortcuts" Foreground="#9EACC0" FontSize="11" Margin="0,7,0,0"/></StackPanel>
-                </Button>
-                <Button Tag="display" Margin="6" Click="CategoryButton_Click" Style="{StaticResource SettingsLaunchButton}" BorderBrush="#58A6FF">
-                    <StackPanel><TextBlock Text="◫  APPEARANCE" FontSize="17" FontWeight="Black"/><TextBlock Text="Layouts, themes and animations" Foreground="#9EACC0" FontSize="11" Margin="0,7,0,0"/></StackPanel>
-                </Button>
-                <Button Tag="overlays" Margin="6" Click="CategoryButton_Click" Style="{StaticResource SettingsLaunchButton}" BorderBrush="#3FB950">
-                    <StackPanel><TextBlock Text="✦  OVERLAYS" FontSize="17" FontWeight="Black"/><TextBlock Text="Automatic match storytelling" Foreground="#9EACC0" FontSize="11" Margin="0,7,0,0"/></StackPanel>
-                </Button>
-                <Button Tag="media" Margin="6" Click="CategoryButton_Click" Style="{StaticResource SettingsLaunchButton}" BorderBrush="#22D3EE">
-                    <StackPanel><TextBlock Text="▶  MEDIA" FontSize="17" FontWeight="Black"/><TextBlock Text="Logos, crops and video" Foreground="#9EACC0" FontSize="11" Margin="0,7,0,0"/></StackPanel>
-                </Button>
-                <Button Tag="advanced" Margin="6" Click="CategoryButton_Click" Style="{StaticResource SettingsLaunchButton}" BorderBrush="#8B949E">
-                    <StackPanel><TextBlock Text="⚙  ADVANCED" FontSize="17" FontWeight="Black"/><TextBlock Text="Windows, cloud and recovery" Foreground="#9EACC0" FontSize="11" Margin="0,7,0,0"/></StackPanel>
-                </Button>
-            </UniformGrid>
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                    <Border Background="#111C29" BorderBrush="#3A5068" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="APP APPEARANCE" FontSize="13" FontWeight="Black" Foreground="#58A6FF"/>
+                                <TextBlock Text="Theme used by menus and setup screens" FontSize="11" Foreground="#9EACC0" Margin="0,4,0,8" TextWrapping="Wrap"/>
+                                <ComboBox x:Name="ThemeCombo" SelectionChanged="ThemeCombo_SelectionChanged" Background="#0B1320" Foreground="#E6EDF3" BorderBrush="#2F3F52" Padding="8,5"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="CONTROL DENSITY" FontSize="13" FontWeight="Black" Foreground="#58A6FF"/>
+                                <TextBlock Text="Comfortable or compact operator spacing" FontSize="11" Foreground="#9EACC0" Margin="0,4,0,8" TextWrapping="Wrap"/>
+                                <ComboBox x:Name="DensityCombo" SelectionChanged="DensityCombo_SelectionChanged" Background="#0B1320" Foreground="#E6EDF3" BorderBrush="#2F3F52" Padding="8,5"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <Border Background="#111C29" BorderBrush="#3A5068" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="STARTUP GUIDANCE" FontSize="13" FontWeight="Black" Foreground="#A78BFA"/>
+                                <TextBlock Text="Show useful navigation hints when entering a workspace" FontSize="11" Foreground="#9EACC0" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <CheckBox x:Name="QuickHintsToggle" Grid.Column="1" Content="ENABLED" Foreground="#E6EDF3" FontWeight="Bold" VerticalAlignment="Center"
+                                      Checked="QuickHintsToggle_Changed" Unchecked="QuickHintsToggle_Changed"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Background="#111C29" BorderBrush="#3A5068" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="OUTPUT DEFAULTS" FontSize="13" FontWeight="Black" Foreground="#E7B94F"/>
+                            <TextBlock Text="Reusable presentation choices applied before a match is configured" FontSize="11" Foreground="#9EACC0" Margin="0,4,0,12" TextWrapping="Wrap"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="GOAL ANIMATION" FontSize="11" FontWeight="Bold" Foreground="#D8E5F4"/>
+                                    <ComboBox x:Name="GoalAnimationCombo" Margin="0,6,0,0" SelectionChanged="GoalAnimationCombo_SelectionChanged"
+                                              Background="#0B1320" Foreground="#E6EDF3" BorderBrush="#2F3F52" Padding="8,5"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="OUTPUT WINDOW (PIXELS)" FontSize="11" FontWeight="Bold" Foreground="#D8E5F4"/>
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/><ColumnDefinition Width="74"/></Grid.ColumnDefinitions>
+                                        <TextBox x:Name="OutputWidthBox" Text="386" MaxLength="4" Padding="8,5" Background="#0B1320" Foreground="#E6EDF3" BorderBrush="#2F3F52"/>
+                                        <TextBlock Grid.Column="1" Text="×" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Black" Foreground="#7F93AA"/>
+                                        <TextBox x:Name="OutputHeightBox" Grid.Column="2" Text="193" MaxLength="4" Padding="8,5" Background="#0B1320" Foreground="#E6EDF3" BorderBrush="#2F3F52"/>
+                                        <Button Grid.Column="3" Content="APPLY" Margin="8,0,0,0" Click="ApplyOutputDimensions_Click" Style="{StaticResource SettingsLaunchButton}" Padding="8,4" FontWeight="Black"/>
+                                    </Grid>
+                                    <Button Content="RESET TO 386 × 193" Margin="0,7,0,0" Click="ResetOutputDimensions_Click"
+                                            Style="{StaticResource SettingsLaunchButton}" Padding="8,4" FontSize="10" FontWeight="Black"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#111C29" BorderBrush="#3A5068" BorderThickness="1" CornerRadius="10" Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="AUTOMATION DEFAULTS" FontSize="13" FontWeight="Black" Foreground="#66D99A"/>
+                            <TextBlock Text="Application-level output behaviour. Match-specific teams, clocks and finals presentation remain in AFL setup." FontSize="11" Foreground="#9EACC0" Margin="0,4,0,12" TextWrapping="Wrap"/>
+                            <UniformGrid Columns="3">
+                                <CheckBox x:Name="BreakScreenToggle" Content="Quarter-break rotation" Foreground="#E6EDF3" FontWeight="Bold" Margin="0,4,14,4" Checked="BreakScreenToggle_Changed" Unchecked="BreakScreenToggle_Changed"/>
+                                <CheckBox x:Name="AutoOverlaysToggle" Content="Automatic overlays" Foreground="#E6EDF3" FontWeight="Bold" Margin="0,4,14,4" Checked="AutoOverlaysToggle_Changed" Unchecked="AutoOverlaysToggle_Changed"/>
+                                <CheckBox x:Name="ScreensaverToggle" Content="Idle screensaver" Foreground="#E6EDF3" FontWeight="Bold" Margin="0,4,0,4" Checked="ScreensaverToggle_Changed" Unchecked="ScreensaverToggle_Changed"/>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
 
             <Border Grid.Row="3" Margin="0,16,0,0" Padding="18,15" Background="#111C29" BorderBrush="#3A5068" BorderThickness="1" CornerRadius="10">
                 <Grid>
@@ -103,7 +154,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="SMART STARTUP" FontSize="12" FontWeight="Black" Foreground="#58A6FF" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="StartupModeCombo" Grid.Column="2" SelectionChanged="StartupModeCombo_SelectionChanged" Background="#0B1320" Foreground="#E6EDF3" BorderBrush="#2F3F52" BorderThickness="1" Padding="8,4" MinWidth="320"/>
+                    <ComboBox x:Name="StartupModeCombo" Grid.Column="2" SelectionChanged="StartupModeCombo_SelectionChanged" Background="#0B1320" Foreground="#E6EDF3" BorderBrush="#2F3F52" BorderThickness="1" Padding="8,4" MinWidth="200"/>
                 </Grid>
             </Border>
 

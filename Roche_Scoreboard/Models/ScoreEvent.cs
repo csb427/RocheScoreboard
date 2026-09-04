@@ -8,7 +8,7 @@ namespace Roche_Scoreboard.Models
     public sealed class ScoreEvent
     {
         public DateTime Timestamp { get; init; } = DateTime.Now;
-        public int Quarter { get; init; }
+        public int Quarter { get; set; }
         public TimeSpan GameTime { get; set; }         // elapsed in quarter
         public TeamSide Team { get; set; }
         public ScoreType Type { get; set; }

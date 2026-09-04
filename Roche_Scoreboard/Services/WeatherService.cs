@@ -41,6 +41,8 @@ internal sealed class WeatherService : IDisposable
     private double _longitude;
     private bool _resolved;
     private bool _disposed;
+    private bool _refreshInFlight;
+    private CancellationTokenSource? _requestCancellation;
 
     /// <summary>
     /// Fires on the UI thread whenever new weather data arrives.
@@ -66,8 +68,14 @@ internal sealed class WeatherService : IDisposable
         };
         _refreshTimer.Tick += async (_, _) =>
         {
-            try { await RefreshWeatherAsync(); }
+            if (_refreshInFlight || _disposed) return;
+            try
+            {
+                _refreshInFlight = true;
+                await RefreshWeatherAsync(_requestCancellation?.Token ?? CancellationToken.None);
+            }
             catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException or TaskCanceledException) { }
+            finally { _refreshInFlight = false; }
         };
     }
 
@@ -80,17 +88,32 @@ internal sealed class WeatherService : IDisposable
         if (string.IsNullOrWhiteSpace(cityName))
             return;
 
-        _resolved = await GeocodeAsync(cityName);
-        if (!_resolved)
-            return;
+        _requestCancellation?.Cancel();
+        _requestCancellation?.Dispose();
+        _requestCancellation = new CancellationTokenSource();
+        CancellationToken token = _requestCancellation.Token;
+        try
+        {
+            bool resolved = await GeocodeAsync(cityName, token);
+            if (!resolved || token.IsCancellationRequested || _disposed)
+                return;
 
-        await RefreshWeatherAsync();
-        _refreshTimer.Start();
+            _resolved = true;
+            await RefreshWeatherAsync(token);
+            if (!token.IsCancellationRequested && !_disposed)
+                _refreshTimer.Start();
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // A newer location or Stop() superseded this request.
+        }
     }
 
     public void Stop()
     {
         _refreshTimer.Stop();
+        _requestCancellation?.Cancel();
+        _resolved = false;
         CurrentWeather = "";
     }
 
@@ -99,16 +122,19 @@ internal sealed class WeatherService : IDisposable
         if (_disposed) return;
         _disposed = true;
         _refreshTimer.Stop();
+        _requestCancellation?.Cancel();
+        _requestCancellation?.Dispose();
+        _requestCancellation = null;
         WeatherUpdated = null;
         ForecastUpdated = null;
     }
 
-    private async Task<bool> GeocodeAsync(string city)
+    private async Task<bool> GeocodeAsync(string city, CancellationToken cancellationToken)
     {
         try
         {
             string url = $"https://geocoding-api.open-meteo.com/v1/search?name={Uri.EscapeDataString(city)}&count=1&language=en&format=json";
-            string json = await s_http.GetStringAsync(url);
+            string json = await s_http.GetStringAsync(url, cancellationToken);
 
             using JsonDocument doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("results", out JsonElement results) || results.GetArrayLength() == 0)
@@ -125,7 +151,7 @@ internal sealed class WeatherService : IDisposable
         }
     }
 
-    private async Task RefreshWeatherAsync()
+    private async Task RefreshWeatherAsync(CancellationToken cancellationToken)
     {
         if (!_resolved) return;
 
@@ -138,7 +164,7 @@ internal sealed class WeatherService : IDisposable
                        + "&hourly=temperature_2m,weather_code,precipitation,precipitation_probability"
                        + "&daily=temperature_2m_max,temperature_2m_min"
                        + "&forecast_hours=8&forecast_days=1&timezone=auto";
-            string json = await s_http.GetStringAsync(url);
+            string json = await s_http.GetStringAsync(url, cancellationToken);
 
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement current = doc.RootElement.GetProperty("current");

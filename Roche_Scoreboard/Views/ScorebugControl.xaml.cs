@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -22,8 +23,9 @@ namespace Roche_Scoreboard.Views
         private Color _homeColor = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#0A2A6A");
         private Color _awayColor = (Color)System.Windows.Media.ColorConverter.ConvertFromString("#7A1A1A");
 
-        private const double MarqueePixelsPerSecond = 100;
+        private const double MarqueePixelsPerSecond = 82;
         private readonly DispatcherTimer _wallClockTimer;
+        private bool _quarterLabelsSubscribed;
 
         private bool _homeAnimating;
         private bool _awayAnimating;
@@ -36,6 +38,14 @@ namespace Roche_Scoreboard.Views
 
         // Goal/Behind column expand/collapse state
         private string _homeFullName = "HOME TEAM";
+        private bool _teamsApplied;
+        private bool _teamColoursApplied;
+        private bool _logosApplied;
+        private bool _layoutApplied;
+        private bool _finalsModeApplied;
+        private bool _hideTeamNamesApplied;
+        private string? _appliedHomeLogoPath;
+        private string? _appliedAwayLogoPath;
         private string _homeAbbr = "HOM";
         private string _awayFullName = "AWAY TEAM";
         private string _awayAbbr = "AWA";
@@ -58,7 +68,12 @@ namespace Roche_Scoreboard.Views
         private DateTime _teamNamePanelAnimationStarted;
         private double _teamNamePanelAnimationFrom;
         private double _teamNamePanelAnimationTo = 1;
-        private static readonly TimeSpan TeamNamePanelAnimationDuration = TimeSpan.FromMilliseconds(320);
+        private static readonly TimeSpan OverlayTransitionDuration = TimeSpan.FromMilliseconds(560);
+        private static readonly TimeSpan TeamStoryTransitionDuration = TimeSpan.FromMilliseconds(860);
+        private static readonly TimeSpan TeamNamePanelAnimationDuration = OverlayTransitionDuration;
+        private bool _overlayLayoutMotionActive;
+        private bool _overlayResponsiveRefreshPending;
+        private int _overlayLayoutMotionGeneration;
         private string? _weatherLocation;
         private WeatherSnapshot? _weatherSnapshot;
 
@@ -83,6 +98,7 @@ namespace Roche_Scoreboard.Views
             // meaningful droughts were never detected.
             _homeLastScoreTime = _homeLastScoreTime == DateTime.MinValue ? DateTime.Now : _homeLastScoreTime;
             _awayLastScoreTime = _awayLastScoreTime == DateTime.MinValue ? DateTime.Now : _awayLastScoreTime;
+            _lastScoreTime = _lastScoreTime == DateTime.MinValue ? DateTime.Now : _lastScoreTime;
             if (_overlayClockPausedAt is not DateTime pausedAt) return;
 
             TimeSpan pausedFor = DateTime.Now - pausedAt;
@@ -107,6 +123,27 @@ namespace Roche_Scoreboard.Views
         internal (double Home, double Away) GetTeamNamePanelHeightsForQa()
             => (ExpHomeNameRow.ActualHeight, ExpAwayNameRow.ActualHeight);
 
+        internal string GetCoreStateDiagnosticsForQa()
+            => $"layout={_currentLayout}; top={ExpTopInfoRow.ActualHeight:0.##}; " +
+               $"teams={ExpHomeNameText.Text}/{ExpAwayNameText.Text}; " +
+               $"score={ExpHomeGoalsText.Text}.{ExpHomeBehindsText.Text}.{ExpHomeTotalText.Text}/" +
+               $"{ExpAwayGoalsText.Text}.{ExpAwayBehindsText.Text}.{ExpAwayTotalText.Text}; " +
+               $"quarter={ExpQuarterNumberText.Text}; clock={ExpClockText.Text}; " +
+               $"wall={ExpPanelWallTimeText.Text}{ExpPanelWallTimeSuffixText.Text}; " +
+               $"ticker={IsTickerActive}; overlay={IsOverlayActive}; compact={_compactClockActive}";
+
+        internal string GetOverlayStateDiagnosticsForQa()
+            => $"active={_activeOverlay?.ToString() ?? "none"}; queued={_overlayQueue.Count}; " +
+               $"exiting={_overlayIsExiting}; gap={_overlayTransitionGap}; warning={_warningVisible}; " +
+               $"warning-height={ExpWarningBanner.ActualHeight:0.##}; warning-opacity={ExpWarningBanner.Opacity:0.##}; " +
+               $"team-story={_teamStoryVisible}/{(_teamStoryIsHome ? "home" : "away")}; " +
+               $"story-scale={ExpTeamStoryReveal.ScaleY:0.###}; opponent-y={GetTeamStoryOpponentOffset():0.##}; " +
+               $"story-direction={ExpTeamStoryDirectionIndicator.Text}/{ExpTeamStoryDirectionIndicator.VerticalAlignment}; " +
+               $"drought-label={ExpTeamDroughtLabelText.Text}; " +
+               $"drought-lane/text={ExpTeamDroughtLabelLane.ActualWidth:0.##}/{ExpTeamDroughtLabelText.ActualWidth:0.##}; " +
+               $"home-name-lane/text={ExpHomeNameHost.ActualWidth:0.##}/{ExpHomeNameText.ActualWidth:0.##}; " +
+               $"away-name-lane/text={ExpAwayNameHost.ActualWidth:0.##}/{ExpAwayNameText.ActualWidth:0.##}";
+
         internal void FreezeWallClockForQa(DateTime value)
         {
             _wallClockTimer.Stop();
@@ -114,6 +151,8 @@ namespace Roche_Scoreboard.Views
             TopTimeText.Text = time;
             ExpTopTimeText.Text = time;
             ExpTopClockText.Text = time;
+            SetIntegratedWallTime(value);
+            ExpCompactWallTimeText.Text = time;
             ExpTopDateText.Text = value.ToString("ddd d MMM");
         }
 
@@ -126,6 +165,8 @@ namespace Roche_Scoreboard.Views
             TopTimeText.Text = now;
             ExpTopTimeText.Text = now;
             ExpTopClockText.Text = now;
+            SetIntegratedWallTime(DateTime.Now);
+            ExpCompactWallTimeText.Text = now;
             ExpTopDateText.Text = DateTime.Now.ToString("ddd d MMM");
             ExpTopWeatherText.Text = "--°";
 
@@ -136,6 +177,8 @@ namespace Roche_Scoreboard.Views
                 TopTimeText.Text = t;
                 ExpTopTimeText.Text = t;
                 ExpTopClockText.Text = t;
+                SetIntegratedWallTime(DateTime.Now);
+                ExpCompactWallTimeText.Text = t;
                 ExpTopDateText.Text = DateTime.Now.ToString("ddd d MMM");
             };
             _wallClockTimer.Start();
@@ -147,10 +190,20 @@ namespace Roche_Scoreboard.Views
             ExpandedLayout.SizeChanged += (_, __) => QueueExpandedResponsiveLayout();
             IsVisibleChanged += (_, __) =>
             {
-                if (IsVisible) QueueExpandedResponsiveLayout();
+                if (IsVisible)
+                {
+                    QueueExpandedResponsiveLayout();
+                    RestartMarqueeIfNeeded();
+                }
             };
             Loaded += (_, __) =>
             {
+                _wallClockTimer.Start();
+                if (!_quarterLabelsSubscribed)
+                {
+                    QuarterLabelService.LabelsChanged += OnQuarterLabelsChanged;
+                    _quarterLabelsSubscribed = true;
+                }
                 StartActiveMarquee();
                 QueueExpandedResponsiveLayout();
             };
@@ -159,7 +212,22 @@ namespace Roche_Scoreboard.Views
             // changes a label in settings the scorebug should reflect it
             // immediately without waiting for the next quarter change.
             QuarterLabelService.LabelsChanged += OnQuarterLabelsChanged;
-            Unloaded += (_, __) => QuarterLabelService.LabelsChanged -= OnQuarterLabelsChanged;
+            _quarterLabelsSubscribed = true;
+            Unloaded += (_, __) =>
+            {
+                _wallClockTimer.Stop();
+                if (_quarterLabelsSubscribed)
+                {
+                    QuarterLabelService.LabelsChanged -= OnQuarterLabelsChanged;
+                    _quarterLabelsSubscribed = false;
+                }
+            };
+        }
+
+        private void SetIntegratedWallTime(DateTime value)
+        {
+            ExpPanelWallTimeText.Text = value.ToString("h:mm");
+            ExpPanelWallTimeSuffixText.Text = value.ToString("tt");
         }
 
         /// <summary>
@@ -203,7 +271,7 @@ namespace Roche_Scoreboard.Views
                 Brushes.White,
                 VisualTreeHelper.GetDpi(sample).PixelsPerDip);
             return Math.Floor(Math.Min(width / measured.WidthIncludingTrailingWhitespace,
-                                       height / measured.Height) * probeSize * 0.94);
+                                       height / measured.Height) * probeSize * 0.985);
         }
 
 
@@ -244,6 +312,11 @@ namespace Roche_Scoreboard.Views
 
         private void QueueExpandedResponsiveLayout()
         {
+            if (_overlayLayoutMotionActive)
+            {
+                _overlayResponsiveRefreshPending = true;
+                return;
+            }
             if (_expandedResponsiveLayoutQueued) return;
             _expandedResponsiveLayoutQueued = true;
             Dispatcher.BeginInvoke(new Action(() =>
@@ -267,25 +340,47 @@ namespace Roche_Scoreboard.Views
             double width = ExpandedLayout.ActualWidth;
             double height = ExpandedLayout.ActualHeight;
 
+            // On physically narrow outputs the date is the least important
+            // top-bar item and forces both weather and wall time to shrink.
+            // Remove it below 320px and reuse every pixel for the two values
+            // spectators actually need to read. Wider/default layouts retain
+            // the complete three-part information bar.
+            bool simplifyTopInfo = !IsDistance && width < 320;
+            ExpTopWeatherColumn.Width = new GridLength(simplifyTopInfo ? 0.85 : 1, GridUnitType.Star);
+            ExpTopClockColumn.Width = new GridLength(simplifyTopInfo ? 1.15 : 1, GridUnitType.Star);
+            ExpTopDateColumn.Width = simplifyTopInfo ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+            ExpTopDateHost.Visibility = simplifyTopInfo ? Visibility.Collapsed : Visibility.Visible;
+
             // Keep fixed design floors from consuming a disproportionate share
             // of compact outputs. The star ratios preserve a substantial clock
             // and logo while reserving most of the width for score numerals.
             ExpClockColumn.MinWidth = _compactClockActive ? 0 : Math.Clamp(width * 0.12, 38, 80);
             ExpLogoColumn.MinWidth = Math.Clamp(width * 0.09, 30, 50);
+            bool narrowDistance = IsDistance && width < 340;
             ExpClockColumn.Width = _compactClockActive
                 ? new GridLength(0)
-                : new GridLength(225, GridUnitType.Star);
-            ExpLogoColumn.Width = new GridLength(165, GridUnitType.Star);
-            ExpScoresColumn.Width = new GridLength(610, GridUnitType.Star);
+                : new GridLength(IsDistance ? (narrowDistance ? 230 : 225) : 225, GridUnitType.Star);
+            ExpLogoColumn.Width = new GridLength(IsDistance ? (narrowDistance ? 160 : 170) : 165, GridUnitType.Star);
+            ExpScoresColumn.Width = new GridLength(IsDistance ? (narrowDistance ? 620 : 625) : 610, GridUnitType.Star);
+            // Preserve a large drought clock without letting it consume the
+            // explanatory phrase on compact physical scoreboards.
+            ExpTeamStoryTimerHost.Width = Math.Clamp(width * 0.28, 84, 116);
+            if (_recentScoresDrawerProgress > 0.001)
+            {
+                if (!_compactClockActive && _recentScoresProtectedClockWidth > 1)
+                    ExpClockColumn.Width = new GridLength(_recentScoresProtectedClockWidth);
+                if (_recentScoresProtectedLogoWidth > 1)
+                    ExpLogoColumn.Width = new GridLength(_recentScoresProtectedLogoWidth);
+            }
 
             // A 28px minimum is useful at full size but used almost a quarter of
             // a 120px-high scoreboard. Scale that safety floor with height.
-            ExpTopInfoRow.MinHeight = Math.Clamp(height * 0.145, 16, 32);
+            ExpTopInfoRow.MinHeight = IsDistance ? 0 : Math.Clamp(height * 0.145, 16, 32);
 
             // Short screens devote more of each team panel to the score line.
             // Both teams use identical weights, so typography remains stable.
             double heightProgress = Math.Clamp((height - 110) / 120, 0, 1);
-            double nameWeight = 0.97 + (0.50 * heightProgress);
+            double nameWeight = (IsDistance ? 1.08 : 0.97) + (0.50 * heightProgress);
             double scoreWeight = 2.85 - (0.35 * heightProgress);
             double revealProgress = _hideTeamNames ? 0 : _teamNameRevealProgress;
             ExpHomeNameRow.Height = revealProgress <= 0.001
@@ -347,7 +442,8 @@ namespace Roche_Scoreboard.Views
             {
                 double width = ExpandedLayout.ActualWidth;
                 ExpClockColumn.MinWidth = Math.Clamp(width * 0.12, 38, 80);
-                ExpClockColumn.Width = new GridLength(225, GridUnitType.Star);
+                bool narrowDistance = IsDistance && width < 340;
+                ExpClockColumn.Width = new GridLength(IsDistance ? (narrowDistance ? 230 : 225) : 225, GridUnitType.Star);
                 ExpClockPanel.Visibility = Visibility.Visible;
                 ExpCompactClockBar.Visibility = Visibility.Collapsed;
                 ExpMarqueeCanvas.Visibility = Visibility.Visible;
@@ -359,25 +455,12 @@ namespace Roche_Scoreboard.Views
 
         private void UpdateCompactOverlayDetails()
         {
-            // On very short outputs the primary event and value are the useful
-            // broadcast information. Removing the secondary scoring-run line
-            // prevents it being clipped inside the height-capped overlay and
-            // preserves the score rows underneath.
-            bool shortOutput = ExpandedLayout.ActualHeight > 0 && ExpandedLayout.ActualHeight < 180;
-            ExpScoringRunDetailText.Visibility = shortOutput
-                ? Visibility.Collapsed
-                : Visibility.Visible;
             ExpRecentScoresRecentText.Visibility = Visibility.Visible;
-            ExpRecentScoresRecentText.FontSize = 11;
-            ExpRecentScoresTitleText.FontSize = 15;
+            ExpRecentScoresRecentText.FontSize = 14;
+            ExpRecentScoresTitleText.FontSize = 14;
 
             bool narrowOutput = ExpandedLayout.ActualWidth > 0 && ExpandedLayout.ActualWidth < 340;
-            ExpScoringRunDetailText.Visibility = shortOutput || narrowOutput
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-            ExpRecentScoresHeader.Visibility = narrowOutput
-                ? Visibility.Collapsed
-                : Visibility.Visible;
+            ExpRecentScoresHeader.Visibility = Visibility.Visible;
             ExpRecentScoresSpacerColumn.Width = narrowOutput
                 ? new GridLength(0)
                 : new GridLength(14);
@@ -405,12 +488,10 @@ namespace Roche_Scoreboard.Views
             if (ExpBottomBarRow is null || ExpBottomBarBorder is null || ExpBottomBarSlide is null) return;
             bool hasMessages = _marqueeMessages.Count > 0;
             bool needsRow = hasMessages || _compactClockActive;
-            double minHeight = Math.Clamp(ExpandedLayout.ActualHeight * 0.18, 22, 44);
-
             if (needsRow == _bottomBarTargetVisible && (_bottomBarAnimating || needsRow == _bottomBarVisible))
             {
-                ExpBottomBarRow.Height = needsRow ? new GridLength(70, GridUnitType.Star) : new GridLength(0);
-                ExpBottomBarRow.MinHeight = needsRow ? minHeight : 0;
+                ExpBottomBarRow.Height = GridLength.Auto;
+                ExpBottomBarRow.MinHeight = 0;
                 return;
             }
 
@@ -418,8 +499,8 @@ namespace Roche_Scoreboard.Views
 
             if (needsRow)
             {
-                ExpBottomBarRow.Height = new GridLength(70, GridUnitType.Star);
-                ExpBottomBarRow.MinHeight = minHeight;
+                ExpBottomBarRow.Height = GridLength.Auto;
+                ExpBottomBarRow.MinHeight = 0;
             }
 
             AnimateBottomBar(show: needsRow, onCompleted: () =>
@@ -428,13 +509,21 @@ namespace Roche_Scoreboard.Views
                 _bottomBarAnimating = false;
                 if (!needsRow)
                 {
-                    ExpBottomBarRow.Height = new GridLength(0);
+                    ExpBottomBarBorder.Height = 0;
+                    ExpBottomBarRow.Height = GridLength.Auto;
                     ExpBottomBarRow.MinHeight = 0;
                 }
 
                 if (_bottomBarTargetVisible != _bottomBarVisible)
                 {
                     UpdateBottomBarVisibility();
+                }
+                else if (needsRow && _marqueeMessages.Count > 0)
+                {
+                    // Measure ticker typography only after the row reaches its
+                    // final height. Measuring halfway through the entrance was
+                    // pinning small text to the temporary top edge.
+                    Dispatcher.BeginInvoke(new Action(StartActiveMarquee), DispatcherPriority.Render);
                 }
             });
         }
@@ -444,23 +533,32 @@ namespace Roche_Scoreboard.Views
             if (ExpBottomBarBorder is null || ExpBottomBarSlide is null) return;
 
             const double slideDistance = 34;
-            TimeSpan dur = TimeSpan.FromMilliseconds(show ? 420 : 300);
-            var ease = new CubicEase { EasingMode = show ? EasingMode.EaseOut : EasingMode.EaseInOut };
+            TimeSpan dur = OverlayTransitionDuration;
+            IEasingFunction ease = CreateOverlayTransitionEase();
             double currentOpacity = ExpBottomBarBorder.Opacity;
             double currentY = ExpBottomBarSlide.Y;
             double targetOpacity = show ? 1.0 : 0.0;
             double targetY = show ? 0.0 : slideDistance;
+            double currentHeight = double.IsNaN(ExpBottomBarBorder.Height)
+                ? ExpBottomBarBorder.ActualHeight
+                : ExpBottomBarBorder.Height;
+            if (!show && currentHeight <= 0.001)
+                currentHeight = 46;
+            double targetHeight = show ? 46.0 : 0.0;
 
             ExpBottomBarBorder.BeginAnimation(UIElement.OpacityProperty, null);
+            ExpBottomBarBorder.BeginAnimation(FrameworkElement.HeightProperty, null);
             ExpBottomBarSlide.BeginAnimation(TranslateTransform.YProperty, null);
             _bottomBarAnimating = true;
 
             if (show && currentOpacity <= 0.001)
             {
                 ExpBottomBarBorder.Opacity = 0;
+                ExpBottomBarBorder.Height = 0;
                 ExpBottomBarSlide.Y = slideDistance;
                 currentOpacity = 0;
                 currentY = slideDistance;
+                currentHeight = 0;
             }
 
             var fade = new DoubleAnimation
@@ -477,10 +575,24 @@ namespace Roche_Scoreboard.Views
                 Duration = dur,
                 EasingFunction = ease
             };
+            var resize = new DoubleAnimation
+            {
+                From = currentHeight,
+                To = targetHeight,
+                Duration = dur,
+                EasingFunction = ease,
+                FillBehavior = FillBehavior.Stop
+            };
 
-            slide.Completed += (_, _) => onCompleted?.Invoke();
+            slide.Completed += (_, _) =>
+            {
+                ExpBottomBarBorder.BeginAnimation(FrameworkElement.HeightProperty, null);
+                ExpBottomBarBorder.Height = targetHeight;
+                onCompleted?.Invoke();
+            };
 
             ExpBottomBarBorder.BeginAnimation(UIElement.OpacityProperty, fade);
+            ExpBottomBarBorder.BeginAnimation(FrameworkElement.HeightProperty, resize);
             ExpBottomBarSlide.BeginAnimation(TranslateTransform.YProperty, slide);
         }
 
@@ -488,29 +600,55 @@ namespace Roche_Scoreboard.Views
 
         public void SetLayout(ScorebugLayout layout)
         {
-            // Only the modern (Expanded) layout is supported now ° flexible, no Viewbox, no stretching.
-            layout = ScorebugLayout.Expanded;
-            if (_currentLayout == layout) return;
+            // Both public choices share the stable responsive scorebug engine.
+            // Distance removes the information bar and reinvests its height in
+            // team names and scores; legacy enum values map safely to Classic.
+            layout = layout == ScorebugLayout.Distance
+                ? ScorebugLayout.Distance
+                : ScorebugLayout.Expanded;
+            if (_layoutApplied && _currentLayout == layout) return;
             ClearOverlayQueue();
 
             _currentLayout = layout;
+            _layoutApplied = true;
             ClassicLayout.Visibility = Visibility.Collapsed;
             ExpandedLayout.Visibility = Visibility.Visible;
 
+            ApplyDistanceLayoutMode();
             ApplyGradient();
             RestartMarqueeIfNeeded();
+            QueueExpandedResponsiveLayout();
         }
 
-        private bool IsExpanded => _currentLayout == ScorebugLayout.Expanded;
+        private void ApplyDistanceLayoutMode()
+        {
+            bool distance = IsDistance;
+            ExpTopInfoBar.Visibility = distance ? Visibility.Collapsed : Visibility.Visible;
+            ExpTopInfoRow.Height = distance ? new GridLength(0) : new GridLength(58, GridUnitType.Star);
+            ExpTopInfoRow.MinHeight = distance ? 0 : 28;
+            ExpPanelWallTimeRow.Height = distance ? new GridLength(0.48, GridUnitType.Star) : new GridLength(0);
+            ExpPanelWallTimeView.Visibility = distance ? Visibility.Visible : Visibility.Collapsed;
+            ExpCompactWallTimeColumn.Width = distance ? new GridLength(0.8, GridUnitType.Star) : new GridLength(0);
+        }
+
+        private bool IsDistance => _currentLayout == ScorebugLayout.Distance;
+        private bool IsExpanded => _currentLayout is ScorebugLayout.Expanded or ScorebugLayout.Distance;
 
         // ---- Data setters (update BOTH layouts so switching mid-game is seamless) ----
 
         public void SetTeams(string homeName, string homeAbbr, string awayName, string awayAbbr)
         {
-            _homeFullName = (string.IsNullOrWhiteSpace(homeName) ? "Home Team" : homeName).ToUpperInvariant();
-            _awayFullName = (string.IsNullOrWhiteSpace(awayName) ? "Away Team" : awayName).ToUpperInvariant();
-            _homeAbbr = (string.IsNullOrWhiteSpace(homeAbbr) ? "HOM" : homeAbbr).ToUpperInvariant();
-            _awayAbbr = (string.IsNullOrWhiteSpace(awayAbbr) ? "AWA" : awayAbbr).ToUpperInvariant();
+            string nextHomeName = (string.IsNullOrWhiteSpace(homeName) ? "Home Team" : homeName).ToUpperInvariant();
+            string nextAwayName = (string.IsNullOrWhiteSpace(awayName) ? "Away Team" : awayName).ToUpperInvariant();
+            string nextHomeAbbr = (string.IsNullOrWhiteSpace(homeAbbr) ? "HOM" : homeAbbr).ToUpperInvariant();
+            string nextAwayAbbr = (string.IsNullOrWhiteSpace(awayAbbr) ? "AWA" : awayAbbr).ToUpperInvariant();
+            if (_teamsApplied && nextHomeName == _homeFullName && nextAwayName == _awayFullName &&
+                nextHomeAbbr == _homeAbbr && nextAwayAbbr == _awayAbbr) return;
+            _teamsApplied = true;
+            _homeFullName = nextHomeName;
+            _awayFullName = nextAwayName;
+            _homeAbbr = nextHomeAbbr;
+            _awayAbbr = nextAwayAbbr;
 
             // Classic layout: always show full name, scaling handles fit
             HomeNameText.Text = _homeFullName;
@@ -521,7 +659,24 @@ namespace Roche_Scoreboard.Views
             ExpHomeNameText.Text = _homeFullName; ExpAwayNameText.Text = _awayFullName;
             ExpHomeLogoFallback.Text = _homeAbbr; ExpAwayLogoFallback.Text = _awayAbbr;
 
+            // Reset the previous name's transform immediately. If team setup
+            // changes while the output is hidden or mid-animation, retaining
+            // that offset can leave the new name permanently clipped.
+            ExpHomeNameSlide.BeginAnimation(TranslateTransform.XProperty, null);
+            ExpAwayNameSlide.BeginAnimation(TranslateTransform.XProperty, null);
+            ExpHomeNameSlide.X = ExpAwayNameSlide.X = 0;
+            ExpHomeNameText.HorizontalAlignment = HAlign.Left;
+            ExpAwayNameText.HorizontalAlignment = HAlign.Left;
+            ExpHomeNameHost.InvalidateMeasure();
+            ExpAwayNameHost.InvalidateMeasure();
+
             SyncClassicNameScales();
+            Dispatcher.BeginInvoke(new Action(UpdateExpandedTeamNamePanning), DispatcherPriority.Loaded);
+            Dispatcher.BeginInvoke(new Action(UpdateExpandedTeamNamePanning), DispatcherPriority.Render);
+        }
+
+        private void ExpandedTeamNameHost_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
             Dispatcher.BeginInvoke(new Action(UpdateExpandedTeamNamePanning), DispatcherPriority.Render);
         }
 
@@ -536,48 +691,16 @@ namespace Roche_Scoreboard.Views
         {
             translate.BeginAnimation(TranslateTransform.XProperty, null);
             translate.X = 0;
+            text.Width = double.NaN;
             if (host.ActualWidth <= 1 || host.ActualHeight <= 1)
                 return;
 
-            // Preserve a distance-readable cap instead of shrinking long club
-            // names until they become tiny. Names that exceed the protected
-            // width pan gently between both ends with a pause at each edge.
-            text.FontSize = Math.Clamp(Math.Floor(host.ActualHeight * 0.72), 10, 38);
-            Typeface typeface = new(text.FontFamily, text.FontStyle, text.FontWeight, text.FontStretch);
-            FormattedText measured = new(
-                text.Text,
-                System.Globalization.CultureInfo.CurrentCulture,
-                System.Windows.FlowDirection.LeftToRight,
-                typeface,
-                text.FontSize,
-                Brushes.White,
-                VisualTreeHelper.GetDpi(text).PixelsPerDip);
-            double available = Math.Max(1, host.ActualWidth - 8);
-            double overflow = measured.WidthIncludingTrailingWhitespace - available;
-            if (overflow <= 1)
-            {
-                text.HorizontalAlignment = HAlign.Center;
-                return;
-            }
-
-            text.HorizontalAlignment = HAlign.Left;
-            double travel = overflow + 8;
-            double travelSeconds = Math.Clamp(travel / 18.0, 4.5, 12.0);
-            TimeSpan oneWay = TimeSpan.FromSeconds(travelSeconds);
-            TimeSpan hold = TimeSpan.FromSeconds(1.2);
-            TimeSpan end = oneWay + hold + oneWay + hold;
-            var animation = new DoubleAnimationUsingKeyFrames
-            {
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-            animation.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
-            animation.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(hold)));
-            animation.KeyFrames.Add(new SplineDoubleKeyFrame(-travel, KeyTime.FromTimeSpan(hold + oneWay),
-                new KeySpline(0.42, 0, 0.58, 1)));
-            animation.KeyFrames.Add(new DiscreteDoubleKeyFrame(-travel, KeyTime.FromTimeSpan(hold + oneWay + hold)));
-            animation.KeyFrames.Add(new SplineDoubleKeyFrame(0, KeyTime.FromTimeSpan(end),
-                new KeySpline(0.42, 0, 0.58, 1)));
-            translate.BeginAnimation(TranslateTransform.XProperty, animation);
+            // Use the complete name lane. Long names are intentionally clipped
+            // with an ellipsis instead of shrinking every club identity to an
+            // unreadable size; short names retain the full available height.
+            text.FontSize = Math.Clamp(Math.Floor(host.ActualHeight * 0.90), 10, 44);
+            text.HorizontalAlignment = HAlign.Stretch;
+            text.TextAlignment = TextAlignment.Center;
         }
 
         /// <summary>
@@ -975,10 +1098,17 @@ namespace Roche_Scoreboard.Views
         public void SetTeamColors(string homeHex, string awayHex,
                                    string homeSecondaryHex = "#FFFFFF", string awaySecondaryHex = "#FFFFFF")
         {
-            _homeColor = SafeColor(homeHex, "#0A2A6A");
-            _awayColor = SafeColor(awayHex, "#7A1A1A");
-            _homeSecondaryColor = SafeColor(homeSecondaryHex, "#FFFFFF");
-            _awaySecondaryColor = SafeColor(awaySecondaryHex, "#FFFFFF");
+            Color nextHome = SafeColor(homeHex, "#0A2A6A");
+            Color nextAway = SafeColor(awayHex, "#7A1A1A");
+            Color nextHomeSecondary = SafeColor(homeSecondaryHex, "#FFFFFF");
+            Color nextAwaySecondary = SafeColor(awaySecondaryHex, "#FFFFFF");
+            if (_teamColoursApplied && nextHome == _homeColor && nextAway == _awayColor &&
+                nextHomeSecondary == _homeSecondaryColor && nextAwaySecondary == _awaySecondaryColor) return;
+            _teamColoursApplied = true;
+            _homeColor = nextHome;
+            _awayColor = nextAway;
+            _homeSecondaryColor = nextHomeSecondary;
+            _awaySecondaryColor = nextAwaySecondary;
 
             var hBrush = new SolidColorBrush(_homeColor);
             var aBrush = new SolidColorBrush(_awayColor);
@@ -1069,8 +1199,8 @@ namespace Roche_Scoreboard.Views
             if (ExpQuarterScoresHomeBehindsBorder is not null) ExpQuarterScoresHomeBehindsBorder.Color = hSec;
             if (ExpQuarterScoresAwayGoalsBorder is not null) ExpQuarterScoresAwayGoalsBorder.Color = aSec;
             if (ExpQuarterScoresAwayBehindsBorder is not null) ExpQuarterScoresAwayBehindsBorder.Color = aSec;
-            var hQuarterText = new SolidColorBrush(Services.SmartContrast.PickForeground(hC));
-            var aQuarterText = new SolidColorBrush(Services.SmartContrast.PickForeground(aC));
+            var hQuarterText = new SolidColorBrush(Services.SmartContrast.PickReadableForeground(hSec, hC));
+            var aQuarterText = new SolidColorBrush(Services.SmartContrast.PickReadableForeground(aSec, aC));
             ExpQuarterScoresHomeNameText.Foreground = hQuarterText;
             ExpQuarterScoresHomeTotalText.Foreground = hQuarterText;
             ExpQuarterScoresAwayNameText.Foreground = aQuarterText;
@@ -1079,6 +1209,11 @@ namespace Roche_Scoreboard.Views
 
         public void SetLogos(string? homeLogoPath, string? awayLogoPath)
         {
+            if (_logosApplied && string.Equals(homeLogoPath, _appliedHomeLogoPath, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(awayLogoPath, _appliedAwayLogoPath, StringComparison.OrdinalIgnoreCase)) return;
+            _logosApplied = true;
+            _appliedHomeLogoPath = homeLogoPath;
+            _appliedAwayLogoPath = awayLogoPath;
             ApplyLogo(HomeLogoImage, HomeLogoFallbackText, homeLogoPath);
             ApplyLogo(AwayLogoImage, AwayLogoFallbackText, awayLogoPath);
             ApplyLogoExpanded(ExpHomeLogoImage, ExpHomeLogoFallback, ExpHomeLogoSquare, homeLogoPath);
@@ -1096,12 +1231,21 @@ namespace Roche_Scoreboard.Views
             double homeZoom, double homeOffsetX, double homeOffsetY,
             double awayZoom, double awayOffsetX, double awayOffsetY)
         {
-            _homeLogoZoom = Math.Clamp(homeZoom, 0.8, 4.0);
-            _homeLogoOffsetX = Math.Clamp(homeOffsetX, -50, 50);
-            _homeLogoOffsetY = Math.Clamp(homeOffsetY, -50, 50);
-            _awayLogoZoom = Math.Clamp(awayZoom, 0.8, 4.0);
-            _awayLogoOffsetX = Math.Clamp(awayOffsetX, -50, 50);
-            _awayLogoOffsetY = Math.Clamp(awayOffsetY, -50, 50);
+            double nextHomeZoom = Math.Clamp(homeZoom, 0.8, 4.0);
+            double nextHomeX = Math.Clamp(homeOffsetX, -50, 50);
+            double nextHomeY = Math.Clamp(homeOffsetY, -50, 50);
+            double nextAwayZoom = Math.Clamp(awayZoom, 0.8, 4.0);
+            double nextAwayX = Math.Clamp(awayOffsetX, -50, 50);
+            double nextAwayY = Math.Clamp(awayOffsetY, -50, 50);
+            if (Math.Abs(nextHomeZoom - _homeLogoZoom) < 0.0001 && Math.Abs(nextHomeX - _homeLogoOffsetX) < 0.0001 &&
+                Math.Abs(nextHomeY - _homeLogoOffsetY) < 0.0001 && Math.Abs(nextAwayZoom - _awayLogoZoom) < 0.0001 &&
+                Math.Abs(nextAwayX - _awayLogoOffsetX) < 0.0001 && Math.Abs(nextAwayY - _awayLogoOffsetY) < 0.0001) return;
+            _homeLogoZoom = nextHomeZoom;
+            _homeLogoOffsetX = nextHomeX;
+            _homeLogoOffsetY = nextHomeY;
+            _awayLogoZoom = nextAwayZoom;
+            _awayLogoOffsetX = nextAwayX;
+            _awayLogoOffsetY = nextAwayY;
 
             ApplyLogoTransforms();
         }
@@ -1457,7 +1601,8 @@ namespace Roche_Scoreboard.Views
             // onCompleted is fired from the guard timer inside AddFlipAnimations
             // so it lines up with the END of the +N swipe slide-out, not the
             // earlier moment when the storyboard portion finishes.
-            AddFlipAnimations(sb, isHome, flipStart, newGoals, newBehinds, newTotal, expanded, onCompleted);
+            AddFlipAnimations(sb, isHome, flipStart, newGoals, newBehinds, newTotal, expanded,
+                isGoal ? _animationStyle : GoalAnimationStyle.Clean, onCompleted);
             if (isHome) _homeScoreSb = sb; else _awayScoreSb = sb;
 
             sb.Begin();
@@ -1491,7 +1636,8 @@ namespace Roche_Scoreboard.Views
             if (isHome) _homeAnimating = true; else _awayAnimating = true;
 
             var sb = new Storyboard();
-            AddFlipAnimations(sb, isHome, 0.0, newGoals, newBehinds, newTotal, expanded, onCompleted);
+            AddFlipAnimations(sb, isHome, 0.0, newGoals, newBehinds, newTotal, expanded,
+                GoalAnimationStyle.Clean, onCompleted);
             if (isHome) _homeScoreSb = sb; else _awayScoreSb = sb;
 
             sb.Begin();
@@ -1591,11 +1737,22 @@ namespace Roche_Scoreboard.Views
                 ? Services.SmartContrast.PickForeground(overlayBg.Color) : secondaryColor;
             overlayText.Foreground = new SolidColorBrush(readableText);
             overlayText.FontSize = expanded ? 100 : 72;
-            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial");
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
             overlayText.FontStyle = FontStyles.Normal;
             overlayText.FontStretch = FontStretches.Normal;
             overlayText.TextAlignment = TextAlignment.Center;
             overlayText.LineHeight = double.NaN;
+
+            if (expanded)
+            {
+                // When the ticker or a team story has already reclaimed the
+                // name lane, let GOAL use that available panel area instead of
+                // retaining the normal presentation margins.
+                bool constrainedState = IsTickerActive || _activeOverlay is not null;
+                (isHome ? ExpHomeGoalTextViewbox : ExpAwayGoalTextViewbox).Margin = constrainedState
+                    ? new Thickness(10, 4, 10, 4)
+                    : new Thickness(32, 12, 32, 12);
+            }
 
             // Reset overlay-level transform/opacity so a previous style cannot
             // leak a leftover TranslateTransform or stale opacity into the next
@@ -1636,6 +1793,22 @@ namespace Roche_Scoreboard.Views
             brush.GradientStops[1].Color = Color.FromArgb(0x00, teamColor.R, teamColor.G, teamColor.B);
         }
 
+        private void ApplyExpandedGoalChrome(bool isHome, bool expanded, GoalAnimationStyle style)
+        {
+            if (!expanded) return;
+            FrameworkElement[] chrome = isHome
+                ? [ExpHomeBroadcastChrome, ExpHomeElectricChrome, ExpHomeCinematicChrome, ExpHomeCleanChrome, ExpHomeClassicChrome]
+                : [ExpAwayBroadcastChrome, ExpAwayElectricChrome, ExpAwayCinematicChrome, ExpAwayCleanChrome, ExpAwayClassicChrome];
+            foreach (FrameworkElement element in chrome)
+            {
+                element.BeginAnimation(OpacityProperty, null);
+                element.Opacity = 0;
+            }
+            // The earlier preset frames/rails/patterns read as decoration at
+            // scoreboard scale. Presets now derive their identities entirely
+            // from timing, direction, light and wordmark motion.
+        }
+
         // ==================================================================
         // BROADCAST — Premium TV graphics package
         // ------------------------------------------------------------------
@@ -1654,6 +1827,7 @@ namespace Roche_Scoreboard.Views
             var primaryColor = isHome ? _homeColor : _awayColor;
             var secondaryColor = isHome ? _homeSecondaryColor : _awaySecondaryColor;
             PrepareOverlay(isHome, expanded, primaryColor, secondaryColor);
+            ApplyExpandedGoalChrome(isHome, expanded, GoalAnimationStyle.Broadcast);
             PrepareScoreGlow(isHome, expanded, primaryColor);
 
             var overlay = GetOverlay(isHome, expanded);
@@ -1664,7 +1838,7 @@ namespace Roche_Scoreboard.Views
             var edgeGlow = GetEdgeGlow(isHome, expanded);
 
             overlayText.Text = "GOAL";
-            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial");
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
             overlayText.FontStretch = FontStretches.Expanded;
 
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
@@ -1734,14 +1908,6 @@ namespace Roche_Scoreboard.Views
             sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0.9, 0, 0.08, 1.07));
 
             // Second shimmer (2.0–2.6s) — slower, signature double-pass
-            var shimReset = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.9) };
-            var t = isHome ? _homeTimers : _awayTimers;
-            shimReset.Tick += (_, __) =>
-            {
-                shimReset.Stop(); t.Remove(shimReset);
-                GetShimmerScroll(isHome, expanded).X = shimFrom;
-            };
-            t.Add(shimReset); shimReset.Start();
             sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0, 0.7, 0.08, 2.0));
             sb.Children.Add(MakeDA(shimmer, "RenderTransform.(TranslateTransform.X)", shimFrom, shimTo, 0.7, 2.0, ease));
             sb.Children.Add(MakeDA(shimmer, OpacityProperty, 0.7, 0, 0.1, 2.6));
@@ -1775,6 +1941,7 @@ namespace Roche_Scoreboard.Views
             var primaryColor = isHome ? _homeColor : _awayColor;
             var secondaryColor = isHome ? _homeSecondaryColor : _awaySecondaryColor;
             PrepareOverlay(isHome, expanded, primaryColor, secondaryColor);
+            ApplyExpandedGoalChrome(isHome, expanded, GoalAnimationStyle.Electric);
 
             var overlay = GetOverlay(isHome, expanded);
             var overlayText = GetOverlayText(isHome, expanded);
@@ -1795,7 +1962,15 @@ namespace Roche_Scoreboard.Views
             overlayText.FontSize = expanded ? 128 : 92;
             overlayText.Foreground = new SolidColorBrush(Colors.White);
             if (overlayText.Effect is System.Windows.Media.Effects.DropShadowEffect g)
-            { g.Color = secondaryColor; g.BlurRadius = 30; g.Opacity = 1.0; }
+            {
+                // The electrical wash deliberately crosses bright secondary
+                // colours. A compact black halo keeps GOAL legible throughout
+                // the pass, including white-team palettes.
+                g.Color = Colors.Black;
+                g.BlurRadius = 6;
+                g.ShadowDepth = 0;
+                g.Opacity = 1.0;
+            }
 
             // Reverse-direction gradient pass (right-to-left) — distinct from Broadcast/Classic
             var gradBrush = (LinearGradientBrush)gradBar.Fill;
@@ -1807,7 +1982,7 @@ namespace Roche_Scoreboard.Views
             gradBrush.GradientStops[5].Color = Colors.White;
             gradBrush.GradientStops[6].Color = secondaryColor;
             gradBrush.GradientStops[7].Color = Colors.White;
-            gradBar.Opacity = 0.85;
+            gradBar.Opacity = 0.62;
 
             // Text: horizontal compress (1.6×, 1×) snapping wide — NO uniform scale-slam
             if (expanded)
@@ -1858,10 +2033,6 @@ namespace Roche_Scoreboard.Views
             sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 70, 30, 0.4, 1.11, decelEase));
 
             // Second reverse gradient dash (1.6s) — confirms the energy
-            var gradReset = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.55) };
-            var t = isHome ? _homeTimers : _awayTimers;
-            gradReset.Tick += (_, __) => { gradReset.Stop(); t.Remove(gradReset); GetGradScroll(isHome, expanded).X = gradTo; };
-            t.Add(gradReset); gradReset.Start();
             sb.Children.Add(MakeDA(gradBar, "RenderTransform.(TranslateTransform.X)", gradTo, gradFrom, 0.5, 1.6, snapEase));
 
             // Sustained crackle on edge glow (1.8 – 2.5s)
@@ -1901,6 +2072,7 @@ namespace Roche_Scoreboard.Views
             var primaryColor = isHome ? _homeColor : _awayColor;
             var secondaryColor = isHome ? _homeSecondaryColor : _awaySecondaryColor;
             PrepareOverlay(isHome, expanded, primaryColor, secondaryColor);
+            ApplyExpandedGoalChrome(isHome, expanded, GoalAnimationStyle.Cinematic);
             PrepareScoreGlow(isHome, expanded, primaryColor);
 
             var overlay = GetOverlay(isHome, expanded);
@@ -1909,7 +2081,7 @@ namespace Roche_Scoreboard.Views
             var scoreGlow = GetScoreGlow(isHome, expanded);
 
             overlayText.Text = "GOAL";
-            overlayText.FontFamily = new System.Windows.Media.FontFamily("Georgia");
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
             overlayText.FontStretch = FontStretches.Normal;
             overlayText.TextAlignment = TextAlignment.Center;
             overlayText.LineHeight = expanded ? 76 : 56;
@@ -1965,35 +2137,6 @@ namespace Roche_Scoreboard.Views
             sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 90, 30, 0.8, 2.9, ease));
             sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 30, 70, 0.5, 3.7, ease));
 
-            // Identity beat: gently zoom the team's logo (1.0 → 1.08 → 1.0)
-            // during the hold. Logo is foundational team identity — only this
-            // style uses it because the slow pacing leaves room to notice.
-            // We preserve the existing crop transform (zoom/offset) by adding
-            // a dedicated pulse ScaleTransform on top via a TransformGroup.
-            var logoImage = expanded
-                ? (isHome ? ExpHomeLogoImage : ExpAwayLogoImage)
-                : (isHome ? HomeLogoImage : AwayLogoImage);
-            if (logoImage != null)
-            {
-                logoImage.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
-                var pulse = new ScaleTransform(1, 1);
-                var group = new TransformGroup();
-                if (logoImage.RenderTransform is TransformGroup existing)
-                {
-                    foreach (var child in existing.Children) group.Children.Add(child);
-                }
-                else if (logoImage.RenderTransform is Transform t && t != Transform.Identity)
-                {
-                    group.Children.Add(t);
-                }
-                group.Children.Add(pulse);
-                logoImage.RenderTransform = group;
-                sb.Children.Add(MakeDA(pulse, ScaleTransform.ScaleXProperty, 1.0, 1.08, 2.0, 0.4, ease));
-                sb.Children.Add(MakeDA(pulse, ScaleTransform.ScaleYProperty, 1.0, 1.08, 2.0, 0.4, ease));
-                sb.Children.Add(MakeDA(pulse, ScaleTransform.ScaleXProperty, 1.08, 1.0, 1.6, 2.4, ease));
-                sb.Children.Add(MakeDA(pulse, ScaleTransform.ScaleYProperty, 1.08, 1.0, 1.6, 2.4, ease));
-            }
-
             // Exit: text fades first, then the panel fades — no slide-off
             // so the row underneath is never half-exposed.
             sb.Children.Add(MakeDA(overlayText, OpacityProperty, 1, 0, 0.6, 4.20, ease));
@@ -2022,6 +2165,7 @@ namespace Roche_Scoreboard.Views
             var primaryColor = isHome ? _homeColor : _awayColor;
             var secondaryColor = isHome ? _homeSecondaryColor : _awaySecondaryColor;
             PrepareOverlay(isHome, expanded, primaryColor, secondaryColor);
+            ApplyExpandedGoalChrome(isHome, expanded, GoalAnimationStyle.Clean);
             PrepareScoreGlow(isHome, expanded, primaryColor);
 
             var overlay = GetOverlay(isHome, expanded);
@@ -2032,7 +2176,7 @@ namespace Roche_Scoreboard.Views
             var edgeGlow = GetEdgeGlow(isHome, expanded);
 
             overlayText.Text = "GOAL";
-            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial");
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
             overlayText.FontStretch = FontStretches.Normal;
 
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
@@ -2043,11 +2187,12 @@ namespace Roche_Scoreboard.Views
             gradBar.Opacity = 0;
             shimmer.Opacity = 0;
 
-            // Text starts at full scale, fully transparent — pure opacity reveal.
+            // A single decisive camera punch differentiates this preset from
+            // Broadcast's vertical fold and Electric's horizontal charge.
             if (expanded)
-            { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1; sc.ScaleY = 1; }
+            { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1.34; sc.ScaleY = 1.34; }
             else
-            { overlayText.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5); overlayText.RenderTransform = new ScaleTransform(1, 1); }
+            { overlayText.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5); overlayText.RenderTransform = new ScaleTransform(1.34, 1.34); }
             overlayText.Opacity = 0;
 
             // Restrained glow — soft, slow, no pulsing.
@@ -2061,8 +2206,10 @@ namespace Roche_Scoreboard.Views
             // Entry: panel fades up to full coverage, then text fades in.
             overlay.RenderTransform = new TranslateTransform(0, 0);
             overlay.Opacity = 0;
-            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.30, 0.00, decelEase));
-            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0, 1, 0.30, 0.20, decelEase));
+            sb.Children.Add(MakeDA(overlay, OpacityProperty, 0, 1, 0.18, 0.00, decelEase));
+            sb.Children.Add(MakeDA(overlayText, OpacityProperty, 0, 1, 0.16, 0.04, decelEase));
+            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleX", 1.34, 1, 0.34, 0.02, decelEase));
+            sb.Children.Add(MakeDA(overlayText, "RenderTransform.ScaleY", 1.34, 1, 0.34, 0.02, decelEase));
 
             // Single slow glow breath on the text (no pulses).
             sb.Children.Add(MakeDA(overlayText, "(UIElement.Effect).(DropShadowEffect.BlurRadius)", 30, 55, 0.8, 0.5, ease));
@@ -2126,6 +2273,7 @@ namespace Roche_Scoreboard.Views
             var primaryColor = isHome ? _homeColor : _awayColor;
             var secondaryColor = isHome ? _homeSecondaryColor : _awaySecondaryColor;
             PrepareOverlay(isHome, expanded, primaryColor, secondaryColor);
+            ApplyExpandedGoalChrome(isHome, expanded, GoalAnimationStyle.Classic);
             PrepareScoreGlow(isHome, expanded, primaryColor);
 
             var overlay = GetOverlay(isHome, expanded);
@@ -2135,7 +2283,7 @@ namespace Roche_Scoreboard.Views
             var scoreGlow = GetScoreGlow(isHome, expanded);
 
             overlayText.Text = "GOAL";
-            overlayText.FontFamily = new System.Windows.Media.FontFamily("Consolas");
+            overlayText.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
             overlayText.FontStretch = FontStretches.Expanded;
 
             GetOverlayBg(isHome, expanded).Color = Color.FromArgb(0xFF, primaryColor.R, primaryColor.G, primaryColor.B);
@@ -2226,7 +2374,8 @@ namespace Roche_Scoreboard.Views
         // ---- Shared flip builder ----
 
         private void AddFlipAnimations(Storyboard sb, bool isHome, double flipStart,
-            int newGoals, int newBehinds, int newTotal, bool expanded, Action? onCompleted = null)
+            int newGoals, int newBehinds, int newTotal, bool expanded,
+            GoalAnimationStyle revealStyle, Action? onCompleted = null)
         {
             var goalsText = expanded ? (isHome ? ExpHomeGoalsText : ExpAwayGoalsText) : (isHome ? HomeGoalsText : AwayGoalsText);
             var behindsText = expanded ? (isHome ? ExpHomeBehindsText : ExpAwayBehindsText) : (isHome ? HomeBehindsText : AwayBehindsText);
@@ -2235,6 +2384,12 @@ namespace Roche_Scoreboard.Views
             var altG = expanded ? (isHome ? HomeGoalsText : AwayGoalsText) : (isHome ? ExpHomeGoalsText : ExpAwayGoalsText);
             var altB = expanded ? (isHome ? HomeBehindsText : AwayBehindsText) : (isHome ? ExpHomeBehindsText : ExpAwayBehindsText);
             var altT = expanded ? (isHome ? HomeTotalText : AwayTotalText) : (isHome ? ExpHomeTotalText : ExpAwayTotalText);
+
+            // Keep glyph rasterisation stable while numerals travel through
+            // fractional positions; otherwise ClearType can briefly shimmer.
+            TextBlock[] animatedDigits = [goalsText, behindsText, totalText];
+            foreach (TextBlock digit in animatedDigits)
+                digit.CacheMode = new BitmapCache(VisualTreeHelper.GetDpi(digit).PixelsPerDip);
 
             // Detect which components actually changed for blink highlighting
             bool goalsChanged = goalsText.Text != newGoals.ToString();
@@ -2249,8 +2404,8 @@ namespace Roche_Scoreboard.Views
             if (cellH <= 0) cellH = goalsText.ActualHeight;
             if (cellH <= 0) cellH = behindsText.ActualHeight;
             double slideDist = cellH > 0 ? cellH * 0.6 : ScalePx(60);
-            var slideOutDur = TimeSpan.FromSeconds(0.18);
-            var slideInDur = TimeSpan.FromSeconds(0.28);
+            var slideOutDur = TimeSpan.FromSeconds(0.10);
+            var slideInDur = TimeSpan.FromSeconds(0.16);
             var timers = isHome ? _homeTimers : _awayTimers;
 
             void AddSlide(TextBlock tb, string val, double delay, TextBlock alt, bool pop = false)
@@ -2272,8 +2427,8 @@ namespace Roche_Scoreboard.Views
             // Simple synced blink: all changed digits blink together at even intervals
             void AddBlink(TextBlock tb, double startAt)
             {
-                const double offDur = 0.06;
-                const double onDur = 0.08;
+                const double offDur = 0.055;
+                const double onDur = 0.075;
                 const int blinkCount = 4;
                 for (int i = 0; i < blinkCount; i++)
                 {
@@ -2292,7 +2447,7 @@ namespace Roche_Scoreboard.Views
             bool deferTotalForSwipe = expanded && delta > 0;
 
             // Reveal moment inside PlayScoreSwipe: rise (0.38s) + hold (~0.40s)
-            const double swipeRevealOffset = 0.78;
+            double swipeRevealOffset = GetScoreRevealOffset(revealStyle);
             double totalDur;
 
             if (deferTotalForSwipe)
@@ -2300,7 +2455,7 @@ namespace Roche_Scoreboard.Views
                 // 1) Schedule the swipe to start AFTER the goal preset has finished.
                 // 2) When the swipe reveals, slide G/B/Total to their new values together
                 //    so the digits change in sync with the swipe pulling away.
-                ScheduleScoreSwipeWithUpdate(isHome, delta, /*delaySec*/ flipStart, newTotal, totalText, altT);
+                ScheduleScoreSwipeWithUpdate(isHome, delta, /*delaySec*/ flipStart, revealStyle);
 
                 double slideAt = swipeRevealOffset; // relative to flipStart
                 AddSlide(totalText, newTotal.ToString(), slideAt, altT);
@@ -2308,12 +2463,12 @@ namespace Roche_Scoreboard.Views
                 if (behindsChanged) AddSlide(behindsText, newBehinds.ToString(), slideAt, altB, pop: true);
 
                 // Synced blink right after the slide-in completes
-                double blinkTime = flipStart + slideAt + 0.18 + 0.28 + 0.05;
+                double blinkTime = flipStart + slideAt + 0.10 + 0.16 + 0.10;
                 if (goalsChanged) AddBlink(goalsText, blinkTime);
                 if (behindsChanged) AddBlink(behindsText, blinkTime);
                 AddBlink(totalText, blinkTime);
 
-                totalDur = blinkTime + 4 * (0.06 + 0.08) + 0.4; // include swipe slide-out
+                totalDur = blinkTime + 4 * (0.055 + 0.075) + 0.18;
             }
             else
             {
@@ -2321,18 +2476,21 @@ namespace Roche_Scoreboard.Views
                 if (goalsChanged) AddSlide(goalsText, newGoals.ToString(), 0.10, altG, pop: true);
                 if (behindsChanged) AddSlide(behindsText, newBehinds.ToString(), 0.10, altB, pop: true);
 
-                double blinkTime = flipStart + 0.16 + 0.18 + 0.28 + 0.05;
+                double blinkTime = flipStart + 0.10 + 0.10 + 0.16 + 0.10;
                 if (goalsChanged) AddBlink(goalsText, blinkTime);
                 if (behindsChanged) AddBlink(behindsText, blinkTime);
                 AddBlink(totalText, blinkTime);
 
-                totalDur = blinkTime + 4 * (0.06 + 0.08) + 0.1;
+                totalDur = blinkTime + 4 * (0.055 + 0.075) + 0.12;
             }
 
             var guard = new DispatcherTimer { Interval = TimeSpan.FromSeconds(totalDur) };
             guard.Tick += (_, __) =>
             {
                 guard.Stop(); timers.Remove(guard);
+                // Retain the stable glyph cache after motion. Switching back
+                // to live ClearType at the final flash produced a one-frame
+                // change in numeral edges that looked like a panel twitch.
                 if (isHome) _homeAnimating = false; else _awayAnimating = false;
                 // Fire the host-supplied completion callback now — after the
                 // swipe slide-out has finished — so the next queued goal
@@ -2347,15 +2505,15 @@ namespace Roche_Scoreboard.Views
 
         // ---- Score swipe (+1 / +6) ----
 
-        private void ScheduleScoreSwipe(bool isHome, int delta, double delaySec)
+        private void ScheduleScoreSwipe(bool isHome, int delta, double delaySec, GoalAnimationStyle revealStyle)
         {
             var timers = isHome ? _homeTimers : _awayTimers;
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(delaySec) };
-            t.Tick += (_, __) => { t.Stop(); timers.Remove(t); PlayScoreSwipe(isHome, delta); };
+            t.Tick += (_, __) => { t.Stop(); timers.Remove(t); PlayScoreSwipe(isHome, delta, revealStyle); };
             timers.Add(t); t.Start();
         }
 
-        private void ScheduleScoreSwipeWithUpdate(bool isHome, int delta, double delaySec, int newTotal, TextBlock totalText, TextBlock altTotal)
+        private void ScheduleScoreSwipeWithUpdate(bool isHome, int delta, double delaySec, GoalAnimationStyle revealStyle)
         {
             var timers = isHome ? _homeTimers : _awayTimers;
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(delaySec) };
@@ -2365,12 +2523,21 @@ namespace Roche_Scoreboard.Views
                 // Reveal callback is intentionally null: the digit slide animations
                 // (Goals/Behinds/Total) are scheduled in AddFlipAnimations to fire at
                 // the swipe's reveal moment, so they update in sync visually.
-                PlayScoreSwipe(isHome, delta);
+                PlayScoreSwipe(isHome, delta, revealStyle);
             };
             timers.Add(t); t.Start();
         }
 
-        private void PlayScoreSwipe(bool isHome, int delta, Action? onReveal = null)
+        private static double GetScoreRevealOffset(GoalAnimationStyle style) => style switch
+        {
+            GoalAnimationStyle.Electric => 0.72,
+            GoalAnimationStyle.Cinematic => 0.88,
+            GoalAnimationStyle.Clean => 0.68,
+            GoalAnimationStyle.Classic => 0.76,
+            _ => 0.80
+        };
+
+        private void PlayScoreSwipe(bool isHome, int delta, GoalAnimationStyle revealStyle, Action? onReveal = null)
         {
             var timers = isHome ? _homeTimers : _awayTimers;
             var overlay = IsExpanded
@@ -2402,22 +2569,26 @@ namespace Roche_Scoreboard.Views
             overlay.RenderTransform = translate;
             overlay.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
             overlay.BeginAnimation(OpacityProperty, null);
-            overlay.Opacity = 1;
+            overlay.Opacity = revealStyle is GoalAnimationStyle.Cinematic or GoalAnimationStyle.Clean ? 0 : 1;
+            swipeText.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+            swipeText.RenderTransform = new ScaleTransform(1, 1);
             translate.BeginAnimation(TranslateTransform.YProperty, null);
+            translate.BeginAnimation(TranslateTransform.XProperty, null);
             translate.X = 0;
-            translate.Y = h;
+            translate.Y = 0;
 
-            // Smooth easing curves ° soft entry, gentle exit. No sway, scale,
-            // or tilt: just a clean upward swipe that feels fluid.
+            // The score delta always travels upward. Goal-animation presets may
+            // still differ before this moment, but +6/+1 has one predictable
+            // direction, duration and reveal language throughout the app.
             var entryEase = new CubicEase { EasingMode = EasingMode.EaseOut };
             var exitEase = new CubicEase { EasingMode = EasingMode.EaseIn };
-
-            // 1) Slide up from below to centred.
-            var rise = new DoubleAnimation(h, 0, TimeSpan.FromSeconds(0.38)) { EasingFunction = entryEase };
-            translate.BeginAnimation(TranslateTransform.YProperty, rise);
+            overlay.Opacity = 1;
+            translate.Y = h;
+            translate.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(h, 0, TimeSpan.FromSeconds(0.34)) { EasingFunction = entryEase });
 
             // 2) After a short hold, swipe up off the top and reveal the new score.
-            var holdAndExitDelay = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.78) };
+            var holdAndExitDelay = new DispatcherTimer { Interval = TimeSpan.FromSeconds(GetScoreRevealOffset(revealStyle)) };
             timers.Add(holdAndExitDelay);
             holdAndExitDelay.Tick += (_, __) =>
             {
@@ -2425,18 +2596,25 @@ namespace Roche_Scoreboard.Views
                 timers.Remove(holdAndExitDelay);
                 onReveal?.Invoke();
 
-                var slideOut = new DoubleAnimation(0, -h, TimeSpan.FromSeconds(0.32)) { EasingFunction = exitEase };
-                slideOut.Completed += (_, __) =>
+                Timeline exitMotion = new DoubleAnimation(0, -h, TimeSpan.FromSeconds(0.32)) { EasingFunction = exitEase };
+                DependencyProperty exitProperty = TranslateTransform.YProperty;
+
+                exitMotion.Completed += (_, __) =>
                 {
                     overlay.Opacity = 0;
                     translate.BeginAnimation(TranslateTransform.YProperty, null);
+                    translate.BeginAnimation(TranslateTransform.XProperty, null);
                     translate.X = 0;
-                    translate.Y = h;
+                    translate.Y = 0;
                 };
-                translate.BeginAnimation(TranslateTransform.YProperty, slideOut);
+                if (exitProperty == UIElement.OpacityProperty)
+                    overlay.BeginAnimation(OpacityProperty, (AnimationTimeline)exitMotion);
+                else
+                    translate.BeginAnimation(exitProperty, (AnimationTimeline)exitMotion);
 
-                var fade = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.30)) { EasingFunction = exitEase };
-                overlay.BeginAnimation(OpacityProperty, fade);
+                // Keep the panel fully opaque while it leaves. Fading during
+                // the upward motion made the exit feel unlike the solid entry
+                // and exposed the score underneath before the wipe had cleared.
             };
             holdAndExitDelay.Start();
         }
@@ -2501,6 +2679,21 @@ namespace Roche_Scoreboard.Views
             if (isHome) _homeScoreSb = null; else _awayScoreSb = null;
         }
 
+        public void CancelScoreAnimations()
+        {
+            // Corrections, undo and match reset must invalidate both layout
+            // variants. Otherwise a completion timer from an old score can
+            // write its stale snapshot back after the authoritative correction.
+            CancelClassicTeamAnimation(isHome: true);
+            CancelClassicTeamAnimation(isHome: false);
+            CancelExpandedTeamAnimation(isHome: true);
+            CancelExpandedTeamAnimation(isHome: false);
+            _homeAnimating = false;
+            _awayAnimating = false;
+            _gbExpandDelayTimer?.Stop();
+            _gbExpandDelayTimer = null;
+        }
+
         private void ResetFlipTransforms(bool isHome, bool expanded)
         {
             TranslateTransform gf, bf, tf;
@@ -2532,6 +2725,9 @@ namespace Roche_Scoreboard.Views
             goalsText.BeginAnimation(OpacityProperty, null); goalsText.Opacity = 1;
             behindsText.BeginAnimation(OpacityProperty, null); behindsText.Opacity = 1;
             totalText.BeginAnimation(OpacityProperty, null); totalText.Opacity = 1;
+            goalsText.CacheMode = null;
+            behindsText.CacheMode = null;
+            totalText.CacheMode = null;
             // Restore transforms if highlight/Clean replaced them with TransformGroup
             if (goalsText.RenderTransform is not TranslateTransform)
                 goalsText.RenderTransform = gf;
@@ -2570,12 +2766,11 @@ namespace Roche_Scoreboard.Views
         private ColumnDefinition AStatsHomeCol => IsExpanded ? ExpStatsBarHomeCol : StatsBarHomeCol;
         private ColumnDefinition AStatsAwayCol => IsExpanded ? ExpStatsBarAwayCol : StatsBarAwayCol;
         private Border AScorelessBar => IsExpanded ? ExpScorelessBarBorder : ScorelessBarBorder;
+        private TextBlock AScorelessLabel => IsExpanded ? ExpScorelessLabelText : ScorelessLabelText;
         private TextBlock AScorelessTime => IsExpanded ? ExpScorelessTimeText : ScorelessTimeText;
         private Border AScoringRunBar => IsExpanded ? ExpScoringRunBarBorder : ScoringRunBarBorder;
         private System.Windows.Media.Brush AScoringRunGrad => IsExpanded ? (System.Windows.Media.Brush)ExpScoringRunGradient : (System.Windows.Media.Brush)ScoringRunGradient;
         private TextBlock AScoringRunLabel => IsExpanded ? ExpScoringRunLabelText : ScoringRunLabelText;
-        private TextBlock AScoringRunDetail => IsExpanded ? ExpScoringRunDetailText : ScoringRunDetailText;
-        private TextBlock AScoringRunValue => IsExpanded ? ExpScoringRunValueText : ScoringRunValueText;
         private Border ARecentScoresBar => ExpRecentScoresBarBorder;
         private Border ADroughtBar => IsExpanded ? ExpTeamDroughtBarBorder : TeamDroughtBarBorder;
         private System.Windows.Media.Brush ADroughtGrad => IsExpanded ? (System.Windows.Media.Brush)ExpTeamDroughtGradient : (System.Windows.Media.Brush)TeamDroughtGradient;
@@ -2618,6 +2813,189 @@ namespace Roche_Scoreboard.Views
             return Math.Min(scaled, heightBudget);
         }
 
+        private static double EaseOverlayTransition(double progress)
+        {
+            progress = Math.Clamp(progress, 0, 1);
+            return progress * progress * (3 - (2 * progress));
+        }
+
+        private static IEasingFunction CreateOverlayTransitionEase()
+            => new CubicEase { EasingMode = EasingMode.EaseInOut };
+
+        private static IEasingFunction CreateTeamStoryTransitionEase()
+            => new SineEase { EasingMode = EasingMode.EaseInOut };
+
+        private int BeginOverlayLayoutMotion()
+        {
+            _overlayLayoutMotionActive = true;
+            _overlayResponsiveRefreshPending = false;
+            return ++_overlayLayoutMotionGeneration;
+        }
+
+        private void EndOverlayLayoutMotion(int generation)
+        {
+            if (generation != _overlayLayoutMotionGeneration) return;
+            _overlayLayoutMotionActive = false;
+            if (_overlayResponsiveRefreshPending)
+            {
+                _overlayResponsiveRefreshPending = false;
+                QueueExpandedResponsiveLayout();
+            }
+        }
+
+        private void AnimateOverlayIn(Border bar, double designHeight)
+        {
+            double target = OverlayH(designHeight);
+            bool carriesSharedIdentity = ReferenceEquals(bar, AStatsBar)
+                || ReferenceEquals(bar, AWinProbBar)
+                || ReferenceEquals(bar, ALeadChangesBar)
+                || ReferenceEquals(bar, ExpQuarterScoresBarBorder);
+            int motionGeneration = BeginOverlayLayoutMotion();
+            bar.BeginAnimation(HeightProperty, null);
+            bar.BeginAnimation(OpacityProperty, null);
+            bar.CacheMode = new BitmapCache(1.0);
+            bar.UseLayoutRounding = false;
+            bar.SnapsToDevicePixels = false;
+            bar.Height = target;
+            bar.Opacity = 1;
+            var translate = bar.RenderTransform as TranslateTransform ?? new TranslateTransform();
+            bar.RenderTransform = translate;
+            translate.BeginAnimation(TranslateTransform.YProperty, null);
+            translate.Y = 0;
+            var heightAnimation = new DoubleAnimation(0, target, OverlayTransitionDuration)
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = CreateOverlayTransitionEase()
+            };
+            heightAnimation.Completed += (_, _) =>
+            {
+                bar.CacheMode = null;
+                bar.UseLayoutRounding = true;
+                bar.SnapsToDevicePixels = true;
+                EndOverlayLayoutMotion(motionGeneration);
+            };
+            bar.BeginAnimation(HeightProperty, heightAnimation, HandoffBehavior.SnapshotAndReplace);
+            bar.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, OverlayTransitionDuration)
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = CreateOverlayTransitionEase()
+            });
+            translate.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(-Math.Max(8, target * 0.28), 0, OverlayTransitionDuration)
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = CreateOverlayTransitionEase()
+                });
+            if (carriesSharedIdentity)
+            {
+                ExpSharedOverlayLogoLayer.BeginAnimation(HeightProperty, null);
+                ExpSharedOverlayLogoLayer.BeginAnimation(OpacityProperty, null);
+                var identityTranslate = ExpSharedOverlayLogoLayer.RenderTransform as TranslateTransform
+                    ?? new TranslateTransform();
+                ExpSharedOverlayLogoLayer.RenderTransform = identityTranslate;
+                identityTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+                ExpSharedOverlayLogoLayer.Height = target;
+                ExpSharedOverlayLogoLayer.Opacity = 1;
+                identityTranslate.Y = 0;
+                ExpSharedOverlayLogoLayer.BeginAnimation(HeightProperty,
+                    new DoubleAnimation(0, target, OverlayTransitionDuration)
+                    {
+                        FillBehavior = FillBehavior.Stop,
+                        EasingFunction = CreateOverlayTransitionEase()
+                    }, HandoffBehavior.SnapshotAndReplace);
+                ExpSharedOverlayLogoLayer.BeginAnimation(OpacityProperty,
+                    new DoubleAnimation(0, 1, OverlayTransitionDuration)
+                    {
+                        FillBehavior = FillBehavior.Stop,
+                        EasingFunction = CreateOverlayTransitionEase()
+                    }, HandoffBehavior.SnapshotAndReplace);
+                identityTranslate.BeginAnimation(TranslateTransform.YProperty,
+                    new DoubleAnimation(-Math.Max(8, target * 0.28), 0, OverlayTransitionDuration)
+                    {
+                        FillBehavior = FillBehavior.Stop,
+                        EasingFunction = CreateOverlayTransitionEase()
+                    }, HandoffBehavior.SnapshotAndReplace);
+            }
+        }
+
+        private void AnimateOverlayOut(Border bar, double designHeight, Action completed)
+        {
+            double from = bar.ActualHeight > 0 ? bar.ActualHeight : OverlayH(designHeight);
+            bool carriesSharedIdentity = ReferenceEquals(bar, AStatsBar)
+                || ReferenceEquals(bar, AWinProbBar)
+                || ReferenceEquals(bar, ALeadChangesBar)
+                || ReferenceEquals(bar, ExpQuarterScoresBarBorder);
+            int motionGeneration = BeginOverlayLayoutMotion();
+            bar.BeginAnimation(HeightProperty, null);
+            bar.BeginAnimation(OpacityProperty, null);
+            bar.CacheMode = new BitmapCache(1.0);
+            bar.UseLayoutRounding = false;
+            bar.SnapsToDevicePixels = false;
+            bar.Height = 0;
+            bar.Opacity = 0;
+            var translate = bar.RenderTransform as TranslateTransform ?? new TranslateTransform();
+            bar.RenderTransform = translate;
+            translate.BeginAnimation(TranslateTransform.YProperty, null);
+            translate.Y = -Math.Max(8, from * 0.28);
+            var animation = new DoubleAnimation(from, 0, OverlayTransitionDuration)
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = CreateOverlayTransitionEase()
+            };
+            animation.Completed += (_, _) =>
+            {
+                translate.BeginAnimation(TranslateTransform.YProperty, null);
+                translate.Y = 0;
+                bar.CacheMode = null;
+                bar.UseLayoutRounding = true;
+                bar.SnapsToDevicePixels = true;
+                EndOverlayLayoutMotion(motionGeneration);
+                completed();
+            };
+            bar.BeginAnimation(HeightProperty, animation);
+            bar.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0, OverlayTransitionDuration)
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = CreateOverlayTransitionEase()
+            });
+            translate.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(0, -Math.Max(8, from * 0.28), OverlayTransitionDuration)
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = CreateOverlayTransitionEase()
+                });
+            if (carriesSharedIdentity)
+            {
+                ExpSharedOverlayLogoLayer.BeginAnimation(HeightProperty, null);
+                ExpSharedOverlayLogoLayer.BeginAnimation(OpacityProperty, null);
+                var identityTranslate = ExpSharedOverlayLogoLayer.RenderTransform as TranslateTransform
+                    ?? new TranslateTransform();
+                ExpSharedOverlayLogoLayer.RenderTransform = identityTranslate;
+                identityTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+                ExpSharedOverlayLogoLayer.Height = 0;
+                ExpSharedOverlayLogoLayer.Opacity = 0;
+                identityTranslate.Y = -Math.Max(8, from * 0.28);
+                ExpSharedOverlayLogoLayer.BeginAnimation(HeightProperty,
+                    new DoubleAnimation(from, 0, OverlayTransitionDuration)
+                    {
+                        FillBehavior = FillBehavior.Stop,
+                        EasingFunction = CreateOverlayTransitionEase()
+                    }, HandoffBehavior.SnapshotAndReplace);
+                ExpSharedOverlayLogoLayer.BeginAnimation(OpacityProperty,
+                    new DoubleAnimation(1, 0, OverlayTransitionDuration)
+                    {
+                        FillBehavior = FillBehavior.Stop,
+                        EasingFunction = CreateOverlayTransitionEase()
+                    }, HandoffBehavior.SnapshotAndReplace);
+                identityTranslate.BeginAnimation(TranslateTransform.YProperty,
+                    new DoubleAnimation(0, -Math.Max(8, from * 0.28), OverlayTransitionDuration)
+                    {
+                        FillBehavior = FillBehavior.Stop,
+                        EasingFunction = CreateOverlayTransitionEase()
+                    }, HandoffBehavior.SnapshotAndReplace);
+            }
+        }
+
         // ==== Stats bar ====
 
         private bool _statsBarVisible;
@@ -2630,30 +3008,114 @@ namespace Roche_Scoreboard.Views
         private enum OverlayKind { StatsBar, FiveMinWarning, ScorelessTimer, ScoringRun, TeamDrought, WinProbability, LeadChanges, QuarterScores, RecentScores, WeatherStats, Forecast, RainForecast }
         private readonly Queue<OverlayKind> _overlayQueue = new();
         private OverlayKind? _activeOverlay;
+        private bool _overlayIsExiting;
+        private bool _overlayTransitionGap;
+        private int _overlayAutoHideGeneration;
+        private bool _teamStoryVisible;
+        private bool _teamStoryIsHome;
+        private int _teamStoryAnimationGeneration;
+        private readonly Queue<Action> _scoreSurfaceReadyCallbacks = new();
+        private static readonly TimeSpan OverlayHandoffGap = TimeSpan.FromMilliseconds(110);
 
-        private void EnqueueOverlay(OverlayKind kind)
+        private DispatcherTimer StartOverlayAutoHide(TimeSpan delay, Action callback)
+        {
+            int generation = ++_overlayAutoHideGeneration;
+            DispatcherTimer timer = new() { Interval = delay };
+            timer.Tick += (_, _) =>
+            {
+                timer.Stop();
+                if (generation != _overlayAutoHideGeneration) return;
+                callback();
+            };
+            timer.Start();
+            return timer;
+        }
+
+        private void EnqueueOverlay(OverlayKind kind, bool priority = false, bool restartIfActive = false)
         {
             // The ticker owns the lower information lane while any preset is
             // on air. Do not queue stale overlays behind it; they would appear
             // unexpectedly when an operator later unticks the final message.
-            if (IsTickerActive) return;
-            if (_activeOverlay == kind || _overlayQueue.Contains(kind)) return;
+            if (IsTickerActive && !priority) return;
+            if (priority) _overlayQueue.Clear();
+            if (_activeOverlay == kind && restartIfActive && !_overlayIsExiting)
+            {
+                // A refreshed instance of the same card (most notably quickly
+                // switching Home/Away droughts) is a replacement, not a second
+                // twenty-second item. Preserve the common exit/gap/entrance
+                // choreography while ensuring the newly prepared content wins.
+                _overlayQueue.Clear();
+                _overlayQueue.Enqueue(kind);
+                HideActiveOverlay();
+                return;
+            }
+            if (_activeOverlay == kind && !restartIfActive && !_overlayIsExiting) return;
+            if (_overlayQueue.Contains(kind)) return;
             _overlayQueue.Enqueue(kind);
-            if (_activeOverlay == null)
+            if (_activeOverlay == null && !_overlayTransitionGap)
             {
                 ProcessNextOverlay();
             }
-            else
+            else if (priority && _activeOverlay is not null && !_overlayIsExiting)
             {
-                // A new overlay was requested while one is already showing.
-                // Smoothly hide the current one ° OnOverlayHidden will pick the
-                // next one off the queue, giving an exit-before-enter transition.
+                // Only urgent alerts replace an active card. Normal overlays
+                // wait their turn instead of repeatedly chopping each other's
+                // display time; urgent replacements still use the full shared
+                // exit → clean-air gap → entrance choreography.
                 HideActiveOverlay();
             }
         }
 
+        public void PrepareManualOverlayHandoff()
+        {
+            // An operator click is an intentional replacement, not another
+            // background rotation item. Remove stale queued cards and let the
+            // active one complete the same smooth exit before the clicked card
+            // enters.
+            _overlayQueue.Clear();
+            if (_activeOverlay is not null && !_overlayIsExiting)
+                HideActiveOverlay();
+        }
+
+        public bool CancelCurrentOverlay()
+        {
+            _overlayQueue.Clear();
+            if (_activeOverlay is null)
+                return false;
+
+            if (!_overlayIsExiting)
+                HideActiveOverlay();
+            return true;
+        }
+
+        /// <summary>
+        /// Team takeovers deliberately cover both clubs' ordinary score rows.
+        /// A scoring command received in that state is accepted by the control
+        /// panel immediately, but its on-air animation is held until the
+        /// takeover has completed the shared exit transition.
+        /// </summary>
+        public bool DeferScoreUntilTeamPanelsVisible(bool scoringTeamIsHome, Action scoreAction)
+        {
+            if (scoreAction is null || _activeOverlay is not (OverlayKind.ScoringRun or OverlayKind.TeamDrought))
+                return false;
+
+            // The featured club's ordinary score row remains visible beneath
+            // its story, so its score can animate immediately. Only a score for
+            // the displaced opponent needs the takeover to finish exiting.
+            if (scoringTeamIsHome == _teamStoryIsHome)
+                return false;
+
+            _scoreSurfaceReadyCallbacks.Enqueue(scoreAction);
+            _overlayQueue.Clear();
+            if (!_overlayIsExiting)
+                HideActiveOverlay();
+            return true;
+        }
+
         private void HideActiveOverlay()
         {
+            if (_overlayIsExiting || _activeOverlay is null) return;
+            _overlayIsExiting = true;
             switch (_activeOverlay)
             {
                 case OverlayKind.StatsBar: HideStatsBar(); break;
@@ -2681,13 +3143,18 @@ namespace Roche_Scoreboard.Views
                 return;
             }
             var next = _overlayQueue.Dequeue(); _activeOverlay = next;
-            bool usesDedicatedIdentity = next is OverlayKind.ScoringRun or OverlayKind.TeamDrought
-                or OverlayKind.QuarterScores or OverlayKind.RecentScores or OverlayKind.FiveMinWarning;
-            ExpSharedOverlayLogoLayer.Height = ScalePx(StatsBarHeight);
-            ExpSharedOverlayLogoLayer.Visibility = usesDedicatedIdentity
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-            AnimateTeamNamePanelsForOverlay(hide: true);
+            bool showSharedTeamIdentity = next is OverlayKind.StatsBar
+                or OverlayKind.WinProbability or OverlayKind.LeadChanges
+                or OverlayKind.QuarterScores;
+            ExpSharedOverlayLogoLayer.BeginAnimation(HeightProperty, null);
+            ExpSharedOverlayLogoLayer.BeginAnimation(OpacityProperty, null);
+            ExpSharedOverlayLogoLayer.Height = 0;
+            ExpSharedOverlayLogoLayer.Opacity = 0;
+            ExpSharedOverlayLogoLayer.Visibility = showSharedTeamIdentity
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            bool isTeamTakeover = next is OverlayKind.ScoringRun or OverlayKind.TeamDrought;
+            AnimateTeamNamePanelsForOverlay(hide: !isTeamTakeover);
             switch (next)
             {
                 case OverlayKind.StatsBar: DoShowStatsBar(); break;
@@ -2711,9 +3178,28 @@ namespace Roche_Scoreboard.Views
             // is free. Clear the state before raising the event; previously the
             // event claimed the overlay was hidden while IsOverlayActive still
             // returned true for the old card.
+            bool releasedTeamTakeover = _activeOverlay is OverlayKind.ScoringRun or OverlayKind.TeamDrought;
             _activeOverlay = null;
+            _overlayIsExiting = false;
+            _overlayTransitionGap = true;
             OverlayHidden?.Invoke();
-            ProcessNextOverlay();
+
+            if (releasedTeamTakeover)
+            {
+                while (_scoreSurfaceReadyCallbacks.Count > 0)
+                {
+                    Action ready = _scoreSurfaceReadyCallbacks.Dequeue();
+                    try { ready(); } catch { /* an operator score must not break overlay recovery */ }
+                }
+            }
+            DispatcherTimer handoff = new() { Interval = OverlayHandoffGap };
+            handoff.Tick += (_, _) =>
+            {
+                handoff.Stop();
+                _overlayTransitionGap = false;
+                ProcessNextOverlay();
+            };
+            handoff.Start();
         }
 
         private struct StatEntry { public string Label; public string HomeValue; public string AwayValue; public double HomePct; }
@@ -2737,6 +3223,13 @@ namespace Roche_Scoreboard.Views
         {
             AStatsLabel.Text = e.Label; AStatsHomeVal.Text = e.HomeValue; AStatsAwayVal.Text = e.AwayValue;
             AStatsHomeBrush.Color = _homeColor; AStatsAwayBrush.Color = _awayColor;
+            Color labelInk = SmartContrast.PickSplitBarForeground(_homeColor, _awayColor);
+            AStatsLabel.Foreground = new SolidColorBrush(labelInk);
+            if (AStatsLabel.Effect is DropShadowEffect labelShadow)
+            {
+                labelShadow.Color = labelInk == Colors.Black ? Colors.White : Colors.Black;
+                labelShadow.Opacity = 0.92;
+            }
             double hp = Math.Clamp(e.HomePct, 0.05, 0.95);
             AStatsHomeCol.Width = new GridLength(hp, GridUnitType.Star);
             AStatsAwayCol.Width = new GridLength(1.0 - hp, GridUnitType.Star);
@@ -2800,8 +3293,7 @@ namespace Roche_Scoreboard.Views
             _statsBarVisible = true;
             _statsRotationIndex = 0;
             ApplyStat(BuildStatEntries(_currentStats)[0], false);
-            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-            AStatsBar.BeginAnimation(HeightProperty, new DoubleAnimation(0, OverlayH(StatsBarHeight), TimeSpan.FromSeconds(0.4)) { EasingFunction = ease });
+            AnimateOverlayIn(AStatsBar, StatsBarHeight);
             _statsRotationTimer?.Stop();
             _statsRotationTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(StatsRotationSeconds) };
             _statsRotationTimer.Tick += StatsRotation_Tick; _statsRotationTimer.Start();
@@ -2824,10 +3316,7 @@ namespace Roche_Scoreboard.Views
         {
             if (!_statsBarVisible) return; _statsBarVisible = false;
             _statsRotationTimer?.Stop(); _statsRotationTimer = null;
-            var ease = new CubicEase { EasingMode = EasingMode.EaseIn };
-            var a = new DoubleAnimation(OverlayH(StatsBarHeight), 0, TimeSpan.FromSeconds(0.35)) { EasingFunction = ease };
-            a.Completed += (_, __) => OnOverlayHidden();
-            AStatsBar.BeginAnimation(HeightProperty, a);
+            AnimateOverlayOut(AStatsBar, StatsBarHeight, OnOverlayHidden);
         }
 
         // ==== Marquee ====
@@ -2835,18 +3324,41 @@ namespace Roche_Scoreboard.Views
         private List<string> _marqueeMessages = new();
         private int _marqueeIndex;
         private bool _marqueeRunning;
+        private int _marqueeRunGeneration;
+        private bool _marqueeLayoutRetryQueued;
 
         public void SetMarqueeMessages(IList<string> messages)
         {
-            var incoming = messages == null ? new List<string>() : new List<string>(messages);
+            var incoming = messages == null
+                ? new List<string>()
+                : messages.Select(SanitizeMarqueeText)
+                    .Where(text => text.Length > 0)
+                    .Take(8)
+                    .ToList();
+            List<MarqueeMessage> incomingStyled = incoming
+                .Select(text => new MarqueeMessage(text, "#FFFFFFFF", null, isEnabled: true))
+                .ToList();
+            if (_tickerSuspendedForWarning)
+            {
+                _tickerMessagesWhileWarning = incomingStyled;
+                return;
+            }
 
             // No-op if the list is identical to the active one. Routine state
             // refreshes (score adds, clock pauses, periodic pushes) call this
             // method on every tick ° restarting the scroll there would reset
             // the marquee position constantly. Only apply when something
             // actually changed.
-            if (MarqueeListEquals(_marqueeMessages, incoming))
+            if (MarqueeListEquals(_marqueeMessages, incoming) &&
+                MarqueeStyledListEquals(_marqueeStyled, incomingStyled))
                 return;
+
+            _marqueeStyled = incomingStyled;
+            if (MarqueeListEquals(_marqueeMessages, incoming))
+            {
+                ApplyCurrentMarqueeStyle();
+                return;
+            }
 
             ApplyMarqueeMessages(incoming);
         }
@@ -2858,8 +3370,19 @@ namespace Roche_Scoreboard.Views
                 : messages
                     .Where(message => message.IsEnabled && !string.IsNullOrWhiteSpace(message.Text))
                     .Select(message => new MarqueeMessage(
-                        message.Text.Trim(), message.TextColor, message.HighlightColor, isEnabled: true))
+                        SanitizeMarqueeText(message.Text),
+                        SanitizeMarqueeColor(message.TextColor),
+                        SanitizeMarqueeColor(message.HighlightColor),
+                        isEnabled: true))
+                    .Where(message => message.Text.Length > 0)
+                    .Take(8)
                     .ToList();
+
+            if (_tickerSuspendedForWarning)
+            {
+                _tickerMessagesWhileWarning = incoming;
+                return;
+            }
 
             if (MarqueeStyledListEquals(_marqueeStyled, incoming))
                 return;
@@ -2879,6 +3402,31 @@ namespace Roche_Scoreboard.Views
         }
 
         private List<MarqueeMessage> _marqueeStyled = new();
+        private bool _tickerSuspendedForWarning;
+        private List<MarqueeMessage> _tickerMessagesWhileWarning = new();
+
+        private void SuspendTickerForWarning()
+        {
+            if (_tickerSuspendedForWarning) return;
+            _tickerSuspendedForWarning = true;
+            _tickerMessagesWhileWarning = _marqueeStyled
+                .Select(message => new MarqueeMessage(
+                    message.Text, message.TextColor, message.HighlightColor, isEnabled: true))
+                .ToList();
+            _marqueeMessages = new List<string>();
+            _marqueeStyled = new List<MarqueeMessage>();
+            StopAllMarquees();
+            UpdateBottomBarVisibility();
+        }
+
+        private void ResumeTickerAfterWarning()
+        {
+            if (!_tickerSuspendedForWarning) return;
+            List<MarqueeMessage> restore = _tickerMessagesWhileWarning;
+            _tickerMessagesWhileWarning = new List<MarqueeMessage>();
+            _tickerSuspendedForWarning = false;
+            SetMarqueeMessages(restore);
+        }
 
         private static bool MarqueeListEquals(List<string> a, List<string> b)
         {
@@ -2886,6 +3434,28 @@ namespace Roche_Scoreboard.Views
             for (int i = 0; i < a.Count; i++)
                 if (!string.Equals(a[i], b[i], StringComparison.Ordinal)) return false;
             return true;
+        }
+
+        private static string SanitizeMarqueeText(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+            string flattened = value.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ');
+            string normalized = string.Join(' ', flattened.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            return normalized.Length <= 140 ? normalized : normalized[..140].TrimEnd();
+        }
+
+        private static string? SanitizeMarqueeColor(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            try
+            {
+                Color color = (Color)System.Windows.Media.ColorConverter.ConvertFromString(value);
+                return $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static bool MarqueeStyledListEquals(List<MarqueeMessage> a, List<MarqueeMessage> b)
@@ -2983,10 +3553,25 @@ namespace Roche_Scoreboard.Views
             _marqueeMessages = messages;
             _marqueeIndex = startIndex;
 
+            // Populate and measure the first message before the bar moves into
+            // view. This removes the one-frame text/font hitch at the end of
+            // the entrance without sacrificing the smooth bar animation.
+            if (_marqueeMessages.Count > 0)
+            {
+                string first = _marqueeMessages[_marqueeIndex];
+                MarqueeText.Text = first;
+                ExpMarqueeText.Text = first;
+                ApplyCurrentMarqueeStyle();
+                MarqueeText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+                ExpMarqueeText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+            }
+
             UpdateBottomBarVisibility();
 
-            if (_marqueeMessages.Count > 0)
+            if (_marqueeMessages.Count > 0 && !_bottomBarAnimating && _bottomBarVisible)
                 ScrollNextMessage();
+            else if (_activeOverlay is null && !_tickerSuspendedForWarning)
+                AnimateTeamNamePanelsForOverlay(hide: false);
         }
 
         private void ScrollNextMessage()
@@ -3013,11 +3598,19 @@ namespace Roche_Scoreboard.Views
             // The bottom bar may have only just been made visible; if the canvas
             // hasn't measured yet we'd compute a zero-size layout and the text
             // ends up tiny and off-centre. Defer one layout pass in that case.
-            if (canvas.ActualHeight <= 0 || canvas.ActualWidth <= 0)
+            if (_bottomBarAnimating || canvas.ActualHeight < 40 || canvas.ActualWidth <= 0)
             {
-                Dispatcher.BeginInvoke(new Action(() =>
-                    RunSingleMarquee(text, canvas, tr, highlight, highlightTr)),
-                    DispatcherPriority.Loaded);
+                _marqueeRunning = false;
+                if (!_marqueeLayoutRetryQueued)
+                {
+                    _marqueeLayoutRetryQueued = true;
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        _marqueeLayoutRetryQueued = false;
+                        if (!_bottomBarAnimating && IsVisible && ExpMarqueeCanvas.ActualWidth > 0 && _marqueeMessages.Count > 0)
+                            StartActiveMarquee();
+                    }), DispatcherPriority.Render);
+                }
                 return;
             }
 
@@ -3028,7 +3621,7 @@ namespace Roche_Scoreboard.Views
             // the bottom bar at any output-window size (instead of overflowing
             // when the bar shrinks below the design 34px).
             double canvasH = canvas.ActualHeight;
-            double targetFs = Math.Max(8, canvasH * 0.7);
+            double targetFs = Math.Clamp(canvasH * 0.76, 22, 35);
             if (Math.Abs(text.FontSize - targetFs) > 0.5)
                 text.FontSize = targetFs;
 
@@ -3046,13 +3639,18 @@ namespace Roche_Scoreboard.Views
             double seconds = dist / MarqueePixelsPerSecond;
 
             _marqueeRunning = true;
+            int generation = ++_marqueeRunGeneration;
             var anim = new DoubleAnimation
             {
                 From = from,
                 To = to,
                 Duration = new Duration(TimeSpan.FromSeconds(seconds))
             };
-            anim.Completed += OnMarqueeScrollCompleted;
+            anim.Completed += (_, _) =>
+            {
+                if (generation == _marqueeRunGeneration)
+                    OnMarqueeScrollCompleted(this, EventArgs.Empty);
+            };
             tr.BeginAnimation(TranslateTransform.XProperty, anim);
 
             if (highlight != null && highlightTr != null && highlight.Visibility == Visibility.Visible)
@@ -3100,6 +3698,8 @@ namespace Roche_Scoreboard.Views
                     ExpMarqueeHighlight.Width = 0;
                 }
                 UpdateBottomBarVisibility();
+                if (_activeOverlay is null)
+                    AnimateTeamNamePanelsForOverlay(hide: false);
             }
         }
 
@@ -3112,7 +3712,9 @@ namespace Roche_Scoreboard.Views
 
         private void StopAllMarquees()
         {
+            _marqueeRunGeneration++;
             _marqueeRunning = false;
+            _marqueeLayoutRetryQueued = false;
             MarqueeTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             ExpMarqueeTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             MarqueeHighlightTranslate?.BeginAnimation(TranslateTransform.XProperty, null);
@@ -3147,7 +3749,11 @@ namespace Roche_Scoreboard.Views
         private static readonly TimeSpan WarningLetterDuration = TimeSpan.FromMilliseconds(280);
         private static readonly TimeSpan WarningHoldDuration = TimeSpan.FromSeconds(10);
 
-        public void ShowFiveMinuteWarning() => EnqueueOverlay(OverlayKind.FiveMinWarning);
+        public void ShowFiveMinuteWarning()
+        {
+            SuspendTickerForWarning();
+            EnqueueOverlay(OverlayKind.FiveMinWarning, priority: true);
+        }
 
         private static IEnumerable<TextBlock> EnumerateLetters(StackPanel host)
         {
@@ -3314,41 +3920,39 @@ namespace Roche_Scoreboard.Views
 
             if (IsExpanded)
             {
-                double targetHeight = ScalePx(ExpandedWarningHeight);
-                ExpWarningBanner.BeginAnimation(FrameworkElement.HeightProperty, null);
-                ExpWarningBanner.BeginAnimation(OpacityProperty, null);
-                ExpWarningBannerSlide.BeginAnimation(TranslateTransform.YProperty, null);
-                ExpWarningBanner.Height = targetHeight;
-                ExpWarningBanner.Opacity = 1;
-                ExpWarningBannerSlide.Y = 0;
+                AnimateOverlayIn(ExpWarningBanner, ExpandedWarningHeight);
 
-                var heightIn = new DoubleAnimation(0, targetHeight, TimeSpan.FromMilliseconds(360))
+                ExpWarningAlertGlow.BeginAnimation(OpacityProperty,
+                    new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(900))
+                    {
+                        AutoReverse = true,
+                        RepeatBehavior = RepeatBehavior.Forever,
+                        EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                    });
+                ExpWarningBannerStripesTranslate.BeginAnimation(TranslateTransform.XProperty,
+                    new DoubleAnimation(-64, 0, TimeSpan.FromMilliseconds(900))
+                    {
+                        RepeatBehavior = RepeatBehavior.Forever
+                    });
+                var alertPulse = new DoubleAnimation(1, 1.008, TimeSpan.FromMilliseconds(980))
                 {
-                    FillBehavior = FillBehavior.Stop,
-                    EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut }
+                    AutoReverse = true,
+                    RepeatBehavior = RepeatBehavior.Forever,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
                 };
-                var slideIn = new DoubleAnimation(-targetHeight, 0, TimeSpan.FromMilliseconds(420))
-                {
-                    FillBehavior = FillBehavior.Stop,
-                    EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.18 }
-                };
-                var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220))
-                {
-                    FillBehavior = FillBehavior.Stop,
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                };
-                ExpWarningBanner.BeginAnimation(FrameworkElement.HeightProperty, heightIn);
-                ExpWarningBannerSlide.BeginAnimation(TranslateTransform.YProperty, slideIn);
-                ExpWarningBanner.BeginAnimation(OpacityProperty, fadeIn);
+                ExpWarningAlertScale.BeginAnimation(ScaleTransform.ScaleXProperty, alertPulse);
+                ExpWarningAlertScale.BeginAnimation(ScaleTransform.ScaleYProperty, alertPulse);
+                var warningFlash = new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop };
+                warningFlash.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+                warningFlash.KeyFrames.Add(new LinearDoubleKeyFrame(0.75, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(90))));
+                warningFlash.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(OverlayTransitionDuration)));
+                ExpWarningAlertFlash.BeginAnimation(OpacityProperty, warningFlash);
 
-                _warningAutoHideTimer = new DispatcherTimer { Interval = WarningHoldDuration };
-                _warningAutoHideTimer.Tick += (_, __) =>
+                _warningAutoHideTimer = StartOverlayAutoHide(WarningHoldDuration, () =>
                 {
-                    _warningAutoHideTimer?.Stop();
                     _warningAutoHideTimer = null;
                     BeginHideFiveMinuteWarning();
-                };
-                _warningAutoHideTimer.Start();
+                });
                 return;
             }
 
@@ -3449,14 +4053,11 @@ namespace Roche_Scoreboard.Views
 
                 FoldInWarningLetters(host, () =>
                 {
-                    _warningAutoHideTimer = new DispatcherTimer { Interval = WarningHoldDuration };
-                    _warningAutoHideTimer.Tick += (_, __) =>
+                    _warningAutoHideTimer = StartOverlayAutoHide(WarningHoldDuration, () =>
                     {
-                        _warningAutoHideTimer?.Stop();
                         _warningAutoHideTimer = null;
                         BeginHideFiveMinuteWarning();
-                    };
-                    _warningAutoHideTimer.Start();
+                    });
                 });
             }
 
@@ -3483,6 +4084,27 @@ namespace Roche_Scoreboard.Views
             var wg = AWarningGlow;
             var host = AWarningLetterHost;
 
+            ExpWarningAlertGlow.BeginAnimation(OpacityProperty, null);
+            ExpWarningAlertGlow.Opacity = 0.35;
+            ExpWarningBannerStripesTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            ExpWarningBannerStripesTranslate.X = 0;
+            ExpWarningAlertScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            ExpWarningAlertScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            ExpWarningAlertScale.ScaleX = ExpWarningAlertScale.ScaleY = 1;
+            ExpWarningAlertFlash.BeginAnimation(OpacityProperty, null);
+            ExpWarningAlertFlash.Opacity = 0;
+
+            if (IsExpanded)
+            {
+                AnimateOverlayOut(ExpWarningBanner, ExpandedWarningHeight, () =>
+                {
+                    _warningVisible = false;
+                    OnOverlayHidden();
+                    ResumeTickerAfterWarning();
+                });
+                return;
+            }
+
             FoldOutWarningLetters(host, () =>
             {
                 // Stop ambient hazard animations.
@@ -3508,16 +4130,16 @@ namespace Roche_Scoreboard.Views
                     pulse.ScaleY = 1.0;
                 }
 
-                var fo = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(260))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+                var fo = new DoubleAnimation(1, 0, OverlayTransitionDuration)
+                { EasingFunction = CreateOverlayTransitionEase() };
                 if (IsExpanded)
                 {
                     wo.BeginAnimation(FrameworkElement.HeightProperty,
-                        new DoubleAnimation(wo.ActualHeight, 0, TimeSpan.FromMilliseconds(320))
-                        { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
+                        new DoubleAnimation(wo.ActualHeight, 0, OverlayTransitionDuration)
+                        { EasingFunction = CreateOverlayTransitionEase() });
                     ExpWarningBannerSlide.BeginAnimation(TranslateTransform.YProperty,
-                        new DoubleAnimation(0, -ScalePx(ExpandedWarningHeight), TimeSpan.FromMilliseconds(300))
-                        { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
+                        new DoubleAnimation(0, -ScalePx(ExpandedWarningHeight), OverlayTransitionDuration)
+                        { EasingFunction = CreateOverlayTransitionEase() });
                 }
                 fo.Completed += (_, __) =>
                 {
@@ -3537,6 +4159,7 @@ namespace Roche_Scoreboard.Views
 
                     _warningVisible = false;
                     OnOverlayHidden();
+                    ResumeTickerAfterWarning();
                 };
                 wo.BeginAnimation(OpacityProperty, fo);
             });
@@ -3548,18 +4171,24 @@ namespace Roche_Scoreboard.Views
         private DispatcherTimer? _scorelessUpdateTimer;
         private DispatcherTimer? _scorelessAutoHideTimer;
         private DateTime _lastScoreTime = DateTime.MinValue;
-        private bool _scorelessTriggered;
+        private int _lastScoreMilestoneMinutes;
+        private string _pendingLastEventKind = "SCORE";
         private const double ScorelessBarHeight = 46;
-        private const double ScorelessShowMinutes = 10.0;
 
-        public void ResetScorelessTimer() { _lastScoreTime = OverlayClockNow; _scorelessTriggered = false; if (_scorelessBarVisible) HideScorelessBar(); }
+        public void ResetScorelessTimer()
+        {
+            _lastScoreTime = OverlayClockNow;
+            _lastScoreMilestoneMinutes = 0;
+            if (_scorelessBarVisible) HideScorelessBar();
+        }
 
         public bool CheckScorelessTimer()
         {
-            if (_lastScoreTime == DateTime.MinValue || _scorelessTriggered) return false;
-            if ((OverlayClockNow - _lastScoreTime).TotalMinutes >= ScorelessShowMinutes)
+            if (_lastScoreTime == DateTime.MinValue) return false;
+            int nextMilestone = NextTenMinuteMilestone(_lastScoreMilestoneMinutes);
+            if ((OverlayClockNow - _lastScoreTime).TotalMinutes >= nextMilestone)
             {
-                _scorelessTriggered = true;
+                _lastScoreMilestoneMinutes = nextMilestone;
                 // The window-level scheduler owns when the overlay is shown.
                 // Enqueuing here as well used to create a duplicate overlay in
                 // both queues and could make LAST SCORE appear twice.
@@ -3571,35 +4200,321 @@ namespace Roche_Scoreboard.Views
 
         public void ShowScorelessBar() { if (_lastScoreTime == DateTime.MinValue) _lastScoreTime = OverlayClockNow.AddMinutes(-1); EnqueueOverlay(OverlayKind.ScorelessTimer); }
 
+        public void ShowLastEventTime(string eventKind, TimeSpan elapsed)
+        {
+            _pendingLastEventKind = string.Equals(eventKind, "Goal", StringComparison.OrdinalIgnoreCase)
+                ? "GOAL"
+                : "SCORE";
+            _lastScoreTime = OverlayClockNow - (elapsed < TimeSpan.Zero ? TimeSpan.Zero : elapsed);
+            EnqueueOverlay(OverlayKind.ScorelessTimer, restartIfActive: true);
+        }
+
         private void DoShowScorelessBar()
         {
             if (_scorelessBarVisible) return;
             _scorelessBarVisible = true;
+            AScorelessLabel.Text = $"TIME SINCE LAST {_pendingLastEventKind}";
             UpdateScorelessText();
-            AScorelessBar.BeginAnimation(HeightProperty, new DoubleAnimation(0, OverlayH(ScorelessBarHeight), TimeSpan.FromSeconds(0.45)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            AnimateOverlayIn(AScorelessBar, ScorelessBarHeight);
             _scorelessUpdateTimer?.Stop(); _scorelessUpdateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _scorelessUpdateTimer.Tick += (_, __) => UpdateScorelessText(); _scorelessUpdateTimer.Start();
             _scorelessAutoHideTimer?.Stop();
-            _scorelessAutoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(20) };
-            _scorelessAutoHideTimer.Tick += (_, __) => { _scorelessAutoHideTimer?.Stop(); _scorelessAutoHideTimer = null; HideScorelessBar(); };
-            _scorelessAutoHideTimer.Start();
+            _scorelessAutoHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(20), () =>
+            {
+                _scorelessAutoHideTimer = null;
+                HideScorelessBar();
+            });
         }
 
         public void HideScorelessBar()
         {
             if (!_scorelessBarVisible) return; _scorelessBarVisible = false;
             _scorelessAutoHideTimer?.Stop(); _scorelessAutoHideTimer = null;
-            var a = new DoubleAnimation(OverlayH(ScorelessBarHeight), 0, TimeSpan.FromSeconds(0.35)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => OnOverlayHidden();
-            AScorelessBar.BeginAnimation(HeightProperty, a);
+            AnimateOverlayOut(AScorelessBar, ScorelessBarHeight, OnOverlayHidden);
         }
 
         private void UpdateScorelessText()
         {
             if (_lastScoreTime == DateTime.MinValue) return;
             var el = OverlayClockNow - _lastScoreTime;
-            var t = $"{(int)el.TotalMinutes:D2}:{el.Seconds:D2}";
+            var t = FormatElapsedOverlayTime(el);
             ScorelessTimeText.Text = t; ExpScorelessTimeText.Text = t;
+        }
+
+        // ==== Directional team-story takeover ============================
+
+        private void ConfigureTeamStoryPalette(bool isHome, Color primary)
+        {
+            Color strong = Mix(primary, Colors.Black, 0.42);
+            Color middle = Mix(primary, Colors.Black, 0.66);
+            Color dark = Mix(primary, Colors.Black, 0.88);
+            ExpTeamStoryGradientStrong.Color = strong;
+            ExpTeamStoryGradientMid.Color = middle;
+            ExpTeamStoryGradientDark.Color = dark;
+
+            Color preferred = isHome ? _homeSecondaryColor : _awaySecondaryColor;
+            Color ink = SmartContrast.PickReadableForeground(preferred, strong, middle, dark);
+            var inkBrush = new SolidColorBrush(ink);
+            ExpTeamStoryTeamName.Foreground = inkBrush;
+            ExpTeamStoryHeadline.Foreground = inkBrush;
+            ExpTeamStoryTimer.Foreground = inkBrush;
+            ExpTeamStoryKicker.Foreground = new SolidColorBrush(Color.FromArgb(0xE8, ink.R, ink.G, ink.B));
+            ExpTeamStoryFooter.Foreground = new SolidColorBrush(Color.FromArgb(0xD0, ink.R, ink.G, ink.B));
+            ExpTeamStoryDirectionIndicator.Foreground = inkBrush;
+            ExpTeamStoryPushEdge.Background = new SolidColorBrush(
+                SmartContrast.IsLowContrast(preferred, strong) ? ink : preferred);
+            ExpTeamStoryLogo.Source = isHome ? _homeLogoSource : _awayLogoSource;
+            ExpTeamStoryLogo.Visibility = ExpTeamStoryLogo.Source is null
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
+
+        private void ConfigureScoringRunTakeover()
+        {
+            bool isHome = _pendingScoringRunIsHome;
+            ConfigureTeamStoryPalette(isHome, isHome ? _homeColor : _awayColor);
+            ExpTeamStoryTeamName.Text = isHome ? _homeFullName : _awayFullName;
+            // Reserve against two digits, not the current run count. The
+            // metric therefore stays dominant and never changes size at 9→10.
+            ExpTeamStoryMetricColumn.Width = new GridLength(44, GridUnitType.Star);
+            ExpTeamStoryDescriptorColumn.Width = new GridLength(56, GridUnitType.Star);
+            ExpTeamStoryHeadline.Width = 172;
+            ExpTeamStoryHeadline.Height = 112;
+            ExpTeamStoryHeadline.FontSize = 112;
+            ExpTeamStoryHeadline.FontFamily = new System.Windows.Media.FontFamily("Arial Black");
+            ExpTeamStoryKicker.FontSize = 42;
+            ExpTeamStoryKicker.LineHeight = 37;
+            ExpTeamStoryTimerHost.Visibility = Visibility.Collapsed;
+            ExpTeamStoryContent.Margin = new Thickness(12, 8, 12, 4);
+            ExpTeamStoryHeadline.Text = (_pendingGoalRunResting ? 0 : _pendingGoalRunGoals).ToString();
+            ExpTeamStoryHeadline.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xE3, 0x67));
+            if (_pendingGoalRunConsecutive)
+            {
+                ExpTeamStoryKicker.Text = "GOALS IN\nA ROW";
+            }
+            else
+            {
+                ExpTeamStoryKicker.Text = $"OF LAST\n{_pendingGoalRunWindow} GOALS";
+            }
+        }
+
+        private void ConfigureDroughtTakeover()
+        {
+            bool isHome = _pendingAutoDroughtIsHome;
+            ConfigureTeamStoryPalette(isHome, _pendingDroughtTeamColor);
+            string fullName = isHome ? _homeFullName : _awayFullName;
+            ExpTeamStoryTeamName.Text = string.IsNullOrWhiteSpace(fullName)
+                ? _pendingDroughtAbbreviation
+                : fullName;
+            ExpTeamStoryMetricColumn.Width = new GridLength(54, GridUnitType.Star);
+            ExpTeamStoryDescriptorColumn.Width = new GridLength(46, GridUnitType.Star);
+            // 88:88 is the width contract. The previous 250-unit box clipped
+            // double-digit minutes internally before its Viewbox could scale.
+            ExpTeamStoryHeadline.Width = 330;
+            ExpTeamStoryHeadline.Height = 112;
+            ExpTeamStoryHeadline.FontFamily = new System.Windows.Media.FontFamily("Bahnschrift SemiCondensed");
+            ExpTeamStoryHeadline.FontSize = 112;
+            ExpTeamStoryKicker.FontSize = 54;
+            ExpTeamStoryKicker.LineHeight = 46;
+            ExpTeamStoryKicker.Text = $"LAST\n{_pendingDroughtEventKind}";
+            ExpTeamStoryHeadline.Text = "00:00";
+            ExpTeamStoryTimerHost.Visibility = Visibility.Collapsed;
+            ExpTeamStoryContent.Margin = new Thickness(10, 4, 10, 4);
+        }
+
+        private void ConfigureTeamStoryDirection(bool isHome)
+        {
+            ExpTeamStoryDirectionIndicator.BeginAnimation(OpacityProperty, null);
+            ExpTeamStoryDirectionTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            ExpTeamStoryDirectionIndicator.Text = isHome ? "▲  ▲  ▲" : "▼  ▼  ▼";
+            ExpTeamStoryDirectionIndicator.VerticalAlignment = isHome
+                ? VerticalAlignment.Top
+                : VerticalAlignment.Bottom;
+            ExpTeamStoryDirectionIndicator.Margin = isHome
+                ? new Thickness(0, 0, 0, 0)
+                : new Thickness(0, 0, 0, -1);
+            ExpTeamStoryDirectionIndicator.Opacity = 1;
+
+            var flash = new DoubleAnimationUsingKeyFrames
+            {
+                Duration = TimeSpan.FromMilliseconds(720),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(1, KeyTime.FromPercent(0)));
+            flash.KeyFrames.Add(new LinearDoubleKeyFrame(0.18, KeyTime.FromPercent(0.34)));
+            flash.KeyFrames.Add(new LinearDoubleKeyFrame(1, KeyTime.FromPercent(0.68)));
+            flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(1, KeyTime.FromPercent(1)));
+            ExpTeamStoryDirectionIndicator.BeginAnimation(OpacityProperty, flash,
+                HandoffBehavior.SnapshotAndReplace);
+
+            var pulse = new DoubleAnimation(isHome ? 4 : -4, isHome ? -1 : 1,
+                TimeSpan.FromMilliseconds(360))
+            {
+                AutoReverse = true,
+                RepeatBehavior = RepeatBehavior.Forever,
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut }
+            };
+            ExpTeamStoryDirectionTranslate.BeginAnimation(TranslateTransform.YProperty, pulse,
+                HandoffBehavior.SnapshotAndReplace);
+        }
+
+        private void StopTeamStoryDirection()
+        {
+            ExpTeamStoryDirectionIndicator.BeginAnimation(OpacityProperty, null);
+            ExpTeamStoryDirectionTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            ExpTeamStoryDirectionIndicator.Opacity = 0;
+            ExpTeamStoryDirectionTranslate.Y = 0;
+        }
+
+        private void AnimateTeamStoryIn(bool isHome)
+        {
+            _teamStoryVisible = true;
+            _teamStoryIsHome = isHome;
+            int generation = ++_teamStoryAnimationGeneration;
+            double travel = Math.Max(1, ExpMainContentGrid.ActualHeight / 2);
+            double panelTarget = isHome ? travel : -travel;
+
+            ExpTeamStoryTakeover.Visibility = Visibility.Visible;
+            ExpTeamStoryTakeover.Height = travel;
+            ExpTeamStoryTakeover.VerticalAlignment = isHome
+                ? VerticalAlignment.Bottom
+                : VerticalAlignment.Top;
+            ExpTeamStoryTakeover.RenderTransformOrigin = new System.Windows.Point(0.5, isHome ? 0 : 1);
+            ExpTeamStoryPushEdge.VerticalAlignment = isHome
+                ? VerticalAlignment.Bottom
+                : VerticalAlignment.Top;
+            ConfigureTeamStoryDirection(isHome);
+            ExpTeamStoryTakeover.CacheMode = new BitmapCache(1.0);
+
+            ExpTeamStoryReveal.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            ExpTeamStoryReveal.ScaleY = 1;
+            var reveal = new DoubleAnimation(0, 1, TeamStoryTransitionDuration)
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = CreateTeamStoryTransitionEase()
+            };
+            reveal.Completed += (_, _) =>
+            {
+                if (generation == _teamStoryAnimationGeneration)
+                    ExpTeamStoryTakeover.CacheMode = null;
+            };
+            ExpTeamStoryReveal.BeginAnimation(ScaleTransform.ScaleYProperty, reveal,
+                HandoffBehavior.SnapshotAndReplace);
+
+            ExpTeamStoryContent.BeginAnimation(OpacityProperty, null);
+            ExpTeamStoryContent.Opacity = 1;
+            ExpTeamStoryContent.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1,
+                TimeSpan.FromMilliseconds(620))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(110),
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = CreateTeamStoryTransitionEase()
+            }, HandoffBehavior.SnapshotAndReplace);
+            ExpTeamStoryContentTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            ExpTeamStoryContentTranslate.Y = 0;
+            ExpTeamStoryContentTranslate.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(isHome ? 14 : -14, 0, TeamStoryTransitionDuration)
+                {
+                    BeginTime = TimeSpan.FromMilliseconds(80),
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = CreateTeamStoryTransitionEase()
+                }, HandoffBehavior.SnapshotAndReplace);
+
+            ResetTeamStoryPanelOffsets(featuredHome: isHome);
+            AnimateOpponentTeamPanels(isHome, 0, panelTarget, TeamStoryTransitionDuration);
+        }
+
+        private void AnimateTeamStoryOut(Action completed)
+        {
+            if (!_teamStoryVisible)
+            {
+                completed();
+                return;
+            }
+
+            int generation = ++_teamStoryAnimationGeneration;
+            double currentScale = ExpTeamStoryReveal.ScaleY;
+            double currentLogoY = GetOpponentLogoTranslate(_teamStoryIsHome).Y;
+            double currentScoreY = GetOpponentScoreTranslate(_teamStoryIsHome).Y;
+            double currentContentOpacity = ExpTeamStoryContent.Opacity;
+            ExpTeamStoryReveal.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            ExpTeamStoryContent.BeginAnimation(OpacityProperty, null);
+            ExpTeamStoryTakeover.CacheMode = new BitmapCache(1.0);
+
+            ExpTeamStoryReveal.ScaleY = 0;
+            ExpTeamStoryContent.Opacity = 0;
+            var hide = new DoubleAnimation(currentScale, 0, TeamStoryTransitionDuration)
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = CreateTeamStoryTransitionEase()
+            };
+            hide.Completed += (_, _) =>
+            {
+                if (generation != _teamStoryAnimationGeneration) return;
+                ExpTeamStoryTakeover.Visibility = Visibility.Collapsed;
+                ExpTeamStoryTakeover.CacheMode = null;
+                ExpTeamStoryReveal.ScaleY = 0;
+                ExpTeamStoryContentTranslate.Y = 0;
+                StopTeamStoryDirection();
+                _teamStoryVisible = false;
+                completed();
+            };
+            ExpTeamStoryReveal.BeginAnimation(ScaleTransform.ScaleYProperty, hide,
+                HandoffBehavior.SnapshotAndReplace);
+            ExpTeamStoryContent.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(currentContentOpacity, 0, TimeSpan.FromMilliseconds(620))
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = CreateTeamStoryTransitionEase()
+                }, HandoffBehavior.SnapshotAndReplace);
+            AnimateOpponentTeamPanels(_teamStoryIsHome, currentLogoY, 0,
+                TeamStoryTransitionDuration, currentScoreY);
+        }
+
+        private TranslateTransform GetOpponentLogoTranslate(bool featuredHome)
+            => featuredHome ? ExpAwayLogoStoryTranslate : ExpHomeLogoStoryTranslate;
+
+        private TranslateTransform GetOpponentScoreTranslate(bool featuredHome)
+            => featuredHome ? ExpAwayScoreStoryTranslate : ExpHomeScoreStoryTranslate;
+
+        private double GetTeamStoryOpponentOffset()
+            => GetOpponentScoreTranslate(_teamStoryIsHome).Y;
+
+        private void ResetTeamStoryPanelOffsets(bool featuredHome)
+        {
+            // The featured club always remains visible. Only its opponent is
+            // displaced into the clipped edge as the story grows from the
+            // shared boundary between the two score rows.
+            TranslateTransform featuredLogo = featuredHome
+                ? ExpHomeLogoStoryTranslate : ExpAwayLogoStoryTranslate;
+            TranslateTransform featuredScore = featuredHome
+                ? ExpHomeScoreStoryTranslate : ExpAwayScoreStoryTranslate;
+            featuredLogo.BeginAnimation(TranslateTransform.YProperty, null);
+            featuredScore.BeginAnimation(TranslateTransform.YProperty, null);
+            featuredLogo.Y = featuredScore.Y = 0;
+        }
+
+        private void AnimateOpponentTeamPanels(bool featuredHome, double from, double to, TimeSpan duration,
+            double? scoreFrom = null)
+        {
+            TranslateTransform logo = GetOpponentLogoTranslate(featuredHome);
+            TranslateTransform score = GetOpponentScoreTranslate(featuredHome);
+            logo.BeginAnimation(TranslateTransform.YProperty, null);
+            score.BeginAnimation(TranslateTransform.YProperty, null);
+            logo.Y = to;
+            score.Y = to;
+            logo.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(from, to, duration)
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = CreateTeamStoryTransitionEase()
+                }, HandoffBehavior.SnapshotAndReplace);
+            score.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(scoreFrom ?? from, to, duration)
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = CreateTeamStoryTransitionEase()
+                }, HandoffBehavior.SnapshotAndReplace);
         }
 
         // ==== Scoring run bar ====
@@ -3608,28 +4523,26 @@ namespace Roche_Scoreboard.Views
         private DispatcherTimer? _scoringRunAutoHideTimer;
         private const double ScoringRunBarHeight = 54;
         private string _pendingScoringRunTeam = "";
-        private TimeSpan _pendingScoringRunDuration;
-        private int _pendingScoringRunEventCount;
-        private string _pendingScoringRunValue = "";
+        private int _pendingGoalRunGoals;
+        private int _pendingGoalRunWindow;
+        private bool _pendingGoalRunConsecutive;
+        private bool _pendingGoalRunResting;
+        private bool _pendingScoringRunIsHome;
 
-        public void ShowScoringRun(string teamName, int runPoints, int concededPoints,
-            TimeSpan matchClockDuration, int eventCount, Color teamColor)
+        public void ShowGoalRun(string teamName, int teamGoals, int windowGoals,
+            bool consecutive, Color teamColor)
         {
             _pendingScoringRunTeam = teamName;
-            _pendingScoringRunDuration = matchClockDuration < TimeSpan.Zero ? TimeSpan.Zero : matchClockDuration;
-            _pendingScoringRunEventCount = Math.Max(1, eventCount);
-            // Show team's run points alongside the opposition score during the run
-            // so viewers see both halves of the run (e.g. "24-3").
-            _pendingScoringRunValue = $"{runPoints}–{concededPoints}";
-            AScoringRunLabel.Text = $"{teamName.ToUpperInvariant()} RUN";
-            AScoringRunValue.Text = _pendingScoringRunValue;
-            UpdateScoringRunText();
+            _pendingGoalRunGoals = Math.Max(1, teamGoals);
+            _pendingGoalRunWindow = Math.Max(_pendingGoalRunGoals, windowGoals);
+            _pendingGoalRunConsecutive = consecutive;
+            _pendingGoalRunResting = false;
+            UpdateGoalRunHeadline();
             bool isHomeTeam = string.Equals(teamName, _homeFullName, StringComparison.OrdinalIgnoreCase)
                               || string.Equals(teamName, _homeAbbr, StringComparison.OrdinalIgnoreCase);
+            _pendingScoringRunIsHome = isHomeTeam;
             ImageSource? runLogo = isHomeTeam ? _homeLogoSource : _awayLogoSource;
-            ExpScoringRunLogo.Source = runLogo;
             ExpScoringRunLogoBackdrop.Source = runLogo;
-            ExpScoringRunLogo.Visibility = runLogo is null ? Visibility.Collapsed : Visibility.Visible;
             ExpScoringRunLogoBackdrop.Visibility = runLogo is null ? Visibility.Collapsed : Visibility.Visible;
 
             // Tint the bar background and text with the team colour so the run
@@ -3662,18 +4575,49 @@ namespace Roche_Scoreboard.Views
                     (byte)Math.Clamp(teamColor.G / 2, 12, 255),
                     (byte)Math.Clamp(teamColor.B / 2, 12, 255)));
             AScoringRunLabel.Foreground = new SolidColorBrush(scoringRunInk);
-            AScoringRunValue.Foreground = new SolidColorBrush(Colors.White);
             ExpScoringRunAccent.Background = new SolidColorBrush(teamColor);
 
-            EnqueueOverlay(OverlayKind.ScoringRun);
+            EnqueueOverlay(OverlayKind.ScoringRun, restartIfActive: true);
         }
 
-        public void ShowScoringRun(string teamName, int runPoints, int concededPoints,
-            TimeSpan matchClockDuration, int eventCount, string colorHex)
+        public void ShowGoalRunResting(string teamName, string colorHex)
+        {
+            var hex = colorHex.StartsWith("#") ? colorHex : $"#{colorHex}";
+            Color teamColor = (Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
+            _pendingScoringRunTeam = teamName;
+            _pendingGoalRunResting = true;
+            _pendingGoalRunGoals = 0;
+            _pendingGoalRunWindow = 0;
+            _pendingGoalRunConsecutive = false;
+
+            bool isHomeTeam = string.Equals(teamName, _homeFullName, StringComparison.OrdinalIgnoreCase)
+                              || string.Equals(teamName, _homeAbbr, StringComparison.OrdinalIgnoreCase);
+            _pendingScoringRunIsHome = isHomeTeam;
+            ImageSource? runLogo = isHomeTeam ? _homeLogoSource : _awayLogoSource;
+            ExpScoringRunLogoBackdrop.Source = runLogo;
+            ExpScoringRunLogoBackdrop.Visibility = runLogo is null ? Visibility.Collapsed : Visibility.Visible;
+            ExpScoringRunAccent.Background = new SolidColorBrush(teamColor);
+            UpdateGoalRunHeadline();
+            EnqueueOverlay(OverlayKind.ScoringRun, restartIfActive: true);
+        }
+
+        public void ShowGoalRun(string teamName, int teamGoals, int windowGoals,
+            bool consecutive, string colorHex)
         {
             var hex = colorHex.StartsWith("#") ? colorHex : $"#{colorHex}";
             var teamColor = (Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
-            ShowScoringRun(teamName, runPoints, concededPoints, matchClockDuration, eventCount, teamColor);
+            ShowGoalRun(teamName, teamGoals, windowGoals, consecutive, teamColor);
+        }
+
+        // Compatibility for older callers and saved automation commands. Point
+        // runs are converted to the closest goal-only story; new code calls
+        // ShowGoalRun directly.
+        public void ShowScoringRun(string teamName, int runPoints, int concededPoints,
+            TimeSpan _, int __, string colorHex)
+        {
+            int teamGoals = Math.Max(1, runPoints / 6);
+            int oppositionGoals = Math.Max(0, concededPoints / 6);
+            ShowGoalRun(teamName, teamGoals, teamGoals + oppositionGoals, oppositionGoals == 0, colorHex);
         }
 
         private void DoShowScoringRunBar()
@@ -3681,19 +4625,15 @@ namespace Roche_Scoreboard.Views
             if (_scoringRunBarVisible) return;
             _scoringRunBarVisible = true;
 
-            UpdateScoringRunText();
-            AScoringRunBar.BeginAnimation(HeightProperty,
-                new DoubleAnimation(0, OverlayH(ScoringRunBarHeight), TimeSpan.FromSeconds(0.45))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            ConfigureScoringRunTakeover();
+            AnimateTeamStoryIn(_pendingScoringRunIsHome);
 
             _scoringRunAutoHideTimer?.Stop();
-            _scoringRunAutoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(14) };
-            _scoringRunAutoHideTimer.Tick += (_, __) =>
+            _scoringRunAutoHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(14), () =>
             {
-                _scoringRunAutoHideTimer?.Stop(); _scoringRunAutoHideTimer = null;
+                _scoringRunAutoHideTimer = null;
                 HideScoringRunBar();
-            };
-            _scoringRunAutoHideTimer.Start();
+            });
         }
 
         public void HideScoringRunBar()
@@ -3703,17 +4643,41 @@ namespace Roche_Scoreboard.Views
             _scoringRunAutoHideTimer?.Stop();
             _scoringRunAutoHideTimer = null;
 
-            var a = new DoubleAnimation(OverlayH(ScoringRunBarHeight), 0, TimeSpan.FromSeconds(0.35))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => OnOverlayHidden();
-            AScoringRunBar.BeginAnimation(HeightProperty, a);
+            AnimateTeamStoryOut(OnOverlayHidden);
         }
 
-        private void UpdateScoringRunText()
+        private void UpdateGoalRunHeadline()
         {
-            var t = $"{(int)_pendingScoringRunDuration.TotalMinutes:D2}:{_pendingScoringRunDuration.Seconds:D2}";
-            string scoreWord = _pendingScoringRunEventCount == 1 ? "SCORE" : "SCORES";
-            AScoringRunDetail.Text = $"{_pendingScoringRunEventCount} {scoreWord} · {t}";
+            TextBlock headline = AScoringRunLabel;
+            headline.Inlines.Clear();
+            System.Windows.Media.Brush numberBrush = new SolidColorBrush(Color.FromRgb(0xFF, 0xD3, 0x5A));
+            if (_pendingGoalRunResting)
+            {
+                headline.Inlines.Add(new Run("NO QUALIFYING GOAL RUN YET"));
+                return;
+            }
+            headline.Inlines.Add(new Run(_pendingScoringRunTeam.ToUpperInvariant() + " "));
+            headline.Inlines.Add(new Run(_pendingGoalRunGoals.ToString())
+            {
+                Foreground = numberBrush,
+                FontSize = 36,
+                FontWeight = FontWeights.Black
+            });
+            if (_pendingGoalRunConsecutive)
+            {
+                headline.Inlines.Add(new Run(" GOALS IN A ROW"));
+            }
+            else
+            {
+                headline.Inlines.Add(new Run(" OF THE LAST "));
+                headline.Inlines.Add(new Run(_pendingGoalRunWindow.ToString())
+                {
+                    Foreground = numberBrush,
+                    FontSize = 36,
+                    FontWeight = FontWeights.Black
+                });
+                headline.Inlines.Add(new Run(" GOALS"));
+            }
         }
 
         // ====  Team Drought bar  ====
@@ -3722,12 +4686,13 @@ namespace Roche_Scoreboard.Views
         private DispatcherTimer? _teamDroughtUpdateTimer;
         private DispatcherTimer? _teamDroughtAutoHideTimer;
         private const double TeamDroughtBarHeight = 46;
-        private const double TeamDroughtShowMinutes = 6.0;
         private DateTime _homeLastScoreTime = DateTime.MinValue;
         private DateTime _awayLastScoreTime = DateTime.MinValue;
         private int _homeDroughtMilestoneMinutes, _awayDroughtMilestoneMinutes;
         private bool _pendingAutoDroughtIsHome;
         private string _pendingDroughtLabel = "";
+        private string _pendingDroughtAbbreviation = "";
+        private string _pendingDroughtEventKind = "SCORE";
         private DateTime _pendingDroughtSince;
         private Color _pendingDroughtTeamColor;
 
@@ -3746,13 +4711,8 @@ namespace Roche_Scoreboard.Views
             if (_teamDroughtBarVisible) HideTeamDroughtBar();
         }
 
-        private static int NextDroughtMilestone(int lastMilestone)
-            => lastMilestone switch
-            {
-                < 6 => 6,
-                < 10 => 10,
-                _ => lastMilestone + 5
-            };
+        private static int NextTenMinuteMilestone(int lastMilestone)
+            => Math.Max(10, ((Math.Max(0, lastMilestone) / 10) + 1) * 10);
 
         public void CheckTeamDrought(string homeName, string awayName, string homeColorHex, string awayColorHex)
         {
@@ -3769,82 +4729,68 @@ namespace Roche_Scoreboard.Views
 
         public void CheckTeamDrought(string homeName, string awayName, Color homeColor, Color awayColor)
         {
-            var now = OverlayClockNow;
-            int homeMilestone = NextDroughtMilestone(_homeDroughtMilestoneMinutes);
-            if (_homeLastScoreTime != DateTime.MinValue && (now - _homeLastScoreTime).TotalMinutes >= homeMilestone)
-            {
-                _homeDroughtMilestoneMinutes = homeMilestone;
+            if (!CheckAutoTeamDrought()) return;
+            if (_pendingAutoDroughtIsHome)
                 ShowTeamDrought(homeName, _homeLastScoreTime, homeColor);
-                return;
-            }
-            int awayMilestone = NextDroughtMilestone(_awayDroughtMilestoneMinutes);
-            if (_awayLastScoreTime != DateTime.MinValue && (now - _awayLastScoreTime).TotalMinutes >= awayMilestone)
-            {
-                _awayDroughtMilestoneMinutes = awayMilestone;
+            else
                 ShowTeamDrought(awayName, _awayLastScoreTime, awayColor);
-            }
         }
 
         public void ShowTeamDrought(string teamName, DateTime lastScoreTime, Color teamColor)
         {
-            _pendingDroughtLabel = teamName.ToUpperInvariant();
+            ShowTeamDrought(teamName, teamName, "Score",
+                OverlayClockNow - lastScoreTime, teamColor);
+        }
+
+        public void ShowTeamDrought(string teamName, string teamAbbreviation,
+            string eventKind, TimeSpan elapsed, string teamColorHex)
+        {
+            var hex = teamColorHex.StartsWith("#") ? teamColorHex : $"#{teamColorHex}";
+            var teamColor = (Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
+            ShowTeamDrought(teamName, teamAbbreviation, eventKind, elapsed, teamColor);
+        }
+
+        public void ShowTeamDrought(string teamName, string teamAbbreviation,
+            string eventKind, TimeSpan elapsed, Color teamColor)
+        {
+            string fullName = teamName.ToUpperInvariant();
+            _pendingDroughtLabel = fullName;
+            _pendingDroughtAbbreviation = string.IsNullOrWhiteSpace(teamAbbreviation)
+                ? fullName
+                : teamAbbreviation.Trim().ToUpperInvariant();
+            _pendingDroughtEventKind = string.Equals(eventKind, "Goal", StringComparison.OrdinalIgnoreCase)
+                ? "GOAL"
+                : "SCORE";
+            TimeSpan safeElapsed = elapsed < TimeSpan.Zero ? TimeSpan.Zero : elapsed;
+            DateTime lastScoreTime = OverlayClockNow - safeElapsed;
             _pendingDroughtSince = lastScoreTime;
             _pendingDroughtTeamColor = teamColor;
             bool isHomeTeam = string.Equals(teamName, _homeFullName, StringComparison.OrdinalIgnoreCase)
                               || string.Equals(teamName, _homeAbbr, StringComparison.OrdinalIgnoreCase);
+            _pendingAutoDroughtIsHome = isHomeTeam;
             ImageSource? droughtLogo = isHomeTeam ? _homeLogoSource : _awayLogoSource;
-            ExpTeamDroughtLogo.Source = droughtLogo;
             ExpTeamDroughtLogoBackdrop.Source = droughtLogo;
-            ExpTeamDroughtLogo.Visibility = droughtLogo is null ? Visibility.Collapsed : Visibility.Visible;
             ExpTeamDroughtLogoBackdrop.Visibility = droughtLogo is null ? Visibility.Collapsed : Visibility.Visible;
-            EnqueueOverlay(OverlayKind.TeamDrought);
+            ExpTeamDroughtAccent.Background = new SolidColorBrush(teamColor);
+            EnqueueOverlay(OverlayKind.TeamDrought, restartIfActive: true);
         }
 
         private void DoShowTeamDroughtBar()
         {
             if (_teamDroughtBarVisible) return; _teamDroughtBarVisible = true;
-            ADroughtLabel.Text = _pendingDroughtLabel;
-            ADroughtLabel.Foreground = new SolidColorBrush(Colors.White);
-
-            // Tint the drought bar background with the team's colour so the bar
-            // visually belongs to the team that is on the drought.
-            var teamColor = _pendingDroughtTeamColor;
-            byte r = (byte)Math.Clamp(teamColor.R / 4, 6, 255);
-            byte g = (byte)Math.Clamp(teamColor.G / 4, 6, 255);
-            byte b = (byte)Math.Clamp(teamColor.B / 4, 6, 255);
-            var dark = Color.FromRgb(r, g, b);
-            switch (ADroughtGrad)
-            {
-                case SolidColorBrush solid:
-                    solid.Color = dark;
-                    break;
-                case LinearGradientBrush lg:
-                    var midR = (byte)Math.Clamp(teamColor.R / 2, 12, 255);
-                    var midG = (byte)Math.Clamp(teamColor.G / 2, 12, 255);
-                    var midB = (byte)Math.Clamp(teamColor.B / 2, 12, 255);
-                    var mid = Color.FromRgb(midR, midG, midB);
-                    if (lg.GradientStops.Count >= 3)
-                    {
-                        lg.GradientStops[0].Color = dark;
-                        lg.GradientStops[1].Color = mid;
-                        lg.GradientStops[lg.GradientStops.Count - 1].Color = dark;
-                    }
-                    break;
-            }
+            ConfigureDroughtTakeover();
             UpdateTeamDroughtText();
-            ADroughtBar.BeginAnimation(HeightProperty, new DoubleAnimation(0, OverlayH(TeamDroughtBarHeight), TimeSpan.FromSeconds(0.45)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            AnimateTeamStoryIn(_pendingAutoDroughtIsHome);
             _teamDroughtUpdateTimer?.Stop(); _teamDroughtUpdateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _teamDroughtUpdateTimer.Tick += (_, __) => UpdateTeamDroughtText();
             _teamDroughtUpdateTimer.Start();
 
             _teamDroughtAutoHideTimer?.Stop();
-            _teamDroughtAutoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(20) };
-            _teamDroughtAutoHideTimer.Tick += (_, __) =>
+            _teamDroughtAutoHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(20), () =>
             {
-                _teamDroughtAutoHideTimer?.Stop(); _teamDroughtAutoHideTimer = null;
+                _teamDroughtAutoHideTimer = null;
                 HideTeamDroughtBar();
-            };
-            _teamDroughtAutoHideTimer.Start();
+            });
         }
 
         public void HideTeamDroughtBar()
@@ -3853,19 +4799,31 @@ namespace Roche_Scoreboard.Views
             _teamDroughtBarVisible = false;
             _teamDroughtUpdateTimer?.Stop(); _teamDroughtUpdateTimer = null;
             _teamDroughtAutoHideTimer?.Stop(); _teamDroughtAutoHideTimer = null;
+            AnimateTeamStoryOut(OnOverlayHidden);
+        }
 
-            var a = new DoubleAnimation(OverlayH(TeamDroughtBarHeight), 0, TimeSpan.FromSeconds(0.35))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => OnOverlayHidden();
-            ADroughtBar.BeginAnimation(HeightProperty, a);
+        private void StartTeamDroughtLabelPan()
+        {
+            ExpTeamDroughtLabelTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            ExpTeamDroughtLabelTranslate.X = 0;
+            ExpTeamDroughtLabelText.Width = double.NaN;
         }
 
         private void UpdateTeamDroughtText()
         {
             if (_pendingDroughtSince == DateTime.MinValue) return;
             var el = OverlayClockNow - _pendingDroughtSince;
-            var t = $"{(int)el.TotalMinutes:D2}:{el.Seconds:D2}";
+            var t = FormatElapsedOverlayTime(el);
             TeamDroughtTimeText.Text = t; ExpTeamDroughtTimeText.Text = t;
+            ExpTeamStoryTimer.Text = t;
+            if (_teamDroughtBarVisible)
+                ExpTeamStoryHeadline.Text = t;
+        }
+
+        private static string FormatElapsedOverlayTime(TimeSpan elapsed)
+        {
+            if (elapsed < TimeSpan.Zero) elapsed = TimeSpan.Zero;
+            return $"{(int)elapsed.TotalMinutes}:{elapsed.Seconds:D2}";
         }
 
         // ==== Win probability bar ====
@@ -3892,6 +4850,17 @@ namespace Roche_Scoreboard.Views
             ExpWinProbHomeBarBrush.Color = homeColor;
             WinProbAwayBarBrush.Color = awayColor;
             ExpWinProbAwayBarBrush.Color = awayColor;
+            Color ink = SmartContrast.PickSplitBarForeground(homeColor, awayColor);
+            WinProbLabelText.Foreground = new SolidColorBrush(ink);
+            ExpWinProbInsideLabelText.Foreground = new SolidColorBrush(ink);
+            foreach (TextBlock label in new[] { WinProbLabelText, ExpWinProbInsideLabelText })
+            {
+                if (label.Effect is DropShadowEffect shadow)
+                {
+                    shadow.Color = ink == Colors.Black ? Colors.White : Colors.Black;
+                    shadow.Opacity = 0.92;
+                }
+            }
         }
 
         public void SetWinProbColors(string homeHex, string awayHex)
@@ -3908,17 +4877,13 @@ namespace Roche_Scoreboard.Views
             if (result == null) { OnOverlayHidden(); return; }
             _winProbBarVisible = true;
             ApplyWinProbValues(result);
-            AWinProbBar.BeginAnimation(HeightProperty,
-                new DoubleAnimation(0, OverlayH(WinProbBarHeight), TimeSpan.FromSeconds(0.45))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            AnimateOverlayIn(AWinProbBar, WinProbBarHeight);
             _winProbabilityAutoHideTimer?.Stop();
-            _winProbabilityAutoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
-            _winProbabilityAutoHideTimer.Tick += (_, __) =>
+            _winProbabilityAutoHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(10), () =>
             {
-                _winProbabilityAutoHideTimer?.Stop(); _winProbabilityAutoHideTimer = null;
+                _winProbabilityAutoHideTimer = null;
                 HideWinProbabilityBar();
-            };
-            _winProbabilityAutoHideTimer.Start();
+            });
         }
 
         public void HideWinProbabilityBar()
@@ -3926,10 +4891,7 @@ namespace Roche_Scoreboard.Views
             if (!_winProbBarVisible) return;
             _winProbBarVisible = false;
             _winProbabilityAutoHideTimer?.Stop(); _winProbabilityAutoHideTimer = null;
-            var a = new DoubleAnimation(OverlayH(WinProbBarHeight), 0, TimeSpan.FromSeconds(0.35))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => OnOverlayHidden();
-            AWinProbBar.BeginAnimation(HeightProperty, a);
+            AnimateOverlayOut(AWinProbBar, WinProbBarHeight, OnOverlayHidden);
         }
 
         public void ShowLeadChangesBar(int leadChanges)
@@ -4035,27 +4997,20 @@ namespace Roche_Scoreboard.Views
             _leadChangesBarVisible = true;
             ALeadChangesValue.Text = _pendingLeadChanges.ToString();
             ALeadChangesLabel.Text = "LEAD CHANGES:";
-            ALeadChangesBar.BeginAnimation(HeightProperty,
-                new DoubleAnimation(0, OverlayH(LeadChangesBarHeight), TimeSpan.FromSeconds(0.45))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            AnimateOverlayIn(ALeadChangesBar, LeadChangesBarHeight);
             _leadChangesAutoHideTimer?.Stop();
-            _leadChangesAutoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(12) };
-            _leadChangesAutoHideTimer.Tick += (_, __) =>
+            _leadChangesAutoHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(12), () =>
             {
-                _leadChangesAutoHideTimer?.Stop(); _leadChangesAutoHideTimer = null;
+                _leadChangesAutoHideTimer = null;
                 HideLeadChangesBar();
-            };
-            _leadChangesAutoHideTimer.Start();
+            });
         }
 
         public void HideLeadChangesBar()
         {
             if (!_leadChangesBarVisible) return; _leadChangesBarVisible = false;
             _leadChangesAutoHideTimer?.Stop(); _leadChangesAutoHideTimer = null;
-            var a = new DoubleAnimation(OverlayH(LeadChangesBarHeight), 0, TimeSpan.FromSeconds(0.35))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => OnOverlayHidden();
-            ALeadChangesBar.BeginAnimation(HeightProperty, a);
+            AnimateOverlayOut(ALeadChangesBar, LeadChangesBarHeight, OnOverlayHidden);
         }
 
         // ==================================================================
@@ -4087,6 +5042,8 @@ namespace Roche_Scoreboard.Views
             int aTotal = p.Value.AwayGoals * 6 + p.Value.AwayBehinds;
 
             ExpQuarterScoresQtrLabelText.Text = FormatQuarterLabel(p.Value.Quarter);
+            // At scoreboard distance the quarter total is the useful number.
+            // Abbreviations identify each side without forcing totals smaller.
             ExpQuarterScoresHomeNameText.Text = _homeAbbr;
             ExpQuarterScoresAwayNameText.Text = _awayAbbr;
             ExpQuarterScoresHomeGoalsText.Text = p.Value.HomeGoals.ToString();
@@ -4096,28 +5053,21 @@ namespace Roche_Scoreboard.Views
             ExpQuarterScoresAwayBehindsText.Text = p.Value.AwayBehinds.ToString();
             ExpQuarterScoresAwayTotalText.Text = aTotal.ToString();
 
-            ExpQuarterScoresBarBorder.BeginAnimation(HeightProperty,
-                new DoubleAnimation(0, OverlayH(QuarterScoresBarHeight), TimeSpan.FromSeconds(0.45))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            AnimateOverlayIn(ExpQuarterScoresBarBorder, QuarterScoresBarHeight);
 
             _quarterScoresAutoHideTimer?.Stop();
-            _quarterScoresAutoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
-            _quarterScoresAutoHideTimer.Tick += (_, __) =>
+            _quarterScoresAutoHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(10), () =>
             {
-                _quarterScoresAutoHideTimer?.Stop(); _quarterScoresAutoHideTimer = null;
+                _quarterScoresAutoHideTimer = null;
                 HideQuarterScoresBar();
-            };
-            _quarterScoresAutoHideTimer.Start();
+            });
         }
 
         public void HideQuarterScoresBar()
         {
             if (!_quarterScoresBarVisible) return; _quarterScoresBarVisible = false;
             _quarterScoresAutoHideTimer?.Stop(); _quarterScoresAutoHideTimer = null;
-            var a = new DoubleAnimation(OverlayH(QuarterScoresBarHeight), 0, TimeSpan.FromSeconds(0.32))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => OnOverlayHidden();
-            ExpQuarterScoresBarBorder.BeginAnimation(HeightProperty, a);
+            AnimateOverlayOut(ExpQuarterScoresBarBorder, QuarterScoresBarHeight, OnOverlayHidden);
         }
 
         // ==================================================================
@@ -4132,7 +5082,9 @@ namespace Roche_Scoreboard.Views
         private double _recentScoresDrawerAnimationFrom;
         private double _recentScoresDrawerAnimationTo;
         private double _recentScoresDrawerProgress;
-        private static readonly TimeSpan RecentScoresDrawerDuration = TimeSpan.FromMilliseconds(360);
+        private double _recentScoresProtectedClockWidth;
+        private double _recentScoresProtectedLogoWidth;
+        private static readonly TimeSpan RecentScoresDrawerDuration = OverlayTransitionDuration;
         private (IReadOnlyList<ScoreEvent>? events, int quarter) _pendingRecentScores;
 
         private void DoShowRecentScores(IReadOnlyList<ScoreEvent>? events, int currentQuarter)
@@ -4141,7 +5093,7 @@ namespace Roche_Scoreboard.Views
             ExpRecentScoresCards.Children.Clear();
 
             var src = events is null ? new List<ScoreEvent>() : new List<ScoreEvent>(events);
-            int cardLimit = 2;
+            int cardLimit = 3;
             int take = Math.Min(cardLimit, src.Count);
             var lastN = take == 0
                 ? new List<ScoreEvent>()
@@ -4162,7 +5114,7 @@ namespace Roche_Scoreboard.Views
                     HorizontalAlignment = HAlign.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 };
-                Grid.SetRowSpan(emptyState, 2);
+                Grid.SetRowSpan(emptyState, 3);
                 ExpRecentScoresCards.Children.Add(emptyState);
             }
             else
@@ -4178,16 +5130,16 @@ namespace Roche_Scoreboard.Views
 
             if (_recentScoresVisible) return;
             _recentScoresVisible = true;
+            _recentScoresProtectedClockWidth = Math.Max(ExpClockPanel.ActualWidth, ExpClockColumn.ActualWidth);
+            _recentScoresProtectedLogoWidth = Math.Max(ExpLogoColumn.ActualWidth, 1);
             AnimateRecentScoresDrawer(show: true);
 
             _recentScoresAutoHideTimer?.Stop();
-            _recentScoresAutoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(12) };
-            _recentScoresAutoHideTimer.Tick += (_, __) =>
+            _recentScoresAutoHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(12), () =>
             {
-                _recentScoresAutoHideTimer?.Stop(); _recentScoresAutoHideTimer = null;
+                _recentScoresAutoHideTimer = null;
                 HideRecentScores();
-            };
-            _recentScoresAutoHideTimer.Start();
+            });
         }
 
         public void HideRecentScores()
@@ -4228,7 +5180,7 @@ namespace Roche_Scoreboard.Views
                     RecentScoresDrawerDuration.TotalMilliseconds,
                     0,
                     1);
-                double eased = linear * linear * (3 - (2 * linear));
+                double eased = EaseOverlayTransition(linear);
                 _recentScoresDrawerProgress = _recentScoresDrawerAnimationFrom
                     + ((_recentScoresDrawerAnimationTo - _recentScoresDrawerAnimationFrom) * eased);
                 ApplyRecentScoresDrawerLayout();
@@ -4246,9 +5198,20 @@ namespace Roche_Scoreboard.Views
         private void ApplyRecentScoresDrawerLayout()
         {
             double progress = Math.Clamp(_recentScoresDrawerProgress, 0, 1);
-            double drawerWidth = Math.Clamp(ExpandedLayout.ActualWidth * 0.42, 110, 260) * progress;
+            // This is a public-display information panel, not a tiny utility
+            // drawer. Give it enough width for an unmistakable team badge,
+            // score type and quarter while preserving clock/logo columns.
+            double drawerWidth = Math.Clamp(ExpandedLayout.ActualWidth * 0.36, 104, 150) * progress;
             ExpRecentScoresDrawerColumn.Width = new GridLength(drawerWidth);
             ExpRecentScoresBarBorder.Opacity = progress;
+
+            if (progress > 0.001)
+            {
+                if (!_compactClockActive && _recentScoresProtectedClockWidth > 1)
+                    ExpClockColumn.Width = new GridLength(_recentScoresProtectedClockWidth);
+                if (_recentScoresProtectedLogoWidth > 1)
+                    ExpLogoColumn.Width = new GridLength(_recentScoresProtectedLogoWidth);
+            }
 
             double detailWeight = 1.25 * (1 - progress);
             double separatorWidth = 2 * (1 - progress);
@@ -4269,34 +5232,42 @@ namespace Roche_Scoreboard.Views
             bool isGoal = ev.Type == ScoreType.Goal;
             bool isHome = ev.Team == TeamSide.Home;
             var teamColor = isHome ? _homeColor : _awayColor;
-            string label = isGoal ? "GOAL" : "BEHIND";
-            string abbr = isHome ? _homeAbbr : _awayAbbr;
-            int total = isHome ? ev.HomeTotal : ev.AwayTotal;
+            string label = isGoal ? "G" : "B";
 
-            // Darker version of team color for the box background
-            var darkBg = Color.FromArgb(
-                0xFF,
-                (byte)(teamColor.R * 0.18),
-                (byte)(teamColor.G * 0.18),
-                (byte)(teamColor.B * 0.18));
+            Color darkBg = Mix(teamColor, Colors.Black, 0.76);
+            Color midBg = Mix(teamColor, Colors.Black, 0.48);
+            Color cardInk = SmartContrast.PickReadableForeground(
+                isHome ? _homeSecondaryColor : _awaySecondaryColor, darkBg, midBg);
+            var cardBackground = new LinearGradientBrush
+            {
+                StartPoint = new System.Windows.Point(0, 0),
+                EndPoint = new System.Windows.Point(1, 1),
+                GradientStops = new GradientStopCollection
+                {
+                    new(midBg, 0),
+                    new(darkBg, 0.72),
+                    new(Mix(teamColor, Colors.Black, 0.86), 1)
+                }
+            };
 
             var box = new Border
             {
-                Margin = new Thickness(3, 0, 3, 0),
-                Padding = new Thickness(5, 2, 5, 2),
-                BorderThickness = new Thickness(isMostRecent ? 2 : 1),
+                Margin = new Thickness(3, 1, 3, 1),
+                Padding = new Thickness(3, 2, 5, 2),
+                BorderThickness = new Thickness(2),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(isMostRecent ? (byte)0xFF : (byte)0xA0,
                     teamColor.R, teamColor.G, teamColor.B)),
-                Background = new SolidColorBrush(darkBg),
+                Background = cardBackground,
                 HorizontalAlignment = HAlign.Stretch,
                 VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
-                MinWidth = 0
+                MinWidth = 0,
+                ClipToBounds = true
             };
 
             var grid = new Grid();
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(5) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
             ImageSource? eventLogo = isHome ? _homeLogoSource : _awayLogoSource;
             if (eventLogo is not null)
@@ -4305,51 +5276,68 @@ namespace Roche_Scoreboard.Views
                 {
                     Source = eventLogo,
                     Stretch = Stretch.UniformToFill,
-                    Opacity = 0.16,
-                    Effect = new BlurEffect { Radius = 5 },
+                    Opacity = 0.12,
+                    Effect = new BlurEffect { Radius = 7 },
                     IsHitTestVisible = false
                 };
                 Grid.SetColumnSpan(watermark, 3);
                 grid.Children.Add(watermark);
+
+                var crest = new System.Windows.Controls.Image
+                {
+                    Source = eventLogo,
+                    Stretch = Stretch.Uniform,
+                    Margin = new Thickness(2),
+                    IsHitTestVisible = false
+                };
+                Grid.SetColumn(crest, 1);
+                grid.Children.Add(crest);
+            }
+            else
+            {
+                var identityDot = new Ellipse
+                {
+                    Width = 18,
+                    Height = 18,
+                    Fill = new SolidColorBrush(teamColor),
+                    Stroke = new SolidColorBrush(cardInk),
+                    StrokeThickness = 2,
+                    HorizontalAlignment = HAlign.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                Grid.SetColumn(identityDot, 1);
+                grid.Children.Add(identityDot);
             }
 
-            var accent = new Border { Background = new SolidColorBrush(teamColor), Margin = new Thickness(0, 0, 5, 0) };
+            var accent = new Border { Background = new SolidColorBrush(teamColor), Margin = new Thickness(0, 0, 4, 0) };
             Grid.SetColumn(accent, 0);
             grid.Children.Add(accent);
 
-            var story = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            story.Children.Add(new TextBlock
+            var scoreType = new TextBlock
             {
                 Text = label,
-                Foreground = Brushes.White,
-                FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
+                Foreground = new SolidColorBrush(cardInk),
+                FontFamily = new System.Windows.Media.FontFamily("Arial"),
                 FontWeight = FontWeights.Black,
-                FontSize = 18,
-                TextTrimming = TextTrimming.CharacterEllipsis
-            });
-            story.Children.Add(new TextBlock
-            {
-                Text = $"{abbr}  {total}",
-                Foreground = new SolidColorBrush(Color.FromRgb(0xD7, 0xE1, 0xEB)),
-                FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 12,
-                TextTrimming = TextTrimming.CharacterEllipsis
-            });
-            Grid.SetColumn(story, 1);
-            grid.Children.Add(story);
-
-            var timing = new TextBlock
-            {
-                Text = $"Q{ev.Quarter}",
-                Foreground = new SolidColorBrush(SmartContrast.PickReadableForeground(teamColor, darkBg)),
-                FontFamily = new System.Windows.Media.FontFamily("Stolzl Bold"),
-                FontWeight = FontWeights.Black,
-                FontSize = 12,
-                HorizontalAlignment = HAlign.Right
+                FontSize = 38,
+                HorizontalAlignment = HAlign.Center,
+                VerticalAlignment = VerticalAlignment.Center
             };
-            Grid.SetColumn(timing, 2);
-            grid.Children.Add(timing);
+            Grid.SetColumn(scoreType, 2);
+            grid.Children.Add(scoreType);
+
+            if (isMostRecent)
+            {
+                // Pulse the complete event card—not just its letter—so the
+                // newest score is unmistakable at scoreboard distance.
+                box.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0.62,
+                    TimeSpan.FromMilliseconds(640))
+                {
+                    AutoReverse = true,
+                    RepeatBehavior = RepeatBehavior.Forever,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                });
+            }
 
             box.Child = grid;
             return box;
@@ -4368,6 +5356,14 @@ namespace Roche_Scoreboard.Views
 
         // ---- Miscellanous public API for MainWindow integration ----
 
+        public IReadOnlyList<FrameworkElement> GetQuarterFoldPanels()
+            // Top pair, centre anchor, then bottom pair gives the transition a
+            // deliberate reading order instead of folding unrelated cells.
+            => [ExpHomeLogoCell, ExpHomePanel, ExpClockPanel, ExpAwayLogoCell, ExpAwayPanel];
+
+        public double GetTransitionTopBarHeight()
+            => Math.Max(0, ExpTopInfoRow.ActualHeight);
+
         /// <summary>
         /// Manually toggles the G/B columns next to the total score:
         /// expands if currently collapsed, collapses if currently expanded.
@@ -4382,6 +5378,8 @@ namespace Roche_Scoreboard.Views
 
         public void SetFinalsMode(bool enabled)
         {
+            if (_finalsModeApplied && _finalsMode == enabled) return;
+            _finalsModeApplied = true;
             _finalsMode = enabled;
             ApplyFinalsModeVisuals();
         }
@@ -4395,6 +5393,8 @@ namespace Roche_Scoreboard.Views
                 SetGradientStopColor("ExpClockPanelGradBot", "#A9781D");
                 ExpQuarterNumberText.Foreground = new SolidColorBrush(Services.FinalsPalette.Ink);
                 ExpClockText.Foreground = new SolidColorBrush(Services.FinalsPalette.Ink);
+                ExpPanelWallTimeText.Foreground = new SolidColorBrush(Services.FinalsPalette.Ink);
+                ExpPanelWallTimeSuffixText.Foreground = new SolidColorBrush(Color.FromRgb(0x3A, 0x2A, 0x08));
                 // Let the clean gold gradient remain the visible surface. The
                 // normal-mode dark half-panels would otherwise muddy the gold
                 // and put finals ink over a dark background.
@@ -4410,6 +5410,8 @@ namespace Roche_Scoreboard.Views
                 SetGradientStopColor("ExpClockPanelGradBot", "#000000");
                 ExpQuarterNumberText.Foreground = Brushes.White;
                 ExpClockText.Foreground = Brushes.White;
+                ExpPanelWallTimeText.Foreground = Brushes.White;
+                ExpPanelWallTimeSuffixText.Foreground = new SolidColorBrush(Color.FromRgb(0xBF, 0xD0, 0xE2));
                 ExpClockQuarterSurface.Background = new SolidColorBrush(Color.FromRgb(0x12, 0x1A, 0x2A));
                 ExpClockQuarterSurface.Opacity = 0.72;
                 ExpClockTimerSurface.Background = new SolidColorBrush(Color.FromRgb(0x02, 0x04, 0x09));
@@ -4432,6 +5434,8 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         public void SetHideTeamNames(bool hide)
         {
+            if (_hideTeamNamesApplied && _hideTeamNames == hide) return;
+            _hideTeamNamesApplied = true;
             _hideTeamNames = hide;
             AnimateTeamNamePanelsForOverlay(_activeOverlay is not null);
         }
@@ -4470,11 +5474,10 @@ namespace Roche_Scoreboard.Views
                 1);
             // Smoothstep keeps both the initial collapse and final settle calm,
             // while the changing star ratio continuously gives space to scores.
-            double eased = linear * linear * (3 - (2 * linear));
+            double eased = EaseOverlayTransition(linear);
             _teamNameRevealProgress = _teamNamePanelAnimationFrom
                 + ((_teamNamePanelAnimationTo - _teamNamePanelAnimationFrom) * eased);
             ApplyExpandedResponsiveProportions();
-            UpdateExpandedScoreTypography();
 
             if (linear < 1) return;
 
@@ -4494,18 +5497,31 @@ namespace Roche_Scoreboard.Views
         public bool CheckAutoTeamDrought()
         {
             DateTime now = OverlayClockNow;
-            int homeMilestone = NextDroughtMilestone(_homeDroughtMilestoneMinutes);
-            if (_homeLastScoreTime != DateTime.MinValue
-                && (now - _homeLastScoreTime).TotalMinutes >= homeMilestone)
+            double homeElapsed = _homeLastScoreTime == DateTime.MinValue
+                ? 0 : (now - _homeLastScoreTime).TotalMinutes;
+            double awayElapsed = _awayLastScoreTime == DateTime.MinValue
+                ? 0 : (now - _awayLastScoreTime).TotalMinutes;
+
+            // When both clubs are droughting, the match-wide LAST SCORE story
+            // is the only useful graphic. Advance both team milestones so they
+            // cannot backlog and fire as soon as that overlay closes.
+            if (homeElapsed >= 10 && awayElapsed >= 10)
+            {
+                _homeDroughtMilestoneMinutes = (int)Math.Floor(homeElapsed / 10) * 10;
+                _awayDroughtMilestoneMinutes = (int)Math.Floor(awayElapsed / 10) * 10;
+                return false;
+            }
+
+            int homeMilestone = (int)Math.Floor(homeElapsed / 10) * 10;
+            if (homeMilestone >= 10 && homeMilestone > _homeDroughtMilestoneMinutes)
             {
                 _homeDroughtMilestoneMinutes = homeMilestone;
                 _pendingAutoDroughtIsHome = true;
                 return true;
             }
 
-            int awayMilestone = NextDroughtMilestone(_awayDroughtMilestoneMinutes);
-            if (_awayLastScoreTime != DateTime.MinValue
-                && (now - _awayLastScoreTime).TotalMinutes >= awayMilestone)
+            int awayMilestone = (int)Math.Floor(awayElapsed / 10) * 10;
+            if (awayMilestone >= 10 && awayMilestone > _awayDroughtMilestoneMinutes)
             {
                 _awayDroughtMilestoneMinutes = awayMilestone;
                 _pendingAutoDroughtIsHome = false;
@@ -4533,7 +5549,7 @@ namespace Roche_Scoreboard.Views
             return true;
         }
 
-        public bool CancelScorelessOrDroughtOverlay()
+        public bool CancelScorelessOrDroughtOverlay(bool scoringTeamIsHome)
         {
             bool cancelled = false;
             if (_scorelessBarVisible)
@@ -4542,7 +5558,9 @@ namespace Roche_Scoreboard.Views
                 cancelled = true;
             }
 
-            if (_teamDroughtBarVisible)
+            // A featured team's score row remains on air and can animate in
+            // place. Cancel only when the scoring team is the displaced club.
+            if (_teamDroughtBarVisible && scoringTeamIsHome != _teamStoryIsHome)
             {
                 HideTeamDroughtBar();
                 cancelled = true;
@@ -4596,7 +5614,6 @@ namespace Roche_Scoreboard.Views
         // inner Viewbox content was enlarged so the text fills the bar
         // without leaving negative space.
         private const double WeatherBarHeight = 54;
-        private double WeatherOverlayH() => OverlayH(WeatherBarHeight);
 
         private void DoShowWeatherStats()
         {
@@ -4611,14 +5628,14 @@ namespace Roche_Scoreboard.Views
 
             if (_weatherStatsVisible) return;
             _weatherStatsVisible = true;
-            ExpWeatherStatsBorder.BeginAnimation(HeightProperty,
-                new DoubleAnimation(0, WeatherOverlayH(), TimeSpan.FromSeconds(0.4))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            AnimateOverlayIn(ExpWeatherStatsBorder, WeatherBarHeight);
 
             _weatherStatsHideTimer?.Stop();
-            _weatherStatsHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
-            _weatherStatsHideTimer.Tick += (_, __) => { _weatherStatsHideTimer?.Stop(); HideWeatherStats(); };
-            _weatherStatsHideTimer.Start();
+            _weatherStatsHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(10), () =>
+            {
+                _weatherStatsHideTimer = null;
+                HideWeatherStats();
+            });
         }
 
         private void HideWeatherStats()
@@ -4626,10 +5643,8 @@ namespace Roche_Scoreboard.Views
             if (!_weatherStatsVisible) return;
             _weatherStatsVisible = false;
             _weatherStatsHideTimer?.Stop(); _weatherStatsHideTimer = null;
-            var a = new DoubleAnimation(WeatherOverlayH(), 0, TimeSpan.FromSeconds(0.32))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => { if (_activeOverlay == OverlayKind.WeatherStats) OnOverlayHidden(); };
-            ExpWeatherStatsBorder.BeginAnimation(HeightProperty, a);
+            AnimateOverlayOut(ExpWeatherStatsBorder, WeatherBarHeight,
+                () => { if (_activeOverlay == OverlayKind.WeatherStats) OnOverlayHidden(); });
         }
 
         private void DoShowForecast()
@@ -4691,14 +5706,14 @@ namespace Roche_Scoreboard.Views
 
             if (_forecastVisible) return;
             _forecastVisible = true;
-            ExpForecastBorder.BeginAnimation(HeightProperty,
-                new DoubleAnimation(0, WeatherOverlayH(), TimeSpan.FromSeconds(0.4))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            AnimateOverlayIn(ExpForecastBorder, WeatherBarHeight);
 
             _forecastHideTimer?.Stop();
-            _forecastHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(12) };
-            _forecastHideTimer.Tick += (_, __) => { _forecastHideTimer?.Stop(); HideForecast(); };
-            _forecastHideTimer.Start();
+            _forecastHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(12), () =>
+            {
+                _forecastHideTimer = null;
+                HideForecast();
+            });
         }
 
         private void HideForecast()
@@ -4706,10 +5721,8 @@ namespace Roche_Scoreboard.Views
             if (!_forecastVisible) return;
             _forecastVisible = false;
             _forecastHideTimer?.Stop(); _forecastHideTimer = null;
-            var a = new DoubleAnimation(WeatherOverlayH(), 0, TimeSpan.FromSeconds(0.32))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => { if (_activeOverlay == OverlayKind.Forecast) OnOverlayHidden(); };
-            ExpForecastBorder.BeginAnimation(HeightProperty, a);
+            AnimateOverlayOut(ExpForecastBorder, WeatherBarHeight,
+                () => { if (_activeOverlay == OverlayKind.Forecast) OnOverlayHidden(); });
         }
 
         private void DoShowRain()
@@ -4781,14 +5794,14 @@ namespace Roche_Scoreboard.Views
 
             if (_rainVisible) return;
             _rainVisible = true;
-            ExpRainBorder.BeginAnimation(HeightProperty,
-                new DoubleAnimation(0, WeatherOverlayH(), TimeSpan.FromSeconds(0.4))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            AnimateOverlayIn(ExpRainBorder, WeatherBarHeight);
 
             _rainHideTimer?.Stop();
-            _rainHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(12) };
-            _rainHideTimer.Tick += (_, __) => { _rainHideTimer?.Stop(); HideRain(); };
-            _rainHideTimer.Start();
+            _rainHideTimer = StartOverlayAutoHide(TimeSpan.FromSeconds(12), () =>
+            {
+                _rainHideTimer = null;
+                HideRain();
+            });
         }
 
         private void HideRain()
@@ -4796,10 +5809,8 @@ namespace Roche_Scoreboard.Views
             if (!_rainVisible) return;
             _rainVisible = false;
             _rainHideTimer?.Stop(); _rainHideTimer = null;
-            var a = new DoubleAnimation(WeatherOverlayH(), 0, TimeSpan.FromSeconds(0.32))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            a.Completed += (_, __) => { if (_activeOverlay == OverlayKind.RainForecast) OnOverlayHidden(); };
-            ExpRainBorder.BeginAnimation(HeightProperty, a);
+            AnimateOverlayOut(ExpRainBorder, WeatherBarHeight,
+                () => { if (_activeOverlay == OverlayKind.RainForecast) OnOverlayHidden(); });
         }
 
         private void UpdateTopWeather(WeatherSnapshot s)
@@ -4825,15 +5836,15 @@ namespace Roche_Scoreboard.Views
         {
             ClearOverlayQueue();
             _lastScoreTime = DateTime.MinValue;
-            _scorelessTriggered = false;
+            _lastScoreMilestoneMinutes = 0;
             _homeLastScoreTime = DateTime.MinValue;
             _awayLastScoreTime = DateTime.MinValue;
             _homeDroughtMilestoneMinutes = 0;
             _awayDroughtMilestoneMinutes = 0;
             _pendingScoringRunTeam = string.Empty;
-            _pendingScoringRunValue = string.Empty;
-            _pendingScoringRunDuration = TimeSpan.Zero;
-            _pendingScoringRunEventCount = 0;
+            _pendingGoalRunGoals = 0;
+            _pendingGoalRunWindow = 0;
+            _pendingGoalRunConsecutive = false;
             _pendingDroughtLabel = string.Empty;
             _pendingDroughtSince = DateTime.MinValue;
             _pendingWinProb = null;
@@ -4851,7 +5862,14 @@ namespace Roche_Scoreboard.Views
         public void ClearOverlayQueue()
         {
             _overlayQueue.Clear();
+            _overlayAutoHideGeneration++;
             _activeOverlay = null;
+            _overlayIsExiting = false;
+            _overlayTransitionGap = false;
+            _overlayLayoutMotionActive = false;
+            _overlayResponsiveRefreshPending = false;
+            _overlayLayoutMotionGeneration++;
+            _scoreSurfaceReadyCallbacks.Clear();
             ExpSharedOverlayLogoLayer.Visibility = Visibility.Collapsed;
             AnimateTeamNamePanelsForOverlay(hide: false, animate: false);
             AnimateRecentScoresDrawer(show: false, animate: false);
@@ -4868,6 +5886,24 @@ namespace Roche_Scoreboard.Views
             _forecastVisible = false;
             _rainVisible = false;
             _warningVisible = false;
+            _teamStoryVisible = false;
+            _teamStoryAnimationGeneration++;
+            ExpTeamStoryReveal.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            ExpTeamStoryReveal.ScaleY = 0;
+            ExpTeamStoryContent.BeginAnimation(OpacityProperty, null);
+            ExpTeamStoryContent.Opacity = 0;
+            ExpTeamStoryTakeover.Visibility = Visibility.Collapsed;
+            ExpTeamStoryTakeover.CacheMode = null;
+            StopTeamStoryDirection();
+            foreach (TranslateTransform translate in new[]
+                     {
+                         ExpHomeLogoStoryTranslate, ExpAwayLogoStoryTranslate,
+                         ExpHomeScoreStoryTranslate, ExpAwayScoreStoryTranslate
+                     })
+            {
+                translate.BeginAnimation(TranslateTransform.YProperty, null);
+                translate.Y = 0;
+            }
 
             _statsRotationTimer?.Stop();
             _statsRotationTimer = null;
@@ -4910,12 +5946,21 @@ namespace Roche_Scoreboard.Views
             ExpWarningBanner.Opacity = 0;
             WarningOverlay.BeginAnimation(OpacityProperty, null);
             WarningOverlay.Opacity = 0;
+            ResumeTickerAfterWarning();
         }
 
         private static void ClearHeight(Border b)
         {
             b.BeginAnimation(HeightProperty, null);
+            b.BeginAnimation(OpacityProperty, null);
             b.Height = 0;
+            b.Opacity = 0;
+            b.CacheMode = null;
+            if (b.RenderTransform is TranslateTransform translate)
+            {
+                translate.BeginAnimation(TranslateTransform.YProperty, null);
+                translate.Y = 0;
+            }
         }
     }
 }

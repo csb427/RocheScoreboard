@@ -20,6 +20,11 @@ namespace Roche_Scoreboard.Views;
 
 public partial class SportSelectionScreen : UserControl
 {
+    private bool _selectionPending;
+    private DispatcherTimer? _selectionTimer;
+    private void ResponsiveScrollHost_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        => NestedScrollRouting.RoutePreviewMouseWheel(ResponsiveScrollHost, e);
+
     public event Action<SportMode>? SportSelected;
 
     // ── Easing curves ──
@@ -44,8 +49,22 @@ public partial class SportSelectionScreen : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        PrepareForDisplay();
         PopulateChangelog();
         PlayEntryAnimation();
+    }
+
+    /// <summary>
+    /// Restores pointer input whenever the host navigates back to this already-loaded
+    /// control. Visibility changes do not raise Loaded again, so relying on Loaded left
+    /// the whole sport picker non-interactive after a quick select-and-back sequence.
+    /// </summary>
+    public void PrepareForDisplay()
+    {
+        _selectionTimer?.Stop();
+        _selectionTimer = null;
+        _selectionPending = false;
+        IsHitTestVisible = true;
     }
 
     private void PlayEntryAnimation()
@@ -208,16 +227,19 @@ public partial class SportSelectionScreen : UserControl
 
     private void AFL_Click(object sender, MouseButtonEventArgs e)
     {
-        PlayClickFlash(AflFlash, AflIconScale, () => SportSelected?.Invoke(SportMode.AFL));
+        if (!TryBeginSelection()) return;
+        PlayClickFlash(AflFlash, AflIconScale, () => CompleteSelection(SportMode.AFL));
     }
 
     private void Cricket_Click(object sender, MouseButtonEventArgs e)
     {
-        PlayClickFlash(CricketFlash, CricketIconScale, () => SportSelected?.Invoke(SportMode.Cricket));
+        if (!TryBeginSelection()) return;
+        PlayClickFlash(CricketFlash, CricketIconScale, () => CompleteSelection(SportMode.Cricket));
     }
 
     private void Training_Click(object sender, MouseButtonEventArgs e)
     {
+        if (!TryBeginSelection()) return;
         // Quick scale-pulse + glow flare, then raise the selected event.
         TrainingTileScale.BeginAnimation(ScaleTransform.ScaleXProperty,
             new DoubleAnimation(1.08, 1.0, TimeSpan.FromMilliseconds(250)) { EasingFunction = Smooth });
@@ -226,17 +248,12 @@ public partial class SportSelectionScreen : UserControl
         TrainingTileGlow.BeginAnimation(DropShadowEffect.OpacityProperty,
             new DoubleAnimation(0.95, 0.4, TimeSpan.FromMilliseconds(380)) { EasingFunction = Smooth });
 
-        var raise = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(220) };
-        raise.Tick += (_, _) =>
-        {
-            raise.Stop();
-            SportSelected?.Invoke(SportMode.Training);
-        };
-        raise.Start();
+        ScheduleSelection(SportMode.Training, 220);
     }
 
     private void Settings_Click(object sender, MouseButtonEventArgs e)
     {
+        if (!TryBeginSelection()) return;
         SettingsTileScale.BeginAnimation(ScaleTransform.ScaleXProperty,
             new DoubleAnimation(1.08, 1.0, TimeSpan.FromMilliseconds(250)) { EasingFunction = Smooth });
         SettingsTileScale.BeginAnimation(ScaleTransform.ScaleYProperty,
@@ -244,13 +261,34 @@ public partial class SportSelectionScreen : UserControl
         SettingsTileGlow.BeginAnimation(DropShadowEffect.OpacityProperty,
             new DoubleAnimation(0.92, 0.4, TimeSpan.FromMilliseconds(360)) { EasingFunction = Smooth });
 
-        var raise = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(210) };
-        raise.Tick += (_, _) =>
+        ScheduleSelection(SportMode.Settings, 210);
+    }
+
+    private bool TryBeginSelection()
+    {
+        if (_selectionPending) return false;
+        _selectionPending = true;
+        IsHitTestVisible = false;
+        return true;
+    }
+
+    private void ScheduleSelection(SportMode mode, int delayMilliseconds)
+    {
+        _selectionTimer?.Stop();
+        _selectionTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(delayMilliseconds) };
+        _selectionTimer.Tick += (_, _) =>
         {
-            raise.Stop();
-            SportSelected?.Invoke(SportMode.Settings);
+            _selectionTimer?.Stop();
+            _selectionTimer = null;
+            CompleteSelection(mode);
         };
-        raise.Start();
+        _selectionTimer.Start();
+    }
+
+    private void CompleteSelection(SportMode mode)
+    {
+        if (!_selectionPending) return;
+        SportSelected?.Invoke(mode);
     }
 
     private void TrainingTile_MouseEnter(object sender, MouseEventArgs e)

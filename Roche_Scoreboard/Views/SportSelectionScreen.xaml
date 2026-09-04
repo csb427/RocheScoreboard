@@ -3,7 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="#080C12">
 
-    <Grid>
+    <ScrollViewer x:Name="ResponsiveScrollHost"
+                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                  PanningMode="Both" CanContentScroll="False"
+                  PreviewMouseWheel="ResponsiveScrollHost_PreviewMouseWheel">
+    <Grid MinWidth="720" MinHeight="520">
 
         <!-- ═══════════════════════════════════════════════════════ -->
         <!-- HEADER — SELECT YOUR SPORT                             -->
@@ -57,7 +61,7 @@
                 <StackPanel>
                     <TextBlock Text="SETTINGS" Foreground="#58A6FF"
                                FontFamily="Bahnschrift" FontWeight="Black" FontSize="14"/>
-                    <TextBlock Text="TEAMS • TIMER • KEYBINDS"
+                    <TextBlock Text="DISPLAY • UPDATES • PREFERENCES"
                                Foreground="#9CA3AF"
                                FontFamily="Bahnschrift" FontWeight="SemiBold" FontSize="9"
                                Margin="0,2,0,0"/>
@@ -680,4 +684,5 @@
         </Grid>
 
     </Grid>
+    </ScrollViewer>
 </UserControl>

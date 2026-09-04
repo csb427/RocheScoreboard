@@ -88,10 +88,7 @@ internal static class QuarterLabelService
         try
         {
             string path = GetStoragePath();
-            if (!File.Exists(path)) return new();
-            string json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(json, JsonOptions)
-                   ?? new();
+            return AtomicFile.TryReadJson<Dictionary<string, string>>(path, JsonOptions) ?? new();
         }
         catch
         {
@@ -104,7 +101,7 @@ internal static class QuarterLabelService
         try
         {
             string json = JsonSerializer.Serialize(_overrides, JsonOptions);
-            File.WriteAllText(GetStoragePath(), json);
+            AtomicFile.WriteAllText(GetStoragePath(), json);
         }
         catch
         {

@@ -64,7 +64,12 @@ namespace Roche_Scoreboard.Views
             {
                 if (e.NewValue is true) QueueResponsiveLayout();
             };
-            Loaded += (_, _) => QueueResponsiveLayout();
+            Loaded += (_, _) =>
+            {
+                _isDisposed = false;
+                _wallClockTimer.Start();
+                QueueResponsiveLayout();
+            };
 
             Unloaded += (_, _) => Cleanup();
         }
@@ -79,7 +84,14 @@ namespace Roche_Scoreboard.Views
             if (!IsVisible || ActualWidth <= 0 || ActualHeight <= 0)
                 return;
 
-            ResponsivePresentationTypography.Apply(this, ScoreboardScaleHelper.GetScale(ActualWidth, ActualHeight));
+            double scale = ScoreboardScaleHelper.GetScale(ActualWidth, ActualHeight);
+            ResponsivePresentationTypography.Apply(this, scale);
+
+            // The chart font scales with the output, so its axis gutter must
+            // scale too. A fixed 36 px gutter clipped two-digit bounds (12,
+            // 18, 24...) at larger scoreboard dimensions.
+            YAxisColumn.Width = new GridLength(Math.Clamp(
+                ScoreboardScaleHelper.Scale(36, scale), 28, 58));
             if (_lastMatch is not null)
                 UpdateMarginHeadline(_lastMatch);
         }
@@ -188,6 +200,9 @@ namespace Roche_Scoreboard.Views
 
         private void DrawGraphIfChanged(MatchManager match, int endedQuarter, Color homeColor, Color awayColor)
         {
+            WormTitleRow.Height = new GridLength(0);
+            WormGraphRow.Height = new GridLength(149, GridUnitType.Star);
+            WormTitlePanel.Visibility = Visibility.Collapsed;
             int signature = BuildGraphSignature(match, endedQuarter, homeColor, awayColor,
                 GraphCanvas.ActualWidth, GraphCanvas.ActualHeight);
             if (_lastGraphSignature == signature)

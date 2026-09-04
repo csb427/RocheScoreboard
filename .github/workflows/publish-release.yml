@@ -50,13 +50,31 @@ jobs:
         run: |
           $version = "${{ inputs.tag }}".TrimStart('v')
           $package = "${{ runner.temp }}/roche-release/Roche-Scoreboard-v$version-Windows-x64.zip"
+          $latestPackage = "${{ runner.temp }}/roche-release/Roche-Scoreboard-Windows-x64.zip"
           $checksum = "${{ runner.temp }}/roche-release/Roche-Scoreboard-v$version-SHA256.txt"
+          Copy-Item -LiteralPath $package -Destination $latestPackage -Force
+
+          $generated = gh api --method POST `
+            "repos/${{ github.repository }}/releases/generate-notes" `
+            -f "tag_name=${{ inputs.tag }}" `
+            -f "target_commitish=${{ github.sha }}" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw "GitHub release-note generation failed." }
+
+          $intro = Get-Content -LiteralPath "packaging/GITHUB-RELEASE-INTRO.md" -Raw
+          $notesPath = Join-Path "${{ runner.temp }}" "roche-release-notes.md"
+          $generatedBody = [string]$generated.body
+          if ([string]::IsNullOrWhiteSpace($generatedBody)) {
+            $generatedBody = "No additional generated notes were available for this release."
+          }
+          $notes = $intro.TrimEnd() + "`n`n## What changed`n`n" + $generatedBody.Trim()
+          Set-Content -LiteralPath $notesPath -Value $notes -Encoding utf8
+
           $arguments = @(
             "release", "create", "${{ inputs.tag }}",
-            $package, $checksum,
+            $package, $latestPackage, $checksum,
             "--target", "${{ github.sha }}",
             "--title", "Roche Scoreboard ${{ inputs.tag }}",
-            "--generate-notes"
+            "--notes-file", $notesPath
           )
           if ([System.Convert]::ToBoolean("${{ inputs.prerelease }}")) {
             $arguments += "--prerelease"

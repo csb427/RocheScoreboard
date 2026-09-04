@@ -13,15 +13,28 @@
 
     <StackPanel Margin="18,16,18,18">
         <!-- Header -->
-        <TextBlock Text="EDIT SCORE EVENT" Foreground="#58A6FF" FontSize="11" FontWeight="Black" Margin="0,0,0,14"/>
+        <TextBlock x:Name="DialogHeading" Text="EDIT SCORE EVENT" Foreground="#58A6FF" FontSize="11" FontWeight="Black" Margin="0,0,0,14"/>
 
         <!-- Event info (read-only) -->
-        <Border Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,16">
+        <Border x:Name="EventSummaryBorder" Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,16">
             <StackPanel>
                 <TextBlock x:Name="EventInfoText" Text="Q1 02:15" Foreground="#8B949E" FontSize="13" FontWeight="SemiBold"/>
                 <TextBlock x:Name="EventScoreText" Text="After: 2.3.15 – 1.2.8" Foreground="#6B7E95" FontSize="11" Margin="0,3,0,0"/>
             </StackPanel>
         </Border>
+
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="QUARTER" Foreground="#8B949E" FontSize="10" FontWeight="Black" Margin="0,0,0,8"/>
+                <ComboBox x:Name="QuarterBox" Height="38" SelectedIndex="0" Background="#0D1117" Foreground="#E6EDF3" BorderBrush="#30363D">
+                    <ComboBoxItem Content="Q1"/><ComboBoxItem Content="Q2"/><ComboBoxItem Content="Q3"/><ComboBoxItem Content="Q4"/>
+                </ComboBox>
+            </StackPanel>
+            <CheckBox x:Name="UseCurrentQuarterBox" Grid.Column="2" Content="USE CURRENT QUARTER" IsChecked="True"
+                      Foreground="#C7D2DF" FontSize="10" FontWeight="Bold" VerticalAlignment="Bottom" Margin="0,0,0,10"
+                      Checked="OptionalTiming_Changed" Unchecked="OptionalTiming_Changed"/>
+        </Grid>
 
         <!-- Time editor -->
         <TextBlock Text="TIME IN QUARTER" Foreground="#8B949E" FontSize="10" FontWeight="Black" Margin="0,0,0,8"/>
@@ -42,6 +55,9 @@
                      FontSize="20" FontWeight="Bold" FontFamily="Bahnschrift" TextAlignment="Center"
                      VerticalContentAlignment="Center" Padding="4,6" CaretBrush="#58A6FF"/>
         </Grid>
+        <CheckBox x:Name="UseCurrentTimeBox" Content="USE CURRENT MATCH TIME" IsChecked="True"
+                  Foreground="#C7D2DF" FontSize="10" FontWeight="Bold" Margin="0,-8,0,16"
+                  Checked="OptionalTiming_Changed" Unchecked="OptionalTiming_Changed"/>
 
         <!-- Team selector -->
         <TextBlock Text="TEAM" Foreground="#8B949E" FontSize="10" FontWeight="Black" Margin="0,0,0,8"/>
@@ -118,11 +134,11 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="DELETE" Click="Delete_Click"
+            <Button x:Name="DeleteButton" Grid.Column="0" Content="DELETE" Click="Delete_Click"
                     Background="#2A1416" Foreground="#F85149" BorderBrush="#6B3A3E" BorderThickness="1"
                     FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand"/>
 
-            <Button Grid.Column="2" Content="SAVE" Click="Save_Click"
+            <Button x:Name="SaveButton" Grid.Column="2" Content="SAVE" Click="Save_Click"
                     Background="#0D2818" Foreground="#3FB950" BorderBrush="#2B6E3F" BorderThickness="1"
                     FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand" IsDefault="True"/>
 

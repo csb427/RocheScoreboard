@@ -22,12 +22,18 @@ namespace Roche_Scoreboard.Views
 {
     public partial class SetupWizard : System.Windows.Controls.UserControl
     {
+        private void ResponsiveScrollHost_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+            => NestedScrollRouting.RoutePreviewMouseWheel(ResponsiveScrollHost, e);
+
         private List<TeamPreset> _presets;
         private string? _homeLogoPath;
         private string? _awayLogoPath;
         private string? _homeVideoPath;
         private string? _awayVideoPath;
         private int _currentStep = 1;
+        private int _stepTransitionVersion;
+        private Storyboard? _stepTransitionStoryboard;
+        private DispatcherTimer? _ambientRestartTimer;
 
         private TeamPreset? _selectedHomePreset;
         private TeamPreset? _selectedAwayPreset;
@@ -351,6 +357,28 @@ namespace Roche_Scoreboard.Views
             _currentStep = step;
 
             FrameworkElement[] panels = [TeamsStepContainer, Step3Panel, Step4Panel];
+            FrameworkElement activePanel = step switch
+            {
+                1 => TeamsStepContainer,
+                2 => Step3Panel,
+                _ => Step4Panel
+            };
+            int transitionVersion = ++_stepTransitionVersion;
+            if (_stepTransitionStoryboard is not null)
+            {
+                try { _stepTransitionStoryboard.Remove(this); } catch { }
+                _stepTransitionStoryboard = null;
+            }
+            FlashOverlay.BeginAnimation(OpacityProperty, null);
+            FlashOverlay.Opacity = 0;
+            foreach (FrameworkElement panel in panels)
+            {
+                panel.BeginAnimation(OpacityProperty, null);
+                panel.Opacity = 1;
+                if (panel.RenderTransform is TranslateTransform existingTranslate)
+                    existingTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+                panel.RenderTransform = null;
+            }
 
             bool forward = step >= previousStep;
             double slideOutX = forward ? -60 : 60;
@@ -381,6 +409,7 @@ namespace Roche_Scoreboard.Views
 
                     fadeOut.Completed += (_, _) =>
                     {
+                        if (transitionVersion != _stepTransitionVersion || ReferenceEquals(fading, activePanel)) return;
                         fading.BeginAnimation(OpacityProperty, null);
                         fading.Visibility = Visibility.Collapsed;
                         fading.Opacity = 1;
@@ -401,13 +430,6 @@ namespace Roche_Scoreboard.Views
                     p.RenderTransform = null;
                 }
             }
-
-            FrameworkElement activePanel = step switch
-            {
-                1 => TeamsStepContainer,
-                2 => Step3Panel,
-                _ => Step4Panel
-            };
 
             if (animate && step != previousStep)
             {
@@ -433,16 +455,29 @@ namespace Roche_Scoreboard.Views
                 Storyboard.SetTarget(slideIn, activePanel);
                 Storyboard.SetTargetProperty(slideIn, new PropertyPath("RenderTransform.(TranslateTransform.X)"));
                 sb.Children.Add(slideIn);
-                sb.Begin();
+                sb.Completed += (_, _) =>
+                {
+                    if (transitionVersion != _stepTransitionVersion) return;
+                    activePanel.BeginAnimation(OpacityProperty, null);
+                    activePanel.Opacity = 1;
+                    activePanel.RenderTransform = null;
+                    if (ReferenceEquals(_stepTransitionStoryboard, sb))
+                        _stepTransitionStoryboard = null;
+                };
+                _stepTransitionStoryboard = sb;
+                sb.Begin(this, HandoffBehavior.SnapshotAndReplace, isControllable: true);
 
                 // Animate step-specific hero content
-                PlayStepEntryAnimation(step);
+                PlayStepEntryAnimation(step, transitionVersion);
 
                 // Flash overlay for dramatic transition
                 var flashIn = new DoubleAnimation(0.08, TimeSpan.FromMilliseconds(80));
                 flashIn.Completed += (_, _) =>
-                    FlashOverlay.BeginAnimation(OpacityProperty,
-                        new DoubleAnimation(0, TimeSpan.FromMilliseconds(300)));
+                {
+                    if (transitionVersion == _stepTransitionVersion)
+                        FlashOverlay.BeginAnimation(OpacityProperty,
+                            new DoubleAnimation(0, TimeSpan.FromMilliseconds(300)));
+                };
                 FlashOverlay.BeginAnimation(OpacityProperty, flashIn);
             }
             else
@@ -462,7 +497,7 @@ namespace Roche_Scoreboard.Views
             UpdateSetupClockSummary();
         }
 
-        private void PlayStepEntryAnimation(int step)
+        private void PlayStepEntryAnimation(int step, int transitionVersion)
         {
             switch (step)
             {
@@ -485,17 +520,20 @@ namespace Roche_Scoreboard.Views
                     Animate(AwayGlow, OpacityProperty, 0.30, 600, delay: 400);
 
                     // Restart ambient glow pulse after entry
-                    var restartTimer = new System.Windows.Threading.DispatcherTimer
+                    _ambientRestartTimer?.Stop();
+                    _ambientRestartTimer = new System.Windows.Threading.DispatcherTimer
                     {
                         Interval = TimeSpan.FromMilliseconds(800)
                     };
-                    restartTimer.Tick += (_, _) =>
+                    _ambientRestartTimer.Tick += (_, _) =>
                     {
-                        restartTimer.Stop();
+                        _ambientRestartTimer?.Stop();
+                        _ambientRestartTimer = null;
+                        if (transitionVersion != _stepTransitionVersion || _currentStep != 1) return;
                         PulseForever(HomeGlow, OpacityProperty, 0.18, 0.40, 2800);
                         PulseForever(AwayGlow, OpacityProperty, 0.18, 0.40, 3100);
                     };
-                    restartTimer.Start();
+                    _ambientRestartTimer.Start();
                     break;
 
                 case 2:
@@ -786,7 +824,7 @@ namespace Roche_Scoreboard.Views
             CountUpCard.BorderBrush = new SolidColorBrush(isCountdown
                 ? (Color)ColorConverter.ConvertFromString("#1A2436")
                 : (Color)ColorConverter.ConvertFromString("#58A6FF"));
-            CountUpCard.BorderThickness = new Thickness(isCountdown ? 1 : 2);
+            CountUpCard.BorderThickness = new Thickness(2);
             CountUpCard.Background = new SolidColorBrush(isCountdown
                 ? (Color)ColorConverter.ConvertFromString("#0A0E14")
                 : (Color)ColorConverter.ConvertFromString("#0A1628"));
@@ -802,7 +840,7 @@ namespace Roche_Scoreboard.Views
             CountdownCard.BorderBrush = new SolidColorBrush(isCountdown
                 ? (Color)ColorConverter.ConvertFromString("#D29922")
                 : (Color)ColorConverter.ConvertFromString("#3A3018"));
-            CountdownCard.BorderThickness = new Thickness(isCountdown ? 2 : 1);
+            CountdownCard.BorderThickness = new Thickness(2);
             CountdownCard.Background = new SolidColorBrush(isCountdown
                 ? (Color)ColorConverter.ConvertFromString("#1A1408")
                 : (Color)ColorConverter.ConvertFromString("#0E0C08"));
@@ -904,7 +942,7 @@ namespace Roche_Scoreboard.Views
 
             ControlPanelCountdownOptionCard.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#12253A" : "#151E29"));
             ControlPanelCountdownOptionCard.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#6CB6FF" : "#4D637C"));
-            ControlPanelCountdownOptionCard.BorderThickness = new Thickness(isEnabled ? 2 : 1);
+            ControlPanelCountdownOptionCard.BorderThickness = new Thickness(2);
 
             if (ControlPanelCountdownToggleTrack?.Background is not SolidColorBrush trackBrush)
             {
@@ -1011,7 +1049,7 @@ namespace Roche_Scoreboard.Views
             FinalsCard.BorderBrush = new SolidColorBrush(on
                 ? (Color)ColorConverter.ConvertFromString("#D4A017")
                 : (Color)ColorConverter.ConvertFromString("#2A2020"));
-            FinalsCard.BorderThickness = new Thickness(on ? 2 : 1);
+            FinalsCard.BorderThickness = new Thickness(2);
             FinalsCard.Background = new SolidColorBrush(on
                 ? (Color)ColorConverter.ConvertFromString("#1A1408")
                 : (Color)ColorConverter.ConvertFromString("#0A0806"));
@@ -1083,16 +1121,14 @@ namespace Roche_Scoreboard.Views
 
         private static void PickColor(TextBox box, Border preview)
         {
-            var dlg = new WinForms.ColorDialog { FullOpen = true, AnyColor = true };
+            Color initial = Colors.White;
             try
             {
-                var wpf = (Color)ColorConverter.ConvertFromString(box.Text);
-                dlg.Color = DrawingColor.FromArgb(wpf.R, wpf.G, wpf.B);
+                initial = (Color)ColorConverter.ConvertFromString(box.Text);
             }
             catch { /* ignore */ }
 
-            if (dlg.ShowDialog() != WinForms.DialogResult.OK) return;
-            var c = dlg.Color;
+            if (!ColorPickerWindow.TryPick(Window.GetWindow(box), initial, out Color c)) return;
             string hex = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
             box.Text = hex;
             TrySetPreview(preview, hex);
@@ -1103,6 +1139,7 @@ namespace Roche_Scoreboard.Views
             var picked = EyeDropper.Pick();
             if (picked == null) return;
             var c = picked.Value;
+            RecentColorStorage.Record(c);
             string hex = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
             box.Text = hex;
             TrySetPreview(preview, hex);
@@ -1270,19 +1307,11 @@ namespace Roche_Scoreboard.Views
 
         private static bool TryPickColor(DrawingColor initial, out DrawingColor picked)
         {
-            using var dlg = new WinForms.ColorDialog
-            {
-                FullOpen = true,
-                AnyColor = true,
-                Color = initial
-            };
-            if (dlg.ShowDialog() == WinForms.DialogResult.OK)
-            {
-                picked = dlg.Color;
-                return true;
-            }
-            picked = initial;
-            return false;
+            Color mediaInitial = Color.FromRgb(initial.R, initial.G, initial.B);
+            bool accepted = ColorPickerWindow.TryPick(System.Windows.Application.Current?.MainWindow,
+                mediaInitial, out Color mediaPicked);
+            picked = accepted ? DrawingColor.FromArgb(mediaPicked.R, mediaPicked.G, mediaPicked.B) : initial;
+            return accepted;
         }
 
         // ═══════════════════════════════════════════════════════
@@ -1447,7 +1476,7 @@ namespace Roche_Scoreboard.Views
                     BorderBrush = isSelected
                         ? new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E))
                         : new SolidColorBrush(Color.FromArgb(0x66, 0xFF, 0xFF, 0xFF)),
-                    BorderThickness = isSelected ? new Thickness(2) : new Thickness(1),
+                    BorderThickness = new Thickness(2),
                     RenderTransformOrigin = new System.Windows.Point(0.5, 0.5),
                     RenderTransform = tileTransformGroup,
                     Background = new LinearGradientBrush(

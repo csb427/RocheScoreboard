@@ -47,11 +47,9 @@ internal static class WindowLayoutStorage
     private static Dictionary<string, WindowLayout> Load()
     {
         string path = GetStoragePath();
-        if (!File.Exists(path)) return new();
         try
         {
-            string json = File.ReadAllText(path);
-            var data = JsonSerializer.Deserialize<Dictionary<string, WindowLayout>>(json, JsonOptions);
+            var data = AtomicFile.TryReadJson<Dictionary<string, WindowLayout>>(path, JsonOptions);
             return data ?? new();
         }
         catch
@@ -65,7 +63,7 @@ internal static class WindowLayoutStorage
         try
         {
             string json = JsonSerializer.Serialize(data, JsonOptions);
-            File.WriteAllText(GetStoragePath(), json);
+            AtomicFile.WriteAllText(GetStoragePath(), json);
         }
         catch
         {

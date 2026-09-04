@@ -14,7 +14,11 @@ namespace Roche_Scoreboard.Services;
 internal static class GameStateService
 {
     private static readonly string StateFilePath = Path.Combine(
-        AppContext.BaseDirectory, "game_state.json");
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Roche_Scoreboard",
+        "game_state.json");
+    private static readonly string BackupFilePath = StateFilePath + ".bak";
+    private static readonly string LegacyStateFilePath = Path.Combine(AppContext.BaseDirectory, "game_state.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -28,14 +32,42 @@ internal static class GameStateService
     /// </summary>
     internal static void Save(GameState state)
     {
+        string temporaryPath = StateFilePath + ".tmp";
         try
         {
+            state.SavedAtUtc = DateTimeOffset.UtcNow;
+            Directory.CreateDirectory(Path.GetDirectoryName(StateFilePath)!);
             string json = JsonSerializer.Serialize(state, JsonOptions);
-            File.WriteAllText(StateFilePath, json);
+            File.WriteAllText(temporaryPath, json);
+
+            if (File.Exists(StateFilePath))
+            {
+                try
+                {
+                    File.Replace(temporaryPath, StateFilePath, BackupFilePath, ignoreMetadataErrors: true);
+                }
+                catch (PlatformNotSupportedException)
+                {
+                    File.Copy(StateFilePath, BackupFilePath, overwrite: true);
+                    File.Move(temporaryPath, StateFilePath, overwrite: true);
+                }
+            }
+            else
+            {
+                File.Move(temporaryPath, StateFilePath);
+            }
         }
         catch
         {
             // Best-effort — don't crash the app for persistence failures
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+            }
+            catch { }
         }
     }
 
@@ -45,18 +77,38 @@ internal static class GameStateService
     /// </summary>
     internal static GameState? Load()
     {
+        GameState? state = TryLoad(StateFilePath);
+        if (state is not null) return state;
+
+        state = TryLoad(BackupFilePath);
+        if (state is not null)
+        {
+            // Repair a corrupt or interrupted primary from its last valid
+            // recovery copy so every subsequent launch does not repeatedly
+            // parse the same damaged file before falling back.
+            Save(state);
+            return state;
+        }
+
+        // Migrate releases that stored the active match beside the executable.
+        state = TryLoad(LegacyStateFilePath);
+        if (state is not null)
+        {
+            Save(state);
+            return state;
+        }
+
+        return null;
+    }
+
+    private static GameState? TryLoad(string path)
+    {
         try
         {
-            if (!File.Exists(StateFilePath))
-                return null;
-
-            string json = File.ReadAllText(StateFilePath);
-            return JsonSerializer.Deserialize<GameState>(json, JsonOptions);
+            if (!File.Exists(path)) return null;
+            return JsonSerializer.Deserialize<GameState>(File.ReadAllText(path), JsonOptions);
         }
-        catch
-        {
-            return null;
-        }
+        catch { return null; }
     }
 
     /// <summary>
@@ -68,6 +120,11 @@ internal static class GameStateService
         {
             if (File.Exists(StateFilePath))
                 File.Delete(StateFilePath);
+            if (File.Exists(BackupFilePath))
+                File.Delete(BackupFilePath);
+            if (!string.Equals(LegacyStateFilePath, StateFilePath, StringComparison.OrdinalIgnoreCase)
+                && File.Exists(LegacyStateFilePath))
+                File.Delete(LegacyStateFilePath);
         }
         catch
         {
@@ -76,7 +133,8 @@ internal static class GameStateService
     }
 
     /// <summary>Returns true if a saved game state file exists.</summary>
-    internal static bool HasSavedState() => File.Exists(StateFilePath);
+    internal static bool HasSavedState() =>
+        File.Exists(StateFilePath) || File.Exists(BackupFilePath) || File.Exists(LegacyStateFilePath);
 }
 
 /// <summary>
@@ -85,6 +143,9 @@ internal static class GameStateService
 internal sealed class GameState
 {
     public string Sport { get; set; } = "afl";
+
+    /// <summary>UTC timestamp of the latest recovery snapshot.</summary>
+    public DateTimeOffset? SavedAtUtc { get; set; }
 
     /// <summary>The match manager's serialisable state (scores, events, clock, quarter).</summary>
     public SerializableState? MatchState { get; set; }

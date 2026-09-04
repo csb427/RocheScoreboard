@@ -17,7 +17,14 @@ internal sealed class OperatorWorkflowPreferencesData
     public int AflQuarterSeconds { get; set; }
     public bool AflControlPanelCountdown { get; set; } = true;
     public string AflGoalAnimation { get; set; } = "broadcast";
+    public int GoalAnimationPreferenceVersion { get; set; }
     public string AflWeatherLocation { get; set; } = "Melbourne, Australia";
+    public bool OutputScreensaverEnabled { get; set; } = true;
+    public string? OutputScreensaverMediaPath { get; set; }
+    public bool AflBreakScreenEnabled { get; set; } = true;
+    public bool AflAutoOverlaysEnabled { get; set; } = true;
+    public int OutputWindowWidth { get; set; } = 386;
+    public int OutputWindowHeight { get; set; } = 193;
     public string? LastHomePresetKey { get; set; }
     public string? LastAwayPresetKey { get; set; }
     public TeamPreset? LastHomeTeam { get; set; }
@@ -67,11 +74,7 @@ internal static class OperatorWorkflowPreferences
         try
         {
             string path = GetStoragePath(createDirectory: false);
-            if (!File.Exists(path))
-                return new OperatorWorkflowPreferencesData();
-
-            string json = File.ReadAllText(path);
-            return Normalize(JsonSerializer.Deserialize<OperatorWorkflowPreferencesData>(json, JsonOptions)
+            return Normalize(AtomicFile.TryReadJson<OperatorWorkflowPreferencesData>(path, JsonOptions)
                 ?? new OperatorWorkflowPreferencesData());
         }
         catch
@@ -85,9 +88,7 @@ internal static class OperatorWorkflowPreferences
         try
         {
             string path = GetStoragePath(createDirectory: true);
-            string temporaryPath = path + ".tmp";
-            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(data, JsonOptions));
-            File.Move(temporaryPath, path, overwrite: true);
+            AtomicFile.WriteAllText(path, JsonSerializer.Serialize(data, JsonOptions));
         }
         catch
         {
@@ -102,8 +103,21 @@ internal static class OperatorWorkflowPreferences
         data.AflWeatherLocation = string.IsNullOrWhiteSpace(data.AflWeatherLocation)
             ? "Melbourne, Australia"
             : data.AflWeatherLocation.Trim();
+        // Versions before this marker could overwrite TV Signal with the
+        // Scoreboard preset during setup/restore. Migrate that polluted value
+        // once; subsequent explicit choices are preserved normally.
+        if (data.GoalAnimationPreferenceVersion < 1)
+        {
+            if (string.Equals(data.AflGoalAnimation, "classic", StringComparison.OrdinalIgnoreCase))
+                data.AflGoalAnimation = "broadcast";
+            data.GoalAnimationPreferenceVersion = 1;
+        }
         data.AflGoalAnimation = NormalizeChoice(data.AflGoalAnimation,
             ["broadcast", "electric", "cinematic", "clean", "classic", "customVideo"], "broadcast");
+        if (!string.IsNullOrWhiteSpace(data.OutputScreensaverMediaPath))
+            data.OutputScreensaverMediaPath = data.OutputScreensaverMediaPath.Trim();
+        data.OutputWindowWidth = Math.Clamp(data.OutputWindowWidth, 200, 7680);
+        data.OutputWindowHeight = Math.Clamp(data.OutputWindowHeight, 100, 4320);
         data.TeamLibraryLeague = NormalizeChoice(data.TeamLibraryLeague,
             ["All leagues", "AFL", "VAFA", "APS", "AGSV"], "All leagues");
         data.TeamLibraryState = NormalizeChoice(data.TeamLibraryState,

@@ -37,6 +37,12 @@ public partial class WeatherScreenControl : UserControl
         _wallClockTimer.Start();
 
         SizeChanged += (_, _) => ApplyResponsiveLayout();
+        Loaded += (_, _) =>
+        {
+            _isDisposed = false;
+            _wallClockTimer.Start();
+            ApplyResponsiveLayout();
+        };
 
         Unloaded += (_, _) => Cleanup();
     }
@@ -50,14 +56,9 @@ public partial class WeatherScreenControl : UserControl
         WeatherTimeText.Visibility = compact
             ? System.Windows.Visibility.Collapsed
             : System.Windows.Visibility.Visible;
-        WeatherStatsPanel.Visibility = compact
-            ? System.Windows.Visibility.Collapsed
-            : WeatherDataPanel.Visibility;
-        WeatherHeroRow.Height = new System.Windows.GridLength(
-            compact ? 1 : 87, System.Windows.GridUnitType.Star);
-        WeatherStatsRow.Height = compact
-            ? new System.Windows.GridLength(0)
-            : new System.Windows.GridLength(42, System.Windows.GridUnitType.Star);
+        WeatherStatsPanel.Visibility = WeatherDataPanel.Visibility;
+        WeatherHeroRow.Height = new System.Windows.GridLength(78, System.Windows.GridUnitType.Star);
+        WeatherStatsRow.Height = new System.Windows.GridLength(51, System.Windows.GridUnitType.Star);
     }
 
     private void OnWallClockTick(object? sender, EventArgs e)
@@ -84,6 +85,9 @@ public partial class WeatherScreenControl : UserControl
         string? homeLogoPath, string? awayLogoPath,
         string? barTitleOverride = null)
     {
+        WeatherTitleRow.Height = new System.Windows.GridLength(0);
+        WeatherBodyRow.Height = new System.Windows.GridLength(149, System.Windows.GridUnitType.Star);
+        WeatherTitlePanel.Visibility = System.Windows.Visibility.Collapsed;
         ArgumentNullException.ThrowIfNull(match);
 
         LocationText.Text = string.IsNullOrWhiteSpace(locationName)

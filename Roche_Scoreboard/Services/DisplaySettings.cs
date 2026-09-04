@@ -39,11 +39,9 @@ internal static class DisplaySettings
     private static SettingsData Load()
     {
         string path = GetStoragePath();
-        if (!File.Exists(path)) return new();
         try
         {
-            string json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<SettingsData>(json, JsonOptions) ?? new();
+            return AtomicFile.TryReadJson<SettingsData>(path, JsonOptions) ?? new();
         }
         catch
         {
@@ -56,7 +54,7 @@ internal static class DisplaySettings
         try
         {
             string json = JsonSerializer.Serialize(data, JsonOptions);
-            File.WriteAllText(GetStoragePath(), json);
+            AtomicFile.WriteAllText(GetStoragePath(), json);
         }
         catch
         {

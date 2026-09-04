@@ -7,14 +7,14 @@
              TextOptions.TextRenderingMode="ClearType"
              TextOptions.TextHintingMode="Fixed">
     <Grid Background="#070B11" ClipToBounds="True">
-        <Grid.RowDefinitions><RowDefinition Height="24*"/><RowDefinition Height="125*"/><RowDefinition Height="44*"/></Grid.RowDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="0"/><RowDefinition Height="149*"/><RowDefinition Height="44*"/></Grid.RowDefinitions>
         <Border Grid.RowSpan="3" Opacity="0.23" IsHitTestVisible="False">
             <Border.Background><LinearGradientBrush x:Name="BgGradient" StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#C0441A" Offset="0"/><GradientStop Color="#070B11" Offset="0.32"/><GradientStop Color="#070B11" Offset="0.68"/><GradientStop Color="#1A7A1A" Offset="1"/></LinearGradientBrush></Border.Background>
         </Border>
-        <Border x:Name="BreakTitlePanel" Grid.Row="0" Background="#E80A1018" BorderBrush="#263448" BorderThickness="0,0,0,1">
+        <Border x:Name="BreakTitlePanel" Grid.Row="0" Visibility="Collapsed" Background="#E80A1018" BorderBrush="#263448" BorderThickness="0,0,0,1">
             <Grid Margin="8,0">
-                <TextBlock x:Name="BreakTitleText" Text="QUARTER BY QUARTER" Foreground="White" FontSize="16" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
-                <TextBlock x:Name="BreakTimeText" Text="1:26 PM" Foreground="#D6E3EF" FontSize="14" FontWeight="Black" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock x:Name="BreakTitleText" Text="QUARTER BY QUARTER" Foreground="White" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                <TextBlock x:Name="BreakTimeText" Text="1:26 PM" Foreground="#D6E3EF" FontSize="16" FontWeight="Black" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 <Border VerticalAlignment="Bottom" Height="2" Margin="70,0"><Border.Background><LinearGradientBrush x:Name="TitleAccentGradient" StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#4488FF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.5"/><GradientStop Color="#FF6644" Offset="1"/></LinearGradientBrush></Border.Background></Border>
             </Grid>
         </Border>

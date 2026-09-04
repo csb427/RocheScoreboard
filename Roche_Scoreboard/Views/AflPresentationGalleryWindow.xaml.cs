@@ -21,6 +21,7 @@ public partial class AflPresentationGalleryWindow : Window
     private readonly Dictionary<int, List<FrameworkElement>> _presentationViews = new();
     private readonly List<(string Name, ScorebugControl View)> _scorebugPreviews = new();
     private readonly List<(string Name, ScorebugControl View, Action<ScorebugControl> Refresh)> _overlayPreviews = new();
+    private readonly List<(string Name, QuarterBreakScorebugControl View)> _quarterBreakScorebugPreviews = new();
     private StatsScreenControl? _whitePrimaryStatsPreview;
     private const string HomePrimary = "#FF3338";
     private const string AwayPrimary = "#FACC0D";
@@ -64,6 +65,10 @@ public partial class AflPresentationGalleryWindow : Window
         string halfTimeLabel = QuarterLabelService.GetBreakLabel(2);
         AddScorebugPreview("default-386x193", "DEFAULT 386 × 193", 386, 193);
         AddScorebugPreview("compact-286x193", "COMPACT 286 × 193", 286, 193);
+        AddScorebugPreview("distance-386x193", "DISTANCE 386 × 193", 386, 193,
+            view => view.SetLayout(ScorebugLayout.Distance));
+        AddScorebugPreview("distance-286x193", "DISTANCE 286 × 193", 286, 193,
+            view => view.SetLayout(ScorebugLayout.Distance));
         AddScorebugPreview("finals-386x193", "FINALS 386 × 193", 386, 193,
             view => view.SetFinalsMode(true));
         AddScorebugPreview("finals-286x193", "FINALS 286 × 193", 286, 193,
@@ -88,7 +93,7 @@ public partial class AflPresentationGalleryWindow : Window
             });
 
         AddOverlayPreview("SCORING RUN", view =>
-            view.ShowScoringRun("Xavier", 24, 2, TimeSpan.FromMinutes(6.2), 5, HomePrimary));
+            view.ShowGoalRun("Xavier", 7, 8, consecutive: false, colorHex: HomePrimary));
         AddOverlayPreview("RECENT SCORES", view => view.ShowRecentScores(match.Events, match.Quarter));
         AddOverlayPreview("MATCH STAT", view =>
             view.ShowStatsBar(MatchStats.Calculate(match, match.Quarter, match.ElapsedInQuarter)));
@@ -102,7 +107,17 @@ public partial class AflPresentationGalleryWindow : Window
         }));
         AddOverlayPreview("TEAM DROUGHT", view =>
             view.ShowTeamDrought("Carey", DateTime.Now.AddMinutes(-8.5), AwayPrimary, AwaySecondary));
-        AddOverlayPreview("LAST SCORE", view => view.ShowLastScoreTime());
+        AddOverlayPreview("LONG TEAM DROUGHT", view =>
+        {
+            view.SetTeams("Xavier College Football Club", "XCF", "Carey", "CY");
+            view.ShowTeamDrought("Xavier College Football Club", "XCF", "Goal", TimeSpan.FromMinutes(18), HomePrimary);
+        });
+        // Long legal values exercise the fixed 88:88 width contract instead of
+        // letting the common one-minute case hide compact-output clipping.
+        AddOverlayPreview("LAST SCORE", view =>
+            view.ShowLastEventTime("Score", TimeSpan.FromMinutes(88) + TimeSpan.FromSeconds(58)));
+        AddOverlayPreview("LAST GOAL", view =>
+            view.ShowLastEventTime("Goal", TimeSpan.FromMinutes(9) + TimeSpan.FromSeconds(8)));
         AddOverlayPreview("LEAD CHANGES", view => view.ShowLeadChangesBar(7));
         AddOverlayPreview("FIVE MINUTE WARNING", view => view.ShowFiveMinuteWarning());
         AddOverlayPreview("WHITE PRIMARY STAT", view =>
@@ -132,6 +147,21 @@ public partial class AflPresentationGalleryWindow : Window
             foreach (BreakScreenControl view in breakViews)
                 view.Populate(quarterBreakMatch, 2, HomePrimary, AwayPrimary, HomeSecondary, AwaySecondary, SampleLogoPath, SampleLogoPath, halfTimeLabel);
         };
+
+        foreach ((string name, double width, double height) in new[]
+                 {
+                     ("386x193", 386d, 193d),
+                     ("286x193", 286d, 193d)
+                 })
+        {
+            var quarterScorebug = new QuarterBreakScorebugControl();
+            quarterScorebug.Populate(quarterBreakMatch, 1,
+                HomePrimary, AwayPrimary, HomeSecondary, AwaySecondary,
+                SampleLogoPath, SampleLogoPath,
+                new WeatherSnapshot(22, 20, 14, 27, 0, "☀", "Clear sky", Array.Empty<HourlyForecast>()));
+            _quarterBreakScorebugPreviews.Add((name, quarterScorebug));
+            AddPreview(BreakHost, $"BREAK SCOREBUG {width:0} × {height:0}", quarterScorebug, width, height);
+        }
 
         var wormViews = new List<ScorewormControl>();
         var wormLifecycleViews = new List<FrameworkElement>();
@@ -244,6 +274,21 @@ public partial class AflPresentationGalleryWindow : Window
                 (double gb, double total) = preview.View.GetScoreFontSizesForQa();
                 return $"{preview.Name}: goals/behinds={gb:0.##}px, total={total:0.##}px";
             }));
+        await CaptureGoalAnimationPackagesAsync(outputDirectory);
+        GalleryTabs.SelectedIndex = 2;
+        UpdateLayout();
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+        foreach ((string name, QuarterBreakScorebugControl view) in _quarterBreakScorebugPreviews)
+        {
+            view.UpdateLayout();
+            CaptureElement(view, outputDirectory, "quarter-break-scorebug-" + name);
+        }
+        var screensaver = new OutputScreensaverControl { Width = 386, Height = 193 };
+        screensaver.ShowDefault();
+        screensaver.Measure(new System.Windows.Size(386, 193));
+        screensaver.Arrange(new System.Windows.Rect(0, 0, 386, 193));
+        screensaver.UpdateLayout();
+        CaptureElement(screensaver, outputDirectory, "screensaver-default-386x193");
         ScorebugControl? tickerLock = _scorebugPreviews
             .FirstOrDefault(preview => preview.Name == "ticker-lock-386x193").View;
         if (tickerLock is not null)
@@ -265,7 +310,7 @@ public partial class AflPresentationGalleryWindow : Window
             // capture can legitimately take longer than that timeout.
             view.ResetAllOverlayState();
             refresh(view);
-            await Task.Delay(500);
+            await Task.Delay(1000);
             view.UpdateLayout();
             await Dispatcher.InvokeAsync(view.UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
             CaptureElement(view, outputDirectory, "overlay-" + name);
@@ -276,12 +321,16 @@ public partial class AflPresentationGalleryWindow : Window
                 (double gb, double total) = preview.View.GetScoreFontSizesForQa();
                 (double homeName, double awayName) = preview.View.GetTeamNamePanelHeightsForQa();
                 return $"{preview.Name}: goals/behinds={gb:0.##}px, total={total:0.##}px, " +
-                       $"name-rows={homeName:0.##}/{awayName:0.##}px";
+                       $"name-rows={homeName:0.##}/{awayName:0.##}px; {preview.View.GetOverlayStateDiagnosticsForQa()}";
             }));
         File.WriteAllLines(Path.Combine(outputDirectory, "recent-scores-layout.txt"),
             _overlayPreviews
                 .Where(preview => preview.Name.StartsWith("recent-scores", StringComparison.Ordinal))
                 .Select(preview => $"{preview.Name}: {preview.View.GetRecentScoresDiagnosticsForQa()}"));
+        File.WriteAllLines(Path.Combine(outputDirectory, "goal-run-detector.txt"),
+            RunGoalDetectorChecks());
+        File.WriteAllLines(Path.Combine(outputDirectory, "drought-calculator.txt"),
+            RunDroughtCalculatorChecks());
         if (_whitePrimaryStatsPreview is not null)
         {
             _whitePrimaryStatsPreview.UpdateLayout();
@@ -290,7 +339,11 @@ public partial class AflPresentationGalleryWindow : Window
             CaptureElement(_whitePrimaryStatsPreview, outputDirectory, "match-stats-white-primary-386x193");
         }
         await CaptureScorebugLifecycleStressAsync(outputDirectory);
+        await CaptureDistanceOperationsStressAsync(outputDirectory);
         await CaptureOverlayNamePanelStressAsync(outputDirectory);
+        await CaptureImmediateDroughtSwitchCheckAsync(outputDirectory);
+        await CaptureOverlayHandoffAndTickerCheckAsync(outputDirectory);
+        await CaptureTeamStoryScoreDeferralAsync(outputDirectory);
 
         // Capture the three stateful data presentations again after the same
         // Populate calls production makes during clock ticks and repeated
@@ -338,6 +391,264 @@ public partial class AflPresentationGalleryWindow : Window
             refresh();
             await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Loaded);
             CaptureCurrentWindow(outputDirectory, names[index] + "-quarter-break-repeat");
+        }
+    }
+
+    private static IReadOnlyList<string> RunDroughtCalculatorChecks()
+    {
+        var scoreMatch = new MatchManager();
+        scoreMatch.SetElapsed(TimeSpan.FromMinutes(12));
+        scoreMatch.AddGoal(TeamSide.Home);
+        scoreMatch.SetElapsed(TimeSpan.FromMinutes(18));
+        scoreMatch.EndQuarter();
+        scoreMatch.SetElapsed(TimeSpan.FromMinutes(2));
+
+        AflDroughtSnapshot afterBreak = AflDroughtCalculator.Calculate(scoreMatch);
+        var lines = new List<string>
+        {
+            $"quarter-break-excluded: expected-score=8; actual-score={afterBreak.Match.Elapsed.TotalMinutes:0}; pass={Math.Abs(afterBreak.Match.Elapsed.TotalMinutes - 8) < 0.01}",
+        };
+
+        var behindMatch = new MatchManager();
+        behindMatch.SetElapsed(TimeSpan.FromMinutes(12));
+        behindMatch.AddBehind(TeamSide.Home);
+        behindMatch.SetElapsed(TimeSpan.FromMinutes(18));
+        behindMatch.EndQuarter();
+        behindMatch.SetElapsed(TimeSpan.FromMinutes(2));
+        AflDroughtSnapshot afterBehind = AflDroughtCalculator.Calculate(behindMatch);
+        lines.Add($"goal-story-after-behind: expected=Goal; actual={afterBehind.Match.Kind}; pass={afterBehind.Match.Kind == AflDroughtEventKind.Goal}");
+
+        behindMatch.SetElapsed(TimeSpan.FromMinutes(4));
+        AflDroughtSnapshot tenMinuteScore = AflDroughtCalculator.Calculate(behindMatch);
+        lines.Add($"score-precedence-at-ten: expected=Score/10; actual={tenMinuteScore.Match.Kind}/{tenMinuteScore.Match.Elapsed.TotalMinutes:0}; pass={tenMinuteScore.Match.Kind == AflDroughtEventKind.Score && Math.Abs(tenMinuteScore.Match.Elapsed.TotalMinutes - 10) < 0.01}");
+        return lines;
+    }
+
+    private async Task CaptureImmediateDroughtSwitchCheckAsync(string outputDirectory)
+    {
+        ScorebugControl? view = _overlayPreviews
+            .FirstOrDefault(preview => preview.Name == "team-drought-386x193").View;
+        if (view is null) return;
+
+        GalleryTabs.SelectedIndex = 1;
+        view.ResetAllOverlayState();
+        view.ShowTeamDrought("Xavier", "XAV", "Score", TimeSpan.FromMinutes(11), HomePrimary);
+        await Task.Delay(90);
+        view.ShowTeamDrought("Carey", "CY", "Goal", TimeSpan.FromMinutes(14), AwayPrimary);
+        await Task.Delay(2700);
+        view.UpdateLayout();
+        File.WriteAllText(Path.Combine(outputDirectory, "drought-immediate-switch.txt"),
+            view.GetOverlayStateDiagnosticsForQa());
+        CaptureElement(view, outputDirectory, "overlay-team-drought-immediate-switch-386x193");
+        view.ResetAllOverlayState();
+    }
+
+    private async Task CaptureOverlayHandoffAndTickerCheckAsync(string outputDirectory)
+    {
+        ScorebugControl? handoff = _overlayPreviews
+            .FirstOrDefault(preview => preview.Name == "scoring-run-386x193").View;
+        if (handoff is not null)
+        {
+            handoff.ResetAllOverlayState();
+            handoff.ShowGoalRun("Xavier", 5, 6, false, HomePrimary);
+            await Task.Delay(90);
+            handoff.ShowTeamDrought("Carey", "CY", "Goal", TimeSpan.FromMinutes(12), AwayPrimary);
+            await Task.Delay(90);
+            handoff.ShowFiveMinuteWarning();
+            await Task.Delay(1700);
+            File.WriteAllText(Path.Combine(outputDirectory, "overlay-handoff-stress.txt"),
+                handoff.GetOverlayStateDiagnosticsForQa());
+            CaptureElement(handoff, outputDirectory, "overlay-handoff-final-warning-386x193");
+            handoff.ResetAllOverlayState();
+        }
+
+        ScorebugControl? ticker = _scorebugPreviews
+            .FirstOrDefault(preview => preview.Name == "ticker-lock-386x193").View;
+        if (ticker is null) return;
+        ticker.ResetAllOverlayState();
+        bool tickerBefore = ticker.IsTickerActive;
+        ticker.ShowFiveMinuteWarning();
+        await Task.Delay(1000);
+        bool warningActive = ticker.IsOverlayActive;
+        bool tickerDuring = ticker.IsTickerActive;
+        ticker.HideFiveMinuteWarning();
+        await Task.Delay(1200);
+        File.WriteAllText(Path.Combine(outputDirectory, "warning-ticker-handoff.txt"),
+            $"ticker-before={tickerBefore}{Environment.NewLine}" +
+            $"warning-active={warningActive}{Environment.NewLine}" +
+            $"ticker-during={tickerDuring}{Environment.NewLine}" +
+            $"ticker-restored={ticker.IsTickerActive}{Environment.NewLine}" +
+            $"overlay-after={ticker.IsOverlayActive}{Environment.NewLine}");
+    }
+
+    private async Task CaptureTeamStoryScoreDeferralAsync(string outputDirectory)
+    {
+        ScorebugControl? view = _overlayPreviews
+            .FirstOrDefault(preview => preview.Name == "scoring-run-386x193").View;
+        if (view is null) return;
+
+        view.ResetAllOverlayState();
+        view.ShowGoalRun("Xavier", 6, 7, false, HomePrimary);
+        await Task.Delay(1000);
+        bool featuredDeferred = view.DeferScoreUntilTeamPanelsVisible(scoringTeamIsHome: true, () => { });
+        bool released = false;
+        bool deferred = view.DeferScoreUntilTeamPanelsVisible(scoringTeamIsHome: false, () => released = true);
+        await Task.Delay(350);
+        view.UpdateLayout();
+        CaptureElement(view, outputDirectory, "team-story-score-exit-midpoint-386x193");
+        bool releasedMidTransition = released;
+        await Task.Delay(650);
+        File.WriteAllText(Path.Combine(outputDirectory, "team-story-score-deferral.txt"),
+            $"featured-team-deferred={featuredDeferred}{Environment.NewLine}" +
+            $"deferred={deferred}{Environment.NewLine}" +
+            $"released-mid-transition={releasedMidTransition}{Environment.NewLine}" +
+            $"released-after-exit={released}{Environment.NewLine}" +
+            $"overlay-after-exit={view.IsOverlayActive}{Environment.NewLine}" +
+            view.GetOverlayStateDiagnosticsForQa());
+        CaptureElement(view, outputDirectory, "team-story-score-after-exit-386x193");
+        view.ResetAllOverlayState();
+    }
+
+    private static IReadOnlyList<string> RunGoalDetectorChecks()
+    {
+        static ScoreEvent Event(TeamSide team, ScoreType type, int sequence) => new()
+        {
+            Team = team,
+            Type = type,
+            Quarter = 2,
+            GameTime = TimeSpan.FromMinutes(sequence),
+            Timestamp = new DateTime(2026, 8, 30, 12, 0, 0, DateTimeKind.Utc).AddMinutes(sequence)
+        };
+
+        static string Check(string name, IReadOnlyList<ScoreEvent> events, string expected)
+        {
+            AflGoalRunDetector.Result? result = AflGoalRunDetector.Detect(events, TeamSide.Home);
+            string actual = result is null
+                ? "none"
+                : result.IsConsecutive
+                    ? $"{result.TeamGoals}-straight"
+                    : $"{result.TeamGoals}-of-{result.WindowGoals}";
+            return $"{name}: expected={expected}; actual={actual}; pass={actual == expected}";
+        }
+
+        var checks = new List<string>
+        {
+            Check("below-threshold",
+            [
+                Event(TeamSide.Home, ScoreType.Goal, 1),
+                Event(TeamSide.Home, ScoreType.Goal, 2),
+                Event(TeamSide.Home, ScoreType.Goal, 3)
+            ], "none"),
+            Check("four-straight-ignores-behind",
+            [
+                Event(TeamSide.Home, ScoreType.Goal, 1),
+                Event(TeamSide.Away, ScoreType.Behind, 2),
+                Event(TeamSide.Home, ScoreType.Goal, 3),
+                Event(TeamSide.Home, ScoreType.Goal, 4),
+                Event(TeamSide.Home, ScoreType.Goal, 5)
+            ], "4-straight"),
+            Check("four-of-five",
+            [
+                Event(TeamSide.Home, ScoreType.Goal, 1),
+                Event(TeamSide.Home, ScoreType.Goal, 2),
+                Event(TeamSide.Away, ScoreType.Goal, 3),
+                Event(TeamSide.Home, ScoreType.Goal, 4),
+                Event(TeamSide.Home, ScoreType.Goal, 5)
+            ], "4-of-5"),
+            Check("six-of-seven-over-four-straight",
+            [
+                Event(TeamSide.Home, ScoreType.Goal, 1),
+                Event(TeamSide.Home, ScoreType.Goal, 2),
+                Event(TeamSide.Away, ScoreType.Goal, 3),
+                Event(TeamSide.Home, ScoreType.Goal, 4),
+                Event(TeamSide.Home, ScoreType.Goal, 5),
+                Event(TeamSide.Home, ScoreType.Goal, 6),
+                Event(TeamSide.Home, ScoreType.Goal, 7)
+            ], "6-of-7"),
+            Check("balanced-sequence-rejected",
+            [
+                Event(TeamSide.Home, ScoreType.Goal, 1),
+                Event(TeamSide.Home, ScoreType.Goal, 2),
+                Event(TeamSide.Away, ScoreType.Goal, 3),
+                Event(TeamSide.Home, ScoreType.Goal, 4),
+                Event(TeamSide.Away, ScoreType.Goal, 5),
+                Event(TeamSide.Home, ScoreType.Goal, 6)
+            ], "none")
+        };
+
+        AflGoalRunDetector.Result? oneGoal = AflGoalRunDetector.Detect(
+            [Event(TeamSide.Home, ScoreType.Goal, 1)], TeamSide.Home, minimumFeaturedGoals: 1);
+        checks.Add($"manual-one-goal: expected=1-straight; actual={(oneGoal is null ? "none" : $"{oneGoal.TeamGoals}-straight")}; pass={oneGoal?.TeamGoals == 1 && oneGoal.IsConsecutive}");
+        AflGoalRunDetector.Result? twoGoals = AflGoalRunDetector.Detect(
+            [Event(TeamSide.Home, ScoreType.Goal, 1), Event(TeamSide.Home, ScoreType.Goal, 2)],
+            TeamSide.Home, minimumFeaturedGoals: 1);
+        checks.Add($"manual-two-goals: expected=2-straight; actual={(twoGoals is null ? "none" : $"{twoGoals.TeamGoals}-straight")}; pass={twoGoals?.TeamGoals == 2 && twoGoals.IsConsecutive}");
+        AflGoalRunDetector.Result? replyStory = AflGoalRunDetector.DetectBest(
+        [
+            Event(TeamSide.Home, ScoreType.Goal, 1),
+            Event(TeamSide.Home, ScoreType.Goal, 2),
+            Event(TeamSide.Home, ScoreType.Goal, 3),
+            Event(TeamSide.Home, ScoreType.Goal, 4),
+            Event(TeamSide.Away, ScoreType.Goal, 5)
+        ]);
+        checks.Add($"run-survives-one-opposition-reply: expected=home-4-of-5; actual={(replyStory is null ? "none" : $"{replyStory.Team}-{replyStory.TeamGoals}-of-{replyStory.WindowGoals}")}; pass={replyStory is { Team: TeamSide.Home, TeamGoals: 4, WindowGoals: 5, IsConsecutive: false }}");
+
+        int combinations = 0;
+        int failures = 0;
+        int bestStoryFailures = 0;
+        for (int length = 1; length <= 12; length++)
+        {
+            int limit = 1 << length;
+            for (int mask = 0; mask < limit; mask++)
+            {
+                var sequence = new List<ScoreEvent>(length);
+                for (int index = 0; index < length; index++)
+                {
+                    TeamSide team = (mask & (1 << index)) != 0 ? TeamSide.Home : TeamSide.Away;
+                    ScoreEvent score = Event(team, ScoreType.Goal, index + 1);
+                    sequence.Add(new ScoreEvent
+                    {
+                        Team = score.Team,
+                        Type = score.Type,
+                        Quarter = index < length / 2 ? 1 : 2,
+                        GameTime = TimeSpan.FromMinutes((index % Math.Max(1, length / 2)) + 1),
+                        Timestamp = score.Timestamp
+                    });
+                }
+
+                bool expected = Qualifies(sequence, TeamSide.Home, requireLatest: true);
+                bool actual = AflGoalRunDetector.Detect(sequence, TeamSide.Home) is not null;
+                bool expectedBest = Qualifies(sequence, TeamSide.Home, requireLatest: false)
+                                    || Qualifies(sequence, TeamSide.Away, requireLatest: false);
+                bool actualBest = AflGoalRunDetector.DetectBest(sequence) is not null;
+                combinations++;
+                if (expected != actual) failures++;
+                if (expectedBest != actualBest) bestStoryFailures++;
+            }
+        }
+        checks.Add($"exhaustive-binary-sequences-through-12-goals: combinations={combinations}; failures={failures}; pass={failures == 0}");
+        checks.Add($"exhaustive-best-story-through-12-goals: combinations={combinations}; failures={bestStoryFailures}; pass={bestStoryFailures == 0}");
+        return checks;
+
+        static bool Qualifies(IReadOnlyList<ScoreEvent> goals, TeamSide team, bool requireLatest)
+        {
+            if (goals.Count == 0 || (requireLatest && goals[^1].Team != team)) return false;
+            int straight = 0;
+            for (int index = goals.Count - 1; index >= 0 && goals[index].Team == team; index--)
+                straight++;
+            if (straight >= 4) return true;
+
+            for (int start = 0; start < goals.Count; start++)
+            {
+                int window = goals.Count - start;
+                int home = 0;
+                for (int index = start; index < goals.Count; index++)
+                    if (goals[index].Team == team) home++;
+                int away = window - home;
+                if (home >= 4 && away >= 1 && (double)home / window >= 0.75)
+                    return true;
+            }
+            return false;
         }
     }
 
@@ -458,6 +769,117 @@ public partial class AflPresentationGalleryWindow : Window
         await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
         await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
         CaptureElement(view, outputDirectory, "scorebug-responsive-after");
+    }
+
+    private async Task CaptureDistanceOperationsStressAsync(string outputDirectory)
+    {
+        ScorebugControl? view = _scorebugPreviews
+            .FirstOrDefault(preview => preview.Name == "distance-386x193").View;
+        if (view is null) return;
+
+        GalleryTabs.SelectedIndex = 0;
+        view.Visibility = Visibility.Visible;
+        view.ResetAllOverlayState();
+        for (int cycle = 0; cycle < 12; cycle++)
+        {
+            view.SetLayout(cycle % 2 == 0 ? ScorebugLayout.Expanded : ScorebugLayout.Distance);
+            view.SetTeams($"Home Club {cycle}", "HOM", $"Away Club {cycle}", "AWA");
+            view.SetScores(cycle, cycle + 1, cycle + 2, cycle + 3);
+            view.SetQuarter((cycle % 4) + 1);
+            view.SetClock($"{cycle:D2}:{(cycle * 7) % 60:D2}");
+            view.SetHideTeamNames(cycle % 3 == 0);
+            view.SetFinalsMode(cycle % 4 == 0);
+            await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+        }
+
+        view.SetLayout(ScorebugLayout.Distance);
+        view.SetTeams("University Football Club", "UFC", "Old Collegians Football Club", "OCF");
+        view.SetScores(88, 88, 87, 89);
+        view.SetQuarter(4);
+        view.SetClock("19:59");
+        view.SetHideTeamNames(false);
+        view.SetFinalsMode(true);
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+        CaptureElement(view, outputDirectory, "scorebug-distance-finals-operations-386x193");
+
+        view.SetFinalsMode(false);
+        view.AnimateQuarterToBreakLabel(4);
+        await Task.Delay(650);
+        view.SetQuarter(4);
+        view.ShowStatsBar(MatchStats.Calculate(BuildRepresentativeMatch(), 4, TimeSpan.FromMinutes(19)));
+        await Task.Delay(950);
+        string overlayState = view.GetCoreStateDiagnosticsForQa();
+        view.ResetAllOverlayState();
+
+        view.PlayScoreAnimation(true, true, 89, 88, 622);
+        await Task.Delay(700);
+        string scoreAnimationState = view.GetCoreStateDiagnosticsForQa();
+        await Task.Delay(3000);
+
+        string unsafeMessage = new string('X', 180) + "\r\nSECOND LINE";
+        view.SetMarqueeMessages(new[]
+        {
+            new MarqueeMessage(unsafeMessage, "not-a-colour", "#3300FF00", isEnabled: true)
+        });
+        await Task.Delay(250);
+        bool tickerBeforeWarning = view.IsTickerActive;
+        view.ShowFiveMinuteWarning();
+        await Task.Delay(1000);
+        bool warningActive = view.IsOverlayActive;
+        bool tickerDuringWarning = view.IsTickerActive;
+        view.HideFiveMinuteWarning();
+        await Task.Delay(1200);
+        bool tickerRestored = view.IsTickerActive;
+        string finalState = view.GetCoreStateDiagnosticsForQa();
+
+        File.WriteAllText(Path.Combine(outputDirectory, "distance-operations-stress.txt"),
+            $"cycles=12{Environment.NewLine}" +
+            $"overlay-state={overlayState}{Environment.NewLine}" +
+            $"score-animation-state={scoreAnimationState}{Environment.NewLine}" +
+            $"ticker-before-warning={tickerBeforeWarning}{Environment.NewLine}" +
+            $"warning-active={warningActive}{Environment.NewLine}" +
+            $"ticker-during-warning={tickerDuringWarning}{Environment.NewLine}" +
+            $"ticker-restored={tickerRestored}{Environment.NewLine}" +
+            $"final-state={finalState}{Environment.NewLine}" +
+            $"pass={view.CurrentLayout == ScorebugLayout.Distance && tickerBeforeWarning && warningActive && !tickerDuringWarning && tickerRestored}");
+
+        view.SetMarqueeMessages(Array.Empty<MarqueeMessage>());
+        view.ResetAllOverlayState();
+    }
+
+    private async Task CaptureGoalAnimationPackagesAsync(string outputDirectory)
+    {
+        if (_scorebugPreviews.Count == 0) return;
+
+        GalleryTabs.SelectedIndex = 0;
+        ScorebugControl view = _scorebugPreviews[0].View;
+        view.Visibility = Visibility.Visible;
+        view.ResetAllOverlayState();
+        view.SetScores(18, 12, 17, 11);
+        await Dispatcher.InvokeAsync(UpdateLayout, System.Windows.Threading.DispatcherPriority.Render);
+
+        foreach ((GoalAnimationStyle style, string name, int sampleMilliseconds) in new[]
+                 {
+                     (GoalAnimationStyle.Broadcast, "tv-signal", 500),
+                     (GoalAnimationStyle.Electric, "voltage", 500),
+                     (GoalAnimationStyle.Cinematic, "club-cinema", 1200),
+                     (GoalAnimationStyle.Clean, "clean-impact", 300),
+                     (GoalAnimationStyle.Classic, "flipboard", 500)
+                 })
+        {
+            view.SetGoalAnimationStyle(style);
+            view.PlayScoreAnimation(true, true, 19, 12, 126);
+            await Task.Delay(sampleMilliseconds);
+            view.UpdateLayout();
+            CaptureElement(view, outputDirectory, "goal-animation-" + name + "-386x193");
+            view.SetScores(18, 12, 17, 11);
+        }
+
+        // Allow the final package's completion guard to settle so subsequent
+        // lifecycle captures always begin from an animation-free surface.
+        await Task.Delay(2200);
+        view.SetGoalAnimationStyle(GoalAnimationStyle.Broadcast);
+        view.SetScores(18, 12, 17, 11);
     }
 
     private async Task CaptureOverlayNamePanelStressAsync(string outputDirectory)

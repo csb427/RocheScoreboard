@@ -118,19 +118,19 @@
                     <GradientStop Color="#000000" Offset="1.0"/>
                 </LinearGradientBrush>
             </Grid.Background>
-            <Grid Margin="3,1">
-                <Grid.RowDefinitions>
-                    <RowDefinition x:Name="CenterQuarterRow" Height="0.72*"/>
-                    <RowDefinition x:Name="CenterTimerRow" Height="1.28*"/>
-                </Grid.RowDefinitions>
-                <Viewbox Stretch="Uniform" StretchDirection="Both" Margin="3,1">
-                    <TextBlock x:Name="QuarterText" Text="Q1" Foreground="White"
-                               FontFamily="Arial" FontSize="36" FontWeight="Black"
+            <Grid Margin="3,2">
+                <Grid x:Name="LiveCenterPanel">
+                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="3,1">
+                        <TextBlock x:Name="LiveCenterText" Text="Q1 14′" Foreground="White"
+                                   FontFamily="Arial Black" FontSize="31" FontWeight="Black"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+                    </Viewbox>
+                </Grid>
+                <Viewbox x:Name="BreakCenterPanel" Visibility="Collapsed" Stretch="Uniform" StretchDirection="Both" Margin="2,0">
+                    <TextBlock x:Name="BreakCenterText" Text="QT" Foreground="White"
+                               FontFamily="Arial Black" FontSize="38" FontWeight="Black"
                                HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
                 </Viewbox>
-                <TextBlock x:Name="TimerText" Grid.Row="1" Text="14:37" Foreground="White"
-                           FontFamily="Arial" FontSize="20" FontWeight="Black"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
             </Grid>
         </Grid>
 

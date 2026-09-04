@@ -35,12 +35,7 @@ public static class PresetStorage
     {
         try
         {
-            if (!File.Exists(path))
-                return new List<TeamPreset>();
-
-            string json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<List<TeamPreset>>(json, Options)
-                   ?? new List<TeamPreset>();
+            return AtomicFile.TryReadJson<List<TeamPreset>>(path, Options) ?? new List<TeamPreset>();
         }
         catch (JsonException ex)
         {
@@ -58,11 +53,7 @@ public static class PresetStorage
     {
         try
         {
-            if (!File.Exists(path))
-                return new List<TeamPreset>();
-
-            string json = await File.ReadAllTextAsync(path).ConfigureAwait(false);
-            return JsonSerializer.Deserialize<List<TeamPreset>>(json, Options)
+            return await AtomicFile.TryReadJsonAsync<List<TeamPreset>>(path, Options).ConfigureAwait(false)
                    ?? new List<TeamPreset>();
         }
         catch (JsonException ex)
@@ -83,7 +74,7 @@ public static class PresetStorage
         try
         {
             string json = JsonSerializer.Serialize(presets, Options);
-            File.WriteAllText(path, json);
+            AtomicFile.WriteAllText(path, json);
         }
         catch (JsonException ex)
         {
@@ -101,7 +92,7 @@ public static class PresetStorage
         try
         {
             string json = JsonSerializer.Serialize(presets, Options);
-            await File.WriteAllTextAsync(path, json).ConfigureAwait(false);
+            await AtomicFile.WriteAllTextAsync(path, json).ConfigureAwait(false);
         }
         catch (JsonException ex)
         {

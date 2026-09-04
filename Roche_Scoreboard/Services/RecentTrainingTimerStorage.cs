@@ -39,9 +39,7 @@ public static class RecentTrainingTimerStorage
         try
         {
             string path = GetPath();
-            if (!File.Exists(path)) return new List<Entry>();
-            string json = File.ReadAllText(path);
-            var entries = JsonSerializer.Deserialize<List<Entry>>(json, Options) ?? new List<Entry>();
+            var entries = AtomicFile.TryReadJson<List<Entry>>(path, Options) ?? new List<Entry>();
             return entries
                 .Where(e => e.Seconds > 0)
                 .Select(e => new Entry
@@ -65,7 +63,7 @@ public static class RecentTrainingTimerStorage
     {
         try
         {
-            File.WriteAllText(GetPath(), JsonSerializer.Serialize(entries, Options));
+            AtomicFile.WriteAllText(GetPath(), JsonSerializer.Serialize(entries, Options));
         }
         catch (IOException ex)
         {

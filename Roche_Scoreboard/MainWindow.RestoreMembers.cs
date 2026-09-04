@@ -23,41 +23,14 @@ public partial class MainWindow
     // ── Scoring run auto-detection ──
 
     private TeamSide _lastShownRunTeam;
-    private int _lastShownRunMargin;
+    private int _lastShownRunGoalCount;
     private TimeSpan _lastShownRunMatchClock = TimeSpan.MinValue; // match-clock position when last shown
-    private RunTier _lastShownRunTier = RunTier.None;
-    private DateTime _lastShownRunStartTimestamp = DateTime.MinValue;
-    // Per-team cooldown is generous (a re-show needs the run to grow), but
-    // when momentum flips to the OTHER team a much shorter cross-team cooldown
-    // applies — a momentum swap is itself the story.
-    private static readonly TimeSpan RunCooldown = TimeSpan.FromMinutes(5);
-    // Same-team escalation — to re-show inside the cooldown the run must have
-    // grown by at least this many points (2 goals) AND maintained dominance.
-    private const int RunSameTeamGrowthPoints = 12;
-
-    /// <summary>
-    /// Identifies which scoring-run tier qualified a result. Used by the
-    /// caller to rank competing runs and decide whether a re-show is
-    /// warranted (a tier escalation overrides the same-team cooldown).
-    /// Ordered so higher numeric value = more significant run.
-    /// </summary>
-    private enum RunTier
-    {
-        None = 0,
-        Burst = 1,
-        Standard = 2,
-        Sustained = 3,
-        Major = 4,
-        Mega = 5
-    }
-
-    // AFL-specific scoring-run model. A run is an observable dominant scoring
-    // stretch, not a claim that an unmeasured psychological momentum variable
-    // exists. Every possible suffix beginning with the featured team's score
-    // is evaluated, but only inside the current quarter: the quarter break is
-    // a real interruption and must terminate the broadcast story.
-    private static readonly TimeSpan RunMaxTimeWindow = TimeSpan.FromMinutes(20);
+    private DateTime _lastShownRunEndTimestamp = DateTime.MinValue;
+    private static readonly TimeSpan RunCooldown = TimeSpan.FromMinutes(3);
     private static readonly TimeSpan RunNewStoryCooldown = TimeSpan.FromSeconds(75);
+    private static readonly TimeSpan DroughtOverlayCooldown = TimeSpan.FromMinutes(1);
+    private DateTime _nextDroughtOverlayAllowedAtUtc = DateTime.MinValue;
+    private readonly Dictionary<string, int> _shownDroughtMilestones = new();
     private int _previousLeadChanges;
     private const int LeadChangeOverlayThreshold = 1;
     private const int LeadChangeMinTotal = 5;
@@ -66,6 +39,20 @@ public partial class MainWindow
     // lead-change count is misleading — suppress the overlay in that case.
     private const int LeadChangeMaxCurrentMargin = 24;
     private DateTime _deferScorePushUntilUtc = DateTime.MinValue;
+
+    private void UpdateControlPanelViewportConstraints(System.Windows.Size windowSize)
+    {
+        if (MatchLogPanel is null) return;
+
+        // MainContent is hosted by an outer ScrollViewer and is therefore
+        // measured with unlimited height. Explicitly cap the log to the live
+        // viewport so event cards scroll inside the log rather than increasing
+        // the desired height of the entire control panel.
+        MatchLogPanel.MaxHeight = CalculateMatchLogPanelMaxHeight(windowSize.Height);
+    }
+
+    internal static double CalculateMatchLogPanelMaxHeight(double windowHeight)
+        => Math.Max(180, double.IsFinite(windowHeight) ? windowHeight - 310 : 180);
 
     // ── Score-animation completion gating ──
     //
@@ -80,6 +67,10 @@ public partial class MainWindow
     // in the order they were entered instead of stomping each other.
     private int _activeScoreAnimations;
     private readonly Queue<Action> _pendingScoreAnimations = new();
+    private const int MaxPendingScoreAnimations = 6;
+    private DispatcherTimer? _scoreAnimationWatchdog;
+    private int _scoreAnimationGeneration;
+    private int _activeScoreAnimationToken;
 
     // ── Auto overlay delay
     private static readonly TimeSpan AutoOverlayDelay = TimeSpan.FromSeconds(2);
@@ -89,12 +80,46 @@ public partial class MainWindow
     // like a follow-up commentary graphic rather than an interruption.
     private static readonly TimeSpan ScoringRunOverlayDelay = TimeSpan.FromSeconds(2);
     private DispatcherTimer? _autoOverlayDelayTimer;
+    private Action? _autoOverlayDelayCancellation;
     private DispatcherTimer? _scoringRunDelayTimer;
     private DispatcherTimer? _breakScreenDelayTimer;
 
     // ── Overlay queue — ensures each overlay gets its full display time ──
-    private readonly Queue<(Action Show, bool AllowWhenClockStopped)> _overlayQueue = new();
+    private readonly Queue<(Action Show, bool AllowWhenClockStopped, Action? Cancel)> _overlayQueue = new();
     private bool _overlayQueueWired;
+    private bool _periodicOverlayReserved;
+    private int _overlayQueueGeneration;
+
+    private void CancelQueuedOverlays()
+    {
+        // Also invalidates an item already dequeued into the inter-overlay gap
+        // timer. Clearing only the Queue was not enough: that captured item
+        // could otherwise appear after a quarter transition or match reset.
+        _overlayQueueGeneration++;
+        while (_overlayQueue.Count > 0)
+            _overlayQueue.Dequeue().Cancel?.Invoke();
+    }
+
+    private void QueueOverlay(Action showAction, bool isPriority, Action? onCancelled)
+    {
+        var item = (Show: showAction, AllowWhenClockStopped: isPriority, Cancel: onCancelled);
+        if (!isPriority || _overlayQueue.Count == 0)
+        {
+            _overlayQueue.Enqueue(item);
+            return;
+        }
+
+        // Keep existing event-driven stories in their original order, but put
+        // a new event-driven story ahead of weather/stats cards already waiting.
+        // Live match events should never become stale behind scheduled content.
+        var pending = _overlayQueue.ToArray();
+        _overlayQueue.Clear();
+        foreach (var queued in pending.Where(entry => entry.AllowWhenClockStopped))
+            _overlayQueue.Enqueue(queued);
+        _overlayQueue.Enqueue(item);
+        foreach (var queued in pending.Where(entry => !entry.AllowWhenClockStopped))
+            _overlayQueue.Enqueue(queued);
+    }
 
     /// <summary>
     /// Wires the <see cref="ScorebugControl.OverlayHidden"/> event so queued
@@ -119,6 +144,7 @@ public partial class MainWindow
         if (_overlayQueue.Count == 0) return;
 
         var next = _overlayQueue.Dequeue();
+        int queueGeneration = _overlayQueueGeneration;
 
         // Solid cooldown between consecutive overlays so the operator (and the
         // viewer) gets a clear beat of scorebug-only between them.
@@ -126,7 +152,16 @@ public partial class MainWindow
         gap.Tick += (_, _) =>
         {
             gap.Stop();
-            if (_scorebug == null) return;
+            if (queueGeneration != _overlayQueueGeneration)
+            {
+                next.Cancel?.Invoke();
+                return;
+            }
+            if (_scorebug == null)
+            {
+                next.Cancel?.Invoke();
+                return;
+            }
 
             // Wait for score animations to finish before showing
             if (_scorebug.IsScoreAnimating)
@@ -134,10 +169,20 @@ public partial class MainWindow
                 DispatcherTimer poll = new() { Interval = TimeSpan.FromMilliseconds(200) };
                 poll.Tick += (_, _) =>
                 {
+                    if (queueGeneration != _overlayQueueGeneration)
+                    {
+                        poll.Stop();
+                        next.Cancel?.Invoke();
+                        return;
+                    }
                     if (_scorebug == null || !_scorebug.IsScoreAnimating)
                     {
                         poll.Stop();
-                        if (!_autoOverlaysEnabled || (!next.AllowWhenClockStopped && !_match.ClockRunning)) return;
+                        if (!_autoOverlaysEnabled || (!next.AllowWhenClockStopped && !_match.ClockRunning))
+                        {
+                            next.Cancel?.Invoke();
+                            return;
+                        }
                         next.Show();
                     }
                 };
@@ -145,7 +190,11 @@ public partial class MainWindow
             }
             else
             {
-                if (!_autoOverlaysEnabled || (!next.AllowWhenClockStopped && !_match.ClockRunning)) return;
+                if (!_autoOverlaysEnabled || (!next.AllowWhenClockStopped && !_match.ClockRunning))
+                {
+                    next.Cancel?.Invoke();
+                    return;
+                }
                 next.Show();
             }
         };
@@ -168,17 +217,29 @@ public partial class MainWindow
     /// The overlay still waits politely if another overlay is currently showing.
     /// </para>
     /// </summary>
-    private void EnqueueAutoOverlay(Action showAction, bool isPriority = false)
+    private void EnqueueAutoOverlay(Action showAction, bool isPriority = false, Action? onCancelled = null)
     {
-        if (!_autoOverlaysEnabled) return;
-        if (_scorebug?.IsTickerActive == true) return;
+        if (!_autoOverlaysEnabled)
+        {
+            onCancelled?.Invoke();
+            return;
+        }
+        if (_scorebug?.IsTickerActive == true)
+        {
+            onCancelled?.Invoke();
+            return;
+        }
 
         // Suppress informational (non-priority) overlays while the clock isn't
         // running. This catches the "continuance" case where the operator has
         // paused the clock between plays — we never want a stat/weather/recent
         // overlay to drop in then. Priority (event-driven) overlays still go
         // through so things like a goal celebration aren't lost.
-        if (!isPriority && !_match.ClockRunning) return;
+        if (!isPriority && !_match.ClockRunning)
+        {
+            onCancelled?.Invoke();
+            return;
+        }
 
         EnsureOverlayQueueWired();
 
@@ -197,12 +258,12 @@ public partial class MainWindow
                 // the new one to start now. Reset the cooldown gate and run
                 // the standard short delay so the goal animation can settle.
                 _nextOverlayAllowedAtUtc = DateTime.MinValue;
-                _overlayQueue.Clear();
-                ScheduleAutoOverlay(showAction, allowWhenClockStopped: true);
+                CancelQueuedOverlays();
+                ScheduleAutoOverlay(showAction, allowWhenClockStopped: true, onCancelled);
                 return;
             }
 
-            _overlayQueue.Enqueue((showAction, isPriority));
+            QueueOverlay(showAction, isPriority, onCancelled);
             return;
         }
 
@@ -214,7 +275,7 @@ public partial class MainWindow
         DateTime now = DateTime.UtcNow;
         if (!isPriority && now < _nextOverlayAllowedAtUtc)
         {
-            _overlayQueue.Enqueue((showAction, false));
+            QueueOverlay(showAction, isPriority: false, onCancelled);
             TimeSpan remaining = _nextOverlayAllowedAtUtc - now;
             DispatcherTimer wait = new() { Interval = remaining };
             wait.Tick += (_, _) =>
@@ -229,7 +290,7 @@ public partial class MainWindow
         }
 
         // Nothing active — show after the standard delay
-        ScheduleAutoOverlay(showAction, allowWhenClockStopped: isPriority);
+        ScheduleAutoOverlay(showAction, allowWhenClockStopped: isPriority, onCancelled);
     }
 
     /// <summary>
@@ -244,7 +305,8 @@ public partial class MainWindow
         TimeSpan delay,
         Func<DispatcherTimer?> getTimer,
         Action<DispatcherTimer?> setTimer,
-        bool allowWhenClockStopped = false)
+        bool allowWhenClockStopped = false,
+        Action? onCancelled = null)
     {
         getTimer()?.Stop();
         DispatcherTimer timer = new() { Interval = delay };
@@ -272,11 +334,27 @@ public partial class MainWindow
                     if (!ShouldKeepWaiting())
                     {
                         poll.Stop();
-                        setTimer(null);
-                        // Final pause check — the clock may have stopped while
-                        // we were waiting for the score animation/video/overlay.
-                        if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning)) return;
-                        showAction();
+                        // Give the restored scorebug one stable visual beat
+                        // before an automatic overlay starts. Starting on the
+                        // exact poll tick that the prior animation ended caused
+                        // the abrupt handoff not seen with manual activation.
+                        DispatcherTimer settle = new() { Interval = TimeSpan.FromMilliseconds(360) };
+                        setTimer(settle);
+                        settle.Tick += (_, _) =>
+                        {
+                            if (ShouldKeepWaiting())
+                                return;
+
+                            settle.Stop();
+                            setTimer(null);
+                            if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning))
+                            {
+                                onCancelled?.Invoke();
+                                return;
+                            }
+                            showAction();
+                        };
+                        settle.Start();
                     }
                 };
                 poll.Start();
@@ -284,7 +362,11 @@ public partial class MainWindow
             else
             {
                 setTimer(null);
-                if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning)) return;
+                if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning))
+                {
+                    onCancelled?.Invoke();
+                    return;
+                }
                 showAction();
             }
         };
@@ -292,11 +374,21 @@ public partial class MainWindow
     }
 
     /// <summary>Schedules an auto overlay with the default 2-second delay.</summary>
-    private void ScheduleAutoOverlay(Action showAction, bool allowWhenClockStopped = false)
+    private void ScheduleAutoOverlay(Action showAction, bool allowWhenClockStopped = false, Action? onCancelled = null)
     {
+        if (_autoOverlayDelayTimer is not null)
+        {
+            _autoOverlayDelayTimer.Stop();
+            _autoOverlayDelayCancellation?.Invoke();
+        }
+        _autoOverlayDelayCancellation = onCancelled;
         ScheduleAutoOverlay(showAction, AutoOverlayDelay,
-            () => _autoOverlayDelayTimer, t => _autoOverlayDelayTimer = t,
-            allowWhenClockStopped);
+            () => _autoOverlayDelayTimer, t =>
+            {
+                _autoOverlayDelayTimer = t;
+                if (t is null) _autoOverlayDelayCancellation = null;
+            },
+            allowWhenClockStopped, onCancelled);
     }
 
     // ── Automatic overlay toggle ──
@@ -305,6 +397,16 @@ public partial class MainWindow
     private void AutoOverlaysToggle_Changed(object sender, RoutedEventArgs e)
     {
         _autoOverlaysEnabled = AutoOverlaysToggle.IsChecked == true;
+        OperatorWorkflowPreferences.Update(data => data.AflAutoOverlaysEnabled = _autoOverlaysEnabled);
+        if (!_autoOverlaysEnabled)
+        {
+            _autoOverlayDelayTimer?.Stop();
+            _autoOverlayDelayTimer = null;
+            _autoOverlayDelayCancellation?.Invoke();
+            _autoOverlayDelayCancellation = null;
+            CancelQueuedOverlays();
+            _periodicOverlayReserved = false;
+        }
         UpdateAutoOverlaysCardVisuals();
     }
 
@@ -322,7 +424,7 @@ public partial class MainWindow
         AutoOverlaysCard.BorderBrush = enabled
             ? new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#3FB950"))
             : new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2A2A40"));
-        AutoOverlaysCard.BorderThickness = enabled ? new Thickness(2) : new Thickness(1);
+        AutoOverlaysCard.BorderThickness = new Thickness(2);
         AutoOverlaysCard.Background = enabled
             ? new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0A1410"))
             : new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0E0E1A"));
@@ -356,7 +458,7 @@ public partial class MainWindow
         SettingsFinalsCard.BorderBrush = new SolidColorBrush(on
             ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
             : (MediaColor)MediaColorConverter.ConvertFromString("#2A2020"));
-        SettingsFinalsCard.BorderThickness = new Thickness(on ? 2 : 1);
+        SettingsFinalsCard.BorderThickness = new Thickness(2);
         SettingsFinalsCard.Background = new SolidColorBrush(on
             ? (MediaColor)MediaColorConverter.ConvertFromString("#1A1408")
             : (MediaColor)MediaColorConverter.ConvertFromString("#0A0806"));
@@ -398,7 +500,7 @@ public partial class MainWindow
         UpdateSettingsHideTeamNamesCardVisuals();
         _scorebug?.SetHideTeamNames(_hideTeamNames);
         _uxPreferences.HideTeamNames = _hideTeamNames;
-        UxPreferences.Save(_uxPreferences);
+        QueueUxPreferencesSave();
         BroadcastWebState();
     }
 
@@ -411,7 +513,7 @@ public partial class MainWindow
         SettingsHideTeamNamesCard.BorderBrush = new SolidColorBrush(on
             ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
             : (MediaColor)MediaColorConverter.ConvertFromString("#1C2030"));
-        SettingsHideTeamNamesCard.BorderThickness = new Thickness(on ? 2 : 1);
+        SettingsHideTeamNamesCard.BorderThickness = new Thickness(2);
         SettingsHideTeamNamesCard.Background = new SolidColorBrush(on
             ? (MediaColor)MediaColorConverter.ConvertFromString("#0A101C")
             : (MediaColor)MediaColorConverter.ConvertFromString("#080A12"));
@@ -447,6 +549,7 @@ public partial class MainWindow
     private void SettingsBreakScreenToggle_Changed(object sender, RoutedEventArgs e)
     {
         _breakScreenEnabled = SettingsBreakScreenToggle.IsChecked == true;
+        OperatorWorkflowPreferences.Update(data => data.AflBreakScreenEnabled = _breakScreenEnabled);
         UpdateSettingsBreakScreenCardVisuals();
     }
 
@@ -511,36 +614,92 @@ public partial class MainWindow
 
     private bool IsScoreAnimationActive => _activeScoreAnimations > 0;
 
-    private void BeginScoreAnimation(TimeSpan worstCaseDuration)
+    private int BeginScoreAnimation(TimeSpan worstCaseDuration)
     {
-        _activeScoreAnimations++;
+        int token = ++_scoreAnimationGeneration;
+        _activeScoreAnimationToken = token;
+        _activeScoreAnimations = 1;
+
+        _scoreAnimationWatchdog?.Stop();
+        _scoreAnimationWatchdog = new DispatcherTimer
+        {
+            // Storyboard and decoder callbacks are the normal completion path.
+            // This is deliberately generous and exists only to recover from a
+            // missing callback, unloaded control, or stalled media pipeline.
+            Interval = worstCaseDuration + TimeSpan.FromSeconds(4)
+        };
+        _scoreAnimationWatchdog.Tick += (_, _) => RecoverTimedOutScoreAnimation(token);
+        _scoreAnimationWatchdog.Start();
+
         if (worstCaseDuration > TimeSpan.Zero)
         {
             _overlayScheduler.NotifyGoalAnimation(worstCaseDuration);
         }
+        return token;
     }
 
-    private void EndScoreAnimation()
+    private void EndScoreAnimation(int token)
     {
-        if (_activeScoreAnimations > 0) _activeScoreAnimations--;
+        // Ignore a late callback from an animation that was cancelled or
+        // superseded. It must never complete the next queued score event.
+        if (token != _activeScoreAnimationToken) return;
 
-        if (_activeScoreAnimations == 0)
+        _scoreAnimationWatchdog?.Stop();
+        _scoreAnimationWatchdog = null;
+        _activeScoreAnimationToken = 0;
+        _activeScoreAnimations = 0;
+
+        if (_pendingScoreAnimations.Count > 0)
         {
-            // Animation chain finished — make sure the displayed digits match
-            // the live model in case PushAllToScoreboard was throttled while
-            // the animation was running.
-            _scorebug?.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
-
-            if (_pendingScoreAnimations.Count > 0)
+            // The model already contains every rapid click. Keep the
+            // presentation on the event snapshot that just landed and
+            // animate the next snapshot in FIFO order.
+            Action next = _pendingScoreAnimations.Dequeue();
+            try { next(); }
+            catch
             {
-                Action next = _pendingScoreAnimations.Dequeue();
-                try { next(); } catch { /* never let a queued event crash the chain */ }
-            }
-            else
-            {
-                PushAllToScoreboard();
+                // A malformed optional animation must never strand later
+                // scoring input. Continue draining on the dispatcher.
+                Dispatcher.BeginInvoke(new Action(DrainScoreAnimationQueueAfterFailure));
             }
         }
+        else
+        {
+            _scorebug?.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
+            // MatchChanged already pushed team identity, colours, layout and
+            // ticker state while the score animation was locked. Reapplying
+            // the entire visual tree here caused the scorebug to remeasure at
+            // the exact end of the final flash, producing a visible twitch.
+            PushClockToScoreboard();
+        }
+    }
+
+    private void RecoverTimedOutScoreAnimation(int token)
+    {
+        if (token != _activeScoreAnimationToken) return;
+
+        Roche_Scoreboard.Services.VideoDiagnostics.Error("ScoreAnimation",
+            "Animation completion watchdog expired; restoring the live score and continuing the queue.");
+        _scoreAnimationWatchdog?.Stop();
+        _scoreAnimationWatchdog = null;
+        CancelGoalVideoPlayback();
+        _scorebug?.CancelScoreAnimations();
+        EndScoreAnimation(token);
+    }
+
+    private void DrainScoreAnimationQueueAfterFailure()
+    {
+        if (IsScoreAnimationActive) return;
+        if (_pendingScoreAnimations.Count > 0)
+        {
+            Action next = _pendingScoreAnimations.Dequeue();
+            try { next(); }
+            catch { Dispatcher.BeginInvoke(new Action(DrainScoreAnimationQueueAfterFailure)); }
+            return;
+        }
+
+        _scorebug?.SetScores(_match.HomeGoals, _match.HomeBehinds, _match.AwayGoals, _match.AwayBehinds);
+        PushAllToScoreboard();
     }
 
     /// <summary>
@@ -550,6 +709,12 @@ public partial class MainWindow
     /// </summary>
     private void ResetScoreAnimationQueue()
     {
+        ++_scoreAnimationGeneration;
+        _activeScoreAnimationToken = 0;
+        _scoreAnimationWatchdog?.Stop();
+        _scoreAnimationWatchdog = null;
+        CancelGoalVideoPlayback();
+        _scorebug?.CancelScoreAnimations();
         _pendingScoreAnimations.Clear();
         _activeScoreAnimations = 0;
         _deferScorePushUntilUtc = DateTime.MinValue;
@@ -562,8 +727,8 @@ public partial class MainWindow
             GoalAnimationStyle.Broadcast => TimeSpan.FromSeconds(3.5),
             GoalAnimationStyle.Electric => TimeSpan.FromSeconds(2.9),
             GoalAnimationStyle.Cinematic => TimeSpan.FromSeconds(5.0),
-            GoalAnimationStyle.Clean => TimeSpan.FromSeconds(2.9),
-            GoalAnimationStyle.Classic => TimeSpan.FromSeconds(2.7),
+            GoalAnimationStyle.Clean => TimeSpan.FromSeconds(2.6),
+            GoalAnimationStyle.Classic => TimeSpan.FromSeconds(2.4),
             _ => TimeSpan.FromSeconds(3.5)
         };
     }
@@ -757,7 +922,8 @@ public partial class MainWindow
             Padding = new Thickness(0, 3, 0, 3),
             Margin = new Thickness(-2, 4, -2, -2),
             Child = editHint,
-            MaxHeight = 0,
+            MaxHeight = 22,
+            Height = 0,
             ClipToBounds = true
         };
 
@@ -801,13 +967,9 @@ public partial class MainWindow
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
             };
             editHint.BeginAnimation(UIElement.OpacityProperty, fadeIn);
-
-            // Expand the edit hint bar
-            var expandAnim = new DoubleAnimation(22, TimeSpan.FromMilliseconds(200))
-            {
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-            };
-            editHintBar.BeginAnimation(FrameworkElement.MaxHeightProperty, expandAnim);
+            editHintBar.BeginAnimation(FrameworkElement.HeightProperty,
+                new DoubleAnimation(editHintBar.ActualHeight, 22, TimeSpan.FromMilliseconds(180))
+                { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } });
 
             // Pop-out the edit hint bar background
             var bgAnim = new ColorAnimation(
@@ -831,13 +993,9 @@ public partial class MainWindow
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
             };
             editHint.BeginAnimation(UIElement.OpacityProperty, fadeOut);
-
-            // Collapse the edit hint bar
-            var collapseAnim = new DoubleAnimation(0, TimeSpan.FromMilliseconds(200))
-            {
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-            };
-            editHintBar.BeginAnimation(FrameworkElement.MaxHeightProperty, collapseAnim);
+            editHintBar.BeginAnimation(FrameworkElement.HeightProperty,
+                new DoubleAnimation(editHintBar.ActualHeight, 0, TimeSpan.FromMilliseconds(160))
+                { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn } });
 
             // Fade out the edit hint bar background
             var bgAnim = new ColorAnimation(
@@ -929,6 +1087,11 @@ public partial class MainWindow
     {
         if (_displayWindow == null || !_displayWindow.IsVisible) return;
 
+        if (_quarterBreakScorebug?.Visibility == Visibility.Visible)
+        {
+            PopulateQuarterBreakScorebug();
+        }
+
         if (_breakScreen?.Visibility == Visibility.Visible)
         {
             PopulateBreakScreen();
@@ -976,10 +1139,15 @@ public partial class MainWindow
 
         _controlPanelCountdownAutoPausedClock = false;
 
+        bool startingQuarter = !_match.ClockRunning && _match.ElapsedInQuarter.TotalSeconds < 2;
+
         if (_showingBreakScreen || _isBreakRotating)
         {
             StopBreakRotation();
-            ShowScorebug();
+            if (startingQuarter && _scorebug is not null)
+                StartQuarterFoldTransition(_scorebug, "Live Scorebug");
+            else
+                ShowScorebug();
             _scorebug?.ClearBreakGBLock();
             _scorebug?.ResumeScorelessFromBreak();
         }
@@ -992,7 +1160,6 @@ public partial class MainWindow
             _scorebug?.ResumeScorelessFromBreak();
         }
 
-        bool startingQuarter = !_match.ClockRunning && _match.ElapsedInQuarter.TotalSeconds < 2;
         if (startingQuarter)
         {
             _overlayScheduler.NotifyQuarterStart();
@@ -1060,22 +1227,82 @@ public partial class MainWindow
         UpdateControlPanelCountdownUi();
     }
 
+    private void ControlPanelCountdownMinusMinuteButton_Click(object sender, RoutedEventArgs e)
+        => AdjustControlPanelCountdown(TimeSpan.FromMinutes(-1));
+
+    private void ControlPanelCountdownMinus10Button_Click(object sender, RoutedEventArgs e)
+        => AdjustControlPanelCountdown(TimeSpan.FromSeconds(-10));
+
+    private void ControlPanelCountdownPlus10Button_Click(object sender, RoutedEventArgs e)
+        => AdjustControlPanelCountdown(TimeSpan.FromSeconds(10));
+
+    private void ControlPanelCountdownPlusMinuteButton_Click(object sender, RoutedEventArgs e)
+        => AdjustControlPanelCountdown(TimeSpan.FromMinutes(1));
+
+    private void AdjustControlPanelCountdown(TimeSpan delta)
+    {
+        // Adjust the live value in place. A running stoppage clock remains running,
+        // and the main scoreboard clock is deliberately never touched.
+        _controlPanelCountdownRemaining = CalculateAdjustedStoppageTime(
+            _controlPanelCountdownRemaining, delta);
+        if (_controlPanelCountdownRemaining > TimeSpan.Zero)
+        {
+            _controlPanelCountdownDuration = _controlPanelCountdownRemaining;
+            _controlPanelCountdownAutoPausedClock = false;
+            if (_controlPanelCountdownRunning)
+                _countdownNextTick = DateTime.UtcNow.AddSeconds(1);
+        }
+        else
+        {
+            PauseControlPanelCountdown(forceAutoPausedFlag: false);
+        }
+
+        UpdateControlPanelCountdownUi();
+    }
+
+    internal static TimeSpan CalculateAdjustedStoppageTime(TimeSpan current, TimeSpan delta)
+    {
+        double seconds = Math.Clamp(current.TotalSeconds + delta.TotalSeconds, 0, (99 * 60) + 59);
+        return TimeSpan.FromSeconds(seconds);
+    }
+
+    internal static bool TryParseStoppageTime(string? minutesText, string? secondsText, out TimeSpan value)
+    {
+        value = TimeSpan.Zero;
+        int minutes = 0;
+        int seconds = 0;
+        bool valid = int.TryParse(minutesText, out minutes)
+                     && int.TryParse(secondsText, out seconds)
+                     && minutes is >= 0 and <= 99
+                     && seconds is >= 0 and <= 59
+                     && (minutes > 0 || seconds > 0);
+        if (!valid) return false;
+        value = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+        return true;
+    }
+
     private void ControlPanelCountdownEditButton_Click(object sender, RoutedEventArgs e)
     {
         var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
         var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
-        var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as System.Windows.Controls.Button;
         var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
         var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as System.Windows.Controls.TextBox;
+        var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as System.Windows.Controls.TextBlock;
 
         if (editPopup is null)
             return;
 
         if (editMinutesBox is not null)
-            editMinutesBox.Text = ((int)_controlPanelCountdownDuration.TotalMinutes).ToString("D2");
+            editMinutesBox.Text = ((int)_controlPanelCountdownRemaining.TotalMinutes).ToString("D2");
 
         if (editSecondsBox is not null)
-            editSecondsBox.Text = _controlPanelCountdownDuration.Seconds.ToString("D2");
+            editSecondsBox.Text = _controlPanelCountdownRemaining.Seconds.ToString("D2");
+
+        if (editErrorText is not null)
+        {
+            editErrorText.Text = string.Empty;
+            editErrorText.Visibility = Visibility.Collapsed;
+        }
 
         editPopup.BeginAnimation(UIElement.OpacityProperty, null);
         popupScale?.BeginAnimation(ScaleTransform.ScaleXProperty, null);
@@ -1110,9 +1337,6 @@ public partial class MainWindow
             });
         }
 
-        if (cancelEditButton is not null)
-            cancelEditButton.Visibility = Visibility.Visible;
-
         editMinutesBox?.Focus();
         editMinutesBox?.SelectAll();
     }
@@ -1125,32 +1349,29 @@ public partial class MainWindow
     private void ControlPanelCountdownApplyButton_Click(object sender, RoutedEventArgs e)
     {
         var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
-        var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as System.Windows.Controls.Button;
         var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
         var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as System.Windows.Controls.TextBox;
+        var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as System.Windows.Controls.TextBlock;
         if (editMinutesBox is null || editSecondsBox is null)
             return;
 
-        if (!int.TryParse(editMinutesBox.Text, out int minutes))
+        if (!TryParseStoppageTime(editMinutesBox.Text, editSecondsBox.Text, out TimeSpan editedDuration))
+        {
+            if (editErrorText is not null)
+            {
+                editErrorText.Text = "Enter a time from 00:01 to 99:59.";
+                editErrorText.Visibility = Visibility.Visible;
+            }
             return;
+        }
 
-        if (!int.TryParse(editSecondsBox.Text, out int seconds))
-            return;
-
-        if (minutes < 0 || minutes > 99 || seconds < 0 || seconds > 59)
-            return;
-
-        if (minutes == 0 && seconds == 0)
-            return;
-
-        var editedDuration = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
-
-        // Edit only the stoppages countdown timer — never touch the quarter duration
-        // or main scoreboard clock mode/state.
-        PauseControlPanelCountdown(forceAutoPausedFlag: false);
+        // Preserve the run/pause state. This is a live correction of the independent
+        // stoppage clock, never an implicit pause and never a match-clock edit.
         _controlPanelCountdownDuration = editedDuration;
         _controlPanelCountdownRemaining = editedDuration;
         _controlPanelCountdownAutoPausedClock = false;
+        if (_controlPanelCountdownRunning)
+            _countdownNextTick = DateTime.UtcNow.AddSeconds(1);
 
         if (editPopup is not null)
             editPopup.Visibility = Visibility.Collapsed;
@@ -1159,10 +1380,21 @@ public partial class MainWindow
         if (editPopupHost is not null)
             editPopupHost.IsOpen = false;
 
-        if (cancelEditButton is not null)
-            cancelEditButton.Visibility = Visibility.Collapsed;
-
         UpdateControlPanelCountdownUi();
+    }
+
+    private void ControlPanelCountdownEditBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.Enter)
+        {
+            ControlPanelCountdownApplyButton_Click(sender, e);
+            e.Handled = true;
+        }
+        else if (e.Key == System.Windows.Input.Key.Escape)
+        {
+            CloseControlPanelCountdownEditPopup();
+            e.Handled = true;
+        }
     }
 
     private void CloseControlPanelCountdownEditPopup()
@@ -1170,6 +1402,7 @@ public partial class MainWindow
         var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
         var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
         var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as System.Windows.Controls.Button;
+        var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as System.Windows.Controls.TextBlock;
 
         if (editPopup is null)
             return;
@@ -1211,147 +1444,129 @@ public partial class MainWindow
 
         if (cancelEditButton is not null)
             cancelEditButton.Visibility = Visibility.Collapsed;
+        if (editErrorText is not null)
+        {
+            editErrorText.Text = string.Empty;
+            editErrorText.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void HomeGoal_Click(object sender, RoutedEventArgs e)
     {
         EnsureScoreboardWindow();
-        EnqueueScoringEvent(PerformHomeGoal);
+        ApplyScoreImmediately(TeamSide.Home, ScoreType.Goal);
     }
 
     private void HomeBehind_Click(object sender, RoutedEventArgs e)
     {
         EnsureScoreboardWindow();
-        EnqueueScoringEvent(PerformHomeBehind);
+        ApplyScoreImmediately(TeamSide.Home, ScoreType.Behind);
     }
 
     private void AwayGoal_Click(object sender, RoutedEventArgs e)
     {
         EnsureScoreboardWindow();
-        EnqueueScoringEvent(PerformAwayGoal);
+        ApplyScoreImmediately(TeamSide.Away, ScoreType.Goal);
     }
 
     /// <summary>
-    /// Either runs the scoring action immediately or queues it behind the
-    /// currently-animating event, so back-to-back operator clicks render
-    /// in the order they were entered. PushAllToScoreboard is gated on the
-    /// real animation/video completion signal rather than a wall-clock
-    /// guess, which is what previously caused score digits to flip out of
-    /// order during longer goal videos.
+    /// Applies the score to the match model immediately, then serialises only
+    /// its visual presentation. The operator can therefore enter a rapid burst
+    /// without waiting for a prior goal package, while the output still shows
+    /// each event snapshot in the correct order.
     /// </summary>
-    private void EnqueueScoringEvent(Action action)
+    private void ApplyScoreImmediately(TeamSide team, ScoreType type)
+    {
+        bool isHome = team == TeamSide.Home;
+        GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
+        if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
+            style = GoalAnimationStyle.Broadcast;
+
+        // Lock this side before MatchChanged fires so the model/UI updates at
+        // once without skipping the event's output animation snapshot.
+        _scorebug?.LockScoreUpdate(isHome);
+        ScoreEvent score = ApplyScoreToModel(_match, team, type);
+
+        Action animation = () => PlayAppliedScoreAnimation(score, isHome, type, style);
+        if (_scorebug?.DeferScoreUntilTeamPanelsVisible(isHome, () => QueueScoreAnimation(animation)) == true)
+            return;
+
+        QueueScoreAnimation(animation);
+    }
+
+    internal static ScoreEvent ApplyScoreToModel(MatchManager match, TeamSide team, ScoreType type)
+        => type == ScoreType.Goal ? match.AddGoal(team) : match.AddBehind(team);
+
+    private void QueueScoreAnimation(Action animation)
     {
         if (IsScoreAnimationActive)
         {
-            _pendingScoreAnimations.Enqueue(action);
+            // Protect the live output from an unbounded visual backlog during
+            // accidental double-clicks, remote retries, or a very rapid burst.
+            // Match state has already updated immediately; preserve the newest
+            // snapshot so the display catches up instead of animating stale
+            // scores for tens of seconds.
+            if (_pendingScoreAnimations.Count >= MaxPendingScoreAnimations)
+            {
+                _pendingScoreAnimations.Clear();
+                Roche_Scoreboard.Services.VideoDiagnostics.Info("ScoreAnimation",
+                    "Visual queue reached its safety limit; coalescing to the latest live score.");
+            }
+            _pendingScoreAnimations.Enqueue(animation);
         }
         else
-        {
-            action();
-        }
+            animation();
     }
 
-    private void PerformHomeGoal()
+    private void PlayAppliedScoreAnimation(ScoreEvent score, bool isHome, ScoreType type, GoalAnimationStyle style)
     {
-        GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
-        if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
+        if (type == ScoreType.Behind)
         {
-            style = GoalAnimationStyle.Broadcast;
+            int token = BeginScoreAnimation(TimeSpan.FromSeconds(2));
+            if (_scorebug is null)
+                EndScoreAnimation(token);
+            else
+                _scorebug.PlayScoreAnimation(isHome, false,
+                    isHome ? score.HomeGoals : score.AwayGoals,
+                    isHome ? score.HomeBehinds : score.AwayBehinds,
+                    isHome ? score.HomeTotal : score.AwayTotal,
+                    () => EndScoreAnimation(token));
+            return;
         }
 
-        // CRITICAL: lock the score display BEFORE mutating the model.
-        // _match.AddGoal raises MatchChanged synchronously, which calls
-        // PushAllToScoreboard → SetScores. If the lock isn't up first the
-        // new digits would land on the scoreboard immediately, the goal
-        // animation would have nothing to flip from, and the +6 swipe
-        // would be suppressed because (current text == new text).
-        BeginScoreAnimation(GetGoalAnimationDuration(style));
-        _scorebug?.LockScoreUpdate(true);
-
-        ScoreEvent ev = _match.AddGoal(TeamSide.Home);
-
+        TimeSpan expectedDuration = style == GoalAnimationStyle.CustomVideo
+            ? TimeSpan.FromSeconds(45)
+            : GetGoalAnimationDuration(style);
+        int goalToken = BeginScoreAnimation(expectedDuration);
         if (style == GoalAnimationStyle.CustomVideo)
         {
             void afterVideo()
             {
                 if (_scorebug is null)
                 {
-                    EndScoreAnimation();
+                    EndScoreAnimation(goalToken);
                     return;
                 }
-                _scorebug.PlayScoreFlipOnly(true, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal, EndScoreAnimation);
+                _scorebug.PlayScoreFlipOnly(isHome,
+                    isHome ? score.HomeGoals : score.AwayGoals,
+                    isHome ? score.HomeBehinds : score.AwayBehinds,
+                    isHome ? score.HomeTotal : score.AwayTotal,
+                    () => EndScoreAnimation(goalToken));
             }
-            PlayCustomGoalVideoIfConfigured(true, afterVideo);
+            PlayCustomGoalVideoIfConfigured(isHome, afterVideo);
             return;
         }
 
         GoalAnimationStyle previous = _scorebug?.GetGoalAnimationStyle() ?? style;
         if (previous != style) _scorebug?.SetGoalAnimationStyle(style);
         if (_scorebug is null)
-        {
-            EndScoreAnimation();
-        }
+            EndScoreAnimation(goalToken);
         else
-        {
-            _scorebug.PlayScoreAnimation(true, true, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal, EndScoreAnimation);
-        }
-        if (previous != style) _scorebug?.SetGoalAnimationStyle(previous);
-    }
-
-    private void PerformHomeBehind()
-    {
-        BeginScoreAnimation(TimeSpan.FromMilliseconds(900));
-        _scorebug?.LockScoreUpdate(true);
-
-        ScoreEvent ev = _match.AddBehind(TeamSide.Home);
-        if (_scorebug is null)
-        {
-            EndScoreAnimation();
-        }
-        else
-        {
-            _scorebug.PlayScoreAnimation(true, false, ev.HomeGoals, ev.HomeBehinds, ev.HomeTotal, EndScoreAnimation);
-        }
-    }
-
-    private void PerformAwayGoal()
-    {
-        GoalAnimationStyle style = _scorebug?.GetGoalAnimationStyle() ?? GoalAnimationStyle.Broadcast;
-        if (style == GoalAnimationStyle.CustomVideo && !BothTeamsHaveGoalVideos())
-        {
-            style = GoalAnimationStyle.Broadcast;
-        }
-
-        BeginScoreAnimation(GetGoalAnimationDuration(style));
-        _scorebug?.LockScoreUpdate(false);
-
-        ScoreEvent ev = _match.AddGoal(TeamSide.Away);
-
-        if (style == GoalAnimationStyle.CustomVideo)
-        {
-            void afterVideo()
-            {
-                if (_scorebug is null)
-                {
-                    EndScoreAnimation();
-                    return;
-                }
-                _scorebug.PlayScoreFlipOnly(false, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal, EndScoreAnimation);
-            }
-            PlayCustomGoalVideoIfConfigured(false, afterVideo);
-            return;
-        }
-
-        GoalAnimationStyle previous = _scorebug?.GetGoalAnimationStyle() ?? style;
-        if (previous != style) _scorebug?.SetGoalAnimationStyle(style);
-        if (_scorebug is null)
-        {
-            EndScoreAnimation();
-        }
-        else
-        {
-            _scorebug.PlayScoreAnimation(false, true, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal, EndScoreAnimation);
-        }
+            _scorebug.PlayScoreAnimation(isHome, true,
+                isHome ? score.HomeGoals : score.AwayGoals,
+                isHome ? score.HomeBehinds : score.AwayBehinds,
+                isHome ? score.HomeTotal : score.AwayTotal,
+                () => EndScoreAnimation(goalToken));
         if (previous != style) _scorebug?.SetGoalAnimationStyle(previous);
     }
 
@@ -1366,23 +1581,7 @@ public partial class MainWindow
     private void AwayBehind_Click(object sender, RoutedEventArgs e)
     {
         EnsureScoreboardWindow();
-        EnqueueScoringEvent(PerformAwayBehind);
-    }
-
-    private void PerformAwayBehind()
-    {
-        BeginScoreAnimation(TimeSpan.FromMilliseconds(900));
-        _scorebug?.LockScoreUpdate(false);
-
-        ScoreEvent ev = _match.AddBehind(TeamSide.Away);
-        if (_scorebug is null)
-        {
-            EndScoreAnimation();
-        }
-        else
-        {
-            _scorebug.PlayScoreAnimation(false, false, ev.AwayGoals, ev.AwayBehinds, ev.AwayTotal, EndScoreAnimation);
-        }
+        ApplyScoreImmediately(TeamSide.Away, ScoreType.Behind);
     }
 
     private void Undo_Click(object sender, RoutedEventArgs e)
@@ -1433,21 +1632,16 @@ public partial class MainWindow
         }
         if (eventIndex < 0) return;
 
-        ScoreEventEditorWindow editor = new(ev, _match.HomeName, _match.AwayName)
+        ScoreEventEditorWindow editor = new(ev, _match.HomeName, _match.AwayName, HomeColorBox.Text, AwayColorBox.Text)
         {
             Owner = this
         };
         editor.ShowDialog();
 
-        int oldHomeGoals = _match.HomeGoals;
-        int oldHomeBehinds = _match.HomeBehinds;
-        int oldAwayGoals = _match.AwayGoals;
-        int oldAwayBehinds = _match.AwayBehinds;
-
         bool changed = editor.Result switch
         {
             ScoreEventEditorWindow.EditorResult.Deleted => _match.RemoveEvent(eventIndex),
-            ScoreEventEditorWindow.EditorResult.Saved => _match.ModifyEvent(eventIndex, editor.SelectedTeam, editor.SelectedType, editor.SelectedGameTime),
+            ScoreEventEditorWindow.EditorResult.Saved => _match.ModifyEvent(eventIndex, editor.SelectedTeam, editor.SelectedType, editor.SelectedGameTime, editor.SelectedQuarter),
             _ => false
         };
 
@@ -1467,18 +1661,36 @@ public partial class MainWindow
 
         ResetScoreAnimationQueue();
         _scorebug?.ResetAllOverlayState();
-        _scorebug?.AnimateScoreCorrectionFrom(
-            oldHomeGoals,
-            oldHomeBehinds,
-            oldAwayGoals,
-            oldAwayBehinds,
-            _match.HomeGoals,
-            _match.HomeBehinds,
-            _match.AwayGoals,
-            _match.AwayBehinds);
+        // Historical edits are applied atomically. Do not run a live-score
+        // animation over the rebuilt timeline or overlays can briefly observe
+        // old and new event ordering at the same time.
+        ResetPeriodicOverlayTracking();
 
         _previousLeadChanges = MatchStats.Calculate(_match, _match.Quarter, _match.ElapsedInQuarter).LeadChanges;
 
+        RebuildMatchLog();
+        UpdateLiveUI();
+        PushAllToScoreboard();
+        RefreshVisibleScreens();
+    }
+
+    private void AddMatchLogScore_Click(object sender, RoutedEventArgs e)
+    {
+        var editor = new ScoreEventEditorWindow(
+            _match.HomeName, _match.AwayName, _match.Quarter, _match.ElapsedInQuarter,
+            HomeColorBox.Text, AwayColorBox.Text)
+        {
+            Owner = this
+        };
+        editor.ShowDialog();
+        if (editor.Result != ScoreEventEditorWindow.EditorResult.Saved) return;
+
+        ResetScoreAnimationQueue();
+        _scorebug?.ResetAllOverlayState();
+        ResetPeriodicOverlayTracking();
+        _match.AddRecordedScore(editor.SelectedTeam, editor.SelectedType,
+            editor.SelectedQuarter, editor.SelectedGameTime);
+        _previousLeadChanges = MatchStats.Calculate(_match, _match.Quarter, _match.ElapsedInQuarter).LeadChanges;
         RebuildMatchLog();
         UpdateLiveUI();
         PushAllToScoreboard();
@@ -1514,13 +1726,17 @@ public partial class MainWindow
 
         if (_breakScreenEnabled)
         {
+            // The score-first break surface appears immediately through the
+            // panel-fold transition. Detailed break presentations deliberately
+            // wait so spectators can absorb the quarter result first.
+            ShowQuarterBreakScorebug();
             _breakScreenDelayTimer?.Stop();
-            _breakScreenDelayTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(8) };
+            _breakScreenDelayTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(45) };
             _breakScreenDelayTimer.Tick += (_, _) =>
             {
                 _breakScreenDelayTimer.Stop();
                 _breakScreenDelayTimer = null;
-                ShowBreakScreen();
+                ShowBreakScreenRotation();
                 StartBreakRotation();
             };
             _breakScreenDelayTimer.Start();
@@ -1555,7 +1771,8 @@ public partial class MainWindow
         if (_showingBreakScreen || _isBreakRotating)
         {
             StopBreakRotation();
-            ShowScorebug();
+            if (_scorebug is not null)
+                StartQuarterFoldTransition(_scorebug, "Live Scorebug");
         }
 
         _scorebug?.ClearBreakGBLock();
@@ -1623,12 +1840,26 @@ public partial class MainWindow
 
         var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
         var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as System.Windows.Controls.TextBox;
+        var editPopupHost = this.FindName("ControlPanelCountdownEditPopupHost") as System.Windows.Controls.Primitives.Popup;
 
-        if (editMinutesBox is not null)
+        // Never overwrite a field while the operator is typing. Previously this ran
+        // every clock tick and made live editing appear broken.
+        if (editPopupHost?.IsOpen != true && editMinutesBox is not null)
             editMinutesBox.Text = ((int)_controlPanelCountdownDuration.TotalMinutes).ToString("D2");
 
-        if (editSecondsBox is not null)
+        if (editPopupHost?.IsOpen != true && editSecondsBox is not null)
             editSecondsBox.Text = _controlPanelCountdownDuration.Seconds.ToString("D2");
+
+        if (ControlPanelCountdownStartPauseButton is not null)
+        {
+            ControlPanelCountdownStartPauseButton.Content = _controlPanelCountdownRunning ? "PAUSE" : "START";
+            ControlPanelCountdownStartPauseButton.BorderBrush = _controlPanelCountdownRunning
+                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xD2, 0x99, 0x22))
+                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x3F, 0xB9, 0x50));
+            ControlPanelCountdownStartPauseButton.Background = _controlPanelCountdownRunning
+                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x35, 0x25, 0x10))
+                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x12, 0x30, 0x1D));
+        }
 
         if (_controlPanelCountdownRemaining == TimeSpan.Zero)
         {
@@ -1682,7 +1913,7 @@ public partial class MainWindow
         _rotationTimer = null;
         _isBreakRotating = false;
 
-        // Also cancel any pending "show break screen in 8s" timer so that
+        // Also cancel the delayed break-analysis rotation so that
         // switching to another screen (e.g. the custom video) isn't
         // overridden a few seconds later.
         if (_breakScreenDelayTimer != null)
@@ -1732,6 +1963,25 @@ public partial class MainWindow
     {
         PopulateBreakScreen();
         SwitchToScreen(_breakScreen!, "Quarter Summary");
+    }
+
+    private void ShowQuarterBreakScorebug()
+    {
+        if (_quarterBreakScorebug is null) return;
+        PopulateQuarterBreakScorebug();
+        StartQuarterFoldTransition(_quarterBreakScorebug, "Quarter Break");
+    }
+
+    private void PopulateQuarterBreakScorebug()
+    {
+        if (_quarterBreakScorebug is null) return;
+        bool showTopBar = _scorebug?.CurrentLayout != ScorebugLayout.Distance;
+        _quarterBreakScorebug.SetTopBarVisible(showTopBar,
+            showTopBar ? _scorebug?.GetTransitionTopBarHeight() : null);
+        _quarterBreakScorebug.Populate(_match, GetEndedQuarter(),
+            HomeColorBox.Text, AwayColorBox.Text,
+            HomeSecondaryColorBox.Text, AwaySecondaryColorBox.Text,
+            _homeLogoPath, _awayLogoPath, _scorebug?.GetWeatherSnapshot());
     }
 
     private void ShowBreakScreenRotation()
@@ -2214,6 +2464,20 @@ public partial class MainWindow
         try { callback?.Invoke(); } catch { /* ignore */ }
     }
 
+    private void CancelGoalVideoPlayback()
+    {
+        if (_videoPlayer is not null)
+        {
+            _videoPlayer.PlaybackEnded -= GoalVideo_OneShotEnded;
+            _videoPlayer.MediaLoadFailed -= GoalVideo_LoadFailed;
+            try { _videoPlayer.Stop(); } catch { /* best-effort recovery */ }
+            _videoPlayer.Loop = true;
+        }
+
+        _goalVideoCompletionCallback = null;
+        ExitVideoTakeover();
+    }
+
     private void StopStatsBarTimer()
     {
         _statsBarTimer?.Stop();
@@ -2263,6 +2527,7 @@ public partial class MainWindow
                 DisplayDuration = sharedDuration,
                 MinInterval = analysisInterval,
                 Priority = analysisPriority,
+                Family = OverlayFamily.MatchStory,
                 IsRelevant = () => _match.Events.Count > 0
             },
             new OverlayDefinition
@@ -2271,6 +2536,7 @@ public partial class MainWindow
                 DisplayDuration = sharedDuration,
                 MinInterval = analysisInterval,
                 Priority = analysisPriority,
+                Family = OverlayFamily.MatchStory,
                 IsRelevant = () => _match.Events.Count >= 3
             },
             new OverlayDefinition
@@ -2279,6 +2545,7 @@ public partial class MainWindow
                 DisplayDuration = sharedDuration,
                 MinInterval = weatherInterval,
                 Priority = weatherPriority,
+                Family = OverlayFamily.Conditions,
                 IsRelevant = () => _scorebug?.GetWeatherSnapshot() is not null
             },
             new OverlayDefinition
@@ -2287,6 +2554,7 @@ public partial class MainWindow
                 DisplayDuration = sharedDuration,
                 MinInterval = weatherInterval,
                 Priority = weatherPriority,
+                Family = OverlayFamily.Conditions,
                 IsRelevant = () => _scorebug?.GetWeatherSnapshot() is not null
             },
             new OverlayDefinition
@@ -2295,6 +2563,7 @@ public partial class MainWindow
                 DisplayDuration = sharedDuration,
                 MinInterval = weatherInterval,
                 Priority = weatherPriority,
+                Family = OverlayFamily.Conditions,
                 IsRelevant = () =>
                 {
                     var snap = _scorebug?.GetWeatherSnapshot();
@@ -2308,6 +2577,7 @@ public partial class MainWindow
                 DisplayDuration = sharedDuration,
                 MinInterval = analysisInterval,
                 Priority = analysisPriority,
+                Family = OverlayFamily.MatchStory,
                 IsRelevant = () => _match.Events.Count > 0
             },
             new OverlayDefinition
@@ -2316,6 +2586,7 @@ public partial class MainWindow
                 DisplayDuration = TimeSpan.FromSeconds(14),
                 MinInterval = analysisInterval,
                 Priority = analysisPriority,
+                Family = OverlayFamily.MatchStory,
                 IsRelevant = () => _match.Events.Count >= 3
             }
         ]);
@@ -2328,6 +2599,7 @@ public partial class MainWindow
     private void CheckPeriodicOverlays()
     {
         if (!_autoOverlaysEnabled) return;
+        if (_periodicOverlayReserved) return;
         if (_scorebug == null || _showingBreakScreen) return;
         if (_scorebug.IsTickerActive) return;
         if (_match.Events.Count == 0) return;
@@ -2345,9 +2617,6 @@ public partial class MainWindow
             _showingBreakScreen);
 
         if (next is null) return;
-
-        // Mark overlay as shown in the scheduler immediately
-        _overlayScheduler.NotifyOverlayShown(next.Kind);
 
         Action showAction = next.Kind switch
         {
@@ -2396,7 +2665,31 @@ public partial class MainWindow
             _ => () => { }
         };
 
-        EnqueueAutoOverlay(showAction);
+        // Reserve the single periodic slot while the card waits behind an
+        // animation or another overlay. Only count it as shown when it really
+        // reaches the output; cancelled reservations must not stall the
+        // scheduler or consume a rotation entry.
+        _periodicOverlayReserved = true;
+        Action showReserved = () =>
+        {
+            _periodicOverlayReserved = false;
+            if (_scorebug is null || _showingBreakScreen || _scorebug.IsTickerActive || !_match.ClockRunning)
+                return;
+
+            bool stillRelevant;
+            try { stillRelevant = next.IsRelevant(); }
+            catch { stillRelevant = false; }
+            if (!stillRelevant)
+                return;
+
+            // Only consume rotation freshness once the card has passed its
+            // final on-air checks. Weather/state can change while a periodic
+            // card waits behind a goal animation or event-driven story.
+            _overlayScheduler.NotifyOverlayShown(next.Kind);
+            showAction();
+        };
+        Action cancelReservation = () => _periodicOverlayReserved = false;
+        EnqueueAutoOverlay(showReserved, onCancelled: cancelReservation);
     }
 
     private void ResetPeriodicOverlayTracking()
@@ -2404,293 +2697,85 @@ public partial class MainWindow
         _overlayScheduler.Reset();
         _previousLeadChanges = 0;
         _lastShownRunTeam = TeamSide.Home;
-        _lastShownRunMargin = 0;
+        _lastShownRunGoalCount = 0;
         _lastShownRunMatchClock = TimeSpan.MinValue;
-        _lastShownRunTier = RunTier.None;
-        _lastShownRunStartTimestamp = DateTime.MinValue;
+        _lastShownRunEndTimestamp = DateTime.MinValue;
         _autoOverlayDelayTimer?.Stop();
         _autoOverlayDelayTimer = null;
+        _autoOverlayDelayCancellation?.Invoke();
+        _autoOverlayDelayCancellation = null;
         _scoringRunDelayTimer?.Stop();
         _scoringRunDelayTimer = null;
-        _overlayQueue.Clear();
+        CancelQueuedOverlays();
+        _periodicOverlayReserved = false;
         _nextOverlayAllowedAtUtc = DateTime.MinValue;
+        _nextDroughtOverlayAllowedAtUtc = DateTime.MinValue;
+        _shownDroughtMilestones.Clear();
     }
 
     // ── Scoring run auto-detection ──
 
-    private sealed record ScoringRunResult(
-        TeamSide Team, int RunPoints, int OpponentPoints,
-        int EventCount, DateTime Start, DateTime NewestTimestamp,
-        ScoreEvent? Newest, ScoreEvent? Oldest);
-
-    /// <summary>
-    /// Scans every plausible current-quarter start point and returns the most
-    /// salient dominant suffix ending at the latest score.
-    /// <para>
-    /// Unlike the older "consecutive scoring" detector, this engine TOLERATES
-    /// occasional opposition scoring. Each window is judged on overall
-    /// dominance (points share, ratio, span) — a 24-3 stretch with two
-    /// opposition behinds in the middle still qualifies, while a 24-18
-    /// stretch does not. The engine therefore correctly recognises both
-    /// short flurries and slow-burn long-term dominance.
-    /// </para>
-    /// </summary>
-    private RunEvaluation EvaluateBestRunForTeam(TeamSide team, TimeSpan quarterDuration)
-    {
-        var events = _match.Events;
-        var empty = new ScoringRunResult(team, 0, 0, 0, DateTime.MinValue, DateTime.MinValue, null, null);
-        if (events.Count == 0 || events[^1].Team != team)
-            return new RunEvaluation(empty, RunTier.None, false, TimeSpan.Zero, 0, 0);
-
-        int endIdx = events.Count - 1;
-        int quarter = events[endIdx].Quarter;
-        TimeSpan newestClock = MatchClockOfEvent(events[endIdx], quarterDuration);
-        RunEvaluation? best = null;
-
-        // Evaluate every plausible start, rather than a handful of arbitrary
-        // window sizes. This is equivalent to finding the most meaningful
-        // dominant suffix ending at the latest score.
-        for (int startIdx = endIdx; startIdx >= 0; startIdx--)
-        {
-            ScoreEvent start = events[startIdx];
-            if (start.Quarter != quarter) break;
-            if (start.Team != team) continue;
-
-            TimeSpan span = newestClock - MatchClockOfEvent(start, quarterDuration);
-            if (span > RunMaxTimeWindow) break;
-
-            RunEvaluation? candidate = ScoreWindow(team, startIdx, endIdx, quarterDuration);
-            if (candidate is not null)
-                best = PickBetter(best, candidate);
-        }
-
-        return best ?? new RunEvaluation(empty, RunTier.None, false, TimeSpan.Zero, 0, 0);
-    }
-
-    /// <summary>
-    /// Evaluates a single contiguous window <c>[startIdx..endIdx]</c> of the
-    /// score event list against the tier table. Returns the highest-tier
-    /// qualifying evaluation for that window, or null if it doesn't qualify.
-    /// </summary>
-    private RunEvaluation? ScoreWindow(TeamSide team, int startIdx, int endIdx, TimeSpan quarterDuration)
-    {
-        var events = _match.Events;
-        if (startIdx < 0 || endIdx < startIdx || endIdx >= events.Count) return null;
-
-        int runPts = 0, oppPts = 0, teamEventCount = 0;
-        ScoreEvent? oldest = null;
-        ScoreEvent? newest = null;
-        DateTime runStart = DateTime.MinValue;
-        DateTime newestTs = DateTime.MinValue;
-
-        for (int i = startIdx; i <= endIdx; i++)
-        {
-            var e = events[i];
-            int pts = e.Type == ScoreType.Goal ? 6 : 1;
-            if (e.Team == team)
-            {
-                runPts += pts;
-                teamEventCount++;
-            }
-            else oppPts += pts;
-            oldest ??= e;
-            newest = e;
-            runStart = oldest.Timestamp;
-            newestTs = e.Timestamp;
-        }
-        if (teamEventCount == 0 || newest is null || oldest is null) return null;
-
-        TimeSpan span = MatchClockOfEvent(newest, quarterDuration) - MatchClockOfEvent(oldest, quarterDuration);
-        if (span < TimeSpan.Zero) span = TimeSpan.Zero;
-
-        int totalPoints = runPts + oppPts;
-        int netSwing = runPts - oppPts;
-        double share = totalPoints > 0 ? (double)runPts / totalPoints : 0;
-        double ratio = (double)runPts / Math.Max(1, oppPts);
-        RunTier tier = ClassifyScoringRun(runPts, netSwing, teamEventCount, share, span);
-
-        if (tier == RunTier.None) return null;
-
-        // Salience favours net scoreboard impact, dominance and pace without
-        // letting one very old high-volume window beat the current sharp run.
-        double salience = netSwing + runPts * 0.25 + share * 12
-                          + (int)tier * 8 - span.TotalMinutes * 0.20;
-        var result = new ScoringRunResult(team, runPts, oppPts, teamEventCount, runStart, newestTs, newest, oldest);
-        return new RunEvaluation(result, tier, true, span, ratio, salience);
-    }
-
-    private static RunTier ClassifyScoringRun(int points, int netSwing, int scoringEvents,
-        double pointShare, TimeSpan span)
-    {
-        if (points >= 60 && netSwing >= 36 && scoringEvents >= 8 && pointShare >= 0.75 && span <= TimeSpan.FromMinutes(20))
-            return RunTier.Mega;
-        if (points >= 48 && netSwing >= 30 && scoringEvents >= 7 && pointShare >= 0.72 && span <= TimeSpan.FromMinutes(20))
-            return RunTier.Major;
-        if (points >= 36 && netSwing >= 24 && scoringEvents >= 5 && pointShare >= 0.72 && span <= TimeSpan.FromMinutes(18))
-            return RunTier.Sustained;
-        if (points >= 24 && netSwing >= 18 && scoringEvents >= 4 && pointShare >= 0.75 && span <= TimeSpan.FromMinutes(12))
-            return RunTier.Standard;
-        if (points >= 18 && netSwing >= 17 && scoringEvents >= 3 && pointShare >= 0.90 && span <= TimeSpan.FromMinutes(7))
-            return RunTier.Burst;
-        return RunTier.None;
-    }
-
-    private static RunEvaluation PickBetter(RunEvaluation? current, RunEvaluation candidate)
-    {
-        if (current is null) return candidate;
-        return CompareRuns(candidate, current) > 0 ? candidate : current;
-    }
-
-    /// <summary>
-    /// Backward-compat shim used by the manual "show scoring run" button —
-    /// returns the run details from the best qualifying window, or a synthesised
-    /// minimal run from the most recent run-team event when nothing qualifies.
-    /// </summary>
-    private ScoringRunResult? CalculateScoringRun(TeamSide runTeam)
-    {
-        var events = _match.Events;
-        if (events.Count == 0) return null;
-        var eval = EvaluateBestRunForTeam(runTeam, _match.QuarterDuration);
-        if (eval.Qualifies) return eval.Run;
-        // Synthesize a "small run" from the most recent run-team event so the
-        // manual overlay button still produces a sensible value.
-        for (int i = events.Count - 1; i >= 0; i--)
-        {
-            if (events[i].Team == runTeam)
-            {
-                int pts = events[i].Type == ScoreType.Goal ? 6 : 1;
-                return new ScoringRunResult(runTeam, pts, 0, 1, events[i].Timestamp, events[i].Timestamp, events[i], events[i]);
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Computes the match-clock position of <paramref name="ev"/> as
-    /// (Quarter-1) × QuarterDuration + GameTime. This gives a single
-    /// monotonically-increasing time axis across all four quarters that is
-    /// independent of wall-clock time, so scoring-run windows survive paused
-    /// matches, quarter breaks, saved-game restores, and app restarts.
-    /// </summary>
-    private static TimeSpan MatchClockOfEvent(ScoreEvent ev, TimeSpan quarterDuration)
-    {
-        int q = Math.Clamp(ev.Quarter, 1, 4);
-        return TimeSpan.FromTicks(quarterDuration.Ticks * (q - 1)) + ev.GameTime;
-    }
-
     private void CheckScoringRunAfterScore(ScoreEvent ev)
     {
         if (_scorebug == null || _showingBreakScreen) return;
+        IReadOnlyList<ScoreEvent> events = _match.Events;
+        if (ev.Type != ScoreType.Goal || events.Count == 0 || !ReferenceEquals(events[^1], ev)) return;
 
-        var events = _match.Events;
-        // A delayed/queued callback becomes obsolete the instant another score
-        // is entered or the event is corrected. Never narrate stale history.
-        if (events.Count < 3 || !ReferenceEquals(events[^1], ev) || ev.Quarter != _match.Quarter)
-            return;
+        // Automatic run stories must belong to the team that just kicked the
+        // goal. DetectBest intentionally preserves an older dominant story for
+        // manual display, but using it here could show the opposition's run in
+        // direct response to this goal.
+        AflGoalRunDetector.Result? run = AflGoalRunDetector.Detect(events, ev.Team);
+        if (run is null) return;
 
-        TimeSpan quarterDuration = _match.QuarterDuration;
-        RunEvaluation best = EvaluateRunForTeam(ev.Team, quarterDuration);
-        if (!best.Qualifies) return;
-
-        var run = best.Run;
-        var tier = best.Tier;
-        int runPoints = run.RunPoints;
-        int opponentPoints = run.OpponentPoints;
-        // Cooldown — match-clock-based, with three escape hatches:
-        //   1. Different team than last shown (momentum has flipped) — fresh
-        //      story, only the short cross-team cooldown applies.
-        //   2. Tier has escalated (e.g. Standard → Sustained) — the run grew
-        //      from "good" to "remarkable", re-show even within cooldown.
-        //   3. Same team, same tier — run must have grown by ≥12 pts (2 goals)
-        //      to merit re-display, or cooldown must have elapsed.
-        TimeSpan currentMatchClock = TimeSpan.FromTicks(quarterDuration.Ticks * (Math.Clamp(_match.Quarter, 1, 4) - 1)) + _match.ElapsedInQuarter;
+        // Cooldowns use the same accumulated playing-time clock as droughts.
+        // This keeps a run continuous across quarters without treating the
+        // quarter break, or an early-ended quarter, as elapsed match time.
+        TimeSpan currentMatchClock = _match.PlayingTimeAt(_match.Quarter, _match.ElapsedInQuarter);
         TimeSpan elapsedSinceLastShow = _lastShownRunMatchClock == TimeSpan.MinValue
             ? TimeSpan.MaxValue
             : currentMatchClock - _lastShownRunMatchClock;
         if (elapsedSinceLastShow < TimeSpan.Zero) elapsedSinceLastShow = TimeSpan.MaxValue;
 
-        bool sameRun = run.Team == _lastShownRunTeam
-                       && run.Oldest?.Timestamp == _lastShownRunStartTimestamp;
-        if (sameRun)
+        // A dominance window can legitimately reframe as goals are added (for
+        // example 6/8 becoming 7/9). Treat it as continuation of the same team
+        // story so a shifted start point cannot bypass the growth cooldown.
+        bool overlappingTeamStory = run.Team == _lastShownRunTeam
+                                    && _lastShownRunEndTimestamp != DateTime.MinValue
+                                    && run.StartTimestamp <= _lastShownRunEndTimestamp;
+        if (overlappingTeamStory)
         {
-            // Same-team re-show: allow if tier escalated, or run has grown
-            // by ≥2 goals, or the per-team cooldown has elapsed.
-            bool tierEscalated = tier > _lastShownRunTier;
-            bool grewMeaningfully = runPoints >= _lastShownRunMargin + RunSameTeamGrowthPoints;
-            bool cooldownElapsed = elapsedSinceLastShow >= RunCooldown;
-            if (!tierEscalated && !grewMeaningfully && !cooldownElapsed)
+            bool grewByTwoGoals = run.TeamGoals >= _lastShownRunGoalCount + 2;
+            if (!grewByTwoGoals && elapsedSinceLastShow < RunCooldown)
                 return;
         }
-        else
-        {
-            // A different start event is a new story, even for the same team.
-            // Keep a short clean-air gap without inheriting the previous run's
-            // point total or tier-escalation state.
-            if (elapsedSinceLastShow < RunNewStoryCooldown)
-                return;
-        }
+        else if (elapsedSinceLastShow < RunNewStoryCooldown)
+            return;
 
         _lastShownRunTeam = run.Team;
-        _lastShownRunMargin = runPoints;
+        _lastShownRunGoalCount = run.TeamGoals;
         _lastShownRunMatchClock = currentMatchClock;
-        _lastShownRunTier = tier;
-        _lastShownRunStartTimestamp = run.Oldest?.Timestamp ?? DateTime.MinValue;
+        _lastShownRunEndTimestamp = run.EndTimestamp;
 
         _overlayScheduler.NotifyEventDrivenOverlay();
 
         string teamName = run.Team == TeamSide.Home ? _match.HomeName : _match.AwayName;
         var runColor = GetTeamColor(run.Team == TeamSide.Home);
         string colorHex = $"#{runColor.R:X2}{runColor.G:X2}{runColor.B:X2}";
-        _scorebug.ShowScoringRun(teamName, runPoints, opponentPoints,
-            best.MatchClockSpan, run.EventCount, colorHex);
+        _scorebug.ShowGoalRun(teamName, run.TeamGoals, run.WindowGoals, run.IsConsecutive, colorHex);
     }
 
-    /// <summary>
-    /// Result of evaluating a single team's candidate scoring run against the
-    /// tier table. <see cref="Qualifies"/> is true only when at least one
-    /// tier accepts the run. The tier
-    /// is the <em>highest</em> qualifying tier (so a run that satisfies both
-    /// Standard and Sustained reports as Sustained).
-    /// </summary>
-    private sealed record RunEvaluation(
-        ScoringRunResult Run,
-        RunTier Tier,
-        bool Qualifies,
-        TimeSpan MatchClockSpan,
-        double DominanceRatio,
-        double Salience);
+    private AflDroughtSnapshot CalculateDroughts()
+        => AflDroughtCalculator.Calculate(_match);
 
-    /// <summary>
-    /// Calculates a candidate run for <paramref name="team"/> and evaluates
-    /// it against the tier table. Returns the evaluation regardless of
-    /// qualification — callers inspect <see cref="RunEvaluation.Qualifies"/>.
-    /// </summary>
-    private RunEvaluation EvaluateRunForTeam(TeamSide team, TimeSpan quarterDuration)
-        => EvaluateBestRunForTeam(team, quarterDuration);
-
-    /// <summary>
-    /// Compares two qualifying runs to decide which to display. Returns
-    /// &gt; 0 when <paramref name="a"/> should win, &lt; 0 when <paramref name="b"/>
-    /// should win, 0 if they're equivalent.
-    /// <para>
-    /// Ranking criteria, in order:
-    ///   1. Higher tier always wins.
-    ///   2. Within a tier, the strongest net/dominance/pace salience wins.
-    ///   3. Ties prefer the tighter span, then the higher dominance ratio.
-    /// </para>
-    /// </summary>
-    private static int CompareRuns(RunEvaluation a, RunEvaluation b)
+    private bool TryConsumeDroughtMilestone(AflDroughtCandidate candidate)
     {
-        int tierCmp = a.Tier.CompareTo(b.Tier);
-        if (tierCmp != 0) return tierCmp;
-
-        int salienceCmp = a.Salience.CompareTo(b.Salience);
-        if (salienceCmp != 0) return salienceCmp;
-
-        // If two starts tell the same-strength story, prefer the tighter one.
-        int spanCmp = b.MatchClockSpan.CompareTo(a.MatchClockSpan);
-        if (spanCmp != 0) return spanCmp;
-        return a.DominanceRatio.CompareTo(b.DominanceRatio);
+        int milestone = candidate.TenMinuteMilestone;
+        if (milestone < 10) return false;
+        if (_shownDroughtMilestones.TryGetValue(candidate.Key, out int shown) && shown >= milestone)
+            return false;
+        _shownDroughtMilestones[candidate.Key] = milestone;
+        return true;
     }
 
     // ── Lead change auto-detection ──
@@ -3020,6 +3105,200 @@ public partial class MainWindow
         _retroCrtOverlay.BeginAnimation(UIElement.OpacityProperty, fadeToBlack);
     }
 
+    private void StartQuarterFoldTransition(UIElement target, string label)
+    {
+        EnsureScoreboardWindow();
+        StopBreakRotation();
+        if (_displayWindow is { IsVisible: false }) _displayWindow.Show();
+
+        int transitionVersion = ++_screenTransitionVersion;
+        CancelPresentationAnimations();
+        UIElement? current = GetCurrentlyVisibleScreen();
+        if (current is null || ReferenceEquals(current, target) || _retroCrtOverlay is null
+            || !SystemParameters.ClientAreaAnimation)
+        {
+            if (current is not null && !ReferenceEquals(current, target)) current.Visibility = Visibility.Collapsed;
+            NormalizePresentationSurfaces(target);
+            _showingBreakScreen = !ReferenceEquals(target, _scorebug);
+            UpdateActiveDisplayLabel(label);
+            return;
+        }
+
+        foreach (UIElement surface in GetPresentationSurfaces())
+            if (!ReferenceEquals(surface, current)) surface.Visibility = Visibility.Collapsed;
+
+        IReadOnlyList<FrameworkElement> outgoing = GetQuarterFoldPanels(current);
+        IReadOnlyList<FrameworkElement> incoming = GetQuarterFoldPanels(target);
+        current.UpdateLayout();
+        PrepareFoldPanels(outgoing, folded: false);
+
+        double topInset = GetTransitionTopInset(current);
+        _retroCrtOverlay.Margin = new Thickness(0, topInset, 0, 0);
+        _retroCrtOverlay.Background = System.Windows.Media.Brushes.Black;
+        _retroCrtOverlay.Visibility = Visibility.Visible;
+        _retroCrtOverlay.Opacity = 0;
+        _retroCrtOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(520))
+        {
+            BeginTime = TimeSpan.FromMilliseconds(100),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+        });
+
+        void RevealIncoming()
+        {
+            if (transitionVersion != _screenTransitionVersion) return;
+
+            current.Visibility = Visibility.Collapsed;
+            ResetFoldPanels(outgoing);
+            target.Visibility = Visibility.Visible;
+            target.Opacity = 1;
+            _displayContainer?.UpdateLayout();
+            target.UpdateLayout();
+            PrepareFoldPanels(incoming, folded: true);
+
+            _retroCrtOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(560))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(70),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            });
+
+            for (int i = 0; i < incoming.Count; i++)
+            {
+                FrameworkElement panel = incoming[i];
+                if (panel.RenderTransform is not ScaleTransform scale) continue;
+                panel.Opacity = 0;
+                int delay = GetFoldDelay(i, incoming.Count);
+                panel.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(360))
+                {
+                    BeginTime = TimeSpan.FromMilliseconds(delay),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                });
+                var unfold = new DoubleAnimation(0.025, 1, TimeSpan.FromMilliseconds(500))
+                {
+                    BeginTime = TimeSpan.FromMilliseconds(delay),
+                    EasingFunction = new BackEase { Amplitude = 0.10, EasingMode = EasingMode.EaseOut }
+                };
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(0.98, 1, TimeSpan.FromMilliseconds(500))
+                {
+                    BeginTime = TimeSpan.FromMilliseconds(delay),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                }, HandoffBehavior.SnapshotAndReplace);
+                if (i == incoming.Count - 1)
+                {
+                    unfold.Completed += (_, _) =>
+                    {
+                        if (transitionVersion != _screenTransitionVersion) return;
+                        ResetFoldPanels(incoming);
+                        if (_retroCrtOverlay is not null)
+                        {
+                            _retroCrtOverlay.BeginAnimation(OpacityProperty, null);
+                            _retroCrtOverlay.Opacity = 0;
+                            _retroCrtOverlay.Visibility = Visibility.Collapsed;
+                            _retroCrtOverlay.Margin = new Thickness(0);
+                        }
+                    };
+                }
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, unfold, HandoffBehavior.SnapshotAndReplace);
+            }
+        }
+
+        for (int i = 0; i < outgoing.Count; i++)
+        {
+            FrameworkElement panel = outgoing[i];
+            if (panel.RenderTransform is not ScaleTransform scale) continue;
+            int delay = GetFoldDelay(i, outgoing.Count);
+            var fold = new DoubleAnimation(1, 0.025, TimeSpan.FromMilliseconds(440))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(delay),
+                EasingFunction = new PowerEase { Power = 3, EasingMode = EasingMode.EaseIn }
+            };
+            panel.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0.08, TimeSpan.FromMilliseconds(420))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(delay),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            });
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, 0.98, TimeSpan.FromMilliseconds(440))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(delay),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            }, HandoffBehavior.SnapshotAndReplace);
+            if (i == outgoing.Count - 1) fold.Completed += (_, _) => RevealIncoming();
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, fold, HandoffBehavior.SnapshotAndReplace);
+        }
+
+        _showingBreakScreen = !ReferenceEquals(target, _scorebug);
+        UpdateActiveDisplayLabel(label);
+    }
+
+    internal static int GetFoldDelay(int index, int count)
+    {
+        // Five scorebug panels read as home pair -> clock -> away pair.
+        // Three break panels read as a steady left-to-right wave. Keeping the
+        // pair offsets short makes each cell distinct without looking random.
+        if (count == 5)
+            return index switch { 0 => 0, 1 => 45, 2 => 120, 3 => 195, _ => 240 };
+        return index * 75;
+    }
+
+    private double GetTransitionTopInset(UIElement current)
+    {
+        double measured = current switch
+        {
+            ScorebugControl scorebug => scorebug.GetTransitionTopBarHeight(),
+            QuarterBreakScorebugControl quarterBreak => quarterBreak.GetTransitionTopBarHeight(),
+            _ => 0
+        };
+        if (current is ScorebugControl or QuarterBreakScorebugControl)
+            return Math.Max(0, measured);
+        // Margin Flow, Match Stats, Weather and Quarter Breakdown no longer
+        // reserve a title bar, so their transition blackout covers the full
+        // presentation rather than leaving a stale strip at the top.
+        return 0;
+    }
+
+    private IReadOnlyList<FrameworkElement> GetQuarterFoldPanels(UIElement surface)
+        => surface switch
+        {
+            ScorebugControl scorebug => scorebug.GetQuarterFoldPanels(),
+            QuarterBreakScorebugControl quarterBreak => quarterBreak.GetFoldPanels(),
+            ContentControl { Content: Grid root } => root.Children
+                .OfType<FrameworkElement>()
+                .Where(child => Grid.GetRow(child) > 0 && child.Visibility == Visibility.Visible)
+                .ToArray() is { Length: > 0 } panels ? panels : [(FrameworkElement)surface],
+            FrameworkElement element => [element],
+            _ => []
+        };
+
+    private static void PrepareFoldPanels(IReadOnlyList<FrameworkElement> panels, bool folded)
+    {
+        for (int i = 0; i < panels.Count; i++)
+        {
+            FrameworkElement panel = panels[i];
+            panel.BeginAnimation(OpacityProperty, null);
+            panel.Opacity = folded ? 0 : 1;
+            // Every panel uses the same centre hinge; the stagger supplies the
+            // direction. Mixed top/bottom hinges made the sequence look as if
+            // neighbouring panels belonged to different transitions.
+            panel.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+            panel.RenderTransform = new ScaleTransform(1, folded ? 0.025 : 1);
+        }
+    }
+
+    private static void ResetFoldPanels(IReadOnlyList<FrameworkElement> panels)
+    {
+        foreach (FrameworkElement panel in panels)
+        {
+            panel.BeginAnimation(OpacityProperty, null);
+            panel.Opacity = 1;
+            if (panel.RenderTransform is ScaleTransform scale)
+            {
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+                scale.ScaleX = 1;
+                scale.ScaleY = 1;
+            }
+            panel.RenderTransform = Transform.Identity;
+        }
+    }
+
     /// <summary>
     /// Retro CRT-style screen transition — fast blackout, scanline sweep, static noise flash,
     /// then the new screen resolves through a vertical-roll / brightness reveal.
@@ -3125,6 +3404,8 @@ public partial class MainWindow
         sb.Completed += (_, _) =>
         {
             if (transitionVersion != _screenTransitionVersion) return;
+            if (ReferenceEquals(_presentationTransitionStoryboard, sb))
+                _presentationTransitionStoryboard = null;
             from.Visibility = Visibility.Collapsed;
             from.Opacity = 1;
             from.RenderTransform = new TranslateTransform(0, 0);
@@ -3137,15 +3418,16 @@ public partial class MainWindow
             }
         };
 
-        sb.Begin();
+        _presentationTransitionStoryboard = sb;
+        sb.Begin(this, HandoffBehavior.SnapshotAndReplace, isControllable: true);
     }
 
     private IEnumerable<UIElement> GetPresentationSurfaces()
     {
         UIElement?[] surfaces =
         [
-            _scorebug, _breakScreen, _scoreworm, _statsScreen,
-            _weatherScreen, _videoPlayer
+            _scorebug, _quarterBreakScorebug, _breakScreen, _scoreworm, _statsScreen,
+            _weatherScreen, _videoPlayer, _outputScreensaver
         ];
         foreach (UIElement? surface in surfaces)
         {
@@ -3155,6 +3437,13 @@ public partial class MainWindow
 
     private void CancelPresentationAnimations()
     {
+        if (_presentationTransitionStoryboard is not null)
+        {
+            try { _presentationTransitionStoryboard.Remove(this); } catch { }
+            _presentationTransitionStoryboard = null;
+        }
+        if (_scorebug is not null) ResetFoldPanels(_scorebug.GetQuarterFoldPanels());
+        if (_quarterBreakScorebug is not null) ResetFoldPanels(_quarterBreakScorebug.GetFoldPanels());
         foreach (UIElement surface in GetPresentationSurfaces())
         {
             surface.BeginAnimation(UIElement.OpacityProperty, null);
@@ -3168,6 +3457,7 @@ public partial class MainWindow
             _retroCrtOverlay.Visibility = Visibility.Collapsed;
             _retroCrtOverlay.Opacity = 0;
             _retroCrtOverlay.RenderTransform = new ScaleTransform(1, 1);
+            _retroCrtOverlay.Margin = new Thickness(0);
         }
     }
 
@@ -3212,32 +3502,32 @@ public partial class MainWindow
         if (AnimElectricRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Electric;
-            title = "Volt";
-            desc = "A hard stadium charge: edge ignition, compressed GOAL wordmark, irregular strobes and a sharp energy cut.";
+            title = "Voltage";
+            desc = "A lateral stadium charge: edge ignition, compressed GOAL wordmark, irregular strobes and an electric score cut.";
             duration = "~2.9s";
             intensity = "High";
         }
         else if (AnimCinematicRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Cinematic;
-            title = "Epic";
-            desc = "A deliberate identity moment: the GOAL wordmark arrives slowly, breathes in light, then drifts away.";
+            title = "Club Cinema";
+            desc = "A crest-led identity moment: the GOAL wordmark blooms through the club colour before the score dissolves into view.";
             duration = "~5.0s";
             intensity = "Low";
         }
         else if (AnimCleanRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Clean;
-            title = "Pulse";
-            desc = "Minimal and score-first: one calm GOAL wordmark, a restrained edge pulse and an elastic total-score heartbeat.";
-            duration = "~2.2s";
+            title = "Clean Impact";
+            desc = "Minimal and score-first: one calm GOAL wordmark, a restrained edge pulse and a fast total-score dissolve.";
+            duration = "~2.6s";
             intensity = "Minimal";
         }
         else if (AnimClassicRadio?.IsChecked == true)
         {
             style = GoalAnimationStyle.Classic;
-            title = "Scoreboard";
-            desc = "A vintage lamp-board treatment: monospace GOAL display, stepped warm-up, uneven hold and bulb-burnout exit.";
+            title = "Flipboard";
+            desc = "A mechanical scoreboard treatment: monospace GOAL display, stepped lamps, a discrete score flip and bulb-burnout exit.";
             duration = "~2.4s";
             intensity = "Medium";
         }
@@ -3252,8 +3542,8 @@ public partial class MainWindow
         else
         {
             style = GoalAnimationStyle.Broadcast;
-            title = "TV";
-            desc = "A premium television package: vertical wordmark reveal, two channel sweeps, double score-glow beat and clean close.";
+            title = "TV Signal";
+            desc = "A premium television package: vertical wordmark reveal, two channel sweeps, broadcast score lift and clean close.";
             duration = "~3.5s";
             intensity = "Medium";
         }
@@ -3336,11 +3626,13 @@ public partial class MainWindow
     private UIElement? GetCurrentlyVisibleScreen()
     {
         if (_videoPlayer?.Visibility == Visibility.Visible) return _videoPlayer;
+        if (_quarterBreakScorebug?.Visibility == Visibility.Visible) return _quarterBreakScorebug;
         if (_breakScreen?.Visibility == Visibility.Visible) return _breakScreen;
         if (_scoreworm?.Visibility == Visibility.Visible) return _scoreworm;
         if (_statsScreen?.Visibility == Visibility.Visible) return _statsScreen;
         if (_weatherScreen?.Visibility == Visibility.Visible) return _weatherScreen;
         if (_scorebug?.Visibility == Visibility.Visible) return _scorebug;
+        if (_outputScreensaver?.Visibility == Visibility.Visible) return _outputScreensaver;
         return null;
     }
 
@@ -3474,13 +3766,34 @@ public partial class MainWindow
 
     private void PickColorInto(System.Windows.Controls.TextBox target, Border preview)
     {
-        using WinForms.ColorDialog dialog = new() { FullOpen = true, AnyColor = true };
-        if (dialog.ShowDialog() != WinForms.DialogResult.OK) return;
+        MediaColor initial;
+        try { initial = (MediaColor)System.Windows.Media.ColorConverter.ConvertFromString(target.Text); }
+        catch { initial = Colors.White; }
+        if (!ColorPickerWindow.TryPick(System.Windows.Window.GetWindow(this), initial, out MediaColor picked,
+                previewColor => ApplyTeamColourPreview(target, preview, previewColor))) return;
 
-        string hex = $"#{dialog.Color.R:X2}{dialog.Color.G:X2}{dialog.Color.B:X2}";
+        string hex = $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}";
         target.Text = hex;
-        preview.Background = new SolidColorBrush(MediaColor.FromRgb(dialog.Color.R, dialog.Color.G, dialog.Color.B));
+        preview.Background = new SolidColorBrush(picked);
         ApplyTeamSettingsLive();
+        RefreshVisiblePresentationTeamStyle();
+    }
+
+    private void ApplyTeamColourPreview(System.Windows.Controls.TextBox target, Border preview, MediaColor color)
+    {
+        string hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        _suppressTeamSync = true;
+        try
+        {
+            if (!string.Equals(target.Text, hex, StringComparison.OrdinalIgnoreCase))
+                target.Text = hex;
+        }
+        finally { _suppressTeamSync = false; }
+
+        preview.Background = new SolidColorBrush(color);
+        ApplyCurrentTeamColorsToScorebug();
+        ApplyTeamColorsToScoringPanels();
+        RefreshVisiblePresentationTeamStyle();
     }
 
     private void DropColorInto(System.Windows.Controls.TextBox target, Border preview)
@@ -3489,10 +3802,24 @@ public partial class MainWindow
         if (picked is null) return;
 
         MediaColor c = picked.Value;
+        RecentColorStorage.Record(c);
         string hex = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
         target.Text = hex;
         preview.Background = new SolidColorBrush(c);
         ApplyTeamSettingsLive();
+        RefreshVisiblePresentationTeamStyle();
+    }
+
+    private void RefreshVisiblePresentationTeamStyle()
+    {
+        // Secondary colours are also consumed by full-screen presentation
+        // controls. Refresh only the currently visible surface so a live colour
+        // change is immediate without rebuilding every hidden presentation.
+        if (_quarterBreakScorebug?.Visibility == Visibility.Visible) PopulateQuarterBreakScorebug();
+        else if (_breakScreen?.Visibility == Visibility.Visible) PopulateBreakScreen();
+        else if (_scoreworm?.Visibility == Visibility.Visible) PopulateScoreworm();
+        else if (_statsScreen?.Visibility == Visibility.Visible) PopulateStatsScreen();
+        else if (_weatherScreen?.Visibility == Visibility.Visible) PopulateWeatherScreen();
     }
 
     private void BrowseHomeLogo_Click(object sender, RoutedEventArgs e)
@@ -3544,27 +3871,113 @@ public partial class MainWindow
     }
 
     private const int TickerSlotCount = 8;
+    private const int TickerMessageMaxLength = 140;
+    private bool _normalizingTickerSlots;
+    private bool _suppressTickerSync;
+    private DispatcherTimer? _tickerStatusResetTimer;
+    private (int Index, Roche_Scoreboard.Models.MarqueeMessage Message)? _lastRemovedTickerSlot;
+
+    private void ClearTickerUndoState()
+    {
+        _lastRemovedTickerSlot = null;
+        if (TickerUndoDeleteButton is not null)
+            TickerUndoDeleteButton.Visibility = Visibility.Collapsed;
+    }
+
+    private void ResetWindowDimensions_Click(object sender, RoutedEventArgs e)
+    {
+        WindowWidthBox.Text = "386";
+        WindowHeightBox.Text = "193";
+        ApplyWindowDimensions_Click(sender, e);
+        OperatorWorkflowPreferences.Update(data =>
+        {
+            data.OutputWindowWidth = 386;
+            data.OutputWindowHeight = 193;
+        });
+        GlobalSettingsPanel.SetOutputDimensions(386, 193);
+    }
 
     private void EnsureTickerSlots()
     {
-        while (_styledMessages.Count > TickerSlotCount)
-            _styledMessages.RemoveAt(_styledMessages.Count - 1);
-        while (_styledMessages.Count < TickerSlotCount)
-            _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(string.Empty, isEnabled: false));
+        if (_normalizingTickerSlots) return;
+        _normalizingTickerSlots = true;
+        try
+        {
+            while (_styledMessages.Count > TickerSlotCount)
+                _styledMessages.RemoveAt(_styledMessages.Count - 1);
+            while (_styledMessages.Count < TickerSlotCount)
+                _styledMessages.Add(new Roche_Scoreboard.Models.MarqueeMessage(string.Empty, isEnabled: false));
+
+            foreach (Roche_Scoreboard.Models.MarqueeMessage slot in _styledMessages)
+            {
+                string normalized = NormalizeTickerText(slot.Text);
+                if (!string.Equals(slot.Text, normalized, StringComparison.Ordinal)) slot.Text = normalized;
+                string? textColor = NormalizeTickerColor(slot.TextColor);
+                string? highlightColor = NormalizeTickerColor(slot.HighlightColor);
+                if (!string.Equals(slot.TextColor, textColor, StringComparison.OrdinalIgnoreCase)) slot.TextColor = textColor;
+                if (!string.Equals(slot.HighlightColor, highlightColor, StringComparison.OrdinalIgnoreCase)) slot.HighlightColor = highlightColor;
+                if (normalized.Length == 0 && slot.IsEnabled) slot.IsEnabled = false;
+            }
+        }
+        finally
+        {
+            _normalizingTickerSlots = false;
+        }
+    }
+
+    private static string NormalizeTickerText(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+        string flattened = value.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ');
+        // Preserve ordinary and trailing spaces while the operator is typing.
+        // Removing a newly typed trailing space changed the bound value and
+        // returned the caret to the start of the field.
+        return flattened.Length <= TickerMessageMaxLength
+            ? flattened
+            : flattened[..TickerMessageMaxLength];
+    }
+
+    private static string? NormalizeTickerColor(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        try
+        {
+            MediaColor color = (MediaColor)MediaColorConverter.ConvertFromString(value);
+            return $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private void AddMessage_Click(object sender, RoutedEventArgs e)
     {
-        string text = NewMessageBox.Text?.Trim() ?? string.Empty;
+        string text = NormalizeTickerText(NewMessageBox.Text);
         if (string.IsNullOrWhiteSpace(text)) return;
 
         string? textColor = _newMessageTextColor;
         string? hi = _newMessageHighlightColor;
 
         EnsureTickerSlots();
+        Roche_Scoreboard.Models.MarqueeMessage? existing = _styledMessages
+            .FirstOrDefault(slot => string.Equals(slot.Text, text, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            existing.IsEnabled = true;
+            SyncTickerMessages();
+            SetTickerEditorStatus("MESSAGE ALREADY SAVED · SWITCHED ON", isWarning: false);
+            NewMessageBox.Text = string.Empty;
+            return;
+        }
+
         Roche_Scoreboard.Models.MarqueeMessage? msg = _styledMessages
             .FirstOrDefault(slot => string.IsNullOrWhiteSpace(slot.Text));
-        if (msg is null) return;
+        if (msg is null)
+        {
+            SetTickerEditorStatus("ALL 8 SLOTS ARE FULL · DELETE ONE TO ADD", isWarning: true);
+            return;
+        }
         msg.Text = text;
         msg.TextColor = textColor;
         msg.HighlightColor = hi;
@@ -3579,8 +3992,11 @@ public partial class MainWindow
         NewMessageBox.Focus();
     }
 
-    private void SyncTickerMessages()
+    private DispatcherTimer? _tickerEditCommitTimer;
+
+    private void SyncTickerMessages(bool persist = true)
     {
+        if (_suppressTickerSync || _normalizingTickerSlots) return;
         EnsureTickerSlots();
         _messages.Clear();
         List<Roche_Scoreboard.Models.MarqueeMessage> activeMessages = GetActiveTickerMessages();
@@ -3588,11 +4004,59 @@ public partial class MainWindow
             _messages.Add(message.Text);
 
         if (activeMessages.Count > 0)
-            _overlayQueue.Clear();
-        _scorebug?.SetMarqueeMessages(activeMessages);
+            CancelQueuedOverlays();
+        string? outputError = null;
+        try
+        {
+            _scorebug?.SetMarqueeMessages(activeMessages);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Ticker output reset after render failure: {ex.Message}");
+            try { _scorebug?.SetMarqueeMessages(Array.Empty<Roche_Scoreboard.Models.MarqueeMessage>()); }
+            catch { /* Output fallback must never interfere with scoring. */ }
+            outputError = "TICKER OUTPUT RESET · SCOREBOARD REMAINS LIVE";
+        }
         UpdateTickerEditorState();
-        PublishCloudSnapshot();
-        SaveGameState();
+        if (outputError is not null)
+            SetTickerEditorStatus(outputError, isWarning: true);
+        if (persist)
+        {
+            try
+            {
+                PublishCloudSnapshot();
+                SaveGameState();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ticker persistence skipped: {ex.Message}");
+                SetTickerEditorStatus("LIVE TICKER UPDATED · SAVE WILL RETRY", isWarning: true);
+            }
+        }
+    }
+
+    private void ScheduleTickerEditCommit()
+    {
+        _tickerEditCommitTimer?.Stop();
+        _tickerEditCommitTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _tickerEditCommitTimer.Tick -= TickerEditCommitTimer_Tick;
+        _tickerEditCommitTimer.Tick += TickerEditCommitTimer_Tick;
+        _tickerEditCommitTimer.Start();
+    }
+
+    private void TickerEditCommitTimer_Tick(object? sender, EventArgs e)
+    {
+        _tickerEditCommitTimer?.Stop();
+        try
+        {
+            PublishCloudSnapshot();
+            SaveGameState();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Ticker edit commit skipped: {ex.Message}");
+            SetTickerEditorStatus("LIVE TICKER UPDATED · SAVE WILL RETRY", isWarning: true);
+        }
     }
 
     private List<Roche_Scoreboard.Models.MarqueeMessage> GetActiveTickerMessages()
@@ -3608,21 +4072,72 @@ public partial class MainWindow
     {
         int activeCount = _styledMessages.Count(message =>
             message.IsEnabled && !string.IsNullOrWhiteSpace(message.Text));
+        int savedCount = _styledMessages.Count(message => !string.IsNullOrWhiteSpace(message.Text));
         bool hasMessages = activeCount > 0;
         if (TickerEmptyState is not null)
             TickerEmptyState.Visibility = Visibility.Collapsed;
         if (TickerMessageCountText is not null)
-            TickerMessageCountText.Text = $"{activeCount} / {TickerSlotCount} ON AIR";
+        {
+            TickerMessageCountText.Text = $"{activeCount} ON AIR · {savedCount} SAVED";
+            TickerMessageCountText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0x75, 0xE1, 0x8A));
+        }
         if (TickerClearAllButton is not null)
             TickerClearAllButton.IsEnabled = _styledMessages.Any(message => !string.IsNullOrWhiteSpace(message.Text));
+        if (TickerDisableAllButton is not null)
+            TickerDisableAllButton.IsEnabled = hasMessages;
+    }
+
+    private void SetTickerEditorStatus(string message, bool isWarning)
+    {
+        if (TickerMessageCountText is null) return;
+        _tickerStatusResetTimer?.Stop();
+        TickerMessageCountText.Text = message;
+        TickerMessageCountText.Foreground = new SolidColorBrush(isWarning
+            ? MediaColor.FromRgb(0xFF, 0xBE, 0x67)
+            : MediaColor.FromRgb(0x86, 0xEF, 0xAC));
+        _tickerStatusResetTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(2.5) };
+        _tickerStatusResetTimer.Tick -= TickerStatusResetTimer_Tick;
+        _tickerStatusResetTimer.Tick += TickerStatusResetTimer_Tick;
+        _tickerStatusResetTimer.Start();
+    }
+
+    private void TickerStatusResetTimer_Tick(object? sender, EventArgs e)
+    {
+        _tickerStatusResetTimer?.Stop();
+        UpdateTickerEditorState();
     }
 
     private void TickerTemplate_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not System.Windows.Controls.Button { Tag: string template }) return;
-        NewMessageBox.Text = template;
-        NewMessageBox.Focus();
-        NewMessageBox.CaretIndex = NewMessageBox.Text.Length;
+        EnsureTickerSlots();
+        Roche_Scoreboard.Models.MarqueeMessage? existing = _styledMessages
+            .FirstOrDefault(message => string.Equals(message.Text, template, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            existing.IsEnabled = true;
+            SyncTickerMessages();
+            SetTickerEditorStatus("TEMPLATE ALREADY SAVED · SWITCHED ON", isWarning: false);
+            return;
+        }
+
+        Roche_Scoreboard.Models.MarqueeMessage? slot = _styledMessages
+            .FirstOrDefault(message => string.IsNullOrWhiteSpace(message.Text));
+        if (slot is null)
+        {
+            SetTickerEditorStatus("ALL 8 SLOTS ARE FULL · DELETE ONE TO ADD", isWarning: true);
+            return;
+        }
+        slot.Text = NormalizeTickerText(template);
+        slot.IsEnabled = true;
+        SyncTickerMessages();
+    }
+
+    private void DisableAllTickerMessages_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (Roche_Scoreboard.Models.MarqueeMessage slot in _styledMessages)
+            slot.IsEnabled = false;
+        SyncTickerMessages();
     }
 
     private void NewMessageBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -3655,6 +4170,7 @@ public partial class MainWindow
             slot.HighlightColor = null;
             slot.IsEnabled = false;
         }
+        ClearTickerUndoState();
         SyncTickerMessages();
     }
 
@@ -3680,19 +4196,13 @@ public partial class MainWindow
 
     private static bool TryPickColor(System.Drawing.Color initial, out System.Drawing.Color picked)
     {
-        using var dlg = new WinForms.ColorDialog
-        {
-            FullOpen = true,
-            AnyColor = true,
-            Color = initial
-        };
-        if (dlg.ShowDialog() == WinForms.DialogResult.OK)
-        {
-            picked = dlg.Color;
-            return true;
-        }
-        picked = initial;
-        return false;
+        MediaColor mediaInitial = MediaColor.FromRgb(initial.R, initial.G, initial.B);
+        bool accepted = ColorPickerWindow.TryPick(System.Windows.Application.Current?.MainWindow,
+            mediaInitial, out MediaColor mediaPicked);
+        picked = accepted
+            ? System.Drawing.Color.FromArgb(mediaPicked.R, mediaPicked.G, mediaPicked.B)
+            : initial;
+        return accepted;
     }
 
     private void PickNewTextColor_Click(object sender, RoutedEventArgs e)
@@ -3753,11 +4263,44 @@ public partial class MainWindow
         if (sender is not System.Windows.Controls.Button btn) return;
         if (btn.Tag is not Roche_Scoreboard.Models.MarqueeMessage msg) return;
 
+        int index = _styledMessages.IndexOf(msg);
+        if (index >= 0 && !string.IsNullOrWhiteSpace(msg.Text))
+        {
+            _lastRemovedTickerSlot = (index, new Roche_Scoreboard.Models.MarqueeMessage(
+                msg.Text, msg.TextColor, msg.HighlightColor, msg.IsEnabled));
+            if (TickerUndoDeleteButton is not null)
+                TickerUndoDeleteButton.Visibility = Visibility.Visible;
+        }
+
         msg.Text = string.Empty;
         msg.TextColor = null;
         msg.HighlightColor = null;
         msg.IsEnabled = false;
         SyncTickerMessages();
+        SetTickerEditorStatus("MESSAGE DELETED · UNDO AVAILABLE", isWarning: false);
+    }
+
+    private void UndoTickerDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (_lastRemovedTickerSlot is not { } removed ||
+            removed.Index < 0 || removed.Index >= _styledMessages.Count)
+            return;
+
+        Roche_Scoreboard.Models.MarqueeMessage target = _styledMessages[removed.Index];
+        if (!string.IsNullOrWhiteSpace(target.Text))
+        {
+            SetTickerEditorStatus("UNDO SLOT IS NOW IN USE", isWarning: true);
+            return;
+        }
+
+        target.Text = removed.Message.Text;
+        target.TextColor = removed.Message.TextColor;
+        target.HighlightColor = removed.Message.HighlightColor;
+        target.IsEnabled = removed.Message.IsEnabled;
+        _lastRemovedTickerSlot = null;
+        TickerUndoDeleteButton.Visibility = Visibility.Collapsed;
+        SyncTickerMessages();
+        SetTickerEditorStatus("MESSAGE RESTORED", isWarning: false);
     }
 
     /// <summary>
@@ -3776,10 +4319,11 @@ public partial class MainWindow
 
     private void TickerSlotEnabled_Changed(object sender, RoutedEventArgs e)
     {
-        if (sender is not System.Windows.Controls.CheckBox { DataContext: Roche_Scoreboard.Models.MarqueeMessage slot }) return;
+        if (sender is not System.Windows.Controls.Primitives.ToggleButton { DataContext: Roche_Scoreboard.Models.MarqueeMessage slot }) return;
         if (slot.IsEnabled && string.IsNullOrWhiteSpace(slot.Text))
         {
             slot.IsEnabled = false;
+            SetTickerEditorStatus("TYPE A MESSAGE BEFORE SWITCHING IT ON", isWarning: true);
             return;
         }
         SyncTickerMessages();
@@ -3787,12 +4331,28 @@ public partial class MainWindow
 
     private void MessageItem_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
     {
-        if (sender is System.Windows.Controls.TextBox { DataContext: Roche_Scoreboard.Models.MarqueeMessage slot }
-            && string.IsNullOrWhiteSpace(slot.Text))
-            slot.IsEnabled = false;
+        if (_suppressTickerSync || _normalizingTickerSlots) return;
+        if (sender is not System.Windows.Controls.TextBox box) return;
+        int caret = box.CaretIndex;
+        if (box.DataContext is not Roche_Scoreboard.Models.MarqueeMessage slot) return;
+        // TextChanged can run before the TwoWay binding has copied the new
+        // target value into the model.  Synchronising at that point used the
+        // previous word, pushed it back into the TextBox and moved the caret
+        // to the front whenever Space was pressed.  Make the edit authoritative
+        // before rebuilding the public ticker list.
+        string editedText = NormalizeTickerText(box.Text);
+        if (!string.Equals(slot.Text, editedText, StringComparison.Ordinal))
+            slot.Text = editedText;
+        if (string.IsNullOrWhiteSpace(editedText)) slot.IsEnabled = false;
         // Keep the plain-text mirror in sync with the styled collection so persistence
         // and any string-based callers see the latest text.
-        SyncTickerMessages();
+        SyncTickerMessages(persist: false);
+        ScheduleTickerEditCommit();
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (box.IsKeyboardFocusWithin)
+                box.CaretIndex = Math.Min(caret, box.Text.Length);
+        }), DispatcherPriority.Input);
     }
 
     private void NewMessageBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -4552,18 +5112,27 @@ public partial class MainWindow
 
     private void LayoutRadio_Changed(object sender, RoutedEventArgs e)
     {
-        if (_scorebug == null) return;
-
         ScorebugLayout layout = LayoutExpandedRadio?.IsChecked == true
-            ? ScorebugLayout.Expanded
-            : LayoutRetroRadio?.IsChecked == true
-                ? ScorebugLayout.Retro
-                : LayoutNoLogosRadio?.IsChecked == true
-                    ? ScorebugLayout.NoLogos
-                    : ScorebugLayout.Classic;
+            ? ScorebugLayout.Distance
+            : ScorebugLayout.Expanded;
 
-        _scorebug.SetLayout(layout);
-        UpdateGBCountsButtonState(layout);
+        _scorebug?.SetLayout(layout);
+        _uxPreferences.ScorebugLayout = layout == ScorebugLayout.Distance ? "distance" : "classic";
+        QueueUxPreferencesSave();
+        if (LayoutCardClassic is not null && LayoutCardExpanded is not null)
+        {
+            UpdateLayoutCards();
+            UpdateGBCountsButtonState(layout);
+        }
+    }
+
+    private void ApplyRememberedScorebugLayout()
+    {
+        bool distance = string.Equals(_uxPreferences.ScorebugLayout, "distance", StringComparison.OrdinalIgnoreCase);
+        LayoutExpandedRadio.IsChecked = distance;
+        LayoutClassicRadio.IsChecked = !distance;
+        _scorebug?.SetLayout(distance ? ScorebugLayout.Distance : ScorebugLayout.Expanded);
+        UpdateLayoutCards();
     }
 
     private void NewGame_Click(object sender, RoutedEventArgs e)
@@ -4572,13 +5141,22 @@ public partial class MainWindow
     }
 
     [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(_scorebug))]
-    private bool TryEnsureOverlaySurface()
+    private bool TryEnsureOverlaySurface(bool allowTicker = false)
     {
         if (_sportMode != SportMode.AFL) return false;
         EnsureScoreboardWindow();
         if (_scorebug is null) return false;
         if (_showingBreakScreen || _scorebug.Visibility != Visibility.Visible) ShowScorebug();
-        if (_scorebug.IsTickerActive) return false;
+        if (_scorebug.IsTickerActive && !allowTicker) return false;
+        CancelQueuedOverlays();
+        _periodicOverlayReserved = false;
+        _autoOverlayDelayTimer?.Stop();
+        _autoOverlayDelayTimer = null;
+        _autoOverlayDelayCancellation?.Invoke();
+        _autoOverlayDelayCancellation = null;
+        _scoringRunDelayTimer?.Stop();
+        _scoringRunDelayTimer = null;
+        _scorebug.PrepareManualOverlayHandoff();
         return true;
     }
 
@@ -4591,10 +5169,23 @@ public partial class MainWindow
         _scorebug.ShowStatsBar(stats);
     }
 
+    private void CancelCurrentOverlay_Click(object sender, RoutedEventArgs e)
+    {
+        CancelQueuedOverlays();
+        _periodicOverlayReserved = false;
+        _autoOverlayDelayTimer?.Stop();
+        _autoOverlayDelayTimer = null;
+        _autoOverlayDelayCancellation?.Invoke();
+        _autoOverlayDelayCancellation = null;
+        _scoringRunDelayTimer?.Stop();
+        _scoringRunDelayTimer = null;
+        _scorebug?.CancelCurrentOverlay();
+    }
+
     private void ManualWarning_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:warning");
-        if (!TryEnsureOverlaySurface()) return;
+        if (!TryEnsureOverlaySurface(allowTicker: true)) return;
         ApplyCurrentTeamColorsToScorebug();
         _overlayScheduler.NotifyEventDrivenOverlay();
         _scorebug.ShowFiveMinuteWarning();
@@ -4606,7 +5197,8 @@ public partial class MainWindow
         if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         _overlayScheduler.NotifyEventDrivenOverlay();
-        _scorebug.ShowLastScoreTime();
+        AflDroughtCandidate drought = CalculateDroughts().Match;
+        _scorebug.ShowLastEventTime(drought.Kind.ToString(), drought.Elapsed);
     }
 
     private void ManualScoringRun_Click(object sender, RoutedEventArgs e)
@@ -4616,44 +5208,23 @@ public partial class MainWindow
 
         ApplyCurrentTeamColorsToScorebug();
 
-        // Pick a team to feature: the latest scorer if any events exist,
-        // otherwise default to Home so the manual button still produces a
-        // visible overlay (operators expect immediate feedback).
-        var events = _match.Events;
-        TeamSide team = events.Count > 0 ? events[^1].Team : TeamSide.Home;
-
-        int runPoints;
-        int opponentPoints;
-        TimeSpan runDuration;
-        int runEventCount;
-        var run = events.Count > 0 ? CalculateScoringRun(team) : null;
-        if (run is not null && run.RunPoints > 0)
-        {
-            runPoints = run.RunPoints;
-            opponentPoints = run.OpponentPoints;
-            runEventCount = run.EventCount;
-            runDuration = run.Oldest is not null && run.Newest is not null
-                ? MatchClockOfEvent(run.Newest, _match.QuarterDuration) - MatchClockOfEvent(run.Oldest, _match.QuarterDuration)
-                : TimeSpan.Zero;
-            if (runDuration < TimeSpan.Zero) runDuration = TimeSpan.Zero;
-        }
-        else
-        {
-            runPoints = 1;
-            opponentPoints = 0;
-            runEventCount = 1;
-            runDuration = TimeSpan.Zero;
-        }
+        IReadOnlyList<ScoreEvent> events = _match.Events;
+        ScoreEvent? latestGoal = events.LastOrDefault(score => score.Type == ScoreType.Goal);
+        TeamSide team = latestGoal?.Team ?? TeamSide.Home;
+        // Manual inspection shows the strongest current story even after the
+        // first or second goal. Automatic airing deliberately keeps the
+        // four-goal threshold in CheckScoringRunAfterScore.
+        AflGoalRunDetector.Result? run = AflGoalRunDetector.DetectBest(events, minimumFeaturedGoals: 1);
+        if (run is not null) team = run.Team;
 
         string teamName = team == TeamSide.Home ? _match.HomeName : _match.AwayName;
         var srColor = GetTeamColor(team == TeamSide.Home);
         string srHex = $"#{srColor.R:X2}{srColor.G:X2}{srColor.B:X2}";
         _overlayScheduler.NotifyEventDrivenOverlay();
-        // Manual click should always (re-)show. Clear any active/queued overlay
-        // first so EnqueueOverlay doesn't early-return when ScoringRun is
-        // already the active or queued overlay.
-        _scorebug.ClearOverlayQueue();
-        _scorebug.ShowScoringRun(teamName, runPoints, opponentPoints, runDuration, runEventCount, srHex);
+        if (run is null)
+            _scorebug.ShowGoalRunResting(teamName, srHex);
+        else
+            _scorebug.ShowGoalRun(teamName, run.TeamGoals, run.WindowGoals, run.IsConsecutive, srHex);
     }
 
     private void ManualHomeDrought_Click(object sender, RoutedEventArgs e)
@@ -4661,12 +5232,12 @@ public partial class MainWindow
         SetSelectedPreview("overlay:homedrought");
         if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
-        var since = _scorebug.HomeLastScoreTime;
-        if (since == DateTime.MinValue) since = DateTime.Now - _match.ElapsedInQuarter;
+        AflDroughtCandidate drought = CalculateDroughts().Home;
         var homeColor = GetTeamColor(true);
         string homeHex = $"#{homeColor.R:X2}{homeColor.G:X2}{homeColor.B:X2}";
         _overlayScheduler.NotifyEventDrivenOverlay();
-        _scorebug.ShowTeamDrought(_match.HomeName, since, homeHex, HomeSecondaryColorBox.Text);
+        _scorebug.ShowTeamDrought(_match.HomeName, _match.HomeAbbr,
+            drought.Kind.ToString(), drought.Elapsed, homeHex);
     }
 
     private void ManualAwayDrought_Click(object sender, RoutedEventArgs e)
@@ -4674,12 +5245,12 @@ public partial class MainWindow
         SetSelectedPreview("overlay:awaydrought");
         if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
-        var since = _scorebug.AwayLastScoreTime;
-        if (since == DateTime.MinValue) since = DateTime.Now - _match.ElapsedInQuarter;
+        AflDroughtCandidate drought = CalculateDroughts().Away;
         var awayColor = GetTeamColor(false);
         string awayHex = $"#{awayColor.R:X2}{awayColor.G:X2}{awayColor.B:X2}";
         _overlayScheduler.NotifyEventDrivenOverlay();
-        _scorebug.ShowTeamDrought(_match.AwayName, since, awayHex, AwaySecondaryColorBox.Text);
+        _scorebug.ShowTeamDrought(_match.AwayName, _match.AwayAbbr,
+            drought.Kind.ToString(), drought.Elapsed, awayHex);
     }
 
     private void ManualWinProb_Click(object sender, RoutedEventArgs e)
@@ -4698,31 +5269,62 @@ public partial class MainWindow
         _scorebug.ToggleGBColumns();
     }
 
-    private void ManualWeatherForecast_Click(object sender, RoutedEventArgs e)
+    private async void ManualWeatherForecast_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:forecast");
+        var snapshot = await GetWeatherForManualOverlayAsync();
+        if (snapshot is null) return;
         if (!TryEnsureOverlaySurface()) return;
-        var snapshot = _scorebug.GetWeatherSnapshot();
-        if (snapshot == null) return;
         _scorebug.ShowWeatherForecast(snapshot);
     }
 
-    private void ManualWeatherStats_Click(object sender, RoutedEventArgs e)
+    private async void ManualWeatherStats_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:weather");
+        var snapshot = await GetWeatherForManualOverlayAsync();
+        if (snapshot is null) return;
         if (!TryEnsureOverlaySurface()) return;
-        var snapshot = _scorebug.GetWeatherSnapshot();
-        if (snapshot == null) return;
         _scorebug.ShowWeatherStats(snapshot);
     }
 
-    private void ManualRainForecast_Click(object sender, RoutedEventArgs e)
+    private async void ManualRainForecast_Click(object sender, RoutedEventArgs e)
     {
         SetSelectedPreview("overlay:rain");
+        var snapshot = await GetWeatherForManualOverlayAsync();
+        if (snapshot is null) return;
         if (!TryEnsureOverlaySurface()) return;
-        var snapshot = _scorebug.GetWeatherSnapshot();
-        if (snapshot == null) return;
         _scorebug.ShowRainForecast(snapshot);
+    }
+
+    private async Task<WeatherSnapshot?> GetWeatherForManualOverlayAsync()
+    {
+        WeatherSnapshot? snapshot = _scorebug?.GetWeatherSnapshot();
+        if (snapshot is not null) return snapshot;
+
+        if (string.IsNullOrWhiteSpace(_weatherLocation))
+        {
+            WeatherLocationStatus.Text = "Choose a weather location before using weather overlays.";
+            System.Windows.MessageBox.Show(this,
+                "Choose a weather location in Settings before showing a weather overlay.",
+                "Weather location required", MessageBoxButton.OK, MessageBoxImage.Information);
+            return null;
+        }
+
+        WeatherLocationStatus.Text = $"Loading weather for {_weatherLocation}…";
+        await StartOrUpdateWeatherServiceAsync(_weatherLocation);
+        snapshot = _scorebug?.GetWeatherSnapshot() ?? _weatherService?.LatestSnapshot;
+        if (snapshot is not null)
+        {
+            _scorebug?.UpdateWeatherSnapshot(snapshot);
+            WeatherLocationStatus.Text = $"Weather ready for {_weatherLocation}";
+            return snapshot;
+        }
+
+        WeatherLocationStatus.Text = "Weather unavailable. Check the location and internet connection.";
+        System.Windows.MessageBox.Show(this,
+            "Weather could not be loaded. Check the location and internet connection, then try again.",
+            "Weather unavailable", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return null;
     }
 
     // ═══════════════════════════════════════════════════════
@@ -4841,6 +5443,7 @@ public partial class MainWindow
 
     private void ShowResetOverlay()
     {
+        ResetOverlay.IsHitTestVisible = true;
         ResetOverlay.Visibility = Visibility.Visible;
         var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(250))
         {
@@ -4856,7 +5459,13 @@ public partial class MainWindow
 
     private void ConfirmReset_Click(object sender, RoutedEventArgs e)
     {
-        HideResetOverlay();
+        // The sport selector becomes visible during ExecuteMatchReset. Do not
+        // leave a transparent, hit-testable reset layer above it while the old
+        // fade completes.
+        ResetOverlay.BeginAnimation(OpacityProperty, null);
+        ResetOverlay.Opacity = 0;
+        ResetOverlay.Visibility = Visibility.Collapsed;
+        ResetOverlay.IsHitTestVisible = false;
         ExecuteMatchReset();
     }
 
@@ -4871,12 +5480,16 @@ public partial class MainWindow
             ResetOverlay.BeginAnimation(OpacityProperty, null);
             ResetOverlay.Opacity = 0;
             ResetOverlay.Visibility = Visibility.Collapsed;
+            ResetOverlay.IsHitTestVisible = false;
         };
         ResetOverlay.BeginAnimation(OpacityProperty, fadeOut);
     }
 
     private void ExecuteMatchReset()
     {
+        _deferredGameStateSaveTimer?.Stop();
+        GameStateService.Clear();
+        _aflMatchReady = false;
         StopBreakRotation();
         StopStatsBarTimer();
         ExitVideoTakeover();
@@ -4904,13 +5517,14 @@ public partial class MainWindow
         _scorebug?.ResetAllOverlayState();
         _scorebug?.SetScores(0, 0, 0, 0);
         if (_scorebug != null) _scorebug.Visibility = Visibility.Collapsed;
+        if (_quarterBreakScorebug != null) _quarterBreakScorebug.Visibility = Visibility.Collapsed;
         if (_breakScreen != null) _breakScreen.Visibility = Visibility.Collapsed;
         if (_scoreworm != null) _scoreworm.Visibility = Visibility.Collapsed;
         if (_statsScreen != null) _statsScreen.Visibility = Visibility.Collapsed;
         if (_videoPlayer != null) _videoPlayer.Visibility = Visibility.Collapsed;
         if (_weatherScreen != null) _weatherScreen.Visibility = Visibility.Collapsed;
 
-        _displayWindow?.Hide();
+        ShowOutputScreensaver(manualSelection: false);
 
         MainContent.BeginAnimation(OpacityProperty, null);
         SetupWizardPanel.BeginAnimation(OpacityProperty, null);
@@ -4919,6 +5533,8 @@ public partial class MainWindow
         CricketSetupWizardPanel.Visibility = Visibility.Collapsed;
         CricketControlPanelView.Visibility = Visibility.Collapsed;
         MainTabControl.SelectedIndex = 0;
+        SportSelectionPanel.PrepareForDisplay();
+        SportSelectionPanel.IsHitTestVisible = true;
         SportSelectionPanel.Opacity = 1;
         SportSelectionPanel.Visibility = Visibility.Visible;
     }
@@ -4981,9 +5597,24 @@ public partial class MainWindow
         if (System.Windows.Application.Current is not App app) return;
 
         InstallUpdateButton.Content = "DOWNLOAD & INSTALL";
-        if (app.UpdateService.LastCheckState == UpdateCheckState.Failed)
+        string checkedSuffix = app.UpdateService.LastCheckedAt is DateTimeOffset checkedAt
+            ? $" · Checked {checkedAt.LocalDateTime:h:mm tt}"
+            : string.Empty;
+        if (app.UpdateService.LastCheckState == UpdateCheckState.Checking)
         {
-            UpdateStatusText.Text = $"Update check failed: {app.UpdateService.LastError}  Diagnostic: {AutoUpdateService.DiagnosticsPath}";
+            UpdateStatusText.Text = "Checking GitHub for a compatible Windows release…";
+            UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0x8A, 0x95, 0xA3));
+            InstallUpdateButton.Visibility = Visibility.Collapsed;
+        }
+        else if (app.UpdateService.LastCheckState == UpdateCheckState.NotChecked)
+        {
+            UpdateStatusText.Text = "Updates have not been checked yet.";
+            UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0x8A, 0x95, 0xA3));
+            InstallUpdateButton.Visibility = Visibility.Collapsed;
+        }
+        else if (app.UpdateService.LastCheckState == UpdateCheckState.Failed)
+        {
+            UpdateStatusText.Text = $"Update check failed: {app.UpdateService.LastError}{checkedSuffix} · Diagnostic: {AutoUpdateService.DiagnosticsPath}";
             UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x8A, 0x80));
             InstallUpdateButton.Visibility = Visibility.Visible;
             InstallUpdateButton.IsEnabled = true;
@@ -5002,14 +5633,14 @@ public partial class MainWindow
             string? tag = app.UpdateService.LatestRelease?.TagName?.TrimStart('v', 'V');
             UpdateStatusText.Text = string.IsNullOrWhiteSpace(tag)
                 ? "An update is available."
-                : $"Update available: v{tag}.";
+                : $"Update available: v{tag}{checkedSuffix}.";
             UpdateStatusText.Foreground = MediaBrushes.LightGreen;
             InstallUpdateButton.Visibility = Visibility.Visible;
             InstallUpdateButton.IsEnabled = true;
         }
         else
         {
-            UpdateStatusText.Text = "No updates available — you're on the latest version.";
+            UpdateStatusText.Text = $"You're on the latest version{checkedSuffix}.";
             UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0x8A, 0x95, 0xA3));
             InstallUpdateButton.Visibility = Visibility.Collapsed;
         }
@@ -5046,7 +5677,7 @@ public partial class MainWindow
         }
     }
 
-    private async void InstallUpdate_Click(object sender, RoutedEventArgs e)
+    private void InstallUpdate_Click(object sender, RoutedEventArgs e)
     {
         if (System.Windows.Application.Current is not App app) return;
         if (!app.UpdateService.UpdateAvailable ||
@@ -5066,111 +5697,8 @@ public partial class MainWindow
             return;
         }
 
-        if (InstallUpdateButton.Content is string installButtonText && installButtonText.Equals("OPEN DIRECT DOWNLOAD", StringComparison.OrdinalIgnoreCase))
-        {
-            string? directAssetUrl = app.UpdateService.GetLatestAssetDownloadUrl();
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(directAssetUrl))
-                {
-                    AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
-                    UpdateStatusText.Text = "Portable ZIP download opened. Extract the entire folder before running the app.";
-                }
-                else
-                {
-                    AutoUpdateService.OpenReleasePageInBrowser();
-                    UpdateStatusText.Text = "Direct download unavailable. Opened release page instead.";
-                }
-                UpdateStatusText.Foreground = MediaBrushes.LightGreen;
-            }
-            catch (InvalidOperationException ex)
-            {
-                UpdateStatusText.Text = $"Could not open download link: {ex.Message}";
-                UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
-            }
-            return;
-        }
-
-        try
-        {
-            CheckForUpdateButton.IsEnabled = false;
-            InstallUpdateButton.IsEnabled = false;
-            UpdateProgressBar.Visibility = Visibility.Visible;
-            UpdateProgressBar.Value = 0;
-            UpdateStatusText.Text = "Downloading update…";
-
-            var progress = new Progress<double>(p =>
-            {
-                UpdateProgressBar.Value = Math.Clamp(p * 100.0, 0, 100);
-            });
-
-            bool ok = await app.UpdateService.DownloadAndApplyAsync(progress);
-
-            if (ok)
-            {
-                UpdateStatusText.Text = "Update downloaded — relaunching…";
-                // Give the external updater a moment to start waiting on our PID
-                // before we shut down, so it doesn't miss the exit event.
-                await Task.Delay(750);
-                System.Windows.Application.Current.Shutdown();
-            }
-            else
-            {
-                UpdateStatusText.Text = "Update failed. Opening direct-download fallback…";
-                UpdateProgressBar.Visibility = Visibility.Collapsed;
-                CheckForUpdateButton.IsEnabled = true;
-                InstallUpdateButton.IsEnabled = true;
-                InstallUpdateButton.Content = "OPEN DIRECT DOWNLOAD";
-                try
-                {
-                    string? directAssetUrl = app.UpdateService.GetLatestAssetDownloadUrl();
-                    if (!string.IsNullOrWhiteSpace(directAssetUrl))
-                    {
-                        AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
-                        UpdateStatusText.Text = "In-app update failed. Portable ZIP opened—extract the entire folder before running it.";
-                    }
-                    else
-                    {
-                        AutoUpdateService.OpenReleasePageInBrowser();
-                        UpdateStatusText.Text = "In-app update failed. Direct asset missing; release page opened.";
-                    }
-                    UpdateStatusText.Foreground = MediaBrushes.LightGreen;
-                }
-                catch (InvalidOperationException ex)
-                {
-                    UpdateStatusText.Text = $"Update failed and fallback could not open: {ex.Message}";
-                    UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            UpdateStatusText.Text = $"Update failed: {ex.Message}. Opening direct-download fallback…";
-            UpdateProgressBar.Visibility = Visibility.Collapsed;
-            CheckForUpdateButton.IsEnabled = true;
-            InstallUpdateButton.IsEnabled = true;
-            InstallUpdateButton.Content = "OPEN DIRECT DOWNLOAD";
-            try
-            {
-                string? directAssetUrl = app.UpdateService.GetLatestAssetDownloadUrl();
-                if (!string.IsNullOrWhiteSpace(directAssetUrl))
-                {
-                    AutoUpdateService.OpenUrlInBrowser(directAssetUrl);
-                    UpdateStatusText.Text = "In-app update failed. Portable ZIP opened—extract the entire folder before running it.";
-                }
-                else
-                {
-                    AutoUpdateService.OpenReleasePageInBrowser();
-                    UpdateStatusText.Text = "In-app update failed. Direct asset missing; release page opened.";
-                }
-                UpdateStatusText.Foreground = MediaBrushes.LightGreen;
-            }
-            catch (InvalidOperationException fallbackEx)
-            {
-                UpdateStatusText.Text = $"Update failed and fallback could not open: {fallbackEx.Message}";
-                UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0xFF, 0x6B, 0x6B));
-            }
-        }
+        if (app.PromptForUpdate()) return;
+        RefreshUpdateStatusUi();
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -5206,6 +5734,18 @@ public partial class MainWindow
         SwitchToWeatherScreen_Click(sender, new RoutedEventArgs());
         UpdatePresentationCards("weather");
     }
+
+    private void PresCardQuarterBreak_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        SetSelectedPreview("presentation:quarterbreak");
+        _activeScreenKey = "quarterbreak";
+        EnsureScoreboardWindow();
+        ShowQuarterBreakScorebug();
+        UpdatePresentationCards("quarterbreak");
+    }
+
+    private void PresCardScreensaver_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        => SwitchToScreensaver_Click(sender, new RoutedEventArgs());
 
     private void PresCardWindow_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
@@ -5272,6 +5812,8 @@ public partial class MainWindow
             (PresCardWorm,     PresCheckWorm,     null,              "worm"),
             (PresCardStats,    PresCheckStats,    null,              "stats"),
             (PresCardWeather,  PresCheckWeather,  null,              "weather"),
+            (PresCardQuarterBreak, PresCheckQuarterBreak, null,       "quarterbreak"),
+            (PresCardScreensaver, PresCheckScreensaver, null,         "screensaver"),
         };
 
         foreach (var (card, check, glow, key) in cards)
@@ -5283,8 +5825,12 @@ public partial class MainWindow
             card.BorderBrush = new SolidColorBrush(selected
                 ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
                 : (MediaColor)MediaColorConverter.ConvertFromString("#304055"));
-            card.BorderThickness = new Thickness(selected ? 2 : 1);
-            check.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
+            // Selection is paint-only. Changing border thickness or removing
+            // the checkmark from measure shifted dense Output-tab cards under
+            // the pointer after every presentation change.
+            card.BorderThickness = new Thickness(2);
+            check.Visibility = Visibility.Visible;
+            check.Opacity = selected ? 1 : 0;
             if (glow != null)
                 glow.Opacity = selected ? 0.12 : 0;
         }
@@ -5395,10 +5941,6 @@ public partial class MainWindow
         if (!TryEnsureOverlaySurface()) return;
         ApplyCurrentTeamColorsToScorebug();
         _overlayScheduler.NotifyEventDrivenOverlay();
-        // Manual click should always (re-)show. Clear any active/queued overlay
-        // first so EnqueueOverlay doesn't early-return when RecentScores is
-        // already the active or queued overlay.
-        _scorebug.ClearOverlayQueue();
         _scorebug.ShowRecentScores(_match.Events, _match.Quarter);
     }
 
@@ -5408,6 +5950,7 @@ public partial class MainWindow
 
     private void SettingsCountUpCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
+        ArmNavigationPointerGuard();
         ClockModeCountUp.IsChecked = true;
         UpdateSettingsClockCards();
         UpdateSettingsControlPanelCountdownOptionVisuals();
@@ -5415,6 +5958,7 @@ public partial class MainWindow
 
     private void SettingsCountdownCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
+        ArmNavigationPointerGuard();
         ClockModeCountdown.IsChecked = true;
         UpdateSettingsClockCards();
         UpdateSettingsControlPanelCountdownOptionVisuals();
@@ -5432,7 +5976,7 @@ public partial class MainWindow
             (MediaColor)MediaColorConverter.ConvertFromString(countUp ? "#0A1628" : "#0E0C08"));
         SettingsCountUpCard.BorderBrush = new SolidColorBrush(
             (MediaColor)MediaColorConverter.ConvertFromString(countUp ? "#58A6FF" : "#2A2A40"));
-        SettingsCountUpCard.BorderThickness = new Thickness(countUp ? 2 : 1);
+        SettingsCountUpCard.BorderThickness = new Thickness(2);
         SettingsCountUpGlow.Opacity = countUp ? 0.12 : 0;
         SettingsCountUpCheck.Visibility = countUp ? Visibility.Visible : Visibility.Collapsed;
 
@@ -5440,7 +5984,7 @@ public partial class MainWindow
             (MediaColor)MediaColorConverter.ConvertFromString(!countUp ? "#1A1408" : "#0E0C08"));
         SettingsCountdownCard.BorderBrush = new SolidColorBrush(
             (MediaColor)MediaColorConverter.ConvertFromString(!countUp ? "#6B5A00" : "#3A3018"));
-        SettingsCountdownCard.BorderThickness = new Thickness(!countUp ? 2 : 1);
+        SettingsCountdownCard.BorderThickness = new Thickness(2);
         SettingsCountdownGlow.Opacity = !countUp ? 0.12 : 0;
         SettingsCountdownCheck.Visibility = !countUp ? Visibility.Visible : Visibility.Collapsed;
 
@@ -5564,7 +6108,7 @@ public partial class MainWindow
 
         optionCard.Background = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#0E1B2B" : "#10161D"));
         optionCard.BorderBrush = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#30363D"));
-        optionCard.BorderThickness = new Thickness(isEnabled ? 2 : 1);
+        optionCard.BorderThickness = new Thickness(2);
 
         if (toggleTrack is not null)
             toggleTrack.Background = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#2D333B"));
@@ -5700,17 +6244,19 @@ public partial class MainWindow
 
     private void UpdateLayoutCards()
     {
+        // Radio buttons are declared before the visual cards in XAML, so a
+        // Checked event can arrive during InitializeComponent.
+        if (LayoutCardClassic is null || LayoutCardExpanded is null ||
+            LayoutCheckClassic is null || LayoutCheckExpanded is null)
+            return;
+
         bool classic = LayoutClassicRadio.IsChecked == true;
         bool expanded = LayoutExpandedRadio.IsChecked == true;
-        bool retro = LayoutRetroRadio.IsChecked == true;
-        bool noLogos = LayoutNoLogosRadio.IsChecked == true;
 
         var cards = new (Border card, Border check, Border? glow, bool selected)[]
         {
             (LayoutCardClassic,  LayoutCheckClassic,  LayoutGlowClassic, classic),
             (LayoutCardExpanded, LayoutCheckExpanded,  null,              expanded),
-            (LayoutCardRetro,    LayoutCheckRetro,     null,              retro),
-            (LayoutCardNoLogos,  LayoutCheckNoLogos,   null,              noLogos),
         };
 
         foreach (var (card, check, glow, selected) in cards)
@@ -5721,7 +6267,7 @@ public partial class MainWindow
             card.BorderBrush = new SolidColorBrush(selected
                 ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
                 : (MediaColor)MediaColorConverter.ConvertFromString("#2A2A40"));
-            card.BorderThickness = new Thickness(selected ? 2 : 1);
+            card.BorderThickness = new Thickness(2);
             check.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
             if (glow != null)
                 glow.Opacity = selected ? 0.12 : 0;
@@ -5737,11 +6283,7 @@ public partial class MainWindow
             }
         }
 
-        // G/B counts overlay only works on Classic layout
-        ScorebugLayout currentLayout = expanded ? ScorebugLayout.Expanded
-            : retro ? ScorebugLayout.Retro
-            : noLogos ? ScorebugLayout.NoLogos
-            : ScorebugLayout.Classic;
+        ScorebugLayout currentLayout = expanded ? ScorebugLayout.Distance : ScorebugLayout.Expanded;
         UpdateGBCountsButtonState(currentLayout);
     }
 
@@ -5809,7 +6351,10 @@ public partial class MainWindow
                 : (MediaColor)MediaColorConverter.ConvertFromString("#0C1119"));
             card.BorderBrush = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(
                 selected ? accent : "#2D3948"));
-            card.BorderThickness = new Thickness(selected ? 2 : 1);
+            // Selection is paint-only. Changing border thickness remeasured
+            // the UniformGrid and could shift a different card under the
+            // pointer between mouse-down and mouse-up.
+            card.BorderThickness = new Thickness(2);
             check.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
             if (glow != null)
                 glow.Opacity = selected ? 0.12 : 0;
@@ -5867,7 +6412,7 @@ public partial class MainWindow
 
     private void SettingsNav_Teams_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        ApplySettingsCategoryFilter("teams");
+        ApplySettingsCategoryFilter("match");
     }
 
     private void SettingsNav_Match_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -5877,27 +6422,27 @@ public partial class MainWindow
 
     private void SettingsNav_Keybinds_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        ApplySettingsCategoryFilter("keybinds");
+        ApplySettingsCategoryFilter("controls");
     }
 
     private void SettingsNav_Display_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        ApplySettingsCategoryFilter("display");
+        ApplySettingsCategoryFilter("scoreboard");
     }
 
     private void SettingsNav_Overlays_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        ApplySettingsCategoryFilter("overlays");
+        ApplySettingsCategoryFilter("automation");
     }
 
     private void SettingsNav_Media_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        ApplySettingsCategoryFilter("media");
+        ApplySettingsCategoryFilter("assets");
     }
 
     private void SettingsNav_Advanced_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        ApplySettingsCategoryFilter("advanced");
+        ApplySettingsCategoryFilter("system");
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -5908,12 +6453,27 @@ public partial class MainWindow
 
     private void ApplySettingsCategoryFilter(string category)
     {
-        _settingsActiveCategory = string.IsNullOrWhiteSpace(category) ? "teams" : category.ToLowerInvariant();
-        _uxPreferences.LastSettingsCategory = _settingsActiveCategory;
-        UxPreferences.Save(_uxPreferences);
-        if (SettingsScrollViewer is not null)
+        ArmNavigationPointerGuard();
+        string requested = string.IsNullOrWhiteSpace(category) ? "match" : category.ToLowerInvariant();
+        string normalized = requested switch
         {
-            SettingsScrollViewer.ScrollToHome();
+            "teams" => "match",
+            "keybinds" => "controls",
+            "display" => "scoreboard",
+            "overlays" => "automation",
+            "media" => "assets",
+            "advanced" => "system",
+            _ => requested
+        };
+        if (_uxPreferences.GuidedOperatorMode && normalized is not ("match" or "scoreboard"))
+            normalized = "match";
+        bool changed = !string.Equals(_settingsActiveCategory, normalized, System.StringComparison.OrdinalIgnoreCase);
+        _settingsActiveCategory = normalized;
+        _uxPreferences.LastSettingsCategory = _settingsActiveCategory;
+        if (changed)
+        {
+            QueueUxPreferencesSave();
+            SettingsScrollViewer?.ScrollToHome();
         }
         UpdateSettingsCategoryPillStyles();
         ApplySettingsFilter();
@@ -5923,19 +6483,18 @@ public partial class MainWindow
     {
         var pills = new (System.Windows.Controls.Border? Pill, string Key)[]
         {
-            (SettingsNavBtn_Teams, "teams"),
-            (SettingsNavBtn_Match, "match"),
-            (FindElement<System.Windows.Controls.Border>("SettingsNavBtn_Keybinds"), "keybinds"),
-            (SettingsNavBtn_Display, "display"),
-            (SettingsNavBtn_Overlays, "overlays"),
-            (SettingsNavBtn_Media, "media"),
-            (SettingsNavBtn_Advanced, "advanced"),
+            (SettingsNavBtn_Teams, "match"),
+            (FindElement<System.Windows.Controls.Border>("SettingsNavBtn_Keybinds"), "controls"),
+            (SettingsNavBtn_Display, "scoreboard"),
+            (SettingsNavBtn_Overlays, "automation"),
+            (SettingsNavBtn_Media, "assets"),
+            (SettingsNavBtn_Advanced, "system"),
         };
         foreach (var (pill, key) in pills)
         {
             if (pill is null) continue;
             bool active = string.Equals(key, _settingsActiveCategory, System.StringComparison.OrdinalIgnoreCase);
-            var activeBorder = string.Equals(key, "keybinds", System.StringComparison.OrdinalIgnoreCase)
+            var activeBorder = string.Equals(key, "controls", System.StringComparison.OrdinalIgnoreCase)
                 ? System.Windows.Media.Color.FromRgb(0xA7, 0x8B, 0xFA)
                 : System.Windows.Media.Color.FromRgb(0x58, 0xA6, 0xFF);
             pill.Background = active
@@ -5946,7 +6505,7 @@ public partial class MainWindow
             pill.BorderBrush = active
                 ? new System.Windows.Media.SolidColorBrush(activeBorder)
                 : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x2B, 0x3A, 0x4E));
-            pill.BorderThickness = new Thickness(active ? 2 : 1);
+            pill.BorderThickness = new Thickness(2);
             pill.Effect = active
                 ? new System.Windows.Media.Effects.DropShadowEffect
                 {
@@ -5988,17 +6547,17 @@ public partial class MainWindow
     private void ApplySettingsFilter()
     {
         string query = SettingsSearchBox?.Text?.Trim().ToLowerInvariant() ?? string.Empty;
-        string category = string.IsNullOrWhiteSpace(_settingsActiveCategory) ? "teams" : _settingsActiveCategory;
+        string category = string.IsNullOrWhiteSpace(_settingsActiveCategory) ? "match" : _settingsActiveCategory;
 
         var sections = new (System.Windows.Controls.Border? Section, string Key)[]
         {
-            (SettingsSection_Teams,    "teams"),
+            (SettingsSection_Teams,    "match"),
             (SettingsSection_Match,    "match"),
-            (FindElement<System.Windows.Controls.Border>("SettingsSection_Keybinds"), "keybinds"),
-            (SettingsSection_Display,  "display"),
-            (SettingsSection_Overlays, "overlays"),
-            (SettingsSection_Media,    "media"),
-            (SettingsSection_Advanced, "advanced"),
+            (FindElement<System.Windows.Controls.Border>("SettingsSection_Keybinds"), "controls"),
+            (SettingsSection_Display,  "scoreboard"),
+            (SettingsSection_Overlays, "automation"),
+            (SettingsSection_Media,    "assets"),
+            (SettingsSection_Advanced, "system"),
         };
 
         bool searching = !string.IsNullOrEmpty(query);
@@ -6006,13 +6565,25 @@ public partial class MainWindow
         foreach (var (section, key) in sections)
         {
             if (section is null) continue;
+            bool wasVisible = section.Visibility == System.Windows.Visibility.Visible;
             bool categoryMatch = string.Equals(category, key, System.StringComparison.OrdinalIgnoreCase);
             bool queryMatch = !searching || SectionMatchesQuery(section, query);
             bool show = searching ? queryMatch : categoryMatch;
             section.Visibility = show ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
             if (show)
             {
-                AnimateSettingsSectionIn(section, visibleCount);
+                if (!wasVisible)
+                    AnimateSettingsSectionIn(section, visibleCount);
+                else
+                {
+                    section.BeginAnimation(OpacityProperty, null);
+                    section.Opacity = 1;
+                    if (section.RenderTransform is TranslateTransform stableTranslate)
+                    {
+                        stableTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+                        stableTranslate.Y = 0;
+                    }
+                }
                 visibleCount++;
             }
         }
@@ -6039,18 +6610,18 @@ public partial class MainWindow
             translate = new TranslateTransform();
             section.RenderTransform = translate;
         }
-        translate.Y = 18;
+        translate.Y = 8;
 
         var delay = TimeSpan.FromMilliseconds(Math.Min(order, 4) * 45);
-        section.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260))
+        section.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180))
         {
             BeginTime = delay,
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         });
-        translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(18, 0, TimeSpan.FromMilliseconds(320))
+        translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(200))
         {
             BeginTime = delay,
-            EasingFunction = new BackEase { Amplitude = 0.28, EasingMode = EasingMode.EaseOut }
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         });
     }
 

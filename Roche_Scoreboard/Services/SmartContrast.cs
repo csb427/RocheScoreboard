@@ -82,6 +82,28 @@ public static class SmartContrast
     }
 
     /// <summary>
+    /// Chooses one label colour for text drawn directly across two team-colour
+    /// segments. White or black is retained when either clears AA across both
+    /// sides. When neither does, a clean broadcast yellow is considered and
+    /// the candidate with the strongest worst-case contrast wins.
+    /// </summary>
+    public static Color PickSplitBarForeground(params Color[] backgrounds)
+    {
+        if (backgrounds is null || backgrounds.Length == 0)
+            return Colors.White;
+
+        Color yellow = Color.FromRgb(0xFF, 0xF0, 0x72);
+        double white = MinimumContrast(Colors.White, backgrounds);
+        double black = MinimumContrast(Colors.Black, backgrounds);
+        if (white >= 4.5) return Colors.White;
+        if (black >= 4.5) return Colors.Black;
+
+        double gold = MinimumContrast(yellow, backgrounds);
+        if (gold >= white && gold >= black) return yellow;
+        return white >= black ? Colors.White : Colors.Black;
+    }
+
+    /// <summary>
     /// Picks white or black for a brush; for gradient brushes the worst-case
     /// (lowest-contrast) midpoint is used so the result reads across the gradient.
     /// </summary>

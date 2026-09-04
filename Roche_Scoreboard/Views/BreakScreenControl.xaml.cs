@@ -34,7 +34,12 @@ namespace Roche_Scoreboard.Views
             {
                 if (e.NewValue is true) QueueResponsiveLayout();
             };
-            Loaded += (_, _) => QueueResponsiveLayout();
+            Loaded += (_, _) =>
+            {
+                _isDisposed = false;
+                _wallClockTimer.Start();
+                QueueResponsiveLayout();
+            };
 
             Unloaded += (_, _) => Cleanup();
         }
@@ -233,7 +238,7 @@ namespace Roche_Scoreboard.Views
             Color panelColor = Darken(teamColor, played ? 0.63 : 0.82);
             border.Background = new SolidColorBrush(panelColor);
             border.BorderBrush = new SolidColorBrush(Color.FromArgb(current ? (byte)0xFF : played ? (byte)0xC8 : (byte)0x58, teamColor.R, teamColor.G, teamColor.B));
-            border.BorderThickness = new Thickness(current ? 2 : 1);
+            border.BorderThickness = new Thickness(2);
             border.CornerRadius = new CornerRadius(5);
             border.Margin = new Thickness(1);
             border.Padding = new Thickness(2, 0, 2, 0);

@@ -15,7 +15,15 @@ The stable asset contract is:
 
 `Roche-Scoreboard-v<version>-Windows-x64.zip`
 
+The workflow also uploads a version-independent download alias:
+
+`Roche-Scoreboard-Windows-x64.zip`
+
+The alias powers the one-click latest-download link in the README and release notes. The versioned package remains the canonical updater asset and archive copy.
+
 The in-app updater prefers this name and validates the complete portable folder before replacing an installed version.
+
+Every release automatically starts with `packaging/GITHUB-RELEASE-INTRO.md`, followed by GitHub's generated change notes. Keep that introduction short and user-facing whenever installation requirements change.
 
 ## Local package check
 

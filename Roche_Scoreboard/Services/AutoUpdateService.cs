@@ -25,11 +25,38 @@ public sealed class AutoUpdateService
     private const string ReleasesPageUrl = $"https://github.com/{GitHubOwner}/{GitHubRepo}/releases/latest";
 
     private static readonly HttpClient s_http = CreateHttpClient();
+    private static readonly object s_diagnosticGate = new();
+    private readonly SemaphoreSlim _checkGate = new(1, 1);
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan DownloadIdleTimeout = TimeSpan.FromSeconds(45);
+    private const int DownloadAttempts = 3;
+    private const long MaximumExpandedPackageBytes = 2L * 1024 * 1024 * 1024;
     private static readonly string UpdateDataDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Roche_Scoreboard");
 
     public static string DiagnosticsPath => Path.Combine(UpdateDataDirectory, "update.log");
+
+    internal static void CleanupStaleStagingDirectories()
+    {
+        string tempDirectory = Path.GetTempPath();
+        DateTime staleBeforeUtc = DateTime.UtcNow.AddDays(-2);
+        try
+        {
+            foreach (string directory in Directory.EnumerateDirectories(tempDirectory, "Roche_Scoreboard_Update_*", SearchOption.TopDirectoryOnly))
+            {
+                try
+                {
+                    string resolved = Path.GetFullPath(directory);
+                    string expectedPrefix = Path.GetFullPath(Path.Combine(tempDirectory, "Roche_Scoreboard_Update_"));
+                    if (!resolved.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (Directory.GetLastWriteTimeUtc(resolved) >= staleBeforeUtc) continue;
+                    Directory.Delete(resolved, recursive: true);
+                }
+                catch { /* another updater may still own the directory */ }
+            }
+        }
+        catch { /* temp enumeration is best-effort maintenance */ }
+    }
 
     public UpdateCheckState LastCheckState { get; private set; } = UpdateCheckState.NotChecked;
     public string? LastError { get; private set; }
@@ -45,6 +72,11 @@ public sealed class AutoUpdateService
     /// Whether an update newer than the current version is available.
     /// </summary>
     public bool UpdateAvailable => LatestRelease is not null;
+
+    public long LatestPackageSizeBytes => LatestRelease is null ? 0 : FindAsset(LatestRelease)?.Size ?? 0;
+
+    public bool LatestPackageHasDigest => LatestRelease is not null &&
+        FindAsset(LatestRelease)?.Digest?.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) == true;
 
     /// <summary>
     /// Clears the cached update so prompts are not repeated in the same session.
@@ -64,6 +96,9 @@ public sealed class AutoUpdateService
     /// </summary>
     public async Task<bool> CheckForUpdateAsync(CancellationToken ct = default)
     {
+        await _checkGate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
         LastCheckState = UpdateCheckState.Checking;
         LastError = null;
         LatestRelease = null;
@@ -110,6 +145,11 @@ public sealed class AutoUpdateService
             SetCheckFailure(ex.Message, ex);
             return false;
         }
+        }
+        finally
+        {
+            _checkGate.Release();
+        }
     }
 
     /// <summary>
@@ -120,10 +160,24 @@ public sealed class AutoUpdateService
     /// Writes a log to <c>%TEMP%\Roche_Scoreboard_Update.log</c> so failures
     /// can be diagnosed if anything goes wrong.
     /// </summary>
-    public async Task<bool> DownloadAndApplyAsync(IProgress<double>? progress = null, CancellationToken ct = default)
+    public Task<bool> DownloadAndApplyAsync(IProgress<double>? progress = null, CancellationToken ct = default)
+        => DownloadAndApplyCoreAsync(progress is null ? null : new LegacyProgressAdapter(progress), ct);
+
+    public Task<bool> DownloadAndApplyDetailedAsync(
+        IProgress<UpdateProgressInfo>? progress = null,
+        CancellationToken ct = default)
+        => DownloadAndApplyCoreAsync(progress, ct);
+
+    private async Task<bool> DownloadAndApplyCoreAsync(
+        IProgress<UpdateProgressInfo>? progress,
+        CancellationToken ct)
     {
+        LastError = null;
         if (LatestRelease is null)
+        {
+            LastError = "Check for updates before downloading.";
             return false;
+        }
 
         GitHubReleaseAsset? asset = FindAsset(LatestRelease);
         if (asset?.BrowserDownloadUrl is null)
@@ -149,17 +203,18 @@ public sealed class AutoUpdateService
         // overwrite the app dir without trying to delete the script that's
         // currently executing from inside it.
         string tempRoot = Path.Combine(Path.GetTempPath(), "Roche_Scoreboard_Update_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(tempRoot);
 
         string logPath = DiagnosticsPath;
 
         try
         {
-            using var response = await s_http.GetAsync(assetUrl, HttpCompletionOption.ResponseHeadersRead, ct);
-            response.EnsureSuccessStatusCode();
-
-            long totalBytes = response.Content.Headers.ContentLength ?? -1;
-            long bytesRead = 0;
+            ct.ThrowIfCancellationRequested();
+            EnsureInstallDirectoryWritable(appDir);
+            EnsureSufficientDiskSpace(Path.GetTempPath(), Math.Max(512L * 1024 * 1024, asset.Size * 4));
+            EnsureSufficientDiskSpace(appDir, Math.Max(256L * 1024 * 1024, asset.Size * 2));
+            Directory.CreateDirectory(tempRoot);
+            progress?.Report(new UpdateProgressInfo(UpdateProgressStage.Preparing, 0, 0, asset.Size, 0, DownloadAttempts,
+                "Preparing a safe staging area…"));
 
             string currentExe = Environment.ProcessPath ?? Path.Combine(appDir, "Roche Scoreboard.exe");
             string currentExeName = Path.GetFileName(currentExe);
@@ -169,21 +224,7 @@ public sealed class AutoUpdateService
             if (isExe)
             {
                 string downloadedExe = Path.Combine(tempRoot, currentExeName);
-                await using (var fileStream = new FileStream(downloadedExe, FileMode.Create, FileAccess.Write, FileShare.None))
-                await using (var downloadStream = await response.Content.ReadAsStreamAsync(ct))
-                {
-                    byte[] buffer = new byte[81920];
-                    int read;
-                    while ((read = await downloadStream.ReadAsync(buffer, ct)) > 0)
-                    {
-                        await fileStream.WriteAsync(buffer.AsMemory(0, read), ct);
-                        bytesRead += read;
-                        if (totalBytes > 0) progress?.Report((double)bytesRead / totalBytes);
-                    }
-                }
-                progress?.Report(1.0);
-
-                ValidateDownload(downloadedExe, bytesRead, totalBytes, asset);
+                await DownloadFileWithRetryAsync(assetUrl, downloadedExe, asset, progress, ct).ConfigureAwait(false);
 
                 sourceDir = tempRoot;
             }
@@ -193,22 +234,13 @@ public sealed class AutoUpdateService
                 string extractDir = Path.Combine(tempRoot, "extracted");
                 Directory.CreateDirectory(extractDir);
 
-                await using (var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None))
-                await using (var downloadStream = await response.Content.ReadAsStreamAsync(ct))
-                {
-                    byte[] buffer = new byte[81920];
-                    int read;
-                    while ((read = await downloadStream.ReadAsync(buffer, ct)) > 0)
-                    {
-                        await fileStream.WriteAsync(buffer.AsMemory(0, read), ct);
-                        bytesRead += read;
-                        if (totalBytes > 0) progress?.Report((double)bytesRead / totalBytes);
-                    }
-                }
-                progress?.Report(1.0);
+                await DownloadFileWithRetryAsync(assetUrl, zipPath, asset, progress, ct).ConfigureAwait(false);
 
-                ValidateDownload(zipPath, bytesRead, totalBytes, asset);
-
+                progress?.Report(new UpdateProgressInfo(UpdateProgressStage.Verifying, 1, asset.Size, asset.Size, 0, DownloadAttempts,
+                    "Checking package integrity and file paths…"));
+                ValidateArchiveBeforeExtraction(zipPath);
+                progress?.Report(new UpdateProgressInfo(UpdateProgressStage.Extracting, 1, asset.Size, asset.Size, 0, DownloadAttempts,
+                    "Extracting the verified Windows release…"));
                 ZipFile.ExtractToDirectory(zipPath, extractDir, overwriteFiles: true);
 
                 // The extract may have a single subfolder; detect it
@@ -235,12 +267,15 @@ public sealed class AutoUpdateService
                 }
                 else
                 {
-                    return false;
+                    throw new InvalidDataException(
+                        $"The release package does not contain the expected '{currentExeName}' executable.");
                 }
             }
 
             ValidatePortableExecutable(stagedExe);
             ValidateReleasePackage(sourceDir, currentExeName);
+            progress?.Report(new UpdateProgressInfo(UpdateProgressStage.Staging, 1, asset.Size, asset.Size, 0, DownloadAttempts,
+                "Validating the app, .NET runtime and libVLC…"));
 
             if (!TryParseReleaseVersion(LatestRelease.TagName ?? string.Empty, out Version? expectedVersion) || expectedVersion is null)
                 throw new InvalidDataException("The update release version could not be validated.");
@@ -249,7 +284,7 @@ public sealed class AutoUpdateService
             string scriptPath = Path.Combine(tempRoot, "apply_update.ps1");
             string script = BuildUpdaterScript(currentPid, currentExeName, currentExe, appDir, sourceDir,
                 tempRoot, logPath, expectedVersion.ToString(3));
-            await File.WriteAllTextAsync(scriptPath, script, ct);
+            await File.WriteAllTextAsync(scriptPath, script, ct).ConfigureAwait(false);
 
             // Launch PowerShell hidden, bypassing execution policy. Detach from
             // this process so it survives our shutdown.
@@ -258,11 +293,17 @@ public sealed class AutoUpdateService
             {
                 try { File.AppendAllText(logPath, $"[{DateTime.Now:O}] Failed to launch updater script using all runners.\r\n"); } catch { }
             }
+            if (launched)
+                progress?.Report(new UpdateProgressInfo(UpdateProgressStage.Ready, 1, asset.Size, asset.Size, 0, DownloadAttempts,
+                    "Update verified. Restarting Roche Scoreboard…"));
             return launched;
         }
-        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException or TaskCanceledException or OperationCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException
+                                      or TaskCanceledException or OperationCanceledException or TimeoutException)
         {
-            LastError = ex.Message;
+            LastError = ex is OperationCanceledException && ct.IsCancellationRequested
+                ? "The update download was cancelled."
+                : ex.Message;
             WriteDiagnostic($"Download/stage failed: {ex}");
             try { if (Directory.Exists(tempRoot)) Directory.Delete(tempRoot, recursive: true); } catch { }
             return false;
@@ -271,9 +312,9 @@ public sealed class AutoUpdateService
 
     /// <summary>
     /// Builds the PowerShell updater script. The script:
-    /// 1. Waits for the running process (by PID) to exit with timeout fallback to name-based check.
-    /// 2. Copies the staged update over the application directory, retrying on file-in-use errors.
-    /// 3. Launches the new executable, verifies it started, and retries if not.
+    /// 1. Waits for the exact running process to exit without disturbing another scoreboard instance.
+    /// 2. Takes a complete rollback copy, then installs the staged release with bounded retries.
+    /// 3. Verifies and launches the new executable, restoring the complete prior release on failure.
     /// 4. Schedules deletion of the staged temp directory so the script can self-clean.
     /// 5. Logs every step to <paramref name="logPath"/> for post-mortem diagnostics.
     /// </summary>
@@ -299,17 +340,49 @@ public sealed class AutoUpdateService
                 }
             } catch { Write-Log "PID wait error: $_" }
 
-            $deadline = (Get-Date).AddSeconds(30)
-            while ((Get-Date) -lt $deadline) {
-                $still = Get-Process -Name '{{Esc(System.IO.Path.GetFileNameWithoutExtension(exeName))}}' -ErrorAction SilentlyContinue
-                if (-not $still) { break }
-                Start-Sleep -Milliseconds 500
-            }
-            # Last-resort: kill anything still holding files
-            Get-Process -Name '{{Esc(System.IO.Path.GetFileNameWithoutExtension(exeName))}}' -ErrorAction SilentlyContinue | ForEach-Object {
-                try { Write-Log "Force-stopping leftover process $($_.Id)"; Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue } catch {}
+            # Never terminate every process sharing the app name: a second
+            # scoreboard instance may be running a different match or copy.
+            # If the exact source PID ignored normal shutdown, stop only it.
+            $still = Get-Process -Id {{pid}} -ErrorAction SilentlyContinue
+            if ($still) {
+                try {
+                    Write-Log "Force-stopping source PID {{pid}} after the shutdown timeout."
+                    Stop-Process -Id {{pid}} -Force -ErrorAction Stop
+                } catch { Write-Log "Source PID stop error: $_" }
             }
             Start-Sleep -Milliseconds 750
+
+            # Create a full rollback copy before changing any installed file.
+            # Restoring only the old EXE is insufficient for a multi-file .NET
+            # release because partially updated DLLs may be incompatible with it.
+            $src = '{{Esc(sourceDir)}}'
+            $dst = '{{Esc(appDir)}}'
+            $backup = Join-Path '{{Esc(tempRoot)}}' 'previous-release'
+            $backupReady = $false
+            try {
+                New-Item -ItemType Directory -Path $backup -Force | Out-Null
+                $backupCopy = Start-Process -FilePath 'robocopy.exe' -ArgumentList @($dst, $backup, '/E', '/COPY:DAT', '/R:2', '/W:1', '/NFL', '/NDL', '/NJH', '/NJS', '/XJ') -Wait -PassThru -WindowStyle Hidden
+                $backupReady = $backupCopy.ExitCode -lt 8 -and (Test-Path -LiteralPath (Join-Path $backup '{{Esc(exeName)}}'))
+                Write-Log "Rollback backup exit=$($backupCopy.ExitCode) ready=$backupReady"
+            } catch { Write-Log "Rollback backup failed: $_" }
+
+            if (-not $backupReady) {
+                Write-Log "Update aborted before installation because a complete rollback backup could not be created."
+                try { Start-Process -FilePath '{{Esc(currentExe)}}' -WorkingDirectory $dst -ErrorAction SilentlyContinue } catch {}
+                exit 20
+            }
+
+            function Restore-PreviousRelease {
+                Write-Log "Restoring complete previous release from '$backup'."
+                try {
+                    $restore = Start-Process -FilePath 'robocopy.exe' -ArgumentList @($backup, $dst, '/E', '/COPY:DAT', '/R:3', '/W:1', '/NFL', '/NDL', '/NJH', '/NJS', '/XJ', '/IS') -Wait -PassThru -WindowStyle Hidden
+                    Write-Log "Rollback restore exit code: $($restore.ExitCode)"
+                    return $restore.ExitCode -lt 8
+                } catch {
+                    Write-Log "Rollback restore failed: $_"
+                    return $false
+                }
+            }
 
             # 2a. Rename the existing EXE out of the way. Windows permits
             #     renaming an open/locked executable even when it cannot be
@@ -337,13 +410,11 @@ public sealed class AutoUpdateService
             }
 
             # 2b. Copy files with retry (handles AV / locked files)
-            $src = '{{Esc(sourceDir)}}'
-            $dst = '{{Esc(appDir)}}'
             $maxAttempts = 8
             $copied = $false
             for ($i = 1; $i -le $maxAttempts; $i++) {
                 try {
-                    Write-Log "Copy attempt $i: '$src' -> '$dst'"
+                    Write-Log "Copy attempt $($i): '$src' -> '$dst'"
                     # /E recurse, /COPY:DAT, /R:3 retries, /W:1 wait, /NFL /NDL no per-file log,
                     # /NJH /NJS no header/summary, /XJ skip junctions, /IS include same.
                     $robo = Start-Process -FilePath 'robocopy.exe' -ArgumentList @($src, $dst, '/E', '/COPY:DAT', '/R:3', '/W:1', '/NFL', '/NDL', '/NJH', '/NJS', '/XJ', '/IS') -Wait -PassThru -WindowStyle Hidden
@@ -370,9 +441,7 @@ public sealed class AutoUpdateService
             #     in a broken state.
             if (-not (Test-Path -LiteralPath $exePath)) {
                 Write-Log "Post-copy EXE missing at '$exePath' — attempting to restore from .old"
-                if (Test-Path -LiteralPath "$exePath.old") {
-                    try { Rename-Item -LiteralPath "$exePath.old" -NewName ([System.IO.Path]::GetFileName($exePath)) -Force } catch { Write-Log "Restore failed: $_" }
-                }
+                Restore-PreviousRelease | Out-Null
                 $copied = $false
             } else {
                 try {
@@ -383,24 +452,19 @@ public sealed class AutoUpdateService
                     Write-Log "New EXE present at '$exePath'; version='$writtenVersion', expected='{{Esc(expectedVersion)}}'."
                     if (-not $writtenVersion.StartsWith('{{Esc(expectedVersion)}}', [System.StringComparison]::OrdinalIgnoreCase)) {
                         Write-Log "Version verification failed — rolling back."
-                        Remove-Item -LiteralPath $exePath -Force -ErrorAction SilentlyContinue
-                        if (Test-Path -LiteralPath "$exePath.old") {
-                            Rename-Item -LiteralPath "$exePath.old" -NewName ([System.IO.Path]::GetFileName($exePath)) -Force
-                        }
+                        Restore-PreviousRelease | Out-Null
                         $copied = $false
                     }
                 } catch {
                     Write-Log "Version verification error: $_"
-                    Remove-Item -LiteralPath $exePath -Force -ErrorAction SilentlyContinue
-                    if (Test-Path -LiteralPath "$exePath.old") {
-                        try { Rename-Item -LiteralPath "$exePath.old" -NewName ([System.IO.Path]::GetFileName($exePath)) -Force } catch {}
-                    }
+                    Restore-PreviousRelease | Out-Null
                     $copied = $false
                 }
             }
 
             if (-not $copied) {
-                Write-Log "Update apply FAILED. Attempting to relaunch original exe so the user is not left without an app."
+                Write-Log "Update apply FAILED. Restoring the complete previous release before relaunch."
+                Restore-PreviousRelease | Out-Null
             }
 
             # 2d. Strip Mark-of-the-Web from the freshly-written EXE so SmartScreen
@@ -425,7 +489,7 @@ public sealed class AutoUpdateService
             $launched = $false
             for ($i = 1; $i -le 5; $i++) {
                 try {
-                    Write-Log "Launch attempt $i: '$exe'"
+                    Write-Log "Launch attempt $($i): '$exe'"
                     $proc = Start-Process -FilePath $exe -WorkingDirectory $dst -PassThru -ErrorAction Stop
                     Start-Sleep -Milliseconds 1500
                     if ($proc -and -not $proc.HasExited) {
@@ -442,15 +506,12 @@ public sealed class AutoUpdateService
 
             if (-not $launched) {
                 Write-Log "Updated app did not stay running — restoring the previous executable."
-                if (Test-Path -LiteralPath "$exePath.old") {
-                    try {
-                        Remove-Item -LiteralPath $exePath -Force -ErrorAction SilentlyContinue
-                        Rename-Item -LiteralPath "$exePath.old" -NewName ([System.IO.Path]::GetFileName($exePath)) -Force -ErrorAction Stop
-                        Unblock-File -LiteralPath $exePath -ErrorAction SilentlyContinue
-                        Start-Process -FilePath $exePath -WorkingDirectory $dst -ErrorAction Stop
-                        Write-Log "Rollback succeeded and the previous version was relaunched."
-                    } catch { Write-Log "Rollback launch failed: $_" }
-                }
+                try {
+                    Restore-PreviousRelease | Out-Null
+                    Unblock-File -LiteralPath $exePath -ErrorAction SilentlyContinue
+                    Start-Process -FilePath $exePath -WorkingDirectory $dst -ErrorAction Stop
+                    Write-Log "Full rollback succeeded and the previous version was relaunched."
+                } catch { Write-Log "Rollback launch failed: $_" }
                 $copied = $false
             }
 
@@ -552,6 +613,88 @@ public sealed class AutoUpdateService
         return release.Assets.OrderBy(Rank).FirstOrDefault(a => Rank(a) < int.MaxValue);
     }
 
+    private sealed class LegacyProgressAdapter(IProgress<double> inner) : IProgress<UpdateProgressInfo>
+    {
+        public void Report(UpdateProgressInfo value) => inner.Report(value.Progress);
+    }
+
+    internal static IReadOnlyDictionary<string, bool> RunSafetyChecks()
+    {
+        Dictionary<string, bool> results = new(StringComparer.OrdinalIgnoreCase);
+        var release = new GitHubRelease
+        {
+            Assets =
+            [
+                new GitHubReleaseAsset { Name = "source.zip", Size = 100, BrowserDownloadUrl = "https://example.invalid/source" },
+                new GitHubReleaseAsset { Name = "Roche-Scoreboard-v9.9.9-SHA256.txt", Size = 100, BrowserDownloadUrl = "https://example.invalid/hash" },
+                new GitHubReleaseAsset { Name = "Roche-Scoreboard-v9.9.9-Windows-x64.zip", Size = 100, BrowserDownloadUrl = "https://example.invalid/app" }
+            ]
+        };
+        results["canonical-windows-package-selected"] =
+            FindAsset(release)?.Name == "Roche-Scoreboard-v9.9.9-Windows-x64.zip";
+        var aliasOnlyRelease = new GitHubRelease
+        {
+            Assets =
+            [
+                new GitHubReleaseAsset { Name = "source.zip", Size = 100, BrowserDownloadUrl = "https://example.invalid/source" },
+                new GitHubReleaseAsset { Name = "Roche-Scoreboard-Windows-x64.zip", Size = 100, BrowserDownloadUrl = "https://example.invalid/latest" }
+            ]
+        };
+        results["stable-latest-download-alias-accepted"] =
+            FindAsset(aliasOnlyRelease)?.Name == "Roche-Scoreboard-Windows-x64.zip";
+        results["version-suffix-parses"] =
+            TryParseReleaseVersion("v4.1.2+build.17", out Version? parsed) && parsed == new Version(4, 1, 2);
+
+        string directory = Path.Combine(Path.GetTempPath(), "RocheUpdaterSafety", Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(directory);
+            string safeZip = Path.Combine(directory, "safe.zip");
+            using (ZipArchive archive = ZipFile.Open(safeZip, ZipArchiveMode.Create))
+            {
+                using StreamWriter writer = new(archive.CreateEntry("Roche Scoreboard.exe").Open());
+                writer.Write("MZ-safe-test");
+            }
+            try
+            {
+                ValidateArchiveBeforeExtraction(safeZip);
+                results["safe-archive-accepted"] = true;
+            }
+            catch { results["safe-archive-accepted"] = false; }
+
+            string unsafeZip = Path.Combine(directory, "unsafe.zip");
+            using (ZipArchive archive = ZipFile.Open(unsafeZip, ZipArchiveMode.Create))
+            {
+                using StreamWriter writer = new(archive.CreateEntry("../outside.txt").Open());
+                writer.Write("must never extract");
+            }
+            try
+            {
+                ValidateArchiveBeforeExtraction(unsafeZip);
+                results["path-traversal-rejected"] = false;
+            }
+            catch (InvalidDataException) { results["path-traversal-rejected"] = true; }
+
+            string script = BuildUpdaterScript(4242, "Roche Scoreboard.exe",
+                @"C:\Apps\Roche Scoreboard.exe", @"C:\Apps", @"C:\Stage", @"C:\Temp", @"C:\Logs\update.log", "9.9.9");
+            results["stops-only-source-pid"] =
+                script.Contains("Get-Process -Id 4242", StringComparison.Ordinal)
+                && !script.Contains("Get-Process -Name", StringComparison.Ordinal);
+            results["backs-up-and-restores-complete-release"] =
+                script.Contains("'previous-release'", StringComparison.Ordinal)
+                && script.Contains("function Restore-PreviousRelease", StringComparison.Ordinal)
+                && script.Contains("@($backup, $dst, '/E'", StringComparison.Ordinal);
+            results["script-avoids-ambiguous-variable-colons"] =
+                !script.Contains("$i:", StringComparison.Ordinal);
+        }
+        finally
+        {
+            try { Directory.Delete(directory, recursive: true); } catch { }
+        }
+
+        return results;
+    }
+
     private static void ValidateReleasePackage(string sourceDir, string exeName)
     {
         string appStem = Path.GetFileNameWithoutExtension(exeName);
@@ -646,6 +789,147 @@ public sealed class AutoUpdateService
         WriteDiagnostic($"Update check failed: {exception}");
     }
 
+    private static async Task DownloadFileWithRetryAsync(
+        string assetUrl,
+        string destinationPath,
+        GitHubReleaseAsset asset,
+        IProgress<UpdateProgressInfo>? progress,
+        CancellationToken cancellationToken)
+    {
+        Exception? lastFailure = null;
+        for (int attempt = 1; attempt <= DownloadAttempts; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            progress?.Report(new UpdateProgressInfo(UpdateProgressStage.Downloading, 0, 0, asset.Size,
+                attempt, DownloadAttempts, attempt == 1 ? "Downloading the Windows release…" : $"Retrying download ({attempt}/{DownloadAttempts})…"));
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, assetUrl);
+                using HttpResponseMessage response = await s_http.SendAsync(
+                    request,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellationToken).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+
+                long totalBytes = response.Content.Headers.ContentLength ?? asset.Size;
+                long bytesRead = 0;
+                long lastReportedBytes = -1;
+                long lastReportTimestamp = 0;
+                double ticksPerSecond = Stopwatch.Frequency;
+
+                await using Stream downloadStream = await response.Content
+                    .ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var fileStream = new FileStream(
+                    destinationPath, FileMode.Create, FileAccess.Write, FileShare.None,
+                    bufferSize: 81920, useAsync: true);
+
+                byte[] buffer = new byte[81920];
+                while (true)
+                {
+                    int read = await downloadStream.ReadAsync(buffer, cancellationToken)
+                        .AsTask()
+                        .WaitAsync(DownloadIdleTimeout, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (read == 0) break;
+
+                    await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+                    bytesRead += read;
+
+                    // At most ten progress dispatches per second. Updating for
+                    // every 80 KB block generated thousands of WPF callbacks on
+                    // fast connections and made the dialog feel less responsive.
+                    long now = Stopwatch.GetTimestamp();
+                    bool reportDue = lastReportTimestamp == 0 ||
+                                     (now - lastReportTimestamp) / ticksPerSecond >= 0.1;
+                    if (totalBytes > 0 && reportDue && bytesRead != lastReportedBytes)
+                    {
+                        double fraction = Math.Clamp((double)bytesRead / totalBytes, 0, 1);
+                        progress?.Report(new UpdateProgressInfo(UpdateProgressStage.Downloading, fraction, bytesRead,
+                            totalBytes, attempt, DownloadAttempts, "Downloading the Windows release…"));
+                        lastReportedBytes = bytesRead;
+                        lastReportTimestamp = now;
+                    }
+                }
+
+                await fileStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                ValidateDownload(destinationPath, bytesRead, totalBytes, asset);
+                progress?.Report(new UpdateProgressInfo(UpdateProgressStage.Downloading, 1, bytesRead,
+                    totalBytes > 0 ? totalBytes : asset.Size, attempt, DownloadAttempts, "Download complete."));
+                return;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or IOException or TimeoutException or TaskCanceledException)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    throw new OperationCanceledException(cancellationToken);
+
+                lastFailure = ex;
+                WriteDiagnostic($"Download attempt {attempt}/{DownloadAttempts} failed: {ex.Message}");
+                try { if (File.Exists(destinationPath)) File.Delete(destinationPath); } catch { }
+                if (attempt < DownloadAttempts)
+                    await Task.Delay(TimeSpan.FromSeconds(attempt * 2), cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        throw new IOException(
+            $"The update download failed after {DownloadAttempts} attempts.", lastFailure);
+    }
+
+    private static void EnsureInstallDirectoryWritable(string appDirectory)
+    {
+        string probe = Path.Combine(appDirectory, $".roche-update-write-{Guid.NewGuid():N}.tmp");
+        try
+        {
+            File.WriteAllText(probe, "update write check");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new UnauthorizedAccessException(
+                "Roche Scoreboard cannot update this folder. Move the extracted app folder to Documents or another writable location, then retry.", ex);
+        }
+        finally
+        {
+            try { if (File.Exists(probe)) File.Delete(probe); } catch { }
+        }
+    }
+
+    private static void EnsureSufficientDiskSpace(string path, long requiredBytes)
+    {
+        try
+        {
+            string? root = Path.GetPathRoot(Path.GetFullPath(path));
+            if (string.IsNullOrWhiteSpace(root)) return;
+            var drive = new DriveInfo(root);
+            if (drive.IsReady && drive.AvailableFreeSpace < requiredBytes)
+            {
+                long requiredMb = (long)Math.Ceiling(requiredBytes / 1024d / 1024d);
+                throw new IOException($"At least {requiredMb:N0} MB of free disk space is required to install this update safely.");
+            }
+        }
+        catch (ArgumentException) { /* UNC/unusual roots: continue with normal I/O checks */ }
+        catch (NotSupportedException) { }
+    }
+
+    private static void ValidateArchiveBeforeExtraction(string zipPath)
+    {
+        using ZipArchive archive = ZipFile.OpenRead(zipPath);
+        if (archive.Entries.Count == 0)
+            throw new InvalidDataException("The downloaded release archive is empty.");
+
+        long expandedBytes = 0;
+        string extractionRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(zipPath)!, "extracted"))
+            .TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        foreach (ZipArchiveEntry entry in archive.Entries)
+        {
+            if (entry.Length < 0 || entry.Length > MaximumExpandedPackageBytes - expandedBytes)
+                throw new InvalidDataException("The downloaded release expands beyond the safe package limit.");
+            expandedBytes += entry.Length;
+
+            string target = Path.GetFullPath(Path.Combine(extractionRoot, entry.FullName));
+            if (!target.StartsWith(extractionRoot, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("The downloaded release contains an unsafe archive path.");
+        }
+    }
+
     private static void ValidateDownload(string path, long downloadedBytes, long contentLength, GitHubReleaseAsset asset)
     {
         if (downloadedBytes <= 0 || !File.Exists(path))
@@ -677,14 +961,46 @@ public sealed class AutoUpdateService
 
     private static void WriteDiagnostic(string message)
     {
-        try
+        lock (s_diagnosticGate)
         {
-            Directory.CreateDirectory(UpdateDataDirectory);
-            File.AppendAllText(DiagnosticsPath, $"[{DateTimeOffset.Now:O}] {message}{Environment.NewLine}");
+            try
+            {
+                Directory.CreateDirectory(UpdateDataDirectory);
+                if (File.Exists(DiagnosticsPath) && new FileInfo(DiagnosticsPath).Length > 1024 * 1024)
+                {
+                    string backupPath = DiagnosticsPath + ".previous";
+                    try
+                    {
+                        File.Copy(DiagnosticsPath, backupPath, overwrite: true);
+                        File.WriteAllText(DiagnosticsPath, string.Empty);
+                    }
+                    catch { /* retain the existing log if rotation is blocked */ }
+                }
+                File.AppendAllText(DiagnosticsPath, $"[{DateTimeOffset.Now:O}] {message}{Environment.NewLine}");
+            }
+            catch { }
         }
-        catch { }
     }
 }
+
+public enum UpdateProgressStage
+{
+    Preparing,
+    Downloading,
+    Verifying,
+    Extracting,
+    Staging,
+    Ready
+}
+
+public sealed record UpdateProgressInfo(
+    UpdateProgressStage Stage,
+    double Progress,
+    long BytesReceived,
+    long TotalBytes,
+    int Attempt,
+    int MaximumAttempts,
+    string Message);
 
 public enum UpdateCheckState
 {

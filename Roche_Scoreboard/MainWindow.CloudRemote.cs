@@ -226,9 +226,10 @@ public partial class MainWindow : IRemoteCommandTarget
             });
         }
 
-        string[] messages = new string[_styledMessages.Count];
-        for (int i = 0; i < _styledMessages.Count; i++)
-            messages[i] = _styledMessages[i].Text ?? "";
+        string[] messages = GetActiveTickerMessages()
+            .Select(message => message.Text)
+            .ToArray();
+        GoalAnimationStyle selectedAnimation = GetSelectedGoalAnimationStyle();
 
         return new LiveStateSnapshot
         {
@@ -256,6 +257,10 @@ public partial class MainWindow : IRemoteCommandTarget
             AwayPrimaryColor = AwayColorBox?.Text ?? "#FFFFFF",
             AwaySecondaryColor = AwaySecondaryColorBox?.Text ?? "#000000",
             ActiveScreen = _activeScreenKey,
+            Layout = LayoutExpandedRadio?.IsChecked == true ? "distance" : "classic",
+            GoalAnimation = selectedAnimation == GoalAnimationStyle.CustomVideo
+                ? "customVideo"
+                : selectedAnimation.ToString().ToLowerInvariant(),
             EventCount = _match.Events.Count,
             LastEvent = _match.Events.Count > 0
                 ? _match.Events[^1].FormatLog(_match.HomeName, _match.AwayName)
@@ -455,11 +460,20 @@ public partial class MainWindow : IRemoteCommandTarget
 
     void IRemoteCommandTarget.AddMessage(string text)
     {
+        text = NormalizeTickerText(text);
         if (string.IsNullOrWhiteSpace(text)) return;
         EnsureTickerSlots();
+        Models.MarqueeMessage? existing = _styledMessages
+            .FirstOrDefault(message => string.Equals(message.Text, text, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            existing.IsEnabled = true;
+            SyncTickerMessages();
+            return;
+        }
         Models.MarqueeMessage? slot = _styledMessages.FirstOrDefault(message => string.IsNullOrWhiteSpace(message.Text));
         if (slot is null) return;
-        slot.Text = text.Trim();
+        slot.Text = text;
         slot.IsEnabled = true;
         SyncTickerMessages();
     }
@@ -478,24 +492,35 @@ public partial class MainWindow : IRemoteCommandTarget
     void IRemoteCommandTarget.SetMessages(string[] messages)
     {
         ArgumentNullException.ThrowIfNull(messages);
-        _styledMessages.Clear();
-        foreach (string text in messages.Take(TickerSlotCount))
+        ClearTickerUndoState();
+        _suppressTickerSync = true;
+        try
         {
-            if (string.IsNullOrWhiteSpace(text)) continue;
-            _styledMessages.Add(new Models.MarqueeMessage(text.Trim(), isEnabled: true));
+            _styledMessages.Clear();
+            foreach (string text in messages
+                         .Select(NormalizeTickerText)
+                         .Where(value => value.Length > 0)
+                         .Distinct(StringComparer.OrdinalIgnoreCase)
+                         .Take(TickerSlotCount))
+                _styledMessages.Add(new Models.MarqueeMessage(text, isEnabled: true));
+            EnsureTickerSlots();
         }
-        EnsureTickerSlots();
+        finally { _suppressTickerSync = false; }
         SyncTickerMessages();
     }
 
     void IRemoteCommandTarget.SetLayout(string layout)
     {
-        switch (layout)
+        switch (layout?.Trim().ToLowerInvariant())
         {
             case "classic":
                 if (LayoutClassicRadio is not null) LayoutClassicRadio.IsChecked = true;
                 break;
-            // Future: compact / wide / etc.
+            case "distance":
+                if (LayoutExpandedRadio is not null) LayoutExpandedRadio.IsChecked = true;
+                break;
+            default:
+                return;
         }
         UpdateLayoutCards();
         PushAllToScoreboard();

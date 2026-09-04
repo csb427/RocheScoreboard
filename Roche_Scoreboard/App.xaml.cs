@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Roche_Scoreboard.Services;
 using Roche_Scoreboard.Views;
@@ -20,6 +22,7 @@ public partial class App : Application
     /// Shared update service so both startup and shutdown can access the same state.
     /// </summary>
     internal AutoUpdateService UpdateService { get; } = new();
+    private bool _updatePromptOpen;
 
     /// <summary>
     /// Shared theme service for runtime theme and density switching
@@ -59,6 +62,9 @@ public partial class App : Application
             arg.StartsWith("--gallery-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--startup-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--preferences-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--afl-reliability-stress-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--vlc-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--prompt-snapshots=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--afl-presentation-snapshots=", StringComparison.OrdinalIgnoreCase));
 
         // Install global exception handlers up-front so any error from here on
@@ -113,7 +119,8 @@ public partial class App : Application
         // still usable without video playback.
         try
         {
-            VlcRuntime.ValidateOrThrow();
+            if (!IsSelfTestMode)
+                VlcRuntime.ValidateOrThrow();
         }
         catch (Exception vlcEx)
         {
@@ -137,17 +144,41 @@ public partial class App : Application
         // MainWindow. The task is parked on UpdateCheckTask so MainWindow's
         // deferred-alerts code can await it before deciding whether to show
         // the update prompt.
-        UpdateCheckTask = Task.Run(async () =>
-        {
-            try { await UpdateService.CheckForUpdateAsync(); }
-            catch { /* Never let an update check failure prevent the app from starting. */ }
-        });
+        UpdateCheckTask = IsSelfTestMode
+            ? Task.CompletedTask
+            : Task.Run(async () =>
+            {
+                AutoUpdateService.CleanupStaleStagingDirectories();
+                try { await UpdateService.CheckForUpdateAsync(); }
+                catch { /* Never let an update check failure prevent the app from starting. */ }
+            });
 
         // Determine which window to show based on command-line arguments
         bool isDesignGalleryMode = e.Args.Contains("--design-gallery", StringComparer.OrdinalIgnoreCase);
         string? gallerySelfTestPath = GetArgumentValue(e.Args, "--gallery-self-test-output=");
         string? startupSelfTestPath = GetArgumentValue(e.Args, "--startup-self-test-output=");
         string? preferencesSelfTestPath = GetArgumentValue(e.Args, "--preferences-self-test-output=");
+        string? aflReliabilityStressPath = GetArgumentValue(e.Args, "--afl-reliability-stress-output=");
+        string? vlcSelfTestPath = GetArgumentValue(e.Args, "--vlc-self-test-output=");
+        string? promptSnapshotDirectory = GetArgumentValue(e.Args, "--prompt-snapshots=");
+
+        if (promptSnapshotDirectory is not null)
+        {
+            RunPromptSnapshots(promptSnapshotDirectory);
+            return;
+        }
+
+        if (vlcSelfTestPath is not null)
+        {
+            RunVlcSelfTest(vlcSelfTestPath);
+            return;
+        }
+
+        if (aflReliabilityStressPath is not null)
+        {
+            RunAflReliabilityStressTest(aflReliabilityStressPath);
+            return;
+        }
 
         if (gallerySelfTestPath is not null)
         {
@@ -271,23 +302,117 @@ public partial class App : Application
     /// </summary>
     internal bool PromptForUpdate()
     {
-        if (!UpdateService.UpdateAvailable)
+        if (!UpdateService.UpdateAvailable || _updatePromptOpen)
             return false;
-
-        var prompt = new UpdatePromptWindow(UpdateService)
+        _updatePromptOpen = true;
+        try
         {
-            Owner = MainWindow
-        };
+            var prompt = new UpdatePromptWindow(UpdateService);
+            if (MainWindow?.IsVisible == true)
+                prompt.Owner = MainWindow;
+            prompt.ShowDialog();
 
-        bool? result = prompt.ShowDialog();
-
-        if (prompt.UpdateApplied)
-        {
+            if (!prompt.UpdateApplied) return false;
             Shutdown();
             return true;
         }
+        catch (Exception ex)
+        {
+            LogException("PromptForUpdate", ex);
+            return false;
+        }
+        finally
+        {
+            _updatePromptOpen = false;
+        }
+    }
 
-        return false;
+    private void RunPromptSnapshots(string outputDirectory)
+    {
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        string resolvedDirectory = Path.GetFullPath(string.IsNullOrWhiteSpace(outputDirectory)
+            ? Path.Combine(Path.GetTempPath(), "RochePromptSnapshots")
+            : outputDirectory);
+
+        Dispatcher.InvokeAsync(async () =>
+        {
+            try
+            {
+                Directory.CreateDirectory(resolvedDirectory);
+                var recovery = new GameState
+                {
+                    Sport = "afl",
+                    SavedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-7),
+                    HomePrimaryColor = "#FF3338",
+                    AwayPrimaryColor = "#FACC0D",
+                    MatchState = new Roche_Scoreboard.Models.SerializableState
+                    {
+                        HomeName = "Xavier College",
+                        AwayName = "Carey Grammar",
+                        HomeGoals = 8,
+                        HomeBehinds = 13,
+                        AwayGoals = 7,
+                        AwayBehinds = 9,
+                        Quarter = 3,
+                        ElapsedInQuarterTicks = TimeSpan.FromMinutes(16).Add(TimeSpan.FromSeconds(18)).Ticks
+                    }
+                };
+                var resume = new ResumeGameDialog(recovery);
+                MainWindow = resume;
+                resume.Show();
+                await Task.Delay(280);
+                CaptureWindowPng(resume, Path.Combine(resolvedDirectory, "continue-match.png"));
+                resume.Close();
+
+                var release = new GitHubRelease
+                {
+                    TagName = "v4.1.3",
+                    Body = "## New\n- Faster recovery and clearer operator prompts\n- Stage-aware update progress\n\n## Fixed\n- Safer cancellation and complete-release rollback",
+                    HtmlUrl = AutoUpdateService.GetReleasePageUrl(),
+                    Assets =
+                    [
+                        new GitHubReleaseAsset
+                        {
+                            Name = "Roche-Scoreboard-v4.1.3-Windows-x64.zip",
+                            Size = 222_793_218,
+                            Digest = "sha256:preview"
+                        }
+                    ]
+                };
+                var update = new UpdatePromptWindow(UpdateService, release);
+                MainWindow = update;
+                update.Show();
+                await Task.Delay(280);
+                CaptureWindowPng(update, Path.Combine(resolvedDirectory, "auto-update.png"));
+                update.Close();
+
+                File.WriteAllText(Path.Combine(resolvedDirectory, "prompt-snapshots.json"),
+                    JsonSerializer.Serialize(new { success = true, windows = 2 }, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                Directory.CreateDirectory(resolvedDirectory);
+                File.WriteAllText(Path.Combine(resolvedDirectory, "prompt-snapshots.json"),
+                    JsonSerializer.Serialize(new { success = false, error = ex.ToString() }, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            finally
+            {
+                Shutdown();
+            }
+        }, DispatcherPriority.ApplicationIdle);
+    }
+
+    private static void CaptureWindowPng(Window window, string path)
+    {
+        window.UpdateLayout();
+        int width = Math.Max(1, (int)Math.Ceiling(window.ActualWidth));
+        int height = Math.Max(1, (int)Math.Ceiling(window.ActualHeight));
+        var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(window);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using FileStream stream = File.Create(path);
+        encoder.Save(stream);
     }
 
     private static string? GetArgumentValue(string[] args, string prefix)
@@ -352,6 +477,7 @@ public partial class App : Application
                     cricketSetupVisible = mainWindow.CricketSetupWizardPanel.Visibility == Visibility.Visible,
                     cricketControlVisible = mainWindow.CricketControlPanelView.Visibility == Visibility.Visible,
                     globalSettingsVisible = mainWindow.GlobalSettingsPanel.Visibility == Visibility.Visible,
+                    operatorModeChecks = mainWindow.RunOperatorModeSelfCheckForQa(),
                 };
 
                 string json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
@@ -392,6 +518,7 @@ public partial class App : Application
         var cases = new[]
         {
             new { Name = "missing-properties", Json = "{ \"startupMode\": \"resumeIfAvailable\", \"lastMode\": \"training\", \"lastSettingsCategory\": \"audio\", \"lastMainTabIndex\": 7, \"enableQuickStartupHints\": false }" },
+            new { Name = "advanced-mode-preserved", Json = "{ \"guidedOperatorMode\": false, \"lastMainTabIndex\": 2 }" },
             new { Name = "valid-dark-compact", Json = "{ \"theme\": \"dark\", \"density\": \"compact\", \"startupMode\": \"lastMode\", \"lastMode\": \"globalSettings\", \"lastSettingsCategory\": \"general\", \"lastMainTabIndex\": 3, \"enableQuickStartupHints\": true }" },
             new { Name = "invalid-theme-valid-density", Json = "{ \"theme\": \"invalidTheme\", \"density\": \"compact\", \"startupMode\": \"sportSelection\", \"lastMode\": \"afl\", \"lastSettingsCategory\": \"display\", \"lastMainTabIndex\": 2, \"enableQuickStartupHints\": false }" },
             new { Name = "valid-theme-invalid-density", Json = "{ \"theme\": \"dark\", \"density\": \"invalidDensity\", \"startupMode\": \"resumeIfAvailable\", \"lastMode\": \"training\", \"lastSettingsCategory\": \"clock\", \"lastMainTabIndex\": 5, \"enableQuickStartupHints\": true }" },
@@ -437,6 +564,7 @@ public partial class App : Application
                     loadedLastSettingsCategory = loaded.LastSettingsCategory,
                     loadedLastMainTabIndex = loaded.LastMainTabIndex,
                     loadedEnableQuickStartupHints = loaded.EnableQuickStartupHints,
+                    loadedGuidedOperatorMode = loaded.GuidedOperatorMode,
                     exceptionOccurred,
                     exceptionMessage,
                     writtenBack,
@@ -459,6 +587,55 @@ public partial class App : Application
         string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(resolvedOutputPath, json);
         TryWriteDiagnosticMirror("preferences-self-test.json", json);
+        Shutdown();
+    }
+
+    private void RunAflReliabilityStressTest(string outputPath)
+    {
+        string resolvedOutputPath = ResolveSelfTestOutputPath(outputPath, "afl-reliability-stress.json");
+        try
+        {
+            object result = AflReliabilityStressSuite.Run();
+            string json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(resolvedOutputPath, json);
+        }
+        catch (Exception ex)
+        {
+            string json = JsonSerializer.Serialize(new { error = ex.ToString() }, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(resolvedOutputPath, json);
+        }
+        finally
+        {
+            Shutdown();
+        }
+    }
+
+    private void RunVlcSelfTest(string outputPath)
+    {
+        string resolvedOutputPath = ResolveSelfTestOutputPath(outputPath, "vlc-self-test.json");
+        object result;
+        try
+        {
+            VlcRuntime.ValidateOrThrow();
+            result = new
+            {
+                available = VlcRuntime.IsAvailable,
+                version = VlcRuntime.Instance.Version,
+                initializationError = (string?)null,
+            };
+        }
+        catch (Exception ex)
+        {
+            result = new
+            {
+                available = false,
+                version = (string?)null,
+                initializationError = ex.ToString(),
+            };
+        }
+
+        File.WriteAllText(resolvedOutputPath,
+            JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
         Shutdown();
     }
 

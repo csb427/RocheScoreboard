@@ -18,18 +18,30 @@ public partial class ScoreEventEditorWindow : Window
     public TeamSide SelectedTeam { get; private set; }
     public ScoreType SelectedType { get; private set; }
     public TimeSpan SelectedGameTime { get; private set; }
+    public int SelectedQuarter { get; private set; } = 1;
 
     private static readonly SolidColorBrush s_selectedBg = new(MediaColor.FromRgb(0x1C, 0x24, 0x33));
     private static readonly SolidColorBrush s_unselectedBg = new(MediaColor.FromRgb(0x0D, 0x11, 0x17));
     private static readonly SolidColorBrush s_dimBorder = new(MediaColor.FromRgb(0x30, 0x36, 0x3D));
-    private static readonly SolidColorBrush s_homeBorder = new(MediaColor.FromRgb(0x58, 0xA6, 0xFF));
-    private static readonly SolidColorBrush s_awayBorder = new(MediaColor.FromRgb(0xFF, 0x77, 0x55));
+    private SolidColorBrush _homeBorder = new(MediaColor.FromRgb(0x58, 0xA6, 0xFF));
+    private SolidColorBrush _awayBorder = new(MediaColor.FromRgb(0xFF, 0x77, 0x55));
+    private SolidColorBrush _homeSelectedBg = s_selectedBg;
+    private SolidColorBrush _awaySelectedBg = s_selectedBg;
     private static readonly SolidColorBrush s_goalBorder = new(MediaColor.FromRgb(0x3F, 0xB9, 0x50));
     private static readonly SolidColorBrush s_behindBorder = new(MediaColor.FromRgb(0xD2, 0x99, 0x22));
 
-    public ScoreEventEditorWindow(ScoreEvent ev, string homeName, string awayName)
+    private readonly bool _isAddMode;
+    private readonly int _currentQuarter;
+    private readonly TimeSpan _currentGameTime;
+
+    public ScoreEventEditorWindow(ScoreEvent ev, string homeName, string awayName,
+        string homeColor = "#58A6FF", string awayColor = "#FF7755")
     {
         InitializeComponent();
+
+        _currentQuarter = ev.Quarter;
+        _currentGameTime = ev.GameTime;
+        ApplyTeamPalette(homeColor, awayColor);
 
         string clock = $"Q{ev.Quarter}  {(int)ev.GameTime.TotalMinutes:D2}:{ev.GameTime.Seconds:D2}";
         EventInfoText.Text = clock;
@@ -40,13 +52,74 @@ public partial class ScoreEventEditorWindow : Window
 
         SelectedTeam = ev.Team;
         SelectedType = ev.Type;
+        SelectedQuarter = ev.Quarter;
         SelectedGameTime = ev.GameTime;
 
+        QuarterBox.SelectedIndex = Math.Clamp(ev.Quarter - 1, 0, 3);
+        UseCurrentQuarterBox.Visibility = Visibility.Collapsed;
+        UseCurrentTimeBox.Visibility = Visibility.Collapsed;
+        QuarterBox.IsEnabled = true;
         MinutesBox.Text = ((int)ev.GameTime.TotalMinutes).ToString("D2");
         SecondsBox.Text = ev.GameTime.Seconds.ToString("D2");
 
         UpdateTeamVisuals();
         UpdateTypeVisuals();
+    }
+
+    public ScoreEventEditorWindow(string homeName, string awayName, int currentQuarter, TimeSpan currentGameTime,
+        string homeColor = "#58A6FF", string awayColor = "#FF7755")
+    {
+        InitializeComponent();
+        _isAddMode = true;
+        _currentQuarter = Math.Clamp(currentQuarter, 1, 4);
+        _currentGameTime = currentGameTime < TimeSpan.Zero ? TimeSpan.Zero : currentGameTime;
+        ApplyTeamPalette(homeColor, awayColor);
+
+        Title = "Add Score Event";
+        DialogHeading.Text = "ADD SCORE TO MATCH LOG";
+        EventInfoText.Text = "TEAM AND SCORE TYPE ARE REQUIRED";
+        EventScoreText.Text = "Quarter and time default to the live match unless you override them.";
+        HomeTeamLabel.Text = homeName;
+        AwayTeamLabel.Text = awayName;
+        SelectedTeam = TeamSide.Home;
+        SelectedType = ScoreType.Goal;
+        SelectedQuarter = _currentQuarter;
+        SelectedGameTime = _currentGameTime;
+        QuarterBox.SelectedIndex = _currentQuarter - 1;
+        MinutesBox.Text = ((int)_currentGameTime.TotalMinutes).ToString("D2");
+        SecondsBox.Text = _currentGameTime.Seconds.ToString("D2");
+        DeleteButton.Visibility = Visibility.Collapsed;
+        SaveButton.Content = "ADD SCORE";
+        OptionalTiming_Changed(this, new RoutedEventArgs());
+        UpdateTeamVisuals();
+        UpdateTypeVisuals();
+    }
+
+    private void ApplyTeamPalette(string homeHex, string awayHex)
+    {
+        MediaColor home = ParseColor(homeHex, MediaColor.FromRgb(0x58, 0xA6, 0xFF));
+        MediaColor away = ParseColor(awayHex, MediaColor.FromRgb(0xFF, 0x77, 0x55));
+        _homeBorder = new SolidColorBrush(home);
+        _awayBorder = new SolidColorBrush(away);
+        _homeSelectedBg = new SolidColorBrush(MediaColor.FromArgb(0x72, home.R, home.G, home.B));
+        _awaySelectedBg = new SolidColorBrush(MediaColor.FromArgb(0x72, away.R, away.G, away.B));
+        HomeTeamLabel.Foreground = new SolidColorBrush(Roche_Scoreboard.Services.SmartContrast.PickForeground(home));
+        AwayTeamLabel.Foreground = new SolidColorBrush(Roche_Scoreboard.Services.SmartContrast.PickForeground(away));
+    }
+
+    private static MediaColor ParseColor(string value, MediaColor fallback)
+    {
+        try { return (MediaColor)System.Windows.Media.ColorConverter.ConvertFromString(value); }
+        catch { return fallback; }
+    }
+
+    private void OptionalTiming_Changed(object sender, RoutedEventArgs e)
+    {
+        if (QuarterBox is null || MinutesBox is null || SecondsBox is null) return;
+        QuarterBox.IsEnabled = UseCurrentQuarterBox?.IsChecked != true;
+        bool customTime = UseCurrentTimeBox?.IsChecked != true;
+        MinutesBox.IsEnabled = customTime;
+        SecondsBox.IsEnabled = customTime;
     }
 
     private void HomeTeam_Click(object sender, MouseButtonEventArgs e)
@@ -77,12 +150,12 @@ public partial class ScoreEventEditorWindow : Window
     {
         bool home = SelectedTeam == TeamSide.Home;
 
-        HomeTeamBtn.Background = home ? s_selectedBg : s_unselectedBg;
-        HomeTeamBtn.BorderBrush = home ? s_homeBorder : s_dimBorder;
+        HomeTeamBtn.Background = home ? _homeSelectedBg : s_unselectedBg;
+        HomeTeamBtn.BorderBrush = home ? _homeBorder : s_dimBorder;
         HomeTeamBtn.Opacity = home ? 1.0 : 0.5;
 
-        AwayTeamBtn.Background = !home ? s_selectedBg : s_unselectedBg;
-        AwayTeamBtn.BorderBrush = !home ? s_awayBorder : s_dimBorder;
+        AwayTeamBtn.Background = !home ? _awaySelectedBg : s_unselectedBg;
+        AwayTeamBtn.BorderBrush = !home ? _awayBorder : s_dimBorder;
         AwayTeamBtn.Opacity = !home ? 1.0 : 0.5;
     }
 
@@ -101,6 +174,18 @@ public partial class ScoreEventEditorWindow : Window
 
     private void Save_Click(object? sender, RoutedEventArgs e)
     {
+        SelectedQuarter = _isAddMode && UseCurrentQuarterBox.IsChecked == true
+            ? _currentQuarter
+            : Math.Clamp(QuarterBox.SelectedIndex + 1, 1, 4);
+
+        if (_isAddMode && UseCurrentTimeBox.IsChecked == true)
+        {
+            SelectedGameTime = _currentGameTime;
+            Result = EditorResult.Saved;
+            Close();
+            return;
+        }
+
         if (!int.TryParse(MinutesBox.Text, out int minutes) || minutes < 0)
         {
             System.Windows.MessageBox.Show("Please enter a valid number of minutes.", "Invalid Time", MessageBoxButton.OK, MessageBoxImage.Warning);

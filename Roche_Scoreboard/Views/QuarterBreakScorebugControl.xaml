@@ -1,0 +1,87 @@
+<UserControl x:Class="Roche_Scoreboard.Views.QuarterBreakScorebugControl"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+ d:DesignHeight="193" d:DesignWidth="386" mc:Ignorable="d" SnapsToDevicePixels="True" UseLayoutRounding="True"
+ TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType" TextOptions.TextHintingMode="Fixed">
+ <Grid x:Name="BreakRoot" Background="#05080D" ClipToBounds="True">
+  <Grid.RowDefinitions><RowDefinition x:Name="TopInfoRow" Height="28"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+  <Border x:Name="TopInfoBorder" BorderThickness="0">
+   <Border.Background>
+    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+     <GradientStop Color="#020614" Offset="0"/><GradientStop Color="#060D2E" Offset="0.5"/><GradientStop Color="#0A1648" Offset="1"/>
+    </LinearGradientBrush>
+   </Border.Background>
+   <Grid>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,2,4,2"><TextBlock x:Name="TopWeatherText" Text="--°" Foreground="White" FontFamily="Stolzl Bold" FontSize="52" FontWeight="Black"/></Viewbox>
+    <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2"><TextBlock x:Name="TopTimeText" Text="8:05 AM" Foreground="White" FontFamily="Stolzl Bold" FontSize="52" FontWeight="Black"/></Viewbox>
+    <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,2,8,2"><TextBlock x:Name="TopDateText" Text="Sun 30 Aug" Foreground="White" FontFamily="Stolzl Bold" FontSize="52" FontWeight="Black"/></Viewbox>
+   </Grid>
+  </Border>
+  <Grid Grid.Row="1" ClipToBounds="True">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <Border x:Name="HomeColourWing" Grid.Column="0" ClipToBounds="True" BorderBrush="#48FFFFFF" BorderThickness="0,0,1,0">
+    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop x:Name="HomeGradientLight" Color="#E34234"/><GradientStop x:Name="HomeGradientDark" Color="#4B0D0A" Offset="1"/></LinearGradientBrush></Border.Background>
+    <Grid>
+     <Image x:Name="HomeWatermark" Stretch="UniformToFill" Opacity="0.28" Margin="-38,-38,-8,-28"><Image.Effect><BlurEffect Radius="7"/></Image.Effect></Image>
+     <Rectangle Opacity="0.30"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#38FFFFFF"/><GradientStop Color="#00000000" Offset="0.46"/><GradientStop Color="#72000000" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
+     <Grid x:Name="HomeContentPanel" Margin="3,4,4,4">
+      <Grid.RowDefinitions><RowDefinition Height="54"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+      <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Stretch" Margin="4,0">
+       <Grid>
+        <TextBlock Text="88.88" FontFamily="Arial" FontSize="60" FontWeight="Black" Opacity="0"/>
+        <TextBlock x:Name="HomeScoreDetailText" Text="8.13" FontFamily="Arial Black" FontSize="60" FontWeight="Black"
+                   TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+       </Grid>
+      </Viewbox>
+      <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Stretch" Margin="0,-4,18,-7">
+       <Grid>
+        <TextBlock Text="888" FontFamily="Segoe UI Black, Arial Black" FontSize="132" FontWeight="Black" Opacity="0"/>
+        <TextBlock x:Name="HomeScoreText" Text="126" FontFamily="Segoe UI Black, Arial Black" FontSize="132" FontWeight="Black" TextAlignment="Center" HorizontalAlignment="Center">
+         <TextBlock.Effect><DropShadowEffect Color="#A0000000" BlurRadius="2" ShadowDepth="2" Direction="270" Opacity="0.72"/></TextBlock.Effect>
+        </TextBlock>
+       </Grid>
+      </Viewbox>
+     </Grid>
+    </Grid>
+   </Border>
+   <Border x:Name="AwayColourWing" Grid.Column="1" ClipToBounds="True" BorderBrush="#48FFFFFF" BorderThickness="1,0,0,0">
+    <Border.Background><LinearGradientBrush StartPoint="1,0" EndPoint="0,1"><GradientStop x:Name="AwayGradientLight" Color="#3654E8"/><GradientStop x:Name="AwayGradientDark" Color="#0B124F" Offset="1"/></LinearGradientBrush></Border.Background>
+    <Grid>
+     <Image x:Name="AwayWatermark" Stretch="UniformToFill" Opacity="0.28" Margin="-8,-38,-38,-28"><Image.Effect><BlurEffect Radius="7"/></Image.Effect></Image>
+     <Rectangle Opacity="0.30"><Rectangle.Fill><LinearGradientBrush StartPoint="1,0" EndPoint="0,0"><GradientStop Color="#38FFFFFF"/><GradientStop Color="#00000000" Offset="0.46"/><GradientStop Color="#72000000" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
+     <Grid x:Name="AwayContentPanel" Margin="4,4,3,4">
+      <Grid.RowDefinitions><RowDefinition Height="54"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+      <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Stretch" Margin="4,0">
+       <Grid>
+        <TextBlock Text="88.88" FontFamily="Arial" FontSize="60" FontWeight="Black" Opacity="0"/>
+        <TextBlock x:Name="AwayScoreDetailText" Text="8.13" FontFamily="Arial Black" FontSize="60" FontWeight="Black"
+                   TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+       </Grid>
+      </Viewbox>
+      <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Stretch" Margin="18,-4,0,-7">
+       <Grid>
+        <TextBlock Text="888" FontFamily="Segoe UI Black, Arial Black" FontSize="132" FontWeight="Black" Opacity="0"/>
+        <TextBlock x:Name="AwayScoreText" Text="126" FontFamily="Segoe UI Black, Arial Black" FontSize="132" FontWeight="Black" TextAlignment="Center" HorizontalAlignment="Center">
+         <TextBlock.Effect><DropShadowEffect Color="#A0000000" BlurRadius="2" ShadowDepth="2" Direction="270" Opacity="0.72"/></TextBlock.Effect>
+        </TextBlock>
+       </Grid>
+      </Viewbox>
+     </Grid>
+    </Grid>
+   </Border>
+   <Border x:Name="BreakCentrePanel" Grid.ColumnSpan="2" Width="78" Height="66" HorizontalAlignment="Center" VerticalAlignment="Center"
+           Background="Transparent" BorderThickness="0" Panel.ZIndex="12">
+    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="5,3">
+     <TextBlock x:Name="BreakLabelText" Text="3QT" Foreground="White" FontFamily="Stolzl Bold" FontSize="52" FontWeight="Black">
+      <TextBlock.Effect><DropShadowEffect Color="#F0000000" BlurRadius="5" ShadowDepth="1" Direction="270" Opacity="1"/></TextBlock.Effect>
+     </TextBlock>
+    </Viewbox>
+   </Border>
+   <Border x:Name="HomeIdentityPanel" Grid.Column="0" Opacity="0" IsHitTestVisible="False"/>
+   <Border x:Name="AwayIdentityPanel" Grid.Column="1" Opacity="0" IsHitTestVisible="False"/>
+   <Border x:Name="HomeScorePanel" Grid.Column="0" Opacity="0" IsHitTestVisible="False"/>
+   <Border x:Name="AwayScorePanel" Grid.Column="1" Opacity="0" IsHitTestVisible="False"/>
+  </Grid>
+ </Grid>
+</UserControl>

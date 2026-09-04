@@ -357,6 +357,10 @@ namespace Roche_Scoreboard.Views
         public void Play()
         {
             if (_sourcePath is null || _player is null) return;
+            // Visibility and presentation routing can legitimately ask an
+            // already-playing surface to play again. Treat that as a no-op so
+            // VLC is not restarted and the diagnostics writer is not flooded.
+            if (_isPlaying) return;
             try
             {
                 if (_player.Media is null)
@@ -383,6 +387,14 @@ namespace Roche_Scoreboard.Views
         /// <summary>Pauses playback while retaining the current frame.</summary>
         public void Pause()
         {
+            // Presentation switches routinely pause the shared video surface,
+            // even when no video is active. Keeping this idempotent removes a
+            // native call and disk-log write from every rotation/screen switch.
+            if (!_isPlaying)
+            {
+                StopWatchdog();
+                return;
+            }
             try { _player?.SetPause(true); }
             catch { /* control may be unloading */ }
             StopWatchdog();

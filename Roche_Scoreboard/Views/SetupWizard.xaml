@@ -219,7 +219,11 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid>
+    <ScrollViewer x:Name="ResponsiveScrollHost"
+                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                  PanningMode="Both" CanContentScroll="False"
+                  PreviewMouseWheel="ResponsiveScrollHost_PreviewMouseWheel">
+    <Grid MinWidth="820" MinHeight="620">
         <!-- ═══════════════════════════════════════════════════════ -->
         <!-- BACKGROUND — cinematic atmosphere                      -->
         <!-- ═══════════════════════════════════════════════════════ -->
@@ -388,7 +392,7 @@
                     <TextBlock Text="3" Foreground="#484F58" FontWeight="Black" FontSize="14"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <TextBlock x:Name="Step3Label" Text="OTHER" Foreground="#484F58" FontWeight="Black"
+                <TextBlock x:Name="Step3Label" Text="OPTIONAL" Foreground="#484F58" FontWeight="Black"
                            FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
             </StackPanel>
         </StackPanel>
@@ -1142,13 +1146,13 @@
                             <StackPanel.RenderTransform>
                                 <TranslateTransform x:Name="MsgHeaderTranslate" Y="15"/>
                             </StackPanel.RenderTransform>
-                            <TextBlock Text="OTHER" FontSize="32" FontWeight="Black" Foreground="White"
+                            <TextBlock Text="OPTIONAL" FontSize="32" FontWeight="Black" Foreground="White"
                                        TextAlignment="Center" HorizontalAlignment="Center">
                                 <TextBlock.Effect>
                                     <DropShadowEffect BlurRadius="25" ShadowDepth="0" Color="#3FB950" Opacity="0.5"/>
                                 </TextBlock.Effect>
                             </TextBlock>
-                            <TextBlock Text="MATCH OPTIONS &amp; TICKER" FontSize="10" FontWeight="SemiBold"
+                            <TextBlock Text="You can skip these and change them later in Setup" FontSize="10" FontWeight="SemiBold"
                                        Foreground="#86C997" TextAlignment="Center" Margin="0,2,0,0"/>
                         </StackPanel>
 
@@ -1452,4 +1456,5 @@
         <Border x:Name="FlashOverlay" Background="White" Opacity="0"
                 IsHitTestVisible="False" Panel.ZIndex="20"/>
     </Grid>
+    </ScrollViewer>
 </UserControl>

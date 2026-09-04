@@ -45,8 +45,6 @@ namespace Roche_Scoreboard.Models
         public static MatchStats Calculate(MatchManager match, int currentQuarter, TimeSpan currentElapsedInQuarter)
         {
             var events = match.Events;
-            double quarterDurationSecs = match.QuarterDuration.TotalSeconds;
-
             int homeScoringShots = match.HomeGoals + match.HomeBehinds;
             int awayScoringShots = match.AwayGoals + match.AwayBehinds;
 
@@ -68,9 +66,11 @@ namespace Roche_Scoreboard.Models
             // Per-quarter breakdown
             int[] hgQ = new int[4], abQ = new int[4], agQ = new int[4], hbQ = new int[4];
 
-            // Cumulative game seconds for a given quarter + elapsed
+            // Use recorded playing time for completed quarters. AFL quarters
+            // routinely run beyond their nominal duration because of time-on;
+            // assuming four identical periods distorts time-in-front statistics.
             double CumulativeSecs(int quarter, TimeSpan elapsed) =>
-                (quarter - 1) * quarterDurationSecs + elapsed.TotalSeconds;
+                match.PlayingTimeAt(quarter, elapsed).TotalSeconds;
 
             double previousTimestamp = 0; // game start
             int currentMargin = 0;        // margin at start of game = 0

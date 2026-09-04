@@ -46,7 +46,12 @@ namespace Roche_Scoreboard.Views
             {
                 if (e.NewValue is true) QueueResponsiveLayout();
             };
-            Loaded += (_, _) => QueueResponsiveLayout();
+            Loaded += (_, _) =>
+            {
+                _isDisposed = false;
+                _wallClockTimer.Start();
+                QueueResponsiveLayout();
+            };
 
             Unloaded += (_, _) => Cleanup();
         }
@@ -71,12 +76,6 @@ namespace Roche_Scoreboard.Views
             bool compact = ActualWidth < 320 || ActualHeight < 160;
             StatsTimeText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
 
-            double logoSize = Math.Clamp(ScalePx(24), 18, Math.Max(18, ActualHeight * 0.16));
-            StatsHomeLogoImage.Width = StatsHomeLogoImage.Height = logoSize;
-            StatsAwayLogoImage.Width = StatsAwayLogoImage.Height = logoSize;
-            StatsHomeLogoFallback.Width = StatsHomeLogoFallback.Height = logoSize;
-            StatsAwayLogoFallback.Width = StatsAwayLogoFallback.Height = logoSize;
-
             // Size-dependent chrome belongs here, not in Populate. Populate can
             // run while the screen is still collapsed and ActualWidth is zero;
             // calculating borders there made the second exposure thicker than
@@ -88,7 +87,10 @@ namespace Roche_Scoreboard.Views
             // Numeric columns track the available width instead of remaining
             // fixed at their 386px design-canvas size. This lets the values use
             // the same strong proportion on narrow and high-resolution outputs.
-            double valueWidth = Math.Clamp(ActualWidth * 0.24, 52, ActualWidth * 0.29);
+            // During a rapid screen handoff WPF can briefly arrange this
+            // control below 200 px wide. Never pass an inverted min/max pair
+            // to Math.Clamp in that transient state.
+            double valueWidth = CalculateValueColumnWidth(ActualWidth);
             TextBlock[] homeValues =
             [
                 StatsScrHomeShots, StatsScrHomeAcc,
@@ -104,6 +106,14 @@ namespace Roche_Scoreboard.Views
                     row.ColumnDefinitions[2].Width = new GridLength(valueWidth);
                 }
             }
+        }
+
+        internal static double CalculateValueColumnWidth(double actualWidth)
+        {
+            double safeWidth = Math.Max(0, actualWidth);
+            double maximumValueWidth = Math.Max(1, safeWidth * 0.23);
+            double minimumValueWidth = Math.Min(46, maximumValueWidth);
+            return Math.Clamp(safeWidth * 0.20, minimumValueWidth, maximumValueWidth);
         }
 
         private void QueueResponsiveLayout()
@@ -142,6 +152,11 @@ namespace Roche_Scoreboard.Views
             ArgumentNullException.ThrowIfNull(match);
             ArgumentNullException.ThrowIfNull(stats);
 
+            StatsTitleRow.Height = new GridLength(0);
+            StatsTeamsRow.Height = new GridLength(26, GridUnitType.Star);
+            StatsBodyRow.Height = new GridLength(123, GridUnitType.Star);
+            StatsTitlePanel.Visibility = Visibility.Collapsed;
+
             var homeColor = SafeColor(homeColorHex, "#4488FF");
             var awayColor = SafeColor(awayColorHex, "#FF6644");
             var homeSecondary = SafeColor(homeSecondaryHex, "#FFFFFF");
@@ -175,8 +190,8 @@ namespace Roche_Scoreboard.Views
             // The header is intentionally compact. Use the configured scoreboard
             // abbreviations so both teams remain identifiable at oval distance;
             // full names are already represented by the logos and match state.
-            StatsHomeTeamText.Text = match.HomeAbbr.ToUpperInvariant();
-            StatsAwayTeamText.Text = match.AwayAbbr.ToUpperInvariant();
+            StatsHomeTeamText.Text = CompactHeaderName(match.HomeName, match.HomeAbbr);
+            StatsAwayTeamText.Text = CompactHeaderName(match.AwayName, match.AwayAbbr);
             StatsHomeTeamText.Foreground = new SolidColorBrush(
                 SmartContrast.PickReadableForeground(Lighten(homeColor, 0.4), statsHomeHeaderBg));
             StatsAwayTeamText.Foreground = new SolidColorBrush(
@@ -252,6 +267,20 @@ namespace Roche_Scoreboard.Views
             SetClashBar(LeadHomeCol, LeadAwayCol, LeadHomeBrush, LeadAwayBrush,
                 stats.HomeLargestLead, stats.AwayLargestLead, homeColor, awayColor);
 
+            Color splitLabelInk = SmartContrast.PickSplitBarForeground(
+                homeColor, awayColor, Color.FromRgb(0x48, 0x4F, 0x58));
+            foreach (TextBlock label in new[] { ShotsBarLabel, AccuracyBarLabel, TimeBarLabel, LeadBarLabel })
+            {
+                label.Foreground = new SolidColorBrush(splitLabelInk);
+                if (label.Effect is System.Windows.Media.Effects.DropShadowEffect shadow)
+                {
+                    shadow.Color = splitLabelInk == System.Windows.Media.Colors.Black
+                        ? System.Windows.Media.Colors.White
+                        : System.Windows.Media.Colors.Black;
+                    shadow.Opacity = 0.92;
+                }
+            }
+
             QueueResponsiveLayout();
         }
 
@@ -319,6 +348,23 @@ namespace Roche_Scoreboard.Views
             {
                 return (Color)ColorConverter.ConvertFromString(fallbackHex);
             }
+        }
+
+        private static string CompactHeaderName(string? name, string? abbreviation)
+        {
+            string value = string.IsNullOrWhiteSpace(name) ? "TEAM" : name.Trim().ToUpperInvariant();
+            foreach (string suffix in new[] { " FOOTBALL CLUB", " AUSTRALIAN FOOTBALL CLUB" })
+            {
+                if (value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = value[..^suffix.Length].TrimEnd();
+                    break;
+                }
+            }
+
+            return value.Length <= 15 || string.IsNullOrWhiteSpace(abbreviation)
+                ? value
+                : abbreviation.Trim().ToUpperInvariant();
         }
 
         private static Color Lighten(Color c, double amount)

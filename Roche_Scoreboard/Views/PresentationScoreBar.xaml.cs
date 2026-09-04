@@ -25,6 +25,11 @@ public partial class PresentationScoreBar : UserControl
     private readonly DispatcherTimer _clockTimer;
     private DispatcherTimer? _homeDeltaTimer;
     private DispatcherTimer? _awayDeltaTimer;
+    private readonly DispatcherTimer _breakCentreTimer;
+    private bool _breakCentreActive;
+    private bool _showingBreakClock;
+    private bool _breakCentreTransitioning;
+    private string _breakLabel = "QT";
     private Color _homeSecondary = Colors.White;
     private Color _awaySecondary = Colors.White;
 
@@ -34,14 +39,21 @@ public partial class PresentationScoreBar : UserControl
 
         _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _clockTimer.Tick += OnClockTick;
+        _breakCentreTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(17) };
+        _breakCentreTimer.Tick += (_, _) => TransitionBreakCentre();
 
         Loaded += (_, _) =>
         {
             ApplyLiveMatchState();
             Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
             _clockTimer.Start();
+            if (_breakCentreActive) _breakCentreTimer.Start();
         };
-        Unloaded += (_, _) => _clockTimer.Stop();
+        Unloaded += (_, _) =>
+        {
+            _clockTimer.Stop();
+            _breakCentreTimer.Stop();
+        };
         SizeChanged += (_, _) => Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
         IsVisibleChanged += (_, e) =>
         {
@@ -109,9 +121,10 @@ public partial class PresentationScoreBar : UserControl
         AwayLogoFallback.Text = match.AwayAbbr.ToUpperInvariant();
 
         // Centre quarter label
-        QuarterText.Text = !string.IsNullOrEmpty(barTitleOverride)
+        _breakLabel = !string.IsNullOrEmpty(barTitleOverride)
             ? barTitleOverride
             : Services.QuarterLabelService.GetBreakLabel(endedQuarter);
+        BreakCenterText.Text = _breakLabel;
 
         // Timer behaviour - hidden at quarter breaks. The bar additionally
         // auto-hides the timer whenever the match is sitting on a break
@@ -156,7 +169,7 @@ public partial class PresentationScoreBar : UserControl
         translate.Y = height;
         overlay.Opacity = 1;
 
-        var enter = new DoubleAnimation(height, 0, TimeSpan.FromMilliseconds(goal ? 260 : 190))
+        var enter = new DoubleAnimation(height, 0, TimeSpan.FromMilliseconds(goal ? 360 : 320))
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
@@ -166,21 +179,21 @@ public partial class PresentationScoreBar : UserControl
         {
             var beats = new DoubleAnimationUsingKeyFrames();
             beats.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
-            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.78, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(70))));
-            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.12, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(220))));
-            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.60, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(330))));
-            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(560))));
+            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.78, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(110))));
+            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.12, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(360))));
+            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0.60, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(540))));
+            beats.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(900))));
             flash.BeginAnimation(OpacityProperty, beats);
         }
 
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(goal ? 720 : 480) };
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(goal ? 1350 : 1050) };
         if (home) _homeDeltaTimer = timer; else _awayDeltaTimer = timer;
         timer.Tick += (_, _) =>
         {
             timer.Stop();
             var exitEase = new CubicEase { EasingMode = EasingMode.EaseIn };
-            var exit = new DoubleAnimation(0, -height, TimeSpan.FromMilliseconds(240)) { EasingFunction = exitEase };
-            var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = exitEase };
+            var exit = new DoubleAnimation(0, -height, TimeSpan.FromMilliseconds(340)) { EasingFunction = exitEase };
+            var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = exitEase };
             exit.Completed += (_, _) =>
             {
                 overlay.Opacity = 0;
@@ -203,16 +216,78 @@ public partial class PresentationScoreBar : UserControl
         bool fullTime = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) is not null;
         bool atBreak = !_match.ClockRunning && _match.ElapsedInQuarter <= TimeSpan.Zero
                        && (_match.Quarter > 1 || fullTime);
-        QuarterText.Text = atBreak
-            ? Services.QuarterLabelService.GetBreakLabel(fullTime ? 4 : _match.Quarter - 1)
-            : Services.QuarterLabelService.GetQuarterLabel(_match.Quarter);
+        _breakLabel = Services.QuarterLabelService.GetBreakLabel(fullTime ? 4 : Math.Max(1, _match.Quarter - 1));
+        bool breakMode = atBreak || !_timerAllowed;
+        SetBreakCentreMode(breakMode);
 
-        TimeSpan dc = _match.DisplayClock;
-        TimerText.Text = $"{(int)dc.TotalMinutes:D2}:{dc.Seconds:D2}";
-        bool showTimer = _timerAllowed && !atBreak;
-        TimerText.Visibility = showTimer ? Visibility.Visible : Visibility.Collapsed;
-        CenterQuarterRow.Height = new GridLength(showTimer ? 0.72 : 1, GridUnitType.Star);
-        CenterTimerRow.Height = showTimer ? new GridLength(1.28, GridUnitType.Star) : new GridLength(0);
+        if (breakMode)
+        {
+            if (!_showingBreakClock && !_breakCentreTransitioning)
+                BreakCenterText.Text = _breakLabel;
+            else if (_showingBreakClock && !_breakCentreTransitioning)
+                BreakCenterText.Text = DateTime.Now.ToString("h:mm tt");
+        }
+        else
+        {
+            // The live quarter and minute are assigned together below so they
+            // always share one stable scale.
+        }
+
+        // The persistent strip is a distance-reading summary rather than the
+        // operator's precision clock. A soccer-style elapsed minute (16′) is
+        // faster to recognise and releases substantially more width to scores.
+        // The full mm:ss clock remains on the main scorebug and control panel.
+        int elapsedMinute = Math.Max(0, (int)_match.ElapsedInQuarter.TotalMinutes);
+        LiveCenterText.Text = $"{Services.QuarterLabelService.GetQuarterLabel(_match.Quarter)} {elapsedMinute}′";
+        LiveCenterPanel.Visibility = breakMode ? Visibility.Collapsed : Visibility.Visible;
+        BreakCenterPanel.Visibility = breakMode ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void SetBreakCentreMode(bool active)
+    {
+        if (_breakCentreActive == active) return;
+        _breakCentreActive = active;
+        _breakCentreTransitioning = false;
+        BreakCenterText.BeginAnimation(OpacityProperty, null);
+        BreakCenterText.Opacity = 1;
+
+        if (active)
+        {
+            _showingBreakClock = false;
+            BreakCenterText.Text = _breakLabel;
+            _breakCentreTimer.Stop();
+            _breakCentreTimer.Start();
+        }
+        else
+        {
+            _breakCentreTimer.Stop();
+            _showingBreakClock = false;
+        }
+
+        Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
+    }
+
+    private void TransitionBreakCentre()
+    {
+        if (!_breakCentreActive || _breakCentreTransitioning) return;
+        _breakCentreTransitioning = true;
+
+        var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(300))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+        };
+        fadeOut.Completed += (_, _) =>
+        {
+            _showingBreakClock = !_showingBreakClock;
+            BreakCenterText.Text = _showingBreakClock ? DateTime.Now.ToString("h:mm tt") : _breakLabel;
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(380))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            fadeIn.Completed += (_, _) => _breakCentreTransitioning = false;
+            BreakCenterText.BeginAnimation(OpacityProperty, fadeIn, HandoffBehavior.SnapshotAndReplace);
+        };
+        BreakCenterText.BeginAnimation(OpacityProperty, fadeOut, HandoffBehavior.SnapshotAndReplace);
     }
 
     private static void ApplyLogo(Image image, TextBlock fallback, string? path)
@@ -268,7 +343,7 @@ public partial class PresentationScoreBar : UserControl
             normal.GradientStops.Add(new GradientStop(Colors.Black, 1));
             CenterPanel.Background = normal;
         }
-        QuarterText.Foreground = TimerText.Foreground = enabled
+        LiveCenterText.Foreground = BreakCenterText.Foreground = enabled
             ? new SolidColorBrush(Services.FinalsPalette.Ink)
             : System.Windows.Media.Brushes.White;
     }
@@ -280,10 +355,14 @@ public partial class PresentationScoreBar : UserControl
         // Keep the identity/clock cells proportional to bar height, but cap
         // them so extremely narrow aspect ratios still leave score space.
         double identityWidth = Math.Min(ActualHeight * 0.95, ActualWidth * 0.115);
-        double centerWidth = Math.Min(ActualHeight * 2.35, ActualWidth * 0.27);
+        // Keep one stable centre width during play and breaks. Switching to a
+        // wider break cell stole space from both scores and visibly jumped the
+        // bar just as the quarter ended.
+        double centerWidth = Math.Min(ActualHeight * 2.55, ActualWidth * 0.29);
         HomeLogoColumn.Width = new GridLength(identityWidth);
         AwayLogoColumn.Width = new GridLength(identityWidth);
         CenterColumn.Width = new GridLength(centerWidth);
+
 
         // Derive the score width from the same column calculation instead of
         // reading ActualWidth before WPF has completed the new layout pass.
@@ -302,8 +381,8 @@ public partial class PresentationScoreBar : UserControl
         HomeLogoImage.MaxWidth = AwayLogoImage.MaxWidth = Math.Max(1, identityWidth - 6);
         HomeLogoImage.MaxHeight = AwayLogoImage.MaxHeight = Math.Max(1, ActualHeight - 6);
         HomeLogoFallback.FontSize = AwayLogoFallback.FontSize = Math.Max(4, ActualHeight * 0.28);
-        QuarterText.FontSize = Math.Max(18, ActualHeight * 0.72);
-        TimerText.FontSize = Math.Max(6, ActualHeight * 0.43);
+        LiveCenterText.FontSize = Math.Max(24, ActualHeight * 0.80);
+        BreakCenterText.FontSize = Math.Max(22, ActualHeight * 0.86);
     }
 
     private double FitFont(string sample, double width, double height, FontWeight weight)

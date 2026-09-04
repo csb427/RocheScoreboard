@@ -22,14 +22,14 @@
         </Grid.Background>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="24*"/>
-            <RowDefinition Height="28*"/>
-            <RowDefinition Height="97*"/>
+            <RowDefinition x:Name="StatsTitleRow" Height="0"/>
+            <RowDefinition x:Name="StatsTeamsRow" Height="26*"/>
+            <RowDefinition x:Name="StatsBodyRow" Height="123*"/>
             <RowDefinition Height="44*"/>
         </Grid.RowDefinitions>
 
         <!-- TITLE -->
-        <Border x:Name="StatsTitlePanel" Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+        <Border x:Name="StatsTitlePanel" Grid.Row="0" Visibility="Collapsed" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1">
             <Border VerticalAlignment="Bottom" Height="1" IsHitTestVisible="False">
                 <Border.Background>
                     <LinearGradientBrush x:Name="StatsTitleAccent" StartPoint="0,0" EndPoint="1,0">
@@ -42,59 +42,53 @@
         </Border>
         <Grid Grid.Row="0" Margin="6,0">
             <TextBlock x:Name="StatsTitleText" Text="MATCH STATS" Foreground="White"
-                       FontSize="16" FontWeight="Black" FontFamily="Bahnschrift"
+                       FontSize="18" FontWeight="Black" FontFamily="Bahnschrift"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <TextBlock x:Name="StatsTimeText" Text="1:26 PM" Foreground="#58A6FF"
-                       FontSize="14" FontWeight="Black"
+                       FontSize="16" FontWeight="Black"
                        HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </Grid>
 
         <!-- TEAM HEADERS -->
-        <Grid Grid.Row="1" Margin="4,2,4,0">
+        <Grid Grid.Row="1" Margin="4,1,4,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border x:Name="StatsHomeTeamHeader" Grid.Column="0" Padding="5,2">
+            <Border x:Name="StatsHomeTeamHeader" Grid.Column="0" Padding="0" ClipToBounds="True">
                 <Border.Effect>
                     <DropShadowEffect x:Name="StatsHomeGlow" BlurRadius="4" ShadowDepth="0" Color="#4488FF" Opacity="0.6"/>
                 </Border.Effect>
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,0,7,0">
-                        <Ellipse x:Name="StatsHomeLogoFallback" Width="24" Height="24" Fill="#22FFFFFF"/>
-                        <Image x:Name="StatsHomeLogoImage" Width="24" Height="24" Stretch="Uniform" Visibility="Collapsed"/>
-                    </Grid>
-                    <TextBlock x:Name="StatsHomeTeamText" Grid.Column="1" Text="HOME"
-                               FontSize="17" FontWeight="Black" FontFamily="Bahnschrift"
-                               VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <Ellipse x:Name="StatsHomeLogoFallback" Fill="#22FFFFFF" Margin="-20,-28"/>
+                    <Image x:Name="StatsHomeLogoImage" Stretch="UniformToFill" Visibility="Collapsed" Opacity="0.22" Margin="-20,-28">
+                        <Image.Effect><BlurEffect Radius="5"/></Image.Effect>
+                    </Image>
+                    <Rectangle Fill="#52000000"/>
+                    <TextBlock x:Name="StatsHomeTeamText" Text="HOME" FontSize="16" FontWeight="Black" FontFamily="Bahnschrift"
+                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="7,0"
+                               VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                 </Grid>
             </Border>
 
-            <TextBlock Grid.Column="1" Text="VS" Foreground="#D5DEE7" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift"
-                       Margin="6,0" VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="1" Text="VS" Foreground="#D5DEE7" FontSize="10" FontWeight="Black" FontFamily="Bahnschrift"
+                       Margin="4,0" VerticalAlignment="Center"/>
 
-            <Border x:Name="StatsAwayTeamHeader" Grid.Column="2" Padding="5,2">
+            <Border x:Name="StatsAwayTeamHeader" Grid.Column="2" Padding="0" ClipToBounds="True">
                 <Border.Effect>
                     <DropShadowEffect x:Name="StatsAwayGlow" BlurRadius="4" ShadowDepth="0" Color="#FF6644" Opacity="0.6"/>
                 </Border.Effect>
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="StatsAwayTeamText" Grid.Column="0" Text="AWAY"
-                               FontSize="17" FontWeight="Black" FontFamily="Bahnschrift"
-                               VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center" Margin="4,0"/>
-                    <Grid Grid.Column="1" VerticalAlignment="Center" Margin="7,0,0,0">
-                        <Ellipse x:Name="StatsAwayLogoFallback" Width="24" Height="24" Fill="#22FFFFFF"/>
-                        <Image x:Name="StatsAwayLogoImage" Width="24" Height="24" Stretch="Uniform" Visibility="Collapsed"/>
-                    </Grid>
+                    <Ellipse x:Name="StatsAwayLogoFallback" Fill="#22FFFFFF" Margin="-20,-28"/>
+                    <Image x:Name="StatsAwayLogoImage" Stretch="UniformToFill" Visibility="Collapsed" Opacity="0.22" Margin="-20,-28">
+                        <Image.Effect><BlurEffect Radius="5"/></Image.Effect>
+                    </Image>
+                    <Rectangle Fill="#52000000"/>
+                    <TextBlock x:Name="StatsAwayTeamText" Text="AWAY" FontSize="16" FontWeight="Black" FontFamily="Bahnschrift"
+                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="7,0"
+                               VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                 </Grid>
             </Border>
         </Grid>
@@ -134,7 +128,7 @@
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0"><Border.Background><SolidColorBrush x:Name="ShotHomeBrush" Color="#7AB8FF"/></Border.Background></Border>
                         <Border Grid.Column="1"><Border.Background><SolidColorBrush x:Name="ShotAwayBrush" Color="#FF6E6E"/></Border.Background></Border>
-                        <TextBlock Text="SCORING SHOTS" Foreground="#FFFFFF" Background="#E607101A" Padding="5,1" FontSize="15" FontWeight="Black" FontFamily="Bahnschrift"
+                        <TextBlock x:Name="ShotsBarLabel" Text="SCORING SHOTS" Foreground="#FFFFFF" Padding="3,0" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2">
                             <TextBlock.Effect>
                                 <DropShadowEffect BlurRadius="4" ShadowDepth="0" Color="Black" Opacity="1"/>
@@ -177,7 +171,7 @@
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0"><Border.Background><SolidColorBrush x:Name="AccHomeBrush" Color="#7AB8FF"/></Border.Background></Border>
                         <Border Grid.Column="1"><Border.Background><SolidColorBrush x:Name="AccAwayBrush" Color="#FF6E6E"/></Border.Background></Border>
-                        <TextBlock Text="ACCURACY" Foreground="#FFFFFF" Background="#E607101A" Padding="5,1" FontSize="15" FontWeight="Black" FontFamily="Bahnschrift"
+                        <TextBlock x:Name="AccuracyBarLabel" Text="ACCURACY" Foreground="#FFFFFF" Padding="3,0" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2">
                             <TextBlock.Effect>
                                 <DropShadowEffect BlurRadius="4" ShadowDepth="0" Color="Black" Opacity="1"/>
@@ -222,7 +216,7 @@
                         <Border Grid.Column="0"><Border.Background><SolidColorBrush x:Name="TimeHomeBrush" Color="#7AB8FF"/></Border.Background></Border>
                         <Border Grid.Column="1"><Border.Background><SolidColorBrush x:Name="TimeTiedBrush" Color="#484F58"/></Border.Background></Border>
                         <Border Grid.Column="2"><Border.Background><SolidColorBrush x:Name="TimeAwayBrush" Color="#FF6E6E"/></Border.Background></Border>
-                        <TextBlock Text="TIME IN FRONT" Foreground="#FFFFFF" Background="#E607101A" Padding="5,1" FontSize="15" FontWeight="Black" FontFamily="Bahnschrift"
+                        <TextBlock x:Name="TimeBarLabel" Text="TIME IN FRONT" Foreground="#FFFFFF" Padding="3,0" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="3">
                             <TextBlock.Effect>
                                 <DropShadowEffect BlurRadius="4" ShadowDepth="0" Color="Black" Opacity="1"/>
@@ -265,7 +259,7 @@
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0"><Border.Background><SolidColorBrush x:Name="LeadHomeBrush" Color="#7AB8FF"/></Border.Background></Border>
                         <Border Grid.Column="1"><Border.Background><SolidColorBrush x:Name="LeadAwayBrush" Color="#FF6E6E"/></Border.Background></Border>
-                        <TextBlock Text="LARGEST LEAD" Foreground="#FFFFFF" Background="#E607101A" Padding="5,1" FontSize="15" FontWeight="Black" FontFamily="Bahnschrift"
+                        <TextBlock x:Name="LeadBarLabel" Text="LARGEST LEAD" Foreground="#FFFFFF" Padding="3,0" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2">
                             <TextBlock.Effect>
                                 <DropShadowEffect BlurRadius="4" ShadowDepth="0" Color="Black" Opacity="1"/>

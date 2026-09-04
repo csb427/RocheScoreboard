@@ -14,25 +14,25 @@
     <!-- Native 386x193 weather layout. No scaling/Viewbox. -->
     <Grid Background="#0D1117">
         <Grid.RowDefinitions>
-            <RowDefinition Height="24*"/>
-            <RowDefinition Height="125*"/>
+            <RowDefinition x:Name="WeatherTitleRow" Height="0"/>
+            <RowDefinition x:Name="WeatherBodyRow" Height="149*"/>
             <RowDefinition Height="44*"/>
         </Grid.RowDefinitions>
 
         <!-- TITLE -->
-        <Border x:Name="WeatherTitlePanel" Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1"/>
-        <Grid Grid.Row="0" Margin="6,0">
+        <Border x:Name="WeatherTitlePanel" Grid.Row="0" Visibility="Collapsed" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1"/>
+        <Grid Grid.Row="0" Visibility="Collapsed" Margin="6,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="LocationText" Text="WEATHER" Foreground="White"
-                       FontSize="16" FontWeight="Black" FontFamily="Bahnschrift" Margin="0,0,8,0"
+                       FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,0,8,0"
                        HorizontalAlignment="Stretch" VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
             <TextBlock x:Name="WeatherTitleText" Visibility="Collapsed"/>
             <TextBlock x:Name="WeatherTimeText" Grid.Column="1" Text="1:26 PM" Foreground="#D6E3EF"
-                       FontSize="14" FontWeight="Black"
+                       FontSize="16" FontWeight="Black"
                        HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </Grid>
 
@@ -40,8 +40,8 @@
         <Border Grid.Row="1" Background="#0D1117" BorderBrush="#F0C040" BorderThickness="2" Margin="4,2,4,2">
             <Grid Margin="6,4,6,4">
                 <Grid.RowDefinitions>
-                    <RowDefinition x:Name="WeatherHeroRow" Height="87*"/>    <!-- hero: icon + temp + description -->
-                    <RowDefinition x:Name="WeatherStatsRow" Height="42*"/>    <!-- min / feels / max strip -->
+                    <RowDefinition x:Name="WeatherHeroRow" Height="78*"/>    <!-- hero: icon + temp + description -->
+                    <RowDefinition x:Name="WeatherStatsRow" Height="51*"/>    <!-- larger min / feels / max strip -->
                 </Grid.RowDefinitions>
 
                 <!-- HERO: icon on left, temp + description stacked on right -->
@@ -71,16 +71,17 @@
                         </Grid.RowDefinitions>
                         <Viewbox Grid.Row="0" Stretch="Uniform" Margin="2,0,2,0" HorizontalAlignment="Center">
                             <TextBlock x:Name="CurrentTemp" Text="22&#176;"
-                                       Foreground="#FFD54A" FontSize="160" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"/>
+                                       Foreground="#FFD54A" FontSize="160" FontWeight="Black" FontFamily="Arial"/>
                         </Viewbox>
                         <TextBlock Grid.Row="1" x:Name="CurrentDescription" Text="Clear Sky"
-                                   Foreground="White" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift"
+                                   Foreground="White" FontSize="18" FontWeight="Black" FontFamily="Segoe UI"
                                    HorizontalAlignment="Center" TextAlignment="Center"
                                    TextTrimming="CharacterEllipsis" Margin="0,0,0,1"/>
                     </Grid>
                 </Grid>
 
-                <!-- BOTTOM STRIP: three equal cells, unified style -->
+                <!-- BOTTOM STRIP: one strong line per value. Stacking tiny
+                     captions above values wasted half the available height. -->
                 <Border x:Name="WeatherStatsPanel" Grid.Row="1" BorderBrush="#30363D" BorderThickness="0,1,0,0" Margin="0,2,0,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -89,38 +90,24 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Grid Grid.Column="0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="MIN" Foreground="#9ACBFF" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Row="1" x:Name="DayMinTemp" Text="14&#176;" Foreground="#7AB8FF"
-                                       FontSize="28" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-
-                        <Grid Grid.Column="1">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="FEELS" Foreground="#D6E3EF" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Row="1" x:Name="FeelsLikeTemp" Text="20&#176;" Foreground="White"
-                                       FontSize="28" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-
-                        <Grid Grid.Column="2">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="MAX" Foreground="#FF9292" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Row="1" x:Name="DayMaxTemp" Text="26&#176;" Foreground="#FF6E6E"
-                                       FontSize="28" FontWeight="Black" FontFamily="Bahnschrift, Segoe UI, Arial"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
+                        <Viewbox Grid.Column="0" Stretch="Uniform" StretchDirection="DownOnly" Margin="5,3">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="MIN " Foreground="#9ACBFF" FontSize="18" FontWeight="Black" FontFamily="Segoe UI" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="DayMinTemp" Text="14&#176;" Foreground="#7AB8FF" FontSize="38" FontWeight="Black" FontFamily="Arial" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Viewbox>
+                        <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" Margin="5,3">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="FEELS " Foreground="#D6E3EF" FontSize="18" FontWeight="Black" FontFamily="Segoe UI" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="FeelsLikeTemp" Text="20&#176;" Foreground="White" FontSize="38" FontWeight="Black" FontFamily="Arial" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Viewbox>
+                        <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="5,3">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="MAX " Foreground="#FF9292" FontSize="18" FontWeight="Black" FontFamily="Segoe UI" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="DayMaxTemp" Text="26&#176;" Foreground="#FF6E6E" FontSize="38" FontWeight="Black" FontFamily="Arial" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Viewbox>
                     </Grid>
                 </Border>
 
@@ -130,7 +117,7 @@
                       Margin="12,5" IsHitTestVisible="False">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="WEATHER DATA UNAVAILABLE"
-                                   Foreground="#FFD54A" FontFamily="Bahnschrift, Arial"
+                                   Foreground="#FFD54A" FontFamily="Arial"
                                    FontSize="18" FontWeight="Black"
                                    HorizontalAlignment="Center" TextAlignment="Center"/>
                         <Border Height="2" Width="72" Margin="0,7,0,7" Background="#58A6FF"/>

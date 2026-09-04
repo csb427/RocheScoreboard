@@ -32,6 +32,11 @@ public sealed class RemoteControlService : IAsyncDisposable
     private GameSessionRow? _session;
     private DateTime _lastPublishUtc = DateTime.MinValue;
     private static readonly TimeSpan MinPublishInterval = TimeSpan.FromMilliseconds(100);
+    private readonly object _publishGate = new();
+    private readonly CancellationTokenSource _lifetimeCts = new();
+    private LiveStateSnapshot? _pendingSnapshot;
+    private Task? _publishLoop;
+    private bool _disposed;
 
     public RemoteControlService(SupabaseConfig config, IRemoteCommandTarget target, Dispatcher uiDispatcher)
     {
@@ -90,30 +95,71 @@ public sealed class RemoteControlService : IAsyncDisposable
     /// </summary>
     public void PublishSnapshot(LiveStateSnapshot snapshot)
     {
-        if (_sessions is null || _session is null) return;
         ArgumentNullException.ThrowIfNull(snapshot);
-
-        // Lightweight throttle so we don't hammer PostgREST while the clock
-        // ticks 4× per second. Match-changed events that fall inside the
-        // window are merged into the next publish.
-        var now = DateTime.UtcNow;
-        if (now - _lastPublishUtc < MinPublishInterval) return;
-        _lastPublishUtc = now;
-
-        Guid sessionId = _session.Id;
-        CloudGameSessionService sessions = _sessions;
-        _ = Task.Run(async () =>
+        lock (_publishGate)
         {
-            try
+            if (_disposed || _sessions is null || _session is null) return;
+            // Always retain the newest state. Bursts are coalesced rather than
+            // dropped, so the remote cannot remain on an intermediate score
+            // merely because the final event landed inside the throttle window.
+            _pendingSnapshot = snapshot;
+            if (_publishLoop is null || _publishLoop.IsCompleted)
+                _publishLoop = Task.Run(PublishLoopAsync);
+        }
+    }
+
+    private async Task PublishLoopAsync()
+    {
+        while (!_lifetimeCts.IsCancellationRequested)
+        {
+            LiveStateSnapshot? snapshot;
+            CloudGameSessionService? sessions;
+            Guid sessionId;
+            lock (_publishGate)
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                await sessions.PublishStateAsync(sessionId, snapshot, cts.Token).ConfigureAwait(false);
+                snapshot = _pendingSnapshot;
+                _pendingSnapshot = null;
+                sessions = _sessions;
+                sessionId = _session?.Id ?? Guid.Empty;
+                if (snapshot is null || sessions is null || sessionId == Guid.Empty)
+                {
+                    _publishLoop = null;
+                    return;
+                }
             }
-            catch (Exception ex)
+
+            TimeSpan wait = MinPublishInterval - (DateTime.UtcNow - _lastPublishUtc);
+            if (wait > TimeSpan.Zero)
             {
-                System.Diagnostics.Debug.WriteLine($"[CloudRemote] publish failed: {ex.Message}");
+                try { await Task.Delay(wait, _lifetimeCts.Token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { return; }
             }
-        });
+
+            for (int attempt = 1; attempt <= 2; attempt++)
+            {
+                try
+                {
+                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token);
+                    timeout.CancelAfter(TimeSpan.FromSeconds(5));
+                    await sessions.PublishStateAsync(sessionId, snapshot, timeout.Token).ConfigureAwait(false);
+                    _lastPublishUtc = DateTime.UtcNow;
+                    break;
+                }
+                catch (OperationCanceledException) when (_lifetimeCts.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[CloudRemote] publish attempt {attempt} failed: {ex.Message}");
+                    if (attempt < 2)
+                    {
+                        try { await Task.Delay(TimeSpan.FromMilliseconds(500), _lifetimeCts.Token).ConfigureAwait(false); }
+                        catch (OperationCanceledException) { return; }
+                    }
+                }
+            }
+        }
     }
 
     private void OnRealtimeEvent(JsonElement record)
@@ -146,6 +192,17 @@ public sealed class RemoteControlService : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        Task? pendingPublish;
+        lock (_publishGate)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _pendingSnapshot = null;
+            pendingPublish = _publishLoop;
+        }
+        try { _lifetimeCts.Cancel(); } catch { }
+        try { if (pendingPublish is not null) await pendingPublish.ConfigureAwait(false); } catch { }
+
         if (_session is not null && _sessions is not null)
         {
             try
@@ -171,6 +228,7 @@ public sealed class RemoteControlService : IAsyncDisposable
         _rest = null;
         _realtime = null;
         _dispatcher = null;
+        _lifetimeCts.Dispose();
     }
 
     // ── JSON helpers ──

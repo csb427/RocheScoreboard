@@ -38,7 +38,6 @@
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
-                            <Setter TargetName="border" Property="BorderThickness" Value="{DynamicResource ScoreGrid.BorderWidth.Focus}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{DynamicResource ScoreGrid.Brush.DisabledSurface}" />
@@ -83,7 +82,6 @@
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
-                            <Setter TargetName="border" Property="BorderThickness" Value="{DynamicResource ScoreGrid.BorderWidth.Focus}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{DynamicResource ScoreGrid.Brush.DisabledSurface}" />
@@ -128,7 +126,6 @@
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
-                            <Setter TargetName="border" Property="BorderThickness" Value="{DynamicResource ScoreGrid.BorderWidth.Focus}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{DynamicResource ScoreGrid.Brush.DisabledSurface}" />
@@ -235,7 +232,6 @@
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="checkBorder" Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
-                            <Setter TargetName="checkBorder" Property="BorderThickness" Value="{DynamicResource ScoreGrid.BorderWidth.Focus}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="checkBorder" Property="Background" Value="{DynamicResource ScoreGrid.Brush.DisabledSurface}" />
@@ -384,7 +380,6 @@
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
-                            <Setter Property="BorderThickness" Value="{DynamicResource ScoreGrid.BorderWidth.Focus}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.DisabledSurface}" />
@@ -428,4 +423,3 @@
 </ResourceDictionary>
 
     
-  

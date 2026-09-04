@@ -51,9 +51,12 @@ internal static class InteractionMotion
     {
         if (!SystemParameters.ClientAreaAnimation || !element.IsEnabled) return;
         MotionState state = GetState(element);
-        Animate(state.Scale, ScaleTransform.ScaleXProperty, PressedScale, RewardScale, RewardMilliseconds, RewardOut);
-        Animate(state.Scale, ScaleTransform.ScaleYProperty, PressedScale, RewardScale, RewardMilliseconds, RewardOut);
-        Animate(state.Lift, TranslateTransform.YProperty, 1.5, HoverLift, RewardMilliseconds, SmoothOut, (_, _) =>
+        bool isButton = element is System.Windows.Controls.Primitives.ButtonBase;
+        double peakScale = isButton ? 1.0 : 1.012;
+        double peakLift = isButton ? 0 : -0.75;
+        Animate(state.Scale, ScaleTransform.ScaleXProperty, isButton ? 1.0 : 0.985, peakScale, RewardMilliseconds, RewardOut);
+        Animate(state.Scale, ScaleTransform.ScaleYProperty, isButton ? 1.0 : 0.985, peakScale, RewardMilliseconds, RewardOut);
+        Animate(state.Lift, TranslateTransform.YProperty, isButton ? 0 : 0.75, peakLift, RewardMilliseconds, SmoothOut, (_, _) =>
         {
             AnimateToRest(element, state);
         });
@@ -154,6 +157,32 @@ internal static class InteractionMotion
 
     private static void AnimateTo(FrameworkElement element, MotionState state, double scale, double y, int ms, IEasingFunction easing)
     {
+        // Buttons already animate their internal template surface. Scaling the
+        // outer Button as well compounded to 8–11%, painted over neighbouring
+        // controls and made dense command grids feel unstable. Keep the outer
+        // response tactile but inside its allocated hit target.
+        if (element is System.Windows.Controls.Primitives.ButtonBase)
+        {
+            // Button templates already own their visual response. Applying a
+            // second transform here compounded the scale, painted over nearby
+            // commands and left controls looking as if they had jumped.
+            scale = 1.0;
+            y = 0;
+        }
+        else if (element is Border or TabItem or ListBoxItem)
+        {
+            // Card hit targets often sit in dense UniformGrids. Keep their
+            // response inside the spacing gutter so the painted surface never
+            // covers the adjacent command or creates a false click target.
+            scale = scale switch
+            {
+                < 0.99 => 0.985,
+                > 1.04 => 1.012,
+                _ => Math.Min(scale, 1.008),
+            };
+            y = Math.Clamp(y, -0.75, 0.75);
+        }
+
         if (!SystemParameters.ClientAreaAnimation)
         {
             state.Scale.ScaleX = scale;

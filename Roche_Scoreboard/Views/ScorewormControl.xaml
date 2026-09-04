@@ -8,13 +8,13 @@
              TextOptions.TextHintingMode="Fixed">
     <Grid ClipToBounds="True">
         <Grid.Background><LinearGradientBrush x:Name="WormBgGradient" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#0B1119" Offset="0"/><GradientStop Color="#070B11" Offset="0.5"/><GradientStop Color="#0B1119" Offset="1"/></LinearGradientBrush></Grid.Background>
-        <Grid.RowDefinitions><RowDefinition Height="24*"/><RowDefinition Height="125*"/><RowDefinition Height="0"/><RowDefinition Height="44*"/></Grid.RowDefinitions>
+        <Grid.RowDefinitions><RowDefinition x:Name="WormTitleRow" Height="0"/><RowDefinition x:Name="WormGraphRow" Height="149*"/><RowDefinition Height="0"/><RowDefinition Height="44*"/></Grid.RowDefinitions>
 
-        <Border x:Name="WormTitlePanel" Grid.Row="0" Background="#ED0A1018" BorderBrush="#29384B" BorderThickness="0,0,0,1">
+        <Border x:Name="WormTitlePanel" Grid.Row="0" Visibility="Collapsed" Background="#ED0A1018" BorderBrush="#29384B" BorderThickness="0,0,0,1">
             <Grid Margin="8,2">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <TextBlock x:Name="WormTitleText" Text="MARGIN FLOW" Foreground="White" FontSize="16" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
-                <TextBlock x:Name="WormMarginText" Grid.Column="1" Text="SCORES LEVEL" Foreground="#FFFFFF" FontSize="14" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                <TextBlock x:Name="WormTitleText" Text="MARGIN FLOW" Foreground="White" FontSize="18" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                <TextBlock x:Name="WormMarginText" Grid.Column="1" Text="SCORES LEVEL" Foreground="#FFFFFF" FontSize="16" FontWeight="Black" FontFamily="Bahnschrift" VerticalAlignment="Center"/>
                 <TextBlock x:Name="WormTimeText" Text="1:26 PM" Visibility="Collapsed"/>
                 <Border Grid.ColumnSpan="2" VerticalAlignment="Bottom" Height="2"><Border.Background><LinearGradientBrush x:Name="WormTitleAccent" StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#4488FF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.5"/><GradientStop Color="#FF6644" Offset="1"/></LinearGradientBrush></Border.Background></Border>
             </Grid>
@@ -24,7 +24,7 @@
             <Grid>
                 <Canvas x:Name="ZoneCanvas" IsHitTestVisible="False"/>
                 <Grid Margin="3">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition x:Name="YAxisColumn" Width="36"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <Canvas x:Name="YAxisCanvas" Grid.Column="0" ClipToBounds="False"/>
                     <Canvas x:Name="GraphCanvas" Grid.Column="1" ClipToBounds="True"/>
                 </Grid>

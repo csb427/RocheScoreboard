@@ -9,36 +9,36 @@ namespace Roche_Scoreboard.Models
     {
         /// <summary>
         /// Premium TV graphics package — vertical-unfurl overlay entry,
-        /// signature double-tap score glow, two distinct shimmer passes,
-        /// controlled opacity fade. ~3.5s.
+        /// signature double-tap score glow, dual signal sweeps and a vertical
+        /// broadcast score lift.
         /// </summary>
         Broadcast,
 
         /// <summary>
         /// Stadium hype — pre-charge edge-glow zaps, horizontal surge entry
         /// (no central scale slam), 5-beat strobe rhythm, reverse-direction
-        /// gradient dashes, crackling collapse exit. ~2.9s.
+        /// gradient dashes, lateral score charge and crackling collapse exit.
         /// </summary>
         Electric,
 
         /// <summary>
         /// Champions League drama — slow horizontal slide entry, three
         /// breathing glow cycles, team logo gently zooms forward as an
-        /// identity beat, slow slide exit. ~5.0s.
+        /// identity beat, centred score bloom and dissolving exit.
         /// </summary>
         Cinematic,
 
         /// <summary>
-        /// Modern minimalist — no overlay panel, no GOAL! text. Two-stage
-        /// heartbeat on the score area, soft edge accent, elastic swell on
-        /// the total digit. Scoreboard remains fully readable. ~2.2s.
+        /// Modern minimalist — restrained GOAL treatment, two-stage heartbeat
+        /// on the score area and a fast dissolving score reveal. The scoreboard
+        /// remains readable throughout.
         /// </summary>
         Clean,
 
         /// <summary>
         /// Retro arcade — overlay stutters on like 1980s scoreboard bulbs
-        /// warming up, irregular mid-hold flicker, bulb-burnout exit.
-        /// No gradient sweep, no shimmer. ~2.4s.
+        /// warming up, stepped flipboard score reveal, irregular mid-hold
+        /// flicker and bulb-burnout exit. No gradient sweep or shimmer.
         /// </summary>
         Classic,
 

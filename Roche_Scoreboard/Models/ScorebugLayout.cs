@@ -18,6 +18,9 @@ namespace Roche_Scoreboard.Models
         NoLogos,
 
         /// <summary>Broadcast layout — left clock panel, logo squares, team name strips over stat boxes.</summary>
-        Broadcast
+        Broadcast,
+
+        /// <summary>Distance-first broadcast layout with no top information bar and an integrated wall clock.</summary>
+        Distance
     }
 }

@@ -7,6 +7,8 @@ namespace Roche_Scoreboard.Models
 {
     public sealed class MatchManager
     {
+        private static readonly TimeSpan MaxSupportedQuarterTime = TimeSpan.FromHours(24);
+
         // Teams
         public string HomeName { get; private set; } = "HOME";
         public string HomeAbbr { get; private set; } = "HOM";
@@ -56,12 +58,29 @@ namespace Roche_Scoreboard.Models
 
         // Quarter-by-quarter cumulative snapshots (index 0 = Q1)
         private readonly QuarterSnapshot?[] _quarterSnapshots = new QuarterSnapshot?[4];
+        private readonly TimeSpan[] _quarterPlayingTimes = new TimeSpan[4];
+        private int _completedQuarterCount;
+
+        public int CompletedQuarterCount => _completedQuarterCount;
+        public bool IsFullTime => _completedQuarterCount >= 4;
 
         public QuarterSnapshot? GetQuarterSnapshot(int quarter)
         {
             int idx = quarter - 1;
             if (idx < 0 || idx >= 4) return null;
             return _quarterSnapshots[idx];
+        }
+
+        internal TimeSpan PlayingTimeAt(int quarter, TimeSpan elapsedInQuarter)
+        {
+            int target = Math.Clamp(quarter, 1, 4);
+            TimeSpan total = TimeSpan.Zero;
+            for (int index = 0; index < target - 1; index++)
+            {
+                TimeSpan recorded = _quarterPlayingTimes[index];
+                total += recorded > TimeSpan.Zero ? recorded : QuarterDuration;
+            }
+            return total + (elapsedInQuarter < TimeSpan.Zero ? TimeSpan.Zero : elapsedInQuarter);
         }
 
         // Log
@@ -106,7 +125,12 @@ namespace Roche_Scoreboard.Models
         {
             if (ClockRunning) return;
             // Don't allow clock to start after Q4 has ended
-            if (Quarter == 4 && _quarterSnapshots[3] != null) return;
+            if (IsFullTime) return;
+            if (_endedQuarterNumber > 0 && Quarter > _endedQuarterNumber)
+            {
+                _endedQuarterNumber = 0;
+                _endedQuarterElapsed = TimeSpan.Zero;
+            }
             ClockRunning = true;
             _sw.Restart();
             MatchChanged?.Invoke();
@@ -139,9 +163,9 @@ namespace Roche_Scoreboard.Models
                 _sw.Restart();
             }
 
-            _pausedElapsed += delta;
-            if (_pausedElapsed < TimeSpan.Zero)
-                _pausedElapsed = TimeSpan.Zero;
+            double adjustedTicks = _pausedElapsed.Ticks + (double)delta.Ticks;
+            _pausedElapsed = TimeSpan.FromTicks((long)Math.Clamp(
+                adjustedTicks, 0d, MaxSupportedQuarterTime.Ticks));
 
             MatchChanged?.Invoke();
         }
@@ -155,14 +179,14 @@ namespace Roche_Scoreboard.Models
             if (ClockRunning)
                 _sw.Restart();
 
-            _pausedElapsed = elapsed < TimeSpan.Zero ? TimeSpan.Zero : elapsed;
+            _pausedElapsed = ClampQuarterTime(elapsed);
             MatchChanged?.Invoke();
         }
 
         public void SetQuarterDuration(TimeSpan duration)
         {
             if (duration > TimeSpan.Zero)
-                QuarterDuration = duration;
+                QuarterDuration = ClampQuarterTime(duration);
             MatchChanged?.Invoke();
         }
 
@@ -174,7 +198,14 @@ namespace Roche_Scoreboard.Models
             _sw.Reset();
             _pausedElapsed = TimeSpan.Zero;
             _events.Clear();
-            for (int i = 0; i < 4; i++) _quarterSnapshots[i] = null;
+            _completedQuarterCount = 0;
+            _endedQuarterNumber = 0;
+            _endedQuarterElapsed = TimeSpan.Zero;
+            for (int i = 0; i < 4; i++)
+            {
+                _quarterSnapshots[i] = null;
+                _quarterPlayingTimes[i] = TimeSpan.Zero;
+            }
             MatchChanged?.Invoke();
         }
 
@@ -183,9 +214,19 @@ namespace Roche_Scoreboard.Models
         /// </summary>
         public bool EndQuarter()
         {
+            // A repeated click/key/remote command during the break must not
+            // immediately end the following quarter at 00:00.
+            if (_endedQuarterNumber > 0
+                && Quarter > _endedQuarterNumber
+                && !ClockRunning
+                && _pausedElapsed == TimeSpan.Zero)
+            {
+                return false;
+            }
+
             // Prevent repeated end-quarter calls once Q4 snapshot is recorded
             int idx = Quarter - 1;
-            if (idx >= 0 && idx < 4 && _quarterSnapshots[idx] != null)
+            if (idx >= 0 && idx < 4 && _completedQuarterCount >= Quarter)
                 return false;
 
             // Stop the clock if it's still running
@@ -195,6 +236,8 @@ namespace Roche_Scoreboard.Models
             // Store elapsed time before resetting so ContinueQuarter can restore it
             _endedQuarterElapsed = _pausedElapsed;
             _endedQuarterNumber = Quarter;
+            if (idx >= 0 && idx < _quarterPlayingTimes.Length)
+                _quarterPlayingTimes[idx] = _endedQuarterElapsed;
 
             _sw.Reset();
             ClockRunning = false;
@@ -203,13 +246,8 @@ namespace Roche_Scoreboard.Models
             // Snapshot cumulative scores at end of this quarter
             if (idx >= 0 && idx < 4)
             {
-                _quarterSnapshots[idx] = new QuarterSnapshot
-                {
-                    HomeGoals = HomeGoals,
-                    HomeBehinds = HomeBehinds,
-                    AwayGoals = AwayGoals,
-                    AwayBehinds = AwayBehinds
-                };
+                _completedQuarterCount = Math.Max(_completedQuarterCount, Quarter);
+                RebuildCompletedQuarterSnapshots();
             }
 
             if (Quarter < 4) Quarter++;
@@ -241,9 +279,13 @@ namespace Roche_Scoreboard.Models
 
             // Remove the quarter snapshot
             if (idx >= 0 && idx < 4)
+            {
                 _quarterSnapshots[idx] = null;
+                _quarterPlayingTimes[idx] = TimeSpan.Zero;
+            }
 
             Quarter = prevQuarter;
+            _completedQuarterCount = Math.Min(_completedQuarterCount, prevQuarter - 1);
             _pausedElapsed = _endedQuarterElapsed;
             _endedQuarterNumber = 0;
             _endedQuarterElapsed = TimeSpan.Zero;
@@ -254,42 +296,60 @@ namespace Roche_Scoreboard.Models
 
         public ScoreEvent AddGoal(TeamSide team)
         {
-            // Prevent scoring after Q4 has ended
-            if (Quarter == 4 && _quarterSnapshots[3] != null)
-                return CreateEvent(team, ScoreType.Goal);
-
-            if (team == TeamSide.Home) HomeGoals++;
-            else AwayGoals++;
-
-            var ev = CreateEvent(team, ScoreType.Goal);
-            _events.Add(ev);
-            ScoreEventAdded?.Invoke(ev);
-            MatchChanged?.Invoke();
-            return ev;
+            return AddScore(team, ScoreType.Goal);
         }
 
         public ScoreEvent AddBehind(TeamSide team)
         {
-            // Prevent scoring after Q4 has ended
-            if (Quarter == 4 && _quarterSnapshots[3] != null)
-                return CreateEvent(team, ScoreType.Behind);
+            return AddScore(team, ScoreType.Behind);
+        }
 
-            if (team == TeamSide.Home) HomeBehinds++;
-            else AwayBehinds++;
+        private ScoreEvent AddScore(TeamSide team, ScoreType type)
+        {
+            if (!Enum.IsDefined(team) || !Enum.IsDefined(type))
+                return CreateEvent(TeamSide.Home, ScoreType.Behind);
 
-            var ev = CreateEvent(team, ScoreType.Behind);
+            bool postSiren = _endedQuarterNumber > 0
+                && _completedQuarterCount >= _endedQuarterNumber
+                && !ClockRunning
+                && (Quarter > _endedQuarterNumber || IsFullTime);
+
+            if (IsFullTime && !postSiren)
+                return CreateEvent(team, type);
+
+            if (team == TeamSide.Home)
+            {
+                if (type == ScoreType.Goal) HomeGoals++;
+                else HomeBehinds++;
+            }
+            else
+            {
+                if (type == ScoreType.Goal) AwayGoals++;
+                else AwayBehinds++;
+            }
+
+            int eventQuarter = postSiren ? _endedQuarterNumber : Quarter;
+            TimeSpan eventTime = postSiren ? _endedQuarterElapsed : ElapsedInQuarter;
+            var ev = CreateEvent(team, type, eventQuarter, eventTime);
             _events.Add(ev);
+
+            // A manual match-log correction can insert an earlier event. Keep
+            // the single authoritative timeline sorted when live scoring
+            // resumes, then rebuild every running total from that timeline.
+            SortEventsChronologically();
+            RebuildFromEvents();
+
             ScoreEventAdded?.Invoke(ev);
             MatchChanged?.Invoke();
             return ev;
         }
 
-        private ScoreEvent CreateEvent(TeamSide team, ScoreType type)
+        private ScoreEvent CreateEvent(TeamSide team, ScoreType type, int? eventQuarter = null, TimeSpan? eventTime = null)
         {
             return new ScoreEvent
             {
-                Quarter = Quarter,
-                GameTime = ElapsedInQuarter,
+                Quarter = eventQuarter ?? Quarter,
+                GameTime = eventTime ?? ElapsedInQuarter,
                 Team = team,
                 Type = type,
 
@@ -325,16 +385,63 @@ namespace Roche_Scoreboard.Models
         /// Changes the team, type, and/or time of the event at <paramref name="index"/>,
         /// then rebuilds all scores and snapshots from that point forward.
         /// </summary>
-        public bool ModifyEvent(int index, TeamSide newTeam, ScoreType newType, TimeSpan newGameTime)
+        public bool ModifyEvent(int index, TeamSide newTeam, ScoreType newType, TimeSpan newGameTime, int? newQuarter = null)
         {
             if (index < 0 || index >= _events.Count) return false;
+            if (!Enum.IsDefined(newTeam) || !Enum.IsDefined(newType)) return false;
             ScoreEvent ev = _events[index];
             ev.Team = newTeam;
             ev.Type = newType;
-            ev.GameTime = newGameTime;
+            ev.GameTime = ClampQuarterTime(newGameTime);
+            if (newQuarter.HasValue) ev.Quarter = Math.Clamp(newQuarter.Value, 1, Quarter);
+            SortEventsChronologically();
             RebuildFromEvents();
             MatchChanged?.Invoke();
             return true;
+        }
+
+        /// <summary>
+        /// Adds a manually recorded score at an optional quarter/time and then
+        /// rebuilds the same authoritative event timeline used by corrections.
+        /// </summary>
+        public ScoreEvent AddRecordedScore(TeamSide team, ScoreType type, int? quarter = null, TimeSpan? gameTime = null)
+        {
+            // A score cannot belong to a quarter that has not started yet.
+            // Clamp accidental/faulty remote or editor input to the active
+            // quarter while still allowing corrections to earlier quarters.
+            int resolvedQuarter = Math.Clamp(quarter ?? Quarter, 1, Quarter);
+            TimeSpan resolvedTime = gameTime ?? ElapsedInQuarter;
+            resolvedTime = ClampQuarterTime(resolvedTime);
+
+            ScoreEvent ev = CreateEvent(team, type, resolvedQuarter, resolvedTime);
+            _events.Add(ev);
+            SortEventsChronologically();
+            RebuildFromEvents();
+            MatchChanged?.Invoke();
+            return ev;
+        }
+
+        private void SortEventsChronologically()
+        {
+            // List<T>.Sort is not stable. Preserve original entry order when
+            // quarter, clock and timestamp are identical so rapid inputs and
+            // legacy records cannot randomly swap teams after a rebuild.
+            ScoreEvent[] ordered = _events
+                .Select((score, index) => (score, index))
+                .OrderBy(item => item.score.Quarter)
+                .ThenBy(item => item.score.GameTime)
+                .ThenBy(item => item.score.Timestamp)
+                .ThenBy(item => item.index)
+                .Select(item => item.score)
+                .ToArray();
+            _events.Clear();
+            _events.AddRange(ordered);
+        }
+
+        private static TimeSpan ClampQuarterTime(TimeSpan value)
+        {
+            if (value <= TimeSpan.Zero) return TimeSpan.Zero;
+            return value > MaxSupportedQuarterTime ? MaxSupportedQuarterTime : value;
         }
 
         /// <summary>
@@ -345,30 +452,8 @@ namespace Roche_Scoreboard.Models
         {
             HomeGoals = HomeBehinds = AwayGoals = AwayBehinds = 0;
 
-            // Clear quarter snapshots — they'll be rebuilt from event data
-            for (int i = 0; i < 4; i++) _quarterSnapshots[i] = null;
-            int lastSeenQuarter = 0;
-
             foreach (var ev in _events)
             {
-                // If we've moved past a quarter boundary, snapshot the previous quarter(s)
-                if (ev.Quarter > lastSeenQuarter && lastSeenQuarter > 0)
-                {
-                    int snapIdx = lastSeenQuarter - 1;
-                    if (snapIdx >= 0 && snapIdx < 4 && _quarterSnapshots[snapIdx] == null)
-                    {
-                        _quarterSnapshots[snapIdx] = new QuarterSnapshot
-                        {
-                            HomeGoals = HomeGoals,
-                            HomeBehinds = HomeBehinds,
-                            AwayGoals = AwayGoals,
-                            AwayBehinds = AwayBehinds
-                        };
-                    }
-                }
-
-                lastSeenQuarter = ev.Quarter;
-
                 if (ev.Team == TeamSide.Home)
                 {
                     if (ev.Type == ScoreType.Goal) HomeGoals++;
@@ -385,6 +470,42 @@ namespace Roche_Scoreboard.Models
                 ev.HomeBehinds = HomeBehinds;
                 ev.AwayGoals = AwayGoals;
                 ev.AwayBehinds = AwayBehinds;
+            }
+
+            RebuildCompletedQuarterSnapshots();
+        }
+
+        private void RebuildCompletedQuarterSnapshots()
+        {
+            for (int i = 0; i < 4; i++) _quarterSnapshots[i] = null;
+
+            int hg = 0, hb = 0, ag = 0, ab = 0;
+            for (int quarter = 1; quarter <= 4; quarter++)
+            {
+                foreach (ScoreEvent ev in _events.Where(score => score.Quarter == quarter))
+                {
+                    if (ev.Team == TeamSide.Home)
+                    {
+                        if (ev.Type == ScoreType.Goal) hg++;
+                        else hb++;
+                    }
+                    else
+                    {
+                        if (ev.Type == ScoreType.Goal) ag++;
+                        else ab++;
+                    }
+                }
+
+                if (quarter <= _completedQuarterCount)
+                {
+                    _quarterSnapshots[quarter - 1] = new QuarterSnapshot
+                    {
+                        HomeGoals = hg,
+                        HomeBehinds = hb,
+                        AwayGoals = ag,
+                        AwayBehinds = ab
+                    };
+                }
             }
         }
 
@@ -488,6 +609,11 @@ namespace Roche_Scoreboard.Models
             ClockMode = (int)ClockMode,
             QuarterDurationTicks = QuarterDuration.Ticks,
             DarkMode = DarkMode,
+            QuarterPlayingTimeTicks = _quarterPlayingTimes.Select(value => value.Ticks).ToArray(),
+            CompletedQuarterCount = _completedQuarterCount,
+            EndedQuarterNumber = _endedQuarterNumber,
+            EndedQuarterElapsedTicks = _endedQuarterElapsed.Ticks,
+            QuarterSnapshots = _quarterSnapshots.ToArray(),
             Events = _events.ToList()
         };
 
@@ -508,26 +634,69 @@ namespace Roche_Scoreboard.Models
                 ? (ClockMode)state.ClockMode
                 : ClockMode.CountUp;
             if (state.QuarterDurationTicks > 0)
-                QuarterDuration = new TimeSpan(state.QuarterDurationTicks);
+                QuarterDuration = ClampQuarterTime(new TimeSpan(state.QuarterDurationTicks));
+            _completedQuarterCount = Math.Clamp(state.CompletedQuarterCount, 0, 4);
+            if (_completedQuarterCount == 0)
+            {
+                _completedQuarterCount = Math.Max(0, Quarter - 1);
+                if (state.QuarterPlayingTimeTicks is { Length: >= 4 } && state.QuarterPlayingTimeTicks[3] > 0)
+                    _completedQuarterCount = 4;
+            }
+            int minimumCompleted = Math.Max(0, Quarter - 1);
+            int maximumCompleted = Quarter == 4 ? 4 : minimumCompleted;
+            _completedQuarterCount = Math.Clamp(_completedQuarterCount, minimumCompleted, maximumCompleted);
+            _endedQuarterNumber = Math.Clamp(state.EndedQuarterNumber, 0, 4);
+            _endedQuarterElapsed = ClampQuarterTime(TimeSpan.FromTicks(Math.Max(0, state.EndedQuarterElapsedTicks)));
+            bool validEndedQuarter = _endedQuarterNumber > 0
+                && _completedQuarterCount >= _endedQuarterNumber
+                && ((_endedQuarterNumber < 4 && Quarter == _endedQuarterNumber + 1)
+                    || (_endedQuarterNumber == 4 && Quarter == 4 && _completedQuarterCount == 4));
+            if (!validEndedQuarter)
+            {
+                _endedQuarterNumber = 0;
+                _endedQuarterElapsed = TimeSpan.Zero;
+            }
             _sw.Reset();
-            _pausedElapsed = new TimeSpan(Math.Max(0, state.ElapsedInQuarterTicks));
+            _pausedElapsed = ClampQuarterTime(new TimeSpan(Math.Max(0, state.ElapsedInQuarterTicks)));
             ClockRunning = false;
             if (state.ClockRunning)
                 StartClock();
             DarkMode = state.DarkMode;
+
+            Array.Clear(_quarterPlayingTimes);
+            if (state.QuarterPlayingTimeTicks is { Length: > 0 })
+            {
+                for (int index = 0; index < Math.Min(4, state.QuarterPlayingTimeTicks.Length); index++)
+                    _quarterPlayingTimes[index] = ClampQuarterTime(
+                        TimeSpan.FromTicks(Math.Max(0, state.QuarterPlayingTimeTicks[index])));
+            }
 
             _events.Clear();
             if (state.Events != null)
             {
                 foreach (var ev in state.Events)
                 {
-                    if (ev != null) _events.Add(ev);
+                    if (ev is null || !Enum.IsDefined(ev.Team) || !Enum.IsDefined(ev.Type))
+                        continue;
+
+                    ev.Quarter = Math.Clamp(ev.Quarter, 1, Quarter);
+                    ev.GameTime = ClampQuarterTime(ev.GameTime);
+                    _events.Add(ev);
                 }
             }
 
+            SortEventsChronologically();
+
+            // Event history is the authoritative score source. Saved scalar
+            // totals are retained only for legacy/score-only recoveries with
+            // no event log; otherwise reconcile stale or partially-written
+            // totals and per-event snapshots before any presentation sees it.
+            if (_events.Count > 0)
+                RebuildFromEvents();
+
             // Rebuild quarter snapshots from event data so break screens,
             // scoreworm, stats, and full-time detection work after a restore.
-            RebuildQuarterSnapshots();
+            RebuildQuarterSnapshots(state.QuarterSnapshots);
 
             MatchChanged?.Invoke();
         }
@@ -540,61 +709,16 @@ namespace Roche_Scoreboard.Models
         /// time has elapsed, the snapshot for that quarter is also written so that
         /// full-time detection works correctly for restored Q4-ended games.
         /// </summary>
-        private void RebuildQuarterSnapshots()
+        private void RebuildQuarterSnapshots(QuarterSnapshot?[]? savedSnapshots = null)
         {
-            for (int i = 0; i < 4; i++) _quarterSnapshots[i] = null;
+            RebuildCompletedQuarterSnapshots();
 
-            if (_events.Count == 0) return;
-
-            int lastSeenQuarter = 0;
-            int hg = 0, hb = 0, ag = 0, ab = 0;
-
-            foreach (var ev in _events)
+            if (_events.Count == 0 && savedSnapshots is { Length: > 0 })
             {
-                // When we cross into a new quarter, snapshot the previous one
-                if (ev.Quarter > lastSeenQuarter && lastSeenQuarter > 0)
+                for (int index = 0; index < Math.Min(4, savedSnapshots.Length); index++)
                 {
-                    int snapIdx = lastSeenQuarter - 1;
-                    if (snapIdx >= 0 && snapIdx < 4 && _quarterSnapshots[snapIdx] == null)
-                    {
-                        _quarterSnapshots[snapIdx] = new QuarterSnapshot
-                        {
-                            HomeGoals = hg,
-                            HomeBehinds = hb,
-                            AwayGoals = ag,
-                            AwayBehinds = ab
-                        };
-                    }
-                }
-
-                lastSeenQuarter = ev.Quarter;
-
-                if (ev.Team == TeamSide.Home)
-                {
-                    if (ev.Type == ScoreType.Goal) hg++;
-                    else hb++;
-                }
-                else
-                {
-                    if (ev.Type == ScoreType.Goal) ag++;
-                    else ab++;
-                }
-            }
-
-            // If the current quarter is beyond the last event's quarter,
-            // snapshot the final event quarter (e.g. Q4 ended, clock stopped)
-            if (Quarter > lastSeenQuarter || (Quarter == lastSeenQuarter && !ClockRunning && _pausedElapsed == TimeSpan.Zero))
-            {
-                int snapIdx = lastSeenQuarter - 1;
-                if (snapIdx >= 0 && snapIdx < 4 && _quarterSnapshots[snapIdx] == null)
-                {
-                    _quarterSnapshots[snapIdx] = new QuarterSnapshot
-                    {
-                        HomeGoals = hg,
-                        HomeBehinds = hb,
-                        AwayGoals = ag,
-                        AwayBehinds = ab
-                    };
+                    if (index < _completedQuarterCount && savedSnapshots[index] is not null)
+                        _quarterSnapshots[index] = savedSnapshots[index];
                 }
             }
         }
@@ -626,6 +750,13 @@ namespace Roche_Scoreboard.Models
         public long QuarterDurationTicks { get; set; }
 
         public bool DarkMode { get; set; }
+
+        public long[]? QuarterPlayingTimeTicks { get; set; }
+
+        public int CompletedQuarterCount { get; set; }
+        public int EndedQuarterNumber { get; set; }
+        public long EndedQuarterElapsedTicks { get; set; }
+        public QuarterSnapshot?[]? QuarterSnapshots { get; set; }
 
         public List<ScoreEvent>? Events { get; set; }
     }
