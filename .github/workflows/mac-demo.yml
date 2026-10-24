@@ -24,9 +24,9 @@ jobs:
       matrix:
         include:
           - rid: osx-arm64
-            runner: macos-15-arm64
-          - rid: osx-x64
             runner: macos-15
+          - rid: osx-x64
+            runner: macos-15-intel
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
