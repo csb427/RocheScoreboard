@@ -152,7 +152,11 @@ public static class Motion
             From = current, To = current
         };
         entries[property] = running;
-        running.Timer = new DispatcherTimer(TimeSpan.FromMilliseconds(16), DispatcherPriority.Render, (_, _) => running.Tick());
+        // Unlike WPF composition animations, these callbacks execute managed
+        // work on the UI thread. Render-priority jobs can continuously drain
+        // ahead of native mouse/key events on macOS. Background work yields
+        // to input; elapsed wall time still determines animation progress.
+        running.Timer = new DispatcherTimer(TimeSpan.FromMilliseconds(16), DispatcherPriority.Background, (_, _) => running.Tick());
         running.Tick();
         if (!running.Finished) running.Timer.Start();
     }

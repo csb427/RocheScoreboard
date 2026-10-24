@@ -107,7 +107,8 @@ public sealed class NativeVideoSurface : Control
             _pending = new(bytes, _width, _height, _pitch, _generation);
             if (_uploadQueued) return;
             _uploadQueued = true;
-            Dispatcher.UIThread.Post(Upload, DispatcherPriority.Render);
+            // Keep the latest decoded frame coalesced without outranking input.
+            Dispatcher.UIThread.Post(Upload, DispatcherPriority.Background);
         }
     }
     private void Cleanup(ref nint opaque)

@@ -3,7 +3,7 @@ namespace RocheScoreboard.Mac.Native;
 public static class NativeRendering
 {
     private static EventHandler? _rendering;
-    private static readonly DispatcherTimer Timer = new(TimeSpan.FromMilliseconds(16), DispatcherPriority.Render, (_, e) => _rendering?.Invoke(null, e));
+    private static readonly DispatcherTimer Timer = new(TimeSpan.FromMilliseconds(16), DispatcherPriority.Background, (_, e) => _rendering?.Invoke(null, e));
     public static event EventHandler Rendering
     {
         add { _rendering += value; Timer.Start(); }

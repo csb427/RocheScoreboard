@@ -30,6 +30,7 @@ public sealed partial class App : Application
             desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
             IsSelfTestMode = args.Contains("--smoke-test");
             InstallExceptionHandlers(desktop);
+            NativeInputDiagnostics.Start(desktop);
             if (args.Contains("--production-scorebug-preview"))
             {
                 var view = new ScorebugControl();

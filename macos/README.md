@@ -103,5 +103,14 @@ check when native LibVLC is installed. `ROCHE_CAPTURE_DIR` selects capture outpu
 The Mac CI workflow builds the source, checks translation freshness, runs the
 existing suite and can create architecture-specific preview artifacts.
 
+## Troubleshooting unresponsive input
+
+Animation updates, clock callbacks and decoded-video uploads yield to native
+mouse/keyboard input. A local `input-diagnostics.log` in the `Roche_Scoreboard`
+application-data directory records five-second UI heartbeats, input counts,
+visible-window enabled states and active panel states. It does not record keys,
+typed text or team names, and is limited to 1 MiB. This supplements `crash.log`
+when diagnosing input stops that leave animations running.
+
 The proposed [debug panel](DEBUG_PANEL_RESEARCH.md) remains deferred until native
 acceptance of this port is complete.
