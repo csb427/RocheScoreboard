@@ -20,14 +20,12 @@ cat > "$entitlements" <<'PLIST'
 </dict></plist>
 PLIST
 
-# Sign native plugins first. Managed .NET files in Contents/MacOS also need
+# Sign plugin files first, including VLC's JAR components. Managed .NET files in Contents/MacOS also need
 # signatures, as described by Avalonia's macOS deployment guide. Signing the
 # main executable before its neighbouring files makes codesign reject the
 # incomplete bundle. --deep is used only to verify, never to sign.
 while IFS= read -r -d '' binary; do
-  case "$(file -b -- "$binary")" in
-    *Mach-O*) codesign --force --sign - --entitlements "$entitlements" "$binary" ;;
-  esac
+  codesign --force --sign - --entitlements "$entitlements" "$binary"
 done < <(find "$app_dir/Contents/Frameworks" -type f -print0)
 main_executable="$app_dir/Contents/MacOS/RocheScoreboard.Mac"
 while IFS= read -r -d '' binary; do
