@@ -1,0 +1,62 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <ControlTheme x:Key="ScoreGrid.Text.Display" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource ScoreGrid.FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ScoreGrid.FontSize36}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.Bold}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </ControlTheme>
+    <ControlTheme x:Key="ScoreGrid.Text.Title" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource ScoreGrid.FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ScoreGrid.FontSize28}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.SemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </ControlTheme>
+    <ControlTheme x:Key="ScoreGrid.Text.Heading" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource ScoreGrid.FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ScoreGrid.FontSize22}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.SemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </ControlTheme>
+    <ControlTheme x:Key="ScoreGrid.Text.Subheading" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource ScoreGrid.FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ScoreGrid.FontSize18}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.SemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </ControlTheme>
+    <ControlTheme x:Key="ScoreGrid.Text.Body" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource ScoreGrid.FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ScoreGrid.FontSize14}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.Regular}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+    <ControlTheme x:Key="ScoreGrid.Text.BodyStrong" TargetType="TextBlock" BasedOn="{StaticResource ScoreGrid.Text.Body}">
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.SemiBold}" />
+    </ControlTheme>
+    <ControlTheme x:Key="ScoreGrid.Text.Caption" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource ScoreGrid.FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ScoreGrid.FontSize12}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.Regular}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextSecondary}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+    <ControlTheme x:Key="ScoreGrid.Text.Overline" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource ScoreGrid.FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ScoreGrid.FontSize10}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.SemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextSecondary}" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </ControlTheme>
+    <ControlTheme x:Key="ScoreGrid.Text.Code" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource ScoreGrid.MonoFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ScoreGrid.FontSize14}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ScoreGrid.FontWeight.Regular}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </ControlTheme>
+</ResourceDictionary>

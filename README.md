@@ -2,6 +2,11 @@
 
 Roche Scoreboard is a Windows desktop scoreboard and broadcast presentation app for AFL and cricket.
 
+The [Mac port](macos/README.md) now carries the original production screens and
+application logic in licence-free Avalonia. Apple silicon and Intel preview
+packaging includes .NET and VLC. Native Mac acceptance and a Windows/Mac visual
+comparison remain outstanding; the earlier basic demo is superseded.
+
 ## Download for Windows
 
 ### [Download Roche Scoreboard for Windows](https://github.com/csb427/RocheScoreboard/releases/latest/download/Roche-Scoreboard-Windows-x64.zip)

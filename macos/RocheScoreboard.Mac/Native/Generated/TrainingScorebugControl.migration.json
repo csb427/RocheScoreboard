@@ -1,0 +1,242 @@
+{
+  "source": "Roche_Scoreboard/Views/TrainingScorebugControl.xaml",
+  "source_sha256": "08bb2eb90fad4d533bbaff974af6f0890f54ca35a1d7fcbe64f0d9776284e4a0",
+  "names": [
+    {
+      "name": "RootGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "RootBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "GradientBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TitleScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TitleTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "TitleGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "TitleClip",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "TitleText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TitleScrollTransform",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ActiveTimerHost",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "TimerScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TimerTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "TimerText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TimerGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "ProgressSegments",
+      "type": "ItemsControl",
+      "object": false
+    },
+    {
+      "name": "UpNextBar",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "UpNextLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "UpNextTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "UpNextDuration",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StagedTimerHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "StagedScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "StagedTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "StagedLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StagedTitleText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StagedTimerText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SessionCompleteOverlay",
+      "type": "Border",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "39d2f25f73532db6ce2c2b8d5e97994342d853947667dda9374fdd6e9bcd1e7b",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewboxUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": "TitleScale",
+      "property": "CenterX",
+      "source": "0.5"
+    },
+    {
+      "name": "TitleScale",
+      "property": "CenterY",
+      "source": "0.5"
+    },
+    {
+      "name": "TitleText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "TimerScale",
+      "property": "CenterX",
+      "source": "0.5"
+    },
+    {
+      "name": "TimerScale",
+      "property": "CenterY",
+      "source": "0.5"
+    },
+    {
+      "name": "TimerText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "UpNextLabel",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "UpNextTitle",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "UpNextDuration",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StagedScale",
+      "property": "CenterX",
+      "source": "0.5"
+    },
+    {
+      "name": "StagedScale",
+      "property": "CenterY",
+      "source": "1"
+    },
+    {
+      "name": "StagedLabel",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StagedTitleText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StagedTimerText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

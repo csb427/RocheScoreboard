@@ -1,0 +1,165 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.PresentationScoreBar" UseLayoutRounding="True" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="42" port:ProductionNames.Id="HomeLogoColumn" />
+            <ColumnDefinition Width="80" port:ProductionNames.Id="CenterColumn" />
+            <ColumnDefinition Width="42" port:ProductionNames.Id="AwayLogoColumn" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0" x:Name="HomePanel" ClipToBounds="True">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#5C2118" Offset="0.0" port:ProductionNames.Id="HomePanelGradStart" />
+                    <GradientStop Color="#C9483B" Offset="1.0" port:ProductionNames.Id="HomePanelGradEnd" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Rectangle IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#33FFFFFF" Offset="0.0" />
+                        <GradientStop Color="#00000000" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Grid>
+                <TextBlock x:Name="HomeTotalText" Text="0" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontStretch="Normal" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="6" Color="Black" Opacity="0.5" OffsetX="-3.67394039744e-16" OffsetY="2" />
+                    </TextBlock.Effect>
+                </TextBlock>
+                <Rectangle x:Name="HomeGoalFlash" Opacity="0" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                            <GradientStop Color="#00FFFFFF" Offset="0" />
+                            <GradientStop Color="#CCFFFFFF" Offset="0.5" />
+                            <GradientStop Color="#00FFFFFF" Offset="1" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <Border x:Name="HomeDeltaOverlay" Opacity="0" IsHitTestVisible="False" Background="White" ZIndex="20">
+                    <Border.RenderTransform>
+                        <TranslateTransform port:ProductionNames.Id="HomeDeltaTranslate" />
+                    </Border.RenderTransform>
+                    <TextBlock x:Name="HomeDeltaText" Text="+6" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="32" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                </Border>
+            </Grid>
+        </Grid>
+        <Rectangle Grid.Column="0" HorizontalAlignment="Right" Width="3" IsHitTestVisible="False" ZIndex="50">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#55000000" Offset="0" />
+                    <GradientStop Color="#66FFFFFF" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Border Grid.Column="1" x:Name="HomeLogoCell" ClipToBounds="True">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#5C2118" Offset="0.0" port:ProductionNames.Id="HomeLogoCellGradStart" />
+                    <GradientStop Color="#C9483B" Offset="1.0" port:ProductionNames.Id="HomeLogoCellGradEnd" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid Margin="3">
+                <TextBlock x:Name="HomeLogoFallback" Text="HOM" Foreground="#EEEEEE" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Image x:Name="HomeLogoImage" Stretch="Uniform" IsVisible="False" />
+            </Grid>
+        </Border>
+        <Rectangle Grid.Column="1" HorizontalAlignment="Right" Width="3" IsHitTestVisible="False" ZIndex="50">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#55000000" Offset="0" />
+                    <GradientStop Color="#66FFFFFF" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Grid Grid.Column="2" x:Name="CenterPanel">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="#1A1F2E" Offset="0.0" />
+                    <GradientStop Color="#0A0D14" Offset="0.5" />
+                    <GradientStop Color="#000000" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid Margin="3,2">
+                <Grid x:Name="LiveCenterPanel">
+                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="3,1">
+                        <TextBlock x:Name="LiveCenterText" Text="Q1 14′" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial Black'}" FontSize="31" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                    </Viewbox>
+                </Grid>
+                <Viewbox x:Name="BreakCenterPanel" Stretch="Uniform" StretchDirection="Both" Margin="2,0" IsVisible="False">
+                    <TextBlock x:Name="BreakCenterText" Text="QT" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial Black'}" FontSize="38" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                </Viewbox>
+            </Grid>
+        </Grid>
+        <Rectangle Grid.Column="2" HorizontalAlignment="Right" Width="3" IsHitTestVisible="False" ZIndex="50">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#55000000" Offset="0" />
+                    <GradientStop Color="#66FFFFFF" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Border Grid.Column="3" x:Name="AwayLogoCell" ClipToBounds="True">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#5C470A" Offset="0.0" port:ProductionNames.Id="AwayLogoCellGradStart" />
+                    <GradientStop Color="#B68F12" Offset="1.0" port:ProductionNames.Id="AwayLogoCellGradEnd" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid Margin="3">
+                <TextBlock x:Name="AwayLogoFallback" Text="AWA" Foreground="#EEEEEE" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Image x:Name="AwayLogoImage" Stretch="Uniform" IsVisible="False" />
+            </Grid>
+        </Border>
+        <Rectangle Grid.Column="3" HorizontalAlignment="Right" Width="3" IsHitTestVisible="False" ZIndex="50">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#55000000" Offset="0" />
+                    <GradientStop Color="#66FFFFFF" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Grid Grid.Column="4" x:Name="AwayPanel" ClipToBounds="True">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#B68F12" Offset="0.0" port:ProductionNames.Id="AwayPanelGradStart" />
+                    <GradientStop Color="#5C470A" Offset="1.0" port:ProductionNames.Id="AwayPanelGradEnd" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Rectangle IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#33FFFFFF" Offset="0.0" />
+                        <GradientStop Color="#00000000" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Grid>
+                <TextBlock x:Name="AwayTotalText" Text="0" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontStretch="Normal" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="6" Color="Black" Opacity="0.5" OffsetX="-3.67394039744e-16" OffsetY="2" />
+                    </TextBlock.Effect>
+                </TextBlock>
+                <Rectangle x:Name="AwayGoalFlash" Opacity="0" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="100%,0%" EndPoint="0%,0%">
+                            <GradientStop Color="#00FFFFFF" Offset="0" />
+                            <GradientStop Color="#CCFFFFFF" Offset="0.5" />
+                            <GradientStop Color="#00FFFFFF" Offset="1" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <Border x:Name="AwayDeltaOverlay" Opacity="0" IsHitTestVisible="False" Background="White" ZIndex="20">
+                    <Border.RenderTransform>
+                        <TranslateTransform port:ProductionNames.Id="AwayDeltaTranslate" />
+                    </Border.RenderTransform>
+                    <TextBlock x:Name="AwayDeltaText" Text="+6" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="32" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                </Border>
+            </Grid>
+        </Grid>
+        <Border Grid.ColumnSpan="5" Height="1" VerticalAlignment="Top" Background="#66000000" IsHitTestVisible="False" />
+        <Border Grid.ColumnSpan="5" Height="1" VerticalAlignment="Bottom" Background="#88000000" IsHitTestVisible="False" />
+    </Grid>
+</UserControl>

@@ -1,0 +1,44 @@
+name: Downloadable Mac previews
+
+on:
+  push:
+    branches: [codex/mac-download-preview]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: osx-arm64
+            label: Apple-silicon
+            runner: macos-15-arm64
+          - rid: osx-x64
+            label: Intel
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build a self-contained preview with the native video runtime
+        run: bash macos/scripts/package-mac.sh '${{ matrix.rid }}' artifacts/macos --preview
+      - name: Save the corresponding source
+        run: git archive --format=zip --output=artifacts/macos/Roche-Scoreboard-Mac-Preview-Source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Roche-Scoreboard-Mac-${{ matrix.label }}
+          path: |
+            artifacts/macos/Roche-Scoreboard-Mac-Preview-${{ matrix.rid }}.zip
+            artifacts/macos/Roche-Scoreboard-Mac-Preview-${{ matrix.rid }}.zip.sha256
+            artifacts/macos/Roche-Scoreboard-Mac-Preview-Source.zip
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error

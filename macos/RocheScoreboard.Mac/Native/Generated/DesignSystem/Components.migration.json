@@ -1,0 +1,115 @@
+{
+  "source": "Roche_Scoreboard/DesignSystem/Components.xaml",
+  "source_sha256": "b19efdc094ca197d41a3c33e9848351417c8702082f7ed5ef8efddbb26730c19",
+  "names": [
+    {
+      "name": "border",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "border",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "border",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "focusRing",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "border",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_ContentHost",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "PART_TextPresenter",
+      "type": "TextPresenter",
+      "object": false
+    },
+    {
+      "name": "checkBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "checkMark",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "radioBorder",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "radioCheck",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "toggleButton",
+      "type": "ToggleButton",
+      "object": false
+    },
+    {
+      "name": "border",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "contentPresenter",
+      "type": "ContentPresenter",
+      "object": false
+    },
+    {
+      "name": "popup",
+      "type": "Popup",
+      "object": false
+    },
+    {
+      "name": "itemBorder",
+      "type": "Border",
+      "object": false
+    }
+  ],
+  "code_source_sha256": null,
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "checkMark",
+      "property": "FontFamily",
+      "source": "Segoe UI Symbol",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Symbol",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "contentPresenter",
+      "property": "ContentTemplateSelector",
+      "translation": "Native ItemTemplate supplies the selected item data template"
+    },
+    {
+      "name": "popup",
+      "property": "AllowsTransparency",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

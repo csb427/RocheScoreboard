@@ -1,0 +1,194 @@
+{
+  "source": "Roche_Scoreboard/Views/WeatherScreenControl.xaml",
+  "source_sha256": "2815565de84362d358f953dbfcb1596b59ced5f751df038c45330be01ef84884",
+  "names": [
+    {
+      "name": "WeatherTitleRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "WeatherBodyRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "WeatherTitlePanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LocationText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WeatherTitleText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WeatherTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WeatherHeroRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "WeatherStatsRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "WeatherDataPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "CurrentIcon",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CurrentTemp",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CurrentDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WeatherStatsPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "DayMinTemp",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FeelsLikeTemp",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "DayMaxTemp",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WeatherUnavailablePanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ScoreBar",
+      "type": "PresentationScoreBar",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "da5a0364d9f03a55c6a2c40485be0d9ce0597474f5b5818afe97412494c06efb",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "LocationText",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "CurrentIcon",
+      "property": "FontFamily",
+      "source": "Segoe UI Emoji, Segoe UI Symbol",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "CurrentTemp",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "CurrentDescription",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "DayMinTemp",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "FeelsLikeTemp",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "DayMaxTemp",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

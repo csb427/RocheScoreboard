@@ -1,0 +1,237 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:RocheScoreboard.Mac.Native" xmlns:ns4="clr-namespace:Roche_Scoreboard.Controls" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ControlPanel" Background="#0D1117" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="ShellBrush" Color="#0D1117" />
+        <SolidColorBrush x:Key="RegionBrush" Color="#161B22" />
+        <SolidColorBrush x:Key="RegionEdgeBrush" Color="#30363D" />
+        <SolidColorBrush x:Key="TextStrongBrush" Color="#E6EDF3" />
+        <SolidColorBrush x:Key="TextMidBrush" Color="#8B949E" />
+        <SolidColorBrush x:Key="TextDimBrush" Color="#484F58" />
+        <SolidColorBrush x:Key="HomeAccentBrush" Color="#58A6FF" />
+        <SolidColorBrush x:Key="AwayAccentBrush" Color="#F85149" />
+        <SolidColorBrush x:Key="LiveBrush" Color="#3FB950" />
+        <SolidColorBrush x:Key="WarnBrush" Color="#D29922" />
+        <ControlTheme x:Key="SectionHead" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Black" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </ControlTheme>
+        <ControlTheme x:Key="ScoreButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Black" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="Padding" Value="0,14" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid RenderTransformOrigin="50%,50%" ns3:TemplateMotion.Spec="[{&quot;event&quot;:&quot;MouseEnter&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;Sc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;To&quot;:&quot;1.07&quot;,&quot;Duration&quot;:&quot;0:0:0.16&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.5&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;Sc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;To&quot;:&quot;1.07&quot;,&quot;Duration&quot;:&quot;0:0:0.16&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.5&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;Lift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;To&quot;:&quot;-3&quot;,&quot;Duration&quot;:&quot;0:0:0.16&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;To&quot;:&quot;0.34&quot;,&quot;Duration&quot;:&quot;0:0:0.11&quot;}]},{&quot;event&quot;:&quot;MouseLeave&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;Sc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;To&quot;:&quot;1&quot;,&quot;Duration&quot;:&quot;0:0:0.19&quot;,&quot;Easing&quot;:&quot;ElasticEase&quot;,&quot;Oscillations&quot;:&quot;1&quot;,&quot;Springiness&quot;:&quot;5&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;Sc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;To&quot;:&quot;1&quot;,&quot;Duration&quot;:&quot;0:0:0.19&quot;,&quot;Easing&quot;:&quot;ElasticEase&quot;,&quot;Oscillations&quot;:&quot;1&quot;,&quot;Springiness&quot;:&quot;5&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;Lift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.19&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.14&quot;},{&quot;Storyboard.TargetName&quot;:&quot;Bd&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;To&quot;:&quot;1&quot;,&quot;Duration&quot;:&quot;0:0:0.17&quot;}]},{&quot;event&quot;:&quot;Button.Click&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;Sc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;From&quot;:&quot;0.88&quot;,&quot;To&quot;:&quot;1.1&quot;,&quot;Duration&quot;:&quot;0:0:0.2&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.6&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;Sc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;From&quot;:&quot;0.88&quot;,&quot;To&quot;:&quot;1.1&quot;,&quot;Duration&quot;:&quot;0:0:0.2&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.6&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;Lift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;From&quot;:&quot;1&quot;,&quot;To&quot;:&quot;-2&quot;,&quot;Duration&quot;:&quot;0:0:0.16&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;From&quot;:&quot;0.58&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.3&quot;},{&quot;Storyboard.TargetName&quot;:&quot;Bd&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;From&quot;:&quot;0.7&quot;,&quot;To&quot;:&quot;1&quot;,&quot;Duration&quot;:&quot;0:0:0.23&quot;}]}]">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.TemplateId="Sc" />
+                                    <TranslateTransform Y="0" port:ProductionNames.TemplateId="Lift" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="RewardFlash" Background="#8C58A6FF" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style Selector="^:pressed /template/ Border#Bd">
+                <Setter Property="Opacity" Value="0.82" />
+            </Style>
+        </ControlTheme>
+        <ControlTheme x:Key="ToolBtn" TargetType="Button">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}" />
+            <Setter Property="Background" Value="#21262D" />
+            <Setter Property="BorderBrush" Value="#30363D" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid RenderTransformOrigin="50%,50%" ns3:TemplateMotion.Spec="[{&quot;event&quot;:&quot;MouseEnter&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;TbSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;To&quot;:&quot;1.05&quot;,&quot;Duration&quot;:&quot;0:0:0.12&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.3&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;TbSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;To&quot;:&quot;1.05&quot;,&quot;Duration&quot;:&quot;0:0:0.12&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.3&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;TbLift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;To&quot;:&quot;-2&quot;,&quot;Duration&quot;:&quot;0:0:0.12&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;To&quot;:&quot;0.24&quot;,&quot;Duration&quot;:&quot;0:0:0.1&quot;}]},{&quot;event&quot;:&quot;MouseLeave&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;TbSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;To&quot;:&quot;1&quot;,&quot;Duration&quot;:&quot;0:0:0.18&quot;,&quot;Easing&quot;:&quot;ElasticEase&quot;,&quot;Oscillations&quot;:&quot;1&quot;,&quot;Springiness&quot;:&quot;5&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;TbSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;To&quot;:&quot;1&quot;,&quot;Duration&quot;:&quot;0:0:0.18&quot;,&quot;Easing&quot;:&quot;ElasticEase&quot;,&quot;Oscillations&quot;:&quot;1&quot;,&quot;Springiness&quot;:&quot;5&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;TbLift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.18&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.13&quot;}]},{&quot;event&quot;:&quot;Button.Click&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;TbSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;From&quot;:&quot;0.92&quot;,&quot;To&quot;:&quot;1.07&quot;,&quot;Duration&quot;:&quot;0:0:0.16&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.4&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;TbSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;From&quot;:&quot;0.92&quot;,&quot;To&quot;:&quot;1.07&quot;,&quot;Duration&quot;:&quot;0:0:0.16&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.4&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;TbLift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;From&quot;:&quot;1&quot;,&quot;To&quot;:&quot;-1&quot;,&quot;Duration&quot;:&quot;0:0:0.14&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;From&quot;:&quot;0.42&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.24&quot;}]}]">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.TemplateId="TbSc" />
+                                    <TranslateTransform Y="0" port:ProductionNames.TemplateId="TbLift" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="RewardFlash" Background="#66484F58" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="Background" Value="#30363D" />
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="BorderBrush" Value="#484F58" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border#Bd">
+                <Setter Property="Background" Value="#161B22" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border#Bd">
+                <Setter Property="Opacity" Value="0.84" />
+            </Style>
+        </ControlTheme>
+        <ControlTheme TargetType="ComboBox" BasedOn="{StaticResource Native.Base.ComboBox}" x:Key="{x:Type ComboBox}">
+            <Setter Property="Background" Value="#1C2128" />
+            <Setter Property="Foreground" Value="#E6EDF3" />
+            <Setter Property="BorderBrush" Value="#30363D" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding" Value="10,6" />
+        </ControlTheme>
+    </UserControl.Resources>
+    <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+        <Grid Width="1500" Height="900">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Background="#0D1117" BorderBrush="#21262D" BorderThickness="0,0,0,2" Padding="20,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" BorderBrush="#244A34" BorderThickness="1.5" Background="#0D2818" Padding="10,4">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="#3FB950" Margin="0,0,6,0" />
+                            <TextBlock Text="READY" Foreground="#3FB950" FontSize="11" FontWeight="Black" />
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <ns4:MarqueeTextBlock x:Name="HomeTeamName" Text="Home" Foreground="{StaticResource HomeAccentBrush}" FontWeight="Black" FontSize="16" VerticalAlignment="Center" MaxWidth="240" Height="24" />
+                        <TextBlock x:Name="HomeScore" Text="0" Foreground="White" FontWeight="Black" FontSize="30" FontFamily="{fonts:ProductionFont 'Consolas'}" VerticalAlignment="Center" Margin="14,0,0,0" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock x:Name="Timer" Text="00:00" Foreground="{StaticResource WarnBrush}" FontWeight="Black" FontSize="28" FontFamily="{fonts:ProductionFont 'Consolas'}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <TextBlock x:Name="AwayScore" Text="0" Foreground="White" FontWeight="Black" FontSize="30" FontFamily="{fonts:ProductionFont 'Consolas'}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <ns4:MarqueeTextBlock x:Name="AwayTeamName" Text="Away" Foreground="{StaticResource AwayAccentBrush}" FontWeight="Black" FontSize="16" VerticalAlignment="Center" MaxWidth="240" Height="24" />
+                    </StackPanel>
+                    <Border Grid.Column="6" BorderBrush="#30363D" BorderThickness="1" Background="#161B22" Padding="12,4">
+                        <TextBlock x:Name="QuarterBadgeText" Text="Q1" Foreground="{StaticResource TextMidBrush}" FontSize="14" FontWeight="Black" />
+                    </Border>
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Background="{StaticResource RegionBrush}" Padding="16,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="280" MinWidth="240" />
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="12" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="SCORING" Theme="{StaticResource SectionHead}" />
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" BorderBrush="#33579A" BorderThickness="1,3,1,1" Background="#0A1428" Padding="14">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="14" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="8" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="HOME" Foreground="#7EB4FF" FontSize="10" FontWeight="Black" />
+                                    <TextBlock x:Name="HomeScoreDisplay" Grid.Row="1" Text="0" Foreground="White" FontSize="48" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" Margin="0,4,0,0" />
+                                    <Button x:Name="HomeGoalBtn" Grid.Row="3" Content="+6 GOAL" Background="#2F63D1" BorderBrush="#4D7DE7" AutomationProperties.Name="Add home goal" Theme="{StaticResource ScoreButton}" ToolTip.Tip="Add a goal for the home team (+6 points)" />
+                                    <Button x:Name="HomeBehindBtn" Grid.Row="5" Content="+1 BEHIND" FontSize="16" Background="#1A2636" BorderBrush="#3A4E66" AutomationProperties.Name="Add home behind" Theme="{StaticResource ScoreButton}" ToolTip.Tip="Add a behind for the home team (+1 point)" />
+                                </Grid>
+                            </Border>
+                            <Border Grid.Column="2" BorderBrush="#8A3A3A" BorderThickness="1,3,1,1" Background="#1C0A0A" Padding="14">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="14" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="8" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="AWAY" Foreground="#FF9A9A" FontSize="10" FontWeight="Black" />
+                                    <TextBlock x:Name="AwayScoreDisplay" Grid.Row="1" Text="0" Foreground="White" FontSize="48" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" Margin="0,4,0,0" />
+                                    <Button x:Name="AwayGoalBtn" Grid.Row="3" Content="+6 GOAL" Background="#A63B3B" BorderBrush="#C56F6F" AutomationProperties.Name="Add away goal" Theme="{StaticResource ScoreButton}" ToolTip.Tip="Add a goal for the away team (+6 points)" />
+                                    <Button x:Name="AwayBehindBtn" Grid.Row="5" Content="+1 BEHIND" FontSize="16" Background="#2A1A1A" BorderBrush="#5A3A3A" AutomationProperties.Name="Add away behind" Theme="{StaticResource ScoreButton}" ToolTip.Tip="Add a behind for the away team (+1 point)" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2.5*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="ClockStartBtn" Grid.Column="0" Content="▶ Start" Height="56" FontSize="20" FontWeight="Black" Background="#0D3018" BorderBrush="#1A6040" AutomationProperties.Name="Start match clock" Theme="{StaticResource ScoreButton}" ToolTip.Tip="Start the match clock" />
+                            <Button x:Name="ClockPauseBtn" Grid.Column="2" Content="⏸ Pause" Height="56" FontSize="11" FontWeight="Bold" Background="#21262D" BorderBrush="#D29922" AutomationProperties.Name="Pause match clock" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Pause the match clock" />
+                            <Button x:Name="ClockResetBtn" Grid.Column="4" Content="↺ Reset" Height="56" FontSize="11" FontWeight="Bold" Background="#2A1416" BorderBrush="#6B3A3E" AutomationProperties.Name="Reset match clock" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Reset the match clock to zero" />
+                        </Grid>
+                    </Grid>
+                    <Border Grid.Column="2" Background="#0D1117" BorderBrush="#21262D" BorderThickness="2" Padding="12">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="14" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="QUARTER" Theme="{StaticResource SectionHead}" />
+                            <ComboBox x:Name="QuarterSelector" Grid.Row="1" Width="140" HorizontalAlignment="Left" />
+                            <TextBlock Grid.Row="3" Text="MATCH LOG" Theme="{StaticResource SectionHead}" />
+                            <Border Grid.Row="4" Background="#161B22" BorderBrush="#21262D" BorderThickness="1" Padding="6">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ListBox x:Name="EventLog" Background="Transparent" BorderThickness="0" Foreground="#E6EDF3" FontSize="12" FontFamily="{fonts:ProductionFont 'Consolas'}">
+                                        <ListBox.ItemContainerTheme>
+                                            <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource Native.Base.ListBoxItem}">
+                                                <Setter Property="Padding" Value="4,3" />
+                                                <Setter Property="BorderBrush" Value="#21262D" />
+                                                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                            </ControlTheme>
+                                        </ListBox.ItemContainerTheme>
+                                    </ListBox>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+    </Viewbox>
+</UserControl>

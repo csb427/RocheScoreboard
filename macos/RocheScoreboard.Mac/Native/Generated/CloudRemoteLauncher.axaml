@@ -1,0 +1,69 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.CloudRemoteLauncher" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Border Background="#0A1620" BorderBrush="#1A3A6A" BorderThickness="1" CornerRadius="2">
+        <StackPanel>
+            <Button x:Name="CollapsedButton" Click="CollapsedButton_Click" Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="10,8" HorizontalContentAlignment="Stretch">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="📱" FontSize="18" Foreground="#58A6FF" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="CLOUD REMOTE" FontSize="13" FontWeight="Black" Foreground="#78B7FF" />
+                        <TextBlock x:Name="CollapsedStatusText" Text="Tap to start" FontSize="11" FontWeight="SemiBold" Foreground="#B9D8FA" />
+                    </StackPanel>
+                    <TextBlock x:Name="CollapsedChevron" Grid.Column="2" Text="▾" FontSize="12" FontWeight="Black" Foreground="#58A6FF" VerticalAlignment="Center" />
+                </Grid>
+                <Button.Styles>
+                    <Style Selector="Button:pointerover /template/ Border#Bd">
+                        <Setter Property="Background" Value="#0F1F30" />
+                    </Style>
+                </Button.Styles>
+            </Button>
+            <StackPanel x:Name="ExpandedPanel" Margin="10,2,10,10" IsVisible="False">
+                <Border Height="1" Background="#1A3A6A" Margin="0,0,0,8" />
+                <TextBlock x:Name="StatusText" Text="Checking configuration…" FontSize="12" FontWeight="SemiBold" Foreground="#A9BDD2" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,8" />
+                <StackPanel x:Name="IdleState" IsVisible="False">
+                    <Button x:Name="StartButton" Content="Start cloud session" Height="36" FontSize="12" FontWeight="Black" Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1" Foreground="#58A6FF" Cursor="Hand" Click="StartButton_Click" />
+                    <TextBlock Text="A new join code is created each time." FontSize="11" Foreground="#A9BDD2" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,0" />
+                </StackPanel>
+                <StackPanel x:Name="DisabledState" IsVisible="False">
+                    <Border Background="#1C140A" BorderBrush="#4A3A1A" BorderThickness="1" Padding="8">
+                        <StackPanel>
+                            <TextBlock Text="Setup required" FontSize="13" FontWeight="Black" Foreground="#E7B94F" HorizontalAlignment="Center" Margin="0,0,0,4" />
+                            <TextBlock Text="Add supabase.config.json next to the executable." FontSize="11" FontWeight="SemiBold" Foreground="#D8C483" TextWrapping="Wrap" TextAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                <StackPanel x:Name="LiveState" IsVisible="False">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+                        <Ellipse x:Name="ConnectionDot" Width="8" Height="8" Fill="#6E7681" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ConnectionLabel" Text="Connecting…" FontSize="11" FontWeight="Bold" Foreground="#6E7681" Margin="6,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="JOIN CODE" FontSize="11" FontWeight="Black" Foreground="#9CC4F0" HorizontalAlignment="Center" />
+                    <Border Background="#060A10" BorderBrush="#2A4A70" BorderThickness="1" Padding="10,6" Margin="0,4,0,4" Cursor="Hand" PointerReleased="Native_JoinCodeBox_Click" ToolTip.Tip="Click to copy">
+                        <TextBlock x:Name="JoinCodeText" Text="—" FontSize="22" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Consolas'}" Foreground="#58A6FF" HorizontalAlignment="Center" TextAlignment="Center" />
+                    </Border>
+                    <Border Background="#0D1117" BorderBrush="#1A3A6A" BorderThickness="1" Padding="6" HorizontalAlignment="Center" Margin="0,6,0,6">
+                        <Image x:Name="QrImage" Width="140" Height="140" Stretch="Uniform" RenderOptions.BitmapInterpolationMode="None" />
+                    </Border>
+                    <StackPanel x:Name="JoinUrlPanel" IsVisible="False">
+                        <TextBlock Text="OR OPEN" FontSize="11" FontWeight="Black" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,2,0,2" />
+                        <TextBlock x:Name="JoinUrlText" Text="" FontSize="11" FontWeight="SemiBold" Foreground="#9CC4F0" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+                        <Button x:Name="CopyUrlButton" Content="Copy URL" Height="30" FontSize="11" FontWeight="Bold" Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1" Foreground="#58A6FF" Cursor="Hand" Margin="0,4,0,0" Click="CopyUrlButton_Click" />
+                    </StackPanel>
+                    <Button x:Name="EndButton" Content="End session" Height="32" FontSize="11" FontWeight="Bold" Background="Transparent" BorderBrush="#3A2020" BorderThickness="1" Foreground="#FF6B6B" Cursor="Hand" Margin="0,10,0,0" Click="EndButton_Click" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

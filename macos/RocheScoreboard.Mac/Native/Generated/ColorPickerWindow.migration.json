@@ -1,0 +1,124 @@
+{
+  "source": "Roche_Scoreboard/Views/ColorPickerWindow.xaml",
+  "source_sha256": "c36a6bfdd2984398f3da5b42e6628470affb7393975fe52ee783e3dd44d122b5",
+  "names": [
+    {
+      "name": "PART_Track",
+      "type": "Track",
+      "object": false
+    },
+    {
+      "name": "PART_DecreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "PART_IncreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "CurrentPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ColourField",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "ColourWheelImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ColourMarker",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "SaturationSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "BrightnessSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "HexBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "DefaultColoursPanel",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "RecentColoursPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "ValidationText",
+      "type": "TextBlock",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "720b1228c3f15f20bbaeb1dffbb6c130b8d53ff8acbc9829cc79f0e2328bf66f",
+  "native_events": [
+    {
+      "name": "ColourField",
+      "source": "MouseLeftButtonDown",
+      "native": "PointerPressed",
+      "handler": "ColourField_MouseLeftButtonDown"
+    },
+    {
+      "name": "ColourField",
+      "source": "MouseMove",
+      "native": "PointerMoved",
+      "handler": "ColourField_MouseMove"
+    },
+    {
+      "name": "ColourField",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ColourField_MouseLeftButtonUp"
+    },
+    {
+      "name": "HexBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "HexBox_TextChanged"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "IsMoveToPointEnabled",
+      "translation": "Native slider track pointer routing"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HexBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

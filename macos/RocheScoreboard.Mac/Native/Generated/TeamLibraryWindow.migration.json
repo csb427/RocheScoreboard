@@ -1,0 +1,176 @@
+{
+  "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml",
+  "source_sha256": "755323b4924cead378a57456de0f985af869874d6aa79dabeed76a208d9f6011",
+  "names": [
+    {
+      "name": "Surface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TargetHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SearchBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "LeagueFilter",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "StateFilter",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "SortFilter",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "FavouriteOnly",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "TeamList",
+      "type": "ListBox",
+      "object": false
+    },
+    {
+      "name": "Card",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SavedStar",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "DetailContent",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "DetailTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "LogoPlaceholder",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "LogoPreview",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "SelectedName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SelectedMeta",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PrimarySwatch",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SecondarySwatch",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FavouriteButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "UseButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ResultCount",
+      "type": "TextBlock",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "f94e9078b88c85ec56142ee7c5998cc017572aa8d3cddcb1851ce356cca24c45",
+  "native_events": [
+    {
+      "name": "SearchBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "Filter_Changed"
+    },
+    {
+      "name": "LeagueFilter",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Filter_Changed"
+    },
+    {
+      "name": "StateFilter",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Filter_Changed"
+    },
+    {
+      "name": "SortFilter",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Filter_Changed"
+    },
+    {
+      "name": "FavouriteOnly",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "Filter_Changed"
+    },
+    {
+      "name": "FavouriteOnly",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "Filter_Changed"
+    },
+    {
+      "name": "TeamList",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "TeamList_SelectionChanged"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

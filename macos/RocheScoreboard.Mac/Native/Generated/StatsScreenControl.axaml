@@ -1,0 +1,286 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.StatsScreenControl" UseLayoutRounding="True" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Grid ClipToBounds="True">
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%" port:ProductionNames.Id="StatsBgGradient">
+                <GradientStop Color="#0D1117" Offset="0.0" />
+                <GradientStop Color="#0D1117" Offset="0.5" />
+                <GradientStop Color="#0D1117" Offset="1.0" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0" port:ProductionNames.Id="StatsTitleRow" />
+            <RowDefinition Height="26*" port:ProductionNames.Id="StatsTeamsRow" />
+            <RowDefinition Height="123*" port:ProductionNames.Id="StatsBodyRow" />
+            <RowDefinition Height="44*" />
+        </Grid.RowDefinitions>
+        <Border x:Name="StatsTitlePanel" Grid.Row="0" Background="#0D1117" BorderBrush="#30363D" BorderThickness="0,0,0,1" IsVisible="False">
+            <Border VerticalAlignment="Bottom" Height="1" IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%" port:ProductionNames.Id="StatsTitleAccent">
+                        <GradientStop Color="#4488FF" Offset="0.0" />
+                        <GradientStop Color="#00000000" Offset="0.5" />
+                        <GradientStop Color="#FF6644" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+        </Border>
+        <Grid Grid.Row="0" Margin="6,0">
+            <TextBlock x:Name="StatsTitleText" Text="MATCH STATS" Foreground="White" FontSize="18" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <TextBlock x:Name="StatsTimeText" Text="1:26 PM" Foreground="#58A6FF" FontSize="16" FontWeight="Black" HorizontalAlignment="Right" VerticalAlignment="Center" />
+        </Grid>
+        <Grid Grid.Row="1" Margin="4,1,4,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border x:Name="StatsHomeTeamHeader" Grid.Column="0" Padding="0" ClipToBounds="True">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="4" Color="#4488FF" Opacity="0.6" port:ProductionNames.Id="StatsHomeGlow" OffsetX="0" OffsetY="0" />
+                </Border.Effect>
+                <Grid>
+                    <Ellipse x:Name="StatsHomeLogoFallback" Fill="#22FFFFFF" Margin="-20,-28" />
+                    <Image x:Name="StatsHomeLogoImage" Stretch="UniformToFill" Opacity="0.22" Margin="-20,-28" IsVisible="False">
+                        <Image.Effect>
+                            <BlurEffect Radius="5" />
+                        </Image.Effect>
+                    </Image>
+                    <Rectangle Fill="#52000000" />
+                    <TextBlock x:Name="StatsHomeTeamText" Text="HOME" FontSize="16" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="7,0" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" />
+                </Grid>
+            </Border>
+            <TextBlock Grid.Column="1" Text="VS" Foreground="#D5DEE7" FontSize="10" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" Margin="4,0" VerticalAlignment="Center" />
+            <Border x:Name="StatsAwayTeamHeader" Grid.Column="2" Padding="0" ClipToBounds="True">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="4" Color="#FF6644" Opacity="0.6" port:ProductionNames.Id="StatsAwayGlow" OffsetX="0" OffsetY="0" />
+                </Border.Effect>
+                <Grid>
+                    <Ellipse x:Name="StatsAwayLogoFallback" Fill="#22FFFFFF" Margin="-20,-28" />
+                    <Image x:Name="StatsAwayLogoImage" Stretch="UniformToFill" Opacity="0.22" Margin="-20,-28" IsVisible="False">
+                        <Image.Effect>
+                            <BlurEffect Radius="5" />
+                        </Image.Effect>
+                    </Image>
+                    <Rectangle Fill="#52000000" />
+                    <TextBlock x:Name="StatsAwayTeamText" Text="AWAY" FontSize="16" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="7,0" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+        <Grid Grid.Row="2" Margin="4,2,4,2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="86" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="86" />
+                </Grid.ColumnDefinitions>
+                <Viewbox Stretch="Uniform" Margin="0">
+                    <TextBlock x:Name="StatsScrHomeShots" Text="0" FontSize="32" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Arial'}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="#7AB8FF" port:ProductionNames.Id="HomeValueBrush1" />
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </Viewbox>
+                <Border Grid.Column="1" Background="#0D1117" Margin="2,1" VerticalAlignment="Stretch" ClipToBounds="True">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#30363D" port:ProductionNames.Id="ShotsBarBorder" />
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>1</Thickness>
+                    </Border.BorderThickness>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" port:ProductionNames.Id="ShotsHomeCol" />
+                            <ColumnDefinition Width="*" port:ProductionNames.Id="ShotsAwayCol" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <SolidColorBrush Color="#7AB8FF" port:ProductionNames.Id="ShotHomeBrush" />
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="1">
+                            <Border.Background>
+                                <SolidColorBrush Color="#FF6E6E" port:ProductionNames.Id="ShotAwayBrush" />
+                            </Border.Background>
+                        </Border>
+                        <TextBlock x:Name="ShotsBarLabel" Text="SCORING SHOTS" Foreground="#FFFFFF" Padding="3,0" FontSize="18" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="4" Color="Black" Opacity="1" OffsetX="0" OffsetY="0" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+                <Viewbox Grid.Column="2" Stretch="Uniform" Margin="0">
+                    <TextBlock x:Name="StatsScrAwayShots" Text="0" FontSize="32" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Arial'}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="#FF6E6E" port:ProductionNames.Id="AwayValueBrush1" />
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </Viewbox>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="86" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="86" />
+                </Grid.ColumnDefinitions>
+                <Viewbox Stretch="Uniform" Margin="0">
+                    <TextBlock x:Name="StatsScrHomeAcc" Text="0%" FontSize="32" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Arial'}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="#7AB8FF" port:ProductionNames.Id="HomeValueBrush2" />
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </Viewbox>
+                <Border Grid.Column="1" Background="#0D1117" Margin="2,1" VerticalAlignment="Stretch" ClipToBounds="True">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#30363D" port:ProductionNames.Id="AccBarBorder" />
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>1</Thickness>
+                    </Border.BorderThickness>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" port:ProductionNames.Id="AccHomeCol" />
+                            <ColumnDefinition Width="*" port:ProductionNames.Id="AccAwayCol" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <SolidColorBrush Color="#7AB8FF" port:ProductionNames.Id="AccHomeBrush" />
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="1">
+                            <Border.Background>
+                                <SolidColorBrush Color="#FF6E6E" port:ProductionNames.Id="AccAwayBrush" />
+                            </Border.Background>
+                        </Border>
+                        <TextBlock x:Name="AccuracyBarLabel" Text="ACCURACY" Foreground="#FFFFFF" Padding="3,0" FontSize="18" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="4" Color="Black" Opacity="1" OffsetX="0" OffsetY="0" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+                <Viewbox Grid.Column="2" Stretch="Uniform" Margin="0">
+                    <TextBlock x:Name="StatsScrAwayAcc" Text="0%" FontSize="32" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Arial'}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="#FF6E6E" port:ProductionNames.Id="AwayValueBrush2" />
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </Viewbox>
+            </Grid>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="86" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="86" />
+                </Grid.ColumnDefinitions>
+                <Viewbox Stretch="Uniform" Margin="0">
+                    <TextBlock x:Name="StatsScrHomeTime" Text="0%" FontSize="32" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Arial'}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="#7AB8FF" port:ProductionNames.Id="HomeValueBrush3" />
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </Viewbox>
+                <Border Grid.Column="1" Background="#0D1117" Margin="2,1" VerticalAlignment="Stretch" ClipToBounds="True">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#30363D" port:ProductionNames.Id="TimeBarBorder" />
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>1</Thickness>
+                    </Border.BorderThickness>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" port:ProductionNames.Id="TimeHomeCol" />
+                            <ColumnDefinition Width="0" port:ProductionNames.Id="TimeTiedCol" />
+                            <ColumnDefinition Width="*" port:ProductionNames.Id="TimeAwayCol" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <SolidColorBrush Color="#7AB8FF" port:ProductionNames.Id="TimeHomeBrush" />
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="1">
+                            <Border.Background>
+                                <SolidColorBrush Color="#484F58" port:ProductionNames.Id="TimeTiedBrush" />
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="2">
+                            <Border.Background>
+                                <SolidColorBrush Color="#FF6E6E" port:ProductionNames.Id="TimeAwayBrush" />
+                            </Border.Background>
+                        </Border>
+                        <TextBlock x:Name="TimeBarLabel" Text="TIME IN FRONT" Foreground="#FFFFFF" Padding="3,0" FontSize="18" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="3">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="4" Color="Black" Opacity="1" OffsetX="0" OffsetY="0" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+                <Viewbox Grid.Column="2" Stretch="Uniform" Margin="0">
+                    <TextBlock x:Name="StatsScrAwayTime" Text="0%" FontSize="32" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Arial'}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="#FF6E6E" port:ProductionNames.Id="AwayValueBrush3" />
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </Viewbox>
+            </Grid>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="86" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="86" />
+                </Grid.ColumnDefinitions>
+                <Viewbox Stretch="Uniform" Margin="0">
+                    <TextBlock x:Name="StatsScrHomeLead" Text="0" FontSize="32" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Arial'}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="#7AB8FF" port:ProductionNames.Id="HomeValueBrush4" />
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </Viewbox>
+                <Border Grid.Column="1" Background="#0D1117" Margin="2,1" VerticalAlignment="Stretch" ClipToBounds="True">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#30363D" port:ProductionNames.Id="LeadBarBorder" />
+                    </Border.BorderBrush>
+                    <Border.BorderThickness>
+                        <Thickness>1</Thickness>
+                    </Border.BorderThickness>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" port:ProductionNames.Id="LeadHomeCol" />
+                            <ColumnDefinition Width="*" port:ProductionNames.Id="LeadAwayCol" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <SolidColorBrush Color="#7AB8FF" port:ProductionNames.Id="LeadHomeBrush" />
+                            </Border.Background>
+                        </Border>
+                        <Border Grid.Column="1">
+                            <Border.Background>
+                                <SolidColorBrush Color="#FF6E6E" port:ProductionNames.Id="LeadAwayBrush" />
+                            </Border.Background>
+                        </Border>
+                        <TextBlock x:Name="LeadBarLabel" Text="LARGEST LEAD" Foreground="#FFFFFF" Padding="3,0" FontSize="18" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="4" Color="Black" Opacity="1" OffsetX="0" OffsetY="0" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+                <Viewbox Grid.Column="2" Stretch="Uniform" Margin="0">
+                    <TextBlock x:Name="StatsScrAwayLead" Text="0" FontSize="32" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Arial'}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="#FF6E6E" port:ProductionNames.Id="AwayValueBrush4" />
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </Viewbox>
+            </Grid>
+        </Grid>
+        <ns3:PresentationScoreBar x:Name="ScoreBar" Grid.Row="3" />
+    </Grid>
+</UserControl>

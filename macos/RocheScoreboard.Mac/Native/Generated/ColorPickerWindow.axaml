@@ -1,0 +1,132 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<Window xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ColorPickerWindow" Title="Choose colour" Width="500" Height="760" WindowStartupLocation="CenterOwner" Background="#08111D" Foreground="White" ShowInTaskbar="False" UseLayoutRounding="True" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" CanResize="False">
+    <Window.Resources>
+        <ControlTheme TargetType="Button" BasedOn="{StaticResource Native.Base.Button}" x:Key="{x:Type Button}">
+            <Setter Property="Background" Value="#16263A" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#45627E" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </ControlTheme>
+        <ControlTheme x:Key="ColourSwatch" TargetType="Button" BasedOn="{StaticResource Native.Base.Button}">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,7,7" />
+            <Setter Property="BorderBrush" Value="#AFC5DB" />
+            <Setter Property="BorderThickness" Value="1" />
+        </ControlTheme>
+        <ControlTheme TargetType="Slider" x:Key="{x:Type Slider}">
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Background="Transparent">
+                            <Border Height="8" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="#AABFD2" BorderThickness="1" VerticalAlignment="Center" />
+                            <Track x:Name="PART_Track" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}" Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <Track.DecreaseButton>
+                                    <RepeatButton Opacity="0" x:Name="PART_DecreaseButton" />
+                                </Track.DecreaseButton>
+                                <Track.Thumb>
+                                    <Thumb Width="18" Height="18">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="White" Stroke="#07101B" StrokeThickness="3" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseButton>
+                                    <RepeatButton Opacity="0" x:Name="PART_IncreaseButton" />
+                                </Track.IncreaseButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </ControlTheme>
+    </Window.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Border Margin="12" Padding="18" Background="#0E1A29" BorderBrush="#34516E" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="355" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="76" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="CurrentPreview" Height="58" BorderBrush="#D5E4F2" BorderThickness="2" />
+                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="COLOUR WHEEL" FontFamily="{fonts:ProductionFont 'Arial Black'}" FontSize="17" />
+                        <TextBlock Text="Choose directly from the wheel, then fine-tune saturation and brightness." Foreground="#A9BDD1" TextWrapping="Wrap" Margin="0,3,0,0" />
+                    </StackPanel>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="270" />
+                        <RowDefinition Height="40" />
+                        <RowDefinition Height="40" />
+                    </Grid.RowDefinitions>
+                    <Canvas x:Name="ColourField" Width="260" Height="260" Background="Transparent" HorizontalAlignment="Center" Cursor="Cross" PointerPressed="Native_ColourField_MouseLeftButtonDown" PointerMoved="Native_ColourField_MouseMove" PointerReleased="Native_ColourField_MouseLeftButtonUp">
+                        <Image x:Name="ColourWheelImage" Width="260" Height="260" IsHitTestVisible="False" />
+                        <Ellipse x:Name="ColourMarker" Width="16" Height="16" Stroke="White" StrokeThickness="3" Fill="#44000000" IsHitTestVisible="False" />
+                    </Canvas>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="92" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="SATURATION" FontSize="10" FontWeight="Black" VerticalAlignment="Center" />
+                        <Slider Grid.Column="1" x:Name="SaturationSlider" Minimum="0" Maximum="1" ValueChanged="FineTuneSlider_ValueChanged" />
+                    </Grid>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="92" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="BRIGHTNESS" FontSize="10" FontWeight="Black" VerticalAlignment="Center" />
+                        <Slider Grid.Column="1" x:Name="BrightnessSlider" Minimum="0" Maximum="1" ValueChanged="FineTuneSlider_ValueChanged" />
+                    </Grid>
+                </Grid>
+                <Grid Grid.Row="2" Margin="0,7,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="COLOUR CODE" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <TextBox Grid.Column="1" x:Name="HexBox" Height="38" Padding="10,6" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="17" FontWeight="Bold" MaxLength="7" Background="#07101B" Foreground="White" BorderBrush="#45627E" CaretBrush="White" TextChanged="Native_HexBox_TextChanged" />
+                </Grid>
+                <TextBlock Grid.Row="3" Text="DEFAULT COLOURS" Foreground="#B9CADD" FontSize="10" FontWeight="Black" Margin="0,0,0,5" />
+                <WrapPanel Grid.Row="4" x:Name="DefaultColoursPanel" />
+                <StackPanel Grid.Row="5" Margin="0,2,0,0">
+                    <TextBlock Text="RECENT COLOURS" Foreground="#B9CADD" FontSize="10" FontWeight="Black" Margin="0,0,0,5" />
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Height="46">
+                        <StackPanel x:Name="RecentColoursPanel" Orientation="Horizontal" />
+                    </ScrollViewer>
+                </StackPanel>
+                <TextBlock Grid.Row="6" x:Name="ValidationText" Foreground="#FF9A9A" TextWrapping="Wrap" />
+                <Grid Grid.Row="7">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Content="CANCEL" IsCancel="True" Margin="0,0,6,0" />
+                    <Button Grid.Column="1" Content="USE COLOUR" IsDefault="True" Margin="6,0,0,0" Click="Accept_Click" Background="#1E6A4A" BorderBrush="#55D697" />
+                </Grid>
+            </Grid>
+        </Border>
+    </ScrollViewer>
+</Window>

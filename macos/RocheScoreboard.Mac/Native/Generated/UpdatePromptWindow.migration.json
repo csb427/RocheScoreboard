@@ -1,0 +1,155 @@
+{
+  "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml",
+  "source_sha256": "fdbe8412d7a8185f3c62de7a2e6a6c35f143c1459663e2d265701d4db7f90a5b",
+  "names": [
+    {
+      "name": "Surface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FocusRing",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_Track",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "PART_Indicator",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "DialogShell",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CloseButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CurrentVersionText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NewVersionText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "IntegrityText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PackageSizeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ReleaseNotesText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ProgressPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ProgressText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ProgressPercentText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "UpdateProgressBar",
+      "type": "ProgressBar",
+      "object": false
+    },
+    {
+      "name": "ProgressDetailText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ViewReleaseButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "SkipButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "UpdateButton",
+      "type": "Button",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "3237a9fba5800e3fa5037007996a208164061437bec1184b15d9644ac9e4a473",
+  "native_events": [
+    {
+      "name": null,
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "Window_PreviewKeyDown"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "AllowsTransparency",
+      "source": "False",
+      "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "CurrentVersionText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "NewVersionText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ProgressPercentText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

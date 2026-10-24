@@ -1,0 +1,58 @@
+{
+  "source": "Roche_Scoreboard/Views/AflPresentationGalleryWindow.xaml",
+  "source_sha256": "f8ce5e2b967778b43e376cd3f9ee5e406059a5ff90f24ff97f46f0d4f9e6af92",
+  "names": [
+    {
+      "name": "GalleryErrorText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "GalleryTabs",
+      "type": "TabControl",
+      "object": false
+    },
+    {
+      "name": "ScorebugHost",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "OverlayHost",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "BreakHost",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "WormHost",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "StatsHost",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "WeatherHost",
+      "type": "WrapPanel",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "3500da31571f2958f339f17d8a1de022917b62780e6bd8949a26b63457a6ce36",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

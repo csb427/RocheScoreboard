@@ -1,0 +1,200 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<Window xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ResumeGameDialog" Title="Continue saved match" Width="660" Height="520" MinWidth="600" MinHeight="480" WindowStartupLocation="CenterOwner" Background="#08111D" ShowInTaskbar="False" UseLayoutRounding="True" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" CanResize="True" SystemDecorations="None" KeyDown="Native_Window_PreviewKeyDown">
+    <Window.Resources>
+        <SolidColorBrush x:Key="PanelBrush" Color="#101C2B" />
+        <SolidColorBrush x:Key="PanelHoverBrush" Color="#15263A" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#2B4057" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#9AAABD" />
+        <ControlTheme x:Key="DialogButton" TargetType="Button">
+            <Setter Property="Height" Value="46" />
+            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+            <Setter Property="Foreground" Value="#F7FAFC" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontFamily" Value="{fonts:ProductionFont 'Bahnschrift'}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusAdorner" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                            <Grid>
+                                <Border x:Name="FocusRing" Margin="3" BorderBrush="#9CCBFF" BorderThickness="2" CornerRadius="2" Opacity="0" />
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Surface">
+                <Setter Property="Background" Value="{StaticResource PanelHoverBrush}" />
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#Surface">
+                <Setter Property="BorderBrush" Value="#6B88A6" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border#Surface">
+                <Setter Property="Background" Value="#091421" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border#Surface">
+                <Setter Property="BorderBrush" Value="#9CCBFF" />
+            </Style>
+            <Style Selector="^:focus /template/ Border#FocusRing">
+                <Setter Property="Opacity" Value="1" />
+            </Style>
+            <Style Selector="^:disabled /template/ Border#Surface">
+                <Setter Property="Opacity" Value="0.45" />
+            </Style>
+        </ControlTheme>
+        <ControlTheme x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource DialogButton}">
+            <Setter Property="Background" Value="#1673CE" />
+            <Setter Property="BorderBrush" Value="#69B7FF" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </ControlTheme>
+        <ControlTheme x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource DialogButton}">
+            <Setter Property="Foreground" Value="#FFAAA4" />
+            <Setter Property="BorderBrush" Value="#7A3C42" />
+        </ControlTheme>
+    </Window.Resources>
+    <Border x:Name="DialogShell" Background="#08111D" BorderBrush="#3C5875" BorderThickness="1">
+        <Grid Margin="24,20,24,22">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="MATCH RECOVERY" Foreground="#69B7FF" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="12" FontWeight="Bold" />
+                    <TextBlock Text="Continue where you stopped" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="28" FontWeight="SemiBold" Margin="0,3,0,0" />
+                    <TextBlock x:Name="RecoveryContextText" Text="Your saved match is safe and ready." Foreground="{StaticResource MutedBrush}" FontSize="13" Margin="0,5,0,0" />
+                </StackPanel>
+                <Button Grid.Column="1" Width="42" Height="42" Padding="0" Content="×" FontSize="23" Click="KeepSaved_Click" Theme="{StaticResource DialogButton}" ToolTip.Tip="Keep this match saved and close" />
+            </Grid>
+            <Border Grid.Row="1" Margin="0,18,0,0" Background="#0C1724" BorderBrush="#24384C" BorderThickness="1" CornerRadius="4" Padding="12,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#17324D" CornerRadius="3" Padding="8,4">
+                        <TextBlock x:Name="SportText" Text="AFL" Foreground="#9CCBFF" FontWeight="Bold" FontSize="11" />
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Recovery copy verified" Foreground="#C8D5E3" VerticalAlignment="Center" Margin="10,0" FontSize="12" />
+                    <TextBlock x:Name="SavedTimeText" Grid.Column="2" Text="Saved recently" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" FontSize="12" />
+                </Grid>
+            </Border>
+            <Grid Grid.Row="2" Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="HomeBlock" Grid.Column="0" Background="#101C2B" BorderThickness="2" CornerRadius="4" Padding="16,13">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#4488FF" port:ProductionNames.Id="HomeBorderBrush" />
+                    </Border.BorderBrush>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="HOME" Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="Bold" />
+                            <Image x:Name="HomeLogoImage" Grid.Column="1" Width="44" Height="44" Stretch="Uniform" IsVisible="False" RenderOptions.BitmapInterpolationMode="HighQuality" />
+                        </Grid>
+                        <TextBlock x:Name="HomeNameText" Grid.Row="1" Text="HOME" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="21" FontWeight="Bold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,8,4,8" ToolTip.Tip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="HomeTotalText" Text="0" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="48" FontWeight="Bold" VerticalAlignment="Bottom" />
+                            <TextBlock x:Name="HomeGoalsBehindsText" Grid.Column="1" Text="0.0" Foreground="#C8D5E3" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Bottom" Margin="8,0,0,8" />
+                        </Grid>
+                    </Grid>
+                </Border>
+                <Border x:Name="AwayBlock" Grid.Column="2" Background="#101C2B" BorderThickness="2" CornerRadius="4" Padding="16,13">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#FF6644" port:ProductionNames.Id="AwayBorderBrush" />
+                    </Border.BorderBrush>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image x:Name="AwayLogoImage" Width="44" Height="44" Stretch="Uniform" IsVisible="False" RenderOptions.BitmapInterpolationMode="HighQuality" />
+                            <TextBlock Grid.Column="1" Text="AWAY" Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Right" />
+                        </Grid>
+                        <TextBlock x:Name="AwayNameText" Grid.Row="1" Text="AWAY" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="21" FontWeight="Bold" TextTrimming="CharacterEllipsis" TextAlignment="Right" VerticalAlignment="Center" Margin="4,8,0,8" ToolTip.Tip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="AwayGoalsBehindsText" Text="0.0" Foreground="#C8D5E3" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Bottom" Margin="0,0,8,8" />
+                            <TextBlock x:Name="AwayTotalText" Grid.Column="1" Text="0" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="48" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+            <Border Grid.Row="3" Background="#0C1724" BorderBrush="#24384C" BorderThickness="1" CornerRadius="4" Margin="0,12,0,0" Padding="14,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="1" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="1" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="PERIOD" Foreground="{StaticResource MutedBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="QuarterText" Text="Q1" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="21" FontWeight="Bold" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="#24384C" />
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                        <TextBlock Text="MATCH CLOCK" Foreground="{StaticResource MutedBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="ClockText" Text="00:00" Foreground="#9CCBFF" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="21" FontWeight="Bold" />
+                    </StackPanel>
+                    <Border Grid.Column="3" Background="#24384C" />
+                    <StackPanel Grid.Column="4" HorizontalAlignment="Center">
+                        <TextBlock x:Name="MarginLabelText" Text="MARGIN" Foreground="{StaticResource MutedBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="MarginText" Text="LEVEL" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="21" FontWeight="Bold" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Grid Grid.Row="4" Margin="0,16,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="DiscardButton" Grid.Column="0" Content="Discard save" MinWidth="126" Click="Discard_Click" Theme="{StaticResource DangerButton}" ToolTip.Tip="Requires confirmation" />
+                <Button x:Name="KeepSavedButton" Grid.Column="2" Content="Continue later" Click="KeepSaved_Click" IsCancel="True" Theme="{StaticResource DialogButton}" />
+                <Button x:Name="ResumeButton" Grid.Column="4" Content="Resume match  →" MinWidth="170" Click="Resume_Click" IsDefault="True" Theme="{StaticResource PrimaryButton}" />
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

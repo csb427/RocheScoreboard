@@ -1,0 +1,1986 @@
+using RocheScoreboard.Mac.Production;
+// Generated from Views/SetupWizard.xaml.cs; edit translator/adapters.
+// Source SHA-256: f8dce8cd7440c04476ff7fd345f54b98272a5b29933c541b7d25b4e2f32c1798
+using Avalonia.Threading;
+using Avalonia.Media;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Input;
+using RocheScoreboard.Mac.Native;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Roche_Scoreboard.Models;
+using Roche_Scoreboard.Services;
+
+using DrawingColor = System.Drawing.Color;
+using Color = Avalonia.Media.Color;
+using ColorConverter = RocheScoreboard.Mac.Native.ColorConverter;
+using TextBox = Avalonia.Controls.TextBox;
+using Border = Avalonia.Controls.Border;
+using MouseEventArgs = Avalonia.Input.PointerEventArgs;
+
+namespace Roche_Scoreboard.Views
+{
+    public partial class SetupWizard : Avalonia.Controls.UserControl
+    {
+        private void ResponsiveScrollHost_PreviewMouseWheel(object? sender, PointerWheelEventArgs e)
+            => NestedScrollRouting.RoutePreviewMouseWheel(ResponsiveScrollHost, e);
+
+        private List<TeamPreset> _presets;
+        private string? _homeLogoPath;
+        private string? _awayLogoPath;
+        private string? _homeVideoPath;
+        private string? _awayVideoPath;
+        private int _currentStep = 1;
+        private int _stepTransitionVersion;
+        private Storyboard? _stepTransitionStoryboard;
+        private DispatcherTimer? _ambientRestartTimer;
+
+        private TeamPreset? _selectedHomePreset;
+        private TeamPreset? _selectedAwayPreset;
+
+        private Border? _dragTile;
+        private Avalonia.Point _dragStartPos;
+        private int _dragOrigIndex;
+        private int _dragCurrentIndex;
+        private bool _isDragging;
+        private bool _dragIsHome;
+        private double[] _slotCentersX = [];
+        private double[] _slotCentersY = [];
+        private const double DragThreshold = 6;
+        private bool _suppressWeatherFilter;
+        private bool _weatherBoxActivated;
+
+        // ── Easing curves (matching sport selection screen) ──
+        private static readonly CubicEase Smooth = new() { EasingMode = EasingMode.EaseOut };
+        private static readonly BackEase Overshoot = new() { EasingMode = EasingMode.EaseOut, Amplitude = 0.4 };
+        private static readonly SineEase Sine = new() { EasingMode = EasingMode.EaseInOut };
+
+        private static readonly TimeSpan HoverIn = TimeSpan.FromMilliseconds(250);
+        private static readonly TimeSpan HoverOut = TimeSpan.FromMilliseconds(350);
+
+        internal static readonly string[] AustralianCities =
+        [
+            "Adelaide, Australia",
+            "Albany, Australia",
+            "Albury, Australia",
+            "Alice Springs, Australia",
+            "Armidale, Australia",
+            "Ballarat, Australia",
+            "Bathurst, Australia",
+            "Bendigo, Australia",
+            "Brisbane, Australia",
+            "Broome, Australia",
+            "Bundaberg, Australia",
+            "Bunbury, Australia",
+            "Burnie, Australia",
+            "Cairns, Australia",
+            "Caloundra, Australia",
+            "Canberra, Australia",
+            "Cessnock, Australia",
+            "Coffs Harbour, Australia",
+            "Darwin, Australia",
+            "Devonport, Australia",
+            "Dubbo, Australia",
+            "Echuca, Australia",
+            "Esperance, Australia",
+            "Frankston, Australia",
+            "Geelong, Australia",
+            "Geraldton, Australia",
+            "Gladstone, Australia",
+            "Gold Coast, Australia",
+            "Gosford, Australia",
+            "Goulburn, Australia",
+            "Grafton, Australia",
+            "Gympie, Australia",
+            "Hervey Bay, Australia",
+            "Hobart, Australia",
+            "Ipswich, Australia",
+            "Kalgoorlie, Australia",
+            "Karratha, Australia",
+            "Katherine, Australia",
+            "Launceston, Australia",
+            "Lismore, Australia",
+            "Lithgow, Australia",
+            "Mackay, Australia",
+            "Maitland, Australia",
+            "Mandurah, Australia",
+            "Maryborough, Australia",
+            "Melbourne, Australia",
+            "Mildura, Australia",
+            "Mount Gambier, Australia",
+            "Mount Isa, Australia",
+            "Mudgee, Australia",
+            "Murray Bridge, Australia",
+            "Newcastle, Australia",
+            "Noosa, Australia",
+            "Nowra, Australia",
+            "Orange, Australia",
+            "Palmerston, Australia",
+            "Parkes, Australia",
+            "Perth, Australia",
+            "Port Augusta, Australia",
+            "Port Hedland, Australia",
+            "Port Lincoln, Australia",
+            "Port Macquarie, Australia",
+            "Queanbeyan, Australia",
+            "Rockhampton, Australia",
+            "Rockingham, Australia",
+            "Sale, Australia",
+            "Shepparton, Australia",
+            "Singleton, Australia",
+            "Sunbury, Australia",
+            "Sunshine Coast, Australia",
+            "Sydney, Australia",
+            "Tamworth, Australia",
+            "Taree, Australia",
+            "Toowoomba, Australia",
+            "Townsville, Australia",
+            "Traralgon, Australia",
+            "Tweed Heads, Australia",
+            "Victor Harbor, Australia",
+            "Wagga Wagga, Australia",
+            "Wangaratta, Australia",
+            "Warragul, Australia",
+            "Warrnambool, Australia",
+            "Whyalla, Australia",
+            "Wodonga, Australia",
+            "Wollongong, Australia",
+            "Yeppoon, Australia"
+        ];
+
+        public SetupResult? Result { get; private set; }
+        public event Action<SetupResult>? SetupCompleted;
+        public event Action? BackToSportSelection;
+
+        private const int TotalSteps = 3;
+
+        // ── Styled marquee messages (parity with main message editor) ──
+        private readonly System.Collections.ObjectModel.ObservableCollection<MarqueeMessage> _setupMessages = [];
+        private string? _newMessageTextColor;       // null = default (white)
+        private string? _newMessageHighlightColor;  // null = no highlight
+
+        public SetupWizard()
+        {
+            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            SetupMessageList.ItemsSource = _setupMessages;
+            _presets = PresetStorage.LoadAll();
+            RefreshPresetPanels();
+
+            SetupWeatherLocation.AddHandler(
+                TextBox.TextChangedEvent,
+                new EventHandler<TextChangedEventArgs>(SetupWeatherLocation_TextChanged));
+            SetupWeatherLocation.GotFocus += (_, _) => _weatherBoxActivated = true;
+            SetupWeatherLocation.DropDownOpened += (_, _) => _weatherBoxActivated = true;
+
+            Loaded += OnLoaded;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  ENTRY ANIMATION — staggered cinematic reveal
+        // ═══════════════════════════════════════════════════════
+
+        private void OnLoaded(object? sender, RoutedEventArgs e)
+        {
+            ShowStep(1, animate: false);
+            PlayEntryAnimation();
+        }
+
+        private void PlayEntryAnimation()
+        {
+            // Reset all animated elements to initial states so the staggered
+            // reveal replays cleanly (clears any held animation values).
+            HeaderPanel.BeginAnimation(OpacityProperty, null);
+            HeaderPanel.Opacity = 0;
+            HeaderTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            HeaderTranslate.Y = -30;
+
+            StepIndicator.BeginAnimation(OpacityProperty, null);
+            StepIndicator.Opacity = 0;
+            StepIndicatorTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            StepIndicatorTranslate.Y = -20;
+
+            BgGlow.BeginAnimation(OpacityProperty, null);
+            BgGlow.Opacity = 0;
+
+            HomePresetCard.BeginAnimation(OpacityProperty, null);
+            HomePresetCard.Opacity = 0;
+            HomePresetTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            HomePresetTranslate.X = -60;
+
+            AwayPresetCard.BeginAnimation(OpacityProperty, null);
+            AwayPresetCard.Opacity = 0;
+            AwayPresetTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            AwayPresetTranslate.X = 60;
+
+            HomeTeamCard.BeginAnimation(OpacityProperty, null);
+            HomeTeamCard.Opacity = 0;
+            HomeCardTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            HomeCardTranslate.X = -80;
+
+            AwayTeamCard.BeginAnimation(OpacityProperty, null);
+            AwayTeamCard.Opacity = 0;
+            AwayCardTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            AwayCardTranslate.X = 80;
+
+            DividerScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            DividerScale.ScaleY = 0;
+            DividerGlowLine.BeginAnimation(OpacityProperty, null);
+            DividerGlowLine.Opacity = 0;
+
+            HomeHeaderGroup.BeginAnimation(OpacityProperty, null);
+            HomeHeaderGroup.Opacity = 0;
+            HomeHeaderTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            HomeHeaderTranslate.Y = 15;
+
+            AwayHeaderGroup.BeginAnimation(OpacityProperty, null);
+            AwayHeaderGroup.Opacity = 0;
+            AwayHeaderTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            AwayHeaderTranslate.Y = 15;
+
+            HomeGlow.BeginAnimation(OpacityProperty, null);
+            HomeGlow.Opacity = 0;
+            AwayGlow.BeginAnimation(OpacityProperty, null);
+            AwayGlow.Opacity = 0;
+
+            NavBar.BeginAnimation(OpacityProperty, null);
+            NavBar.Opacity = 0;
+            NavBarTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            NavBarTranslate.Y = 30;
+
+            BottomAccent.BeginAnimation(OpacityProperty, null);
+            BottomAccent.Opacity = 0;
+
+            // Header: fade + slide down
+            Animate(HeaderPanel, OpacityProperty, 1, 500, delay: 100, easing: Smooth);
+            Animate(HeaderTranslate, TranslateTransform.YProperty, 0, 500, delay: 100, easing: Smooth);
+
+            // Step indicator: fade + slide down
+            Animate(StepIndicator, OpacityProperty, 1, 500, delay: 200, easing: Smooth);
+            Animate(StepIndicatorTranslate, TranslateTransform.YProperty, 0, 500, delay: 200, easing: Smooth);
+
+            // Background glow
+            Animate(BgGlow, OpacityProperty, 0.25, 800, delay: 200);
+
+            // Home preset card: fade + slide from left
+            Animate(HomePresetCard, OpacityProperty, 1, 500, delay: 300, easing: Smooth);
+            Animate(HomePresetTranslate, TranslateTransform.XProperty, 0, 600, delay: 300, easing: Smooth);
+
+            // Away preset card: fade + slide from right
+            Animate(AwayPresetCard, OpacityProperty, 1, 500, delay: 400, easing: Smooth);
+            Animate(AwayPresetTranslate, TranslateTransform.XProperty, 0, 600, delay: 400, easing: Smooth);
+
+            // Home team card: fade + slide from left
+            Animate(HomeTeamCard, OpacityProperty, 1, 600, delay: 400);
+            Animate(HomeCardTranslate, TranslateTransform.XProperty, 0, 700, delay: 400, easing: Smooth);
+
+            // Away team card: fade + slide from right
+            Animate(AwayTeamCard, OpacityProperty, 1, 600, delay: 500);
+            Animate(AwayCardTranslate, TranslateTransform.XProperty, 0, 700, delay: 500, easing: Smooth);
+
+            // Divider: grow from centre
+            Animate(DividerScale, ScaleTransform.ScaleYProperty, 1, 800, delay: 500, easing: Smooth);
+            Animate(DividerGlowLine, OpacityProperty, 0.6, 800, delay: 500);
+
+            // Home header: fade + slide up with overshoot
+            Animate(HomeHeaderGroup, OpacityProperty, 1, 500, delay: 650);
+            Animate(HomeHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 650, easing: Overshoot);
+
+            // Away header: fade + slide up with overshoot
+            Animate(AwayHeaderGroup, OpacityProperty, 1, 500, delay: 750);
+            Animate(AwayHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 750, easing: Overshoot);
+
+            // Hero glows
+            Animate(HomeGlow, OpacityProperty, 0.30, 600, delay: 700);
+            Animate(AwayGlow, OpacityProperty, 0.30, 600, delay: 800);
+
+            // Nav bar: fade + slide up
+            Animate(NavBar, OpacityProperty, 1, 500, delay: 800, easing: Smooth);
+            Animate(NavBarTranslate, TranslateTransform.YProperty, 0, 500, delay: 800, easing: Smooth);
+
+            // Bottom accent: last to appear, triggers ambient loop
+            var lastAnim = new DoubleAnimation(1, TimeSpan.FromMilliseconds(500))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(900)
+            };
+            lastAnim.Completed += (_, _) => StartAmbientAnimations();
+            BottomAccent.BeginAnimation(OpacityProperty, lastAnim);
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  AMBIENT ANIMATIONS — continuous atmosphere
+        // ═══════════════════════════════════════════════════════
+
+        private void StartAmbientAnimations()
+        {
+            // Glow pulse
+            PulseForever(HomeGlow, OpacityProperty, 0.18, 0.40, 2800);
+            PulseForever(AwayGlow, OpacityProperty, 0.18, 0.40, 3100);
+            PulseForever(BgGlow, OpacityProperty, 0.15, 0.30, 4000);
+
+            // Light beam sweep
+            PulseForever(BeamTranslate, TranslateTransform.XProperty, -300, 1200, 6000);
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  HOVER — nav button scale effects
+        // ═══════════════════════════════════════════════════════
+
+        private void NavBtn_MouseEnter(object? sender, MouseEventArgs e)
+        {
+            if (sender is not Border btn) return;
+            ScaleTransform sc = btn == BackButton ? BackBtnScale : NextBtnScale;
+            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(1.05, HoverIn, Smooth));
+            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(1.05, HoverIn, Smooth));
+        }
+
+        private void NavBtn_MouseLeave(object? sender, MouseEventArgs e)
+        {
+            if (sender is not Border btn) return;
+            ScaleTransform sc = btn == BackButton ? BackBtnScale : NextBtnScale;
+            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(1.0, HoverOut, Smooth));
+            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(1.0, HoverOut, Smooth));
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  STEP NAVIGATION — cinematic transitions
+        // ═══════════════════════════════════════════════════════
+
+        private static readonly SolidColorBrush s_accentBrush = new((Color)ColorConverter.ConvertFromString("#58A6FF"));
+        private static readonly SolidColorBrush s_surfaceBrush = new((Color)ColorConverter.ConvertFromString("#1A2436"));
+        private static readonly SolidColorBrush s_textMutedBrush = new((Color)ColorConverter.ConvertFromString("#484F58"));
+        private static readonly SolidColorBrush s_whiteBrush = new(Colors.White);
+        private static readonly SolidColorBrush s_edgeBrush = new((Color)ColorConverter.ConvertFromString("#2A3A52"));
+
+        private void ShowStep(int step, bool animate = true)
+        {
+            int previousStep = _currentStep;
+            _currentStep = step;
+
+            Control[] panels = [TeamsStepContainer, Step3Panel, Step4Panel];
+            Control activePanel = step switch
+            {
+                1 => TeamsStepContainer,
+                2 => Step3Panel,
+                _ => Step4Panel
+            };
+            int transitionVersion = ++_stepTransitionVersion;
+            if (_stepTransitionStoryboard is not null)
+            {
+                try { _stepTransitionStoryboard.Remove(this); } catch { }
+                _stepTransitionStoryboard = null;
+            }
+            FlashOverlay.BeginAnimation(OpacityProperty, null);
+            FlashOverlay.Opacity = 0;
+            foreach (Control panel in panels)
+            {
+                panel.BeginAnimation(OpacityProperty, null);
+                panel.Opacity = 1;
+                if (panel.RenderTransform is TranslateTransform existingTranslate)
+                    existingTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+                panel.RenderTransform = null;
+            }
+
+            bool forward = step >= previousStep;
+            double slideOutX = forward ? -60 : 60;
+            double slideInX = forward ? 60 : -60;
+
+            if (animate && step != previousStep)
+            {
+                // Animate outgoing panel exit
+                Control? outgoing = null;
+                foreach (Control p in panels)
+                {
+                    if (p.IsVisible == true)
+                    {
+                        outgoing = p;
+                        break;
+                    }
+                }
+
+                if (outgoing is not null)
+                {
+                    Control fading = outgoing;
+                    fading.RenderTransform = new TranslateTransform(0, 0);
+
+                    var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200))
+                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+                    var slideOut = new DoubleAnimation(0, slideOutX, TimeSpan.FromMilliseconds(250))
+                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+
+                    fadeOut.Completed += (_, _) =>
+                    {
+                        if (transitionVersion != _stepTransitionVersion || ReferenceEquals(fading, activePanel)) return;
+                        fading.BeginAnimation(OpacityProperty, null);
+                        fading.IsVisible = false;
+                        fading.Opacity = 1;
+                        fading.RenderTransform = null;
+                    };
+
+                    fading.BeginAnimation(OpacityProperty, fadeOut);
+                    ((TranslateTransform)fading.RenderTransform).BeginAnimation(TranslateTransform.XProperty, slideOut);
+                }
+            }
+            else
+            {
+                foreach (Control p in panels)
+                {
+                    p.BeginAnimation(OpacityProperty, null);
+                    p.IsVisible = false;
+                    p.Opacity = 1;
+                    p.RenderTransform = null;
+                }
+            }
+
+            if (animate && step != previousStep)
+            {
+                activePanel.IsVisible = true;
+                activePanel.Opacity = 0;
+                activePanel.RenderTransform = new TranslateTransform(slideInX, 0);
+
+                Storyboard sb = new();
+                DoubleAnimation fadeIn = new(0, 1, TimeSpan.FromMilliseconds(300))
+                {
+                    BeginTime = TimeSpan.FromMilliseconds(80),
+                    EasingFunction = Smooth
+                };
+                Storyboard.SetTarget(fadeIn, activePanel);
+                Storyboard.SetTargetProperty(fadeIn, new PropertyPath(OpacityProperty));
+                sb.Children.Add(fadeIn);
+
+                DoubleAnimation slideIn = new(slideInX, 0, TimeSpan.FromMilliseconds(400))
+                {
+                    BeginTime = TimeSpan.FromMilliseconds(60),
+                    EasingFunction = Smooth
+                };
+                Storyboard.SetTarget(slideIn, activePanel);
+                Storyboard.SetTargetProperty(slideIn, new PropertyPath("RenderTransform.(TranslateTransform.X)"));
+                sb.Children.Add(slideIn);
+                sb.Completed += (_, _) =>
+                {
+                    if (transitionVersion != _stepTransitionVersion) return;
+                    activePanel.BeginAnimation(OpacityProperty, null);
+                    activePanel.Opacity = 1;
+                    activePanel.RenderTransform = null;
+                    if (ReferenceEquals(_stepTransitionStoryboard, sb))
+                        _stepTransitionStoryboard = null;
+                };
+                _stepTransitionStoryboard = sb;
+                sb.Begin(this, HandoffBehavior.SnapshotAndReplace, isControllable: true);
+
+                // Animate step-specific hero content
+                PlayStepEntryAnimation(step, transitionVersion);
+
+                // Flash overlay for dramatic transition
+                var flashIn = new DoubleAnimation(0.08, TimeSpan.FromMilliseconds(80));
+                flashIn.Completed += (_, _) =>
+                {
+                    if (transitionVersion == _stepTransitionVersion)
+                        FlashOverlay.BeginAnimation(OpacityProperty,
+                            new DoubleAnimation(0, TimeSpan.FromMilliseconds(300)));
+                };
+                FlashOverlay.BeginAnimation(OpacityProperty, flashIn);
+            }
+            else
+            {
+                activePanel.IsVisible = true;
+                activePanel.Opacity = 1;
+                activePanel.RenderTransform = null;
+            }
+
+            BackButton.IsVisible = true;
+            NextButtonText.Text = step == TotalSteps ? "START MATCH →" : "NEXT →";
+
+            UpdateStepDot(Step1Dot, Step1Label, true, step == 1);
+            UpdateStepDot(Step2Dot, Step2Label, step >= 2, step == 2);
+            UpdateStepDot(Step3Dot, Step3Label, step >= 3, step == 3);
+
+            UpdateSetupClockSummary();
+        }
+
+        private void PlayStepEntryAnimation(int step, int transitionVersion)
+        {
+            switch (step)
+            {
+                case 1:
+                    // Reset and replay team card animations
+                    HomeHeaderGroup.Opacity = 0;
+                    HomeHeaderTranslate.Y = 15;
+                    AwayHeaderGroup.Opacity = 0;
+                    AwayHeaderTranslate.Y = 15;
+
+                    Animate(HomeHeaderGroup, OpacityProperty, 1, 500, delay: 200);
+                    Animate(HomeHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 200, easing: Overshoot);
+                    Animate(AwayHeaderGroup, OpacityProperty, 1, 500, delay: 300);
+                    Animate(AwayHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 300, easing: Overshoot);
+
+                    // Reset and animate glows
+                    HomeGlow.Opacity = 0;
+                    AwayGlow.Opacity = 0;
+                    Animate(HomeGlow, OpacityProperty, 0.30, 600, delay: 300);
+                    Animate(AwayGlow, OpacityProperty, 0.30, 600, delay: 400);
+
+                    // Restart ambient glow pulse after entry
+                    _ambientRestartTimer?.Stop();
+                    _ambientRestartTimer = new Avalonia.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromMilliseconds(800)
+                    };
+                    _ambientRestartTimer.Tick += (_, _) =>
+                    {
+                        _ambientRestartTimer?.Stop();
+                        _ambientRestartTimer = null;
+                        if (transitionVersion != _stepTransitionVersion || _currentStep != 1) return;
+                        PulseForever(HomeGlow, OpacityProperty, 0.18, 0.40, 2800);
+                        PulseForever(AwayGlow, OpacityProperty, 0.18, 0.40, 3100);
+                    };
+                    _ambientRestartTimer.Start();
+                    break;
+
+                case 2:
+                    ClockHeaderGroup.Opacity = 0;
+                    ClockHeaderTranslate.Y = 15;
+                    ClockGlow.Opacity = 0;
+
+                    Animate(ClockHeaderGroup, OpacityProperty, 1, 500, delay: 200);
+                    Animate(ClockHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 200, easing: Overshoot);
+                    Animate(ClockGlow, OpacityProperty, 0.30, 600, delay: 300);
+                    break;
+
+                case 3:
+                    MsgHeaderGroup.Opacity = 0;
+                    MsgHeaderTranslate.Y = 15;
+                    MsgGlow.Opacity = 0;
+
+                    Animate(MsgHeaderGroup, OpacityProperty, 1, 500, delay: 200);
+                    Animate(MsgHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 200, easing: Overshoot);
+                    Animate(MsgGlow, OpacityProperty, 0.30, 600, delay: 300);
+
+                    // Animate Finals card glow
+                    FinalsGlowBg.Opacity = 0;
+                    WeatherGlowBg.Opacity = 0;
+                    MsgSectionGlow.Opacity = 0;
+                    Animate(FinalsGlowBg, OpacityProperty, SetupFinalsMode.IsChecked == true ? 0.15 : 0.0, 600, delay: 400);
+                    Animate(WeatherGlowBg, OpacityProperty, 0.08, 600, delay: 500);
+                    Animate(MsgSectionGlow, OpacityProperty, 0.06, 600, delay: 500);
+                    break;
+            }
+        }
+
+        private void UpdateStepDot(Border dot, TextBlock label, bool reached, bool active)
+        {
+            dot.Background = reached ? s_accentBrush : s_surfaceBrush;
+            dot.BorderBrush = reached ? s_accentBrush : s_edgeBrush;
+            var dotText = NativeObjects.Require<TextBlock>(dot.Child);
+            dotText.Foreground = reached ? s_whiteBrush : s_textMutedBrush;
+            label.Foreground = active ? s_whiteBrush : (reached ? s_accentBrush : s_textMutedBrush);
+
+            // Glow effect on active dot
+            if (dot.Effect is DropShadowEffect glow)
+                glow.Opacity = active ? 0.6 : 0;
+        }
+
+        private void Next_Click(object? sender, PointerEventArgs e)
+        {
+            // Click punch animation
+            NextBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                new DoubleAnimation(0.93, 1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
+            NextBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+                new DoubleAnimation(0.93, 1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
+
+            if (_currentStep < TotalSteps)
+                ShowStep(_currentStep + 1);
+            else
+                FinishWizard();
+        }
+
+        private void Back_Click(object? sender, PointerEventArgs e)
+        {
+            BackBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                new DoubleAnimation(0.93, 1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
+            BackBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty,
+                new DoubleAnimation(0.93, 1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
+
+            if (_currentStep > 1)
+                ShowStep(_currentStep - 1);
+            else
+                BackToSportSelection?.Invoke();
+        }
+
+        private void GoToStep1_Click(object? sender, PointerEventArgs e) => ShowStep(1);
+        private void GoToStep2_Click(object? sender, PointerEventArgs e) => ShowStep(2);
+        private void GoToStep3_Click(object? sender, PointerEventArgs e) => ShowStep(3);
+
+        // ═══════════════════════════════════════════════════════
+        //  RESET
+        // ═══════════════════════════════════════════════════════
+
+        public void Reset()
+        {
+            OperatorWorkflowPreferencesData remembered = OperatorWorkflowPreferences.Load();
+            Result = null;
+            _homeLogoPath = null;
+            _awayLogoPath = null;
+            _homeVideoPath = null;
+            _awayVideoPath = null;
+            _selectedHomePreset = null;
+            _selectedAwayPreset = null;
+            _currentStep = 1;
+
+            SetupHomeNameBox.Text = "";
+            SetupHomeAbbrBox.Text = "";
+            SetupHomeColorBox.Text = "#0A2A6A";
+            SetupHomeSecondaryBox.Text = "#FFFFFF";
+            TrySetPreview(SetupHomeColorPreview, "#0A2A6A");
+            TrySetPreview(SetupHomeSecondaryPreview, "#FFFFFF");
+            SetupHomeLogoText.Text = "(none)";
+            SetupHomeLogoImage.Source = null;
+            SetupHomeLogoPreview.IsVisible = false;
+            SetupHomeVideoText.Text = "(none)";
+
+            SetupAwayNameBox.Text = "";
+            SetupAwayAbbrBox.Text = "";
+            SetupAwayColorBox.Text = "#7A1A1A";
+            SetupAwaySecondaryBox.Text = "#FFFFFF";
+            TrySetPreview(SetupAwayColorPreview, "#7A1A1A");
+            TrySetPreview(SetupAwaySecondaryPreview, "#FFFFFF");
+            SetupAwayLogoText.Text = "(none)";
+            SetupAwayLogoImage.Source = null;
+            SetupAwayLogoPreview.IsVisible = false;
+            SetupAwayVideoText.Text = "(none)";
+
+            SetupCountdown.IsChecked = remembered.AflCountdown;
+            SetupCountUp.IsChecked = !remembered.AflCountdown;
+            SetupControlPanelCountdown.IsChecked = remembered.AflControlPanelCountdown;
+            SetupQuarterMinutes.Text = remembered.AflQuarterMinutes.ToString();
+            SetupQuarterSeconds.Text = remembered.AflQuarterSeconds.ToString("00");
+            SetupFinalsMode.IsChecked = false;
+            DurationMinutesDisplay.Text = remembered.AflQuarterMinutes.ToString();
+            UpdateClockModeVisuals();
+            _countdownOptionCardWasCollapsed = true; // force entrance anim on next reveal
+            UpdateControlPanelCountdownOptionVisuals();
+            HighlightActivePresetTile(remembered.AflQuarterMinutes);
+            UpdateFinalsToggleVisuals();
+            UpdateSetupClockSummary();
+
+            _setupMessages.Clear();
+
+            _suppressWeatherFilter = true;
+            _weatherBoxActivated = false;
+            SetupWeatherLocation.Text = remembered.AflWeatherLocation;
+            _suppressWeatherFilter = false;
+
+            _presets = PresetStorage.LoadAll();
+            RefreshPresetPanels();
+            // The snapshot reflects what was actually used, including any
+            // colour/name adjustments made after selecting a preset.
+            TeamPreset? rememberedHome = remembered.LastHomeTeam ?? FindRememberedPreset(remembered.LastHomePresetKey);
+            TeamPreset? rememberedAway = remembered.LastAwayTeam ?? FindRememberedPreset(remembered.LastAwayPresetKey);
+            if (rememberedHome is not null) ApplyPresetToHome(rememberedHome);
+            if (rememberedAway is not null) ApplyPresetToAway(rememberedAway);
+            ShowStep(1, animate: false);
+
+            // Replay the cinematic entry
+            PlayEntryAnimation();
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  FINISH WIZARD
+        // ═══════════════════════════════════════════════════════
+
+        private void FinishWizard()
+        {
+            int.TryParse((SetupQuarterMinutes.Text ?? string.Empty), out int mins);
+            int.TryParse((SetupQuarterSeconds.Text ?? string.Empty), out int secs);
+
+            var messages = new List<MarqueeMessage>();
+            foreach (var item in _setupMessages)
+            {
+                if (!string.IsNullOrWhiteSpace((item.Text ?? string.Empty)))
+                    messages.Add(new MarqueeMessage((item.Text ?? string.Empty), item.TextColor, item.HighlightColor));
+            }
+
+            string homeName = (SetupHomeNameBox.Text ?? string.Empty).Trim();
+            string homeAbbr = (SetupHomeAbbrBox.Text ?? string.Empty).Trim();
+            string awayName = (SetupAwayNameBox.Text ?? string.Empty).Trim();
+            string awayAbbr = (SetupAwayAbbrBox.Text ?? string.Empty).Trim();
+
+            Result = new SetupResult
+            {
+                HomeName = string.IsNullOrWhiteSpace(homeName) ? "Home Team" : homeName,
+                HomeAbbr = string.IsNullOrWhiteSpace(homeAbbr) ? "HOM" : homeAbbr,
+                HomePrimaryColor = (SetupHomeColorBox.Text ?? string.Empty).Trim(),
+                HomeSecondaryColor = (SetupHomeSecondaryBox.Text ?? string.Empty).Trim(),
+                HomeLogoPath = _homeLogoPath,
+                HomeGoalVideoPath = _homeVideoPath,
+
+                AwayName = string.IsNullOrWhiteSpace(awayName) ? "Away Team" : awayName,
+                AwayAbbr = string.IsNullOrWhiteSpace(awayAbbr) ? "AWA" : awayAbbr,
+                AwayPrimaryColor = (SetupAwayColorBox.Text ?? string.Empty).Trim(),
+                AwaySecondaryColor = (SetupAwaySecondaryBox.Text ?? string.Empty).Trim(),
+                AwayLogoPath = _awayLogoPath,
+                AwayGoalVideoPath = _awayVideoPath,
+
+                ClockMode = SetupCountdown.IsChecked == true ? ClockMode.Countdown : ClockMode.CountUp,
+                QuarterMinutes = mins > 0 ? mins : 20,
+                QuarterSeconds = secs >= 0 ? secs : 0,
+                ShowControlPanelCountdown = SetupCountUp.IsChecked == true && SetupControlPanelCountdown.IsChecked == true,
+                ControlPanelCountdownMinutes = mins > 0 ? mins : 20,
+                ControlPanelCountdownSeconds = secs >= 0 ? secs : 0,
+                FinalsMode = SetupFinalsMode.IsChecked == true,
+
+                WeatherLocation = string.IsNullOrWhiteSpace((SetupWeatherLocation.Text ?? string.Empty)) ? null : (SetupWeatherLocation.Text ?? string.Empty).Trim(),
+
+                Messages = messages
+            };
+
+            // Remember venue/operator defaults only after a valid setup is
+            // completed. Finals mode and messages remain deliberately per-match.
+            OperatorWorkflowPreferences.Update(remembered =>
+            {
+                remembered.AflCountdown = SetupCountdown.IsChecked == true;
+                remembered.AflQuarterMinutes = Result.QuarterMinutes;
+                remembered.AflQuarterSeconds = Result.QuarterSeconds;
+                remembered.AflControlPanelCountdown = SetupControlPanelCountdown.IsChecked == true;
+                remembered.AflWeatherLocation = Result.WeatherLocation ?? "Melbourne, Australia";
+                remembered.LastHomePresetKey = GetPresetKey(_selectedHomePreset);
+                remembered.LastAwayPresetKey = GetPresetKey(_selectedAwayPreset);
+                remembered.LastHomeTeam = CreateRememberedTeam(
+                    Result.HomeName, Result.HomeAbbr, Result.HomePrimaryColor, Result.HomeSecondaryColor,
+                    Result.HomeLogoPath, Result.HomeGoalVideoPath, _selectedHomePreset?.LibraryTeamId);
+                remembered.LastAwayTeam = CreateRememberedTeam(
+                    Result.AwayName, Result.AwayAbbr, Result.AwayPrimaryColor, Result.AwaySecondaryColor,
+                    Result.AwayLogoPath, Result.AwayGoalVideoPath, _selectedAwayPreset?.LibraryTeamId);
+            });
+
+            SetupCompleted?.Invoke(Result);
+        }
+
+        private TeamPreset? FindRememberedPreset(string? key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return null;
+            return _presets.FirstOrDefault(p => string.Equals(GetPresetKey(p), key, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string? GetPresetKey(TeamPreset? preset)
+        {
+            if (preset is null) return null;
+            return !string.IsNullOrWhiteSpace(preset.LibraryTeamId)
+                ? "library:" + preset.LibraryTeamId
+                : "preset:" + preset.PresetName.Trim();
+        }
+
+        private static TeamPreset CreateRememberedTeam(
+            string name, string abbreviation, string primary, string secondary,
+            string? logoPath, string? goalVideoPath, string? libraryTeamId) => new()
+        {
+            PresetName = name,
+            TeamName = name,
+            Abbreviation = abbreviation,
+            PrimaryColor = primary,
+            SecondaryColor = secondary,
+            LogoPath = logoPath,
+            GoalVideoPath = goalVideoPath,
+            LibraryTeamId = libraryTeamId
+        };
+
+        // ═══════════════════════════════════════════════════════
+        //  CLOCK MODE
+        // ═══════════════════════════════════════════════════════
+
+        private void CountUpCard_Click(object? sender, PointerEventArgs e)
+        {
+            SetupCountUp.IsChecked = true;
+        }
+
+        private void CountdownCard_Click(object? sender, PointerEventArgs e)
+        {
+            SetupCountdown.IsChecked = true;
+        }
+
+        private void ControlPanelCountdownOptionCard_Click(object? sender, PointerEventArgs e)
+        {
+            if (SetupCountUp.IsChecked != true)
+                return;
+
+            SetupControlPanelCountdown.IsChecked = SetupControlPanelCountdown.IsChecked != true;
+            UpdateClockModeVisuals();
+            UpdateControlPanelCountdownOptionVisuals();
+        }
+
+        private void SetupClockMode_Changed(object? sender, RoutedEventArgs e)
+        {
+            UpdateClockModeVisuals();
+            UpdateControlPanelCountdownOptionVisuals();
+            UpdateSetupClockSummary();
+        }
+
+        private void UpdateClockModeVisuals()
+        {
+            if (CountUpCard is null) return;
+
+            bool isCountdown = SetupCountdown.IsChecked == true;
+
+            // Count Up card visuals
+            CountUpCard.BorderBrush = new SolidColorBrush(isCountdown
+                ? (Color)ColorConverter.ConvertFromString("#1A2436")
+                : (Color)ColorConverter.ConvertFromString("#58A6FF"));
+            CountUpCard.BorderThickness = new Thickness(2);
+            CountUpCard.Background = new SolidColorBrush(isCountdown
+                ? (Color)ColorConverter.ConvertFromString("#0A0E14")
+                : (Color)ColorConverter.ConvertFromString("#0A1628"));
+            CountUpGlowBg.Opacity = isCountdown ? 0 : 0.15;
+            CountUpIcon.Foreground = new SolidColorBrush(isCountdown
+                ? (Color)ColorConverter.ConvertFromString("#2A3A52")
+                : (Color)ColorConverter.ConvertFromString("#58A6FF"));
+            CountUpIcon.Effect = isCountdown ? null
+                : new DropShadowEffect { BlurRadius = 15, OffsetX = 0, OffsetY = 0, Color = (Color)ColorConverter.ConvertFromString("#58A6FF"), Opacity = 0.6 };
+            CountUpSelected.IsVisible = isCountdown ? false : true;
+
+            // Countdown card visuals
+            CountdownCard.BorderBrush = new SolidColorBrush(isCountdown
+                ? (Color)ColorConverter.ConvertFromString("#D29922")
+                : (Color)ColorConverter.ConvertFromString("#3A3018"));
+            CountdownCard.BorderThickness = new Thickness(2);
+            CountdownCard.Background = new SolidColorBrush(isCountdown
+                ? (Color)ColorConverter.ConvertFromString("#1A1408")
+                : (Color)ColorConverter.ConvertFromString("#0E0C08"));
+            CountdownGlowBg.Opacity = isCountdown ? 0.15 : 0;
+            CountdownIcon.Foreground = new SolidColorBrush(isCountdown
+                ? (Color)ColorConverter.ConvertFromString("#D29922")
+                : (Color)ColorConverter.ConvertFromString("#6B5A00"));
+            CountdownIcon.Effect = isCountdown
+                ? new DropShadowEffect { BlurRadius = 15, OffsetX = 0, OffsetY = 0, Color = (Color)ColorConverter.ConvertFromString("#D29922"), Opacity = 0.6 }
+                : null;
+            CountdownSelected.IsVisible = isCountdown ? true : false;
+
+            bool keepDurationEditable = SetupCountUp.IsChecked == true && SetupControlPanelCountdown.IsChecked == true;
+
+            // Duration panel and glow
+            DurationGlowBg.Opacity = isCountdown || keepDurationEditable ? 0.08 : 0;
+            SetupDurationPanel.BorderBrush = new SolidColorBrush(isCountdown || keepDurationEditable
+                ? (Color)ColorConverter.ConvertFromString("#6B5A00")
+                : (Color)ColorConverter.ConvertFromString("#3A3018"));
+
+            // Keep duration editable for countdown and for count-up with timing stoppages enabled.
+            DurationDisabledOverlay.IsVisible = isCountdown || keepDurationEditable ? false : true;
+        }
+
+        // Tracks previous visibility state so we only play the entrance animation once per appearance.
+        private bool _countdownOptionCardWasCollapsed = true;
+        private DispatcherTimer? _countdownOptionHideTimer;
+
+        private void UpdateControlPanelCountdownOptionVisuals()
+        {
+            if (ControlPanelCountdownOptionCard is null)
+                return;
+
+            var controlPanelCountdownHintText = NativeLookup.Find(this, "ControlPanelCountdownHintText") as TextBlock;
+
+            bool isVisible = SetupCountUp.IsChecked == true;
+            bool isEnabled = SetupControlPanelCountdown.IsChecked == true;
+            bool wasCollapsed = _countdownOptionCardWasCollapsed;
+            _countdownOptionCardWasCollapsed = !isVisible;
+
+            _countdownOptionHideTimer?.Stop();
+            _countdownOptionHideTimer = null;
+
+            if (isVisible)
+            {
+                ControlPanelCountdownOptionCard.BeginAnimation(OpacityProperty, null);
+                ControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+
+                ControlPanelCountdownOptionCard.IsVisible = true;
+                ControlPanelCountdownOptionCard.IsHitTestVisible = true;
+
+                if (wasCollapsed)
+                {
+                    ControlPanelCountdownOptionCard.Opacity = 0;
+                    ControlPanelCountdownCardTranslate.Y = 12;
+                    ControlPanelCountdownCardScale.ScaleX = 0.98;
+                    ControlPanelCountdownCardScale.ScaleY = 0.98;
+
+                    Animate(ControlPanelCountdownOptionCard, OpacityProperty, 1, 220, easing: Smooth);
+                    Animate(ControlPanelCountdownCardTranslate, TranslateTransform.YProperty, 0, 220, easing: Smooth);
+                    Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleXProperty, 1, 220, easing: Smooth);
+                    Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleYProperty, 1, 220, easing: Smooth);
+                }
+                else
+                {
+                    ControlPanelCountdownOptionCard.Opacity = 1;
+                    ControlPanelCountdownCardTranslate.Y = 0;
+                    ControlPanelCountdownCardScale.ScaleX = 1;
+                    ControlPanelCountdownCardScale.ScaleY = 1;
+                }
+            }
+            else
+            {
+                ControlPanelCountdownOptionCard.BeginAnimation(OpacityProperty, null);
+                ControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+
+                ControlPanelCountdownOptionCard.IsHitTestVisible = false;
+                Animate(ControlPanelCountdownOptionCard, OpacityProperty, 0, 220, easing: Smooth);
+                Animate(ControlPanelCountdownCardTranslate, TranslateTransform.YProperty, 14, 220, easing: Smooth);
+                Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleXProperty, 0.98, 220, easing: Smooth);
+                Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleYProperty, 0.98, 220, easing: Smooth);
+
+                _countdownOptionHideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(230) };
+                _countdownOptionHideTimer.Tick += (_, _) =>
+                {
+                    _countdownOptionHideTimer?.Stop();
+                    _countdownOptionHideTimer = null;
+                    if (SetupCountUp.IsChecked != true)
+                    {
+                        ControlPanelCountdownOptionCard.IsVisible = false;
+                    }
+                };
+                _countdownOptionHideTimer.Start();
+            }
+
+            ControlPanelCountdownOptionCard.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#12253A" : "#151E29"));
+            ControlPanelCountdownOptionCard.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#6CB6FF" : "#4D637C"));
+            ControlPanelCountdownOptionCard.BorderThickness = new Thickness(2);
+
+            if (ControlPanelCountdownToggleTrack?.Background is not SolidColorBrush trackBrush)
+            {
+                trackBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#4B5563"));
+                if (ControlPanelCountdownToggleTrack is not null)
+                {
+                    ControlPanelCountdownToggleTrack.Background = trackBrush;
+                }
+            }
+
+            Color targetTrackColor = (Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#4B5563");
+            trackBrush.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation
+            {
+                To = targetTrackColor,
+                Duration = TimeSpan.FromMilliseconds(220),
+                EasingFunction = Sine
+            });
+
+            if (ControlPanelCountdownThumbTranslate is not null)
+            {
+                ControlPanelCountdownThumbTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+                Animate(ControlPanelCountdownThumbTranslate, TranslateTransform.XProperty, isEnabled ? 26 : 0, 220, easing: Smooth);
+            }
+
+            if (ControlPanelCountdownToggleLabel is not null)
+            {
+                ControlPanelCountdownToggleLabel.BeginAnimation(OpacityProperty, null);
+                ControlPanelCountdownToggleLabel.Opacity = 0.65;
+                ControlPanelCountdownToggleLabel.Text = isEnabled ? "ON" : "OFF";
+                ControlPanelCountdownToggleLabel.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#A2ACB8"));
+                Animate(ControlPanelCountdownToggleLabel, OpacityProperty, 1, 180, easing: Smooth);
+            }
+
+            if (controlPanelCountdownHintText is not null)
+            {
+                controlPanelCountdownHintText.Text = isEnabled ? "Quarter length editable" : "Quarter length locked";
+                controlPanelCountdownHintText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#9CC9FF" : "#7D8792"));
+            }
+        }
+
+        private void MinutesMinus_Click(object? sender, PointerEventArgs e)
+        {
+            if (int.TryParse((SetupQuarterMinutes.Text ?? string.Empty), out int mins) && mins > 1)
+                SetQuickDuration(mins - 1, 0);
+        }
+
+        private void MinutesPlus_Click(object? sender, PointerEventArgs e)
+        {
+            if (int.TryParse((SetupQuarterMinutes.Text ?? string.Empty), out int mins) && mins < 60)
+                SetQuickDuration(mins + 1, 0);
+        }
+
+        private void SetupQuarterDuration_TextChanged(object? sender, TextChangedEventArgs e)
+            => UpdateSetupClockSummary();
+
+        private void SetupQuickDuration10_Click(object? sender, PointerEventArgs e) => SetQuickDuration(10, 0);
+        private void SetupQuickDuration15_Click(object? sender, PointerEventArgs e) => SetQuickDuration(15, 0);
+        private void SetupQuickDuration20_Click(object? sender, PointerEventArgs e) => SetQuickDuration(20, 0);
+        private void SetupQuickDuration25_Click(object? sender, PointerEventArgs e) => SetQuickDuration(25, 0);
+
+        private void SetQuickDuration(int minutes, int seconds)
+        {
+            SetupQuarterMinutes.Text = minutes.ToString();
+            SetupQuarterSeconds.Text = seconds.ToString("00");
+            DurationMinutesDisplay.Text = minutes.ToString();
+            HighlightActivePresetTile(minutes);
+            UpdateSetupClockSummary();
+        }
+
+        private void HighlightActivePresetTile(int minutes)
+        {
+            if (Preset10Tile is null) return;
+
+            var dimBorder = (Color)ColorConverter.ConvertFromString("#3A3018");
+            var dimBg = (Color)ColorConverter.ConvertFromString("#141008");
+            var dimFg = (Color)ColorConverter.ConvertFromString("#8A7A40");
+            var activeBorder = (Color)ColorConverter.ConvertFromString("#6B5A00");
+            var activeBg = (Color)ColorConverter.ConvertFromString("#1A1408");
+            var activeFg = (Color)ColorConverter.ConvertFromString("#D29922");
+
+            (Border tile, int value)[] presets = [(Preset10Tile, 10), (Preset15Tile, 15), (Preset20Tile, 20), (Preset25Tile, 25)];
+            foreach ((Border tile, int value) in presets)
+            {
+                bool active = value == minutes;
+                tile.BorderBrush = new SolidColorBrush(active ? activeBorder : dimBorder);
+                tile.Background = new SolidColorBrush(active ? activeBg : dimBg);
+                if (tile.Child is TextBlock tb)
+                    tb.Foreground = new SolidColorBrush(active ? activeFg : dimFg);
+            }
+        }
+
+        private void FinalsCard_Click(object? sender, PointerEventArgs e)
+        {
+            SetupFinalsMode.IsChecked = SetupFinalsMode.IsChecked != true;
+            UpdateFinalsToggleVisuals();
+        }
+
+        private void UpdateFinalsToggleVisuals()
+        {
+            if (FinalsCard is null) return;
+
+            bool on = SetupFinalsMode.IsChecked == true;
+
+            FinalsCard.BorderBrush = new SolidColorBrush(on
+                ? (Color)ColorConverter.ConvertFromString("#D4A017")
+                : (Color)ColorConverter.ConvertFromString("#2A2020"));
+            FinalsCard.BorderThickness = new Thickness(2);
+            FinalsCard.Background = new SolidColorBrush(on
+                ? (Color)ColorConverter.ConvertFromString("#1A1408")
+                : (Color)ColorConverter.ConvertFromString("#0A0806"));
+            FinalsGlowBg.Opacity = on ? 0.20 : 0;
+            FinalsSelectedBadge.IsVisible = on ? true : false;
+            FinalsIcon.Effect = on
+                ? new DropShadowEffect { BlurRadius = 20, OffsetX = 0, OffsetY = 0, Color = (Color)ColorConverter.ConvertFromString("#D4A017"), Opacity = 0.7 }
+                : null;
+        }
+
+        private void UpdateSetupClockSummary()
+        {
+            // No-op: summary panel removed for simplicity
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  WEATHER LOCATION AUTOCOMPLETE
+        // ═══════════════════════════════════════════════════════
+
+        private void SetupWeatherLocation_TextChanged(object? sender, TextChangedEventArgs e)
+        {
+            if (_suppressWeatherFilter || !_weatherBoxActivated) return;
+
+            var combo = SetupWeatherLocation;
+            string input = (combo.Text ?? string.Empty) ?? "";
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                combo.IsDropDownOpen = false;
+                return;
+            }
+
+            _suppressWeatherFilter = true;
+
+            var matches = AustralianCities
+                .Where(c => c.Contains(input, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            combo.Items.Clear();
+            foreach (string city in matches)
+                combo.Items.Add(city);
+
+            var editBox = NativeTemplates.Find(combo, "PART_EditableTextBox") as Avalonia.Controls.TextBox;
+            int caretPos = editBox?.CaretIndex ?? input.Length;
+
+            combo.IsDropDownOpen = matches.Count > 0;
+
+            if (editBox is not null)
+            {
+                editBox.CaretIndex = caretPos;
+            }
+
+            _suppressWeatherFilter = false;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  COLOUR PICKERS
+        // ═══════════════════════════════════════════════════════
+
+        private void PickSetupHomeColor_Click(object? sender, PointerEventArgs e) => PickColor(SetupHomeColorBox, SetupHomeColorPreview);
+        private void PickSetupHomeSecondary_Click(object? sender, PointerEventArgs e) => PickColor(SetupHomeSecondaryBox, SetupHomeSecondaryPreview);
+        private void PickSetupAwayColor_Click(object? sender, PointerEventArgs e) => PickColor(SetupAwayColorBox, SetupAwayColorPreview);
+        private void PickSetupAwaySecondary_Click(object? sender, PointerEventArgs e) => PickColor(SetupAwaySecondaryBox, SetupAwaySecondaryPreview);
+
+        private void DropperSetupHomeColor_Click(object? sender, PointerEventArgs e) => DropColor(SetupHomeColorBox, SetupHomeColorPreview);
+        private void DropperSetupHomeSecondary_Click(object? sender, PointerEventArgs e) => DropColor(SetupHomeSecondaryBox, SetupHomeSecondaryPreview);
+        private void DropperSetupAwayColor_Click(object? sender, PointerEventArgs e) => DropColor(SetupAwayColorBox, SetupAwayColorPreview);
+        private void DropperSetupAwaySecondary_Click(object? sender, PointerEventArgs e) => DropColor(SetupAwaySecondaryBox, SetupAwaySecondaryPreview);
+
+        private static void PickColor(TextBox box, Border preview)
+        {
+            Color initial = Colors.White;
+            try
+            {
+                initial = (Color)ColorConverter.ConvertFromString((box.Text ?? string.Empty));
+            }
+            catch { /* ignore */ }
+
+            if (!ColorPickerWindow.TryPick(NativeWindow.GetWindow(box), initial, out Color c)) return;
+            string hex = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+            box.Text = hex;
+            TrySetPreview(preview, hex);
+        }
+
+        private static void DropColor(TextBox box, Border preview)
+        {
+            var picked = EyeDropper.Pick();
+            if (picked == null) return;
+            var c = picked.Value;
+            RecentColorStorage.Record(c);
+            string hex = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+            box.Text = hex;
+            TrySetPreview(preview, hex);
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  LOGO PICKERS
+        // ═══════════════════════════════════════════════════════
+
+        private void ChooseSetupHomeLogo_Click(object? sender, RoutedEventArgs e)
+        {
+            var path = PickLogoFile("Home");
+            if (path == null) return;
+            _homeLogoPath = path;
+            SetupHomeLogoText.Text = System.IO.Path.GetFileName(path);
+            ShowLogoPreview(SetupHomeLogoImage, SetupHomeLogoPreview, path);
+        }
+
+        private void ChooseSetupAwayLogo_Click(object? sender, RoutedEventArgs e)
+        {
+            var path = PickLogoFile("Away");
+            if (path == null) return;
+            _awayLogoPath = path;
+            SetupAwayLogoText.Text = System.IO.Path.GetFileName(path);
+            ShowLogoPreview(SetupAwayLogoImage, SetupAwayLogoPreview, path);
+        }
+
+        private static string? PickLogoFile(string teamLabel)
+        {
+            var dlg = new NativeOpenFileDialog
+            {
+                Title = $"Select {teamLabel} Team Logo",
+                Filter = Services.ImageLoadHelper.LogoFilter
+            };
+            return dlg.ShowDialog() == true ? dlg.FileName : null;
+        }
+
+        private static void ShowLogoPreview(Avalonia.Controls.Image image, Border container, string? path)
+        {
+            var source = Services.ImageLoadHelper.Load(path, decodePixelHeight: 160);
+            image.Source = source;
+            container.IsVisible = source is not null ? true : false;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  GOAL VIDEO PICKERS
+        // ═══════════════════════════════════════════════════════
+
+        private void ChooseSetupHomeVideo_Click(object? sender, RoutedEventArgs e)
+        {
+            var path = PickVideoFile("Home");
+            if (path == null) return;
+            _homeVideoPath = path;
+            SetupHomeVideoText.Text = System.IO.Path.GetFileName(path);
+            _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(path);
+        }
+
+        private void ChooseSetupAwayVideo_Click(object? sender, RoutedEventArgs e)
+        {
+            var path = PickVideoFile("Away");
+            if (path == null) return;
+            _awayVideoPath = path;
+            SetupAwayVideoText.Text = System.IO.Path.GetFileName(path);
+            _ = Roche_Scoreboard.Services.VideoOptimizer.EnsureOptimisedAsync(path);
+        }
+
+        private static string? PickVideoFile(string teamLabel)
+        {
+            var dlg = new NativeOpenFileDialog
+            {
+                Title = $"Select {teamLabel} Goal Animation Video",
+                Filter = "Video Files|*.mp4;*.wmv;*.avi;*.mov|All Files|*.*"
+            };
+            return dlg.ShowDialog() == true ? dlg.FileName : null;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  MESSAGES
+        // ═══════════════════════════════════════════════════════
+
+        private void SetupAddMessage_Click(object? sender, RoutedEventArgs e)
+        {
+            string? text = (SetupNewMessageBox.Text ?? string.Empty)?.Trim();
+            if (string.IsNullOrWhiteSpace(text)) return;
+            _setupMessages.Add(new MarqueeMessage(text, _newMessageTextColor, _newMessageHighlightColor));
+            SetupNewMessageBox.Text = "";
+        }
+
+        private void SetupNewMessageBox_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            SetupAddMessage_Click(sender, new RoutedEventArgs());
+            e.Handled = true;
+        }
+
+        private void SetupRemoveMessageItem_Click(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not Avalonia.Controls.Button btn) return;
+            if (btn.Tag is not MarqueeMessage msg) return;
+            _setupMessages.Remove(msg);
+        }
+
+        private void SetupPickItemTextColor_Click(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not Avalonia.Controls.Button btn) return;
+            if (btn.Tag is not MarqueeMessage msg) return;
+            var initial = ParseDrawingColor(msg.TextColor, DrawingColor.White);
+            if (!TryPickColor(initial, out var picked)) return;
+            msg.TextColor = ToHex(picked);
+        }
+
+        private void SetupPickItemHighlightColor_Click(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not Avalonia.Controls.Button btn) return;
+            if (btn.Tag is not MarqueeMessage msg) return;
+            var initial = ParseDrawingColor(msg.HighlightColor, DrawingColor.FromArgb(255, 30, 64, 175));
+            if (!TryPickColor(initial, out var picked)) return;
+            msg.HighlightColor = ToHex(picked);
+        }
+
+        private void SetupClearItemHighlightColor_Click(object? sender, PointerEventArgs e)
+        {
+            if (sender is not Avalonia.Controls.Button btn) return;
+            if (btn.Tag is not MarqueeMessage msg) return;
+            msg.HighlightColor = null;
+        }
+
+        private void SetupPickNewTextColor_Click(object? sender, RoutedEventArgs e)
+        {
+            var initial = ParseDrawingColor(_newMessageTextColor, DrawingColor.White);
+            if (!TryPickColor(initial, out var picked)) return;
+            _newMessageTextColor = ToHex(picked);
+            if (SetupNewMessageTextColorBtn != null)
+                SetupNewMessageTextColorBtn.Background = new SolidColorBrush(Color.FromRgb(picked.R, picked.G, picked.B));
+        }
+
+        private void SetupPickNewHighlightColor_Click(object? sender, RoutedEventArgs e)
+        {
+            var initial = ParseDrawingColor(_newMessageHighlightColor, DrawingColor.FromArgb(255, 30, 64, 175));
+            if (!TryPickColor(initial, out var picked)) return;
+            _newMessageHighlightColor = ToHex(picked);
+            if (SetupNewMessageHighlightColorBtn != null)
+                SetupNewMessageHighlightColorBtn.Background = new SolidColorBrush(Color.FromRgb(picked.R, picked.G, picked.B));
+        }
+
+        private void SetupClearNewHighlightColor_Click(object? sender, PointerEventArgs e)
+        {
+            _newMessageHighlightColor = null;
+            if (SetupNewMessageHighlightColorBtn != null)
+                SetupNewMessageHighlightColorBtn.Background = Avalonia.Media.Brushes.Transparent;
+        }
+
+        private static string ToHex(DrawingColor c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+
+        private static DrawingColor ParseDrawingColor(string? hex, DrawingColor fallback)
+        {
+            if (string.IsNullOrWhiteSpace(hex)) return fallback;
+            try
+            {
+                var media = (Color)ColorConverter.ConvertFromString(hex);
+                return DrawingColor.FromArgb(media.R, media.G, media.B);
+            }
+            catch { return fallback; }
+        }
+
+        private static bool TryPickColor(DrawingColor initial, out DrawingColor picked)
+        {
+            Color mediaInitial = Color.FromRgb(initial.R, initial.G, initial.B);
+            bool accepted = ColorPickerWindow.TryPick(NativeDesktop.MainWindow,
+                mediaInitial, out Color mediaPicked);
+            picked = accepted ? DrawingColor.FromArgb(mediaPicked.R, mediaPicked.G, mediaPicked.B) : initial;
+            return accepted;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  PRESETS
+        // ═══════════════════════════════════════════════════════
+
+        private void BrowseHomeTeam_Click(object? sender, RoutedEventArgs e)
+            => BrowseTeamLibrary(isHome: true);
+
+        private void BrowseAwayTeam_Click(object? sender, RoutedEventArgs e)
+            => BrowseTeamLibrary(isHome: false);
+
+        private void BrowseTeamLibrary(bool isHome)
+        {
+            TeamLibraryWindow browser = new(isHome ? "Home" : "Away")
+            {
+                Owner = NativeWindow.GetWindow(this)
+            };
+
+            bool? accepted = browser.ShowDialog();
+            if (browser.PresetsChanged)
+            {
+                _presets = PresetStorage.LoadAll();
+                RefreshPresetPanels();
+            }
+
+            if (accepted != true || browser.Selection is null) return;
+            TeamLibrarySelection selection = browser.Selection;
+            TeamPreset preset = new()
+            {
+                PresetName = selection.Team.TeamName,
+                TeamName = selection.Team.TeamName,
+                Abbreviation = selection.Team.Abbreviation,
+                PrimaryColor = selection.Team.PrimaryColor,
+                SecondaryColor = selection.Team.SecondaryColor,
+                LogoPath = selection.TransparentLogoPath,
+                LibraryTeamId = selection.Team.Id
+            };
+
+            if (isHome)
+                ApplyPresetToHome(preset);
+            else
+                ApplyPresetToAway(preset);
+        }
+
+        private void RefreshPresetPanels()
+        {
+            BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
+            BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+        }
+
+        private void BuildPresetTiles(Avalonia.Controls.WrapPanel panel, TextBlock emptyLabel, bool isHome)
+        {
+            panel.Children.Clear();
+
+            if (_presets.Count == 0)
+            {
+                emptyLabel.IsVisible = true;
+                return;
+            }
+
+            emptyLabel.IsVisible = false;
+
+            for (int idx = 0; idx < _presets.Count; idx++)
+            {
+                TeamPreset preset = _presets[idx];
+                Color bgColor = SafeParseColor(preset.PrimaryColor, "#333");
+                Color fgColor = SafeParseColor(preset.SecondaryColor, "#FFF");
+
+                bool isSelected = isHome
+                    ? string.Equals(_selectedHomePreset?.PresetName, preset.PresetName, StringComparison.OrdinalIgnoreCase)
+                    : string.Equals(_selectedAwayPreset?.PresetName, preset.PresetName, StringComparison.OrdinalIgnoreCase);
+
+                string abbr = NormalizeAbbreviation(preset.Abbreviation);
+
+                TextBlock abbrLabel = new()
+                {
+                    Text = abbr,
+                    Foreground = new SolidColorBrush(fgColor),
+                    FontSize = 16,
+                    FontWeight = FontWeight.Black,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                    IsHitTestVisible = false
+                };
+
+                TextBlock nameLabel = new()
+                {
+                    Text = string.IsNullOrWhiteSpace(preset.TeamName) ? "Unnamed team" : preset.TeamName,
+                    Foreground = new SolidColorBrush(Color.FromArgb(0xCC, fgColor.R, fgColor.G, fgColor.B)),
+                    FontSize = 9,
+                    FontWeight = FontWeight.Bold,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxWidth = 94,
+                    IsHitTestVisible = false
+                };
+
+                StackPanel stack = new()
+                {
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                    IsHitTestVisible = false
+                };
+                stack.Children.Add(abbrLabel);
+                stack.Children.Add(nameLabel);
+
+                Grid tileContent = new() { IsHitTestVisible = false };
+                tileContent.Children.Add(stack);
+
+                if (isSelected)
+                {
+                    Border overlay = new NativeBorder()
+                    {
+                        Background = new SolidColorBrush(Color.FromArgb(0x8C, 0x00, 0x00, 0x00)),
+                        IsHitTestVisible = false
+                    };
+                    tileContent.Children.Add(overlay);
+
+                    TextBlock tickText = new()
+                    {
+                        Text = "✓",
+                        Foreground = new SolidColorBrush(Colors.White),
+                        FontSize = 18,
+                        FontWeight = FontWeight.Black,
+                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                        IsHitTestVisible = false,
+                        RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
+                        RenderTransform = new ScaleTransform(0, 0)
+                    };
+                    tileContent.Children.Add(tickText);
+
+                    var scaleEase = new ElasticEase { Oscillations = 1, Springiness = 5, EasingMode = EasingMode.EaseOut };
+                    var scaleIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(400)) { EasingFunction = scaleEase };
+                    ((ScaleTransform)tickText.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, scaleIn);
+                    ((ScaleTransform)tickText.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, scaleIn.Clone());
+
+                    overlay.Opacity = 0;
+                    overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220))
+                    {
+                        EasingFunction = Smooth
+                    });
+                }
+
+                var tileScaleTransform = new ScaleTransform(1, 1);
+                var tileTranslateTransform = new TranslateTransform(0, 0);
+                var tileTransformGroup = new TransformGroup();
+                tileTransformGroup.Children.Add(tileScaleTransform);
+                tileTransformGroup.Children.Add(tileTranslateTransform);
+
+                Border tile = new NativeBorder()
+                {
+                    Width = 110,
+                    Height = 70,
+                    Padding = new Thickness(4),
+                    Margin = new Thickness(0, 0, 8, 8),
+                    Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+                    ToolTip = $"{preset.TeamName}\n{abbr}\n{(HasValidFile(preset.LogoPath) ? "Logo set" : "No logo")} · {(HasValidFile(preset.GoalVideoPath) ? "Video set" : "No video")}",
+                    Child = tileContent,
+                    Tag = preset,
+                    BorderBrush = isSelected
+                        ? new SolidColorBrush(Color.FromRgb(0x22, 0xC5, 0x5E))
+                        : new SolidColorBrush(Color.FromArgb(0x66, 0xFF, 0xFF, 0xFF)),
+                    BorderThickness = new Thickness(2),
+                    RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
+                    RenderTransform = tileTransformGroup,
+                    Background = NativeBrush.Linear(
+                        BlendColor(bgColor, Colors.Black, 0.28),
+                        BlendColor(bgColor, Colors.White, 0.08),
+                        new Avalonia.Point(0, 0),
+                        new Avalonia.Point(1, 1))
+                };
+
+                tile.PointerPressed += (_, me) =>
+                {
+                    if (_isDragging) return;
+
+                    _dragStartPos = me.GetPosition(panel);
+                    _dragTile = tile;
+                    _dragOrigIndex = panel.Children.IndexOf(tile);
+                    _dragCurrentIndex = _dragOrigIndex;
+                    _isDragging = false;
+                    _dragIsHome = isHome;
+
+                    int count = panel.Children.Count;
+                    _slotCentersX = new double[count];
+                    _slotCentersY = new double[count];
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (panel.Children[i] is Control fe)
+                        {
+                            Vector offset = VisualTreeHelper.GetOffset(fe);
+                            _slotCentersX[i] = offset.X + fe.NativeWidth() / 2;
+                            _slotCentersY[i] = offset.Y + fe.NativeHeight() / 2;
+                        }
+                    }
+
+                    NativePointer.Capture(tile);
+                    me.Handled = true;
+                };
+
+                tile.PointerMoved += (_, me) =>
+                {
+                    if (_dragTile != tile || !NativePointer.IsCaptured(tile)) return;
+
+                    Avalonia.Point pos = me.GetPosition(panel);
+                    double dx = pos.X - _dragStartPos.X;
+                    double dy = pos.Y - _dragStartPos.Y;
+
+                    if (!_isDragging)
+                    {
+                        if (Math.Abs(dx) < DragThreshold && Math.Abs(dy) < DragThreshold) return;
+                        _isDragging = true;
+                        tile.ZIndex = 100;
+                        tile.Opacity = 0.85;
+                    }
+
+                    {
+                        tileTranslateTransform.BeginAnimation(TranslateTransform.XProperty, null);
+                        tileTranslateTransform.BeginAnimation(TranslateTransform.YProperty, null);
+                        tileTranslateTransform.X = dx;
+                        tileTranslateTransform.Y = dy;
+                    }
+
+                    double dragCenterX = _slotCentersX[_dragOrigIndex] + dx;
+                    double dragCenterY = _slotCentersY[_dragOrigIndex] + dy;
+                    int newIndex = _dragOrigIndex;
+                    double bestDist = double.MaxValue;
+                    for (int i = 0; i < _slotCentersX.Length; i++)
+                    {
+                        double ddx = dragCenterX - _slotCentersX[i];
+                        double ddy = dragCenterY - _slotCentersY[i];
+                        double d = ddx * ddx + ddy * ddy;
+                        if (d < bestDist) { bestDist = d; newIndex = i; }
+                    }
+
+                    if (newIndex != _dragCurrentIndex)
+                    {
+                        _dragCurrentIndex = newIndex;
+                        ShiftTilesForDrag(panel, _dragOrigIndex, _dragCurrentIndex, tile);
+                    }
+                };
+
+                tile.PointerReleased += (_, me) =>
+                {
+                    if (_dragTile != tile) return;
+                    CompleteDrag(panel, isHome, preset);
+                    me.Handled = true;
+                };
+
+                tile.PointerCaptureLost += (_, _) =>
+                {
+                    if (_dragTile != tile) return;
+                    CompleteDrag(panel, isHome, preset);
+                };
+
+                tile.PointerEntered += (_, _) =>
+                {
+                    if (_isDragging) return;
+                    tileScaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty,
+                        new DoubleAnimation(1.06, TimeSpan.FromMilliseconds(140)) { EasingFunction = Smooth });
+                    tileScaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty,
+                        new DoubleAnimation(1.06, TimeSpan.FromMilliseconds(140)) { EasingFunction = Smooth });
+                    tile.BeginAnimation(OpacityProperty,
+                        new DoubleAnimation(0.92, TimeSpan.FromMilliseconds(120)) { EasingFunction = Smooth });
+                };
+                tile.PointerExited += (_, _) =>
+                {
+                    if (_isDragging) return;
+                    tileScaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty,
+                        new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
+                    tileScaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty,
+                        new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
+                    tile.BeginAnimation(OpacityProperty,
+                        new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(180)));
+                };
+
+                panel.Children.Add(tile);
+            }
+        }
+
+        private void CompleteDrag(Avalonia.Controls.WrapPanel panel, bool isHome, TeamPreset clickedPreset)
+        {
+            Border? tile = _dragTile;
+            bool wasDragging = _isDragging;
+            int origIndex = _dragOrigIndex;
+            int currentIndex = _dragCurrentIndex;
+
+            _dragTile = null;
+            _isDragging = false;
+
+            if (NativePointer.IsCaptured(tile) == true)
+                NativePointer.Release(tile);
+
+            if (wasDragging)
+            {
+                if (origIndex != currentIndex)
+                {
+                    TeamPreset moved = _presets[origIndex];
+                    _presets.RemoveAt(origIndex);
+                    _presets.Insert(currentIndex, moved);
+                    PresetStorage.SaveAll(_presets);
+                }
+
+                ResetAllTileTransforms(panel);
+                RefreshPresetPanels();
+            }
+            else
+            {
+                if (isHome)
+                    ApplyPresetToHome(clickedPreset);
+                else
+                    ApplyPresetToAway(clickedPreset);
+            }
+        }
+
+        private static void ResetAllTileTransforms(Avalonia.Controls.WrapPanel panel)
+        {
+            foreach (Control child in panel.Children)
+            {
+                TranslateTransform? t = GetTranslate(child);
+                if (t != null)
+                {
+                    t.BeginAnimation(TranslateTransform.XProperty, null);
+                    t.BeginAnimation(TranslateTransform.YProperty, null);
+                    t.X = 0;
+                    t.Y = 0;
+                }
+                child.ZIndex = 0;
+                child.Opacity = 1;
+            }
+        }
+
+        private static TranslateTransform? GetTranslate(Control element)
+        {
+            if (element is not Control fe) return null;
+            if (fe.RenderTransform is TranslateTransform tt) return tt;
+            if (fe.RenderTransform is TransformGroup tg)
+            {
+                foreach (Transform t in tg.Children)
+                    if (t is TranslateTransform translate) return translate;
+            }
+            return null;
+        }
+
+        private void ShiftTilesForDrag(Avalonia.Controls.WrapPanel panel, int origIndex, int hoverIndex, Border draggedTile)
+        {
+            TimeSpan duration = TimeSpan.FromMilliseconds(160);
+            CubicEase ease = new() { EasingMode = EasingMode.EaseOut };
+
+            for (int i = 0; i < panel.Children.Count; i++)
+            {
+                if (panel.Children[i] is not Border child || child == draggedTile) continue;
+                TranslateTransform? tt = GetTranslate(child);
+                if (tt == null) continue;
+
+                int visualIndex = i;
+                if (origIndex < hoverIndex)
+                {
+                    if (i > origIndex && i <= hoverIndex) visualIndex = i - 1;
+                }
+                else if (origIndex > hoverIndex)
+                {
+                    if (i >= hoverIndex && i < origIndex) visualIndex = i + 1;
+                }
+
+                double targetX = _slotCentersX[visualIndex] - _slotCentersX[i];
+                double targetY = _slotCentersY[visualIndex] - _slotCentersY[i];
+
+                DoubleAnimation animX = new(targetX, duration) { EasingFunction = ease };
+                DoubleAnimation animY = new(targetY, duration) { EasingFunction = ease };
+                tt.BeginAnimation(TranslateTransform.XProperty, animX);
+                tt.BeginAnimation(TranslateTransform.YProperty, animY);
+            }
+        }
+
+        private void ApplyPresetToHome(TeamPreset p)
+        {
+            _selectedHomePreset = p;
+            SetupHomeNameBox.Text = p.TeamName;
+            SetupHomeAbbrBox.Text = NormalizeAbbreviation(p.Abbreviation);
+            SetupHomeColorBox.Text = p.PrimaryColor;
+            SetupHomeSecondaryBox.Text = p.SecondaryColor;
+            TrySetPreview(SetupHomeColorPreview, p.PrimaryColor);
+            TrySetPreview(SetupHomeSecondaryPreview, p.SecondaryColor);
+
+            if (HasValidFile(p.LogoPath))
+            {
+                _homeLogoPath = p.LogoPath;
+                SetupHomeLogoText.Text = System.IO.Path.GetFileName(p.LogoPath);
+                ShowLogoPreview(SetupHomeLogoImage, SetupHomeLogoPreview, p.LogoPath);
+            }
+            else
+            {
+                _homeLogoPath = null;
+                SetupHomeLogoText.Text = "(none)";
+                ShowLogoPreview(SetupHomeLogoImage, SetupHomeLogoPreview, null);
+            }
+
+            if (HasValidFile(p.GoalVideoPath))
+            {
+                _homeVideoPath = p.GoalVideoPath;
+                SetupHomeVideoText.Text = System.IO.Path.GetFileName(p.GoalVideoPath);
+            }
+            else
+            {
+                _homeVideoPath = null;
+                SetupHomeVideoText.Text = "(none)";
+            }
+
+            BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
+            BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+        }
+
+        private void ApplyPresetToAway(TeamPreset p)
+        {
+            _selectedAwayPreset = p;
+            SetupAwayNameBox.Text = p.TeamName;
+            SetupAwayAbbrBox.Text = NormalizeAbbreviation(p.Abbreviation);
+            SetupAwayColorBox.Text = p.PrimaryColor;
+            SetupAwaySecondaryBox.Text = p.SecondaryColor;
+            TrySetPreview(SetupAwayColorPreview, p.PrimaryColor);
+            TrySetPreview(SetupAwaySecondaryPreview, p.SecondaryColor);
+
+            if (HasValidFile(p.LogoPath))
+            {
+                _awayLogoPath = p.LogoPath;
+                SetupAwayLogoText.Text = System.IO.Path.GetFileName(p.LogoPath);
+                ShowLogoPreview(SetupAwayLogoImage, SetupAwayLogoPreview, p.LogoPath);
+            }
+            else
+            {
+                _awayLogoPath = null;
+                SetupAwayLogoText.Text = "(none)";
+                ShowLogoPreview(SetupAwayLogoImage, SetupAwayLogoPreview, null);
+            }
+
+            if (HasValidFile(p.GoalVideoPath))
+            {
+                _awayVideoPath = p.GoalVideoPath;
+                SetupAwayVideoText.Text = System.IO.Path.GetFileName(p.GoalVideoPath);
+            }
+            else
+            {
+                _awayVideoPath = null;
+                SetupAwayVideoText.Text = "(none)";
+            }
+
+            BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
+            BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+        }
+
+        private void DeletePreset(TeamPreset? preset)
+        {
+            if (preset == null) return;
+
+            _presets.Remove(preset);
+
+            if (string.Equals(_selectedHomePreset?.PresetName, preset.PresetName, StringComparison.OrdinalIgnoreCase))
+                _selectedHomePreset = null;
+
+            if (string.Equals(_selectedAwayPreset?.PresetName, preset.PresetName, StringComparison.OrdinalIgnoreCase))
+                _selectedAwayPreset = null;
+
+            PresetStorage.SaveAll(_presets);
+            RefreshPresetPanels();
+        }
+
+        private static Color SafeParseColor(string hex, string fallback)
+        {
+            try { return (Color)ColorConverter.ConvertFromString(hex); }
+            catch { return (Color)ColorConverter.ConvertFromString(fallback); }
+        }
+
+        private static void TrySetPreview(Border preview, string hex)
+        {
+            try { preview.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)); }
+            catch { /* ignore */ }
+        }
+
+        private void SetupHomeColorBox_TextChanged(object? sender, TextChangedEventArgs e)
+        {
+            TrySetPreview(SetupHomeColorPreview, (SetupHomeColorBox.Text ?? string.Empty).Trim());
+        }
+
+        private void SetupHomeSecondaryBox_TextChanged(object? sender, TextChangedEventArgs e)
+        {
+            TrySetPreview(SetupHomeSecondaryPreview, (SetupHomeSecondaryBox.Text ?? string.Empty).Trim());
+        }
+
+        private void SetupAwayColorBox_TextChanged(object? sender, TextChangedEventArgs e)
+        {
+            TrySetPreview(SetupAwayColorPreview, (SetupAwayColorBox.Text ?? string.Empty).Trim());
+        }
+
+        private void SetupAwaySecondaryBox_TextChanged(object? sender, TextChangedEventArgs e)
+        {
+            TrySetPreview(SetupAwaySecondaryPreview, (SetupAwaySecondaryBox.Text ?? string.Empty).Trim());
+        }
+
+        private static string NormalizeAbbreviation(string? value)
+        {
+            string cleaned = (value ?? string.Empty).Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(cleaned)) return "TEAM";
+            return cleaned.Length > 4 ? cleaned[..4] : cleaned;
+        }
+
+        private static bool HasValidFile(string? path)
+            => !string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path);
+
+        private void SaveHomePreset_Click(object? sender, RoutedEventArgs e)
+            => SavePreset(SetupHomeNameBox, SetupHomeAbbrBox, SetupHomeColorBox, SetupHomeSecondaryBox, _homeLogoPath, _homeVideoPath, true);
+
+        private void DeleteHomePreset_Click(object? sender, RoutedEventArgs e)
+            => DeletePreset(_selectedHomePreset);
+
+        private void SaveAwayPreset_Click(object? sender, RoutedEventArgs e)
+            => SavePreset(SetupAwayNameBox, SetupAwayAbbrBox, SetupAwayColorBox, SetupAwaySecondaryBox, _awayLogoPath, _awayVideoPath, false);
+
+        private void DeleteAwayPreset_Click(object? sender, RoutedEventArgs e)
+            => DeletePreset(_selectedAwayPreset);
+
+        private void SavePreset(TextBox nameBox, TextBox abbrBox, TextBox colorBox, TextBox secBox, string? logoPath, string? videoPath, bool isHome)
+        {
+            string name = (nameBox.Text ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(name)) return;
+
+            string abbreviation = NormalizeAbbreviation((abbrBox.Text ?? string.Empty));
+
+            TeamPreset? existing = _presets.FirstOrDefault(p => string.Equals(p.PresetName, name, StringComparison.OrdinalIgnoreCase));
+            TeamPreset target;
+
+            if (existing != null)
+            {
+                target = existing;
+                target.PresetName = name;
+            }
+            else
+            {
+                target = new TeamPreset { PresetName = name };
+                _presets.Add(target);
+            }
+
+            target.TeamName = name;
+            target.Abbreviation = abbreviation;
+            target.PrimaryColor = (colorBox.Text ?? string.Empty).Trim();
+            target.SecondaryColor = (secBox.Text ?? string.Empty).Trim();
+            target.LogoPath = logoPath;
+            target.GoalVideoPath = videoPath;
+
+            if (isHome)
+                _selectedHomePreset = target;
+            else
+                _selectedAwayPreset = target;
+
+            PresetStorage.SaveAll(_presets);
+            RefreshPresetPanels();
+        }
+
+        private static Color BlendColor(Color a, Color b, double t)
+        {
+            t = Math.Clamp(t, 0, 1);
+            return Color.FromRgb(
+                (byte)(a.R + ((b.R - a.R) * t)),
+                (byte)(a.G + ((b.G - a.G) * t)),
+                (byte)(a.B + ((b.B - a.B) * t)));
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  ANIMATION HELPERS (matching sport selection screen)
+        // ═══════════════════════════════════════════════════════
+
+        private static DoubleAnimation Anim(double to, TimeSpan duration, IEasingFunction? easing = null)
+        {
+            return new DoubleAnimation(to, duration) { EasingFunction = easing };
+        }
+
+        private static void Animate(AvaloniaObject target, AvaloniaProperty prop,
+            double to, int durationMs, int delay = 0, IEasingFunction? easing = null)
+        {
+            var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(durationMs))
+            {
+                BeginTime = delay > 0 ? TimeSpan.FromMilliseconds(delay) : TimeSpan.Zero,
+                EasingFunction = easing
+            };
+            target.BeginAnimation(prop, anim);
+        }
+
+        private static void PulseForever(AvaloniaObject target, AvaloniaProperty prop,
+            double from, double to, int periodMs)
+        {
+            var anim = new DoubleAnimation(from, to, TimeSpan.FromMilliseconds(periodMs))
+            {
+                AutoReverse = true,
+                RepeatBehavior = RepeatBehavior.Forever,
+                EasingFunction = Sine
+            };
+            target.BeginAnimation(prop, anim);
+        }
+    }
+}
+
+namespace Roche_Scoreboard.Views
+{
+public partial class SetupWizard
+{
+    private ScaleTransform BdSc => (ScaleTransform)ProductionNames.RegistryFor(this)["BdSc"];
+    private TranslateTransform BdLift => (TranslateTransform)ProductionNames.RegistryFor(this)["BdLift"];
+    private TranslateTransform BeamTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["BeamTranslate"];
+    private TranslateTransform HeaderTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["HeaderTranslate"];
+    private TranslateTransform StepIndicatorTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["StepIndicatorTranslate"];
+    private DropShadowEffect Step1Glow => (DropShadowEffect)ProductionNames.RegistryFor(this)["Step1Glow"];
+    private TranslateTransform HomePresetTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["HomePresetTranslate"];
+    private TranslateTransform AwayPresetTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["AwayPresetTranslate"];
+    private ScaleTransform HomeCardScale => (ScaleTransform)ProductionNames.RegistryFor(this)["HomeCardScale"];
+    private TranslateTransform HomeCardTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["HomeCardTranslate"];
+    private TranslateTransform HomeHeaderTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["HomeHeaderTranslate"];
+    private ScaleTransform DividerScale => (ScaleTransform)ProductionNames.RegistryFor(this)["DividerScale"];
+    private ScaleTransform AwayCardScale => (ScaleTransform)ProductionNames.RegistryFor(this)["AwayCardScale"];
+    private TranslateTransform AwayCardTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["AwayCardTranslate"];
+    private TranslateTransform AwayHeaderTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["AwayHeaderTranslate"];
+    private TranslateTransform Step3Translate => (TranslateTransform)ProductionNames.RegistryFor(this)["Step3Translate"];
+    private TranslateTransform ClockHeaderTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["ClockHeaderTranslate"];
+    private TranslateTransform ControlPanelCountdownCardTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["ControlPanelCountdownCardTranslate"];
+    private ScaleTransform ControlPanelCountdownCardScale => (ScaleTransform)ProductionNames.RegistryFor(this)["ControlPanelCountdownCardScale"];
+    private TranslateTransform ControlPanelCountdownThumbTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["ControlPanelCountdownThumbTranslate"];
+    private TranslateTransform Step4Translate => (TranslateTransform)ProductionNames.RegistryFor(this)["Step4Translate"];
+    private TranslateTransform MsgHeaderTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["MsgHeaderTranslate"];
+    private TranslateTransform NavBarTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["NavBarTranslate"];
+    private ScaleTransform BackBtnScale => (ScaleTransform)ProductionNames.RegistryFor(this)["BackBtnScale"];
+    private ScaleTransform NextBtnScale => (ScaleTransform)ProductionNames.RegistryFor(this)["NextBtnScale"];
+    private void Native_Back_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; Back_Click(sender!, e); }
+    private void Native_ControlPanelCountdownOptionCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; ControlPanelCountdownOptionCard_Click(sender!, e); }
+    private void Native_CountUpCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; CountUpCard_Click(sender!, e); }
+    private void Native_CountdownCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; CountdownCard_Click(sender!, e); }
+    private void Native_DropperSetupAwayColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; DropperSetupAwayColor_Click(sender!, e); }
+    private void Native_DropperSetupAwaySecondary_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; DropperSetupAwaySecondary_Click(sender!, e); }
+    private void Native_DropperSetupHomeColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; DropperSetupHomeColor_Click(sender!, e); }
+    private void Native_DropperSetupHomeSecondary_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; DropperSetupHomeSecondary_Click(sender!, e); }
+    private void Native_FinalsCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; FinalsCard_Click(sender!, e); }
+    private void Native_GoToStep1_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; GoToStep1_Click(sender!, e); }
+    private void Native_GoToStep2_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; GoToStep2_Click(sender!, e); }
+    private void Native_GoToStep3_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; GoToStep3_Click(sender!, e); }
+    private void Native_MinutesMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; MinutesMinus_Click(sender!, e); }
+    private void Native_MinutesPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; MinutesPlus_Click(sender!, e); }
+    private void Native_NavBtn_MouseEnter(object? sender, PointerEventArgs e) { NavBtn_MouseEnter(sender!, e); }
+    private void Native_NavBtn_MouseLeave(object? sender, PointerEventArgs e) { NavBtn_MouseLeave(sender!, e); }
+    private void Native_Next_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; Next_Click(sender!, e); }
+    private void Native_PickSetupAwayColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PickSetupAwayColor_Click(sender!, e); }
+    private void Native_PickSetupAwaySecondary_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PickSetupAwaySecondary_Click(sender!, e); }
+    private void Native_PickSetupHomeColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PickSetupHomeColor_Click(sender!, e); }
+    private void Native_PickSetupHomeSecondary_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PickSetupHomeSecondary_Click(sender!, e); }
+    private void Native_ResponsiveScrollHost_PreviewMouseWheel(object? sender, PointerWheelEventArgs e) { ResponsiveScrollHost_PreviewMouseWheel(sender!, e); }
+    private void Native_SetupAwayColorBox_TextChanged(object? sender, TextChangedEventArgs e) { SetupAwayColorBox_TextChanged(sender!, e); }
+    private void Native_SetupAwaySecondaryBox_TextChanged(object? sender, TextChangedEventArgs e) { SetupAwaySecondaryBox_TextChanged(sender!, e); }
+    private void Native_SetupClearItemHighlightColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Right) return; SetupClearItemHighlightColor_Click(sender!, e); }
+    private void Native_SetupClearNewHighlightColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Right) return; SetupClearNewHighlightColor_Click(sender!, e); }
+    private void Native_SetupClockMode_Changed(object? sender, RoutedEventArgs e) { SetupClockMode_Changed(sender!, e); }
+    private void Native_SetupHomeColorBox_TextChanged(object? sender, TextChangedEventArgs e) { SetupHomeColorBox_TextChanged(sender!, e); }
+    private void Native_SetupHomeSecondaryBox_TextChanged(object? sender, TextChangedEventArgs e) { SetupHomeSecondaryBox_TextChanged(sender!, e); }
+    private void Native_SetupQuarterDuration_TextChanged(object? sender, TextChangedEventArgs e) { SetupQuarterDuration_TextChanged(sender!, e); }
+    private void Native_SetupQuickDuration10_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SetupQuickDuration10_Click(sender!, e); }
+    private void Native_SetupQuickDuration15_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SetupQuickDuration15_Click(sender!, e); }
+    private void Native_SetupQuickDuration20_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SetupQuickDuration20_Click(sender!, e); }
+    private void Native_SetupQuickDuration25_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SetupQuickDuration25_Click(sender!, e); }
+}
+}

@@ -1,0 +1,10 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <x:Double x:Key="ScoreGrid.Height.ControlDefault">36</x:Double>
+    <x:Double x:Key="ScoreGrid.Height.ControlImportant">44</x:Double>
+    <x:Double x:Key="ScoreGrid.Height.ControlCompact">28</x:Double>
+    <Thickness x:Key="ScoreGrid.Padding.Control">12,8</Thickness>
+    <Thickness x:Key="ScoreGrid.Padding.ControlSmall">8,4</Thickness>
+    <Thickness x:Key="ScoreGrid.Padding.Content">16</Thickness>
+    <Thickness x:Key="ScoreGrid.Padding.Card">24</Thickness>
+</ResourceDictionary>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <!-- Compile the Windows application's authoritative engines directly. No forked rules. -->
+  <ItemGroup>
+    <Compile Include="../../Roche_Scoreboard/Models/MatchManager.cs" Link="Models/MatchManager.cs" />
+    <Compile Include="../../Roche_Scoreboard/Models/ScoreEvent.cs" Link="Models/ScoreEvent.cs" />
+    <Compile Include="../../Roche_Scoreboard/Models/MatchStats.cs" Link="Models/MatchStats.cs" />
+    <Compile Include="../../Roche_Scoreboard/Models/WinProbabilityEngine.cs" Link="Models/WinProbabilityEngine.cs" />
+    <Compile Include="../../Roche_Scoreboard/Models/CricketMatchManager.cs" Link="Models/CricketMatchManager.cs" />
+    <Compile Include="../../Roche_Scoreboard/Models/CricketPlayer.cs" Link="Models/CricketPlayer.cs" />
+    <Compile Include="../../Roche_Scoreboard/Models/CricketAnalytics.cs" Link="Models/CricketAnalytics.cs" />
+    <Compile Include="../../Roche_Scoreboard/Models/TrainingSession.cs" Link="Models/TrainingSession.cs" />
+    <Compile Include="../../Roche_Scoreboard/Models/TrainingTimer.cs" Link="Models/TrainingTimer.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/AflGoalRunDetector.cs" Link="Services/AflGoalRunDetector.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/AflDroughtCalculator.cs" Link="Services/AflDroughtCalculator.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/AtomicFile.cs" Link="Services/AtomicFile.cs" />
+    <InternalsVisibleTo Include="RocheScoreboard.Mac" />
+    <InternalsVisibleTo Include="RocheScoreboard.Mac.Tests" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="RocheScoreboard.Core/RocheScoreboard.Core.csproj" />
+  <Project Path="RocheScoreboard.Mac/RocheScoreboard.Mac.csproj" />
+  <Project Path="RocheScoreboard.Mac.Tests/RocheScoreboard.Mac.Tests.csproj" />
+</Solution>

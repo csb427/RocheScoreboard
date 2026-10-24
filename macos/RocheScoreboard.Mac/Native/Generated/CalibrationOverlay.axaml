@@ -1,0 +1,42 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.CalibrationOverlay" IsHitTestVisible="False" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Grid>
+        <Border BorderBrush="#FFFF00FF" BorderThickness="2" />
+        <Border BorderBrush="#80FFFF00" BorderThickness="1" Margin="20" />
+        <Rectangle Width="1" Fill="#80FF00FF" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+        <Rectangle Height="1" Fill="#80FF00FF" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+        <Path Data="M 0,30 L 0,0 L 30,0" Stroke="#FF00FFFF" StrokeThickness="3" HorizontalAlignment="Left" VerticalAlignment="Top" />
+        <Path Data="M 30,0 L 0,0 L 0,30" Stroke="#FF00FFFF" StrokeThickness="3" HorizontalAlignment="Right" VerticalAlignment="Top" RenderTransformOrigin="50%,50%">
+            <Path.RenderTransform>
+                <ScaleTransform ScaleX="-1" />
+            </Path.RenderTransform>
+        </Path>
+        <Path Data="M 0,30 L 0,0 L 30,0" Stroke="#FF00FFFF" StrokeThickness="3" HorizontalAlignment="Left" VerticalAlignment="Bottom" RenderTransformOrigin="50%,50%">
+            <Path.RenderTransform>
+                <ScaleTransform ScaleY="-1" />
+            </Path.RenderTransform>
+        </Path>
+        <Path Data="M 30,0 L 0,0 L 0,30" Stroke="#FF00FFFF" StrokeThickness="3" HorizontalAlignment="Right" VerticalAlignment="Bottom" RenderTransformOrigin="50%,50%">
+            <Path.RenderTransform>
+                <ScaleTransform ScaleX="-1" ScaleY="-1" />
+            </Path.RenderTransform>
+        </Path>
+        <Border Background="#C0000000" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,40,0,0">
+            <TextBlock x:Name="SizeReadout" Foreground="#FF00FF00" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="16" FontWeight="Bold" Text="0 x 0" />
+        </Border>
+        <Border Background="#E6080B10" BorderBrush="#FF58A6FF" BorderThickness="2" CornerRadius="12" Padding="20,12" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock Text="DISTANCE READABILITY TEST" Foreground="#FF9CCBFF" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="16" FontWeight="Black" HorizontalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,2">
+                    <TextBlock Text="88" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="72" FontWeight="Bold" />
+                    <Border Width="2" Background="#FF304055" Margin="20,5" />
+                    <TextBlock Text="888" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="96" FontWeight="Black" />
+                </StackPanel>
+                <TextBlock Text="GOALS / BEHINDS · TOTAL" Foreground="#FFC6D1DE" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+        <Border Background="#C0000000" Padding="10,5" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40">
+            <TextBlock Foreground="White" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="14" Text="Calibration Mode  —  Ctrl+Shift+C to exit" />
+        </Border>
+    </Grid>
+</UserControl>

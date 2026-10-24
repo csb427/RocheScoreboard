@@ -1,0 +1,103 @@
+{
+  "source": "Roche_Scoreboard/Views/OutputScreensaverControl.xaml",
+  "source_sha256": "0c694101e26b5b90ea1b654cfb10d3d171e5820daaf8c4d952c373118196a565",
+  "names": [
+    {
+      "name": "Root",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "CustomVideoHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "CustomImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "DefaultScene",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "LightBeamOne",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "BeamOneTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "LightBeamTwo",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "BeamTwoTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "FieldLayer",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "FieldTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ParticleOneTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ParticleTwoTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ParticleThreeTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HorizonGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ClockText",
+      "type": "TextBlock",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "c5c6fed612ce92ea3d696c9ca00ab647bc321fdf54538b327ec23a7800a5fb3e",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "False"
+    },
+    {
+      "name": "FieldLayer",
+      "property": "SnapsToDevicePixels",
+      "source": "False"
+    },
+    {
+      "name": "ClockText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

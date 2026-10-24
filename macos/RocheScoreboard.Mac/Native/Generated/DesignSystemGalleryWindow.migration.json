@@ -1,0 +1,156 @@
+{
+  "source": "Roche_Scoreboard/Views/DesignSystemGalleryWindow.xaml",
+  "source_sha256": "78bdd205445386218cccf82ac4a0d9f2e89e904a5eba7696c2b9da81d5588b43",
+  "names": [
+    {
+      "name": "BtnToggleTheme",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "BtnToggleDensity",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "GalleryContentPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "ThemeStateText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "DensityStateText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FocusBrushText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ControlBorderBrushText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WindowBackgroundText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TextPrimaryText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ControlMetricsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SelfTestStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PrimaryButtonSample",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "SecondaryButtonSample",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "DangerButtonSample",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "InputsSection",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "TextBoxSample",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "DisabledTextBoxSample",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "CheckBoxSample",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "DisabledCheckBoxSample",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "RadioOptionA",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "RadioOptionB",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "RadioOptionC",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "ComboBoxSample",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "DisabledComboBoxSample",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "SurfaceCardSample",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WarningBadgeSample",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "IconSample",
+      "type": "Path",
+      "object": false
+    },
+    {
+      "name": "TooltipSampleButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "StandardTooltipSample",
+      "type": "ToolTip",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "44dd64848d1ebfc786f65deb4c460233e92e92486dbbadb70bea9cb69f0f137a",
+  "native_events": [],
+  "platform_translations": [],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

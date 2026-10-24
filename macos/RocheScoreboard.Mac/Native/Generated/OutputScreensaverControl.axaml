@@ -1,0 +1,108 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:RocheScoreboard.Mac.Native" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.OutputScreensaverControl" Background="Black" UseLayoutRounding="True" RenderOptions.EdgeMode="Unspecified" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" RenderOptions.BitmapInterpolationMode="HighQuality">
+    <Grid x:Name="Root" Background="Black" ClipToBounds="True" ns3:SceneMotion.Spec="[{&quot;event&quot;:&quot;FrameworkElement.Loaded&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;BeamOneTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;X&quot;,&quot;From&quot;:&quot;-20&quot;,&quot;To&quot;:&quot;470&quot;,&quot;Duration&quot;:&quot;0:0:18&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;BeamTwoTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;X&quot;,&quot;From&quot;:&quot;40&quot;,&quot;To&quot;:&quot;-430&quot;,&quot;Duration&quot;:&quot;0:0:22&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;FieldTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;X&quot;,&quot;From&quot;:&quot;-12&quot;,&quot;To&quot;:&quot;12&quot;,&quot;Duration&quot;:&quot;0:0:16&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;FieldTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;From&quot;:&quot;-5&quot;,&quot;To&quot;:&quot;5&quot;,&quot;Duration&quot;:&quot;0:0:21&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;ParticleOneTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;X&quot;,&quot;From&quot;:&quot;0&quot;,&quot;To&quot;:&quot;310&quot;,&quot;Duration&quot;:&quot;0:0:13&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;ParticleOneTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;From&quot;:&quot;0&quot;,&quot;To&quot;:&quot;72&quot;,&quot;Duration&quot;:&quot;0:0:9&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;ParticleTwoTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;X&quot;,&quot;From&quot;:&quot;0&quot;,&quot;To&quot;:&quot;-250&quot;,&quot;Duration&quot;:&quot;0:0:17&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;ParticleTwoTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;From&quot;:&quot;0&quot;,&quot;To&quot;:&quot;-92&quot;,&quot;Duration&quot;:&quot;0:0:14&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;ParticleThreeTranslate&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;X&quot;,&quot;From&quot;:&quot;0&quot;,&quot;To&quot;:&quot;135&quot;,&quot;Duration&quot;:&quot;0:0:11&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;HorizonGlow&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;From&quot;:&quot;0.16&quot;,&quot;To&quot;:&quot;0.48&quot;,&quot;Duration&quot;:&quot;0:0:4&quot;,&quot;AutoReverse&quot;:&quot;True&quot;,&quot;_StoryboardRepeat&quot;:&quot;Forever&quot;,&quot;Easing&quot;:&quot;SineEase&quot;,&quot;EasingMode&quot;:&quot;EaseInOut&quot;}]}]">
+        <Grid x:Name="CustomVideoHost" IsVisible="False" />
+        <Image x:Name="CustomImage" Stretch="UniformToFill" IsVisible="False" RenderOptions.BitmapInterpolationMode="HighQuality" />
+        <Grid x:Name="DefaultScene">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Color="#030711" Offset="0" />
+                    <GradientStop Color="#0A1A2C" Offset="0.48" />
+                    <GradientStop Color="#07101C" Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Rectangle Opacity="0.32">
+                <Rectangle.Fill>
+                    <RadialGradientBrush Center="50%,48%" GradientOrigin="50%,48%" RadiusX="62%" RadiusY="82%">
+                        <GradientStop Color="#304B90C8" Offset="0" />
+                        <GradientStop Color="#00132638" Offset="1" />
+                    </RadialGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Canvas Opacity="0.22" ClipToBounds="True">
+                <Rectangle x:Name="LightBeamOne" Width="150" Height="420" RenderTransformOrigin="50%,50%" Canvas.Left="-105" Canvas.Top="-120">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                            <GradientStop Color="#0058A6FF" />
+                            <GradientStop Color="#3858A6FF" Offset="0.5" />
+                            <GradientStop Color="#0058A6FF" Offset="1" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                    <Rectangle.Effect>
+                        <BlurEffect Radius="18" />
+                    </Rectangle.Effect>
+                    <Rectangle.RenderTransform>
+                        <TransformGroup>
+                            <RotateTransform Angle="-25" />
+                            <TranslateTransform port:ProductionNames.Id="BeamOneTranslate" />
+                        </TransformGroup>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+                <Rectangle x:Name="LightBeamTwo" Width="125" Height="420" RenderTransformOrigin="50%,50%" Canvas.Left="300" Canvas.Top="-90">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                            <GradientStop Color="#00E7B94F" />
+                            <GradientStop Color="#2AE7B94F" Offset="0.5" />
+                            <GradientStop Color="#00E7B94F" Offset="1" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                    <Rectangle.Effect>
+                        <BlurEffect Radius="20" />
+                    </Rectangle.Effect>
+                    <Rectangle.RenderTransform>
+                        <TransformGroup>
+                            <RotateTransform Angle="27" />
+                            <TranslateTransform port:ProductionNames.Id="BeamTwoTranslate" />
+                        </TransformGroup>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+            </Canvas>
+            <Canvas x:Name="FieldLayer" Width="500" Height="260" Opacity="0.09" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" RenderOptions.EdgeMode="Unspecified">
+                <Canvas.Effect>
+                    <BlurEffect Radius="0.55" />
+                </Canvas.Effect>
+                <Canvas.RenderTransform>
+                    <TranslateTransform port:ProductionNames.Id="FieldTranslate" />
+                </Canvas.RenderTransform>
+                <Rectangle Canvas.Left="30" Canvas.Top="28" Width="440" Height="204" RadiusX="52" RadiusY="52" Stroke="#9BC8EE" StrokeThickness="2" />
+                <Line Stroke="#9BC8EE" StrokeThickness="2" StartPoint="250,28" EndPoint="250,232" />
+                <Line Stroke="#9BC8EE" StrokeThickness="2" StartPoint="30,94" EndPoint="82,94" />
+                <Line Stroke="#9BC8EE" StrokeThickness="2" StartPoint="418,166" EndPoint="470,166" />
+            </Canvas>
+            <Canvas ClipToBounds="True" IsHitTestVisible="False">
+                <Ellipse Width="7" Height="7" Fill="#B9E0FF" Opacity="0.55" Canvas.Left="34" Canvas.Top="42">
+                    <Ellipse.RenderTransform>
+                        <TranslateTransform port:ProductionNames.Id="ParticleOneTranslate" />
+                    </Ellipse.RenderTransform>
+                </Ellipse>
+                <Ellipse Width="5" Height="5" Fill="#F2CA66" Opacity="0.50" Canvas.Left="310" Canvas.Top="138">
+                    <Ellipse.RenderTransform>
+                        <TranslateTransform port:ProductionNames.Id="ParticleTwoTranslate" />
+                    </Ellipse.RenderTransform>
+                </Ellipse>
+                <Ellipse Width="4" Height="4" Fill="#8EC8F3" Opacity="0.45" Canvas.Left="176" Canvas.Top="22">
+                    <Ellipse.RenderTransform>
+                        <TranslateTransform port:ProductionNames.Id="ParticleThreeTranslate" />
+                    </Ellipse.RenderTransform>
+                </Ellipse>
+            </Canvas>
+            <Border x:Name="HorizonGlow" Height="3" VerticalAlignment="Bottom" Margin="28,0" Opacity="0.25" IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#0058A6FF" />
+                        <GradientStop Color="#8058A6FF" Offset="0.35" />
+                        <GradientStop Color="#80E7B94F" Offset="0.65" />
+                        <GradientStop Color="#00E7B94F" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+            <Grid Margin="12,8">
+                <TextBlock x:Name="ClockText" Text="8:05 PM" Foreground="#F3F8FC" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="34" FontWeight="Black" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="8" Opacity="0.8" OffsetX="0" OffsetY="0" />
+                    </TextBlock.Effect>
+                </TextBlock>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

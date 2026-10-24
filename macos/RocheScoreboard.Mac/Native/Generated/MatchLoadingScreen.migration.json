@@ -1,0 +1,226 @@
+{
+  "source": "Roche_Scoreboard/Views/MatchLoadingScreen.xaml",
+  "source_sha256": "b87982ec6bbfca991e9728b9b568ffa7b263acc509ea414e8c12716125a6909f",
+  "names": [
+    {
+      "name": "GridCanvas",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "BeamCanvas",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "ParticleCanvas",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "BrandPulse",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "BrandText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BrandSubtitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeRing",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "HomeRingGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "HomeLogoSlot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeLogoFallback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OuterOrbitRotate",
+      "type": "RotateTransform",
+      "object": true
+    },
+    {
+      "name": "InnerOrbitRotate",
+      "type": "RotateTransform",
+      "object": true
+    },
+    {
+      "name": "VsChipScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "VsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayRing",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "AwayRingGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "AwayLogoSlot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayLogoFallback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ProgressFill",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ProgressShine",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ShineTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "StatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PercentText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StepStack",
+      "type": "StackPanel",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "d0e7b05df8b59d8a62b1d5397e2d8dbbbb6628b207b2a5139b443708c8ff2fbf",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "BrandText",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BrandSubtitle",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeLogoFallback",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeNameText",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "OuterOrbitRotate",
+      "property": "CenterX",
+      "source": "80"
+    },
+    {
+      "name": "OuterOrbitRotate",
+      "property": "CenterY",
+      "source": "80"
+    },
+    {
+      "name": "InnerOrbitRotate",
+      "property": "CenterX",
+      "source": "59"
+    },
+    {
+      "name": "InnerOrbitRotate",
+      "property": "CenterY",
+      "source": "59"
+    },
+    {
+      "name": "VsText",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayLogoFallback",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayNameText",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatusText",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "PercentText",
+      "property": "FontFamily",
+      "source": "Segoe UI",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

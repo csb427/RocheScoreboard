@@ -1,0 +1,177 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<Window xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:RocheScoreboard.Mac.Native" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.DesignSystemGalleryWindow" Title="Score Grid Design System Gallery" Width="1200" Height="900" Background="{DynamicResource ScoreGrid.Brush.Background}" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Window.Resources>
+        <ControlTheme x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource ScoreGrid.Text.Title}">
+            <Setter Property="Margin" Value="0,24,0,16" />
+        </ControlTheme>
+        <ControlTheme x:Key="ComponentRow" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Margin" Value="0,8,0,8" />
+        </ControlTheme>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}" BorderThickness="0,0,0,1" Padding="{DynamicResource ScoreGrid.Padding.Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Score Grid" Theme="{StaticResource ScoreGrid.Text.Display}" />
+                    <TextBlock Text="Design System Gallery" Theme="{StaticResource ScoreGrid.Text.Caption}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="BtnToggleTheme" AutomationProperties.AutomationId="BtnToggleTheme" AutomationProperties.Name="Toggle Theme" Content="Toggle Theme" Click="BtnToggleTheme_Click" TabIndex="0" Theme="{StaticResource ScoreGrid.Button.Secondary}" ToolTip.Tip="Switch between Light and Dark themes" />
+                    <Button x:Name="BtnToggleDensity" AutomationProperties.AutomationId="BtnToggleDensity" AutomationProperties.Name="Toggle Density" Content="Toggle Density" Click="BtnToggleDensity_Click" Margin="12,0,0,0" TabIndex="1" Theme="{StaticResource ScoreGrid.Button.Secondary}" ToolTip.Tip="Switch between Comfortable and Compact density" />
+                </StackPanel>
+            </Grid>
+        </Border>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="GalleryContentPanel" Margin="{DynamicResource ScoreGrid.Padding.Card}">
+                <TextBlock Text="Diagnostics" Theme="{StaticResource SectionTitle}" />
+                <Border Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,8">
+                    <StackPanel>
+                        <TextBlock x:Name="ThemeStateText" AutomationProperties.AutomationId="ThemeStateText" Margin="0,0,0,4" Theme="{StaticResource ScoreGrid.Text.BodyStrong}" />
+                        <TextBlock x:Name="DensityStateText" AutomationProperties.AutomationId="DensityStateText" Margin="0,0,0,4" Theme="{StaticResource ScoreGrid.Text.Body}" />
+                        <TextBlock x:Name="FocusBrushText" AutomationProperties.AutomationId="FocusBrushText" Margin="0,0,0,4" Theme="{StaticResource ScoreGrid.Text.Body}" />
+                        <TextBlock x:Name="ControlBorderBrushText" AutomationProperties.AutomationId="ControlBorderBrushText" Margin="0,0,0,4" Theme="{StaticResource ScoreGrid.Text.Body}" />
+                        <TextBlock x:Name="WindowBackgroundText" AutomationProperties.AutomationId="WindowBackgroundText" Margin="0,0,0,4" Theme="{StaticResource ScoreGrid.Text.Body}" />
+                        <TextBlock x:Name="TextPrimaryText" AutomationProperties.AutomationId="TextPrimaryText" Margin="0,0,0,4" Theme="{StaticResource ScoreGrid.Text.Body}" />
+                        <TextBlock x:Name="ControlMetricsText" AutomationProperties.AutomationId="ControlMetricsText" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Body}" />
+                        <TextBlock x:Name="SelfTestStatusText" AutomationProperties.AutomationId="SelfTestStatusText" Theme="{StaticResource ScoreGrid.Text.BodyStrong}" />
+                    </StackPanel>
+                </Border>
+                <TextBlock Text="Typography" Theme="{StaticResource SectionTitle}" />
+                <StackPanel>
+                    <TextBlock Text="Display" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Display}" />
+                    <TextBlock Text="Title" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Title}" />
+                    <TextBlock Text="Heading" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Heading}" />
+                    <TextBlock Text="Subheading" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Subheading}" />
+                    <TextBlock Text="Body text is readable and wraps naturally across multiple lines when needed." Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Body}" />
+                    <TextBlock Text="Body Strong" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.BodyStrong}" />
+                    <TextBlock Text="Caption text provides supplementary information" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Caption}" />
+                    <TextBlock Text="OVERLINE" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Overline}" />
+                    <TextBlock Text="CODE { monospace: true; }" Theme="{StaticResource ScoreGrid.Text.Code}" />
+                </StackPanel>
+                <TextBlock Text="Buttons" Theme="{StaticResource SectionTitle}" />
+                <StackPanel>
+                    <StackPanel Theme="{StaticResource ComponentRow}">
+                        <Button x:Name="PrimaryButtonSample" AutomationProperties.AutomationId="PrimaryButtonSample" AutomationProperties.Name="Primary Sample" Content="Primary" TabIndex="2" Theme="{StaticResource ScoreGrid.Button.Primary}" />
+                        <Button Content="Primary Disabled" IsEnabled="False" Margin="12,0,0,0" Theme="{StaticResource ScoreGrid.Button.Primary}" />
+                    </StackPanel>
+                    <StackPanel Theme="{StaticResource ComponentRow}">
+                        <Button x:Name="SecondaryButtonSample" AutomationProperties.AutomationId="SecondaryButtonSample" AutomationProperties.Name="Secondary Sample" Content="Secondary" TabIndex="3" Theme="{StaticResource ScoreGrid.Button.Secondary}" />
+                        <Button Content="Secondary Disabled" IsEnabled="False" Margin="12,0,0,0" Theme="{StaticResource ScoreGrid.Button.Secondary}" />
+                    </StackPanel>
+                    <StackPanel Theme="{StaticResource ComponentRow}">
+                        <Button x:Name="DangerButtonSample" AutomationProperties.AutomationId="DangerButtonSample" AutomationProperties.Name="Danger Sample" Content="Danger" TabIndex="4" Theme="{StaticResource ScoreGrid.Button.Danger}" />
+                        <Button Content="Danger Disabled" IsEnabled="False" Margin="12,0,0,0" Theme="{StaticResource ScoreGrid.Button.Danger}" />
+                    </StackPanel>
+                </StackPanel>
+                <TextBlock Text="Inputs" Theme="{StaticResource SectionTitle}" />
+                <StackPanel x:Name="InputsSection">
+                    <TextBox x:Name="TextBoxSample" AutomationProperties.AutomationId="TextBoxSample" AutomationProperties.Name="TextBox Sample" Text="Text input" Width="300" HorizontalAlignment="Left" Margin="0,0,0,12" TabIndex="5" Theme="{StaticResource ScoreGrid.TextBox}" ToolTip.Tip="Standard input field" />
+                    <TextBox x:Name="DisabledTextBoxSample" AutomationProperties.AutomationId="DisabledTextBoxSample" Width="300" HorizontalAlignment="Left" IsEnabled="False" Text="Disabled input" Margin="0,0,0,12" Theme="{StaticResource ScoreGrid.TextBox}" ToolTip.Tip="Disabled input field" />
+                    <CheckBox x:Name="CheckBoxSample" AutomationProperties.AutomationId="CheckBoxSample" AutomationProperties.Name="CheckBox Sample" Content="Checkbox unchecked" Margin="0,0,0,12" TabIndex="6" Theme="{StaticResource ScoreGrid.CheckBox}" ToolTip.Tip="Toggle option sample" />
+                    <CheckBox Content="Checkbox checked" IsChecked="True" Margin="0,0,0,12" Theme="{StaticResource ScoreGrid.CheckBox}" />
+                    <CheckBox x:Name="DisabledCheckBoxSample" AutomationProperties.AutomationId="DisabledCheckBoxSample" Content="Checkbox disabled" IsEnabled="False" Margin="0,0,0,16" Theme="{StaticResource ScoreGrid.CheckBox}" />
+                    <TextBlock Text="Radio Button Group:" Margin="0,0,0,8" Theme="{StaticResource ScoreGrid.Text.Body}" />
+                    <RadioButton x:Name="RadioOptionA" AutomationProperties.AutomationId="RadioOptionA" AutomationProperties.Name="Radio Option A" Content="Option A" GroupName="demo" Margin="0,0,0,8" TabIndex="7" Theme="{StaticResource ScoreGrid.RadioButton}" ToolTip.Tip="Radio choice A" />
+                    <RadioButton x:Name="RadioOptionB" AutomationProperties.AutomationId="RadioOptionB" AutomationProperties.Name="Radio Option B" Content="Option B" GroupName="demo" IsChecked="True" Margin="0,0,0,8" TabIndex="8" Theme="{StaticResource ScoreGrid.RadioButton}" ToolTip.Tip="Radio choice B" />
+                    <RadioButton x:Name="RadioOptionC" AutomationProperties.AutomationId="RadioOptionC" AutomationProperties.Name="Radio Option C" Content="Option C" GroupName="demo" Margin="0,0,0,8" TabIndex="9" Theme="{StaticResource ScoreGrid.RadioButton}" ToolTip.Tip="Radio choice C" />
+                    <RadioButton Content="Option Disabled" GroupName="demo" IsEnabled="False" Margin="0,0,0,16" Theme="{StaticResource ScoreGrid.RadioButton}" />
+                    <ComboBox x:Name="ComboBoxSample" AutomationProperties.AutomationId="ComboBoxSample" AutomationProperties.Name="ComboBox Sample" Width="300" HorizontalAlignment="Left" SelectedIndex="0" Margin="0,0,0,12" TabIndex="10" Theme="{StaticResource ScoreGrid.ComboBox}" ToolTip.Tip="Choose a sample option">
+                        <ComboBoxItem Content="ComboBox Item 1" />
+                        <ComboBoxItem Content="ComboBox Item 2" />
+                        <ComboBoxItem Content="ComboBox Item 3" />
+                        <ComboBoxItem Content="ComboBox Item 4" />
+                    </ComboBox>
+                    <ComboBox x:Name="DisabledComboBoxSample" AutomationProperties.AutomationId="DisabledComboBoxSample" Width="300" HorizontalAlignment="Left" IsEnabled="False" SelectedIndex="0" Theme="{StaticResource ScoreGrid.ComboBox}" ToolTip.Tip="Disabled combo box">
+                        <ComboBoxItem Content="Disabled ComboBox" />
+                    </ComboBox>
+                </StackPanel>
+                <TextBlock Text="Theme Colors" Theme="{StaticResource SectionTitle}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Grid.Column="0" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.BrandPrimary}" Margin="4">
+                        <TextBlock Text="Brand Primary" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="1" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.BrandHover}" Margin="4">
+                        <TextBlock Text="Brand Hover" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="2" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.BrandPressed}" Margin="4">
+                        <TextBlock Text="Brand Pressed" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="0" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.Background}" BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}" BorderThickness="1" Margin="4">
+                        <TextBlock Text="Background" Foreground="{DynamicResource ScoreGrid.Brush.TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border x:Name="SurfaceCardSample" Grid.Row="1" Grid.Column="1" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}" BorderThickness="1" Margin="4">
+                        <TextBlock Text="Surface" Foreground="{DynamicResource ScoreGrid.Brush.TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="2" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.SurfaceSubtle}" BorderBrush="{DynamicResource ScoreGrid.Brush.DecorativeBorder}" BorderThickness="1" Margin="4">
+                        <TextBlock Text="Surface Subtle" Foreground="{DynamicResource ScoreGrid.Brush.TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="0" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.SuccessBackground}" Margin="4">
+                        <TextBlock Text="Success" Foreground="{DynamicResource ScoreGrid.Brush.SuccessForeground}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="SemiBold" />
+                    </Border>
+                    <Border x:Name="WarningBadgeSample" Grid.Row="2" Grid.Column="1" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.WarningBackground}" Margin="4">
+                        <TextBlock Text="Warning" Foreground="{DynamicResource ScoreGrid.Brush.WarningForeground}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="SemiBold" />
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="2" Width="200" Height="60" Background="{DynamicResource ScoreGrid.Brush.DangerBackground}" Margin="4">
+                        <TextBlock Text="Danger" Foreground="{DynamicResource ScoreGrid.Brush.DangerForeground}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="SemiBold" />
+                    </Border>
+                    <TextBlock Grid.Row="3" Grid.ColumnSpan="3" Text="Icons" Margin="0,24,0,8" Theme="{StaticResource SectionTitle}" />
+                    <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Horizontal">
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path x:Name="IconSample" Data="{StaticResource ScoreGrid.IconGeometry.Check}" Theme="{StaticResource ScoreGrid.IconPath}" />
+                            <TextBlock Text="Check" HorizontalAlignment="Center" Margin="0,6,0,0" Theme="{StaticResource ScoreGrid.Text.Caption}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource ScoreGrid.IconGeometry.Close}" Theme="{StaticResource ScoreGrid.IconPath}" />
+                            <TextBlock Text="Close" HorizontalAlignment="Center" Margin="0,6,0,0" Theme="{StaticResource ScoreGrid.Text.Caption}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource ScoreGrid.IconGeometry.ChevronDown}" Theme="{StaticResource ScoreGrid.IconPath}" />
+                            <TextBlock Text="Chevron" HorizontalAlignment="Center" Margin="0,6,0,0" Theme="{StaticResource ScoreGrid.Text.Caption}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource ScoreGrid.IconGeometry.Info}" Theme="{StaticResource ScoreGrid.IconPath}" />
+                            <TextBlock Text="Info" HorizontalAlignment="Center" Margin="0,6,0,0" Theme="{StaticResource ScoreGrid.Text.Caption}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource ScoreGrid.IconGeometry.Warning}" Theme="{StaticResource ScoreGrid.IconPath}" />
+                            <TextBlock Text="Warning" HorizontalAlignment="Center" Margin="0,6,0,0" Theme="{StaticResource ScoreGrid.Text.Caption}" />
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Center">
+                            <Path Data="{StaticResource ScoreGrid.IconGeometry.Error}" Theme="{StaticResource ScoreGrid.IconPath}" />
+                            <TextBlock Text="Error" HorizontalAlignment="Center" Margin="0,6,0,0" Theme="{StaticResource ScoreGrid.Text.Caption}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="Tooltip" Theme="{StaticResource SectionTitle}" />
+                <StackPanel>
+                    <Button x:Name="TooltipSampleButton" AutomationProperties.AutomationId="TooltipSampleButton" AutomationProperties.Name="Tooltip Sample Button" Content="Hover or focus for tooltip" HorizontalAlignment="Left" TabIndex="11" Theme="{StaticResource ScoreGrid.Button.Secondary}" ns3:TooltipDuration.Milliseconds="60000">
+                        <ToolTip.Tip>
+                            <ToolTip x:Name="StandardTooltipSample" Content="Standard WPF tooltip sample for theme verification." />
+                        </ToolTip.Tip>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

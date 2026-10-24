@@ -1,0 +1,128 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.IntroScreenControl" Background="Transparent" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Viewbox Stretch="Uniform">
+        <Grid x:Name="RootGrid" Width="707" Height="420" ClipToBounds="True">
+            <Border x:Name="HomeHalf" ZIndex="1">
+                <Border.RenderTransform>
+                    <TranslateTransform X="0" port:ProductionNames.Id="HomeHalfTranslate" />
+                </Border.RenderTransform>
+                <Border.Clip>
+                    <PathGeometry Figures="M0,0 L707,0 L0,420 Z" />
+                </Border.Clip>
+                <Grid>
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <SolidColorBrush Color="#8B1A1A" port:ProductionNames.Id="HomeBgBrush" />
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Rectangle Opacity="0.4">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#40000000" Offset="0.0" />
+                                <GradientStop Color="#00000000" Offset="0.6" />
+                                <GradientStop Color="#20000000" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Rectangle x:Name="HomeShimmer" Width="250" Opacity="0" HorizontalAlignment="Left">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#00FFFFFF" Offset="0.0" />
+                                <GradientStop Color="#30FFFFFF" Offset="0.5" />
+                                <GradientStop Color="#00FFFFFF" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                        <Rectangle.RenderTransform>
+                            <TranslateTransform X="-300" port:ProductionNames.Id="HomeShimmerTranslate" />
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+                    <Image x:Name="HomeLogoImage" Width="180" Height="180" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,300,160" RenderTransformOrigin="50%,50%" IsVisible="False">
+                        <Image.RenderTransform>
+                            <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.Id="HomeLogoScale" />
+                        </Image.RenderTransform>
+                        <Image.Effect>
+                            <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.6" OffsetX="2.82842712475" OffsetY="2.82842712475" />
+                        </Image.Effect>
+                    </Image>
+                    <TextBlock x:Name="HomeNameFallback" Text="HOME" FontSize="60" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,300,160" Opacity="0.9">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="White" port:ProductionNames.Id="HomeNameBrush" />
+                        </TextBlock.Foreground>
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="20" Color="Black" Opacity="0.5" OffsetX="1.41421356237" OffsetY="1.41421356237" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Border x:Name="AwayHalf" ZIndex="1">
+                <Border.RenderTransform>
+                    <TranslateTransform X="0" port:ProductionNames.Id="AwayHalfTranslate" />
+                </Border.RenderTransform>
+                <Border.Clip>
+                    <PathGeometry Figures="M707,0 L707,420 L0,420 Z" />
+                </Border.Clip>
+                <Grid>
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <SolidColorBrush Color="#2D5A27" port:ProductionNames.Id="AwayBgBrush" />
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Rectangle Opacity="0.4">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="100%,100%" EndPoint="0%,0%">
+                                <GradientStop Color="#40000000" Offset="0.0" />
+                                <GradientStop Color="#00000000" Offset="0.6" />
+                                <GradientStop Color="#20000000" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Rectangle x:Name="AwayShimmer" Width="250" Opacity="0" HorizontalAlignment="Left">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#00FFFFFF" Offset="0.0" />
+                                <GradientStop Color="#30FFFFFF" Offset="0.5" />
+                                <GradientStop Color="#00FFFFFF" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                        <Rectangle.RenderTransform>
+                            <TranslateTransform X="900" port:ProductionNames.Id="AwayShimmerTranslate" />
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+                    <Image x:Name="AwayLogoImage" Width="180" Height="180" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="300,160,0,0" RenderTransformOrigin="50%,50%" IsVisible="False">
+                        <Image.RenderTransform>
+                            <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.Id="AwayLogoScale" />
+                        </Image.RenderTransform>
+                        <Image.Effect>
+                            <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.6" OffsetX="2.82842712475" OffsetY="2.82842712475" />
+                        </Image.Effect>
+                    </Image>
+                    <TextBlock x:Name="AwayNameFallback" Text="AWAY" FontSize="60" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="300,160,0,0" Opacity="0.9">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="White" port:ProductionNames.Id="AwayNameBrush" />
+                        </TextBlock.Foreground>
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="20" Color="Black" Opacity="0.5" OffsetX="1.41421356237" OffsetY="1.41421356237" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Grid>
+            </Border>
+            <Canvas IsHitTestVisible="False" ZIndex="2">
+                <Line x:Name="DiagonalGlow" Stroke="White" StrokeThickness="3" Opacity="0" StartPoint="0,420" EndPoint="707,0">
+                    <Line.Effect>
+                        <BlurEffect Radius="8" port:ProductionNames.Id="DiagonalGlowBlur" />
+                    </Line.Effect>
+                </Line>
+            </Canvas>
+            <TextBlock x:Name="VsText" Text="VS" Foreground="White" FontSize="110" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0" RenderTransformOrigin="50%,50%" ZIndex="5">
+                <TextBlock.Effect>
+                    <DropShadowEffect BlurRadius="30" Color="White" Opacity="0.8" port:ProductionNames.Id="VsGlow" OffsetX="0" OffsetY="0" />
+                </TextBlock.Effect>
+                <TextBlock.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="0.5" ScaleY="0.5" port:ProductionNames.Id="VsScale" />
+                    </TransformGroup>
+                </TextBlock.RenderTransform>
+            </TextBlock>
+        </Grid>
+    </Viewbox>
+</UserControl>

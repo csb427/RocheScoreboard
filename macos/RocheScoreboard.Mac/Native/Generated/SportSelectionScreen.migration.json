@@ -1,0 +1,455 @@
+{
+  "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
+  "source_sha256": "0324bbf4f8e3bcbbe9f1ba998158b187dd2eaab1b69fa7a01e0403f586d20749",
+  "names": [
+    {
+      "name": "ResponsiveScrollHost",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "HeaderPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "SettingsTile",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsTileScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "SettingsTileTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "SettingsTileGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "AflCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AflCardScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "AflCardTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AflGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AflBeamTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AflIconGroup",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AflIconScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "AflIconFloat",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AflIconHover",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AflTextPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "AflTextTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AflHover",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AflFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "DividerScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "DividerGlowLine",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CricketCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CricketCardScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "CricketCardTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "CricketGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CricketBeamTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "CricketIconGroup",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CricketIconScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "CricketIconFloat",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "CricketIconHover",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "CricketTextPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "CricketTextTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "CricketHover",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CricketFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TrainingCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TrainingTileScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TrainingTileTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "TrainingTileGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "TrainingFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ChangelogToggle",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Shell",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "VersionLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BottomAccent",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ChangelogOverlay",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ChangelogPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ChangelogPanelScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ChangelogPanelTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ChangelogSearchBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "ChangelogEntries",
+      "type": "StackPanel",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "42d8aa165a6176ae7d3f31fa9c9adf29b65f1d915580013b854f91742cb4b4bc",
+  "native_events": [
+    {
+      "name": "ResponsiveScrollHost",
+      "source": "PreviewMouseWheel",
+      "native": "PointerWheelChanged",
+      "handler": "ResponsiveScrollHost_PreviewMouseWheel"
+    },
+    {
+      "name": "SettingsTile",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Settings_Click"
+    },
+    {
+      "name": "SettingsTile",
+      "source": "MouseEnter",
+      "native": "PointerEntered",
+      "handler": "SettingsTile_MouseEnter"
+    },
+    {
+      "name": "SettingsTile",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "SettingsTile_MouseLeave"
+    },
+    {
+      "name": "AflCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AFL_Click"
+    },
+    {
+      "name": "AflCard",
+      "source": "MouseEnter",
+      "native": "PointerEntered",
+      "handler": "Card_MouseEnter"
+    },
+    {
+      "name": "AflCard",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "Card_MouseLeave"
+    },
+    {
+      "name": "CricketCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Cricket_Click"
+    },
+    {
+      "name": "CricketCard",
+      "source": "MouseEnter",
+      "native": "PointerEntered",
+      "handler": "Card_MouseEnter"
+    },
+    {
+      "name": "CricketCard",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "Card_MouseLeave"
+    },
+    {
+      "name": "TrainingCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Training_Click"
+    },
+    {
+      "name": "TrainingCard",
+      "source": "MouseEnter",
+      "native": "PointerEntered",
+      "handler": "TrainingTile_MouseEnter"
+    },
+    {
+      "name": "TrainingCard",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "TrainingTile_MouseLeave"
+    },
+    {
+      "name": "ChangelogOverlay",
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "ChangelogOverlay_PreviewKeyDown"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ChangelogBackdrop_Click"
+    },
+    {
+      "name": "ChangelogSearchBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "ChangelogSearch_TextChanged"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": "ResponsiveScrollHost",
+      "property": "PanningMode",
+      "source": "Both"
+    },
+    {
+      "name": "ResponsiveScrollHost",
+      "property": "CanContentScroll",
+      "source": "False"
+    },
+    {
+      "name": "SettingsTileScale",
+      "property": "CenterX",
+      "source": "0.5"
+    },
+    {
+      "name": "SettingsTileScale",
+      "property": "CenterY",
+      "source": "0.5"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewboxUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewboxUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": "TrainingTileScale",
+      "property": "CenterX",
+      "source": "0.5"
+    },
+    {
+      "name": "TrainingTileScale",
+      "property": "CenterY",
+      "source": "0.5"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewboxUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "VersionLabel",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

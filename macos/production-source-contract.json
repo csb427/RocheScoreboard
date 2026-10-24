@@ -1,0 +1,5195 @@
+{
+  "reference": "Roche_Scoreboard",
+  "xaml": [
+    {
+      "source": "Roche_Scoreboard/App.xaml",
+      "class": "Roche_Scoreboard.App",
+      "sha256": "fbd04f766602fb5cf516efdcdcf974c5c9ae4d35931959a7c28d9b8d6af75944",
+      "named_elements": [],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/DesignSystem/ComfortableDensity.xaml",
+      "class": null,
+      "sha256": "bbf4c23d593511be27c0317594b392e6380fd56eef444dff42617d2ead84cdc8",
+      "named_elements": [],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/DesignSystem/CompactDensity.xaml",
+      "class": null,
+      "sha256": "dd42450eadfcd65591fa790d4b5dc6f7b3dcf612f1f6e7df025c2aa8037b6dcb",
+      "named_elements": [],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/DesignSystem/Components.xaml",
+      "class": null,
+      "sha256": "b19efdc094ca197d41a3c33e9848351417c8702082f7ed5ef8efddbb26730c19",
+      "named_elements": [
+        "border",
+        "border",
+        "border",
+        "focusRing",
+        "border",
+        "PART_ContentHost",
+        "checkBorder",
+        "checkMark",
+        "radioBorder",
+        "radioCheck",
+        "toggleButton",
+        "border",
+        "contentPresenter",
+        "popup",
+        "itemBorder"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Segoe UI Symbol"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/DesignSystem/DarkTheme.xaml",
+      "class": null,
+      "sha256": "40ad196149cb1390c6557c22f26ebf549c1f9645bc2b3194be5f51ac4ac7c732",
+      "named_elements": [],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/DesignSystem/Icons.xaml",
+      "class": null,
+      "sha256": "5f87c2c96799d4ad0ead7cc34a1fd7818e6eb0bdf924ff40a9687d4b00ea6b96",
+      "named_elements": [],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/DesignSystem/LightTheme.xaml",
+      "class": null,
+      "sha256": "4f6dabcb6cb38136e547418a1aaa511810d8ea53dbb917c323422531cc80630c",
+      "named_elements": [],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/DesignSystem/Tokens.xaml",
+      "class": null,
+      "sha256": "a8138839ac2bd544da891f5841d174e58a778c8fb961128f11666f1751969eba",
+      "named_elements": [],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/DesignSystem/Typography.xaml",
+      "class": null,
+      "sha256": "d8b111204ac3f59ecbf7960bfe1ac31943d1421bc0111c5a2ba3512073e34c8f",
+      "named_elements": [],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.xaml",
+      "class": "Roche_Scoreboard.MainWindow",
+      "sha256": "f7a177b8c794b70af72af66b3c5dc0fca47ff5cacb900104e9ab74ac9d97ff67",
+      "named_elements": [
+        "Sc",
+        "Lift",
+        "Glow",
+        "Bd",
+        "TbSc",
+        "TbLift",
+        "Glow",
+        "Bd",
+        "Bd",
+        "PrimaryLabel",
+        "SecondaryLabel",
+        "AccBar",
+        "Bd",
+        "RbSc",
+        "HeaderToggle",
+        "HB",
+        "Chev",
+        "Body",
+        "Track",
+        "Thumb",
+        "StateText",
+        "MainContent",
+        "MatchStripBorder",
+        "StatusBadge",
+        "StatusDot",
+        "StatusText",
+        "HeaderOutputBadge",
+        "HeaderOutputText",
+        "HeaderQuarterClock",
+        "LastEventText",
+        "HeaderShortcutText",
+        "EssentialsModeBadge",
+        "OperatorModeBadgeText",
+        "GuidedModeButton",
+        "HeaderHomeAbbr",
+        "HeaderScore",
+        "HeaderAwayAbbr",
+        "HeaderMarginText",
+        "MainTabControl",
+        "PART_SelectedContentHost",
+        "MatchControlTab",
+        "ScoringSectionTitle",
+        "MatchResultText",
+        "ControlPanelCountdownPanel",
+        "ControlPanelCountdownStatusText",
+        "ControlPanelCountdownText",
+        "ControlPanelCountdownEditButton",
+        "ControlPanelCountdownCancelEditButton",
+        "ControlPanelCountdownEditPopupHost",
+        "ControlPanelCountdownEditPopup",
+        "ControlPanelCountdownEditPopupScale",
+        "ControlPanelCountdownEditMinutesBox",
+        "ControlPanelCountdownEditSecondsBox",
+        "ControlPanelCountdownEditErrorText",
+        "ControlPanelCountdownApplyButton",
+        "HomeScoringBorder",
+        "HomeScoringLabel",
+        "HomeScoreDisplay",
+        "HomeGoalButton",
+        "HomeGoalShortcutText",
+        "HomeBehindButton",
+        "HomeBehindShortcutText",
+        "AwayScoringBorder",
+        "AwayScoringLabel",
+        "AwayScoreDisplay",
+        "AwayGoalButton",
+        "AwayGoalShortcutText",
+        "AwayBehindButton",
+        "AwayBehindShortcutText",
+        "StartSwitchWarning",
+        "StartPauseButton",
+        "EndQtrButton",
+        "ContinueQtrButton",
+        "UndoButton",
+        "ScoringTabCloudLauncher",
+        "MatchLogPanel",
+        "MatchLogCountBadge",
+        "MatchLogScrollViewer",
+        "EventList",
+        "MatchLogEmptyHint",
+        "OutputStudioTab",
+        "CurrentDisplayText",
+        "PresCardScorebug",
+        "PresGlowScorebug",
+        "PresCheckScorebug",
+        "PresCardSummary",
+        "PresCheckSummary",
+        "PresCardWorm",
+        "PresCheckWorm",
+        "PresCardStats",
+        "PresCheckStats",
+        "PresCardWeather",
+        "PresCheckWeather",
+        "PresCardWindow",
+        "WindowToggleIcon",
+        "WindowToggleTitle",
+        "WindowToggleTrack",
+        "WindowToggleThumb",
+        "WindowToggleThumbTranslate",
+        "WindowToggleLabel",
+        "PresCardQuarterBreak",
+        "PresCheckQuarterBreak",
+        "PresCardScreensaver",
+        "PresCheckScreensaver",
+        "CancelOverlayButton",
+        "TickerMessageCountText",
+        "TickerDisableAllButton",
+        "TickerUndoDeleteButton",
+        "TickerClearAllButton",
+        "TickerEmptyState",
+        "MessageList",
+        "NewMessageBox",
+        "NewMessageTextColorBtn",
+        "NewMessageHighlightColorBtn",
+        "TickerCharacterCountText",
+        "MediaDeskTab",
+        "VideoTabFilePathText",
+        "VideoTabFileMetaText",
+        "VideoTabShowOnScoreboardButton",
+        "VideoTabPlayPauseButton",
+        "VideoTabRestartButton",
+        "VideoTabUnloadButton",
+        "VideoTabStatusText",
+        "VideoTabApplyButton",
+        "VideoTabLiveMirror",
+        "VideoTabPreviewPlaceholder",
+        "VideoTabPreviewBadge",
+        "VideoTabTelemetryText",
+        "VideoTabDiagnosticText",
+        "VideoTabCurrentTimeText",
+        "VideoTabSeekSlider",
+        "VideoTabDurationText",
+        "VideoTabSpeedCombo",
+        "VideoTabMuteButton",
+        "VideoTabVolumeSlider",
+        "MatchSetupTab",
+        "ClockModeCountUp",
+        "ClockModeCountdown",
+        "LayoutClassicRadio",
+        "LayoutExpandedRadio",
+        "LayoutRetroRadio",
+        "LayoutNoLogosRadio",
+        "AnimBroadcastRadio",
+        "AnimElectricRadio",
+        "AnimCinematicRadio",
+        "AnimCleanRadio",
+        "AnimClassicRadio",
+        "AnimCustomVideoRadio",
+        "SettingsShowControlPanelCountdown",
+        "HomeLogoPathText",
+        "AwayLogoPathText",
+        "SettingsHeaderTitle",
+        "SettingsHeaderSubtitle",
+        "SettingsNavBtn_Teams",
+        "SettingsNavBtn_Keybinds",
+        "SettingsNavBtn_Display",
+        "SettingsNavBtn_Overlays",
+        "SettingsNavBtn_Media",
+        "SettingsNavBtn_Advanced",
+        "SettingsSearchHost",
+        "SettingsSearchBox",
+        "SettingsSearchPlaceholder",
+        "SettingsSearchClear",
+        "SettingsEssentialsHint",
+        "SettingsNoResults",
+        "SettingsNoResultsText",
+        "SettingsScrollViewer",
+        "SettingsSection_Teams",
+        "HomeNameBox",
+        "HomeAbbrBox",
+        "HomeColorBox",
+        "HomeColorPreview",
+        "HomeSecondaryColorBox",
+        "HomeSecondaryColorPreview",
+        "HomeLogoStatusText",
+        "AwayNameBox",
+        "AwayAbbrBox",
+        "AwayColorBox",
+        "AwayColorPreview",
+        "AwaySecondaryColorBox",
+        "AwaySecondaryColorPreview",
+        "AwayLogoStatusText",
+        "SettingsSection_Match",
+        "SettingsCountUpCard",
+        "SettingsCountUpGlow",
+        "SettingsCountUpCheck",
+        "SettingsCountdownCard",
+        "SettingsCountdownGlow",
+        "SettingsCountdownCheck",
+        "SettingsControlPanelCountdownOptionCard",
+        "SettingsControlPanelCountdownCardTranslate",
+        "SettingsControlPanelCountdownCardScale",
+        "SettingsControlPanelCountdownToggleTrack",
+        "SettingsControlPanelCountdownToggleThumb",
+        "SettingsControlPanelCountdownThumbTranslate",
+        "SettingsControlPanelCountdownToggleLabel",
+        "QuarterDurationPanel",
+        "QuarterMinutesBox",
+        "QuarterSecondsBox",
+        "ClockStatusText",
+        "ClockSetMinutesBox",
+        "ClockSetSecondsBox",
+        "SettingsFinalsToggle",
+        "SettingsFinalsCard",
+        "SettingsFinalsGlow",
+        "SettingsFinalsTitle",
+        "SettingsFinalsTrack",
+        "SettingsFinalsThumb",
+        "SettingsHideTeamNamesToggle",
+        "SettingsHideTeamNamesCard",
+        "SettingsHideTeamNamesTitle",
+        "SettingsHideTeamNamesTrack",
+        "SettingsHideTeamNamesThumb",
+        "QuarterLabelCurrentBox",
+        "QuarterLabelCurrentReset",
+        "QuarterLabelCurrentHint",
+        "SettingsMatchSectionEndAnchor",
+        "SettingsSection_Keybinds",
+        "KeybindToggleClockButton",
+        "KeybindHomeGoalButton",
+        "KeybindHomeBehindButton",
+        "KeybindAwayGoalButton",
+        "KeybindAwayBehindButton",
+        "KeybindEndQuarterButton",
+        "KeybindHintText",
+        "SettingsSection_Display",
+        "ScreensaverMediaStatus",
+        "LayoutCardClassic",
+        "LayoutGlowClassic",
+        "LayoutCheckClassic",
+        "LayoutCardExpanded",
+        "LayoutCheckExpanded",
+        "LayoutCardRetro",
+        "LayoutCheckRetro",
+        "LayoutCardNoLogos",
+        "LayoutCheckNoLogos",
+        "AnimCardBroadcast",
+        "AnimCheckBroadcast",
+        "AnimCardElectric",
+        "AnimCheckElectric",
+        "AnimCardCinematic",
+        "AnimCheckCinematic",
+        "AnimCardClean",
+        "AnimCheckClean",
+        "AnimCardClassic",
+        "AnimCheckClassic",
+        "AnimCardCustomVideo",
+        "AnimGlowCustomVideo",
+        "AnimCheckCustomVideo",
+        "AnimPreviewTitle",
+        "AnimPreviewDesc",
+        "AnimPreviewDuration",
+        "AnimPreviewIntensity",
+        "SettingsSection_Overlays",
+        "AutoOverlaysToggle",
+        "AutoOverlaysCard",
+        "AutoOverlaysGlow",
+        "AutoOverlaysCheck",
+        "SettingsBreakScreenToggle",
+        "SettingsBreakScreenCard",
+        "SettingsBreakScreenGlow",
+        "SettingsBreakScreenTitle",
+        "SettingsBreakScreenTrack",
+        "SettingsBreakScreenThumb",
+        "SettingsWeatherLocation",
+        "WeatherLocationStatus",
+        "SettingsSection_Media",
+        "HomeLogoCropPreviewImage",
+        "HomeLogoZoomSlider",
+        "HomeLogoXSlider",
+        "HomeLogoYSlider",
+        "AwayLogoCropPreviewImage",
+        "AwayLogoZoomSlider",
+        "AwayLogoXSlider",
+        "AwayLogoYSlider",
+        "LogoCropSummaryText",
+        "SettingsSection_Advanced",
+        "WindowWidthBox",
+        "WindowHeightBox",
+        "WindowDimensionsStatus",
+        "CloudRemoteCard",
+        "CloudStatusText",
+        "CloudIdleState",
+        "CloudStartButton",
+        "CloudDisabledState",
+        "CloudLiveState",
+        "CloudConnectionDot",
+        "CloudConnectionLabel",
+        "CloudJoinCodeText",
+        "CloudQrImage",
+        "CloudJoinUrlPanel",
+        "CloudJoinUrlText",
+        "CloudCopyUrlButton",
+        "CloudEndButton",
+        "UpdateCurrentVersionText",
+        "UpdateStatusText",
+        "UpdateProgressBar",
+        "CheckForUpdateButton",
+        "InstallUpdateButton",
+        "ResetOverlay",
+        "CancelResetBtn",
+        "ConfirmResetBtn",
+        "ResizeGripVisual",
+        "SetupWizardPanel",
+        "CricketControlPanelView",
+        "CricketSetupWizardPanel",
+        "TrainingControlPanelView",
+        "GlobalSettingsPanel",
+        "SportSelectionPanel",
+        "MatchLoadingPanel"
+      ],
+      "handlers": [
+        {
+          "element": "GuidedModeButton",
+          "event": "Click",
+          "handler": "GuidedModeButton_Click"
+        },
+        {
+          "element": "MainTabControl",
+          "event": "SelectionChanged",
+          "handler": "MainTabControl_SelectionChanged"
+        },
+        {
+          "element": "ControlPanelCountdownEditButton",
+          "event": "Click",
+          "handler": "ControlPanelCountdownEditButton_Click"
+        },
+        {
+          "element": "ControlPanelCountdownCancelEditButton",
+          "event": "Click",
+          "handler": "ControlPanelCountdownCancelEditButton_Click"
+        },
+        {
+          "element": "ControlPanelCountdownEditMinutesBox",
+          "event": "KeyDown",
+          "handler": "ControlPanelCountdownEditBox_KeyDown"
+        },
+        {
+          "element": "ControlPanelCountdownEditSecondsBox",
+          "event": "KeyDown",
+          "handler": "ControlPanelCountdownEditBox_KeyDown"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ControlPanelCountdownCancelEditButton_Click"
+        },
+        {
+          "element": "ControlPanelCountdownApplyButton",
+          "event": "Click",
+          "handler": "ControlPanelCountdownApplyButton_Click"
+        },
+        {
+          "element": "HomeGoalButton",
+          "event": "Click",
+          "handler": "HomeGoal_Click"
+        },
+        {
+          "element": "HomeBehindButton",
+          "event": "Click",
+          "handler": "HomeBehind_Click"
+        },
+        {
+          "element": "AwayGoalButton",
+          "event": "Click",
+          "handler": "AwayGoal_Click"
+        },
+        {
+          "element": "AwayBehindButton",
+          "event": "Click",
+          "handler": "AwayBehind_Click"
+        },
+        {
+          "element": "StartPauseButton",
+          "event": "Click",
+          "handler": "StartPause_Click"
+        },
+        {
+          "element": "EndQtrButton",
+          "event": "Click",
+          "handler": "EndQuarter_Click"
+        },
+        {
+          "element": "ContinueQtrButton",
+          "event": "Click",
+          "handler": "ContinueQuarter_Click"
+        },
+        {
+          "element": "UndoButton",
+          "event": "Click",
+          "handler": "Undo_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetMatch_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "AddMatchLogScore_Click"
+        },
+        {
+          "element": "PresCardScorebug",
+          "event": "MouseLeftButtonUp",
+          "handler": "PresCardScorebug_Click"
+        },
+        {
+          "element": "PresCardSummary",
+          "event": "MouseLeftButtonUp",
+          "handler": "PresCardSummary_Click"
+        },
+        {
+          "element": "PresCardWorm",
+          "event": "MouseLeftButtonUp",
+          "handler": "PresCardWorm_Click"
+        },
+        {
+          "element": "PresCardStats",
+          "event": "MouseLeftButtonUp",
+          "handler": "PresCardStats_Click"
+        },
+        {
+          "element": "PresCardWeather",
+          "event": "MouseLeftButtonUp",
+          "handler": "PresCardWeather_Click"
+        },
+        {
+          "element": "PresCardWindow",
+          "event": "MouseLeftButtonUp",
+          "handler": "PresCardWindow_Click"
+        },
+        {
+          "element": "PresCardQuarterBreak",
+          "event": "MouseLeftButtonUp",
+          "handler": "PresCardQuarterBreak_Click"
+        },
+        {
+          "element": "PresCardScreensaver",
+          "event": "MouseLeftButtonUp",
+          "handler": "PresCardScreensaver_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayStatsBar_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayWinProb_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayLeadChanges_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayQtrScores_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayRecentScores_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayScoringRun_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayScoreless_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayHomeDrought_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayAwayDrought_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayWarning_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayWeatherForecast_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayWeatherStats_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OverlayRainForecast_Click"
+        },
+        {
+          "element": "CancelOverlayButton",
+          "event": "Click",
+          "handler": "CancelCurrentOverlay_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "TickerTemplate_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "TickerTemplate_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "TickerTemplate_Click"
+        },
+        {
+          "element": "TickerDisableAllButton",
+          "event": "Click",
+          "handler": "DisableAllTickerMessages_Click"
+        },
+        {
+          "element": "TickerUndoDeleteButton",
+          "event": "Click",
+          "handler": "UndoTickerDelete_Click"
+        },
+        {
+          "element": "TickerClearAllButton",
+          "event": "Click",
+          "handler": "ClearTickerMessages_Click"
+        },
+        {
+          "element": null,
+          "event": "Checked",
+          "handler": "TickerSlotEnabled_Changed"
+        },
+        {
+          "element": null,
+          "event": "Unchecked",
+          "handler": "TickerSlotEnabled_Changed"
+        },
+        {
+          "element": null,
+          "event": "TextChanged",
+          "handler": "MessageItem_TextChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "PickItemTextColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "PickItemHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseRightButtonUp",
+          "handler": "ClearItemHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "RemoveMessageItem_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "TickerTemplate_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "TickerTemplate_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "TickerTemplate_Click"
+        },
+        {
+          "element": "NewMessageBox",
+          "event": "KeyDown",
+          "handler": "NewMessageBox_KeyDown"
+        },
+        {
+          "element": "NewMessageBox",
+          "event": "TextChanged",
+          "handler": "NewMessageBox_TextChanged"
+        },
+        {
+          "element": "NewMessageTextColorBtn",
+          "event": "Click",
+          "handler": "PickNewTextColor_Click"
+        },
+        {
+          "element": "NewMessageHighlightColorBtn",
+          "event": "Click",
+          "handler": "PickNewHighlightColor_Click"
+        },
+        {
+          "element": "NewMessageHighlightColorBtn",
+          "event": "MouseRightButtonUp",
+          "handler": "ClearNewHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "AddMessage_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "VideoTabBrowse_Click"
+        },
+        {
+          "element": "VideoTabShowOnScoreboardButton",
+          "event": "Click",
+          "handler": "VideoTabShowOnScoreboard_Click"
+        },
+        {
+          "element": "VideoTabPlayPauseButton",
+          "event": "Click",
+          "handler": "VideoTabPlayPause_Click"
+        },
+        {
+          "element": "VideoTabRestartButton",
+          "event": "Click",
+          "handler": "VideoTabRestart_Click"
+        },
+        {
+          "element": "VideoTabUnloadButton",
+          "event": "Click",
+          "handler": "VideoTabUnload_Click"
+        },
+        {
+          "element": "VideoTabApplyButton",
+          "event": "Click",
+          "handler": "VideoTabApply_Click"
+        },
+        {
+          "element": "VideoTabSeekSlider",
+          "event": "Thumb.DragStarted",
+          "handler": "VideoTabSeek_DragStarted"
+        },
+        {
+          "element": "VideoTabSeekSlider",
+          "event": "Thumb.DragCompleted",
+          "handler": "VideoTabSeek_DragCompleted"
+        },
+        {
+          "element": "VideoTabSeekSlider",
+          "event": "PreviewMouseLeftButtonUp",
+          "handler": "VideoTabSeek_PreviewMouseLeftButtonUp"
+        },
+        {
+          "element": "VideoTabSeekSlider",
+          "event": "ValueChanged",
+          "handler": "VideoTabSeek_ValueChanged"
+        },
+        {
+          "element": "VideoTabSpeedCombo",
+          "event": "SelectionChanged",
+          "handler": "VideoTabSpeed_Changed"
+        },
+        {
+          "element": "VideoTabMuteButton",
+          "event": "Click",
+          "handler": "VideoTabMute_Click"
+        },
+        {
+          "element": "VideoTabVolumeSlider",
+          "event": "ValueChanged",
+          "handler": "VideoTabVolume_Changed"
+        },
+        {
+          "element": "ClockModeCountUp",
+          "event": "Checked",
+          "handler": "ClockMode_Changed"
+        },
+        {
+          "element": "ClockModeCountdown",
+          "event": "Checked",
+          "handler": "ClockMode_Changed"
+        },
+        {
+          "element": "LayoutClassicRadio",
+          "event": "Checked",
+          "handler": "LayoutRadio_Changed"
+        },
+        {
+          "element": "LayoutExpandedRadio",
+          "event": "Checked",
+          "handler": "LayoutRadio_Changed"
+        },
+        {
+          "element": "LayoutRetroRadio",
+          "event": "Checked",
+          "handler": "LayoutRadio_Changed"
+        },
+        {
+          "element": "LayoutNoLogosRadio",
+          "event": "Checked",
+          "handler": "LayoutRadio_Changed"
+        },
+        {
+          "element": "AnimBroadcastRadio",
+          "event": "Checked",
+          "handler": "AnimationRadio_Changed"
+        },
+        {
+          "element": "AnimElectricRadio",
+          "event": "Checked",
+          "handler": "AnimationRadio_Changed"
+        },
+        {
+          "element": "AnimCinematicRadio",
+          "event": "Checked",
+          "handler": "AnimationRadio_Changed"
+        },
+        {
+          "element": "AnimCleanRadio",
+          "event": "Checked",
+          "handler": "AnimationRadio_Changed"
+        },
+        {
+          "element": "AnimClassicRadio",
+          "event": "Checked",
+          "handler": "AnimationRadio_Changed"
+        },
+        {
+          "element": "AnimCustomVideoRadio",
+          "event": "Checked",
+          "handler": "AnimationRadio_Changed"
+        },
+        {
+          "element": "SettingsNavBtn_Teams",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsNav_Teams_Click"
+        },
+        {
+          "element": "SettingsNavBtn_Keybinds",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsNav_Keybinds_Click"
+        },
+        {
+          "element": "SettingsNavBtn_Display",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsNav_Display_Click"
+        },
+        {
+          "element": "SettingsNavBtn_Overlays",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsNav_Overlays_Click"
+        },
+        {
+          "element": "SettingsNavBtn_Media",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsNav_Media_Click"
+        },
+        {
+          "element": "SettingsNavBtn_Advanced",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsNav_Advanced_Click"
+        },
+        {
+          "element": "SettingsSearchBox",
+          "event": "TextChanged",
+          "handler": "SettingsSearch_TextChanged"
+        },
+        {
+          "element": "SettingsSearchClear",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsSearchClear_Click"
+        },
+        {
+          "element": "HomeNameBox",
+          "event": "TextChanged",
+          "handler": "TeamSettings_TextChanged"
+        },
+        {
+          "element": "HomeAbbrBox",
+          "event": "TextChanged",
+          "handler": "TeamSettings_TextChanged"
+        },
+        {
+          "element": "HomeColorPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickHomeColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperHomeColor_Click"
+        },
+        {
+          "element": "HomeSecondaryColorPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickHomeSecondaryColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperHomeSecondaryColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "BrowseHomeLogo_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ClearHomeLogo_Click"
+        },
+        {
+          "element": "AwayNameBox",
+          "event": "TextChanged",
+          "handler": "TeamSettings_TextChanged"
+        },
+        {
+          "element": "AwayAbbrBox",
+          "event": "TextChanged",
+          "handler": "TeamSettings_TextChanged"
+        },
+        {
+          "element": "AwayColorPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickAwayColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperAwayColor_Click"
+        },
+        {
+          "element": "AwaySecondaryColorPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickAwaySecondaryColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperAwaySecondaryColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "BrowseAwayLogo_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ClearAwayLogo_Click"
+        },
+        {
+          "element": "SettingsCountUpCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsCountUpCard_Click"
+        },
+        {
+          "element": "SettingsCountdownCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsCountdownCard_Click"
+        },
+        {
+          "element": "SettingsControlPanelCountdownOptionCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsControlPanelCountdownOptionCard_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsMinutesMinus_Click"
+        },
+        {
+          "element": "QuarterMinutesBox",
+          "event": "KeyDown",
+          "handler": "QuarterDurationBox_KeyDown"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsMinutesPlus_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsSecondsMinus_Click"
+        },
+        {
+          "element": "QuarterSecondsBox",
+          "event": "KeyDown",
+          "handler": "QuarterDurationBox_KeyDown"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsSecondsPlus_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ClockMinus10_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ClockMinus1_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ClockPlus1_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ClockPlus10_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ClockSet_Click"
+        },
+        {
+          "element": "SettingsFinalsToggle",
+          "event": "Checked",
+          "handler": "SettingsFinalsToggle_Changed"
+        },
+        {
+          "element": "SettingsFinalsToggle",
+          "event": "Unchecked",
+          "handler": "SettingsFinalsToggle_Changed"
+        },
+        {
+          "element": "SettingsFinalsCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsFinalsCard_Click"
+        },
+        {
+          "element": "SettingsHideTeamNamesToggle",
+          "event": "Checked",
+          "handler": "SettingsHideTeamNamesToggle_Changed"
+        },
+        {
+          "element": "SettingsHideTeamNamesToggle",
+          "event": "Unchecked",
+          "handler": "SettingsHideTeamNamesToggle_Changed"
+        },
+        {
+          "element": "SettingsHideTeamNamesCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsHideTeamNamesCard_Click"
+        },
+        {
+          "element": "QuarterLabelCurrentBox",
+          "event": "TextChanged",
+          "handler": "QuarterLabelCurrentBox_TextChanged"
+        },
+        {
+          "element": "QuarterLabelCurrentReset",
+          "event": "Click",
+          "handler": "QuarterLabelCurrentReset_Click"
+        },
+        {
+          "element": "KeybindToggleClockButton",
+          "event": "Click",
+          "handler": "KeybindToggleClockButton_Click"
+        },
+        {
+          "element": "KeybindHomeGoalButton",
+          "event": "Click",
+          "handler": "KeybindHomeGoalButton_Click"
+        },
+        {
+          "element": "KeybindHomeBehindButton",
+          "event": "Click",
+          "handler": "KeybindHomeBehindButton_Click"
+        },
+        {
+          "element": "KeybindAwayGoalButton",
+          "event": "Click",
+          "handler": "KeybindAwayGoalButton_Click"
+        },
+        {
+          "element": "KeybindAwayBehindButton",
+          "event": "Click",
+          "handler": "KeybindAwayBehindButton_Click"
+        },
+        {
+          "element": "KeybindEndQuarterButton",
+          "event": "Click",
+          "handler": "KeybindEndQuarterButton_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChooseScreensaverMedia_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetScreensaverMedia_Click"
+        },
+        {
+          "element": "LayoutCardClassic",
+          "event": "MouseLeftButtonUp",
+          "handler": "ClassicLayoutCard_Click"
+        },
+        {
+          "element": "LayoutCardExpanded",
+          "event": "MouseLeftButtonUp",
+          "handler": "ExpandedLayoutCard_Click"
+        },
+        {
+          "element": "AnimCardBroadcast",
+          "event": "MouseLeftButtonUp",
+          "handler": "AnimBroadcastCard_Click"
+        },
+        {
+          "element": "AnimCardElectric",
+          "event": "MouseLeftButtonUp",
+          "handler": "AnimElectricCard_Click"
+        },
+        {
+          "element": "AnimCardCinematic",
+          "event": "MouseLeftButtonUp",
+          "handler": "AnimCinematicCard_Click"
+        },
+        {
+          "element": "AnimCardClean",
+          "event": "MouseLeftButtonUp",
+          "handler": "AnimCleanCard_Click"
+        },
+        {
+          "element": "AnimCardClassic",
+          "event": "MouseLeftButtonUp",
+          "handler": "AnimClassicCard_Click"
+        },
+        {
+          "element": "AnimCardCustomVideo",
+          "event": "MouseLeftButtonUp",
+          "handler": "AnimCustomVideoCard_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "PreviewSelectedGoalAnimation_Click"
+        },
+        {
+          "element": "AutoOverlaysToggle",
+          "event": "Checked",
+          "handler": "AutoOverlaysToggle_Changed"
+        },
+        {
+          "element": "AutoOverlaysToggle",
+          "event": "Unchecked",
+          "handler": "AutoOverlaysToggle_Changed"
+        },
+        {
+          "element": "AutoOverlaysCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "AutoOverlaysCard_Click"
+        },
+        {
+          "element": "SettingsBreakScreenToggle",
+          "event": "Checked",
+          "handler": "SettingsBreakScreenToggle_Changed"
+        },
+        {
+          "element": "SettingsBreakScreenToggle",
+          "event": "Unchecked",
+          "handler": "SettingsBreakScreenToggle_Changed"
+        },
+        {
+          "element": "SettingsBreakScreenCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "SettingsBreakScreenCard_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ApplyWeatherLocation_Click"
+        },
+        {
+          "element": "HomeLogoZoomSlider",
+          "event": "ValueChanged",
+          "handler": "LogoCropSlider_ValueChanged"
+        },
+        {
+          "element": "HomeLogoXSlider",
+          "event": "ValueChanged",
+          "handler": "LogoCropSlider_ValueChanged"
+        },
+        {
+          "element": "HomeLogoYSlider",
+          "event": "ValueChanged",
+          "handler": "LogoCropSlider_ValueChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetHomeCrop_Click"
+        },
+        {
+          "element": "AwayLogoZoomSlider",
+          "event": "ValueChanged",
+          "handler": "LogoCropSlider_ValueChanged"
+        },
+        {
+          "element": "AwayLogoXSlider",
+          "event": "ValueChanged",
+          "handler": "LogoCropSlider_ValueChanged"
+        },
+        {
+          "element": "AwayLogoYSlider",
+          "event": "ValueChanged",
+          "handler": "LogoCropSlider_ValueChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetAwayCrop_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "WidthMinus_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "WidthPlus_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "HeightMinus_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "HeightPlus_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ApplyWindowDimensions_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetWindowDimensions_Click"
+        },
+        {
+          "element": "CloudStartButton",
+          "event": "Click",
+          "handler": "StartCloudSession_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "CopyCloudJoinCode_Click"
+        },
+        {
+          "element": "CloudCopyUrlButton",
+          "event": "Click",
+          "handler": "CopyCloudJoinUrl_Click"
+        },
+        {
+          "element": "CloudEndButton",
+          "event": "Click",
+          "handler": "EndCloudSession_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ResetCardSettings_Click"
+        },
+        {
+          "element": "CheckForUpdateButton",
+          "event": "Click",
+          "handler": "CheckForUpdate_Click"
+        },
+        {
+          "element": "InstallUpdateButton",
+          "event": "Click",
+          "handler": "InstallUpdate_Click"
+        },
+        {
+          "element": "CancelResetBtn",
+          "event": "Click",
+          "handler": "CancelReset_Click"
+        },
+        {
+          "element": "ConfirmResetBtn",
+          "event": "Click",
+          "handler": "ConfirmReset_Click"
+        },
+        {
+          "element": "ResizeGripVisual",
+          "event": "MouseLeftButtonDown",
+          "handler": "ResizeGrip_MouseDown"
+        }
+      ],
+      "fonts": [
+        "Arial",
+        "Bahnschrift",
+        "Consolas",
+        "Segoe MDL2 Assets",
+        "Segoe UI Symbol"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/AflPresentationGalleryWindow.xaml",
+      "class": "Roche_Scoreboard.Views.AflPresentationGalleryWindow",
+      "sha256": "f8ce5e2b967778b43e376cd3f9ee5e406059a5ff90f24ff97f46f0d4f9e6af92",
+      "named_elements": [
+        "GalleryErrorText",
+        "GalleryTabs",
+        "ScorebugHost",
+        "OverlayHost",
+        "BreakHost",
+        "WormHost",
+        "StatsHost",
+        "WeatherHost"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/BreakScreenControl.xaml",
+      "class": "Roche_Scoreboard.Views.BreakScreenControl",
+      "sha256": "23b31906d4d999a9db4b7b0f325c2f97d01ba180d7501ef86305d2b0d2ad71eb",
+      "named_elements": [
+        "BgGradient",
+        "BreakTitlePanel",
+        "BreakTitleText",
+        "BreakTimeText",
+        "TitleAccentGradient",
+        "BreakTeamColumn",
+        "BreakQuarterHeaderRow",
+        "HomeHeaderBorder",
+        "HomeHeaderBg",
+        "BreakHomeLogoBg",
+        "BreakHomeAbbr",
+        "HomeNameFg",
+        "AwayHeaderBorder",
+        "AwayHeaderBg",
+        "BreakAwayLogoBg",
+        "BreakAwayAbbr",
+        "AwayNameFg",
+        "H1T",
+        "H1Total",
+        "H1Detail",
+        "H2T",
+        "H2Total",
+        "H2Detail",
+        "H3T",
+        "H3Total",
+        "H3Detail",
+        "H4T",
+        "H4Total",
+        "H4Detail",
+        "A1T",
+        "A1Total",
+        "A1Detail",
+        "A2T",
+        "A2Total",
+        "A2Detail",
+        "A3T",
+        "A3Total",
+        "A3Detail",
+        "A4T",
+        "A4Total",
+        "A4Detail",
+        "ScoreBar"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Arial",
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CalibrationOverlay.xaml",
+      "class": "Roche_Scoreboard.Views.CalibrationOverlay",
+      "sha256": "a90493862e0a808c6f751151f30c1b748816f9114a26b94ad1d45fdf7ff96e0b",
+      "named_elements": [
+        "SizeReadout"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Arial",
+        "Consolas"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml",
+      "class": "Roche_Scoreboard.Views.CloudRemoteLauncher",
+      "sha256": "8cf301d9a545358df316c4ee38f8ed5c2dcf51822e5c159efd215c15fb2a0242",
+      "named_elements": [
+        "CollapsedButton",
+        "Bd",
+        "CollapsedStatusText",
+        "CollapsedChevron",
+        "ExpandedPanel",
+        "StatusText",
+        "IdleState",
+        "StartButton",
+        "DisabledState",
+        "LiveState",
+        "ConnectionDot",
+        "ConnectionLabel",
+        "JoinCodeText",
+        "QrImage",
+        "JoinUrlPanel",
+        "JoinUrlText",
+        "CopyUrlButton",
+        "EndButton"
+      ],
+      "handlers": [
+        {
+          "element": "CollapsedButton",
+          "event": "Click",
+          "handler": "CollapsedButton_Click"
+        },
+        {
+          "element": "StartButton",
+          "event": "Click",
+          "handler": "StartButton_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "JoinCodeBox_Click"
+        },
+        {
+          "element": "CopyUrlButton",
+          "event": "Click",
+          "handler": "CopyUrlButton_Click"
+        },
+        {
+          "element": "EndButton",
+          "event": "Click",
+          "handler": "EndButton_Click"
+        }
+      ],
+      "fonts": [
+        "Consolas"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ColorPickerWindow.xaml",
+      "class": "Roche_Scoreboard.Views.ColorPickerWindow",
+      "sha256": "c36a6bfdd2984398f3da5b42e6628470affb7393975fe52ee783e3dd44d122b5",
+      "named_elements": [
+        "PART_Track",
+        "CurrentPreview",
+        "ColourField",
+        "ColourWheelImage",
+        "ColourMarker",
+        "SaturationSlider",
+        "BrightnessSlider",
+        "HexBox",
+        "DefaultColoursPanel",
+        "RecentColoursPanel",
+        "ValidationText"
+      ],
+      "handlers": [
+        {
+          "element": "ColourField",
+          "event": "MouseLeftButtonDown",
+          "handler": "ColourField_MouseLeftButtonDown"
+        },
+        {
+          "element": "ColourField",
+          "event": "MouseLeftButtonUp",
+          "handler": "ColourField_MouseLeftButtonUp"
+        },
+        {
+          "element": "SaturationSlider",
+          "event": "ValueChanged",
+          "handler": "FineTuneSlider_ValueChanged"
+        },
+        {
+          "element": "BrightnessSlider",
+          "event": "ValueChanged",
+          "handler": "FineTuneSlider_ValueChanged"
+        },
+        {
+          "element": "HexBox",
+          "event": "TextChanged",
+          "handler": "HexBox_TextChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Accept_Click"
+        }
+      ],
+      "fonts": [
+        "Arial Black",
+        "Consolas"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ControlPanel.xaml",
+      "class": "Roche_Scoreboard.Views.ControlPanel",
+      "sha256": "6298cb615d0387e0bd9dabfe4fa3bb9202be0d48bc91cd97eaef0d615c0b50eb",
+      "named_elements": [
+        "Sc",
+        "Lift",
+        "RewardFlash",
+        "Bd",
+        "TbSc",
+        "TbLift",
+        "RewardFlash",
+        "Bd",
+        "HomeTeamName",
+        "HomeScore",
+        "Timer",
+        "AwayScore",
+        "AwayTeamName",
+        "QuarterBadgeText",
+        "HomeScoreDisplay",
+        "HomeGoalBtn",
+        "HomeBehindBtn",
+        "AwayScoreDisplay",
+        "AwayGoalBtn",
+        "AwayBehindBtn",
+        "ClockStartBtn",
+        "ClockPauseBtn",
+        "ClockResetBtn",
+        "QuarterSelector",
+        "EventLog"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Bahnschrift",
+        "Consolas"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
+      "class": "Roche_Scoreboard.Views.CricketControlPanel",
+      "sha256": "30f0d1225483b9deaef923e5375fdd0f8a0fbaafc22124ba38a5a67f47ecf4a1",
+      "named_elements": [
+        "Sc",
+        "Lift",
+        "RewardFlash",
+        "Bd",
+        "TbSc",
+        "TbLift",
+        "RewardFlash",
+        "Bd",
+        "MbSc",
+        "MbLift",
+        "Flash",
+        "Bd",
+        "TabRoot",
+        "Flash",
+        "Bd",
+        "Cp",
+        "AccBar",
+        "InningsLabel",
+        "HeaderOvers",
+        "HeaderScore",
+        "MainTabControl",
+        "BattingZone",
+        "StrikerBar",
+        "TopBatterIndicator",
+        "StrikerName",
+        "StrikerStats",
+        "StrikerRuns",
+        "NonStrikerBar",
+        "BottomBatterIndicator",
+        "NonStrikerName",
+        "NonStrikerStats",
+        "NonStrikerRunsText",
+        "BowlingZone",
+        "BowlerBar",
+        "BowlerName",
+        "BowlerStats",
+        "BowlerFigures",
+        "OverDisplay",
+        "ExtrasPopup",
+        "ExtrasPopupTitle",
+        "ExtrasHintText",
+        "EventLog",
+        "MessageList",
+        "NewMessageBox",
+        "SettingsMatchText",
+        "SettingsStateText",
+        "SettingsAutosaveText",
+        "SettingsSelectionText",
+        "BowlerList",
+        "BatterSelectionOverlay",
+        "BatterSelectionTitle",
+        "BatterSelectionList",
+        "Bd",
+        "CfSc",
+        "BowlerSelectionOverlay",
+        "BowlerSelectionHint",
+        "BowlerSelectionList",
+        "Bd",
+        "CfSc2",
+        "WicketDetailsOverlay",
+        "WicketBatsmanLabel",
+        "WicketFielderPanel",
+        "WicketFielderList",
+        "WicketBowlerPanel",
+        "WicketBowlerAutoLabel",
+        "Bd",
+        "WkSc",
+        "OverlayQueueBadge",
+        "OverlayQueueText"
+      ],
+      "handlers": [
+        {
+          "element": "MainTabControl",
+          "event": "SelectionChanged",
+          "handler": "MainTabControl_SelectionChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "StrikerMenu_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChangeStriker_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SwapStrike_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "NonStrikerMenu_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChangeNonStriker_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SwapStrike_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "BowlerMenu_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChangeBowlerMenu_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Dot_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Run1_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Run2_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Run3_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Four_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Run5_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Six_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Wicket_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Wide_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "NoBall_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Bye_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "LegBye_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ExtrasPopupClose_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ExtrasRun_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ExtrasRun_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ExtrasRun_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ExtrasRun_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ExtrasRun_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Undo_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "EndInnings_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetMatch_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ShowScorebug_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ShowBattingSummary_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ShowBowlingSummary_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ShowMatchCentre_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ShowWindow_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayStats_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayPartnership_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayExtras_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayThisOver_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayPartnershipBar_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayRunRate_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayTarget_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayPowerplay_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayLast5_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "OverlayDrought_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "AddMessage_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "RemoveMessage_Click"
+        },
+        {
+          "element": "BowlerList",
+          "event": "SelectionChanged",
+          "handler": "BowlerList_SelectionChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ConfirmBatterSelection_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ConfirmBowlerSelection_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "WicketType_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "WicketType_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "WicketType_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "WicketType_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "WicketType_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "WicketType_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "WicketType_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "WicketType_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "CancelWicket_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ConfirmWicket_Click"
+        }
+      ],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml",
+      "class": "Roche_Scoreboard.Views.CricketScorebugControl",
+      "sha256": "c0bab7a251cc12a97801ebf1f494d0906f7c3953a04037cfd1756dbf9040032d",
+      "named_elements": [
+        "TopInningsText",
+        "TopTimeText",
+        "PartnershipBarBorder",
+        "PartnershipBarRuns",
+        "PartnershipBarBalls",
+        "RunRateBarBorder",
+        "RunRateBarCRR",
+        "RunRateBarRRR",
+        "TargetBarBorder",
+        "TargetBarTarget",
+        "TargetBarNeed",
+        "TargetBarBalls",
+        "PowerplayBarBorder",
+        "PowerplayBarOvers",
+        "Last5OversBarBorder",
+        "Last5OversBarValue",
+        "BoundaryDroughtBarBorder",
+        "BoundaryDroughtBarValue",
+        "OversWarningBarBorder",
+        "OversWarningStripesTranslate",
+        "OversWarningText",
+        "MilestoneBarBorder",
+        "MilestoneBarGradient",
+        "MilestoneBarEmoji",
+        "MilestoneBarText",
+        "MilestoneBarPlayer",
+        "BattingTeamBg",
+        "BattingLogo",
+        "BattingAbbrText",
+        "ScoreRuns",
+        "ScoreRunsTranslate",
+        "ScoreGlow",
+        "ScoreWickets",
+        "ScoreWicketsTranslate",
+        "OversText",
+        "OversTranslate",
+        "InfoLabel",
+        "InfoValue",
+        "BattingHeaderBg",
+        "BattingHeaderText",
+        "StrikerBorder",
+        "StrikerIndicator",
+        "BattingIndicatorBrush",
+        "StrikerName",
+        "StrikerRuns",
+        "StrikerRunsTranslate",
+        "StrikerBalls",
+        "StrikerBallsTranslate",
+        "NonStrikerBorder",
+        "NonStrikerIndicator",
+        "NonStrikerIndicatorBrush",
+        "NonStrikerName",
+        "NonStrikerRuns",
+        "NonStrikerRunsTranslate",
+        "NonStrikerBalls",
+        "NonStrikerBallsTranslate",
+        "BowlingHeaderBg",
+        "BowlingHeaderText",
+        "BowlerBorder",
+        "BowlerIndicator",
+        "BowlingIndicatorBrush",
+        "BowlerName",
+        "BowlerFigures",
+        "BowlerFiguresTranslate",
+        "BowlerOvers",
+        "BowlerOversTranslate",
+        "PrevBowlerBorderBrush",
+        "PrevBowlerName",
+        "PrevBowlerFigures",
+        "PrevBowlerOvers",
+        "MarqueeText",
+        "MarqueeTranslate",
+        "StatsBarBg",
+        "StatsBarTranslate",
+        "Stat1Label",
+        "Stat1Value",
+        "Stat2Label",
+        "Stat2Value",
+        "Stat3Label",
+        "Stat3Value",
+        "Stat4Label",
+        "Stat4Value",
+        "OverTrackerBg",
+        "OverTrackerTranslate",
+        "OverTrackerLabel",
+        "OverBallsPanel",
+        "OverRunsLabel",
+        "OverRunsValue",
+        "EventOverlay",
+        "EventOverlayBg",
+        "EventGradientBar",
+        "EventGradientBarBrush",
+        "EventGradientScroll",
+        "EventShimmer",
+        "EventShimmerScroll",
+        "EventScoreGlow",
+        "EventScoreGlowInner",
+        "EventScoreGlowOuter",
+        "EventEdgeGlow",
+        "EventOverlayText",
+        "EventOverlayGlow",
+        "EventTextScale"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Bahnschrift",
+        "Bahnschrift SemiCondensed"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
+      "class": "Roche_Scoreboard.Views.CricketSetupWizard",
+      "sha256": "81b254110912439fb848d717f3b7c6cbd67f589aa07b3764f320033eb1d432d3",
+      "named_elements": [
+        "BdSc",
+        "BdLift",
+        "RewardFlash",
+        "Bd",
+        "Bd",
+        "Border",
+        "PART_EditableTextBox",
+        "PART_Popup",
+        "BgGlow",
+        "BeamTranslate",
+        "HeaderPanel",
+        "HeaderTranslate",
+        "HeaderTitle",
+        "StepIndicator",
+        "StepIndicatorTranslate",
+        "Step1Dot",
+        "Step1Glow",
+        "Step1Label",
+        "Step2Dot",
+        "Step2Label",
+        "Step3Dot",
+        "Step3Label",
+        "Step4Dot",
+        "Step4Label",
+        "TeamsStepContainer",
+        "HomePresetCard",
+        "HomePresetTranslate",
+        "HomePresetEmpty",
+        "HomePresetPanel",
+        "AwayPresetCard",
+        "AwayPresetTranslate",
+        "AwayPresetEmpty",
+        "AwayPresetPanel",
+        "Step2Panel",
+        "HomeTeamCard",
+        "HomeCardScale",
+        "HomeCardTranslate",
+        "HomeGlow",
+        "HomeHeaderGroup",
+        "HomeHeaderTranslate",
+        "SetupHomeNameBox",
+        "SetupHomeAbbrBox",
+        "SetupHomeColorBox",
+        "SetupHomeColorPreview",
+        "SetupHomeSecondaryBox",
+        "SetupHomeSecondaryPreview",
+        "SetupHomeLogoText",
+        "SetupHomeLogoPreview",
+        "SetupHomeLogoImage",
+        "DividerScale",
+        "DividerGlowLine",
+        "AwayTeamCard",
+        "AwayCardScale",
+        "AwayCardTranslate",
+        "AwayGlow",
+        "AwayHeaderGroup",
+        "AwayHeaderTranslate",
+        "SetupAwayNameBox",
+        "SetupAwayAbbrBox",
+        "SetupAwayColorBox",
+        "SetupAwayColorPreview",
+        "SetupAwaySecondaryBox",
+        "SetupAwaySecondaryPreview",
+        "SetupAwayLogoText",
+        "SetupAwayLogoPreview",
+        "SetupAwayLogoImage",
+        "Step3Panel",
+        "Step3Translate",
+        "PlayersGlow",
+        "PlayersHeaderGroup",
+        "PlayersHeaderTranslate",
+        "HomePlayerSideBrush",
+        "HomePlyTeamName",
+        "HomePlyGlow",
+        "HomePlayerFirstBox",
+        "HomePlayerLastBox",
+        "HomePlayerList",
+        "AwayPlayerSideBrush",
+        "AwayPlyTeamName",
+        "AwayPlyGlow",
+        "AwayPlayerFirstBox",
+        "AwayPlayerLastBox",
+        "AwayPlayerList",
+        "Step3bPanel",
+        "Step3bTranslate",
+        "FormatGlow",
+        "FormatHeaderGroup",
+        "FormatHeaderTranslate",
+        "LimitedOversCard",
+        "LimitedOversGlowBg",
+        "OversInputPanel",
+        "OversDisplay",
+        "LimitedOversSelected",
+        "MultiInningsCard",
+        "MultiInningsGlowBg",
+        "MultiInningsSelected",
+        "Step4Panel",
+        "Step4Translate",
+        "MsgGlow",
+        "MsgHeaderGroup",
+        "MsgHeaderTranslate",
+        "WeatherGlowBg",
+        "SetupWeatherLocation",
+        "MsgSectionGlow",
+        "SetupMessageList",
+        "SetupNewMessageBox",
+        "SetupNewMessageTextColorBtn",
+        "SetupNewMessageHighlightColorBtn",
+        "NavBar",
+        "NavBarTranslate",
+        "BackButton",
+        "BackBtnScale",
+        "NextButton",
+        "NextBtnScale",
+        "NextButtonText",
+        "BottomAccent",
+        "FlashOverlay"
+      ],
+      "handlers": [
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "GoToStep1_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "GoToStep2_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "GoToStep3_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "GoToStep4_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SaveHomePreset_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "DeleteHomePreset_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SaveAwayPreset_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "DeleteAwayPreset_Click"
+        },
+        {
+          "element": "SetupHomeColorBox",
+          "event": "TextChanged",
+          "handler": "SetupHomeColorBox_TextChanged"
+        },
+        {
+          "element": "SetupHomeColorPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickSetupHomeColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperSetupHomeColor_Click"
+        },
+        {
+          "element": "SetupHomeSecondaryBox",
+          "event": "TextChanged",
+          "handler": "SetupHomeSecondaryBox_TextChanged"
+        },
+        {
+          "element": "SetupHomeSecondaryPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickSetupHomeSecondary_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperSetupHomeSecondary_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChooseSetupHomeLogo_Click"
+        },
+        {
+          "element": "SetupAwayColorBox",
+          "event": "TextChanged",
+          "handler": "SetupAwayColorBox_TextChanged"
+        },
+        {
+          "element": "SetupAwayColorPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickSetupAwayColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperSetupAwayColor_Click"
+        },
+        {
+          "element": "SetupAwaySecondaryBox",
+          "event": "TextChanged",
+          "handler": "SetupAwaySecondaryBox_TextChanged"
+        },
+        {
+          "element": "SetupAwaySecondaryPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickSetupAwaySecondary_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperSetupAwaySecondary_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChooseSetupAwayLogo_Click"
+        },
+        {
+          "element": "HomePlayerLastBox",
+          "event": "KeyDown",
+          "handler": "HomePlayerLastBox_KeyDown"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "AddHomePlayer_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ToggleHomeWicketkeeper_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "RemoveHomePlayer_Click"
+        },
+        {
+          "element": "AwayPlayerLastBox",
+          "event": "KeyDown",
+          "handler": "AwayPlayerLastBox_KeyDown"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "AddAwayPlayer_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ToggleAwayWicketkeeper_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "RemoveAwayPlayer_Click"
+        },
+        {
+          "element": "LimitedOversCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "LimitedOversCard_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OversMinus_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OversPlus_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OversPreset20_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OversPreset40_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OversPreset50_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "OversPreset100_Click"
+        },
+        {
+          "element": "MultiInningsCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "MultiInningsCard_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SetupPickItemTextColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SetupPickItemHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseRightButtonUp",
+          "handler": "SetupClearItemHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SetupRemoveMessageItem_Click"
+        },
+        {
+          "element": "SetupNewMessageBox",
+          "event": "KeyDown",
+          "handler": "SetupNewMessageBox_KeyDown"
+        },
+        {
+          "element": "SetupNewMessageTextColorBtn",
+          "event": "Click",
+          "handler": "SetupPickNewTextColor_Click"
+        },
+        {
+          "element": "SetupNewMessageHighlightColorBtn",
+          "event": "Click",
+          "handler": "SetupPickNewHighlightColor_Click"
+        },
+        {
+          "element": "SetupNewMessageHighlightColorBtn",
+          "event": "MouseRightButtonUp",
+          "handler": "SetupClearNewHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SetupAddMessage_Click"
+        },
+        {
+          "element": "BackButton",
+          "event": "MouseLeftButtonUp",
+          "handler": "Back_Click"
+        },
+        {
+          "element": "BackButton",
+          "event": "MouseEnter",
+          "handler": "NavBtn_MouseEnter"
+        },
+        {
+          "element": "BackButton",
+          "event": "MouseLeave",
+          "handler": "NavBtn_MouseLeave"
+        },
+        {
+          "element": "NextButton",
+          "event": "MouseLeftButtonUp",
+          "handler": "Next_Click"
+        },
+        {
+          "element": "NextButton",
+          "event": "MouseEnter",
+          "handler": "NavBtn_MouseEnter"
+        },
+        {
+          "element": "NextButton",
+          "event": "MouseLeave",
+          "handler": "NavBtn_MouseLeave"
+        }
+      ],
+      "fonts": [
+        "Bahnschrift",
+        "Consolas",
+        "Segoe UI Symbol"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSummaryControl.xaml",
+      "class": "Roche_Scoreboard.Views.CricketSummaryControl",
+      "sha256": "be9bdfa1cc16b4a546d703e3aea309bf9e90b4b94679d87552a7470e8beadb1d",
+      "named_elements": [
+        "RootGrid",
+        "RootTranslate",
+        "HeaderBg",
+        "HeaderText",
+        "SeparatorBg",
+        "RowsPanel",
+        "FooterTeamName",
+        "FooterTeamScore",
+        "FooterOversLabel",
+        "FooterOvers",
+        "FooterStatLabel",
+        "FooterStatValue",
+        "FooterStat2Label",
+        "FooterStat2Value"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/DesignSystemGalleryWindow.xaml",
+      "class": "Roche_Scoreboard.Views.DesignSystemGalleryWindow",
+      "sha256": "78bdd205445386218cccf82ac4a0d9f2e89e904a5eba7696c2b9da81d5588b43",
+      "named_elements": [
+        "BtnToggleTheme",
+        "BtnToggleDensity",
+        "GalleryContentPanel",
+        "ThemeStateText",
+        "DensityStateText",
+        "FocusBrushText",
+        "ControlBorderBrushText",
+        "WindowBackgroundText",
+        "TextPrimaryText",
+        "ControlMetricsText",
+        "SelfTestStatusText",
+        "PrimaryButtonSample",
+        "SecondaryButtonSample",
+        "DangerButtonSample",
+        "InputsSection",
+        "TextBoxSample",
+        "DisabledTextBoxSample",
+        "CheckBoxSample",
+        "DisabledCheckBoxSample",
+        "RadioOptionA",
+        "RadioOptionB",
+        "RadioOptionC",
+        "ComboBoxSample",
+        "DisabledComboBoxSample",
+        "SurfaceCardSample",
+        "WarningBadgeSample",
+        "IconSample",
+        "TooltipSampleButton",
+        "StandardTooltipSample"
+      ],
+      "handlers": [
+        {
+          "element": "BtnToggleTheme",
+          "event": "Click",
+          "handler": "BtnToggleTheme_Click"
+        },
+        {
+          "element": "BtnToggleDensity",
+          "event": "Click",
+          "handler": "BtnToggleDensity_Click"
+        }
+      ],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml",
+      "class": "Roche_Scoreboard.Views.GlobalSettingsScreen",
+      "sha256": "7d068d246fe59deb178e7c587532ef262089fb92c7817906aaa6d7da46fde29f",
+      "named_elements": [
+        "Card",
+        "Flash",
+        "ThemeCombo",
+        "DensityCombo",
+        "QuickHintsToggle",
+        "GoalAnimationCombo",
+        "OutputWidthBox",
+        "OutputHeightBox",
+        "BreakScreenToggle",
+        "AutoOverlaysToggle",
+        "ScreensaverToggle",
+        "StartupModeCombo"
+      ],
+      "handlers": [
+        {
+          "element": "ThemeCombo",
+          "event": "SelectionChanged",
+          "handler": "ThemeCombo_SelectionChanged"
+        },
+        {
+          "element": "DensityCombo",
+          "event": "SelectionChanged",
+          "handler": "DensityCombo_SelectionChanged"
+        },
+        {
+          "element": "QuickHintsToggle",
+          "event": "Checked",
+          "handler": "QuickHintsToggle_Changed"
+        },
+        {
+          "element": "QuickHintsToggle",
+          "event": "Unchecked",
+          "handler": "QuickHintsToggle_Changed"
+        },
+        {
+          "element": "GoalAnimationCombo",
+          "event": "SelectionChanged",
+          "handler": "GoalAnimationCombo_SelectionChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ApplyOutputDimensions_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetOutputDimensions_Click"
+        },
+        {
+          "element": "BreakScreenToggle",
+          "event": "Checked",
+          "handler": "BreakScreenToggle_Changed"
+        },
+        {
+          "element": "BreakScreenToggle",
+          "event": "Unchecked",
+          "handler": "BreakScreenToggle_Changed"
+        },
+        {
+          "element": "AutoOverlaysToggle",
+          "event": "Checked",
+          "handler": "AutoOverlaysToggle_Changed"
+        },
+        {
+          "element": "AutoOverlaysToggle",
+          "event": "Unchecked",
+          "handler": "AutoOverlaysToggle_Changed"
+        },
+        {
+          "element": "ScreensaverToggle",
+          "event": "Checked",
+          "handler": "ScreensaverToggle_Changed"
+        },
+        {
+          "element": "ScreensaverToggle",
+          "event": "Unchecked",
+          "handler": "ScreensaverToggle_Changed"
+        },
+        {
+          "element": "StartupModeCombo",
+          "event": "SelectionChanged",
+          "handler": "StartupModeCombo_SelectionChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "BackButton_Click"
+        }
+      ],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/IntroScreenControl.xaml",
+      "class": "Roche_Scoreboard.Views.IntroScreenControl",
+      "sha256": "a5e041c5a2d2bee8bd42395477381718315ea5d690429b21567d59d361e76cb4",
+      "named_elements": [
+        "RootGrid",
+        "HomeHalf",
+        "HomeHalfTranslate",
+        "HomeBgBrush",
+        "HomeShimmer",
+        "HomeShimmerTranslate",
+        "HomeLogoImage",
+        "HomeLogoScale",
+        "HomeNameFallback",
+        "HomeNameBrush",
+        "AwayHalf",
+        "AwayHalfTranslate",
+        "AwayBgBrush",
+        "AwayShimmer",
+        "AwayShimmerTranslate",
+        "AwayLogoImage",
+        "AwayLogoScale",
+        "AwayNameFallback",
+        "AwayNameBrush",
+        "DiagonalGlow",
+        "DiagonalGlowBlur",
+        "VsText",
+        "VsGlow",
+        "VsScale"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/LogoCropWindow.xaml",
+      "class": "Roche_Scoreboard.Views.LogoCropWindow",
+      "sha256": "a77070d46b53c01ce89319b03b3ae892f996f69cc6340e3538109c55da233dbd",
+      "named_elements": [
+        "HomeWideArea",
+        "HomeWideImage",
+        "HomeEmptyHint",
+        "HomeCropImage",
+        "HomeLogoPathText",
+        "HomeZoomSlider",
+        "HomeXSlider",
+        "HomeYSlider",
+        "AwayWideArea",
+        "AwayWideImage",
+        "AwayEmptyHint",
+        "AwayCropImage",
+        "AwayLogoPathText",
+        "AwayZoomSlider",
+        "AwayXSlider",
+        "AwayYSlider"
+      ],
+      "handlers": [
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "LoadHomeLogo_Click"
+        },
+        {
+          "element": "HomeWideArea",
+          "event": "MouseLeftButtonDown",
+          "handler": "Preview_MouseLeftButtonDown"
+        },
+        {
+          "element": "HomeWideArea",
+          "event": "MouseLeftButtonUp",
+          "handler": "Preview_MouseLeftButtonUp"
+        },
+        {
+          "element": "HomeWideArea",
+          "event": "MouseLeave",
+          "handler": "Preview_MouseLeave"
+        },
+        {
+          "element": "HomeZoomSlider",
+          "event": "ValueChanged",
+          "handler": "Slider_ValueChanged"
+        },
+        {
+          "element": "HomeXSlider",
+          "event": "ValueChanged",
+          "handler": "Slider_ValueChanged"
+        },
+        {
+          "element": "HomeYSlider",
+          "event": "ValueChanged",
+          "handler": "Slider_ValueChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetHome_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "LoadAwayLogo_Click"
+        },
+        {
+          "element": "AwayWideArea",
+          "event": "MouseLeftButtonDown",
+          "handler": "Preview_MouseLeftButtonDown"
+        },
+        {
+          "element": "AwayWideArea",
+          "event": "MouseLeftButtonUp",
+          "handler": "Preview_MouseLeftButtonUp"
+        },
+        {
+          "element": "AwayWideArea",
+          "event": "MouseLeave",
+          "handler": "Preview_MouseLeave"
+        },
+        {
+          "element": "AwayZoomSlider",
+          "event": "ValueChanged",
+          "handler": "Slider_ValueChanged"
+        },
+        {
+          "element": "AwayXSlider",
+          "event": "ValueChanged",
+          "handler": "Slider_ValueChanged"
+        },
+        {
+          "element": "AwayYSlider",
+          "event": "ValueChanged",
+          "handler": "Slider_ValueChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ResetAway_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Cancel_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Apply_Click"
+        }
+      ],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/MatchLoadingScreen.xaml",
+      "class": "Roche_Scoreboard.Views.MatchLoadingScreen",
+      "sha256": "b87982ec6bbfca991e9728b9b568ffa7b263acc509ea414e8c12716125a6909f",
+      "named_elements": [
+        "GridCanvas",
+        "BeamCanvas",
+        "ParticleCanvas",
+        "BrandPulse",
+        "BrandText",
+        "BrandSubtitle",
+        "HomeRing",
+        "HomeRingGlow",
+        "HomeLogoSlot",
+        "HomeLogoImage",
+        "HomeLogoFallback",
+        "HomeNameText",
+        "OuterOrbitRotate",
+        "InnerOrbitRotate",
+        "VsChipScale",
+        "VsText",
+        "AwayRing",
+        "AwayRingGlow",
+        "AwayLogoSlot",
+        "AwayLogoImage",
+        "AwayLogoFallback",
+        "AwayNameText",
+        "ProgressFill",
+        "ProgressShine",
+        "ShineTranslate",
+        "StatusText",
+        "PercentText",
+        "StepStack"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Segoe UI"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OutputScreensaverControl.xaml",
+      "class": "Roche_Scoreboard.Views.OutputScreensaverControl",
+      "sha256": "0c694101e26b5b90ea1b654cfb10d3d171e5820daaf8c4d952c373118196a565",
+      "named_elements": [
+        "Root",
+        "CustomVideoHost",
+        "CustomImage",
+        "DefaultScene",
+        "LightBeamOne",
+        "BeamOneTranslate",
+        "LightBeamTwo",
+        "BeamTwoTranslate",
+        "FieldLayer",
+        "FieldTranslate",
+        "ParticleOneTranslate",
+        "ParticleTwoTranslate",
+        "ParticleThreeTranslate",
+        "HorizonGlow",
+        "ClockText"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Arial"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/PresentationScoreBar.xaml",
+      "class": "Roche_Scoreboard.Views.PresentationScoreBar",
+      "sha256": "8831a3a6fe7c86e444fbadb7ed364185005558075842133ca976a474918e7fb4",
+      "named_elements": [
+        "HomeLogoColumn",
+        "CenterColumn",
+        "AwayLogoColumn",
+        "HomePanel",
+        "HomePanelGradStart",
+        "HomePanelGradEnd",
+        "HomeTotalText",
+        "HomeGoalFlash",
+        "HomeDeltaOverlay",
+        "HomeDeltaTranslate",
+        "HomeDeltaText",
+        "HomeLogoCell",
+        "HomeLogoCellGradStart",
+        "HomeLogoCellGradEnd",
+        "HomeLogoFallback",
+        "HomeLogoImage",
+        "CenterPanel",
+        "LiveCenterPanel",
+        "LiveCenterText",
+        "BreakCenterPanel",
+        "BreakCenterText",
+        "AwayLogoCell",
+        "AwayLogoCellGradStart",
+        "AwayLogoCellGradEnd",
+        "AwayLogoFallback",
+        "AwayLogoImage",
+        "AwayPanel",
+        "AwayPanelGradStart",
+        "AwayPanelGradEnd",
+        "AwayTotalText",
+        "AwayGoalFlash",
+        "AwayDeltaOverlay",
+        "AwayDeltaTranslate",
+        "AwayDeltaText"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Arial",
+        "Arial Black",
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/QuarterBreakScorebugControl.xaml",
+      "class": "Roche_Scoreboard.Views.QuarterBreakScorebugControl",
+      "sha256": "950392da7e531006025cd57669bd4be478c520e752178cc3d7f5de8ff14057d3",
+      "named_elements": [
+        "BreakRoot",
+        "TopInfoRow",
+        "TopInfoBorder",
+        "TopWeatherText",
+        "TopTimeText",
+        "TopDateText",
+        "HomeColourWing",
+        "HomeGradientLight",
+        "HomeGradientDark",
+        "HomeWatermark",
+        "HomeContentPanel",
+        "HomeScoreDetailText",
+        "HomeScoreText",
+        "AwayColourWing",
+        "AwayGradientLight",
+        "AwayGradientDark",
+        "AwayWatermark",
+        "AwayContentPanel",
+        "AwayScoreDetailText",
+        "AwayScoreText",
+        "BreakCentrePanel",
+        "BreakLabelText",
+        "HomeIdentityPanel",
+        "AwayIdentityPanel",
+        "HomeScorePanel",
+        "AwayScorePanel"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Arial",
+        "Arial Black",
+        "Segoe UI Black, Arial Black",
+        "Stolzl Bold"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ResumeGameDialog.xaml",
+      "class": "Roche_Scoreboard.Views.ResumeGameDialog",
+      "sha256": "056150cf47cdccf97e0718996978ba4c2e9d6aec1b940f6a9a651925446bcb83",
+      "named_elements": [
+        "Surface",
+        "FocusRing",
+        "DialogShell",
+        "RecoveryContextText",
+        "SportText",
+        "SavedTimeText",
+        "HomeBlock",
+        "HomeBorderBrush",
+        "HomeLogoImage",
+        "HomeNameText",
+        "HomeTotalText",
+        "HomeGoalsBehindsText",
+        "AwayBlock",
+        "AwayBorderBrush",
+        "AwayLogoImage",
+        "AwayNameText",
+        "AwayGoalsBehindsText",
+        "AwayTotalText",
+        "QuarterText",
+        "ClockText",
+        "MarginLabelText",
+        "MarginText",
+        "DiscardButton",
+        "KeepSavedButton",
+        "ResumeButton"
+      ],
+      "handlers": [
+        {
+          "element": null,
+          "event": "PreviewKeyDown",
+          "handler": "Window_PreviewKeyDown"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "KeepSaved_Click"
+        },
+        {
+          "element": "DiscardButton",
+          "event": "Click",
+          "handler": "Discard_Click"
+        },
+        {
+          "element": "KeepSavedButton",
+          "event": "Click",
+          "handler": "KeepSaved_Click"
+        },
+        {
+          "element": "ResumeButton",
+          "event": "Click",
+          "handler": "Resume_Click"
+        }
+      ],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml",
+      "class": "Roche_Scoreboard.Views.ScoreEventEditorWindow",
+      "sha256": "cf03c97b1aa4edc626b93c6d6012a811dcf13bbad17eaa2b1f2a7e1af71ff541",
+      "named_elements": [
+        "DialogHeading",
+        "EventSummaryBorder",
+        "EventInfoText",
+        "EventScoreText",
+        "QuarterBox",
+        "UseCurrentQuarterBox",
+        "MinutesBox",
+        "SecondsBox",
+        "UseCurrentTimeBox",
+        "HomeTeamBtn",
+        "HomeTeamLabel",
+        "AwayTeamBtn",
+        "AwayTeamLabel",
+        "GoalBtn",
+        "BehindBtn",
+        "DeleteButton",
+        "SaveButton"
+      ],
+      "handlers": [
+        {
+          "element": "UseCurrentQuarterBox",
+          "event": "Checked",
+          "handler": "OptionalTiming_Changed"
+        },
+        {
+          "element": "UseCurrentQuarterBox",
+          "event": "Unchecked",
+          "handler": "OptionalTiming_Changed"
+        },
+        {
+          "element": "UseCurrentTimeBox",
+          "event": "Checked",
+          "handler": "OptionalTiming_Changed"
+        },
+        {
+          "element": "UseCurrentTimeBox",
+          "event": "Unchecked",
+          "handler": "OptionalTiming_Changed"
+        },
+        {
+          "element": "HomeTeamBtn",
+          "event": "MouseLeftButtonUp",
+          "handler": "HomeTeam_Click"
+        },
+        {
+          "element": "AwayTeamBtn",
+          "event": "MouseLeftButtonUp",
+          "handler": "AwayTeam_Click"
+        },
+        {
+          "element": "GoalBtn",
+          "event": "MouseLeftButtonUp",
+          "handler": "Goal_Click"
+        },
+        {
+          "element": "BehindBtn",
+          "event": "MouseLeftButtonUp",
+          "handler": "Behind_Click"
+        },
+        {
+          "element": "DeleteButton",
+          "event": "Click",
+          "handler": "Delete_Click"
+        },
+        {
+          "element": "SaveButton",
+          "event": "Click",
+          "handler": "Save_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Cancel_Click"
+        }
+      ],
+      "fonts": [
+        "Bahnschrift",
+        "Segoe MDL2 Assets"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScorebugControl.xaml",
+      "class": "Roche_Scoreboard.Views.ScorebugControl",
+      "sha256": "0f90576ad788a25995770f7f522a33f7af9a594d88aa1ad0cde0de156784be4f",
+      "named_elements": [
+        "TeamGradient",
+        "ClassicLayout",
+        "TopTimeText",
+        "StatsBarBorder",
+        "StatsBarContent",
+        "StatsBarContentTranslate",
+        "StatsHomeValueText",
+        "StatsBarHomeCol",
+        "StatsBarAwayCol",
+        "StatsHomeBarBrush",
+        "StatsAwayBarBrush",
+        "StatsLabelText",
+        "StatsAwayValueText",
+        "ScorelessBarBorder",
+        "ScorelessLabelText",
+        "ScorelessTimeText",
+        "ScoringRunBarBorder",
+        "ScoringRunGradient",
+        "ScoringRunLabelText",
+        "TeamDroughtBarBorder",
+        "TeamDroughtGradient",
+        "TeamDroughtLabelText",
+        "TeamDroughtTimeText",
+        "LeadChangesBarBorder",
+        "LeadChangesLabelText",
+        "LeadChangesValueText",
+        "WinProbBarBorder",
+        "WinProbHomePctText",
+        "WinProbHomeCol",
+        "WinProbAwayCol",
+        "WinProbHomeBarBrush",
+        "WinProbAwayBarBrush",
+        "WinProbLabelText",
+        "WinProbAwayPctText",
+        "HomeRowGrid",
+        "HomeLogoContainer",
+        "HomeLogoSquare",
+        "HomeLogoImage",
+        "HomeLogoFallbackText",
+        "HomeNameText",
+        "HomeGoalsContainer",
+        "HomeGoalsText",
+        "HomeGoalsFlip",
+        "HomeBehindsContainer",
+        "HomeBehindsText",
+        "HomeBehindsFlip",
+        "HomeTotalBorder",
+        "HomeTotalText",
+        "HomeTotalFlip",
+        "HomeSwipeOverlay",
+        "HomeSwipeBg",
+        "HomeSwipeTranslate",
+        "HomeSwipeText",
+        "HomeSwipeFg",
+        "HomeScoreGlow",
+        "HomeEdgeGlow",
+        "HomeOverlay",
+        "HomeOverlayBg",
+        "HomeGradientBar",
+        "HomeGradientBarBrush",
+        "HomeGradientScroll",
+        "HomeShimmer",
+        "HomeShimmerScroll",
+        "HomeOverlayText",
+        "AwayRowGrid",
+        "AwayLogoContainer",
+        "AwayLogoSquare",
+        "AwayLogoImage",
+        "AwayLogoFallbackText",
+        "AwayNameText",
+        "AwayGoalsContainer",
+        "AwayGoalsText",
+        "AwayGoalsFlip",
+        "AwayBehindsContainer",
+        "AwayBehindsText",
+        "AwayBehindsFlip",
+        "AwayTotalBorder",
+        "AwayTotalText",
+        "AwayTotalFlip",
+        "AwaySwipeOverlay",
+        "AwaySwipeBg",
+        "AwaySwipeTranslate",
+        "AwaySwipeText",
+        "AwaySwipeFg",
+        "AwayScoreGlow",
+        "AwayEdgeGlow",
+        "AwayOverlay",
+        "AwayOverlayBg",
+        "AwayGradientBar",
+        "AwayGradientBarBrush",
+        "AwayGradientScroll",
+        "AwayShimmer",
+        "AwayShimmerScroll",
+        "AwayOverlayText",
+        "QuarterNumberText",
+        "QuarterNumberTextScale",
+        "ClockText",
+        "ClockTextScale",
+        "WarningOverlay",
+        "WarningStripesRect",
+        "WarningStripesTranslate",
+        "WarningScanline",
+        "WarningScanlineTranslate",
+        "WarningGlowBorder",
+        "WarningLetterSkew",
+        "WarningLetterPulse",
+        "WarningLetterHost",
+        "WarningFlash",
+        "MarqueeCanvas",
+        "MarqueeHighlight",
+        "MarqueeHighlightTranslate",
+        "MarqueeText",
+        "MarqueeTranslate",
+        "ExpandedLayout",
+        "ExpTopInfoRow",
+        "ExpBottomBarRow",
+        "ExpTopInfoBar",
+        "ExpTopWeatherColumn",
+        "ExpTopClockColumn",
+        "ExpTopDateColumn",
+        "ExpTopWeatherText",
+        "ExpTopClockText",
+        "ExpTopDateHost",
+        "ExpTopDateText",
+        "ExpBottomBarBorder",
+        "ExpBottomBarSlide",
+        "ExpMarqueeCanvas",
+        "ExpMarqueeHighlight",
+        "ExpMarqueeHighlightTranslate",
+        "ExpMarqueeText",
+        "ExpMarqueeTranslate",
+        "ExpCompactClockBar",
+        "ExpCompactWallTimeColumn",
+        "ExpCompactQuarterText",
+        "ExpCompactClockText",
+        "ExpCompactWallTimeText",
+        "ExpStatsBarBorder",
+        "ExpStatsBarContent",
+        "ExpStatsBarContentTranslate",
+        "ExpStatsHomeValueColumn",
+        "ExpStatsAwayValueColumn",
+        "ExpStatsHomeValueText",
+        "ExpStatsBarHomeCol",
+        "ExpStatsBarAwayCol",
+        "ExpStatsHomeBarBrush",
+        "ExpStatsAwayBarBrush",
+        "ExpStatsLabelText",
+        "ExpStatsInsideLabelText",
+        "ExpStatsAwayValueText",
+        "ExpScorelessBarBorder",
+        "ExpScorelessLabelText",
+        "ExpScorelessTimeText",
+        "ExpScoringRunBarBorder",
+        "ExpScoringRunGradient",
+        "ExpScoringRunLogoBackdrop",
+        "ExpScoringRunContent",
+        "ExpScoringRunAccent",
+        "ExpScoringRunLabelText",
+        "ExpTeamDroughtBarBorder",
+        "ExpTeamDroughtGradient",
+        "ExpTeamDroughtLogoBackdrop",
+        "ExpTeamDroughtAccent",
+        "ExpTeamDroughtLabelLane",
+        "ExpTeamDroughtLabelText",
+        "ExpTeamDroughtLabelTranslate",
+        "ExpTeamDroughtTimeText",
+        "ExpLeadChangesBarBorder",
+        "ExpLeadChangesLabelText",
+        "ExpLeadChangesValueText",
+        "ExpWinProbBarBorder",
+        "ExpWinProbContent",
+        "ExpWinProbHomeValueColumn",
+        "ExpWinProbAwayValueColumn",
+        "ExpWinProbHomePctText",
+        "ExpWinProbHomeCol",
+        "ExpWinProbAwayCol",
+        "ExpWinProbHomeBarBrush",
+        "ExpWinProbAwayBarBrush",
+        "ExpWinProbInsideLabelText",
+        "ExpWinProbLabelText",
+        "ExpWinProbAwayPctText",
+        "ExpWeatherStatsBorder",
+        "ExpWeatherStatsDesc",
+        "ExpWeatherStatsIcon",
+        "ExpWeatherStatsTemp",
+        "ExpWeatherStatsFeels",
+        "ExpWeatherStatsMin",
+        "ExpWeatherStatsMax",
+        "ExpForecastBorder",
+        "ExpForecastTiles",
+        "ExpRainBorder",
+        "ExpRainBars",
+        "ExpRainPeakValue",
+        "ExpQuarterScoresBarBorder",
+        "ExpQuarterScoresHomeTotalBox",
+        "ExpQuarterScoresHomeTotalBg",
+        "ExpQuarterScoresHomeTotalBorder",
+        "ExpQuarterScoresHomeLogo",
+        "ExpQuarterScoresHomeNameText",
+        "ExpQuarterScoresHomeTotalText",
+        "ExpQuarterScoresQtrLabelText",
+        "ExpQuarterScoresAwayTotalBox",
+        "ExpQuarterScoresAwayTotalBg",
+        "ExpQuarterScoresAwayTotalBorder",
+        "ExpQuarterScoresAwayLogo",
+        "ExpQuarterScoresAwayTotalText",
+        "ExpQuarterScoresAwayNameText",
+        "ExpQuarterScoresHomeGoalsBox",
+        "ExpQuarterScoresHomeGoalsBg",
+        "ExpQuarterScoresHomeGoalsBorder",
+        "ExpQuarterScoresHomeGoalsText",
+        "ExpQuarterScoresHomeBehindsBox",
+        "ExpQuarterScoresHomeBehindsBg",
+        "ExpQuarterScoresHomeBehindsBorder",
+        "ExpQuarterScoresHomeBehindsText",
+        "ExpQuarterScoresAwayGoalsBox",
+        "ExpQuarterScoresAwayGoalsBg",
+        "ExpQuarterScoresAwayGoalsBorder",
+        "ExpQuarterScoresAwayGoalsText",
+        "ExpQuarterScoresAwayBehindsBox",
+        "ExpQuarterScoresAwayBehindsBg",
+        "ExpQuarterScoresAwayBehindsBorder",
+        "ExpQuarterScoresAwayBehindsText",
+        "ExpWarningBanner",
+        "ExpWarningBannerSlide",
+        "ExpWarningAlertGlow",
+        "ExpWarningMotionBand",
+        "ExpWarningBannerStripesTranslate",
+        "ExpWarningAlertScale",
+        "ExpWarningAlertFlash",
+        "ExpWarningBannerGlowBorder",
+        "ExpWarningBannerLetterHost",
+        "ExpWarningBannerLetterPulse",
+        "ExpWarningBannerScanline",
+        "ExpWarningBannerScanlineTranslate",
+        "ExpWarningBannerFlash",
+        "ExpSharedOverlayLogoLayer",
+        "ExpSharedOverlayHomeLogo",
+        "ExpSharedOverlayAwayLogo",
+        "ExpMainContentGrid",
+        "ExpClockColumn",
+        "ExpLogoColumn",
+        "ExpScoresColumn",
+        "ExpRecentScoresDrawerColumn",
+        "ExpClockPanel",
+        "ExpClockPanelGradTop",
+        "ExpClockPanelGradMid",
+        "ExpClockPanelGradBot",
+        "ExpPanelWallTimeRow",
+        "ExpClockQuarterSurface",
+        "ExpClockTimerSurface",
+        "ExpClockWallTimeSurface",
+        "ExpQuarterNumberText",
+        "ExpQuarterNumberTextScale",
+        "ExpClockDivider",
+        "ExpClockText",
+        "ExpClockTextScale",
+        "ExpPanelWallTimeView",
+        "ExpPanelWallTimeText",
+        "ExpPanelWallTimeSuffixText",
+        "ExpTopTimeText",
+        "ExpWarningOverlay",
+        "ExpWarningStripesRect",
+        "ExpWarningStripesTranslate",
+        "ExpWarningScanline",
+        "ExpWarningScanlineTranslate",
+        "ExpWarningGlowBorder",
+        "ExpWarningLetterSkew",
+        "ExpWarningLetterPulse",
+        "ExpWarningLetterHost",
+        "ExpWarningFlash",
+        "ExpLogoPanels",
+        "ExpLogoPanelsTranslate",
+        "ExpHomeLogoCell",
+        "ExpHomeLogoStoryTranslate",
+        "ExpHomeLogoCellGradStart",
+        "ExpHomeLogoCellGradEnd",
+        "ExpHomeLogoHost",
+        "ExpHomeLogoSquare",
+        "ExpHomeLogoFallback",
+        "ExpHomeLogoImage",
+        "ExpAwayLogoCell",
+        "ExpAwayLogoStoryTranslate",
+        "ExpAwayLogoCellGradStart",
+        "ExpAwayLogoCellGradEnd",
+        "ExpAwayLogoHost",
+        "ExpAwayLogoSquare",
+        "ExpAwayLogoFallback",
+        "ExpAwayLogoImage",
+        "ExpScorePanels",
+        "ExpScorePanelsTranslate",
+        "ExpHomePanel",
+        "ExpHomeScoreStoryTranslate",
+        "ExpHomePanelGradStart",
+        "ExpHomePanelGradEnd",
+        "ExpHomeNameRow",
+        "ExpHomeScoreRow",
+        "ExpHomeNameHost",
+        "ExpHomeNameText",
+        "ExpHomeNameSlide",
+        "ExpHomeNameSeparator",
+        "ExpHomeScoreGrid",
+        "ExpHomeGoalsColumn",
+        "ExpHomeGoalsSeparatorColumn",
+        "ExpHomeBehindsColumn",
+        "ExpHomeTotalSeparatorColumn",
+        "ExpHomeTotalColumn",
+        "ExpHomeGoalsCell",
+        "ExpHomeGoalsSlide",
+        "ExpHomeGoalsText",
+        "ExpHomeGoalsFlip",
+        "ExpHomeGoalsBehindsSep",
+        "ExpHomeBehindsCell",
+        "ExpHomeBehindsSlide",
+        "ExpHomeBehindsText",
+        "ExpHomeBehindsFlip",
+        "ExpHomeBehindsTotalSep",
+        "ExpHomeTotalCell",
+        "ExpHomeTotalSlide",
+        "ExpHomeTotalText",
+        "ExpHomeTotalFlip",
+        "ExpHomeSwipeOverlay",
+        "ExpHomeSwipeBg",
+        "ExpHomeSwipeTranslate",
+        "ExpHomeSwipeText",
+        "ExpHomeSwipeFg",
+        "ExpHomeScoreGlow",
+        "ExpHomeEdgeGlow",
+        "ExpHomeOverlay",
+        "ExpHomeOverlayBg",
+        "ExpHomeGradBar",
+        "ExpHomeGradBarBrush",
+        "ExpHomeGradScroll",
+        "ExpHomeShimmer",
+        "ExpHomeShimmerScroll",
+        "ExpHomeBroadcastChrome",
+        "ExpHomeElectricChrome",
+        "ExpHomeCinematicChrome",
+        "ExpHomeCleanChrome",
+        "ExpHomeClassicChrome",
+        "ExpHomeGoalTextViewbox",
+        "ExpHomeOverlayText",
+        "ExpHomeOverlayGlow",
+        "ExpHomeOverlayScale",
+        "ExpAwayPanel",
+        "ExpAwayScoreStoryTranslate",
+        "ExpAwayPanelGradStart",
+        "ExpAwayPanelGradEnd",
+        "ExpAwayNameRow",
+        "ExpAwayScoreRow",
+        "ExpAwayNameHost",
+        "ExpAwayNameText",
+        "ExpAwayNameSlide",
+        "ExpAwayNameSeparator",
+        "ExpAwayScoreGrid",
+        "ExpAwayGoalsColumn",
+        "ExpAwayGoalsSeparatorColumn",
+        "ExpAwayBehindsColumn",
+        "ExpAwayTotalSeparatorColumn",
+        "ExpAwayTotalColumn",
+        "ExpAwayGoalsCell",
+        "ExpAwayGoalsSlide",
+        "ExpAwayGoalsText",
+        "ExpAwayGoalsFlip",
+        "ExpAwayGoalsBehindsSep",
+        "ExpAwayBehindsCell",
+        "ExpAwayBehindsSlide",
+        "ExpAwayBehindsText",
+        "ExpAwayBehindsFlip",
+        "ExpAwayBehindsTotalSep",
+        "ExpAwayTotalCell",
+        "ExpAwayTotalSlide",
+        "ExpAwayTotalText",
+        "ExpAwayTotalFlip",
+        "ExpAwaySwipeOverlay",
+        "ExpAwaySwipeBg",
+        "ExpAwaySwipeTranslate",
+        "ExpAwaySwipeText",
+        "ExpAwaySwipeFg",
+        "ExpAwayScoreGlow",
+        "ExpAwayEdgeGlow",
+        "ExpAwayOverlay",
+        "ExpAwayOverlayBg",
+        "ExpAwayGradBar",
+        "ExpAwayGradBarBrush",
+        "ExpAwayGradScroll",
+        "ExpAwayShimmer",
+        "ExpAwayShimmerScroll",
+        "ExpAwayBroadcastChrome",
+        "ExpAwayElectricChrome",
+        "ExpAwayCinematicChrome",
+        "ExpAwayCleanChrome",
+        "ExpAwayClassicChrome",
+        "ExpAwayGoalTextViewbox",
+        "ExpAwayOverlayText",
+        "ExpAwayOverlayGlow",
+        "ExpAwayOverlayScale",
+        "ExpTeamStoryTakeover",
+        "ExpTeamStoryReveal",
+        "ExpTeamStorySurface",
+        "ExpTeamStoryGradient",
+        "ExpTeamStoryGradientStrong",
+        "ExpTeamStoryGradientMid",
+        "ExpTeamStoryGradientDark",
+        "ExpTeamStoryLogo",
+        "ExpTeamStoryPushEdge",
+        "ExpTeamStoryDirectionIndicator",
+        "ExpTeamStoryDirectionHost",
+        "ExpTeamStoryDirectionFlip",
+        "ExpTeamStoryContent",
+        "ExpTeamStoryContentTranslate",
+        "ExpTeamStoryMetricColumn",
+        "ExpTeamStoryDescriptorColumn",
+        "ExpTeamStoryHeadline",
+        "ExpTeamStoryKicker",
+        "ExpTeamStoryTeamName",
+        "ExpTeamStoryFooter",
+        "ExpTeamStoryTimerHost",
+        "ExpTeamStoryTimer",
+        "ExpRecentScoresBarBorder",
+        "ExpRecentScoresContent",
+        "ExpRecentScoresHeader",
+        "ExpRecentScoresRecentText",
+        "ExpRecentScoresTitleText",
+        "ExpRecentScoresSpacerColumn",
+        "ExpRecentScoresCards"
+      ],
+      "handlers": [
+        {
+          "element": "ExpHomeNameHost",
+          "event": "SizeChanged",
+          "handler": "ExpandedTeamNameHost_SizeChanged"
+        },
+        {
+          "element": "ExpAwayNameHost",
+          "event": "SizeChanged",
+          "handler": "ExpandedTeamNameHost_SizeChanged"
+        }
+      ],
+      "fonts": [
+        "Arial",
+        "Arial Black",
+        "Bahnschrift SemiCondensed",
+        "Stolzl Bold"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScorewormControl.xaml",
+      "class": "Roche_Scoreboard.Views.ScorewormControl",
+      "sha256": "5e7f6aacaf679e21b263ed29067f702db249ddfd68e3798fb2c2e68403b59264",
+      "named_elements": [
+        "WormBgGradient",
+        "WormTitleRow",
+        "WormGraphRow",
+        "WormTitlePanel",
+        "WormTitleText",
+        "WormMarginText",
+        "WormTimeText",
+        "WormTitleAccent",
+        "ZoneCanvas",
+        "YAxisColumn",
+        "YAxisCanvas",
+        "GraphCanvas",
+        "ScoreBar"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SetupWizard.xaml",
+      "class": "Roche_Scoreboard.Views.SetupWizard",
+      "sha256": "af3e42e974c89a754e198079a837f4f981f37a51fee60b09429e9dcbe28f9ffc",
+      "named_elements": [
+        "BdSc",
+        "BdLift",
+        "RewardFlash",
+        "Bd",
+        "Bd",
+        "Border",
+        "PART_EditableTextBox",
+        "PART_Popup",
+        "ResponsiveScrollHost",
+        "BgGlow",
+        "BeamTranslate",
+        "HeaderPanel",
+        "HeaderTranslate",
+        "HeaderTitle",
+        "StepIndicator",
+        "StepIndicatorTranslate",
+        "Step1Dot",
+        "Step1Glow",
+        "Step1Label",
+        "Step2Dot",
+        "Step2Label",
+        "Step3Dot",
+        "Step3Label",
+        "TeamsStepContainer",
+        "HomePresetCard",
+        "HomePresetTranslate",
+        "HomePresetEmpty",
+        "HomePresetPanel",
+        "AwayPresetCard",
+        "AwayPresetTranslate",
+        "AwayPresetEmpty",
+        "AwayPresetPanel",
+        "Step2Panel",
+        "HomeTeamCard",
+        "HomeCardScale",
+        "HomeCardTranslate",
+        "HomeGlow",
+        "HomeHeaderGroup",
+        "HomeHeaderTranslate",
+        "SetupHomeNameBox",
+        "SetupHomeAbbrBox",
+        "SetupHomeColorBox",
+        "SetupHomeColorPreview",
+        "SetupHomeSecondaryBox",
+        "SetupHomeSecondaryPreview",
+        "SetupHomeLogoText",
+        "SetupHomeLogoPreview",
+        "SetupHomeLogoImage",
+        "SetupHomeVideoText",
+        "DividerScale",
+        "DividerGlowLine",
+        "AwayTeamCard",
+        "AwayCardScale",
+        "AwayCardTranslate",
+        "AwayGlow",
+        "AwayHeaderGroup",
+        "AwayHeaderTranslate",
+        "SetupAwayNameBox",
+        "SetupAwayAbbrBox",
+        "SetupAwayColorBox",
+        "SetupAwayColorPreview",
+        "SetupAwaySecondaryBox",
+        "SetupAwaySecondaryPreview",
+        "SetupAwayLogoText",
+        "SetupAwayLogoPreview",
+        "SetupAwayLogoImage",
+        "SetupAwayVideoText",
+        "Step3Panel",
+        "Step3Translate",
+        "ClockGlow",
+        "SetupCountUp",
+        "SetupCountdown",
+        "SetupControlPanelCountdown",
+        "SetupQuarterMinutes",
+        "SetupQuarterSeconds",
+        "ClockHeaderGroup",
+        "ClockHeaderTranslate",
+        "CountUpCard",
+        "CountUpGlowBg",
+        "CountUpIcon",
+        "CountUpSelected",
+        "ControlPanelCountdownOptionCard",
+        "ControlPanelCountdownCardTranslate",
+        "ControlPanelCountdownCardScale",
+        "ControlPanelCountdownToggleTrack",
+        "ControlPanelCountdownToggleThumb",
+        "ControlPanelCountdownThumbTranslate",
+        "ControlPanelCountdownToggleLabel",
+        "ControlPanelCountdownHintText",
+        "CountdownCard",
+        "CountdownGlowBg",
+        "CountdownIcon",
+        "CountdownSelected",
+        "SetupDurationPanel",
+        "DurationGlowBg",
+        "DurationMinutesDisplay",
+        "Preset10Tile",
+        "Preset15Tile",
+        "Preset20Tile",
+        "Preset25Tile",
+        "DurationDisabledOverlay",
+        "Step4Panel",
+        "Step4Translate",
+        "MsgGlow",
+        "SetupFinalsMode",
+        "MsgHeaderGroup",
+        "MsgHeaderTranslate",
+        "FinalsCard",
+        "FinalsGlowBg",
+        "FinalsIcon",
+        "FinalsSelectedBadge",
+        "WeatherCard",
+        "WeatherGlowBg",
+        "SetupWeatherLocation",
+        "MsgSectionGlow",
+        "SetupMessageList",
+        "SetupNewMessageBox",
+        "SetupNewMessageTextColorBtn",
+        "SetupNewMessageHighlightColorBtn",
+        "NavBar",
+        "NavBarTranslate",
+        "BackButton",
+        "BackBtnScale",
+        "NextButton",
+        "NextBtnScale",
+        "NextButtonText",
+        "BottomAccent",
+        "FlashOverlay"
+      ],
+      "handlers": [
+        {
+          "element": "ResponsiveScrollHost",
+          "event": "PreviewMouseWheel",
+          "handler": "ResponsiveScrollHost_PreviewMouseWheel"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "GoToStep1_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "GoToStep2_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "GoToStep3_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "BrowseHomeTeam_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SaveHomePreset_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "DeleteHomePreset_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "BrowseAwayTeam_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SaveAwayPreset_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "DeleteAwayPreset_Click"
+        },
+        {
+          "element": "SetupHomeColorBox",
+          "event": "TextChanged",
+          "handler": "SetupHomeColorBox_TextChanged"
+        },
+        {
+          "element": "SetupHomeColorPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickSetupHomeColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperSetupHomeColor_Click"
+        },
+        {
+          "element": "SetupHomeSecondaryBox",
+          "event": "TextChanged",
+          "handler": "SetupHomeSecondaryBox_TextChanged"
+        },
+        {
+          "element": "SetupHomeSecondaryPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickSetupHomeSecondary_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperSetupHomeSecondary_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChooseSetupHomeLogo_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChooseSetupHomeVideo_Click"
+        },
+        {
+          "element": "SetupAwayColorBox",
+          "event": "TextChanged",
+          "handler": "SetupAwayColorBox_TextChanged"
+        },
+        {
+          "element": "SetupAwayColorPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickSetupAwayColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperSetupAwayColor_Click"
+        },
+        {
+          "element": "SetupAwaySecondaryBox",
+          "event": "TextChanged",
+          "handler": "SetupAwaySecondaryBox_TextChanged"
+        },
+        {
+          "element": "SetupAwaySecondaryPreview",
+          "event": "MouseLeftButtonUp",
+          "handler": "PickSetupAwaySecondary_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "DropperSetupAwaySecondary_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChooseSetupAwayLogo_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChooseSetupAwayVideo_Click"
+        },
+        {
+          "element": "SetupCountUp",
+          "event": "Checked",
+          "handler": "SetupClockMode_Changed"
+        },
+        {
+          "element": "SetupCountUp",
+          "event": "Unchecked",
+          "handler": "SetupClockMode_Changed"
+        },
+        {
+          "element": "SetupCountdown",
+          "event": "Checked",
+          "handler": "SetupClockMode_Changed"
+        },
+        {
+          "element": "SetupCountdown",
+          "event": "Unchecked",
+          "handler": "SetupClockMode_Changed"
+        },
+        {
+          "element": "SetupQuarterMinutes",
+          "event": "TextChanged",
+          "handler": "SetupQuarterDuration_TextChanged"
+        },
+        {
+          "element": "SetupQuarterSeconds",
+          "event": "TextChanged",
+          "handler": "SetupQuarterDuration_TextChanged"
+        },
+        {
+          "element": "CountUpCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "CountUpCard_Click"
+        },
+        {
+          "element": "ControlPanelCountdownOptionCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "ControlPanelCountdownOptionCard_Click"
+        },
+        {
+          "element": "CountdownCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "CountdownCard_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "MinutesMinus_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "MinutesPlus_Click"
+        },
+        {
+          "element": "Preset10Tile",
+          "event": "MouseLeftButtonUp",
+          "handler": "SetupQuickDuration10_Click"
+        },
+        {
+          "element": "Preset15Tile",
+          "event": "MouseLeftButtonUp",
+          "handler": "SetupQuickDuration15_Click"
+        },
+        {
+          "element": "Preset20Tile",
+          "event": "MouseLeftButtonUp",
+          "handler": "SetupQuickDuration20_Click"
+        },
+        {
+          "element": "Preset25Tile",
+          "event": "MouseLeftButtonUp",
+          "handler": "SetupQuickDuration25_Click"
+        },
+        {
+          "element": "FinalsCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "FinalsCard_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SetupPickItemTextColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SetupPickItemHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "MouseRightButtonUp",
+          "handler": "SetupClearItemHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SetupRemoveMessageItem_Click"
+        },
+        {
+          "element": "SetupNewMessageBox",
+          "event": "KeyDown",
+          "handler": "SetupNewMessageBox_KeyDown"
+        },
+        {
+          "element": "SetupNewMessageTextColorBtn",
+          "event": "Click",
+          "handler": "SetupPickNewTextColor_Click"
+        },
+        {
+          "element": "SetupNewMessageHighlightColorBtn",
+          "event": "Click",
+          "handler": "SetupPickNewHighlightColor_Click"
+        },
+        {
+          "element": "SetupNewMessageHighlightColorBtn",
+          "event": "MouseRightButtonUp",
+          "handler": "SetupClearNewHighlightColor_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "SetupAddMessage_Click"
+        },
+        {
+          "element": "BackButton",
+          "event": "MouseLeftButtonUp",
+          "handler": "Back_Click"
+        },
+        {
+          "element": "BackButton",
+          "event": "MouseEnter",
+          "handler": "NavBtn_MouseEnter"
+        },
+        {
+          "element": "BackButton",
+          "event": "MouseLeave",
+          "handler": "NavBtn_MouseLeave"
+        },
+        {
+          "element": "NextButton",
+          "event": "MouseLeftButtonUp",
+          "handler": "Next_Click"
+        },
+        {
+          "element": "NextButton",
+          "event": "MouseEnter",
+          "handler": "NavBtn_MouseEnter"
+        },
+        {
+          "element": "NextButton",
+          "event": "MouseLeave",
+          "handler": "NavBtn_MouseLeave"
+        }
+      ],
+      "fonts": [
+        "Bahnschrift",
+        "Consolas",
+        "Segoe UI Symbol"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
+      "class": "Roche_Scoreboard.Views.SportSelectionScreen",
+      "sha256": "0324bbf4f8e3bcbbe9f1ba998158b187dd2eaab1b69fa7a01e0403f586d20749",
+      "named_elements": [
+        "ResponsiveScrollHost",
+        "HeaderPanel",
+        "HeaderTranslate",
+        "SettingsTile",
+        "SettingsTileScale",
+        "SettingsTileTranslate",
+        "SettingsTileGlow",
+        "AflCard",
+        "AflCardScale",
+        "AflCardTranslate",
+        "AflGlow",
+        "AflBeamTranslate",
+        "AflIconGroup",
+        "AflIconScale",
+        "AflIconFloat",
+        "AflIconHover",
+        "AflTextPanel",
+        "AflTextTranslate",
+        "AflHover",
+        "AflFlash",
+        "DividerScale",
+        "DividerGlowLine",
+        "CricketCard",
+        "CricketCardScale",
+        "CricketCardTranslate",
+        "CricketGlow",
+        "CricketBeamTranslate",
+        "CricketIconGroup",
+        "CricketIconScale",
+        "CricketIconFloat",
+        "CricketIconHover",
+        "CricketTextPanel",
+        "CricketTextTranslate",
+        "CricketHover",
+        "CricketFlash",
+        "TrainingCard",
+        "TrainingTileScale",
+        "TrainingTileTranslate",
+        "TrainingTileGlow",
+        "TrainingFlash",
+        "ChangelogToggle",
+        "Shell",
+        "VersionLabel",
+        "BottomAccent",
+        "ChangelogOverlay",
+        "ChangelogPanel",
+        "ChangelogPanelScale",
+        "ChangelogPanelTranslate",
+        "ChangelogSearchBox",
+        "ChangelogEntries"
+      ],
+      "handlers": [
+        {
+          "element": "ResponsiveScrollHost",
+          "event": "PreviewMouseWheel",
+          "handler": "ResponsiveScrollHost_PreviewMouseWheel"
+        },
+        {
+          "element": "SettingsTile",
+          "event": "MouseLeftButtonUp",
+          "handler": "Settings_Click"
+        },
+        {
+          "element": "SettingsTile",
+          "event": "MouseEnter",
+          "handler": "SettingsTile_MouseEnter"
+        },
+        {
+          "element": "SettingsTile",
+          "event": "MouseLeave",
+          "handler": "SettingsTile_MouseLeave"
+        },
+        {
+          "element": "AflCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "AFL_Click"
+        },
+        {
+          "element": "AflCard",
+          "event": "MouseEnter",
+          "handler": "Card_MouseEnter"
+        },
+        {
+          "element": "AflCard",
+          "event": "MouseLeave",
+          "handler": "Card_MouseLeave"
+        },
+        {
+          "element": "CricketCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "Cricket_Click"
+        },
+        {
+          "element": "CricketCard",
+          "event": "MouseEnter",
+          "handler": "Card_MouseEnter"
+        },
+        {
+          "element": "CricketCard",
+          "event": "MouseLeave",
+          "handler": "Card_MouseLeave"
+        },
+        {
+          "element": "TrainingCard",
+          "event": "MouseLeftButtonUp",
+          "handler": "Training_Click"
+        },
+        {
+          "element": "TrainingCard",
+          "event": "MouseEnter",
+          "handler": "TrainingTile_MouseEnter"
+        },
+        {
+          "element": "TrainingCard",
+          "event": "MouseLeave",
+          "handler": "TrainingTile_MouseLeave"
+        },
+        {
+          "element": "ChangelogToggle",
+          "event": "Click",
+          "handler": "ChangelogToggle_Click"
+        },
+        {
+          "element": "ChangelogOverlay",
+          "event": "PreviewKeyDown",
+          "handler": "ChangelogOverlay_PreviewKeyDown"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "ChangelogBackdrop_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChangelogClose_Click"
+        },
+        {
+          "element": "ChangelogSearchBox",
+          "event": "TextChanged",
+          "handler": "ChangelogSearch_TextChanged"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChangelogFilter_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChangelogFilter_Click"
+        },
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "ChangelogFilter_Click"
+        }
+      ],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/StatsScreenControl.xaml",
+      "class": "Roche_Scoreboard.Views.StatsScreenControl",
+      "sha256": "736caeea632a7628424a6dbbf4b000a6bf8120d855368e3444d7d838957b7f68",
+      "named_elements": [
+        "StatsBgGradient",
+        "StatsTitleRow",
+        "StatsTeamsRow",
+        "StatsBodyRow",
+        "StatsTitlePanel",
+        "StatsTitleAccent",
+        "StatsTitleText",
+        "StatsTimeText",
+        "StatsHomeTeamHeader",
+        "StatsHomeGlow",
+        "StatsHomeLogoFallback",
+        "StatsHomeLogoImage",
+        "StatsHomeTeamText",
+        "StatsAwayTeamHeader",
+        "StatsAwayGlow",
+        "StatsAwayLogoFallback",
+        "StatsAwayLogoImage",
+        "StatsAwayTeamText",
+        "StatsScrHomeShots",
+        "HomeValueBrush1",
+        "ShotsBarBorder",
+        "ShotsHomeCol",
+        "ShotsAwayCol",
+        "ShotHomeBrush",
+        "ShotAwayBrush",
+        "ShotsBarLabel",
+        "StatsScrAwayShots",
+        "AwayValueBrush1",
+        "StatsScrHomeAcc",
+        "HomeValueBrush2",
+        "AccBarBorder",
+        "AccHomeCol",
+        "AccAwayCol",
+        "AccHomeBrush",
+        "AccAwayBrush",
+        "AccuracyBarLabel",
+        "StatsScrAwayAcc",
+        "AwayValueBrush2",
+        "StatsScrHomeTime",
+        "HomeValueBrush3",
+        "TimeBarBorder",
+        "TimeHomeCol",
+        "TimeTiedCol",
+        "TimeAwayCol",
+        "TimeHomeBrush",
+        "TimeTiedBrush",
+        "TimeAwayBrush",
+        "TimeBarLabel",
+        "StatsScrAwayTime",
+        "AwayValueBrush3",
+        "StatsScrHomeLead",
+        "HomeValueBrush4",
+        "LeadBarBorder",
+        "LeadHomeCol",
+        "LeadAwayCol",
+        "LeadHomeBrush",
+        "LeadAwayBrush",
+        "LeadBarLabel",
+        "StatsScrAwayLead",
+        "AwayValueBrush4",
+        "ScoreBar"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Arial",
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml",
+      "class": "Roche_Scoreboard.Views.TeamLibraryWindow",
+      "sha256": "755323b4924cead378a57456de0f985af869874d6aa79dabeed76a208d9f6011",
+      "named_elements": [
+        "Surface",
+        "TargetHeading",
+        "SearchBox",
+        "LeagueFilter",
+        "StateFilter",
+        "SortFilter",
+        "FavouriteOnly",
+        "TeamList",
+        "Card",
+        "SavedStar",
+        "DetailContent",
+        "DetailTranslate",
+        "LogoPlaceholder",
+        "LogoPreview",
+        "SelectedName",
+        "SelectedMeta",
+        "PrimarySwatch",
+        "SecondarySwatch",
+        "StatusText",
+        "FavouriteButton",
+        "UseButton",
+        "ResultCount"
+      ],
+      "handlers": [
+        {
+          "element": null,
+          "event": "Click",
+          "handler": "Close_Click"
+        },
+        {
+          "element": "SearchBox",
+          "event": "TextChanged",
+          "handler": "Filter_Changed"
+        },
+        {
+          "element": "LeagueFilter",
+          "event": "SelectionChanged",
+          "handler": "Filter_Changed"
+        },
+        {
+          "element": "StateFilter",
+          "event": "SelectionChanged",
+          "handler": "Filter_Changed"
+        },
+        {
+          "element": "SortFilter",
+          "event": "SelectionChanged",
+          "handler": "Filter_Changed"
+        },
+        {
+          "element": "FavouriteOnly",
+          "event": "Checked",
+          "handler": "Filter_Changed"
+        },
+        {
+          "element": "FavouriteOnly",
+          "event": "Unchecked",
+          "handler": "Filter_Changed"
+        },
+        {
+          "element": "TeamList",
+          "event": "SelectionChanged",
+          "handler": "TeamList_SelectionChanged"
+        },
+        {
+          "element": "FavouriteButton",
+          "event": "Click",
+          "handler": "Favourite_Click"
+        },
+        {
+          "element": "UseButton",
+          "event": "Click",
+          "handler": "Use_Click"
+        }
+      ],
+      "fonts": [
+        "Segoe UI"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml",
+      "class": "Roche_Scoreboard.Views.TrainingControlPanel",
+      "sha256": "bd2c3823f54cf4ee1e776bf7e91078b77407bfa318d850c275fd5f5bdef68a6e",
+      "named_elements": [
+        "BtnSc",
+        "BtnLift",
+        "RewardFlash",
+        "Bd",
+        "SessionTotalText",
+        "TrainingCloudLauncher",
+        "ExitButton",
+        "ActiveTitleText",
+        "ActiveStatusPill",
+        "ActiveStatusText",
+        "ActiveRemainingText",
+        "StartPauseButton",
+        "ResetActiveButton",
+        "SkipButton",
+        "AddOneMinButton",
+        "AddTenSecButton",
+        "QueueCountText",
+        "AutoAdvanceToggle",
+        "ClearAllButton",
+        "QueueArea",
+        "QueueScroller",
+        "QueueItems",
+        "DropIndicator",
+        "NewTitleBox",
+        "NewMinutesBox",
+        "NewSecondsBox",
+        "AddTimerButton",
+        "RecentTimersPanel",
+        "RecentTimersEmptyText",
+        "IntervalRoundsBox",
+        "IntervalWorkBox",
+        "IntervalRestBox",
+        "BuildIntervalButton"
+      ],
+      "handlers": [
+        {
+          "element": "ExitButton",
+          "event": "Click",
+          "handler": "OnExitClicked"
+        },
+        {
+          "element": "StartPauseButton",
+          "event": "Click",
+          "handler": "OnStartPauseClicked"
+        },
+        {
+          "element": "ResetActiveButton",
+          "event": "Click",
+          "handler": "OnResetActiveClicked"
+        },
+        {
+          "element": "SkipButton",
+          "event": "Click",
+          "handler": "OnSkipClicked"
+        },
+        {
+          "element": "AddOneMinButton",
+          "event": "Click",
+          "handler": "OnAdd60sClicked"
+        },
+        {
+          "element": "AddTenSecButton",
+          "event": "Click",
+          "handler": "OnAdd10sClicked"
+        },
+        {
+          "element": "AutoAdvanceToggle",
+          "event": "Checked",
+          "handler": "OnAutoAdvanceChanged"
+        },
+        {
+          "element": "AutoAdvanceToggle",
+          "event": "Unchecked",
+          "handler": "OnAutoAdvanceChanged"
+        },
+        {
+          "element": "ClearAllButton",
+          "event": "Click",
+          "handler": "OnClearAllClicked"
+        },
+        {
+          "element": "NewTitleBox",
+          "event": "KeyDown",
+          "handler": "OnNewTitleBoxKeyDown"
+        },
+        {
+          "element": "NewMinutesBox",
+          "event": "KeyDown",
+          "handler": "OnNumericKeyDown"
+        },
+        {
+          "element": "NewSecondsBox",
+          "event": "KeyDown",
+          "handler": "OnNumericKeyDown"
+        },
+        {
+          "element": "AddTimerButton",
+          "event": "Click",
+          "handler": "OnAddTimerClicked"
+        },
+        {
+          "element": "IntervalRoundsBox",
+          "event": "KeyDown",
+          "handler": "OnNumericKeyDown"
+        },
+        {
+          "element": "IntervalWorkBox",
+          "event": "KeyDown",
+          "handler": "OnNumericKeyDown"
+        },
+        {
+          "element": "IntervalRestBox",
+          "event": "KeyDown",
+          "handler": "OnNumericKeyDown"
+        },
+        {
+          "element": "BuildIntervalButton",
+          "event": "Click",
+          "handler": "OnBuildIntervalClicked"
+        }
+      ],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TrainingScorebugControl.xaml",
+      "class": "Roche_Scoreboard.Views.TrainingScorebugControl",
+      "sha256": "08bb2eb90fad4d533bbaff974af6f0890f54ca35a1d7fcbe64f0d9776284e4a0",
+      "named_elements": [
+        "RootGrid",
+        "RootBg",
+        "GradientBg",
+        "TitleScale",
+        "TitleTranslate",
+        "TitleGlow",
+        "TitleClip",
+        "TitleText",
+        "TitleScrollTransform",
+        "ActiveTimerHost",
+        "TimerScale",
+        "TimerTranslate",
+        "TimerText",
+        "TimerGlow",
+        "ProgressSegments",
+        "UpNextBar",
+        "UpNextLabel",
+        "UpNextTitle",
+        "UpNextDuration",
+        "StagedTimerHost",
+        "StagedScale",
+        "StagedTranslate",
+        "StagedLabel",
+        "StagedTitleText",
+        "StagedTimerText",
+        "SessionCompleteOverlay"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml",
+      "class": "Roche_Scoreboard.Views.UpdatePromptWindow",
+      "sha256": "fdbe8412d7a8185f3c62de7a2e6a6c35f143c1459663e2d265701d4db7f90a5b",
+      "named_elements": [
+        "Surface",
+        "FocusRing",
+        "PART_Track",
+        "PART_Indicator",
+        "DialogShell",
+        "CloseButton",
+        "CurrentVersionText",
+        "NewVersionText",
+        "IntegrityText",
+        "PackageSizeText",
+        "ReleaseNotesText",
+        "ProgressPanel",
+        "ProgressText",
+        "ProgressPercentText",
+        "UpdateProgressBar",
+        "ProgressDetailText",
+        "ViewReleaseButton",
+        "SkipButton",
+        "UpdateButton"
+      ],
+      "handlers": [
+        {
+          "element": null,
+          "event": "PreviewKeyDown",
+          "handler": "Window_PreviewKeyDown"
+        },
+        {
+          "element": "CloseButton",
+          "event": "Click",
+          "handler": "Close_Click"
+        },
+        {
+          "element": "ViewReleaseButton",
+          "event": "Click",
+          "handler": "ViewRelease_Click"
+        },
+        {
+          "element": "SkipButton",
+          "event": "Click",
+          "handler": "Skip_Click"
+        },
+        {
+          "element": "UpdateButton",
+          "event": "Click",
+          "handler": "Update_Click"
+        }
+      ],
+      "fonts": [
+        "Bahnschrift"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Views/VideoPlayerControl.xaml",
+      "class": "Roche_Scoreboard.Views.VideoPlayerControl",
+      "sha256": "1e9a0c2d7b446222e53a4d0685fd453980c098eb606dd8f82d95a4b728f8590f",
+      "named_elements": [
+        "VideoPlayer"
+      ],
+      "handlers": [],
+      "fonts": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/WeatherScreenControl.xaml",
+      "class": "Roche_Scoreboard.Views.WeatherScreenControl",
+      "sha256": "2815565de84362d358f953dbfcb1596b59ced5f751df038c45330be01ef84884",
+      "named_elements": [
+        "WeatherTitleRow",
+        "WeatherBodyRow",
+        "WeatherTitlePanel",
+        "LocationText",
+        "WeatherTitleText",
+        "WeatherTimeText",
+        "WeatherHeroRow",
+        "WeatherStatsRow",
+        "WeatherDataPanel",
+        "CurrentIcon",
+        "CurrentTemp",
+        "CurrentDescription",
+        "WeatherStatsPanel",
+        "DayMinTemp",
+        "FeelsLikeTemp",
+        "DayMaxTemp",
+        "WeatherUnavailablePanel",
+        "ScoreBar"
+      ],
+      "handlers": [],
+      "fonts": [
+        "Arial",
+        "Segoe UI",
+        "Segoe UI Emoji, Segoe UI Symbol"
+      ]
+    }
+  ],
+  "code": [
+    {
+      "source": "Roche_Scoreboard/App.xaml.cs",
+      "sha256": "ce5cc7e3c78f9b6762bca539885e95fff3a8e94dd0890040a191aeed992cece3",
+      "lines": 673,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/AssemblyInfo.cs",
+      "sha256": "0ac596df13aac629a714fd9ecd7b49d53a2db8f788524db8783925bcdadf8817",
+      "lines": 10,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Controls/MarqueeTextBlock.cs",
+      "sha256": "193d8d348ff00b955afc4ed10a94a25568ee38c2e8a7a340eb27d299b9b2abc5",
+      "lines": 171,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CloudRemote.cs",
+      "sha256": "5ab5702071e4130395994a5b19eff258c9427ad5e859180cb5fa84721fc2fc53",
+      "lines": 575,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CloudRemoteUi.cs",
+      "sha256": "10137b5203f027924f3273e342f4376c1934eb4e149b21b69090bc1b29d9b102",
+      "lines": 287,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.QuarterLabels.cs",
+      "sha256": "598538888a9380c74407efc601418bd9ce384d16621ada797daf236b968529e7",
+      "lines": 109,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.RestoreMembers.cs",
+      "sha256": "8e9ffa4fe7c105bd241e36e1e389e3ebf77738448cd184bb206d05a3deed2122",
+      "lines": 6676,
+      "native_libraries": [
+        "user32.dll"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.TrainingCloudRemote.cs",
+      "sha256": "63e56768bf511459a7f0b1b28ad4fcd7a8a2e4e54465d7ae2992f89ecfedc1aa",
+      "lines": 250,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.xaml.cs",
+      "sha256": "ac0ec10c4e26a27541dffa36e669ff7d83544773fc07adf38e39fa7ae4c1cf61",
+      "lines": 3517,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketAnalytics.cs",
+      "sha256": "b995a3d0eb755de952c0bbf40a96d904de3ba4a15e15dbfeeb8bbc195f339fab",
+      "lines": 158,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketMatchManager.cs",
+      "sha256": "572d239efcb7081ba57ffeac049adc770f103cacbe669b0a07f8ee18ff96fc9d",
+      "lines": 1100,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketPlayer.cs",
+      "sha256": "2ec6c3ac6162cbd13dceb30a5095e19ed1d7f988967347d1750ad09583bf37f3",
+      "lines": 133,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketSetupResult.cs",
+      "sha256": "b116edec817b2578fbf8a35d0fc69baf6b52d8307a1fcf0f4a5709145afec76e",
+      "lines": 35,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/GoalAnimationStyle.cs",
+      "sha256": "a8419b1a26850891d3545f491b71d9f6ae52763ad8c2287a30cac3c721aa3695",
+      "lines": 52,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/MarqueeMessage.cs",
+      "sha256": "c1c9af8fe4f65e957dab5ec1e572ab90b3f60290da2697158a37e1c6036fd06d",
+      "lines": 105,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/MatchManager.cs",
+      "sha256": "e02afb80f24bd91e1eb23977eb588f5a679daa19adc94db16a4d7c0a9a3977ac",
+      "lines": 784,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/MatchStats.cs",
+      "sha256": "f95b58b8c1e15caffcac0f074bfd5217bedc74b542c17613891706573e6de411",
+      "lines": 169,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/ScoreEvent.cs",
+      "sha256": "ba517ba2aac62955eafff35dc5d745799f3f9ba3aa1584fc2b8be124c4af4826",
+      "lines": 40,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/ScorebugLayout.cs",
+      "sha256": "54aa6fa8670ed45f8efbfed97b4d4302841bd9309adcc81ebdc25d0b0e91b914",
+      "lines": 26,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/SetupResult.cs",
+      "sha256": "0cbc8f95ef9358adf1ac93067ca3ebe316e6b0ad76ddb1640fdbbb7e23d9750c",
+      "lines": 39,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/SportMode.cs",
+      "sha256": "c3e1caa4afa4eead2284729af0562e730f417e1bb61afabd143f160106c44121",
+      "lines": 10,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TeamCatalogEntry.cs",
+      "sha256": "64c538a57d36d14d042f35528bf6535b3fe3f6478c1e335c6a73952f7b123764",
+      "lines": 16,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TeamNameDisplayMode.cs",
+      "sha256": "dd0cf9e80e2615820881f0883e76298b0ae1bbebb07895ab66268df01d657120",
+      "lines": 18,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TeamPreset.cs",
+      "sha256": "399425d6807458450de8a0775c6a9b5edfb9465941df065b2b91840f1f473608",
+      "lines": 26,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TrainingSession.cs",
+      "sha256": "a60aa61a0a5ea7b08519e73d8e99b4e33d40a2c4300acfe9f0278168c3143bd5",
+      "lines": 355,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TrainingTimer.cs",
+      "sha256": "99b5c5045ccd7239e9d7b6372060b51c2a914ae468a1f0f56a2f7d4032969d28",
+      "lines": 39,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/WinProbabilityEngine.cs",
+      "sha256": "cb83670a7003f53c9204576381b02bf9ffa196408617876de4ceeafe3ef304a2",
+      "lines": 623,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AflDroughtCalculator.cs",
+      "sha256": "a591f650929107a9beaa88d21b13465bfdba11240db6e3f72e11b814bcd8d9b0",
+      "lines": 86,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AflGoalRunDetector.cs",
+      "sha256": "aacb88d6237d56c484d5384b18afe74c06c0838b6a0e9a19ad093bfc351c64c7",
+      "lines": 124,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AflKeybindSettings.cs",
+      "sha256": "1db7a74516e24f85886af9c0a3a90441a1facee2e065b758f89e48c2ee6a199c",
+      "lines": 120,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AflReliabilityStressSuite.cs",
+      "sha256": "a1101c25ba98e8607eaa766dd99a3c02d9ad1576756e83e6b9b5b004d063c3fd",
+      "lines": 716,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AtomicFile.cs",
+      "sha256": "307a469c0b4b445744f29191fe399441f84622a8010f6f89b3f1a113fe0c2194",
+      "lines": 171,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AutoUpdateService.cs",
+      "sha256": "f2c6db8e1c90e1d9f1720220961c9b000cce80c0c1f953a0b8dd3078a3bfbfcb",
+      "lines": 1055,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ChangelogService.cs",
+      "sha256": "d6fd3ab00b1339ccba99bb319f1ac2c4907bc6c4a20d5a17d43e2a3444ae4934",
+      "lines": 500,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/CloudGameSessionService.cs",
+      "sha256": "7a009dc2b2a6d2367f94b5d85be611e262deee3ad9dcf4dd96bcc8be57ae2767",
+      "lines": 120,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/JoinCodeGenerator.cs",
+      "sha256": "7172aa7f22c18696389ad882d485b6a5cecf36004b0dbf08290e6347dc7bb71a",
+      "lines": 49,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/LiveStateSnapshot.cs",
+      "sha256": "339f4e39981f2e4691a422648931020971a651dbc290a293e906e95e788628fe",
+      "lines": 153,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/RemoteCommandDispatcher.cs",
+      "sha256": "eec8864021d547c650db86d18ba7ab9e859bb16eeceb5dc03b3237a8733dd3ca",
+      "lines": 370,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/RemoteControlService.cs",
+      "sha256": "33f482768f22b53ceec5aa3a8b5be20cda5a28bfde906e7d35aa0422d6c0a4cc",
+      "lines": 258,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/RemoteEvent.cs",
+      "sha256": "73337096cfa62344c330b0677029bd51679ea8230291262bb8be455880e1355d",
+      "lines": 110,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/SupabaseConfig.cs",
+      "sha256": "c507e587a850ac3cde30d2bfe7b22074077684e4787976a4888614fd7f216c78",
+      "lines": 104,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/SupabaseRealtimeClient.cs",
+      "sha256": "24be856340a1a03acf6ea45005fa9971a7bf705125a7d417e1c4251c1dfba71d",
+      "lines": 220,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/SupabaseRestClient.cs",
+      "sha256": "3c4534c14c8bcff3543153e75b3803b64b8e15f316ae3c637544085103191848",
+      "lines": 113,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ContrastHelper.cs",
+      "sha256": "b71b13ac90550245d42cbe783ee8a48a2fe09f7ca38df5402d5a6a9a32d29dd0",
+      "lines": 144,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/DisplaySettings.cs",
+      "sha256": "ee5d3b7d6d23f4351e5a3cd15a9623e230f50607b19654141facca613ad9b47a",
+      "lines": 103,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/EyeDropper.cs",
+      "sha256": "83dbf6b5ee3cd1b09e3730a232f6f5882eca914b6e36fc25d585cbb4d86c6d7d",
+      "lines": 167,
+      "native_libraries": [
+        "gdi32.dll",
+        "user32.dll"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Services/FinalsPalette.cs",
+      "sha256": "2a9a27dbc74e1afe1e36e7b7774556708f7311e03bba39aa3a5aebb155a4122a",
+      "lines": 30,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/GameStateService.cs",
+      "sha256": "5ce45882cabbe4a2b7df17fd601d4545e77497137a9e23afa5d9b22cf8dcf9df",
+      "lines": 186,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ImageLoadHelper.cs",
+      "sha256": "1478c45482978d53f20a966b1cd969ff88700d2b09805e5fba4b04ed870e6428",
+      "lines": 193,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/InteractionMotion.cs",
+      "sha256": "b823931406cb29676d707dcc983e73df6b46b39a971937897117f81521f57669",
+      "lines": 213,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/MatchStorage.cs",
+      "sha256": "f76ed4e486798cba5d81a7da0138c83a5350b7012681303e22ab6b0c8d7c60fb",
+      "lines": 109,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/NestedScrollRouting.cs",
+      "sha256": "f85481e7d705a847f140c0f2e3ea11ef2e269b83d13cc747e18a43ac1b921e86",
+      "lines": 46,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorWorkflowPreferences.cs",
+      "sha256": "7fae15e7ac2683c33efa133c4187a08480764394ee1970857287bd91926aaf9a",
+      "lines": 149,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OverlayScheduler.cs",
+      "sha256": "418e9f219d0985724d554c4255ec17371379af340519f2266b8b280fc2f54419",
+      "lines": 619,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/PixelSizeHelper.cs",
+      "sha256": "d3b953770731e5c39842af53417c884adb695c4fb614eaa18b2c7ecbb7e4e670",
+      "lines": 50,
+      "native_libraries": [
+        "user32.dll"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Services/PresetStorage.cs",
+      "sha256": "5c0420c199283120fd98cd3c8c6582bcc3f6206f216de4061297b9d64fc912a6",
+      "lines": 189,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/QuarterLabelService.cs",
+      "sha256": "a87003a49607446ba496efc8f0f798448d7d6b62a9eed8df46be72b00ca5cb5b",
+      "lines": 243,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/RecentColorStorage.cs",
+      "sha256": "2bbaae07a5ee64ecaf26da57dc63bd32767583aba58872119f4f8ea1bfc8223c",
+      "lines": 59,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/RecentTrainingTimerStorage.cs",
+      "sha256": "bc4cdaf16f131d18441d1045ce4813ca8d8e35613e56dee3135fea2b940a2757",
+      "lines": 118,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/SmartContrast.cs",
+      "sha256": "396ec79534062870aae96ae508351c53a4a436e99a3eeeb953859c4142e905c0",
+      "lines": 155,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/TeamCatalogService.cs",
+      "sha256": "67833b6784eb12e0c021beca9d50dcf3827c7eac176c2cb9b168dd166098975f",
+      "lines": 136,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/TeamLogoService.cs",
+      "sha256": "6b1a6d7e2692a6612b22d03e5eeefbe02242b03d544649c625b5da630dcc53b4",
+      "lines": 234,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ThemeService.cs",
+      "sha256": "1f01c5329f412eff5031400a6ca9ebc525745cd337de658c747975f1fe8776de",
+      "lines": 202,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/UxPreferences.cs",
+      "sha256": "d4b4787315e6f57b89e232e462f7132a9e72da3b91758351af38bc3c4a96a302",
+      "lines": 135,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/VideoDiagnostics.cs",
+      "sha256": "04ba4cde9356bddf4a81f92a3b43c704374dfab0ad65da25e275c274ad0df03a",
+      "lines": 190,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/VideoOptimizer.cs",
+      "sha256": "dff96e60c1a426b48409e55674c410f6066249f7d553f8ee012e013295c486cb",
+      "lines": 274,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/VlcRuntime.cs",
+      "sha256": "adeb8b8a65927d0a93e48270478245a3a096daf9d8f63fdc5f8488fb927bd034",
+      "lines": 119,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/WeatherService.cs",
+      "sha256": "db2d03e67afd1ff63bb7c291c6a7ff6bc6662b8ee2793ffd99ddd981eb634b91",
+      "lines": 275,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/WindowChromeEnforcer.cs",
+      "sha256": "74f4174999738db99d1f727065e32614701d52f89944bdadd080465056ca6462",
+      "lines": 90,
+      "native_libraries": [
+        "dwmapi.dll"
+      ]
+    },
+    {
+      "source": "Roche_Scoreboard/Services/WindowLayoutStorage.cs",
+      "sha256": "02f2b4c4ae14ab03311436307fe0834c079fa5ae9936260be6e50b68815172a9",
+      "lines": 140,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/AflPresentationGalleryWindow.xaml.cs",
+      "sha256": "3500da31571f2958f339f17d8a1de022917b62780e6bd8949a26b63457a6ce36",
+      "lines": 1028,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/BreakScreenControl.xaml.cs",
+      "sha256": "fcb701ca601a9a35df7a71f38e4d03f52be981f99d10c42cdad661678858cfad",
+      "lines": 325,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CalibrationOverlay.xaml.cs",
+      "sha256": "aa8d8ee168d63b6b29879a813677cf8881cd3dac7897884eb3a68b2776a99171",
+      "lines": 22,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml.cs",
+      "sha256": "e5248f647a6ab3c74427cc71cf5d4d80c07fd86a5808e559cf37ad8c2c8d8b4c",
+      "lines": 195,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ColorPickerWindow.xaml.cs",
+      "sha256": "720b1228c3f15f20bbaeb1dffbb6c130b8d53ff8acbc9829cc79f0e2328bf66f",
+      "lines": 225,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ControlPanel.xaml.cs",
+      "sha256": "442c282b438b1d2edbe6bc8c80cfe4af9deeb7b7856e798a19f334500862ed29",
+      "lines": 131,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml.cs",
+      "sha256": "a3ec415222c5359b2e6cae78a5ee1d88c36df3cc3b50d3a9a0dfda65d2d09028",
+      "lines": 1150,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml.cs",
+      "sha256": "d1946d7872f1e2dcb90debcb752631bece50b498a772bd6e7d7f77ec37101d16",
+      "lines": 1694,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml.cs",
+      "sha256": "bed4dddd52307677cc7ee239609ff1cc044b72d731dfed3676a5bd814800397b",
+      "lines": 1629,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSummaryControl.xaml.cs",
+      "sha256": "078ed722903fd0a44f69dc8be6baf41bb542604d507ec72eaaa44c1afe58a179",
+      "lines": 709,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/DesignSystemGalleryWindow.xaml.cs",
+      "sha256": "44dd64848d1ebfc786f65deb4c460233e92e92486dbbadb70bea9cb69f0f137a",
+      "lines": 342,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/EmergencyVideoWindow.cs",
+      "sha256": "4b0b3291bb421ba3680d24e54ea7fa2e3fa303dc3e567db4be9693677a7aafea",
+      "lines": 123,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml.cs",
+      "sha256": "ddb8e650e9dd478b7a6f0fb6aa7cae7b7975d4b115a319ec27866c8b47243c77",
+      "lines": 180,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/IntroScreenControl.xaml.cs",
+      "sha256": "75fb56828b46362fdce6739bdc69541a83580611fd9350a6eca0a8a2116240b0",
+      "lines": 311,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/LogoCropWindow.xaml.cs",
+      "sha256": "cc97acc8b085c536ed471c88822394dd310b80322cdf29529227bbfdd21c03a2",
+      "lines": 250,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/MatchLoadingScreen.xaml.cs",
+      "sha256": "d0e7b05df8b59d8a62b1d5397e2d8dbbbb6628b207b2a5139b443708c8ff2fbf",
+      "lines": 572,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OutputScreensaverControl.xaml.cs",
+      "sha256": "c5c6fed612ce92ea3d696c9ca00ab647bc321fdf54538b327ec23a7800a5fb3e",
+      "lines": 102,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/PresentationScoreBar.xaml.cs",
+      "sha256": "2c9ae555242f08a65521837db42fe706c7788443a9bc315e170fd429ddd80bcb",
+      "lines": 398,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/QuarterBreakScorebugControl.xaml.cs",
+      "sha256": "b96d585273cb3315025dbae27fb2d9e2a6626552fb67ce3b265e695195dbd6ba",
+      "lines": 136,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ResponsivePresentationTypography.cs",
+      "sha256": "fb3ce5c7d30ccb1d2f9856950e40bbc11dfdba0bb706c3b662e76209491bb5a1",
+      "lines": 44,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ResumeGameDialog.xaml.cs",
+      "sha256": "4b0c1366eb42e387b9d818004a1bda99360e0ec1d73dfebbdf50ac4bc147b69e",
+      "lines": 218,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml.cs",
+      "sha256": "905009d604b53b3eb04cccaec52917d1f753c3bbbb70ef6c47cb5c3c1deb18f3",
+      "lines": 225,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScoreboardScaleHelper.cs",
+      "sha256": "3b74c2a3072d356a29540aa2b71e5c3c29628344d893ab8eedb1e0acc33fd484",
+      "lines": 36,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScorebugControl.xaml.cs",
+      "sha256": "a3c343e0589519b7ec727b6c2de4d96308efe78092e18041dfab020810f9da51",
+      "lines": 5950,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScorewormControl.xaml.cs",
+      "sha256": "85866d7451a213250dbaa616f3d5ff15b195742635631915944021dfd0c44da0",
+      "lines": 658,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SetupWizard.xaml.cs",
+      "sha256": "f8dce8cd7440c04476ff7fd345f54b98272a5b29933c541b7d25b4e2f32c1798",
+      "lines": 1916,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml.cs",
+      "sha256": "42d8aa165a6176ae7d3f31fa9c9adf29b65f1d915580013b854f91742cb4b4bc",
+      "lines": 604,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/StatsScreenControl.xaml.cs",
+      "sha256": "b1c54daadf6032cf2909de389a50dcd8e833b86463fdb48fb947685e09984234",
+      "lines": 404,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml.cs",
+      "sha256": "f94e9078b88c85ec56142ee7c5998cc017572aa8d3cddcb1851ce356cca24c45",
+      "lines": 217,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml.cs",
+      "sha256": "1b0d5892ad979452db97840b6953722f52a74d4a2243546c0dca00419dcf9d56",
+      "lines": 917,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TrainingScorebugControl.xaml.cs",
+      "sha256": "39d2f25f73532db6ce2c2b8d5e97994342d853947667dda9374fdd6e9bcd1e7b",
+      "lines": 592,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml.cs",
+      "sha256": "3237a9fba5800e3fa5037007996a208164061437bec1184b15d9644ac9e4a473",
+      "lines": 262,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/VideoPlayerControl.xaml.cs",
+      "sha256": "cd2746ab4426c7b6d7964d7201eb59ef93641b1abbd3cb83b2fa90515e493c2d",
+      "lines": 714,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/WeatherScreenControl.xaml.cs",
+      "sha256": "da5a0364d9f03a55c6a2c40485be0d9ce0597474f5b5818afe97412494c06efb",
+      "lines": 126,
+      "native_libraries": []
+    }
+  ]
+}

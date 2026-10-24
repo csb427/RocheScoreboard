@@ -1,0 +1,55 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Color x:Key="ScoreGrid.Color.BrandPrimary">#0A57FF</Color>
+    <Color x:Key="ScoreGrid.Color.BrandHover">#0849D8</Color>
+    <Color x:Key="ScoreGrid.Color.BrandPressed">#073CB1</Color>
+    <Color x:Key="ScoreGrid.Color.Navy900">#0B1D3A</Color>
+    <Color x:Key="ScoreGrid.Color.Navy800">#10294D</Color>
+    <Color x:Key="ScoreGrid.Color.Background">#F7F9FC</Color>
+    <Color x:Key="ScoreGrid.Color.Surface">#FFFFFF</Color>
+    <Color x:Key="ScoreGrid.Color.SurfaceSubtle">#E6F1FF</Color>
+    <Color x:Key="ScoreGrid.Color.Border">#D6DEE8</Color>
+    <Color x:Key="ScoreGrid.Color.DecorativeBorder">#D6DEE8</Color>
+    <Color x:Key="ScoreGrid.Color.ControlBorder">#7E8DA0</Color>
+    <Color x:Key="ScoreGrid.Color.TextPrimary">#0B1D3A</Color>
+    <Color x:Key="ScoreGrid.Color.TextSecondary">#5E6B7D</Color>
+    <Color x:Key="ScoreGrid.Color.Success">#22C88A</Color>
+    <Color x:Key="ScoreGrid.Color.Warning">#FFB020</Color>
+    <Color x:Key="ScoreGrid.Color.Danger">#E53935</Color>
+    <Color x:Key="ScoreGrid.Color.Focus">#0A57FF</Color>
+    <Color x:Key="ScoreGrid.Color.SuccessBackground">#E6F9F2</Color>
+    <Color x:Key="ScoreGrid.Color.WarningBackground">#FFF4E3</Color>
+    <Color x:Key="ScoreGrid.Color.DangerBackground">#FDECEA</Color>
+    <Color x:Key="ScoreGrid.Color.AccentBackground">#E6F1FF</Color>
+    <Color x:Key="ScoreGrid.Color.SuccessForeground">#117554</Color>
+    <Color x:Key="ScoreGrid.Color.WarningForeground">#7A5400</Color>
+    <Color x:Key="ScoreGrid.Color.DangerForeground">#B71C1C</Color>
+    <Color x:Key="ScoreGrid.Color.AccentForeground">#073CB1</Color>
+    <Color x:Key="ScoreGrid.Color.DisabledSurface">#F0F2F5</Color>
+    <Color x:Key="ScoreGrid.Color.DisabledForeground">#A8B6C8</Color>
+    <SolidColorBrush x:Key="ScoreGrid.Brush.BrandPrimary" Color="{StaticResource ScoreGrid.Color.BrandPrimary}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.BrandHover" Color="{StaticResource ScoreGrid.Color.BrandHover}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.BrandPressed" Color="{StaticResource ScoreGrid.Color.BrandPressed}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.Background" Color="{StaticResource ScoreGrid.Color.Background}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.Surface" Color="{StaticResource ScoreGrid.Color.Surface}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.SurfaceSubtle" Color="{StaticResource ScoreGrid.Color.SurfaceSubtle}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.Border" Color="{StaticResource ScoreGrid.Color.Border}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.DecorativeBorder" Color="{StaticResource ScoreGrid.Color.DecorativeBorder}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.ControlBorder" Color="{StaticResource ScoreGrid.Color.ControlBorder}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.TextPrimary" Color="{StaticResource ScoreGrid.Color.TextPrimary}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.TextSecondary" Color="{StaticResource ScoreGrid.Color.TextSecondary}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.Success" Color="{StaticResource ScoreGrid.Color.Success}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.Warning" Color="{StaticResource ScoreGrid.Color.Warning}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.Danger" Color="{StaticResource ScoreGrid.Color.Danger}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.Focus" Color="{StaticResource ScoreGrid.Color.Focus}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.SuccessBackground" Color="{StaticResource ScoreGrid.Color.SuccessBackground}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.WarningBackground" Color="{StaticResource ScoreGrid.Color.WarningBackground}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.DangerBackground" Color="{StaticResource ScoreGrid.Color.DangerBackground}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.AccentBackground" Color="{StaticResource ScoreGrid.Color.AccentBackground}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.SuccessForeground" Color="{StaticResource ScoreGrid.Color.SuccessForeground}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.WarningForeground" Color="{StaticResource ScoreGrid.Color.WarningForeground}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.DangerForeground" Color="{StaticResource ScoreGrid.Color.DangerForeground}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.AccentForeground" Color="{StaticResource ScoreGrid.Color.AccentForeground}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.DisabledSurface" Color="{StaticResource ScoreGrid.Color.DisabledSurface}" />
+    <SolidColorBrush x:Key="ScoreGrid.Brush.DisabledForeground" Color="{StaticResource ScoreGrid.Color.DisabledForeground}" />
+</ResourceDictionary>

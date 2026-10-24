@@ -1,0 +1,2345 @@
+{
+  "source": "Roche_Scoreboard/MainWindow.xaml",
+  "source_sha256": "f7a177b8c794b70af72af66b3c5dc0fca47ff5cacb900104e9ab74ac9d97ff67",
+  "names": [
+    {
+      "name": "Sc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "Lift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "Glow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TbLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "Glow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PrimaryLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SecondaryLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AccBar",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "RbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "HeaderToggle",
+      "type": "ToggleButton",
+      "object": false
+    },
+    {
+      "name": "HB",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Chev",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Body",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Track",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Thumb",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StateText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MainContent",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "MatchStripBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StatusBadge",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StatusDot",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "StatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderOutputBadge",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HeaderOutputText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderQuarterClock",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "LastEventText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderShortcutText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "EssentialsModeBadge",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "OperatorModeBadgeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "GuidedModeButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "HeaderHomeAbbr",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderScore",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderAwayAbbr",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderMarginText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MainTabControl",
+      "type": "TabControl",
+      "object": false
+    },
+    {
+      "name": "PART_SelectedContentHost",
+      "type": "ContentPresenter",
+      "object": false
+    },
+    {
+      "name": "MatchControlTab",
+      "type": "TabItem",
+      "object": false
+    },
+    {
+      "name": "ScoringSectionTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MatchResultText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownEditButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownCancelEditButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownEditPopupHost",
+      "type": "Popup",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownEditPopup",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownEditPopupScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ControlPanelCountdownEditMinutesBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownEditSecondsBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownEditErrorText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownApplyButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "HomeScoringBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeScoringLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeScoreDisplay",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeGoalButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "HomeGoalShortcutText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeBehindButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "HomeBehindShortcutText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayScoringBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayScoringLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayScoreDisplay",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayGoalButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AwayGoalShortcutText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayBehindButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AwayBehindShortcutText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StartSwitchWarning",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StartPauseButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "EndQtrButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ContinueQtrButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "UndoButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ScoringTabCloudLauncher",
+      "type": "CloudRemoteLauncher",
+      "object": false
+    },
+    {
+      "name": "MatchLogPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MatchLogCountBadge",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MatchLogScrollViewer",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "EventList",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "MatchLogEmptyHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OutputStudioTab",
+      "type": "TabItem",
+      "object": false
+    },
+    {
+      "name": "CurrentDisplayText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PresCardScorebug",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresGlowScorebug",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCheckScorebug",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCardSummary",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCheckSummary",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCardWorm",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCheckWorm",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCardStats",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCheckStats",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCardWeather",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCheckWeather",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCardWindow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WindowToggleIcon",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WindowToggleTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WindowToggleTrack",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WindowToggleThumb",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WindowToggleThumbTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "WindowToggleLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PresCardQuarterBreak",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCheckQuarterBreak",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCardScreensaver",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PresCheckScreensaver",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CancelOverlayButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "TickerMessageCountText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TickerDisableAllButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "TickerUndoDeleteButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "TickerClearAllButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "TickerEmptyState",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "MessageList",
+      "type": "ItemsControl",
+      "object": false
+    },
+    {
+      "name": "NewMessageBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "NewMessageTextColorBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "NewMessageHighlightColorBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "TickerCharacterCountText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MediaDeskTab",
+      "type": "TabItem",
+      "object": false
+    },
+    {
+      "name": "VideoTabFilePathText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabFileMetaText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabShowOnScoreboardButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "VideoTabPlayPauseButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "VideoTabRestartButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "VideoTabUnloadButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "VideoTabStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabApplyButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "VideoTabLiveMirror",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "VideoTabPreviewPlaceholder",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "VideoTabPreviewBadge",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabTelemetryText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabDiagnosticText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabCurrentTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabSeekSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "VideoTabDurationText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabSpeedCombo",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "VideoTabMuteButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "VideoTabVolumeSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "MatchSetupTab",
+      "type": "TabItem",
+      "object": false
+    },
+    {
+      "name": "ClockModeCountUp",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "ClockModeCountdown",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "LayoutClassicRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "LayoutExpandedRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "LayoutRetroRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "LayoutNoLogosRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AnimBroadcastRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AnimElectricRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AnimCinematicRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AnimCleanRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AnimClassicRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AnimCustomVideoRadio",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "SettingsShowControlPanelCountdown",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "HomeLogoPathText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayLogoPathText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsHeaderTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsHeaderSubtitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsNavBtn_Teams",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsNavBtn_Keybinds",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsNavBtn_Display",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsNavBtn_Overlays",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsNavBtn_Media",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsNavBtn_Advanced",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsSearchHost",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsSearchBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SettingsSearchPlaceholder",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsSearchClear",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsEssentialsHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsNoResults",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsNoResultsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsScrollViewer",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "SettingsSection_Teams",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeNameBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "HomeAbbrBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "HomeColorBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "HomeColorPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeSecondaryColorBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "HomeSecondaryColorPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeLogoStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayNameBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "AwayAbbrBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "AwayColorBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "AwayColorPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwaySecondaryColorBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "AwaySecondaryColorPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayLogoStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsSection_Match",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsCountUpCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsCountUpGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsCountUpCheck",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsCountdownCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsCountdownGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsCountdownCheck",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsControlPanelCountdownOptionCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsControlPanelCountdownCardTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "SettingsControlPanelCountdownCardScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "SettingsControlPanelCountdownToggleTrack",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsControlPanelCountdownToggleThumb",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "SettingsControlPanelCountdownThumbTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "SettingsControlPanelCountdownToggleLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "QuarterDurationPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "QuarterMinutesBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "QuarterSecondsBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "ClockStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ClockSetMinutesBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "ClockSetSecondsBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SettingsFinalsToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "SettingsFinalsCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsFinalsGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsFinalsTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsFinalsTrack",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsFinalsThumb",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsHideTeamNamesToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "SettingsHideTeamNamesCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsHideTeamNamesTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsHideTeamNamesTrack",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsHideTeamNamesThumb",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "QuarterLabelCurrentBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "QuarterLabelCurrentReset",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "QuarterLabelCurrentHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsMatchSectionEndAnchor",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsSection_Keybinds",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "KeybindToggleClockButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "KeybindHomeGoalButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "KeybindHomeBehindButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "KeybindAwayGoalButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "KeybindAwayBehindButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "KeybindEndQuarterButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "KeybindHintText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsSection_Display",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ScreensaverMediaStatus",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "LayoutCardClassic",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LayoutGlowClassic",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LayoutCheckClassic",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LayoutCardExpanded",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LayoutCheckExpanded",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LayoutCardRetro",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LayoutCheckRetro",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LayoutCardNoLogos",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LayoutCheckNoLogos",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCardBroadcast",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCheckBroadcast",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCardElectric",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCheckElectric",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCardCinematic",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCheckCinematic",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCardClean",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCheckClean",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCardClassic",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCheckClassic",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCardCustomVideo",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimGlowCustomVideo",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimCheckCustomVideo",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AnimPreviewTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AnimPreviewDesc",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AnimPreviewDuration",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AnimPreviewIntensity",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsSection_Overlays",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "AutoOverlaysCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AutoOverlaysGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AutoOverlaysCheck",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsBreakScreenToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "SettingsBreakScreenCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsBreakScreenGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsBreakScreenTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsBreakScreenTrack",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsBreakScreenThumb",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SettingsWeatherLocation",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "WeatherLocationStatus",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsSection_Media",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeLogoCropPreviewImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeLogoZoomSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "HomeLogoXSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "HomeLogoYSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "AwayLogoCropPreviewImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayLogoZoomSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "AwayLogoXSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "AwayLogoYSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "LogoCropSummaryText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsSection_Advanced",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WindowWidthBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "WindowHeightBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "WindowDimensionsStatus",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CloudRemoteCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CloudStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CloudIdleState",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "CloudStartButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CloudDisabledState",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "CloudLiveState",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "CloudConnectionDot",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "CloudConnectionLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CloudJoinCodeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CloudQrImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "CloudJoinUrlPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "CloudJoinUrlText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CloudCopyUrlButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CloudEndButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "UpdateCurrentVersionText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "UpdateStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "UpdateProgressBar",
+      "type": "ProgressBar",
+      "object": false
+    },
+    {
+      "name": "CheckForUpdateButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "InstallUpdateButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ResetOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CancelResetBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ConfirmResetBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ResizeGripVisual",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupWizardPanel",
+      "type": "SetupWizard",
+      "object": false
+    },
+    {
+      "name": "CricketControlPanelView",
+      "type": "CricketControlPanel",
+      "object": false
+    },
+    {
+      "name": "CricketSetupWizardPanel",
+      "type": "CricketSetupWizard",
+      "object": false
+    },
+    {
+      "name": "TrainingControlPanelView",
+      "type": "TrainingControlPanel",
+      "object": false
+    },
+    {
+      "name": "GlobalSettingsPanel",
+      "type": "GlobalSettingsScreen",
+      "object": false
+    },
+    {
+      "name": "SportSelectionPanel",
+      "type": "SportSelectionScreen",
+      "object": false
+    },
+    {
+      "name": "MatchLoadingPanel",
+      "type": "MatchLoadingScreen",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "ac0ec10c4e26a27541dffa36e669ff7d83544773fc07adf38e39fa7ae4c1cf61",
+  "native_events": [
+    {
+      "name": "MainTabControl",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "MainTabControl_SelectionChanged"
+    },
+    {
+      "name": "PresCardScorebug",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PresCardScorebug_Click"
+    },
+    {
+      "name": "PresCardSummary",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PresCardSummary_Click"
+    },
+    {
+      "name": "PresCardWorm",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PresCardWorm_Click"
+    },
+    {
+      "name": "PresCardStats",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PresCardStats_Click"
+    },
+    {
+      "name": "PresCardWeather",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PresCardWeather_Click"
+    },
+    {
+      "name": "PresCardWindow",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PresCardWindow_Click"
+    },
+    {
+      "name": "PresCardQuarterBreak",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PresCardQuarterBreak_Click"
+    },
+    {
+      "name": "PresCardScreensaver",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PresCardScreensaver_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayStatsBar_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayWinProb_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayLeadChanges_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayQtrScores_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayRecentScores_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayScoringRun_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayScoreless_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayHomeDrought_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayAwayDrought_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayWarning_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayWeatherForecast_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayWeatherStats_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OverlayRainForecast_Click"
+    },
+    {
+      "name": null,
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "TickerSlotEnabled_Changed"
+    },
+    {
+      "name": null,
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "TickerSlotEnabled_Changed"
+    },
+    {
+      "name": null,
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "MessageItem_TextChanged"
+    },
+    {
+      "name": null,
+      "source": "MouseRightButtonUp",
+      "native": "PointerReleased",
+      "handler": "ClearItemHighlightColor_Click"
+    },
+    {
+      "name": "NewMessageBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "NewMessageBox_TextChanged"
+    },
+    {
+      "name": "NewMessageHighlightColorBtn",
+      "source": "MouseRightButtonUp",
+      "native": "PointerReleased",
+      "handler": "ClearNewHighlightColor_Click"
+    },
+    {
+      "name": "VideoTabSeekSlider",
+      "source": "PreviewMouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "VideoTabSeek_PreviewMouseLeftButtonUp"
+    },
+    {
+      "name": "VideoTabSpeedCombo",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "VideoTabSpeed_Changed"
+    },
+    {
+      "name": "ClockModeCountUp",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "ClockMode_Changed"
+    },
+    {
+      "name": "ClockModeCountdown",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "ClockMode_Changed"
+    },
+    {
+      "name": "LayoutClassicRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "LayoutRadio_Changed"
+    },
+    {
+      "name": "LayoutExpandedRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "LayoutRadio_Changed"
+    },
+    {
+      "name": "LayoutRetroRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "LayoutRadio_Changed"
+    },
+    {
+      "name": "LayoutNoLogosRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "LayoutRadio_Changed"
+    },
+    {
+      "name": "AnimBroadcastRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AnimationRadio_Changed"
+    },
+    {
+      "name": "AnimElectricRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AnimationRadio_Changed"
+    },
+    {
+      "name": "AnimCinematicRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AnimationRadio_Changed"
+    },
+    {
+      "name": "AnimCleanRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AnimationRadio_Changed"
+    },
+    {
+      "name": "AnimClassicRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AnimationRadio_Changed"
+    },
+    {
+      "name": "AnimCustomVideoRadio",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AnimationRadio_Changed"
+    },
+    {
+      "name": "SettingsNavBtn_Teams",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsNav_Teams_Click"
+    },
+    {
+      "name": "SettingsNavBtn_Keybinds",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsNav_Keybinds_Click"
+    },
+    {
+      "name": "SettingsNavBtn_Display",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsNav_Display_Click"
+    },
+    {
+      "name": "SettingsNavBtn_Overlays",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsNav_Overlays_Click"
+    },
+    {
+      "name": "SettingsNavBtn_Media",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsNav_Media_Click"
+    },
+    {
+      "name": "SettingsNavBtn_Advanced",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsNav_Advanced_Click"
+    },
+    {
+      "name": "SettingsSearchBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "SettingsSearch_TextChanged"
+    },
+    {
+      "name": "SettingsSearchClear",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsSearchClear_Click"
+    },
+    {
+      "name": "HomeNameBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "TeamSettings_TextChanged"
+    },
+    {
+      "name": "HomeAbbrBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "TeamSettings_TextChanged"
+    },
+    {
+      "name": "HomeColorPreview",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PickHomeColor_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "DropperHomeColor_Click"
+    },
+    {
+      "name": "HomeSecondaryColorPreview",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PickHomeSecondaryColor_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "DropperHomeSecondaryColor_Click"
+    },
+    {
+      "name": "AwayNameBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "TeamSettings_TextChanged"
+    },
+    {
+      "name": "AwayAbbrBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "TeamSettings_TextChanged"
+    },
+    {
+      "name": "AwayColorPreview",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PickAwayColor_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "DropperAwayColor_Click"
+    },
+    {
+      "name": "AwaySecondaryColorPreview",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PickAwaySecondaryColor_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "DropperAwaySecondaryColor_Click"
+    },
+    {
+      "name": "SettingsCountUpCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsCountUpCard_Click"
+    },
+    {
+      "name": "SettingsCountdownCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsCountdownCard_Click"
+    },
+    {
+      "name": "SettingsControlPanelCountdownOptionCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsControlPanelCountdownOptionCard_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsMinutesMinus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsMinutesPlus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsSecondsMinus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsSecondsPlus_Click"
+    },
+    {
+      "name": "SettingsFinalsToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsFinalsToggle_Changed"
+    },
+    {
+      "name": "SettingsFinalsToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsFinalsToggle_Changed"
+    },
+    {
+      "name": "SettingsFinalsCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsFinalsCard_Click"
+    },
+    {
+      "name": "SettingsHideTeamNamesToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsHideTeamNamesToggle_Changed"
+    },
+    {
+      "name": "SettingsHideTeamNamesToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsHideTeamNamesToggle_Changed"
+    },
+    {
+      "name": "SettingsHideTeamNamesCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsHideTeamNamesCard_Click"
+    },
+    {
+      "name": "QuarterLabelCurrentBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "QuarterLabelCurrentBox_TextChanged"
+    },
+    {
+      "name": "LayoutCardClassic",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ClassicLayoutCard_Click"
+    },
+    {
+      "name": "LayoutCardExpanded",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ExpandedLayoutCard_Click"
+    },
+    {
+      "name": "AnimCardBroadcast",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AnimBroadcastCard_Click"
+    },
+    {
+      "name": "AnimCardElectric",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AnimElectricCard_Click"
+    },
+    {
+      "name": "AnimCardCinematic",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AnimCinematicCard_Click"
+    },
+    {
+      "name": "AnimCardClean",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AnimCleanCard_Click"
+    },
+    {
+      "name": "AnimCardClassic",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AnimClassicCard_Click"
+    },
+    {
+      "name": "AnimCardCustomVideo",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AnimCustomVideoCard_Click"
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AutoOverlaysToggle_Changed"
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "AutoOverlaysToggle_Changed"
+    },
+    {
+      "name": "AutoOverlaysCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AutoOverlaysCard_Click"
+    },
+    {
+      "name": "SettingsBreakScreenToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsBreakScreenToggle_Changed"
+    },
+    {
+      "name": "SettingsBreakScreenToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsBreakScreenToggle_Changed"
+    },
+    {
+      "name": "SettingsBreakScreenCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "SettingsBreakScreenCard_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "WidthMinus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "WidthPlus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "HeightMinus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "HeightPlus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "CopyCloudJoinCode_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ResetCardSettings_Click"
+    },
+    {
+      "name": "ResizeGripVisual",
+      "source": "MouseLeftButtonDown",
+      "native": "PointerPressed",
+      "handler": "ResizeGrip_MouseDown"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "MainContent",
+      "property": "PanningMode",
+      "source": "Both"
+    },
+    {
+      "name": "MainContent",
+      "property": "CanContentScroll",
+      "source": "False"
+    },
+    {
+      "name": "HeaderQuarterClock",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HeaderScore",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "PART_SelectedContentHost",
+      "property": "ContentTemplateSelector",
+      "translation": "Native ItemTemplate supplies the selected item data template"
+    },
+    {
+      "name": "PART_SelectedContentHost",
+      "property": "SnapsToDevicePixels",
+      "source": "{TemplateBinding SnapsToDevicePixels}"
+    },
+    {
+      "name": "ControlPanelCountdownText",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ControlPanelCountdownEditPopupHost",
+      "property": "AllowsTransparency",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": "ControlPanelCountdownEditMinutesBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ControlPanelCountdownEditSecondsBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeScoreDisplay",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayScoreDisplay",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe MDL2 Assets",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "MatchLogScrollViewer",
+      "property": "CanContentScroll",
+      "source": "False"
+    },
+    {
+      "name": "MessageList",
+      "property": "AlternationCount",
+      "translation": "Source does not bind AlternationIndex; ticker slots retain their model order"
+    },
+    {
+      "name": "VideoTabSeekSlider",
+      "property": "IsMoveToPointEnabled",
+      "translation": "Native slider track pointer routing"
+    },
+    {
+      "name": "QuarterMinutesBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "QuarterSecondsBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ClockSetMinutesBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ClockSetSecondsBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Symbol",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "SettingsWeatherLocation",
+      "property": "StaysOpenOnEdit",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": "WindowWidthBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "WindowHeightBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "CloudJoinCodeText",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "CloudQrImage",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

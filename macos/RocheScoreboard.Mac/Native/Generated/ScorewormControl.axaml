@@ -1,0 +1,52 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ScorewormControl" UseLayoutRounding="True" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Grid ClipToBounds="True">
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%" port:ProductionNames.Id="WormBgGradient">
+                <GradientStop Color="#0B1119" Offset="0" />
+                <GradientStop Color="#070B11" Offset="0.5" />
+                <GradientStop Color="#0B1119" Offset="1" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0" port:ProductionNames.Id="WormTitleRow" />
+            <RowDefinition Height="149*" port:ProductionNames.Id="WormGraphRow" />
+            <RowDefinition Height="0" />
+            <RowDefinition Height="44*" />
+        </Grid.RowDefinitions>
+        <Border x:Name="WormTitlePanel" Grid.Row="0" Background="#ED0A1018" BorderBrush="#29384B" BorderThickness="0,0,0,1" IsVisible="False">
+            <Grid Margin="8,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="WormTitleText" Text="MARGIN FLOW" Foreground="White" FontSize="18" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" VerticalAlignment="Center" />
+                <TextBlock x:Name="WormMarginText" Grid.Column="1" Text="SCORES LEVEL" Foreground="#FFFFFF" FontSize="16" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" VerticalAlignment="Center" />
+                <TextBlock x:Name="WormTimeText" Text="1:26 PM" IsVisible="False" />
+                <Border Grid.ColumnSpan="2" VerticalAlignment="Bottom" Height="2">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%" port:ProductionNames.Id="WormTitleAccent">
+                            <GradientStop Color="#4488FF" Offset="0" />
+                            <GradientStop Color="#00FFFFFF" Offset="0.5" />
+                            <GradientStop Color="#FF6644" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" Margin="7,5" CornerRadius="8" Background="#E8080D14" BorderBrush="#33465B" BorderThickness="1" ClipToBounds="True">
+            <Grid>
+                <Canvas x:Name="ZoneCanvas" IsHitTestVisible="False" />
+                <Grid Margin="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="36" port:ProductionNames.Id="YAxisColumn" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Canvas x:Name="YAxisCanvas" Grid.Column="0" ClipToBounds="False" />
+                    <Canvas x:Name="GraphCanvas" Grid.Column="1" ClipToBounds="True" />
+                </Grid>
+            </Grid>
+        </Border>
+        <ns3:PresentationScoreBar x:Name="ScoreBar" Grid.Row="3" />
+    </Grid>
+</UserControl>

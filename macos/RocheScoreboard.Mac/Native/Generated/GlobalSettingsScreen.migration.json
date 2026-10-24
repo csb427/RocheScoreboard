@@ -1,0 +1,144 @@
+{
+  "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml",
+  "source_sha256": "7d068d246fe59deb178e7c587532ef262089fb92c7817906aaa6d7da46fde29f",
+  "names": [
+    {
+      "name": "Card",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Flash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ThemeCombo",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "DensityCombo",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "QuickHintsToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "GoalAnimationCombo",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "OutputWidthBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "OutputHeightBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "BreakScreenToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "ScreensaverToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "StartupModeCombo",
+      "type": "ComboBox",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "ddb8e650e9dd478b7a6f0fb6aa7cae7b7975d4b115a319ec27866c8b47243c77",
+  "native_events": [
+    {
+      "name": "ThemeCombo",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "ThemeCombo_SelectionChanged"
+    },
+    {
+      "name": "DensityCombo",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "DensityCombo_SelectionChanged"
+    },
+    {
+      "name": "QuickHintsToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "QuickHintsToggle_Changed"
+    },
+    {
+      "name": "QuickHintsToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "QuickHintsToggle_Changed"
+    },
+    {
+      "name": "GoalAnimationCombo",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "GoalAnimationCombo_SelectionChanged"
+    },
+    {
+      "name": "BreakScreenToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "BreakScreenToggle_Changed"
+    },
+    {
+      "name": "BreakScreenToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "BreakScreenToggle_Changed"
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AutoOverlaysToggle_Changed"
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "AutoOverlaysToggle_Changed"
+    },
+    {
+      "name": "ScreensaverToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "ScreensaverToggle_Changed"
+    },
+    {
+      "name": "ScreensaverToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "ScreensaverToggle_Changed"
+    },
+    {
+      "name": "StartupModeCombo",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "StartupModeCombo_SelectionChanged"
+    }
+  ],
+  "platform_translations": [],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

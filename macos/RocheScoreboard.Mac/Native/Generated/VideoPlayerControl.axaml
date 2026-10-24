@@ -1,0 +1,6 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:RocheScoreboard.Mac.Native" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.VideoPlayerControl" Background="Black" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Grid ClipToBounds="True">
+        <ns3:NativeVideoSurface x:Name="VideoPlayer" />
+    </Grid>
+</UserControl>

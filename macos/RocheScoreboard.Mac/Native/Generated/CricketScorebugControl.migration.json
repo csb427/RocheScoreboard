@@ -1,0 +1,719 @@
+{
+  "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml",
+  "source_sha256": "c0bab7a251cc12a97801ebf1f494d0906f7c3953a04037cfd1756dbf9040032d",
+  "names": [
+    {
+      "name": "TopInningsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TopTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PartnershipBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PartnershipBarRuns",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PartnershipBarBalls",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "RunRateBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "RunRateBarCRR",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "RunRateBarRRR",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TargetBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TargetBarTarget",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TargetBarNeed",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TargetBarBalls",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PowerplayBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PowerplayBarOvers",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Last5OversBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Last5OversBarValue",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BoundaryDroughtBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BoundaryDroughtBarValue",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OversWarningBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "OversWarningStripesTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "OversWarningText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MilestoneBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MilestoneBarGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "MilestoneBarEmoji",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MilestoneBarText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MilestoneBarPlayer",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BattingTeamBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "BattingLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "BattingAbbrText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScoreRuns",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScoreRunsTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ScoreGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "ScoreWickets",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScoreWicketsTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "OversText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OversTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "InfoLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "InfoValue",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BattingHeaderBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "BattingHeaderText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StrikerBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "StrikerIndicator",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BattingIndicatorBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "StrikerName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StrikerRuns",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StrikerRunsTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "StrikerBalls",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StrikerBallsTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "NonStrikerBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "NonStrikerIndicator",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerIndicatorBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "NonStrikerName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerRuns",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerRunsTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "NonStrikerBalls",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerBallsTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "BowlingHeaderBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "BowlingHeaderText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "BowlerIndicator",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlingIndicatorBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "BowlerName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerFigures",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerFiguresTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "BowlerOvers",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerOversTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "PrevBowlerBorderBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "PrevBowlerName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PrevBowlerFigures",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PrevBowlerOvers",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MarqueeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MarqueeTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "StatsBarBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StatsBarTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "Stat1Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Stat1Value",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Stat2Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Stat2Value",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Stat3Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Stat3Value",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Stat4Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Stat4Value",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OverTrackerBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "OverTrackerTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "OverTrackerLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OverBallsPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "OverRunsLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OverRunsValue",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "EventOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "EventOverlayBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "EventGradientBar",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "EventGradientBarBrush",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "EventGradientScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "EventShimmer",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "EventShimmerScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "EventScoreGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "EventScoreGlowInner",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "EventScoreGlowOuter",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "EventEdgeGlow",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "EventOverlayText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "EventOverlayGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "EventTextScale",
+      "type": "ScaleTransform",
+      "object": true
+    }
+  ],
+  "code_source_sha256": "d1946d7872f1e2dcb90debcb752631bece50b498a772bd6e7d7f77ec37101d16",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "PartnershipBarRuns",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "PartnershipBarBalls",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "RunRateBarCRR",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "RunRateBarRRR",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "TargetBarTarget",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "TargetBarNeed",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "TargetBarBalls",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "PowerplayBarOvers",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "Last5OversBarValue",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BoundaryDroughtBarValue",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": "OversWarningText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "MilestoneBarPlayer",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BattingAbbrText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ScoreRuns",
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ScoreWickets",
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "OversText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "InfoValue",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StrikerRuns",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StrikerBalls",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "NonStrikerRuns",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "NonStrikerBalls",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BowlerFigures",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BowlerOvers",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "PrevBowlerFigures",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "PrevBowlerOvers",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "Stat1Value",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "Stat2Value",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "Stat3Value",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "Stat4Value",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "OverRunsValue",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "EventOverlayText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

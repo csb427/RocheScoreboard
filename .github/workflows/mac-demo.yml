@@ -1,0 +1,85 @@
+name: Roche Scoreboard Mac port
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package mode (release requires recorded native acceptance)'
+        type: choice
+        options: [none, preview, release]
+        default: preview
+  pull_request:
+    paths: ['macos/**', 'Roche_Scoreboard/**', '.github/workflows/mac-demo.yml']
+  push:
+    branches: [master]
+    paths: ['macos/**', 'Roche_Scoreboard/**', '.github/workflows/mac-demo.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  mac:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: osx-arm64
+            runner: macos-15-arm64
+          - rid: osx-x64
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Check the complete production translation
+        run: python3 macos/tools/audit_parity.py --check-translation
+      - name: Install the architecture-matched native video runtime for checks
+        run: python3 macos/tools/bundle_vlc.py '${{ matrix.rid }}' "$RUNNER_TEMP/roche-native.app"
+      - name: Run the existing engine, production UI and decoded-video checks
+        env:
+          ROCHE_CAPTURE_DIR: ${{ runner.temp }}/roche-production-captures
+          ROCHE_NATIVE_MEDIA: '1'
+          ROCHE_VLC_HOME: ${{ runner.temp }}/roche-native.app/Contents/Frameworks/vlc/lib
+        run: dotnet test macos/RocheScoreboard.Mac.slnx -c Release -p:UseSharedCompilation=false
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Production-captures-${{ matrix.rid }}
+          path: ${{ runner.temp }}/roche-production-captures
+          if-no-files-found: warn
+      - name: Package the complete application
+        if: github.event_name == 'workflow_dispatch' && inputs.package != 'none'
+        env:
+          PACKAGE_MODE: ${{ inputs.package }}
+          PACKAGE_RID: ${{ matrix.rid }}
+        run: |
+          if [[ "$PACKAGE_MODE" == preview ]]; then
+            bash macos/scripts/package-mac.sh "$PACKAGE_RID" artifacts/macos --preview
+          else
+            bash macos/scripts/package-mac.sh "$PACKAGE_RID" artifacts/macos
+          fi
+      - name: Verify bundled application signature
+        if: github.event_name == 'workflow_dispatch' && inputs.package != 'none'
+        run: |
+          mkdir -p "$RUNNER_TEMP/roche-packaged"
+          ditto -x -k artifacts/macos/*.zip "$RUNNER_TEMP/roche-packaged"
+          codesign --verify --deep --strict "$RUNNER_TEMP/roche-packaged/Roche Scoreboard.app"
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch' && inputs.package != 'none'
+        with:
+          name: Roche-Scoreboard-${{ inputs.package }}-${{ matrix.rid }}
+          path: |
+            artifacts/macos/*.zip
+            artifacts/macos/*.zip.sha256
+          if-no-files-found: error
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build the unchanged Windows application
+        run: dotnet build Roche_Scoreboard.slnx -c Release

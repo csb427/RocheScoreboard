@@ -1,0 +1,495 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.SportSelectionScreen" Background="#080C12" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" PointerWheelChanged="Native_ResponsiveScrollHost_PreviewMouseWheel">
+        <Grid MinWidth="720" MinHeight="520">
+            <Border x:Name="HeaderPanel" VerticalAlignment="Top" Height="80" Opacity="0" IsHitTestVisible="False" ZIndex="10">
+                <Border.RenderTransform>
+                    <TranslateTransform Y="-30" port:ProductionNames.Id="HeaderTranslate" />
+                </Border.RenderTransform>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#DD080C12" Offset="0" />
+                        <GradientStop Color="#00080C12" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="SELECT YOUR SPORT" FontSize="13" FontWeight="SemiBold" Foreground="#BFD8F6" TextAlignment="Center" />
+                    <Border Height="2" Width="60" Margin="0,8,0,0" CornerRadius="1">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#0058A6FF" Offset="0" />
+                                <GradientStop Color="#6058A6FF" Offset="0.5" />
+                                <GradientStop Color="#0058A6FF" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                </StackPanel>
+            </Border>
+            <Border x:Name="SettingsTile" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="30,28,0,0" Cursor="Hand" Opacity="0" Background="#0D1117" BorderBrush="#58A6FF" BorderThickness="2" Padding="18,10" ZIndex="15" PointerReleased="Native_Settings_Click" PointerEntered="Native_SettingsTile_MouseEnter" PointerExited="Native_SettingsTile_MouseLeave">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform port:ProductionNames.Id="SettingsTileScale" />
+                        <TranslateTransform Y="-30" port:ProductionNames.Id="SettingsTileTranslate" />
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" Color="#58A6FF" Opacity="0.4" port:ProductionNames.Id="SettingsTileGlow" OffsetX="0" OffsetY="0" />
+                </Border.Effect>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="⚙" FontSize="20" Foreground="#58A6FF" Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <StackPanel>
+                        <TextBlock Text="SETTINGS" Foreground="#58A6FF" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontWeight="Black" FontSize="14" />
+                        <TextBlock Text="DISPLAY • UPDATES • PREFERENCES" Foreground="#9CA3AF" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontWeight="SemiBold" FontSize="9" Margin="0,2,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="AflCard" Grid.Column="0" Cursor="Hand" ClipToBounds="True" Opacity="0" RenderTransformOrigin="50%,50%" PointerReleased="Native_AFL_Click" PointerEntered="Native_Card_MouseEnter" PointerExited="Native_Card_MouseLeave">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform port:ProductionNames.Id="AflCardScale" />
+                            <TranslateTransform X="-80" port:ProductionNames.Id="AflCardTranslate" />
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <GradientStop Color="#0A1628" Offset="0" />
+                            <GradientStop Color="#122040" Offset="0.5" />
+                            <GradientStop Color="#0D1830" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Grid>
+                        <Border Opacity="0.025" IsHitTestVisible="False">
+                            <Border.Background>
+                                <VisualBrush TileMode="Tile" DestinationRect="0,0,40,40" SourceRect="0,0,40,40">
+                                    <VisualBrush.Visual>
+                                        <Canvas Width="40" Height="40">
+                                            <Line Stroke="White" StrokeThickness="1" StartPoint="0,40" EndPoint="40,0" />
+                                        </Canvas>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Border.Background>
+                        </Border>
+                        <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Opacity="0.04" Margin="0,30,0,0">
+                            <Ellipse Width="400" Height="280" Canvas.Left="-200" Canvas.Top="-140" Stroke="White" StrokeThickness="2" StrokeDashArray="6,4" />
+                            <Ellipse Width="100" Height="100" Canvas.Left="-50" Canvas.Top="-50" Stroke="White" StrokeThickness="1.5" />
+                        </Canvas>
+                        <Border x:Name="AflGlow" Opacity="0" IsHitTestVisible="False">
+                            <Border.Background>
+                                <RadialGradientBrush Center="50%,38%" RadiusX="55%" RadiusY="55%">
+                                    <GradientStop Color="#5058A6FF" Offset="0" />
+                                    <GradientStop Color="#2058A6FF" Offset="0.4" />
+                                    <GradientStop Color="#00000000" Offset="1" />
+                                </RadialGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <Border ClipToBounds="True" IsHitTestVisible="False" Opacity="0.06">
+                            <Border Width="150" HorizontalAlignment="Left">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="-200" port:ProductionNames.Id="AflBeamTranslate" />
+                                </Border.RenderTransform>
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                        <GradientStop Color="#00FFFFFF" Offset="0" />
+                                        <GradientStop Color="#40FFFFFF" Offset="0.5" />
+                                        <GradientStop Color="#00FFFFFF" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Border>
+                        <Canvas IsHitTestVisible="False">
+                            <Ellipse Width="6" Height="6" Fill="#2058A6FF" Canvas.Left="80" Canvas.Top="100">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="3" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="10" Height="10" Fill="#1558A6FF" Canvas.Left="200" Canvas.Top="250">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="4" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="4" Height="4" Fill="#2558A6FF" Canvas.Left="150" Canvas.Top="180">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="2" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="8" Height="8" Fill="#1858A6FF" Canvas.Left="50" Canvas.Top="350">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="3" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="5" Height="5" Fill="#2058A6FF" Canvas.Left="250" Canvas.Top="60">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="2" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Canvas>
+                        <Border IsHitTestVisible="False">
+                            <Border.Background>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="#00000000" Offset="0.3" />
+                                    <GradientStop Color="#50000000" Offset="1.0" />
+                                </RadialGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-20,0,0">
+                            <Border x:Name="AflIconGroup" Opacity="0" RenderTransformOrigin="50%,50%" HorizontalAlignment="Center" IsHitTestVisible="False">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="0.3" ScaleY="0.3" port:ProductionNames.Id="AflIconScale" />
+                                        <TranslateTransform port:ProductionNames.Id="AflIconFloat" />
+                                        <TranslateTransform port:ProductionNames.Id="AflIconHover" />
+                                    </TransformGroup>
+                                </Border.RenderTransform>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#58A6FF" BlurRadius="40" Opacity="0.5" OffsetX="0" OffsetY="0" />
+                                </Border.Effect>
+                                <Viewbox Width="180" Height="220" Stretch="Uniform">
+                                    <Canvas Width="100" Height="110">
+                                        <Canvas.RenderTransform>
+                                            <TranslateTransform X="50" Y="55" />
+                                        </Canvas.RenderTransform>
+                                        <Path Data="M 0,-55 C 30,-52 48,-28 48,0 C 48,28 30,52 0,55 C -30,52 -48,28 -48,0 C -48,-28 -30,-52 0,-55 Z" Stroke="White" StrokeThickness="2.8" Fill="#10FFFFFF" />
+                                        <Path Data="M 0,-42 L 0,42" Stroke="White" StrokeThickness="1.5" Opacity="0.6" />
+                                        <Line Stroke="White" StrokeThickness="2.2" StartPoint="-10,-15" EndPoint="10,-15" StrokeLineCap="Round" />
+                                        <Line Stroke="White" StrokeThickness="2.2" StartPoint="-12,-5" EndPoint="12,-5" StrokeLineCap="Round" />
+                                        <Line Stroke="White" StrokeThickness="2.2" StartPoint="-12,5" EndPoint="12,5" StrokeLineCap="Round" />
+                                        <Line Stroke="White" StrokeThickness="2.2" StartPoint="-10,15" EndPoint="10,15" StrokeLineCap="Round" />
+                                    </Canvas>
+                                </Viewbox>
+                            </Border>
+                            <StackPanel x:Name="AflTextPanel" Opacity="0" HorizontalAlignment="Center" Margin="0,15,0,0" IsHitTestVisible="False">
+                                <StackPanel.RenderTransform>
+                                    <TranslateTransform Y="25" port:ProductionNames.Id="AflTextTranslate" />
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="AFL" FontSize="52" FontWeight="Black" Foreground="White" TextAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect BlurRadius="20" Color="#58A6FF" Opacity="0.4" OffsetX="0" OffsetY="0" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <TextBlock Text="AUSTRALIAN RULES FOOTBALL" FontSize="11" FontWeight="SemiBold" Foreground="#8FB8E8" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                        <Border x:Name="AflHover" Background="White" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="AflFlash" Background="White" Opacity="0" IsHitTestVisible="False" />
+                    </Grid>
+                </Border>
+                <Border Grid.ColumnSpan="3" HorizontalAlignment="Center" IsHitTestVisible="False" Width="6" RenderTransformOrigin="50%,50%" ZIndex="5" IsVisible="False">
+                    <Border.RenderTransform>
+                        <ScaleTransform ScaleY="0" port:ProductionNames.Id="DividerScale" />
+                    </Border.RenderTransform>
+                    <Grid>
+                        <Border x:Name="DividerGlowLine" Opacity="0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                    <GradientStop Color="#00FFFFFF" Offset="0" />
+                                    <GradientStop Color="#30FFFFFF" Offset="0.3" />
+                                    <GradientStop Color="#50FFFFFF" Offset="0.5" />
+                                    <GradientStop Color="#30FFFFFF" Offset="0.7" />
+                                    <GradientStop Color="#00FFFFFF" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <BlurEffect Radius="3" />
+                            </Border.Effect>
+                        </Border>
+                        <Border Width="1" Opacity="0.5">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                    <GradientStop Color="#00FFFFFF" Offset="0" />
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.3" />
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.7" />
+                                    <GradientStop Color="#00FFFFFF" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                    </Grid>
+                </Border>
+                <Border x:Name="CricketCard" Grid.Column="2" Cursor="Hand" ClipToBounds="True" Opacity="0" RenderTransformOrigin="50%,50%" PointerReleased="Native_Cricket_Click" PointerEntered="Native_Card_MouseEnter" PointerExited="Native_Card_MouseLeave">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform port:ProductionNames.Id="CricketCardScale" />
+                            <TranslateTransform X="80" port:ProductionNames.Id="CricketCardTranslate" />
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <GradientStop Color="#0F1A0A" Offset="0" />
+                            <GradientStop Color="#1A2E12" Offset="0.5" />
+                            <GradientStop Color="#12200D" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Grid>
+                        <Border Opacity="0.025" IsHitTestVisible="False">
+                            <Border.Background>
+                                <VisualBrush TileMode="Tile" DestinationRect="0,0,40,40" SourceRect="0,0,40,40">
+                                    <VisualBrush.Visual>
+                                        <Canvas Width="40" Height="40">
+                                            <Line Stroke="White" StrokeThickness="1" StartPoint="0,40" EndPoint="40,0" />
+                                        </Canvas>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Border.Background>
+                        </Border>
+                        <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Opacity="0.04" Margin="0,30,0,0">
+                            <Rectangle Width="50" Height="260" Canvas.Left="-25" Canvas.Top="-130" Stroke="White" StrokeThickness="1.5" />
+                            <Line Stroke="White" StrokeThickness="1" StartPoint="-35,-100" EndPoint="35,-100" />
+                            <Line Stroke="White" StrokeThickness="1" StartPoint="-35,100" EndPoint="35,100" />
+                        </Canvas>
+                        <Border x:Name="CricketGlow" Opacity="0" IsHitTestVisible="False">
+                            <Border.Background>
+                                <RadialGradientBrush Center="50%,38%" RadiusX="55%" RadiusY="55%">
+                                    <GradientStop Color="#503FB950" Offset="0" />
+                                    <GradientStop Color="#203FB950" Offset="0.4" />
+                                    <GradientStop Color="#00000000" Offset="1" />
+                                </RadialGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <Border ClipToBounds="True" IsHitTestVisible="False" Opacity="0.06">
+                            <Border Width="150" HorizontalAlignment="Left">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="-200" port:ProductionNames.Id="CricketBeamTranslate" />
+                                </Border.RenderTransform>
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                        <GradientStop Color="#00FFFFFF" Offset="0" />
+                                        <GradientStop Color="#40FFFFFF" Offset="0.5" />
+                                        <GradientStop Color="#00FFFFFF" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Border>
+                        <Canvas IsHitTestVisible="False">
+                            <Ellipse Width="7" Height="7" Fill="#203FB950" Canvas.Left="100" Canvas.Top="120">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="3" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="10" Height="10" Fill="#153FB950" Canvas.Left="220" Canvas.Top="280">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="4" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="5" Height="5" Fill="#253FB950" Canvas.Left="160" Canvas.Top="200">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="2" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="9" Height="9" Fill="#183FB950" Canvas.Left="70" Canvas.Top="370">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="3" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse Width="4" Height="4" Fill="#223FB950" Canvas.Left="270" Canvas.Top="80">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="2" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Canvas>
+                        <Border IsHitTestVisible="False">
+                            <Border.Background>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="#00000000" Offset="0.3" />
+                                    <GradientStop Color="#50000000" Offset="1.0" />
+                                </RadialGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-20,0,0">
+                            <Border x:Name="CricketIconGroup" Opacity="0" RenderTransformOrigin="50%,50%" HorizontalAlignment="Center" IsHitTestVisible="False">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="0.3" ScaleY="0.3" port:ProductionNames.Id="CricketIconScale" />
+                                        <TranslateTransform port:ProductionNames.Id="CricketIconFloat" />
+                                        <TranslateTransform port:ProductionNames.Id="CricketIconHover" />
+                                    </TransformGroup>
+                                </Border.RenderTransform>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#3FB950" BlurRadius="40" Opacity="0.5" OffsetX="0" OffsetY="0" />
+                                </Border.Effect>
+                                <Viewbox Width="200" Height="200" Stretch="Uniform">
+                                    <Canvas Width="180" Height="180">
+                                        <Rectangle Canvas.Left="30" Canvas.Top="55" Width="28" Height="85" RadiusX="4" RadiusY="8" Stroke="White" StrokeThickness="2.5" Fill="#10FFFFFF" />
+                                        <Rectangle Canvas.Left="37" Canvas.Top="15" Width="14" Height="44" RadiusX="3" RadiusY="3" Stroke="White" StrokeThickness="2" Fill="#08FFFFFF" />
+                                        <Line Stroke="White" StrokeThickness="1.5" Opacity="0.6" StartPoint="39,25" EndPoint="49,25" />
+                                        <Line Stroke="White" StrokeThickness="1.5" Opacity="0.6" StartPoint="39,33" EndPoint="49,33" />
+                                        <Line Stroke="White" StrokeThickness="1.5" Opacity="0.6" StartPoint="39,41" EndPoint="49,41" />
+                                        <Rectangle Canvas.Left="105" Canvas.Top="60" Width="5" Height="110" Fill="White" Opacity="0.9" RadiusX="1.5" RadiusY="1.5" />
+                                        <Rectangle Canvas.Left="120" Canvas.Top="60" Width="5" Height="110" Fill="White" Opacity="0.9" RadiusX="1.5" RadiusY="1.5" />
+                                        <Rectangle Canvas.Left="135" Canvas.Top="60" Width="5" Height="110" Fill="White" Opacity="0.9" RadiusX="1.5" RadiusY="1.5" />
+                                        <Rectangle Canvas.Left="103" Canvas.Top="56" Width="21" Height="4" Fill="White" RadiusX="2" RadiusY="2" />
+                                        <Rectangle Canvas.Left="119" Canvas.Top="56" Width="21" Height="4" Fill="White" RadiusX="2" RadiusY="2" />
+                                        <Ellipse Canvas.Left="95" Canvas.Top="18" Width="28" Height="28" Stroke="White" StrokeThickness="2.5" Fill="#10FFFFFF" />
+                                        <Path Data="M 103,23 C 107,30 112,37 116,42" Stroke="White" StrokeThickness="1.5" />
+                                    </Canvas>
+                                </Viewbox>
+                            </Border>
+                            <StackPanel x:Name="CricketTextPanel" Opacity="0" HorizontalAlignment="Center" Margin="0,15,0,0" IsHitTestVisible="False">
+                                <StackPanel.RenderTransform>
+                                    <TranslateTransform Y="25" port:ProductionNames.Id="CricketTextTranslate" />
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="CRICKET" FontSize="52" FontWeight="Black" Foreground="White" TextAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect BlurRadius="20" Color="#3FB950" Opacity="0.4" OffsetX="0" OffsetY="0" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <TextBlock Text="THE GENTLEMAN'S GAME" FontSize="11" FontWeight="SemiBold" Foreground="#A6D6AF" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                        <Border x:Name="CricketHover" Background="White" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="CricketFlash" Background="White" Opacity="0" IsHitTestVisible="False" />
+                    </Grid>
+                </Border>
+                <Border x:Name="TrainingCard" Grid.Column="1" Cursor="Hand" ClipToBounds="True" Opacity="0" RenderTransformOrigin="50%,50%" Background="#0D1117" BorderBrush="#FBBF24" BorderThickness="2" PointerReleased="Native_Training_Click" PointerEntered="Native_TrainingTile_MouseEnter" PointerExited="Native_TrainingTile_MouseLeave">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform port:ProductionNames.Id="TrainingTileScale" />
+                            <TranslateTransform Y="-30" port:ProductionNames.Id="TrainingTileTranslate" />
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="20" Color="#FBBF24" Opacity="0.4" port:ProductionNames.Id="TrainingTileGlow" OffsetX="0" OffsetY="0" />
+                    </Border.Effect>
+                    <Grid>
+                        <Border Opacity="0.03" IsHitTestVisible="False">
+                            <Border.Background>
+                                <VisualBrush TileMode="Tile" DestinationRect="0,0,42,42" SourceRect="0,0,42,42">
+                                    <VisualBrush.Visual>
+                                        <Canvas Width="42" Height="42">
+                                            <Line Stroke="White" StrokeThickness="1" StartPoint="0,42" EndPoint="42,0" />
+                                        </Canvas>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Border.Background>
+                        </Border>
+                        <Border IsHitTestVisible="False">
+                            <Border.Background>
+                                <RadialGradientBrush Center="50%,38%" RadiusX="55%" RadiusY="55%">
+                                    <GradientStop Color="#40FBBF24" Offset="0" />
+                                    <GradientStop Color="#15FBBF24" Offset="0.45" />
+                                    <GradientStop Color="#00000000" Offset="1" />
+                                </RadialGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-20,0,0">
+                            <Border HorizontalAlignment="Center" IsHitTestVisible="False">
+                                <Viewbox Width="180" Height="220" Stretch="Uniform">
+                                    <Canvas Width="100" Height="110">
+                                        <Canvas.RenderTransform>
+                                            <TranslateTransform X="50" Y="55" />
+                                        </Canvas.RenderTransform>
+                                        <Ellipse Width="46" Height="46" Canvas.Left="-23" Canvas.Top="-25" Stroke="White" StrokeThickness="2.2" Fill="#10FFFFFF" />
+                                        <Line Stroke="White" StrokeThickness="2" StartPoint="0,-18" EndPoint="0,-2" />
+                                        <Line Stroke="White" StrokeThickness="2" StartPoint="0,-2" EndPoint="11,-2" />
+                                        <Rectangle Width="10" Height="4" Canvas.Left="-5" Canvas.Top="-33" Fill="#FBBF24" />
+                                        <Path Data="M -26,24 L -8,12 L 24,38 L 6,50 Z" Fill="#10FFFFFF" Stroke="White" StrokeThickness="2" />
+                                        <Line Stroke="White" StrokeThickness="1.7" Opacity="0.7" StartPoint="-6,19" EndPoint="11,30" />
+                                        <Line Stroke="White" StrokeThickness="1.7" Opacity="0.7" StartPoint="-2,28" EndPoint="16,39" />
+                                    </Canvas>
+                                </Viewbox>
+                            </Border>
+                            <StackPanel Opacity="1" HorizontalAlignment="Center" Margin="0,15,0,0" IsHitTestVisible="False">
+                                <TextBlock Text="TRAINING" FontSize="52" FontWeight="Black" Foreground="White" TextAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect BlurRadius="20" Color="#FBBF24" Opacity="0.45" OffsetX="0" OffsetY="0" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <TextBlock Text="STOPWATCHES &amp; INTERVALS" FontSize="11" FontWeight="SemiBold" Foreground="#F6D88C" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                        <Border x:Name="TrainingFlash" Background="White" Opacity="0" IsHitTestVisible="False" />
+                    </Grid>
+                </Border>
+            </Grid>
+            <Button x:Name="ChangelogToggle" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,22" Padding="18,10" Background="#E6111822" BorderBrush="#4558A6FF" BorderThickness="1" Cursor="Hand" Opacity="0" Click="ChangelogToggle_Click" ZIndex="24">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Shell" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="18" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+                <Button.Effect>
+                    <DropShadowEffect BlurRadius="18" Color="#000000" Opacity="0.55" OffsetX="2.82842712475" OffsetY="2.82842712475" />
+                </Button.Effect>
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="28" Height="28" CornerRadius="9" Background="#2058A6FF" Margin="0,0,10,0">
+                        <TextBlock Text="✦" Foreground="#8CC8FF" FontSize="15" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="WHAT’S NEW" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontWeight="Black" FontSize="12" Foreground="White" />
+                        <TextBlock x:Name="VersionLabel" Text="CURRENT BUILD" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontWeight="SemiBold" FontSize="9" Foreground="#8FA5BD" />
+                    </StackPanel>
+                    <TextBlock Text="  ›" FontSize="21" FontWeight="Black" Foreground="#58A6FF" VerticalAlignment="Center" Margin="8,0,0,0" />
+                </StackPanel>
+                <Button.Styles>
+                    <Style Selector="Button:pointerover /template/ Border#Shell">
+                        <Setter Property="Background" Value="#F0182738" />
+                    </Style>
+                    <Style Selector="Button:pointerover /template/ Border#Shell">
+                        <Setter Property="BorderBrush" Value="#8858A6FF" />
+                    </Style>
+                    <Style Selector="Button:pressed /template/ Border#Shell">
+                        <Setter Property="Background" Value="#FF0B1420" />
+                    </Style>
+                </Button.Styles>
+            </Button>
+            <Border x:Name="BottomAccent" VerticalAlignment="Bottom" Height="3" Opacity="0" IsHitTestVisible="False" ZIndex="20">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#58A6FF" Offset="0" />
+                        <GradientStop Color="#1AFFFFFF" Offset="0.5" />
+                        <GradientStop Color="#3FB950" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+            <Grid x:Name="ChangelogOverlay" Opacity="0" ZIndex="100" IsVisible="False" KeyDown="Native_ChangelogOverlay_PreviewKeyDown">
+                <Border Background="#D904080D" PointerReleased="Native_ChangelogBackdrop_Click" />
+                <Border x:Name="ChangelogPanel" Width="980" MaxWidth="980" Margin="44" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#F50B1119" BorderBrush="#354E6A" BorderThickness="1" CornerRadius="22" ClipToBounds="True" RenderTransformOrigin="50%,50%">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="0.96" ScaleY="0.96" port:ProductionNames.Id="ChangelogPanelScale" />
+                            <TranslateTransform Y="24" port:ProductionNames.Id="ChangelogPanelTranslate" />
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Border Padding="30,24" BorderBrush="#243244" BorderThickness="0,0,0,1">
+                            <Grid>
+                                <StackPanel>
+                                    <TextBlock Text="ROCHE SCOREBOARD" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="11" FontWeight="Black" Foreground="#58A6FF" />
+                                    <TextBlock Text="What’s New" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="34" FontWeight="Black" Foreground="White" Margin="0,3,0,0" />
+                                    <TextBlock Text="Every operator-facing improvement, fix and release—kept in one searchable timeline." FontSize="13" Foreground="#9FB0C3" Margin="0,5,0,0" />
+                                </StackPanel>
+                                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Width="44" Height="44" Background="#182331" Foreground="White" BorderBrush="#31445A" FontSize="18" FontWeight="Bold" Content="×" Cursor="Hand" Click="ChangelogClose_Click" />
+                            </Grid>
+                        </Border>
+                        <Grid Grid.Row="1" Margin="30,18,30,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ChangelogSearchBox" Height="42" Padding="14,10" Background="#111A25" Foreground="White" CaretBrush="#58A6FF" BorderBrush="#31445A" FontSize="13" TextChanged="Native_ChangelogSearch_TextChanged" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="14,0,0,0">
+                                <Button Content="ALL" Tag="All" Click="ChangelogFilter_Click" Padding="16,8" Margin="0,0,6,0" />
+                                <Button Content="NEW" Tag="New" Click="ChangelogFilter_Click" Padding="16,8" Margin="0,0,6,0" />
+                                <Button Content="FIXED" Tag="Fixed" Click="ChangelogFilter_Click" Padding="16,8" />
+                            </StackPanel>
+                        </Grid>
+                        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="30,8,30,28">
+                            <StackPanel x:Name="ChangelogEntries" />
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

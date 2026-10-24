@@ -1,0 +1,173 @@
+{
+  "source": "Roche_Scoreboard/Views/ControlPanel.xaml",
+  "source_sha256": "6298cb615d0387e0bd9dabfe4fa3bb9202be0d48bc91cd97eaef0d615c0b50eb",
+  "names": [
+    {
+      "name": "Sc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "Lift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "RewardFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TbLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "RewardFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeTeamName",
+      "type": "MarqueeTextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeScore",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Timer",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayScore",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayTeamName",
+      "type": "MarqueeTextBlock",
+      "object": false
+    },
+    {
+      "name": "QuarterBadgeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeScoreDisplay",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeGoalBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "HomeBehindBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AwayScoreDisplay",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayGoalBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AwayBehindBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ClockStartBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ClockPauseBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ClockResetBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "QuarterSelector",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "EventLog",
+      "type": "ListBox",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "442c282b438b1d2edbe6bc8c80cfe4af9deeb7b7856e798a19f334500862ed29",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "HomeScore",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "Timer",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayScore",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeScoreDisplay",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayScoreDisplay",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "EventLog",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

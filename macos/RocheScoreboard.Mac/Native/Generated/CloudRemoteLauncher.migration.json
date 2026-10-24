@@ -1,0 +1,120 @@
+{
+  "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml",
+  "source_sha256": "8cf301d9a545358df316c4ee38f8ed5c2dcf51822e5c159efd215c15fb2a0242",
+  "names": [
+    {
+      "name": "CollapsedButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CollapsedStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CollapsedChevron",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpandedPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "StatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "IdleState",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "StartButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "DisabledState",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "LiveState",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "ConnectionDot",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "ConnectionLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "JoinCodeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "QrImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "JoinUrlPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "JoinUrlText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CopyUrlButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "EndButton",
+      "type": "Button",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "e5248f647a6ab3c74427cc71cf5d4d80c07fd86a5808e559cf37ad8c2c8d8b4c",
+  "native_events": [
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "JoinCodeBox_Click"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": "JoinCodeText",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "QrImage",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

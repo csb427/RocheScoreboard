@@ -1,0 +1,435 @@
+{
+  "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
+  "source_sha256": "30f0d1225483b9deaef923e5375fdd0f8a0fbaafc22124ba38a5a67f47ecf4a1",
+  "names": [
+    {
+      "name": "Sc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "Lift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "RewardFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TbLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "RewardFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "MbLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "Flash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TabRoot",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "Flash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Cp",
+      "type": "ContentPresenter",
+      "object": false
+    },
+    {
+      "name": "AccBar",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "InningsLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderOvers",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderScore",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MainTabControl",
+      "type": "TabControl",
+      "object": false
+    },
+    {
+      "name": "BattingZone",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StrikerBar",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TopBatterIndicator",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StrikerName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StrikerStats",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StrikerRuns",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerBar",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BottomBatterIndicator",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerStats",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerRunsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlingZone",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BowlerBar",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BowlerName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerStats",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerFigures",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OverDisplay",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExtrasPopup",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExtrasPopupTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExtrasHintText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "EventLog",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "MessageList",
+      "type": "ListBox",
+      "object": false
+    },
+    {
+      "name": "NewMessageBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SettingsMatchText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsStateText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsAutosaveText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsSelectionText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerList",
+      "type": "ListBox",
+      "object": false
+    },
+    {
+      "name": "BatterSelectionOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BatterSelectionTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BatterSelectionList",
+      "type": "ListBox",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CfSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "BowlerSelectionOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BowlerSelectionHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerSelectionList",
+      "type": "ListBox",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CfSc2",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "WicketDetailsOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WicketBatsmanLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WicketFielderPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "WicketFielderList",
+      "type": "ListBox",
+      "object": false
+    },
+    {
+      "name": "WicketBowlerPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "WicketBowlerAutoLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WkSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "OverlayQueueBadge",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "OverlayQueueText",
+      "type": "TextBlock",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "a3ec415222c5359b2e6cae78a5ee1d88c36df3cc3b50d3a9a0dfda65d2d09028",
+  "native_events": [
+    {
+      "name": "MainTabControl",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "MainTabControl_SelectionChanged"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ShowScorebug_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ShowBattingSummary_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ShowBowlingSummary_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ShowMatchCentre_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ShowWindow_Click"
+    },
+    {
+      "name": "BowlerList",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "BowlerList_SelectionChanged"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": "TabRoot",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "InningsLabel",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HeaderScore",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StrikerRuns",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "NonStrikerRunsText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BowlerFigures",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

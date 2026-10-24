@@ -1,0 +1,124 @@
+// Generated from Services/RecentTrainingTimerStorage.cs; edit translator/adapters.
+// Source SHA-256: bc4cdaf16f131d18441d1045ce4813ca8d8e35613e56dee3135fea2b940a2757
+using RocheScoreboard.Mac.Native;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Threading;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+
+namespace Roche_Scoreboard.Services;
+
+/// <summary>
+/// Persists the operator's most recently used training timers (title + duration)
+/// across app launches. Stored as JSON in the user's Documents folder so it
+/// survives reinstalls and updates.
+/// </summary>
+public static class RecentTrainingTimerStorage
+{
+    private const int MaxEntries = 12;
+    public const int MaxTitleLength = 40;
+
+    private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
+
+    public sealed class Entry
+    {
+        public string Title { get; set; } = "TIMER";
+        public int Seconds { get; set; }
+        public DateTime LastUsedUtc { get; set; } = DateTime.UtcNow;
+    }
+
+    private static string GetPath()
+    {
+        string dir = Path.Combine(
+            NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "Roche_Scoreboard");
+        Directory.CreateDirectory(dir);
+        return Path.Combine(dir, "training_recent_timers.json");
+    }
+
+    public static List<Entry> Load()
+    {
+        try
+        {
+            string path = GetPath();
+            var entries = AtomicFile.TryReadJson<List<Entry>>(path, Options) ?? new List<Entry>();
+            return NormalizeEntries(entries);
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
+        {
+            System.Diagnostics.Debug.WriteLine($"RecentTrainingTimerStorage.Load failed: {ex.Message}");
+            return new List<Entry>();
+        }
+    }
+
+    internal static List<Entry> NormalizeEntries(IEnumerable<Entry?> entries)
+    {
+        return entries
+                .OfType<Entry>()
+                .Where(e => e.Seconds > 0)
+                .Select(e => new Entry
+                {
+                    Title = NormalizeTitle(e.Title),
+                    Seconds = e.Seconds,
+                    LastUsedUtc = e.LastUsedUtc
+                })
+                .OrderByDescending(e => e.LastUsedUtc)
+                .DistinctBy(e => (e.Title.ToUpperInvariant(), e.Seconds))
+                .Take(MaxEntries)
+                .ToList();
+    }
+
+    private static void Save(List<Entry> entries)
+    {
+        try
+        {
+            AtomicFile.WriteAllText(GetPath(), JsonSerializer.Serialize(entries, Options));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            System.Diagnostics.Debug.WriteLine($"RecentTrainingTimerStorage.Save failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Records the given title/duration as most-recently-used. Identical
+    /// (title, seconds) entries are deduplicated by moving the existing
+    /// entry to the front. List is trimmed to <see cref="MaxEntries"/>.
+    /// </summary>
+    public static void Record(string title, int seconds)
+    {
+        if (string.IsNullOrWhiteSpace(title)) title = "TIMER";
+        if (seconds <= 0) return;
+
+        string normalizedTitle = NormalizeTitle(title);
+
+        var entries = Load();
+        entries.RemoveAll(e =>
+            string.Equals(e.Title, normalizedTitle, StringComparison.OrdinalIgnoreCase)
+            && e.Seconds == seconds);
+
+        entries.Insert(0, new Entry
+        {
+            Title = normalizedTitle,
+            Seconds = seconds,
+            LastUsedUtc = DateTime.UtcNow
+        });
+
+        if (entries.Count > MaxEntries)
+            entries = entries.Take(MaxEntries).ToList();
+
+        Save(entries);
+    }
+
+    private static string NormalizeTitle(string? title)
+    {
+        string normalized = string.IsNullOrWhiteSpace(title) ? "TIMER" : title.Trim();
+        return normalized.Length <= MaxTitleLength
+            ? normalized
+            : normalized[..MaxTitleLength].TrimEnd();
+    }
+}

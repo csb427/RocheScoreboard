@@ -1,0 +1,221 @@
+{
+  "source": "Roche_Scoreboard/Views/ResumeGameDialog.xaml",
+  "source_sha256": "056150cf47cdccf97e0718996978ba4c2e9d6aec1b940f6a9a651925446bcb83",
+  "names": [
+    {
+      "name": "Surface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FocusRing",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "DialogShell",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "RecoveryContextText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SportText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SavedTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeBlock",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeBorderBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "HomeLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeGoalsBehindsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayBlock",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayBorderBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwayLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayGoalsBehindsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "QuarterText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ClockText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MarginLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MarginText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "DiscardButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "KeepSavedButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ResumeButton",
+      "type": "Button",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "4b0c1366eb42e387b9d818004a1bda99360e0ec1d73dfebbdf50ac4bc147b69e",
+  "native_events": [
+    {
+      "name": null,
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "Window_PreviewKeyDown"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "AllowsTransparency",
+      "source": "False",
+      "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeNameText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeTotalText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeGoalsBehindsText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayNameText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayGoalsBehindsText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayTotalText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "QuarterText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ClockText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "MarginText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

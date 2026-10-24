@@ -1,0 +1,22 @@
+{
+  "source": "Roche_Scoreboard/Views/VideoPlayerControl.xaml",
+  "source_sha256": "1e9a0c2d7b446222e53a4d0685fd453980c098eb606dd8f82d95a4b728f8590f",
+  "names": [
+    {
+      "name": "VideoPlayer",
+      "type": "VideoView",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "cd2746ab4426c7b6d7964d7201eb59ef93641b1abbd3cb83b2fa90515e493c2d",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "VideoPlayer",
+      "property": "Background",
+      "translation": "Black background supplied by the production video host"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

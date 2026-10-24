@@ -1,0 +1,150 @@
+{
+  "source": "Roche_Scoreboard/Views/IntroScreenControl.xaml",
+  "source_sha256": "a5e041c5a2d2bee8bd42395477381718315ea5d690429b21567d59d361e76cb4",
+  "names": [
+    {
+      "name": "RootGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeHalf",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeHalfTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeBgBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "HomeShimmer",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "HomeShimmerTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeLogoScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "HomeNameFallback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeNameBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwayHalf",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayHalfTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayBgBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwayShimmer",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "AwayShimmerTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayLogoScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "AwayNameFallback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayNameBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "DiagonalGlow",
+      "type": "Line",
+      "object": false
+    },
+    {
+      "name": "DiagonalGlowBlur",
+      "type": "BlurEffect",
+      "object": true
+    },
+    {
+      "name": "VsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VsGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "VsScale",
+      "type": "ScaleTransform",
+      "object": true
+    }
+  ],
+  "code_source_sha256": "75fb56828b46362fdce6739bdc69541a83580611fd9350a6eca0a8a2116240b0",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "HomeNameFallback",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayNameFallback",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "VsText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

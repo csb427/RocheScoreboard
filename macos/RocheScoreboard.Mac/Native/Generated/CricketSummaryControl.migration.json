@@ -1,0 +1,112 @@
+{
+  "source": "Roche_Scoreboard/Views/CricketSummaryControl.xaml",
+  "source_sha256": "be9bdfa1cc16b4a546d703e3aea309bf9e90b4b94679d87552a7470e8beadb1d",
+  "names": [
+    {
+      "name": "RootGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "RootTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HeaderBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "HeaderText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SeparatorBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "RowsPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "FooterTeamName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FooterTeamScore",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FooterOversLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FooterOvers",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FooterStatLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FooterStatValue",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FooterStat2Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FooterStat2Value",
+      "type": "TextBlock",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "078ed722903fd0a44f69dc8be6baf41bb542604d507ec72eaaa44c1afe58a179",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "HeaderText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "FooterTeamScore",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "FooterOvers",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "FooterStatValue",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "FooterStat2Value",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

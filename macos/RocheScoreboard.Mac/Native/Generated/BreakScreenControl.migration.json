@@ -1,0 +1,356 @@
+{
+  "source": "Roche_Scoreboard/Views/BreakScreenControl.xaml",
+  "source_sha256": "23b31906d4d999a9db4b7b0f325c2f97d01ba180d7501ef86305d2b0d2ad71eb",
+  "names": [
+    {
+      "name": "BgGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "BreakTitlePanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BreakTitleText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BreakTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TitleAccentGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "BreakTeamColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "BreakQuarterHeaderRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "HomeHeaderBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "HomeHeaderBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "BreakHomeLogoBg",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "BreakHomeAbbr",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeNameFg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwayHeaderBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwayHeaderBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "BreakAwayLogoBg",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "BreakAwayAbbr",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayNameFg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "H1T",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "H1Total",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "H1Detail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "H2T",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "H2Total",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "H2Detail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "H3T",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "H3Total",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "H3Detail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "H4T",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "H4Total",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "H4Detail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "A1T",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "A1Total",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "A1Detail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "A2T",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "A2Total",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "A2Detail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "A3T",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "A3Total",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "A3Detail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "A4T",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "A4Total",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "A4Detail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScoreBar",
+      "type": "PresentationScoreBar",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "fcb701ca601a9a35df7a71f38e4d03f52be981f99d10c42cdad661678858cfad",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "BreakTitleText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BreakHomeAbbr",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BreakAwayAbbr",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "H1Total",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "H1Detail",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "H2Total",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "H2Detail",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "H3Total",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "H3Detail",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "H4Total",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "H4Detail",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "A1Total",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "A1Detail",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "A2Total",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "A2Detail",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "A3Total",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "A3Detail",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "A4Total",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "A4Detail",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

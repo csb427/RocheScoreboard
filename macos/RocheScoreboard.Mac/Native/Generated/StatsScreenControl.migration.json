@@ -1,0 +1,433 @@
+{
+  "source": "Roche_Scoreboard/Views/StatsScreenControl.xaml",
+  "source_sha256": "736caeea632a7628424a6dbbf4b000a6bf8120d855368e3444d7d838957b7f68",
+  "names": [
+    {
+      "name": "StatsBgGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "StatsTitleRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "StatsTeamsRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "StatsBodyRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "StatsTitlePanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StatsTitleAccent",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "StatsTitleText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsHomeTeamHeader",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StatsHomeGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "StatsHomeLogoFallback",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "StatsHomeLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "StatsHomeTeamText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsAwayTeamHeader",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StatsAwayGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "StatsAwayLogoFallback",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "StatsAwayLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "StatsAwayTeamText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsScrHomeShots",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeValueBrush1",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ShotsBarBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ShotsHomeCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ShotsAwayCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ShotHomeBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ShotAwayBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ShotsBarLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsScrAwayShots",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayValueBrush1",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "StatsScrHomeAcc",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeValueBrush2",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AccBarBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AccHomeCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "AccAwayCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "AccHomeBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AccAwayBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AccuracyBarLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsScrAwayAcc",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayValueBrush2",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "StatsScrHomeTime",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeValueBrush3",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "TimeBarBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "TimeHomeCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "TimeTiedCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "TimeAwayCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "TimeHomeBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "TimeTiedBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "TimeAwayBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "TimeBarLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsScrAwayTime",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayValueBrush3",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "StatsScrHomeLead",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeValueBrush4",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "LeadBarBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "LeadHomeCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "LeadAwayCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "LeadHomeBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "LeadAwayBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "LeadBarLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsScrAwayLead",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayValueBrush4",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ScoreBar",
+      "type": "PresentationScoreBar",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "b1c54daadf6032cf2909de389a50dcd8e833b86463fdb48fb947685e09984234",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "StatsTitleText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsHomeTeamText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsAwayTeamText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsScrHomeShots",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ShotsBarLabel",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsScrAwayShots",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsScrHomeAcc",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AccuracyBarLabel",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsScrAwayAcc",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsScrHomeTime",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "TimeBarLabel",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsScrAwayTime",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsScrHomeLead",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "LeadBarLabel",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "StatsScrAwayLead",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

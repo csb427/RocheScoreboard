@@ -1,0 +1,151 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.MatchLoadingScreen" Background="Transparent" IsHitTestVisible="True" Focusable="False" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <UserControl.Resources>
+        <LinearGradientBrush x:Key="LoadingBgBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#FF050A14" Offset="0" />
+            <GradientStop Color="#FF0A1428" Offset="0.55" />
+            <GradientStop Color="#FF050810" Offset="1" />
+        </LinearGradientBrush>
+    </UserControl.Resources>
+    <Grid Background="{StaticResource LoadingBgBrush}">
+        <Canvas x:Name="GridCanvas" IsHitTestVisible="False" Opacity="0.18" />
+        <Canvas x:Name="BeamCanvas" IsHitTestVisible="False" />
+        <Canvas x:Name="ParticleCanvas" IsHitTestVisible="False" />
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" HorizontalAlignment="Center" Background="#FF0D1117" BorderBrush="#FF1F6FEB" BorderThickness="2" Padding="22,8" Margin="0,0,0,22">
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse x:Name="BrandPulse" Width="12" Height="12" Fill="#FF58A6FF" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <Ellipse.Effect>
+                            <DropShadowEffect Color="#FF58A6FF" BlurRadius="22" Opacity="1" OffsetX="0" OffsetY="0" />
+                        </Ellipse.Effect>
+                    </Ellipse>
+                    <TextBlock x:Name="BrandText" Text="ROCHE SCOREBOARD" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="14" FontWeight="Bold" Foreground="#FFE6EDF3" VerticalAlignment="Center" />
+                    <Rectangle Width="1" Height="16" Fill="#FF30363D" Margin="14,0" />
+                    <TextBlock x:Name="BrandSubtitle" Text="PREPARING BROADCAST" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="12" FontWeight="SemiBold" Foreground="#FF8B949E" VerticalAlignment="Center" Opacity="0.9" />
+                </StackPanel>
+            </Border>
+            <Grid Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid Width="140" Height="140">
+                        <Ellipse x:Name="HomeRing" Width="140" Height="140" Stroke="#FF1F6FEB" StrokeThickness="3">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#FF1F6FEB" BlurRadius="36" Opacity="0.9" port:ProductionNames.Id="HomeRingGlow" OffsetX="0" OffsetY="0" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Border x:Name="HomeLogoSlot" Width="118" Height="118" Background="#FF0D1117" BorderBrush="#FF1F6FEB" BorderThickness="2" CornerRadius="59" ClipToBounds="True">
+                            <Grid>
+                                <Image x:Name="HomeLogoImage" Stretch="Uniform" Margin="10" />
+                                <TextBlock x:Name="HomeLogoFallback" Text="HOM" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="36" FontWeight="ExtraBold" Foreground="#FFE6EDF3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <TextBlock x:Name="HomeNameText" Text="HOME" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="16" FontWeight="Bold" Foreground="#FFE6EDF3" HorizontalAlignment="Center" Margin="0,12,0,0" />
+                </StackPanel>
+                <Grid Grid.Column="1" Width="180" Height="160" Margin="14,0">
+                    <Canvas Width="160" Height="160" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="50%,50%">
+                        <Canvas.RenderTransform>
+                            <RotateTransform port:ProductionNames.Id="OuterOrbitRotate" />
+                        </Canvas.RenderTransform>
+                        <Ellipse Canvas.Left="0" Canvas.Top="0" Width="160" Height="160" Stroke="#FF30363D" StrokeThickness="1" StrokeDashArray="2,6" />
+                        <Ellipse Canvas.Left="74" Canvas.Top="-6" Width="12" Height="12" Fill="#FF58A6FF">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#FF58A6FF" BlurRadius="18" OffsetX="0" OffsetY="0" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Canvas.Left="74" Canvas.Top="154" Width="8" Height="8" Fill="#FFFFD33D">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#FFFFD33D" BlurRadius="14" OffsetX="0" OffsetY="0" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                    </Canvas>
+                    <Canvas Width="118" Height="118" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="50%,50%">
+                        <Canvas.RenderTransform>
+                            <RotateTransform port:ProductionNames.Id="InnerOrbitRotate" />
+                        </Canvas.RenderTransform>
+                        <Ellipse Canvas.Left="0" Canvas.Top="0" Width="118" Height="118" Stroke="#FF1F6FEB" StrokeThickness="1.5" StrokeDashArray="6,4" Opacity="0.6" />
+                        <Ellipse Canvas.Left="-4" Canvas.Top="55" Width="8" Height="8" Fill="#FF3FB950">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#FF3FB950" BlurRadius="14" OffsetX="0" OffsetY="0" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Canvas.Left="114" Canvas.Top="55" Width="8" Height="8" Fill="#FFFF7B72">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#FFFF7B72" BlurRadius="14" OffsetX="0" OffsetY="0" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                    </Canvas>
+                    <Border Background="#FF0D1117" BorderBrush="#FFFFD33D" BorderThickness="2" Padding="14,6" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="50%,50%">
+                        <Border.RenderTransform>
+                            <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.Id="VsChipScale" />
+                        </Border.RenderTransform>
+                        <TextBlock x:Name="VsText" Text="VS" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="22" FontWeight="ExtraBold" Foreground="#FFFFD33D" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect Color="#FFFFD33D" BlurRadius="14" Opacity="0.85" OffsetX="0" OffsetY="0" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Border>
+                </Grid>
+                <StackPanel Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid Width="140" Height="140">
+                        <Ellipse x:Name="AwayRing" Width="140" Height="140" Stroke="#FFFF7B72" StrokeThickness="3">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#FFFF7B72" BlurRadius="36" Opacity="0.9" port:ProductionNames.Id="AwayRingGlow" OffsetX="0" OffsetY="0" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Border x:Name="AwayLogoSlot" Width="118" Height="118" Background="#FF0D1117" BorderBrush="#FFFF7B72" BorderThickness="2" CornerRadius="59" ClipToBounds="True">
+                            <Grid>
+                                <Image x:Name="AwayLogoImage" Stretch="Uniform" Margin="10" />
+                                <TextBlock x:Name="AwayLogoFallback" Text="AWA" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="36" FontWeight="ExtraBold" Foreground="#FFE6EDF3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <TextBlock x:Name="AwayNameText" Text="AWAY" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="16" FontWeight="Bold" Foreground="#FFE6EDF3" HorizontalAlignment="Center" Margin="0,12,0,0" />
+                </StackPanel>
+            </Grid>
+            <Border Grid.Row="2" Width="540" Height="14" Background="#FF0D1117" BorderBrush="#FF30363D" BorderThickness="1" HorizontalAlignment="Center" Margin="0,4,0,10">
+                <Grid ClipToBounds="True">
+                    <Border x:Name="ProgressFill" HorizontalAlignment="Left" Width="0" Background="#FF1F6FEB">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#FF1F6FEB" BlurRadius="14" Opacity="0.85" OffsetX="0" OffsetY="0" />
+                        </Border.Effect>
+                    </Border>
+                    <Border x:Name="ProgressShine" HorizontalAlignment="Left" Width="80" Opacity="0.6" IsHitTestVisible="False">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#00FFFFFF" Offset="0" />
+                                <GradientStop Color="#88FFFFFF" Offset="0.5" />
+                                <GradientStop Color="#00FFFFFF" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.RenderTransform>
+                            <TranslateTransform X="-80" port:ProductionNames.Id="ShineTranslate" />
+                        </Border.RenderTransform>
+                    </Border>
+                </Grid>
+            </Border>
+            <Grid Grid.Row="3" Width="540" HorizontalAlignment="Center" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatusText" Grid.Column="0" Text="INITIALISING" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="13" FontWeight="SemiBold" Foreground="#FF8B949E" />
+                <TextBlock x:Name="PercentText" Grid.Column="1" Text="0%" FontFamily="{fonts:ProductionFont 'Segoe UI'}" FontSize="13" FontWeight="Bold" Foreground="#FF58A6FF" />
+            </Grid>
+            <Border Grid.Row="4" Width="540" HorizontalAlignment="Center" Background="#FF0D1117" BorderBrush="#FF30363D" BorderThickness="1" Padding="14,10" Margin="0,4,0,0">
+                <StackPanel x:Name="StepStack" />
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,902 @@
+{
+  "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
+  "source_sha256": "81b254110912439fb848d717f3b7c6cbd67f589aa07b3764f320033eb1d432d3",
+  "names": [
+    {
+      "name": "BdSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "BdLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "RewardFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Border",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_EditableTextBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "PART_Popup",
+      "type": "Popup",
+      "object": false
+    },
+    {
+      "name": "BgGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BeamTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HeaderPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HeaderTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StepIndicator",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "StepIndicatorTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "Step1Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step1Glow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "Step1Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step2Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step2Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step3Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step3Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step4Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step4Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TeamsStepContainer",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomePresetCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomePresetTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomePresetEmpty",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomePresetPanel",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "AwayPresetCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayPresetTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayPresetEmpty",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayPresetPanel",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "Step2Panel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeTeamCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeCardScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "HomeCardTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeHeaderGroup",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "HomeHeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "SetupHomeNameBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupHomeAbbrBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupHomeColorBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupHomeColorPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupHomeSecondaryBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupHomeSecondaryPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupHomeLogoText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SetupHomeLogoPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupHomeLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "DividerScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "DividerGlowLine",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayTeamCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayCardScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "AwayCardTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayHeaderGroup",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "AwayHeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "SetupAwayNameBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupAwayAbbrBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupAwayColorBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupAwayColorPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupAwaySecondaryBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupAwaySecondaryPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupAwayLogoText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SetupAwayLogoPreview",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupAwayLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "Step3Panel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step3Translate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "PlayersGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PlayersHeaderGroup",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "PlayersHeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomePlayerSideBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "HomePlyTeamName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomePlyGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "HomePlayerFirstBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "HomePlayerLastBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "HomePlayerList",
+      "type": "ItemsControl",
+      "object": false
+    },
+    {
+      "name": "AwayPlayerSideBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwayPlyTeamName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayPlyGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "AwayPlayerFirstBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "AwayPlayerLastBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "AwayPlayerList",
+      "type": "ItemsControl",
+      "object": false
+    },
+    {
+      "name": "Step3bPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step3bTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "FormatGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FormatHeaderGroup",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "FormatHeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "LimitedOversCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LimitedOversGlowBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "OversInputPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "OversDisplay",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "LimitedOversSelected",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MultiInningsCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MultiInningsGlowBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MultiInningsSelected",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step4Panel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step4Translate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "MsgGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MsgHeaderGroup",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "MsgHeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "WeatherGlowBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupWeatherLocation",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "MsgSectionGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupMessageList",
+      "type": "ItemsControl",
+      "object": false
+    },
+    {
+      "name": "SetupNewMessageBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupNewMessageTextColorBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "SetupNewMessageHighlightColorBtn",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "NavBar",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "NavBarTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "BackButton",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BackBtnScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "NextButton",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "NextBtnScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "NextButtonText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BottomAccent",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FlashOverlay",
+      "type": "Border",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "bed4dddd52307677cc7ee239609ff1cc044b72d731dfed3676a5bd814800397b",
+  "native_events": [
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "GoToStep1_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "GoToStep2_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "GoToStep3_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "GoToStep4_Click"
+    },
+    {
+      "name": "SetupHomeColorBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "SetupHomeColorBox_TextChanged"
+    },
+    {
+      "name": "SetupHomeColorPreview",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PickSetupHomeColor_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "DropperSetupHomeColor_Click"
+    },
+    {
+      "name": "SetupHomeSecondaryBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "SetupHomeSecondaryBox_TextChanged"
+    },
+    {
+      "name": "SetupHomeSecondaryPreview",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PickSetupHomeSecondary_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "DropperSetupHomeSecondary_Click"
+    },
+    {
+      "name": "SetupAwayColorBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "SetupAwayColorBox_TextChanged"
+    },
+    {
+      "name": "SetupAwayColorPreview",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PickSetupAwayColor_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "DropperSetupAwayColor_Click"
+    },
+    {
+      "name": "SetupAwaySecondaryBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "SetupAwaySecondaryBox_TextChanged"
+    },
+    {
+      "name": "SetupAwaySecondaryPreview",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "PickSetupAwaySecondary_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "DropperSetupAwaySecondary_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AddHomePlayer_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ToggleHomeWicketkeeper_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "RemoveHomePlayer_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AddAwayPlayer_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ToggleAwayWicketkeeper_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "RemoveAwayPlayer_Click"
+    },
+    {
+      "name": "LimitedOversCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "LimitedOversCard_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OversMinus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OversPlus_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OversPreset20_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OversPreset40_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OversPreset50_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "OversPreset100_Click"
+    },
+    {
+      "name": "MultiInningsCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "MultiInningsCard_Click"
+    },
+    {
+      "name": null,
+      "source": "MouseRightButtonUp",
+      "native": "PointerReleased",
+      "handler": "SetupClearItemHighlightColor_Click"
+    },
+    {
+      "name": "SetupNewMessageHighlightColorBtn",
+      "source": "MouseRightButtonUp",
+      "native": "PointerReleased",
+      "handler": "SetupClearNewHighlightColor_Click"
+    },
+    {
+      "name": "BackButton",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Back_Click"
+    },
+    {
+      "name": "BackButton",
+      "source": "MouseEnter",
+      "native": "PointerEntered",
+      "handler": "NavBtn_MouseEnter"
+    },
+    {
+      "name": "BackButton",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "NavBtn_MouseLeave"
+    },
+    {
+      "name": "NextButton",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Next_Click"
+    },
+    {
+      "name": "NextButton",
+      "source": "MouseEnter",
+      "native": "PointerEntered",
+      "handler": "NavBtn_MouseEnter"
+    },
+    {
+      "name": "NextButton",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "NavBtn_MouseLeave"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": "PART_Popup",
+      "property": "AllowsTransparency",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewboxUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": "SetupHomeColorBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "SetupHomeSecondaryBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "SetupAwayColorBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "SetupAwaySecondaryBox",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "OversDisplay",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Symbol",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "SetupWeatherLocation",
+      "property": "StaysOpenOnEdit",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

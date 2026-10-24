@@ -1,0 +1,250 @@
+{
+  "source": "Roche_Scoreboard/Views/PresentationScoreBar.xaml",
+  "source_sha256": "8831a3a6fe7c86e444fbadb7ed364185005558075842133ca976a474918e7fb4",
+  "names": [
+    {
+      "name": "HomeLogoColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "CenterColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "AwayLogoColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "HomePanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomePanelGradStart",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "HomePanelGradEnd",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "HomeTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeGoalFlash",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "HomeDeltaOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeDeltaTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeDeltaText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeLogoCell",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeLogoCellGradStart",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "HomeLogoCellGradEnd",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "HomeLogoFallback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "CenterPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "LiveCenterPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "LiveCenterText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BreakCenterPanel",
+      "type": "Viewbox",
+      "object": false
+    },
+    {
+      "name": "BreakCenterText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayLogoCell",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayLogoCellGradStart",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "AwayLogoCellGradEnd",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "AwayLogoFallback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AwayPanelGradStart",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "AwayPanelGradEnd",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "AwayTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayGoalFlash",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "AwayDeltaOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayDeltaTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayDeltaText",
+      "type": "TextBlock",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "2c9ae555242f08a65521837db42fe706c7788443a9bc315e170fd429ddd80bcb",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "HomeTotalText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeDeltaText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeLogoFallback",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "LiveCenterText",
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BreakCenterText",
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayLogoFallback",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayTotalText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayDeltaText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

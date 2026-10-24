@@ -1,0 +1,170 @@
+{
+  "source": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml",
+  "source_sha256": "cf03c97b1aa4edc626b93c6d6012a811dcf13bbad17eaa2b1f2a7e1af71ff541",
+  "names": [
+    {
+      "name": "DialogHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "EventSummaryBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "EventInfoText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "EventScoreText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "QuarterBox",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "UseCurrentQuarterBox",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "MinutesBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SecondsBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "UseCurrentTimeBox",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "HomeTeamBtn",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeTeamLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayTeamBtn",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayTeamLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "GoalBtn",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BehindBtn",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "DeleteButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "SaveButton",
+      "type": "Button",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "905009d604b53b3eb04cccaec52917d1f753c3bbbb70ef6c47cb5c3c1deb18f3",
+  "native_events": [
+    {
+      "name": "UseCurrentQuarterBox",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "OptionalTiming_Changed"
+    },
+    {
+      "name": "UseCurrentQuarterBox",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "OptionalTiming_Changed"
+    },
+    {
+      "name": "UseCurrentTimeBox",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "OptionalTiming_Changed"
+    },
+    {
+      "name": "UseCurrentTimeBox",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "OptionalTiming_Changed"
+    },
+    {
+      "name": "HomeTeamBtn",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "HomeTeam_Click"
+    },
+    {
+      "name": "AwayTeamBtn",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AwayTeam_Click"
+    },
+    {
+      "name": "GoalBtn",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Goal_Click"
+    },
+    {
+      "name": "BehindBtn",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Behind_Click"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": "MinutesBox",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "SecondsBox",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe MDL2 Assets",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe MDL2 Assets",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

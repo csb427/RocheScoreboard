@@ -1,0 +1,2839 @@
+{
+  "source": "Roche_Scoreboard/Views/ScorebugControl.xaml",
+  "source_sha256": "0f90576ad788a25995770f7f522a33f7af9a594d88aa1ad0cde0de156784be4f",
+  "names": [
+    {
+      "name": "TeamGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "ClassicLayout",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TopTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "StatsBarContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "StatsBarContentTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "StatsHomeValueText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsBarHomeCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "StatsBarAwayCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "StatsHomeBarBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "StatsAwayBarBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "StatsLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StatsAwayValueText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScorelessBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ScorelessLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScorelessTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScoringRunBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ScoringRunGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "ScoringRunLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TeamDroughtBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TeamDroughtGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "TeamDroughtLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TeamDroughtTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "LeadChangesBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "LeadChangesLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "LeadChangesValueText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WinProbBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WinProbHomePctText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WinProbHomeCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "WinProbAwayCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "WinProbHomeBarBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "WinProbAwayBarBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "WinProbLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WinProbAwayPctText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeRowGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeLogoContainer",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeLogoSquare",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeLogoFallbackText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeGoalsContainer",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeGoalsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeGoalsFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeBehindsContainer",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeBehindsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeBehindsFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeTotalBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeTotalFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeSwipeOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeSwipeBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "HomeSwipeTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeSwipeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeSwipeFg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "HomeScoreGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeEdgeGlow",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "HomeOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeOverlayBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "HomeGradientBar",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "HomeGradientBarBrush",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "HomeGradientScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeShimmer",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "HomeShimmerScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeOverlayText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayRowGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AwayLogoContainer",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AwayLogoSquare",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayLogoFallbackText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayGoalsContainer",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayGoalsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayGoalsFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayBehindsContainer",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayBehindsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayBehindsFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayTotalBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayTotalFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwaySwipeOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwaySwipeBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwaySwipeTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwaySwipeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwaySwipeFg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwayScoreGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayEdgeGlow",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "AwayOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayOverlayBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "AwayGradientBar",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "AwayGradientBarBrush",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "AwayGradientScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayShimmer",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "AwayShimmerScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AwayOverlayText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "QuarterNumberText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "QuarterNumberTextScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ClockText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ClockTextScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "WarningOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WarningStripesRect",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "WarningStripesTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "WarningScanline",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "WarningScanlineTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "WarningGlowBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WarningLetterSkew",
+      "type": "SkewTransform",
+      "object": true
+    },
+    {
+      "name": "WarningLetterPulse",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "WarningLetterHost",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "WarningFlash",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "MarqueeCanvas",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "MarqueeHighlight",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "MarqueeHighlightTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "MarqueeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "MarqueeTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpandedLayout",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpTopInfoRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpBottomBarRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpTopInfoBar",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpTopWeatherColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpTopClockColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpTopDateColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpTopWeatherText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTopClockText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTopDateHost",
+      "type": "Viewbox",
+      "object": false
+    },
+    {
+      "name": "ExpTopDateText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpBottomBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpBottomBarSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpMarqueeCanvas",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "ExpMarqueeHighlight",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpMarqueeHighlightTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpMarqueeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpMarqueeTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpCompactClockBar",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpCompactWallTimeColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpCompactQuarterText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpCompactClockText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpCompactWallTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpStatsBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpStatsBarContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpStatsBarContentTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpStatsHomeValueColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpStatsAwayValueColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpStatsHomeValueText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpStatsBarHomeCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpStatsBarAwayCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpStatsHomeBarBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpStatsAwayBarBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpStatsLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpStatsInsideLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpStatsAwayValueText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpScorelessBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpScorelessLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpScorelessTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpScoringRunBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpScoringRunGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "ExpScoringRunLogoBackdrop",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpScoringRunContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpScoringRunAccent",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpScoringRunLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTeamDroughtBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpTeamDroughtGradient",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpTeamDroughtLogoBackdrop",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpTeamDroughtAccent",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpTeamDroughtLabelLane",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpTeamDroughtLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTeamDroughtLabelTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpTeamDroughtTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpLeadChangesBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpLeadChangesLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpLeadChangesValueText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWinProbBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpWinProbContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpWinProbHomeValueColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpWinProbAwayValueColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpWinProbHomePctText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWinProbHomeCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpWinProbAwayCol",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpWinProbHomeBarBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpWinProbAwayBarBrush",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpWinProbInsideLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWinProbLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWinProbAwayPctText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWeatherStatsBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpWeatherStatsDesc",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWeatherStatsIcon",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWeatherStatsTemp",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWeatherStatsFeels",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWeatherStatsMin",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWeatherStatsMax",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpForecastBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpForecastTiles",
+      "type": "UniformGrid",
+      "object": false
+    },
+    {
+      "name": "ExpRainBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpRainBars",
+      "type": "UniformGrid",
+      "object": false
+    },
+    {
+      "name": "ExpRainPeakValue",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresHomeTotalBox",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresHomeTotalBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresHomeTotalBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresHomeLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresHomeNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresHomeTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresQtrLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresAwayTotalBox",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresAwayTotalBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresAwayTotalBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresAwayLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresAwayTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresAwayNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresHomeGoalsBox",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresHomeGoalsBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresHomeGoalsBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresHomeGoalsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresHomeBehindsBox",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresHomeBehindsBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresHomeBehindsBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresHomeBehindsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresAwayGoalsBox",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresAwayGoalsBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresAwayGoalsBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresAwayGoalsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresAwayBehindsBox",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterScoresAwayBehindsBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresAwayBehindsBorder",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpQuarterScoresAwayBehindsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWarningBanner",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpWarningBannerSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningAlertGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpWarningMotionBand",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpWarningBannerStripesTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningAlertScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningAlertFlash",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpWarningBannerGlowBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpWarningBannerLetterHost",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "ExpWarningBannerLetterPulse",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningBannerScanline",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpWarningBannerScanlineTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningBannerFlash",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpSharedOverlayLogoLayer",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpSharedOverlayHomeLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpSharedOverlayAwayLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpMainContentGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpClockColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpLogoColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpScoresColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpRecentScoresDrawerColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpClockPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpClockPanelGradTop",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpClockPanelGradMid",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpClockPanelGradBot",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpPanelWallTimeRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpClockQuarterSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpClockTimerSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpClockWallTimeSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterNumberText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpQuarterNumberTextScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpClockDivider",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpClockText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpClockTextScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpPanelWallTimeView",
+      "type": "Viewbox",
+      "object": false
+    },
+    {
+      "name": "ExpPanelWallTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpPanelWallTimeSuffixText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTopTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpWarningOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpWarningStripesRect",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpWarningStripesTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningScanline",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpWarningScanlineTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningGlowBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpWarningLetterSkew",
+      "type": "SkewTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningLetterPulse",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpWarningLetterHost",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "ExpWarningFlash",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpLogoPanels",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpLogoPanelsTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeLogoCell",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpHomeLogoStoryTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeLogoCellGradStart",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpHomeLogoCellGradEnd",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpHomeLogoHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeLogoSquare",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpHomeLogoFallback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpHomeLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpAwayLogoCell",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpAwayLogoStoryTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayLogoCellGradStart",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpAwayLogoCellGradEnd",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpAwayLogoHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayLogoSquare",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpAwayLogoFallback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpAwayLogoImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpScorePanels",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpScorePanelsTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomePanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeScoreStoryTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomePanelGradStart",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpHomePanelGradEnd",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpHomeNameRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpHomeScoreRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpHomeNameHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpHomeNameSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeNameSeparator",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpHomeScoreGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeGoalsColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpHomeGoalsSeparatorColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpHomeBehindsColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpHomeTotalSeparatorColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpHomeTotalColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpHomeGoalsCell",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeGoalsSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeGoalsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpHomeGoalsFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeGoalsBehindsSep",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpHomeBehindsCell",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeBehindsSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeBehindsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpHomeBehindsFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeBehindsTotalSep",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpHomeTotalCell",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeTotalSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpHomeTotalFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeSwipeOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpHomeSwipeBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpHomeSwipeTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeSwipeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpHomeSwipeFg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpHomeScoreGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpHomeEdgeGlow",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpHomeOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpHomeOverlayBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpHomeGradBar",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpHomeGradBarBrush",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "ExpHomeGradScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeShimmer",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpHomeShimmerScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpHomeBroadcastChrome",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeElectricChrome",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpHomeCinematicChrome",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpHomeCleanChrome",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpHomeClassicChrome",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpHomeGoalTextViewbox",
+      "type": "Viewbox",
+      "object": false
+    },
+    {
+      "name": "ExpHomeOverlayText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpHomeOverlayGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "ExpHomeOverlayScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayScoreStoryTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayPanelGradStart",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpAwayPanelGradEnd",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpAwayNameRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpAwayScoreRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpAwayNameHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayNameText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpAwayNameSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayNameSeparator",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpAwayScoreGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayGoalsColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpAwayGoalsSeparatorColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpAwayBehindsColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpAwayTotalSeparatorColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpAwayTotalColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpAwayGoalsCell",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayGoalsSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayGoalsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpAwayGoalsFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayGoalsBehindsSep",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpAwayBehindsCell",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayBehindsSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayBehindsText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpAwayBehindsFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayBehindsTotalSep",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpAwayTotalCell",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayTotalSlide",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpAwayTotalFlip",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwaySwipeOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpAwaySwipeBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpAwaySwipeTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwaySwipeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpAwaySwipeFg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpAwayScoreGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpAwayEdgeGlow",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpAwayOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpAwayOverlayBg",
+      "type": "SolidColorBrush",
+      "object": true
+    },
+    {
+      "name": "ExpAwayGradBar",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpAwayGradBarBrush",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "ExpAwayGradScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayShimmer",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpAwayShimmerScroll",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpAwayBroadcastChrome",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayElectricChrome",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpAwayCinematicChrome",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpAwayCleanChrome",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpAwayClassicChrome",
+      "type": "Rectangle",
+      "object": false
+    },
+    {
+      "name": "ExpAwayGoalTextViewbox",
+      "type": "Viewbox",
+      "object": false
+    },
+    {
+      "name": "ExpAwayOverlayText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpAwayOverlayGlow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "ExpAwayOverlayScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryTakeover",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryReveal",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStorySurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryGradientStrong",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryGradientMid",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryGradientDark",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryPushEdge",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryDirectionIndicator",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryDirectionHost",
+      "type": "UniformGrid",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryDirectionFlip",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryContentTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryMetricColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryDescriptorColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpTeamStoryHeadline",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryKicker",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryTeamName",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryFooter",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryTimerHost",
+      "type": "Viewbox",
+      "object": false
+    },
+    {
+      "name": "ExpTeamStoryTimer",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpRecentScoresBarBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ExpRecentScoresContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ExpRecentScoresHeader",
+      "type": "Viewbox",
+      "object": false
+    },
+    {
+      "name": "ExpRecentScoresRecentText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpRecentScoresTitleText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ExpRecentScoresSpacerColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ExpRecentScoresCards",
+      "type": "Grid",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "a3c343e0589519b7ec727b6c2de4d96308efe78092e18041dfab020810f9da51",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "HomeNameText",
+      "property": "LayoutTransform",
+      "translation": "Independent native layout wrapper, retaining render marquee"
+    },
+    {
+      "name": "AwayNameText",
+      "property": "LayoutTransform",
+      "translation": "Independent native layout wrapper, retaining render marquee"
+    },
+    {
+      "name": "ScorelessTimeText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ScoringRunLabelText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "TeamDroughtTimeText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "LeadChangesValueText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeNameText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeNameText",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "HomeNameText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Ideal"
+    },
+    {
+      "name": "HomeNameText",
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": "HomeNameText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "HomeGoalsText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeBehindsText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeTotalText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeTotalText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "HomeSwipeText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayNameText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayNameText",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "AwayNameText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Ideal"
+    },
+    {
+      "name": "AwayNameText",
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": "AwayNameText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "AwayGoalsText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayBehindsText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayTotalText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayTotalText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "AwaySwipeText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "QuarterNumberText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ClockText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": "ExpTopWeatherText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpTopClockText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpTopDateText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpMarqueeText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpCompactQuarterText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpCompactClockText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpCompactWallTimeText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpStatsLabelText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpScorelessLabelText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpScorelessTimeText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpScoringRunLabelText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpTeamDroughtLabelText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpTeamDroughtTimeText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpLeadChangesValueText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpWinProbInsideLabelText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpWeatherStatsDesc",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpWeatherStatsTemp",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpWeatherStatsFeels",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpWeatherStatsMin",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpWeatherStatsMax",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpRainPeakValue",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpQuarterScoresHomeNameText",
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpQuarterScoresHomeTotalText",
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpQuarterScoresQtrLabelText",
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpQuarterScoresAwayTotalText",
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpQuarterScoresAwayNameText",
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpQuarterNumberText",
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpQuarterNumberText",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "ExpQuarterNumberText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpQuarterNumberText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "ExpQuarterNumberText",
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": "ExpClockDivider",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "ExpClockText",
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpClockText",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "ExpClockText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpClockText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "ExpClockText",
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": "ExpPanelWallTimeText",
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpPanelWallTimeSuffixText",
+      "property": "FontFamily",
+      "source": "Bahnschrift SemiCondensed",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": "ExpHomeNameText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpHomeGoalsText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpHomeGoalsText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpHomeGoalsText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "ExpHomeBehindsText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpHomeBehindsText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpHomeBehindsText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "ExpHomeTotalText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpHomeTotalText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpHomeTotalText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "ExpHomeSwipeOverlay",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "ExpHomeSwipeText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpHomeSwipeText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpHomeSwipeText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": "ExpAwayNameText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpAwayGoalsText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpAwayGoalsText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpAwayGoalsText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "ExpAwayBehindsText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpAwayBehindsText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpAwayBehindsText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "ExpAwayTotalText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpAwayTotalText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpAwayTotalText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "ExpAwaySwipeOverlay",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "ExpAwaySwipeText",
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpAwaySwipeText",
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": "ExpAwaySwipeText",
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": "ExpTeamStoryHeadline",
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpTeamStoryKicker",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpTeamStoryKicker",
+      "property": "LineStackingStrategy",
+      "source": "BlockLineHeight"
+    },
+    {
+      "name": "ExpTeamStoryTeamName",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpRecentScoresRecentText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ExpRecentScoresTitleText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

@@ -1,0 +1,109 @@
+{
+  "source": "Roche_Scoreboard/Views/ScorewormControl.xaml",
+  "source_sha256": "5e7f6aacaf679e21b263ed29067f702db249ddfd68e3798fb2c2e68403b59264",
+  "names": [
+    {
+      "name": "WormBgGradient",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "WormTitleRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "WormGraphRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "WormTitlePanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WormTitleText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WormMarginText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WormTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WormTitleAccent",
+      "type": "LinearGradientBrush",
+      "object": true
+    },
+    {
+      "name": "ZoneCanvas",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "YAxisColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "YAxisCanvas",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "GraphCanvas",
+      "type": "Canvas",
+      "object": false
+    },
+    {
+      "name": "ScoreBar",
+      "type": "PresentationScoreBar",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "85866d7451a213250dbaa616f3d5ff15b195742635631915944021dfd0c44da0",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "WormTitleText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "WormMarginText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

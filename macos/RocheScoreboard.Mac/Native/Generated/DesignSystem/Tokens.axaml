@@ -1,0 +1,33 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:RocheScoreboard.Mac.Native" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <x:Double x:Key="ScoreGrid.Spacing4">4</x:Double>
+    <x:Double x:Key="ScoreGrid.Spacing8">8</x:Double>
+    <x:Double x:Key="ScoreGrid.Spacing12">12</x:Double>
+    <x:Double x:Key="ScoreGrid.Spacing16">16</x:Double>
+    <x:Double x:Key="ScoreGrid.Spacing24">24</x:Double>
+    <x:Double x:Key="ScoreGrid.Spacing32">32</x:Double>
+    <CornerRadius x:Key="ScoreGrid.CornerRadius.Small">4</CornerRadius>
+    <CornerRadius x:Key="ScoreGrid.CornerRadius.Default">8</CornerRadius>
+    <CornerRadius x:Key="ScoreGrid.CornerRadius.Large">12</CornerRadius>
+    <Thickness x:Key="ScoreGrid.BorderWidth.Default">1</Thickness>
+    <Thickness x:Key="ScoreGrid.BorderWidth.Focus">2</Thickness>
+    <x:Double x:Key="ScoreGrid.StrokeWidth.Default">1</x:Double>
+    <x:Double x:Key="ScoreGrid.StrokeWidth.Focus">2</x:Double>
+    <ns2:ProductionFontExtension x:Key="ScoreGrid.FontFamily" Declaration="Segoe UI" />
+    <ns2:ProductionFontExtension x:Key="ScoreGrid.MonoFontFamily" Declaration="Consolas" />
+    <x:Double x:Key="ScoreGrid.FontSize10">10</x:Double>
+    <x:Double x:Key="ScoreGrid.FontSize12">12</x:Double>
+    <x:Double x:Key="ScoreGrid.FontSize14">14</x:Double>
+    <x:Double x:Key="ScoreGrid.FontSize16">16</x:Double>
+    <x:Double x:Key="ScoreGrid.FontSize18">18</x:Double>
+    <x:Double x:Key="ScoreGrid.FontSize22">22</x:Double>
+    <x:Double x:Key="ScoreGrid.FontSize28">28</x:Double>
+    <x:Double x:Key="ScoreGrid.FontSize36">36</x:Double>
+    <FontWeight x:Key="ScoreGrid.FontWeight.Light">Light</FontWeight>
+    <FontWeight x:Key="ScoreGrid.FontWeight.Regular">Regular</FontWeight>
+    <FontWeight x:Key="ScoreGrid.FontWeight.SemiBold">SemiBold</FontWeight>
+    <FontWeight x:Key="ScoreGrid.FontWeight.Bold">Bold</FontWeight>
+    <x:Double x:Key="ScoreGrid.IconSize16">16</x:Double>
+    <x:Double x:Key="ScoreGrid.IconSize20">20</x:Double>
+    <x:Double x:Key="ScoreGrid.IconSize24">24</x:Double>
+</ResourceDictionary>

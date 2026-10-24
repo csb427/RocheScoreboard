@@ -1,0 +1,930 @@
+using RocheScoreboard.Mac.Production;
+// Generated from Views/TrainingControlPanel.xaml.cs; edit translator/adapters.
+// Source SHA-256: 1b0d5892ad979452db97840b6953722f52a74d4a2243546c0dca00419dcf9d56
+using Avalonia.Threading;
+using Avalonia.Media;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Input;
+using RocheScoreboard.Mac.Native;
+using System;
+using System.Globalization;
+using Roche_Scoreboard.Models;
+using Roche_Scoreboard.Services;
+using Brushes = Avalonia.Media.Brushes;
+using Button = Avalonia.Controls.Button;
+using Color = Avalonia.Media.Color;
+
+using DataObject = RocheScoreboard.Mac.Native.NativeDataObject;
+using DragDrop = RocheScoreboard.Mac.Native.NativeDragDrop;
+using DragDropEffects = Avalonia.Input.DragDropEffects;
+using FontFamily = Avalonia.Media.FontFamily;
+using KeyEventArgs = Avalonia.Input.KeyEventArgs;
+using Orientation = Avalonia.Layout.Orientation;
+using TextBox = Avalonia.Controls.TextBox;
+using UserControl = Avalonia.Controls.UserControl;
+
+namespace Roche_Scoreboard.Views;
+
+/// <summary>
+/// Operator-side control panel for Training mode. Owns the
+/// <see cref="TrainingSession"/> and exposes Add / Start / Pause / Skip /
+/// Reset to drive the live scorebug.
+/// </summary>
+public partial class TrainingControlPanel : UserControl
+{
+    public event Action? ExitRequested;
+
+    private TrainingSession? _session;
+    private readonly DispatcherTimer _ui;
+    private Guid? _editingTimerId;
+
+    private static readonly CubicEase EaseOut = new() { EasingMode = EasingMode.EaseOut };
+
+    public TrainingControlPanel()
+    {
+        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        _ui = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
+        _ui.Tick += (_, _) => RefreshLiveText();
+        Loaded += (_, _) =>
+        {
+            _ui.Start();
+            // Pull keyboard focus when the panel loads so global shortcuts work
+            // straight away (Space/S/R/Esc).
+            Focus();
+            NativeKeyboard.Focus(this);
+            RefreshRecentTimers();
+        };
+        Unloaded += (_, _) => _ui.Stop();
+        // Operator shortcuts at the panel level — only when focus isn't in a
+        // TextBox so typing into the title or number fields still works.
+        KeyDown += OnPanelPreviewKeyDown;
+    }
+
+    private void OnPanelPreviewKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (NativeKeyboard.FocusedElement is TextBox) return;
+
+        switch (e.Key)
+        {
+            case Key.Space:
+                OnStartPauseClicked(this, new RoutedEventArgs());
+                e.Handled = true;
+                break;
+            case Key.S:
+                OnSkipClicked(this, new RoutedEventArgs());
+                e.Handled = true;
+                break;
+            case Key.R:
+                OnResetActiveClicked(this, new RoutedEventArgs());
+                e.Handled = true;
+                break;
+            case Key.Escape:
+                OnExitClicked(this, new RoutedEventArgs());
+                e.Handled = true;
+                break;
+        }
+    }
+
+    /// <summary>Pressing Enter in the title box adds the timer.</summary>
+    private void OnNewTitleBoxKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            OnAddTimerClicked(this, new RoutedEventArgs());
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>Clicking the title box clears the retained drill title for quick replacement.</summary>
+    private void OnNewTitleBoxPreviewMouseLeftButtonDown(object? sender, PointerEventArgs e)
+    {
+        if (sender is not TextBox textBox || textBox.IsKeyboardFocusWithin)
+            return;
+
+        textBox.Clear();
+    }
+
+    /// <summary>Restrict numeric input fields to digits only.</summary>
+    private void OnNumericPreviewTextInput(object? sender, TextInputEventArgs e)
+    {
+        foreach (char ch in (e.Text ?? string.Empty))
+        {
+            if (!char.IsDigit(ch))
+            {
+                e.Handled = true;
+                return;
+            }
+        }
+    }
+
+    /// <summary>Pressing Enter in any numeric field adds the timer.</summary>
+    private void OnNumericKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            // For interval-builder fields, build the session; otherwise add one timer.
+            if (sender is TextBox tb && (tb.Name == nameof(IntervalRoundsBox) ||
+                                          tb.Name == nameof(IntervalWorkBox) ||
+                                          tb.Name == nameof(IntervalRestBox)))
+            {
+                OnBuildIntervalClicked(this, new RoutedEventArgs());
+            }
+            else
+            {
+                OnAddTimerClicked(this, new RoutedEventArgs());
+            }
+            e.Handled = true;
+        }
+    }
+
+    public void Bind(TrainingSession session)
+    {
+        if (_session is not null)
+        {
+            _session.Changed -= OnSessionChanged;
+            _session.StructuralChanged -= OnStructuralChanged;
+        }
+        _session = session;
+        _session.Changed += OnSessionChanged;
+        _session.StructuralChanged += OnStructuralChanged;
+        AutoAdvanceToggle.IsChecked = _session.AutoAdvance;
+        OnStructuralChanged();
+        OnSessionChanged();
+    }
+
+    private void OnAutoAdvanceChanged(object? sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+        _session.AutoAdvance = AutoAdvanceToggle.IsChecked == true;
+    }
+
+    // ─────────── Live UI ───────────
+
+    /// <summary>
+    /// Light-weight refresh fired on every model tick. Intentionally avoids
+    /// rebuilding the queue list (which animates rows in) so the UI doesn't
+    /// glitch 30× per second while the clock runs.
+    /// </summary>
+    private void OnSessionChanged()
+    {
+        RefreshActiveCard();
+        RefreshTransport();
+        RefreshSessionTotal();
+    }
+
+    /// <summary>
+    /// Heavy refresh fired only when the queue's structure changes (add /
+    /// remove / reorder / advance / clear). Rebuilds the visible queue list.
+    /// </summary>
+    private void OnStructuralChanged()
+    {
+        RebuildQueueList();
+    }
+
+    private void RefreshLiveText()
+    {
+        if (_session is null) return;
+        var active = _session.Active;
+        ActiveRemainingText.Text = active is null
+            ? "00:00"
+            : FormatTime(_session.ActiveRemaining);
+        SessionTotalText.Text = $"Total: {FormatTime(_session.TotalRemaining)}";
+
+        // Status colour
+        if (active is null)
+            ActiveStatusText.Foreground = ColorFromHex("#58A6FF");
+        else if (active.HasFinished)
+            ActiveStatusText.Foreground = ColorFromHex("#FF6B6B");
+        else if (!_session.IsRunning)
+            ActiveStatusText.Foreground = ColorFromHex("#FBBF24");
+        else
+            ActiveStatusText.Foreground = ColorFromHex("#3FB950");
+    }
+
+    private void RefreshActiveCard()
+    {
+        if (_session is null) return;
+        var active = _session.Active;
+
+        if (active is null)
+        {
+            ActiveTitleText.Text = "No timer";
+            ActiveStatusText.Text = "Add a timer below to begin";
+            return;
+        }
+
+        ActiveTitleText.Text = active.Title;
+        if (active.HasFinished) ActiveStatusText.Text = "FINISHED";
+        else if (!_session.IsRunning) ActiveStatusText.Text = "PAUSED";
+        else ActiveStatusText.Text = "RUNNING";
+    }
+
+    private void RefreshTransport()
+    {
+        if (_session is null) return;
+        bool running = _session.IsRunning;
+        StartPauseButton.Content = running ? "❚❚  PAUSE" : "▶  START";
+        // High-contrast colours: when running we show a strong red (pause to
+        // stop), when paused we show a strong green (start to go).
+        StartPauseButton.Background = running ? ColorFromHex("#7F1D1D") : ColorFromHex("#166534");
+        StartPauseButton.Foreground = running ? ColorFromHex("#FEE2E2") : ColorFromHex("#DCFCE7");
+        StartPauseButton.BorderBrush = running ? ColorFromHex("#EF4444") : ColorFromHex("#22C55E");
+
+        bool hasActive = _session.Active is not null && !_session.IsExhausted;
+        StartPauseButton.IsEnabled = hasActive;
+        ResetActiveButton.IsEnabled = hasActive;
+        SkipButton.IsEnabled = hasActive;
+        AddOneMinButton.IsEnabled = hasActive;
+        AddTenSecButton.IsEnabled = hasActive;
+    }
+
+    private void RefreshSessionTotal()
+    {
+        if (_session is null) return;
+        QueueCountText.Text = $"{_session.Timers.Count} timer{(_session.Timers.Count == 1 ? "" : "s")}";
+    }
+
+    private void RebuildQueueList()
+    {
+        if (_session is null) return;
+        // Drop the editing flag if the target timer is no longer in the queue
+        // (e.g. removed externally) or has finished.
+        if (_editingTimerId is Guid editId)
+        {
+            bool stillEditable = false;
+            for (int i = 0; i < _session.Timers.Count; i++)
+            {
+                var t = _session.Timers[i];
+                if (t.Id == editId && !t.HasFinished && i >= _session.ActiveIndex)
+                {
+                    stillEditable = true;
+                    break;
+                }
+            }
+            if (!stillEditable) _editingTimerId = null;
+        }
+
+        QueueItems.Items.Clear();
+        for (int i = 0; i < _session.Timers.Count; i++)
+        {
+            var t = _session.Timers[i];
+            QueueItems.Items.Add(BuildQueueRow(t, i, _session.ActiveIndex));
+        }
+    }
+
+    private Control BuildQueueRow(TrainingTimer t, int index, int activeIndex)
+    {
+        bool isActive = index == activeIndex && !t.HasFinished;
+        bool isFinished = t.HasFinished || index < activeIndex;
+        string accent = isActive ? "#58A6FF" : isFinished ? "#374151" : "#6B7280";
+
+        bool isEditing = _editingTimerId == t.Id && !isFinished;
+
+        var border = new NativeBorder
+        {
+            Background = ColorFromHex("#10161D"),
+            BorderBrush = ColorFromHex(isEditing ? "#FBBF24" : isActive ? "#58A6FF" : "#1F2937"),
+            BorderThickness = new Thickness(2),
+            Margin = new Thickness(8, 6, 8, 0),
+            Padding = new Thickness(12, 8, 12, 8),
+            Opacity = isFinished ? 0.45 : 1.0
+        };
+        if (isActive)
+        {
+            border.Effect = new DropShadowEffect
+            {
+                BlurRadius = 14,
+                OffsetX = 0, OffsetY = 0,
+                Color = (Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#58A6FF")!,
+                Opacity = 0.4
+            };
+        }
+
+        if (isEditing)
+        {
+            border.Child = BuildEditRowContent(t, index, accent);
+            // No drag for the edit row — would steal focus from the inputs.
+            border.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
+            border.Opacity = 1.0;
+            return border;
+        }
+
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        // Index pill
+        var idxBorder = new NativeBorder
+        {
+            Background = ColorFromHex("#0D1117"),
+            BorderBrush = ColorFromHex(accent),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(8, 2, 8, 2),
+            Margin = new Thickness(0, 0, 12, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        idxBorder.Child = new TextBlock
+        {
+            Text = $"#{index + 1}",
+            FontFamily = NativeFonts.Family("Bahnschrift"),
+            FontWeight = FontWeight.Bold,
+            FontSize = 12,
+            Foreground = ColorFromHex(accent)
+        };
+        Grid.SetColumn(idxBorder, 0);
+        grid.Children.Add(idxBorder);
+
+        // Title
+        var titleStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        titleStack.Children.Add(new TextBlock
+        {
+            Text = t.Title,
+            FontFamily = NativeFonts.Family("Bahnschrift"),
+            FontWeight = FontWeight.Black,
+            FontSize = 16,
+            Foreground = ColorFromHex(isFinished ? "#6B7280" : "#FFFFFF"),
+            TextTrimming = TextTrimming.CharacterEllipsis
+        });
+        if (isActive)
+        {
+            titleStack.Children.Add(new TextBlock
+            {
+                Text = "ACTIVE",
+                FontFamily = NativeFonts.Family("Bahnschrift"),
+                FontWeight = FontWeight.Black,
+                FontSize = 10,
+                Foreground = ColorFromHex("#58A6FF"),
+                Margin = new Thickness(0, 2, 0, 0)
+            });
+        }
+        else if (isFinished)
+        {
+            titleStack.Children.Add(new TextBlock
+            {
+                Text = "DONE",
+                FontFamily = NativeFonts.Family("Bahnschrift"),
+                FontWeight = FontWeight.Bold,
+                FontSize = 10,
+                Foreground = ColorFromHex("#6B7280"),
+                Margin = new Thickness(0, 2, 0, 0)
+            });
+        }
+        Grid.SetColumn(titleStack, 1);
+        grid.Children.Add(titleStack);
+
+        // Duration
+        var dur = new TextBlock
+        {
+            Text = FormatTime(t.Duration),
+            FontFamily = NativeFonts.Family("Bahnschrift"),
+            FontWeight = FontWeight.Black,
+            FontSize = 22,
+            Foreground = ColorFromHex(isActive ? "#58A6FF" : isFinished ? "#6B7280" : "#E5E7EB"),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 14, 0)
+        };
+        Grid.SetColumn(dur, 2);
+        grid.Children.Add(dur);
+
+        // Action stack: Up / Down / Remove
+        var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+
+        actions.Children.Add(MakeIconButton("▲", "Move up", () =>
+        {
+            if (_session is null) return;
+            int idx = _session.Timers.IndexOf(t);
+            if (idx > 0) _session.MoveTimer(t, idx - 1);
+        }));
+        actions.Children.Add(MakeIconButton("▼", "Move down", () =>
+        {
+            if (_session is null) return;
+            int idx = _session.Timers.IndexOf(t);
+            if (idx >= 0 && idx < _session.Timers.Count - 1) _session.MoveTimer(t, idx + 1);
+        }));
+        if (!isFinished)
+        {
+            actions.Children.Add(MakeIconButton("✎", "Edit title and duration", () =>
+            {
+                _editingTimerId = t.Id;
+                RebuildQueueList();
+            }));
+        }
+        actions.Children.Add(MakeIconButton("✕", "Remove", () => _session?.RemoveTimer(t)));
+
+        Grid.SetColumn(actions, 3);
+        grid.Children.Add(actions);
+
+        border.Child = grid;
+
+        // ─── Drag-to-reorder ──────────────────────────────────────────
+        // Grab anywhere on the row (except the action buttons, which keep
+        // their click semantics) and drag onto another row to reorder.
+        border.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.SizeAll);
+        Avalonia.Controls.ToolTip.SetTip(border, "Drag to reorder");
+        AttachRowDragHandlers(border, t);
+
+        // Slide-in animation for newly added rows. Suppressed during a drag
+        // reorder so the queue doesn't visibly re-animate every row when
+        // the model rebuilds — that's what was causing the glitchy feel.
+        border.Opacity = _suppressNextRowAnim ? (isFinished ? 0.45 : 1.0) : 0;
+        border.RenderTransform = new TranslateTransform(_suppressNextRowAnim ? 0 : 20, 0);
+        if (!_suppressNextRowAnim)
+        {
+            border.Loaded += (_, _) =>
+            {
+                border.BeginAnimation(OpacityProperty,
+                    new DoubleAnimation(0, isFinished ? 0.45 : 1.0, TimeSpan.FromMilliseconds(280)) { EasingFunction = EaseOut });
+                ((TranslateTransform)border.RenderTransform).BeginAnimation(TranslateTransform.XProperty,
+                    new DoubleAnimation(20, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = EaseOut });
+            };
+        }
+
+        return border;
+    }
+
+    /// <summary>Set during a drag-drop reorder so newly built rows don't animate in.</summary>
+    private bool _suppressNextRowAnim;
+
+    /// <summary>
+    /// Builds the inline-edit layout for a queued timer. Shows editable
+    /// title, minutes and seconds fields plus Save / Cancel buttons. Enter
+    /// saves, Escape cancels.
+    /// </summary>
+    private Control BuildEditRowContent(TrainingTimer t, int index, string accent)
+    {
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var idxBorder = new NativeBorder
+        {
+            Background = ColorFromHex("#0D1117"),
+            BorderBrush = ColorFromHex("#FBBF24"),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(8, 2, 8, 2),
+            Margin = new Thickness(0, 0, 12, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        idxBorder.Child = new TextBlock
+        {
+            Text = $"#{index + 1}",
+            FontFamily = NativeFonts.Family("Bahnschrift"),
+            FontWeight = FontWeight.Bold,
+            FontSize = 12,
+            Foreground = ColorFromHex("#FBBF24")
+        };
+        Grid.SetColumn(idxBorder, 0);
+        grid.Children.Add(idxBorder);
+
+        var titleBox = new TextBox
+        {
+            Text = t.Title,
+            Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "InputBox"),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+            MinWidth = 120
+        };
+        Grid.SetColumn(titleBox, 1);
+        grid.Children.Add(titleBox);
+
+        int totalSecs = Math.Max(1, (int)Math.Round(t.Duration.TotalSeconds));
+        int mins = totalSecs / 60;
+        int secs = totalSecs % 60;
+
+        var timeStack = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        var minBox = new TextBox
+        {
+            Text = mins.ToString(CultureInfo.InvariantCulture),
+            Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "InputBox"),
+            Width = 50,
+            TextAlignment = TextAlignment.Center
+        };
+        minBox.TextInput += OnNumericPreviewTextInput;
+        var colon = new TextBlock
+        {
+            Text = ":",
+            Foreground = ColorFromHex("#E5E7EB"),
+            FontFamily = NativeFonts.Family("Bahnschrift"),
+            FontWeight = FontWeight.Black,
+            FontSize = 18,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(4, 0, 4, 0)
+        };
+        var secBox = new TextBox
+        {
+            Text = secs.ToString("D2", CultureInfo.InvariantCulture),
+            Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "InputBox"),
+            Width = 50,
+            TextAlignment = TextAlignment.Center
+        };
+        secBox.TextInput += OnNumericPreviewTextInput;
+        timeStack.Children.Add(minBox);
+        timeStack.Children.Add(colon);
+        timeStack.Children.Add(secBox);
+        Grid.SetColumn(timeStack, 2);
+        grid.Children.Add(timeStack);
+
+        void Commit()
+        {
+            if (_session is null) return;
+            int m = ParseInt((minBox.Text ?? string.Empty), 0);
+            int s = ParseInt((secBox.Text ?? string.Empty), 0);
+            TimeSpan dur = TimeSpan.FromSeconds(Math.Max(1, m * 60 + s));
+            _session.UpdateTimer(t, (titleBox.Text ?? string.Empty), dur);
+            _editingTimerId = null;
+            RebuildQueueList();
+        }
+
+        void Cancel()
+        {
+            _editingTimerId = null;
+            RebuildQueueList();
+        }
+
+        void OnKey(object? s, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) { Commit(); e.Handled = true; }
+            else if (e.Key == Key.Escape) { Cancel(); e.Handled = true; }
+        }
+        titleBox.KeyDown += OnKey;
+        minBox.KeyDown += OnKey;
+        secBox.KeyDown += OnKey;
+
+        var saveBtn = MakeIconButton("✓", "Save (Enter)", Commit);
+        saveBtn.Background = ColorFromHex("#166534");
+        saveBtn.Foreground = ColorFromHex("#DCFCE7");
+        saveBtn.BorderBrush = ColorFromHex("#22C55E");
+        Grid.SetColumn(saveBtn, 3);
+        grid.Children.Add(saveBtn);
+
+        var cancelBtn = MakeIconButton("✕", "Cancel (Esc)", Cancel);
+        Grid.SetColumn(cancelBtn, 4);
+        grid.Children.Add(cancelBtn);
+
+        // Auto-focus the title field when the row appears.
+        titleBox.Loaded += (_, _) =>
+        {
+            titleBox.SelectAll();
+            titleBox.Focus();
+            NativeKeyboard.Focus(titleBox);
+        };
+
+        return grid;
+    }
+
+    // ─────────── Drag-and-drop reordering ───────────
+
+    private const string DragDataFormat = "Roche.TrainingTimer";
+    private Avalonia.Point _dragStart;
+    private bool _dragArmed;
+    private TrainingTimer? _draggedTimer;
+    private Border? _draggedRow;
+
+    private void AttachRowDragHandlers(Border row, TrainingTimer timer)
+    {
+        Avalonia.Input.DragDrop.SetAllowDrop(row, true);
+
+        row.PointerPressed += (s, e) =>
+        {
+            // Don't start a drag if the click landed on a button (so the
+            // up/down/remove buttons still work).
+            if (e.Source is AvaloniaObject d && IsInsideButton(d)) return;
+            _dragArmed = true;
+            _draggedTimer = timer;
+            _draggedRow = row;
+            _dragStart = e.GetPosition(QueueItems);
+        };
+
+        row.PointerMoved += async (s, e) =>
+        {
+            if (!_dragArmed) return;
+            if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
+            {
+                _dragArmed = false;
+                return;
+            }
+            var pos = e.GetPosition(QueueItems);
+            // Only commit to a drag once the cursor has moved a meaningful
+            // distance — prevents accidental drags on plain clicks.
+            if (Math.Abs(pos.Y - _dragStart.Y) < 8 && Math.Abs(pos.X - _dragStart.X) < 8) return;
+
+            _dragArmed = false;
+            if (_draggedTimer is null) return;
+
+            // Visual feedback: dim the source row while dragging. We restore
+            // it in the finally block once DoDragDrop returns.
+            double prevOpacity = row.Opacity;
+            row.Opacity = 0.4;
+            try
+            {
+                var data = new DataObject(DragDataFormat, _draggedTimer);
+                await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
+            }
+            finally
+            {
+                row.Opacity = prevOpacity;
+                HideDropIndicator();
+                _draggedTimer = null;
+                _draggedRow = null;
+            }
+        };
+
+        row.AddHandler(Avalonia.Input.DragDrop.DragOverEvent, (s, e) =>
+        {
+            if (!NativeDragData.Contains(e.DataTransfer, DragDataFormat))
+            {
+                e.DragEffects = DragDropEffects.None;
+                e.Handled = true;
+                return;
+            }
+            e.DragEffects = DragDropEffects.Move;
+
+            var pt = e.GetPosition(row);
+            bool dropAbove = pt.Y < row.NativeHeight() / 2;
+            ShowDropIndicatorAt(row, dropAbove);
+            e.Handled = true;
+        });
+
+        row.AddHandler(Avalonia.Input.DragDrop.DropEvent, (s, e) =>
+        {
+            HideDropIndicator();
+            if (_session is null) return;
+            if (NativeDragData.Get(e.DataTransfer, DragDataFormat) is not TrainingTimer source) return;
+            if (ReferenceEquals(source, timer)) return;
+
+            int targetIdx = _session.Timers.IndexOf(timer);
+            if (targetIdx < 0) return;
+
+            var pt = e.GetPosition(row);
+            bool dropAbove = pt.Y < row.NativeHeight() / 2;
+
+            int sourceIdx = _session.Timers.IndexOf(source);
+            if (sourceIdx < 0) return;
+
+            int newIndex = dropAbove ? targetIdx : targetIdx + 1;
+            // Account for source being removed before insertion when moving down.
+            if (sourceIdx < newIndex) newIndex--;
+            int maxIndex = _session.Timers.Count - 1;
+            if (newIndex < 0) newIndex = 0;
+            if (newIndex > maxIndex) newIndex = maxIndex;
+            if (newIndex == sourceIdx) return;
+
+            // Suppress the per-row slide-in animation for this rebuild — the
+            // user just dragged, they don't need every row to fly in again.
+            _suppressNextRowAnim = true;
+            try
+            {
+                _session.MoveTimer(source, newIndex);
+            }
+            finally
+            {
+                _suppressNextRowAnim = false;
+            }
+            e.Handled = true;
+        });
+    }
+
+    private static bool IsInsideButton(AvaloniaObject? d)
+    {
+        while (d != null)
+        {
+            if (d is Button) return true;
+            d = VisualTreeHelper.GetParent(d);
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Positions the drop indicator at the top or bottom edge of the given
+    /// row by translating its margin within the QueueArea. The indicator
+    /// floats over the rows so it doesn't cause any reflow.
+    /// </summary>
+    private void ShowDropIndicatorAt(Border row, bool above)
+    {
+        if (DropIndicator is null || QueueArea is null) return;
+
+        // Convert the row's edge into QueueArea coordinates.
+        var origin = row.TranslatePoint(new Avalonia.Point(0, above ? 0 : row.NativeHeight()), QueueArea);
+        // Centre the 3px line on the boundary so it reads as an insertion gap.
+        double y = (origin?.Y ?? 0) - 1.5;
+        if (y < 0) y = 0;
+
+        DropIndicator.Margin = new Thickness(6, y, 6, 0);
+        DropIndicator.IsVisible = true;
+    }
+
+    private void HideDropIndicator()
+    {
+        if (DropIndicator is null) return;
+        DropIndicator.IsVisible = false;
+    }
+
+    private Button MakeIconButton(string text, string tooltip, Action action)
+    {
+        var b = new NativeButton
+        {
+            Content = text,
+            // Pick up the templated style so Background/Foreground actually render.
+            Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "ActionButton"),
+            Background = ColorFromHex("#1F2937"),
+            Foreground = ColorFromHex("#E5E7EB"),
+            BorderBrush = ColorFromHex("#374151"),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(8, 4, 8, 4),
+            Margin = new Thickness(2, 0, 2, 0),
+            FontFamily = NativeFonts.Family("Segoe UI Symbol"),
+            FontWeight = FontWeight.Bold,
+            FontSize = 11,
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+            ToolTip = tooltip
+        };
+        b.Click += (_, _) => action();
+        return b;
+    }
+
+    private static SolidColorBrush ColorFromHex(string hex)
+    {
+        try
+        {
+            if (RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString(hex) is Color c)
+                return new SolidColorBrush(c);
+        }
+        catch { }
+        return new SolidColorBrush(Colors.Gray);
+    }
+
+    private static string FormatTime(TimeSpan t)
+    {
+        if (t < TimeSpan.Zero) t = TimeSpan.Zero;
+        if (t.TotalHours >= 1)
+            return $"{(int)t.TotalHours}:{t.Minutes:D2}:{t.Seconds:D2}";
+        return $"{(int)t.TotalMinutes:D2}:{t.Seconds:D2}";
+    }
+
+    // ─────────── Click handlers ───────────
+
+    private void OnStartPauseClicked(object? sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+        if (_session.IsRunning) _session.Pause();
+        else _session.Start();
+    }
+
+    private void OnResetActiveClicked(object? sender, RoutedEventArgs e)
+    {
+        _session?.ResetActive();
+    }
+
+    private void OnSkipClicked(object? sender, RoutedEventArgs e)
+    {
+        _session?.Skip();
+    }
+
+    private void OnAdd60sClicked(object? sender, RoutedEventArgs e)
+    {
+        _session?.AddTimeToActive(TimeSpan.FromMinutes(1));
+    }
+
+    private void OnAdd10sClicked(object? sender, RoutedEventArgs e)
+    {
+        _session?.AddTimeToActive(TimeSpan.FromSeconds(10));
+    }
+
+    private void OnAddTimerClicked(object? sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+
+        string title = string.IsNullOrWhiteSpace((NewTitleBox.Text ?? string.Empty)) ? "TIMER" : (NewTitleBox.Text ?? string.Empty).Trim();
+        int mins = ParseInt((NewMinutesBox.Text ?? string.Empty), 0);
+        int secs = ParseInt((NewSecondsBox.Text ?? string.Empty), 0);
+        int totalSeconds = Math.Max(1, mins * 60 + secs);
+        TimeSpan dur = TimeSpan.FromSeconds(totalSeconds);
+
+        _session.AddTimer(new TrainingTimer(title, dur));
+        RecentTrainingTimerStorage.Record(title, totalSeconds);
+        RefreshRecentTimers();
+    }
+
+    private void OnPresetClicked(object? sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+        if (sender is not Button b) return;
+        if (b.Tag is RecentTrainingTimerStorage.Entry recent)
+        {
+            _session.AddTimer(new TrainingTimer(recent.Title, TimeSpan.FromSeconds(recent.Seconds)));
+            RecentTrainingTimerStorage.Record(recent.Title, recent.Seconds);
+            RefreshRecentTimers();
+            return;
+        }
+        if (b.Tag is not string tag) return;
+        string[] parts = tag.Split('|');
+        if (parts.Length != 2) return;
+        if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int seconds)) return;
+        _session.AddTimer(new TrainingTimer(parts[0], TimeSpan.FromSeconds(seconds)));
+        RecentTrainingTimerStorage.Record(parts[0], seconds);
+        RefreshRecentTimers();
+    }
+
+    private void RefreshRecentTimers()
+    {
+        if (RecentTimersPanel is null) return;
+        RecentTimersPanel.Children.Clear();
+
+        var entries = RecentTrainingTimerStorage.Load();
+        if (entries.Count == 0)
+        {
+            RecentTimersEmptyText.IsVisible = true;
+            return;
+        }
+
+        RecentTimersEmptyText.IsVisible = false;
+
+        var chipStyle = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "PresetChip");
+        foreach (var entry in entries)
+        {
+            int mins = entry.Seconds / 60;
+            int secs = entry.Seconds % 60;
+            var chipContent = new StackPanel { Orientation = Orientation.Horizontal };
+            chipContent.Children.Add(new TextBlock
+            {
+                Text = entry.Title,
+                MaxWidth = 150,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            chipContent.Children.Add(new TextBlock
+            {
+                Text = $" · {mins}:{secs:D2}",
+                FontWeight = FontWeight.Black,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            var btn = new NativeButton
+            {
+                Theme = chipStyle,
+                Content = chipContent,
+                Tag = entry,
+                MaxWidth = 250,
+                ToolTip = $"{entry.Title} · {mins}:{secs:D2}\nClick to append this timer to the queue"
+            };
+            btn.Click += OnPresetClicked;
+            RecentTimersPanel.Children.Add(btn);
+        }
+    }
+
+    private void OnBuildIntervalClicked(object? sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+        int rounds = Math.Clamp(ParseInt((IntervalRoundsBox.Text ?? string.Empty), 1), 1, 100);
+        int work = Math.Max(1, ParseInt((IntervalWorkBox.Text ?? string.Empty), 20));
+        int rest = Math.Max(0, ParseInt((IntervalRestBox.Text ?? string.Empty), 10));
+
+        for (int i = 1; i <= rounds; i++)
+        {
+            _session.AddTimer(new TrainingTimer($"WORK {i}/{rounds}", TimeSpan.FromSeconds(work)));
+            if (rest > 0 && i < rounds)
+                _session.AddTimer(new TrainingTimer($"REST", TimeSpan.FromSeconds(rest)));
+        }
+    }
+
+    private void OnClearAllClicked(object? sender, RoutedEventArgs e)
+    {
+        _session?.Clear();
+    }
+
+    private void OnExitClicked(object? sender, RoutedEventArgs e)
+    {
+        ExitRequested?.Invoke();
+    }
+
+    /// <summary>
+    /// Programmatic trigger for the same exit flow as the on-screen
+    /// "Exit training mode" button. Used by the cloud remote dispatch so
+    /// a phone press of "Exit" tears the session down identically.
+    /// </summary>
+    public void RequestExit() => ExitRequested?.Invoke();
+
+    private static int ParseInt(string s, int fallback) =>
+        int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
+}
+
+public partial class TrainingControlPanel
+{
+    private ScaleTransform BtnSc => (ScaleTransform)ProductionNames.RegistryFor(this)["BtnSc"];
+    private TranslateTransform BtnLift => (TranslateTransform)ProductionNames.RegistryFor(this)["BtnLift"];
+    private void Native_OnAutoAdvanceChanged(object? sender, RoutedEventArgs e) { OnAutoAdvanceChanged(sender!, e); }
+    private void Native_OnNewTitleBoxPreviewMouseLeftButtonDown(object? sender, PointerPressedEventArgs e) { OnNewTitleBoxPreviewMouseLeftButtonDown(sender!, e); }
+    private void Native_OnNumericPreviewTextInput(object? sender, TextInputEventArgs e) { OnNumericPreviewTextInput(sender!, e); }
+}

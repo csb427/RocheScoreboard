@@ -1,0 +1,146 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.TrainingScorebugControl" Background="#080C12" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Viewbox Stretch="Uniform" StretchDirection="Both">
+        <Grid x:Name="RootGrid" Width="960" Height="540" ClipToBounds="True">
+            <Grid.Background>
+                <SolidColorBrush Color="#080C12" port:ProductionNames.Id="RootBg" />
+            </Grid.Background>
+            <Border x:Name="GradientBg">
+                <Border.Background>
+                    <RadialGradientBrush Center="50%,45%" RadiusX="70%" RadiusY="70%">
+                        <GradientStop Color="#0F1A28" Offset="0" />
+                        <GradientStop Color="#080C12" Offset="1" />
+                    </RadialGradientBrush>
+                </Border.Background>
+            </Border>
+            <Border Opacity="0.025" IsHitTestVisible="False">
+                <Border.Background>
+                    <VisualBrush TileMode="Tile" DestinationRect="0,0,40,40" SourceRect="0,0,40,40">
+                        <VisualBrush.Visual>
+                            <Canvas Width="40" Height="40">
+                                <Line Stroke="White" StrokeThickness="1" StartPoint="0,40" EndPoint="40,0" />
+                            </Canvas>
+                        </VisualBrush.Visual>
+                    </VisualBrush>
+                </Border.Background>
+            </Border>
+            <Viewbox Stretch="Fill" StretchDirection="Both" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid Width="1920" Height="1080">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Margin="0,70,0,0" HorizontalAlignment="Center" MaxWidth="1500" Padding="56,22" Background="#0D1117" BorderBrush="#58A6FF" BorderThickness="3">
+                        <Border.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform port:ProductionNames.Id="TitleScale" />
+                                <TranslateTransform port:ProductionNames.Id="TitleTranslate" />
+                            </TransformGroup>
+                        </Border.RenderTransform>
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="34" Color="#58A6FF" Opacity="0.55" port:ProductionNames.Id="TitleGlow" OffsetX="0" OffsetY="0" />
+                        </Border.Effect>
+                        <Canvas x:Name="TitleClip" Height="140" Width="1380" ClipToBounds="True">
+                            <TextBlock x:Name="TitleText" Text="WARM-UP" FontSize="110" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" Foreground="White" TextAlignment="Center" Canvas.Left="0" Canvas.Top="0">
+                                <TextBlock.RenderTransform>
+                                    <TranslateTransform X="0" port:ProductionNames.Id="TitleScrollTransform" />
+                                </TextBlock.RenderTransform>
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="22" Color="#58A6FF" Opacity="0.8" OffsetX="0" OffsetY="0" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Canvas>
+                    </Border>
+                    <StackPanel Grid.Row="2" x:Name="ActiveTimerHost" HorizontalAlignment="Center">
+                        <StackPanel.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.Id="TimerScale" />
+                                <TranslateTransform X="0" Y="0" port:ProductionNames.Id="TimerTranslate" />
+                            </TransformGroup>
+                        </StackPanel.RenderTransform>
+                        <TextBlock x:Name="TimerText" Text="05:00" FontSize="420" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" Foreground="#FFFFFF" TextAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="55" Color="#58A6FF" Opacity="0.75" port:ProductionNames.Id="TimerGlow" OffsetX="0" OffsetY="0" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <ItemsControl x:Name="ProgressSegments" Margin="0,28,0,0" Width="1400" HorizontalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="1" Columns="20" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+                    <Border x:Name="UpNextBar" Grid.Row="4" Opacity="0" Background="#0D1117" BorderBrush="#58A6FF" BorderThickness="0,5,0,0" IsVisible="False">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="26" Color="#58A6FF" Opacity="0.45" OffsetX="0" OffsetY="0" />
+                        </Border.Effect>
+                        <Grid Margin="80,28,80,28" MinHeight="160">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" x:Name="UpNextLabel" Text="UP NEXT" Foreground="#FFFFFF" FontSize="96" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" VerticalAlignment="Center" Margin="0,0,40,0" />
+                            <TextBlock Grid.Column="1" x:Name="UpNextTitle" Text="" Foreground="White" FontSize="96" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,40,0" />
+                            <TextBlock Grid.Column="2" x:Name="UpNextDuration" Text="00:00" Foreground="#FF9100" FontSize="112" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" VerticalAlignment="Center">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="24" Color="#FF9100" Opacity="0.75" OffsetX="0" OffsetY="0" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+                    <Grid Grid.Row="4" x:Name="StagedTimerHost" IsVisible="False">
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.Id="StagedScale" />
+                                <TranslateTransform Y="0" port:ProductionNames.Id="StagedTranslate" />
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <Border Background="#0D1117" BorderBrush="#3FB950" BorderThickness="0,5,0,0">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="30" Color="#3FB950" Opacity="0.55" OffsetX="0" OffsetY="0" />
+                            </Border.Effect>
+                            <Grid Margin="80,28,80,28">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" x:Name="StagedLabel" Text="NOW STARTING" Foreground="#3FB950" FontSize="56" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" VerticalAlignment="Center" Margin="0,0,40,0">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect BlurRadius="18" Color="#3FB950" Opacity="0.7" OffsetX="0" OffsetY="0" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" x:Name="StagedTitleText" Text="" Foreground="White" FontSize="100" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Grid.Column="2" x:Name="StagedTimerText" Text="00:00" Foreground="#FFFFFF" FontSize="120" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" VerticalAlignment="Center">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect BlurRadius="24" Color="#3FB950" Opacity="0.8" OffsetX="0" OffsetY="0" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Viewbox>
+            <Border x:Name="SessionCompleteOverlay" IsHitTestVisible="False" Opacity="0" ZIndex="200">
+                <Grid>
+                    <Border Background="#000000" Opacity="0.65" />
+                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="40">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="SESSION COMPLETE" FontSize="160" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" Foreground="White" TextAlignment="Center">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="50" Color="#FF0000" Opacity="0.9" OffsetX="0" OffsetY="0" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <TextBlock Text="ALL TIMERS FINISHED" FontSize="42" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" Foreground="#FFD1D1" TextAlignment="Center" Margin="0,12,0,0" />
+                        </StackPanel>
+                    </Viewbox>
+                </Grid>
+            </Border>
+        </Grid>
+    </Viewbox>
+</UserControl>

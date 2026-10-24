@@ -1,0 +1,140 @@
+{
+  "source": "Roche_Scoreboard/Views/LogoCropWindow.xaml",
+  "source_sha256": "a77070d46b53c01ce89319b03b3ae892f996f69cc6340e3538109c55da233dbd",
+  "names": [
+    {
+      "name": "HomeWideArea",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeWideImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeEmptyHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeCropImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeLogoPathText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeZoomSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "HomeXSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "HomeYSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "AwayWideArea",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AwayWideImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayEmptyHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayCropImage",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayLogoPathText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayZoomSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "AwayXSlider",
+      "type": "Slider",
+      "object": false
+    },
+    {
+      "name": "AwayYSlider",
+      "type": "Slider",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "cc97acc8b085c536ed471c88822394dd310b80322cdf29529227bbfdd21c03a2",
+  "native_events": [
+    {
+      "name": "HomeWideArea",
+      "source": "MouseLeftButtonDown",
+      "native": "PointerPressed",
+      "handler": "Preview_MouseLeftButtonDown"
+    },
+    {
+      "name": "HomeWideArea",
+      "source": "MouseMove",
+      "native": "PointerMoved",
+      "handler": "Preview_MouseMove"
+    },
+    {
+      "name": "HomeWideArea",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Preview_MouseLeftButtonUp"
+    },
+    {
+      "name": "HomeWideArea",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "Preview_MouseLeave"
+    },
+    {
+      "name": "AwayWideArea",
+      "source": "MouseLeftButtonDown",
+      "native": "PointerPressed",
+      "handler": "Preview_MouseLeftButtonDown"
+    },
+    {
+      "name": "AwayWideArea",
+      "source": "MouseMove",
+      "native": "PointerMoved",
+      "handler": "Preview_MouseMove"
+    },
+    {
+      "name": "AwayWideArea",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Preview_MouseLeftButtonUp"
+    },
+    {
+      "name": "AwayWideArea",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "Preview_MouseLeave"
+    }
+  ],
+  "platform_translations": [],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

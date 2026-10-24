@@ -1,0 +1,53 @@
+{
+  "source": "Roche_Scoreboard/Views/CalibrationOverlay.xaml",
+  "source_sha256": "a90493862e0a808c6f751151f30c1b748816f9114a26b94ad1d45fdf7ff96e0b",
+  "names": [
+    {
+      "name": "SizeReadout",
+      "type": "TextBlock",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "aa8d8ee168d63b6b29879a813677cf8881cd3dac7897884eb3a68b2776a99171",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "SizeReadout",
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Consolas",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

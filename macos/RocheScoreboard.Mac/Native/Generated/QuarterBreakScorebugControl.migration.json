@@ -1,0 +1,234 @@
+{
+  "source": "Roche_Scoreboard/Views/QuarterBreakScorebugControl.xaml",
+  "source_sha256": "950392da7e531006025cd57669bd4be478c520e752178cc3d7f5de8ff14057d3",
+  "names": [
+    {
+      "name": "BreakRoot",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TopInfoRow",
+      "type": "RowDefinition",
+      "object": true
+    },
+    {
+      "name": "TopInfoBorder",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TopWeatherText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TopTimeText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TopDateText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeColourWing",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeGradientLight",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "HomeGradientDark",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "HomeWatermark",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeContentPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeScoreDetailText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeScoreText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayColourWing",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayGradientLight",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "AwayGradientDark",
+      "type": "GradientStop",
+      "object": true
+    },
+    {
+      "name": "AwayWatermark",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayContentPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AwayScoreDetailText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayScoreText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BreakCentrePanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BreakLabelText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeIdentityPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayIdentityPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HomeScorePanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayScorePanel",
+      "type": "Border",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "b96d585273cb3315025dbae27fb2d9e2a6626552fb67ce3b265e695195dbd6ba",
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextFormattingMode",
+      "source": "Display"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextRenderingMode",
+      "source": "ClearType"
+    },
+    {
+      "name": null,
+      "property": "TextOptions.TextHintingMode",
+      "source": "Fixed"
+    },
+    {
+      "name": "TopWeatherText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "TopTimeText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "TopDateText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeScoreDetailText",
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Black, Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeScoreText",
+      "property": "FontFamily",
+      "source": "Segoe UI Black, Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayScoreDetailText",
+      "property": "FontFamily",
+      "source": "Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Black, Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AwayScoreText",
+      "property": "FontFamily",
+      "source": "Segoe UI Black, Arial Black",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "BreakLabelText",
+      "property": "FontFamily",
+      "source": "Stolzl Bold",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

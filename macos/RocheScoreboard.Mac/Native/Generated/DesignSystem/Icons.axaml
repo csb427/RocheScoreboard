@@ -1,0 +1,21 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <Geometry x:Key="ScoreGrid.IconGeometry.Check">M 3,10 L 8,15 L 17,5</Geometry>
+    <Geometry x:Key="ScoreGrid.IconGeometry.Close">M 4,4 L 16,16 M 16,4 L 4,16</Geometry>
+    <Geometry x:Key="ScoreGrid.IconGeometry.ChevronDown">M 4,7 L 10,13 L 16,7</Geometry>
+    <Geometry x:Key="ScoreGrid.IconGeometry.ChevronRight">M 7,4 L 13,10 L 7,16</Geometry>
+    <Geometry x:Key="ScoreGrid.IconGeometry.Info">M 10,4 A 6,6 0 1 1 9.99,4 M 10,8 L 10,13 M 10,6.6 L 10,6.8</Geometry>
+    <Geometry x:Key="ScoreGrid.IconGeometry.Warning">M 10,3 L 18,17 L 2,17 Z M 10,8 L 10,12 M 10,14.5 L 10,14.8</Geometry>
+    <Geometry x:Key="ScoreGrid.IconGeometry.Error">M 10,4 A 6,6 0 1 1 9.99,4 M 7,7 L 13,13 M 13,7 L 7,13</Geometry>
+    <ControlTheme x:Key="ScoreGrid.IconPath" TargetType="Path">
+        <Setter Property="Width" Value="{DynamicResource ScoreGrid.IconSize20}" />
+        <Setter Property="Height" Value="{DynamicResource ScoreGrid.IconSize20}" />
+        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="Stroke" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="StrokeLineCap" Value="Round" />
+        <Setter Property="StrokeJoin" Value="Round" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </ControlTheme>
+</ResourceDictionary>

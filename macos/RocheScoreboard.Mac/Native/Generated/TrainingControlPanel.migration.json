@@ -1,0 +1,308 @@
+{
+  "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml",
+  "source_sha256": "bd2c3823f54cf4ee1e776bf7e91078b77407bfa318d850c275fd5f5bdef68a6e",
+  "names": [
+    {
+      "name": "BtnSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "BtnLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "RewardFlash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SessionTotalText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TrainingCloudLauncher",
+      "type": "CloudRemoteLauncher",
+      "object": false
+    },
+    {
+      "name": "ExitButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ActiveTitleText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ActiveStatusPill",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ActiveStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ActiveRemainingText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StartPauseButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ResetActiveButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "SkipButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AddOneMinButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AddTenSecButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "QueueCountText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AutoAdvanceToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "ClearAllButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "QueueArea",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "QueueScroller",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "QueueItems",
+      "type": "ItemsControl",
+      "object": false
+    },
+    {
+      "name": "DropIndicator",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "NewTitleBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "NewMinutesBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "NewSecondsBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "AddTimerButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "RecentTimersPanel",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "RecentTimersEmptyText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "IntervalRoundsBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "IntervalWorkBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "IntervalRestBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "BuildIntervalButton",
+      "type": "Button",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "1b0d5892ad979452db97840b6953722f52a74d4a2243546c0dca00419dcf9d56",
+  "native_events": [
+    {
+      "name": "AutoAdvanceToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "OnAutoAdvanceChanged"
+    },
+    {
+      "name": "AutoAdvanceToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "OnAutoAdvanceChanged"
+    },
+    {
+      "name": "NewTitleBox",
+      "source": "PreviewMouseLeftButtonDown",
+      "native": "PointerPressed",
+      "handler": "OnNewTitleBoxPreviewMouseLeftButtonDown"
+    },
+    {
+      "name": "NewMinutesBox",
+      "source": "PreviewTextInput",
+      "native": "TextInput",
+      "handler": "OnNumericPreviewTextInput"
+    },
+    {
+      "name": "NewSecondsBox",
+      "source": "PreviewTextInput",
+      "native": "TextInput",
+      "handler": "OnNumericPreviewTextInput"
+    },
+    {
+      "name": "IntervalRoundsBox",
+      "source": "PreviewTextInput",
+      "native": "TextInput",
+      "handler": "OnNumericPreviewTextInput"
+    },
+    {
+      "name": "IntervalWorkBox",
+      "source": "PreviewTextInput",
+      "native": "TextInput",
+      "handler": "OnNumericPreviewTextInput"
+    },
+    {
+      "name": "IntervalRestBox",
+      "source": "PreviewTextInput",
+      "native": "TextInput",
+      "handler": "OnNumericPreviewTextInput"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "Bd",
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "SessionTotalText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ActiveTitleText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ActiveStatusText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "ActiveRemainingText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "QueueCountText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "AutoAdvanceToggle",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}
