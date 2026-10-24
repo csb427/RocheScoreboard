@@ -132,6 +132,21 @@ internal static class MacUpdater
             if (!destination.StartsWith(root, StringComparison.Ordinal) || Path.IsPathRooted(name)) throw new InvalidDataException("The Mac update archive contains an invalid path.");
             int mode = entry.ExternalAttributes >> 16;
             if ((mode & 0xF000) == 0xA000) throw new InvalidDataException("Mac update packages must contain regular files rather than symbolic links.");
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            // .NET files carry signatures in extended attributes. Apple's ZIP
+            // extractor restores the AppleDouble metadata produced by ditto.
+            RunDitto("-x", "-k", archive, directory);
+            cancellation.ThrowIfCancellationRequested();
+            return;
+        }
+        foreach (var entry in zip.Entries)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            string name = entry.FullName.Replace('\\', '/');
+            string destination = Path.GetFullPath(Path.Combine(root, name));
+            int mode = entry.ExternalAttributes >> 16;
             if (name.EndsWith('/')) { Directory.CreateDirectory(destination); continue; }
             Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
             entry.ExtractToFile(destination);
@@ -164,11 +179,25 @@ internal static class MacUpdater
     }
     private static void CopyDirectory(string source, string destination)
     {
+        if (OperatingSystem.IsMacOS())
+        {
+            RunDitto(source, destination); // Preserve the validated code-signing attributes.
+            return;
+        }
         Directory.CreateDirectory(destination);
         foreach (string file in Directory.GetFiles(source)) File.Copy(file, Path.Combine(destination, Path.GetFileName(file)));
         foreach (string directory in Directory.GetDirectories(source)) CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory)));
         if (!OperatingSystem.IsWindows())
             foreach (string file in Directory.GetFiles(source)) File.SetUnixFileMode(Path.Combine(destination, Path.GetFileName(file)), File.GetUnixFileMode(file));
+    }
+    private static void RunDitto(params string[] arguments)
+    {
+        var start = new ProcessStartInfo("/usr/bin/ditto") { UseShellExecute = false, RedirectStandardError = true };
+        foreach (string argument in arguments) start.ArgumentList.Add(argument);
+        using var process = Process.Start(start) ?? throw new IOException("The Mac archive service could not start.");
+        Task<string> error = process.StandardError.ReadToEndAsync();
+        if (!process.WaitForExit(120000)) { process.Kill(); throw new IOException("The Mac archive service timed out."); }
+        if (process.ExitCode != 0) throw new IOException("The Mac archive service failed: " + error.GetAwaiter().GetResult());
     }
     private const string InstallScript = """
 #!/bin/sh

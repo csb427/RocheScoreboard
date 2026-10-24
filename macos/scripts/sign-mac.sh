@@ -20,12 +20,21 @@ cat > "$entitlements" <<'PLIST'
 </dict></plist>
 PLIST
 
-# Follow Avalonia's macOS deployment guidance: sign each Mach-O binary,
-# then the bundle. --deep is used only to verify, never to sign.
+# Sign native plugins first. Managed .NET files in Contents/MacOS also need
+# signatures, as described by Avalonia's macOS deployment guide. Signing the
+# main executable before its neighbouring files makes codesign reject the
+# incomplete bundle. --deep is used only to verify, never to sign.
 while IFS= read -r -d '' binary; do
   case "$(file -b -- "$binary")" in
     *Mach-O*) codesign --force --sign - --entitlements "$entitlements" "$binary" ;;
   esac
-done < <(find "$app_dir/Contents" -type f -print0)
+done < <(find "$app_dir/Contents/Frameworks" -type f -print0)
+main_executable="$app_dir/Contents/MacOS/RocheScoreboard.Mac"
+while IFS= read -r -d '' binary; do
+  if [[ "$binary" != "$main_executable" ]]; then
+    codesign --force --sign - --entitlements "$entitlements" "$binary"
+  fi
+done < <(find "$app_dir/Contents/MacOS" -type f -print0)
+codesign --force --sign - --entitlements "$entitlements" "$main_executable"
 codesign --force --sign - --entitlements "$entitlements" "$app_dir"
 codesign --verify --deep --strict "$app_dir"
