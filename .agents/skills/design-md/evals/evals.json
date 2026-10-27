@@ -1,0 +1,45 @@
+{
+  "skill_name": "design-md",
+  "evals": [
+    {
+      "id": 0,
+      "name": "create-from-brief",
+      "prompt": "I'm building a calm meditation web app. Create a DESIGN.md for my coding agent: soft sage greens, a warm off-white background, gentle rounded corners, and a friendly humanist sans-serif. Include a primary button. Save it as DESIGN.md.",
+      "expected_output": "A DESIGN.md file at the project root with valid YAML front matter (colors incl. a primary, typography, rounded, a button-primary component), canonical section order, and prose. Must lint with 0 errors.",
+      "files": [],
+      "assertions": [
+        {"text": "A file named DESIGN.md was produced"},
+        {"text": "Front matter contains a 'colors' map with a 'primary' key"},
+        {"text": "Defines at least one typography token and a components entry"},
+        {"text": "Running scripts/dmd.py lint on it yields 0 errors"},
+        {"text": "Markdown ## sections appear in canonical order (Overview before Colors before Typography ...)"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "validate-broken-ref",
+      "prompt": "Can you check whether my design tokens file is valid? It's the attached DESIGN.md — something feels off with the button.",
+      "expected_output": "Identifies the broken token reference {colors.brand} as an error (broken-ref), reports it clearly, and ideally suggests the fix (the color is named 'accent'). Should run the linter rather than eyeballing.",
+      "files": ["fixtures/broken.md"],
+      "assertions": [
+        {"text": "Reports that the file has a validation error (non-zero errors)"},
+        {"text": "Specifically identifies the unresolved reference {colors.brand}"},
+        {"text": "Points to the button-primary component as the location"},
+        {"text": "Suggests a concrete fix (e.g. use {colors.accent})"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "live-preview",
+      "prompt": "Generate a visual live preview of this design system so I can see the palette and type scale in my browser. File is attached.",
+      "expected_output": "A self-contained .html preview file (color swatches, type scale, components, spacing/radius) generated from the DESIGN.md, shared with the user. No remote assets.",
+      "files": ["fixtures/preview-input.md"],
+      "assertions": [
+        {"text": "Produces a single self-contained .html file"},
+        {"text": "The HTML renders color swatches for the palette"},
+        {"text": "The HTML contains no remote <script> or external asset references"},
+        {"text": "The preview is shared/offered to the user to open"}
+      ]
+    }
+  ]
+}

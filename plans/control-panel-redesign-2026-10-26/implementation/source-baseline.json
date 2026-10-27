@@ -1,0 +1,994 @@
+[
+  {
+    "Path": "Roche_Scoreboard\\App.xaml",
+    "Sha256": "9738200543EE6ED4FD9E8C6E3755D4DB939467335B5DDD6C7E32C93163F92290"
+  },
+  {
+    "Path": "Roche_Scoreboard\\App.xaml.cs",
+    "Sha256": "4E1C2D38E87C18CCC3029E6149933C5D78A35583E1FECA6AD9EA2F23BE570BCF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\AssemblyInfo.cs",
+    "Sha256": "1D31ED3C7E4AAF76FABB82E330208385CB70685E9B7C577764493A4D169BCA61"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Controls\\MarqueeTextBlock.cs",
+    "Sha256": "05AB274A399E56AAE12370132781A4E635BBADDC01BAADA1091258801940673D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\DesignSystem\\ComfortableDensity.xaml",
+    "Sha256": "A489980BB0F91A240B3D226084A48555311624A8D89E820D9B06908F3D9EC3B1"
+  },
+  {
+    "Path": "Roche_Scoreboard\\DesignSystem\\CompactDensity.xaml",
+    "Sha256": "F1D1CFFB513FFE94195A827C05AE5BE697DD6C876E2FF036766BCC0FDAC716EA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\DesignSystem\\Components.xaml",
+    "Sha256": "C649595433F0C902A32CD43802C38F764F2EFFCC04193DFB21FA1210307E17C1"
+  },
+  {
+    "Path": "Roche_Scoreboard\\DesignSystem\\DarkTheme.xaml",
+    "Sha256": "E189560F1B1640870D7DF0B3DFFB6AE82AC1BC6E28830F49B8BA96D011FBEC78"
+  },
+  {
+    "Path": "Roche_Scoreboard\\DesignSystem\\Icons.xaml",
+    "Sha256": "09E8806CB3677375303E3228B187E2AD1B2882A0A11C0A26523C9C8CE6307EDD"
+  },
+  {
+    "Path": "Roche_Scoreboard\\DesignSystem\\LightTheme.xaml",
+    "Sha256": "9AC32AEE6D428AAF2CB04AAEC1D82341FC38C7A6A9E89FC2FFEAB88C6BDF1282"
+  },
+  {
+    "Path": "Roche_Scoreboard\\DesignSystem\\Tokens.xaml",
+    "Sha256": "3B2D0C7921B3FCABE55A22A5A512B5A7C1E0A6760373EFB39C137694040A1F75"
+  },
+  {
+    "Path": "Roche_Scoreboard\\DesignSystem\\Typography.xaml",
+    "Sha256": "026B04C33AEA53EA2919F982AE19C1ABD3032C6B44F0946621E2725F037F9096"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CloudRemote.cs",
+    "Sha256": "8CB7ADF8C52081E333967F6BE767EF77CC1420F3CFA38A5A5C515F2FF5E93548"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CloudRemoteUi.cs",
+    "Sha256": "64C6403B73DF4F627735B003C77AEA398E36CE4C35074A6740EED45D93716771"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketDiagnostics.cs",
+    "Sha256": "9B7832CE6011904A13904DC8B6AE4F81A52ECC634F1C0DD1E631521DBF4DCDDA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketFreeHitQa.cs",
+    "Sha256": "103DF8CA61B72DB101A95B3E57FA4154114A883807004E1B8F872B633E120073"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketHierarchyQa.cs",
+    "Sha256": "90E172379C845D7A09EF24E0063576FB2FC6237C59DA7A7C133EE92C1D2607AD"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketInteractionQa.cs",
+    "Sha256": "A2C4DCE74A4A3D7E5A3A8B6AD2703694E059934F30A79D40A3D24CF9AD021FDF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketLatestReviewQa.cs",
+    "Sha256": "BC25375B50D3E64C23A2FCF0AFAC8A01A7A3A32115182B88A26BB98FD93F0A08"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketMotionQa.cs",
+    "Sha256": "E270EE551AEA32B658A928AE72577BEA3A8FB57C54EF189D4EC3C2365CABA6AC"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketOutputHandoffQa.cs",
+    "Sha256": "9EAFD5EBF1FA9AD2DB4BD1AEF389921D45C4B4E74FAAA35AC570BED377C1B78C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketOverlayQa.cs",
+    "Sha256": "236836B040374A7F93C8572F752CD997B11C08B721415F9E2734912FCA5AD143"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketPersistence.cs",
+    "Sha256": "DC524295FAA75411C6D4E1DEDDAB215E2EA46811221B98168E7EBD0F928FA62B"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketPolishQa.cs",
+    "Sha256": "C409E00BBEFC342BE5DCC6E547FF6582E4C96D130F5141791AFC194B89C928B2"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketPreviewScenarios.cs",
+    "Sha256": "B1F7981B053063CA2EF5BE9A0F2622C112357EF3008868F04E58EC3C8E9E4873"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketQa.cs",
+    "Sha256": "F5A86828C6B46F93A3F336C6C24F4620ADEB18D1313F563CDCFB2FF3A6E61EC3"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketRefinementQa.cs",
+    "Sha256": "32C9AD7F0AD74CB8619094E9A0EB97973C55CB8035D46005CC126D00774BD65E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketReviewQa.cs",
+    "Sha256": "DE54D020ECBC4D8B92958FAA7DB0EFB36A9B80EDCE06B2D34DF9D245F9A0E26C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketRulesSetupQa.cs",
+    "Sha256": "63171631BE1B66853650AECDA72C15F2A331585E94D1918EF1B73654E782A0A2"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketSetupQa.cs",
+    "Sha256": "C710279300770CC99FC55BB6156B4BB7430764ECBA9328A7F19FD1D534BC61A2"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketTossQa.cs",
+    "Sha256": "5845D8B38C91CD6FCE5F9D0DAC1BC873BB4973858A14A08C3E3943FFEF11A937"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.CricketWorkflowQa.cs",
+    "Sha256": "811678D437BE9E86CD4C3AC328DB50C6D111AB83C6780463826443CC767A0D19"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.OperatorInteractionQa.cs",
+    "Sha256": "CFF314BE608FDAA3915AA9CB3601BA406DF59A54BDF2724519FB09C55EAB3A11"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.OperatorTileActions.cs",
+    "Sha256": "C7FCA07D04AA5AB2E177C3F166E17C1D3B809A20E300EBD3097A772258FD363E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.OutputWindows.cs",
+    "Sha256": "674B7326C5A43465DFC524EC26F6AC1DCD5158B14A33ED6C532D92B1A929D3F7"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.QuarterLabels.cs",
+    "Sha256": "39B1FD9CBF56184DEB491193498E59BEB77622CC704138506A841C2438A6A570"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.RestoreMembers.cs",
+    "Sha256": "F28D37258E8199C852C37D719841BC6A9B734C525188744CEC9F391F48AFE746"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.SportInteractionQa.cs",
+    "Sha256": "590ADD02ACB964173D5F7C9D8D8DD7E3E00C2D404186BAE5F04EF0DA77009BCE"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.TrainingCloudRemote.cs",
+    "Sha256": "EC30FD7F32E1E7C9435225EA054FC8466425EDAE6111B54E0F8F019ACFD178F7"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.xaml",
+    "Sha256": "115681BBF727DABEB4683DA1B5CD0C0FFCCB4B1067AF030536240814C52A3D00"
+  },
+  {
+    "Path": "Roche_Scoreboard\\MainWindow.xaml.cs",
+    "Sha256": "EC67C41FDB4A3FA7E0D7D5F9895CF67FA32517142230ECCA7D45CCFE4AEB8755"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketAnalytics.cs",
+    "Sha256": "2EC883877EB2BB6C0118C7EFE37687BABDDE6EA7F82FE5B3D4C06006B61F7543"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketDeliveryEditing.cs",
+    "Sha256": "341FB0836FF677C3FD965B93E0BC863A15667DEB7FF147CAAEF3A60A980BA7F9"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketDeliveryRules.cs",
+    "Sha256": "BB674772DE4581C751D113B60EAF00C2EA322DD7E1A4350D9920EB24FD5976D4"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketMatchConditions.cs",
+    "Sha256": "BFD470B55C0E0F416589EDEEE6252C19111DA88CD7B61D94C063B6563A524058"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketMatchManager.cs",
+    "Sha256": "84EB7087D93DABEC56375E01EC4BDFC4A5290D025D8D75DE2B4C970F622EA1CA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketMatchOperations.cs",
+    "Sha256": "A3E70F6335F801820039B37C2F5C3ED81864D06227F2C081A44CC88DD0B291BC"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketOverlayAnalysis.cs",
+    "Sha256": "E00DCCE31F659E09FF0E5D216BD03635E353CFB21C842E64D58B125B14F94D11"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketPersistenceSnapshot.cs",
+    "Sha256": "8E80E76F4C66AA172A061D784903BBEC59B2ACBD1693E00A6A501421C95F847B"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketPlayer.cs",
+    "Sha256": "BFD662B2423AB360C3AFB6547AEA3DC7640E6F9A866DE9E48E98D4CB6E4272E9"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketPlayerOperations.cs",
+    "Sha256": "A1960FE2DA7C14A651665BDAE0D1DC65385485D1144E9D8246EF6618C962C2BF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketScorecardEditing.cs",
+    "Sha256": "BCE4C4D332CB5697E81D70A82D8EE59AA7F96C87FE8E42FEC61339B805CD2DAD"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\CricketSetupResult.cs",
+    "Sha256": "0538BCF278D581B436B49887C3428665F6452F95B673338BFB43B11DEFE2CF24"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\GoalAnimationStyle.cs",
+    "Sha256": "8B4B9B0B181B54FE1262C3AE71B10B87B20B8C007059DAE5608C83A0FC5CF242"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\MarqueeMessage.cs",
+    "Sha256": "C07E6B9631CFB20D760421A0FE800383B3A761E8BF6587F53424049EC87105E0"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\MatchManager.cs",
+    "Sha256": "329386312D71AA1222954B54D444488CA53D11CD31CBA117F6984922078E4527"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\MatchStats.cs",
+    "Sha256": "66945291B36E5C1E3C107AE43EC6746A9FE017DE30D84E9D909F9E09409005CB"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\ScorebugLayout.cs",
+    "Sha256": "5FDB7228DDC4F7A233A5A6D65B3445F27ABE77B5899F44904B74E0A64B9D5699"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\ScoreEvent.cs",
+    "Sha256": "70F4472CB8B1FB93877E9B8662A631D9657AAE9F0382296FD45E1C022989637D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\SetupResult.cs",
+    "Sha256": "EC34BBD4296992016A877036A40C7AC33B0A7DBC0B720EBDDDAD66567DB96192"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\SportMode.cs",
+    "Sha256": "C1B2A6DDC7B6C7DF155F593EBFBE417C06DFC0A53BD1710A216163A5ED48B094"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\TeamCatalogEntry.cs",
+    "Sha256": "F7031E59BC75FED9B659E743DEFA45AD4859C205A9C5695E6DFE1F4130D6B7DC"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\TeamNameDisplayMode.cs",
+    "Sha256": "018FD1F3F09C97BDD4C898B7E8AE49DA2479690E77F1EA20B0D68F0A8800226C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\TeamPreset.cs",
+    "Sha256": "044F14BDE952B7AB90CFC04624F852D52FDA9A67AA3B5488E2F6691B0C63ADC4"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\TrainingSession.cs",
+    "Sha256": "C74ABFCF05AE7DFF5AA24ABA474BB8ED34EAAC62DA705524B8FF53E529F72E80"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\TrainingTimer.cs",
+    "Sha256": "944E54CDB71D2014AB25E84750A51BA3EA0FE5DC3F8595347359FF8694DCF5B9"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Models\\WinProbabilityEngine.cs",
+    "Sha256": "D5292337F5CD303C1D313467092AE08FA943B758DAF79D73339C9903BEA5B887"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Properties\\launchSettings.json",
+    "Sha256": "9014E43742289E08633068823DA790FDDC2FB970409337D6858A7B93E7346241"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Resources\\CricketActions.xaml",
+    "Sha256": "9162E88895E1365A8F6FBE2CE5BFF00F342F994CAF3A75F26BDD487125FA7EC6"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Resources\\CricketClubs.json",
+    "Sha256": "8F64FA45E8C7C62F3A691C32C4D95D1CAE8AEDF71F0E29CC72F16F8E5952F877"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Resources\\OperatorControls.xaml",
+    "Sha256": "DA639C049CC5F4BF56B27DF1E1495CB2883840DF9493DE2C6C6B5E8020F5E128"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Resources\\OperatorInputs.xaml",
+    "Sha256": "99D15733CD4ABCB2DE12E8EB84765546020B36FEDA2AD418217DCACED5EB988D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Resources\\Scrollbars.xaml",
+    "Sha256": "F230CA9CACC4A83510D93EDDF2E3297F001229B2358E075AC8C545EC2547FF36"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Resources\\SettingsControls.xaml",
+    "Sha256": "A9ADD11CD3ACF45F540D90B94EBB584F14F145ADB2E801A45DCC307546D2EF90"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Roche_Scoreboard.csproj",
+    "Sha256": "BB3F15F9F2201F82EA52D902DE5D14306630E2072EC9D40E552502A95381DD2E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\AflDroughtCalculator.cs",
+    "Sha256": "A591F650929107A9BEAA88D21B13465BFDBA11240DB6E3F72E11B814BCD8D9B0"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\AflGoalRunDetector.cs",
+    "Sha256": "AACB88D6237D56C484D5384B18AFE74C06C0838B6A0E9A19AD093BFC351C64C7"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\AflKeybindSettings.cs",
+    "Sha256": "721CC4C97F9951A574165AC32FF2B50D3C48D467ECE3064F48809DDD9FED4EE9"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\AflReliabilityStressSuite.cs",
+    "Sha256": "A1101C25BA98E8607EAA766DD99A3C02D9AD1576756E83E6B9B5B004D063C3FD"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\AtomicFile.cs",
+    "Sha256": "307A469C0B4B445744F29191FE399441F84622A8010F6F89B3F1A113FE0C2194"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\AutoUpdateService.cs",
+    "Sha256": "DD9622EA254B0599476431729863D924EE0B97E16587831F3076B50DB2C25238"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\BroadcastClock.cs",
+    "Sha256": "3A6F23186FEBB4A6857331894297DC814B7B59682FF94D4006E6FCC7F27B309A"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\BroadcastLayout.cs",
+    "Sha256": "BFC944F6D186C8B188A396755A65A5905F9EE4FADCA9C8657C2F4081C5363994"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\BroadcastMotion.cs",
+    "Sha256": "18A4BED104A0C4E3BADF62700B16CA80CAAB32A6B29E91ED5D818493EA30111C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\BroadcastTeamTheme.cs",
+    "Sha256": "035AA4F727DC2DA5A5C8D2B80A8652145D98E5CB9482EFCF28020AA14AB62984"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\ChangelogService.cs",
+    "Sha256": "74692019810C0C62E1A5916C80DCAA1FEA9FFA91D1691C4AA168A934FB7441C5"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\CloudGameSessionService.cs",
+    "Sha256": "E3F6289CFA18C2CEBC1244564D9FE40B451424DA3BDBA9A455293666392BC4E8"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\JoinCodeGenerator.cs",
+    "Sha256": "B3BD9C023A89212E5F1BECF0D78E8F190F26DB34E4B2420ADE21A0143FA23A95"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\LiveStateSnapshot.cs",
+    "Sha256": "C936649F34082FE3DAA05A529D37B529402F36EA5A341DA9536A4A5EF44C242F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\RemoteCommandDispatcher.cs",
+    "Sha256": "952764B56385465F39C77EDA0AC0FC7BAEB5162A83D02B42A47DC04B2221E76F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\RemoteControlService.cs",
+    "Sha256": "87E6B1BE2C93A623532554ADD78EB009F118B0B77ECFDA7FDFAC99A89CB51038"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\RemoteEvent.cs",
+    "Sha256": "2F22B29AA9F4A1B635F4F2E28EF4AB254F18DA7A68AE6B1E413B75F64ABC06B1"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\SupabaseConfig.cs",
+    "Sha256": "0B250DC3FB2B5F905B0746A4F2A53067AAD4B48C3530D8E123838CF2112E4A4E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\SupabaseRealtimeClient.cs",
+    "Sha256": "63016787DA700A7AE11346620C3691EC4265FDCF4617786DAA1B18A626A92405"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\Cloud\\SupabaseRestClient.cs",
+    "Sha256": "B8F629BFD6FB41911FE7331ED34C2CD5E4010B9E05677DCD3F754B3EEB0CDB63"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\ContrastHelper.cs",
+    "Sha256": "CB5FD0BC79EE8DC4E642F3C59DBD8372789A6370BEAA699457AE9F8DC0023C91"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketActionMotion.cs",
+    "Sha256": "58099EFD89C2DB73FD945FA18CB044FC26066CB230892A85D85F7E20C4C2DB4F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketBroadcastStyle.cs",
+    "Sha256": "E0D2F80E2062B5F3B0CA8F7D3F7A396888AC02DF74155050277A550057BA7BAC"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketClubCatalog.cs",
+    "Sha256": "47775B36B29DB487DEABFC8338F8D533C1F44CCEDF56C6B5A79C768EC8133334"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketClubChecks.cs",
+    "Sha256": "A8E34BEA66DDC071FF94BAF13B62295387ED19DD87246350103FA68DDA6600A6"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketConditionsChecks.cs",
+    "Sha256": "AC2CEC7BAD1C16BFFF4E81A43428C53C7A0F24410F8E8152DC9AD4124D8ADC12"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketDeliveryLogChecks.cs",
+    "Sha256": "63E9B2B02EE93397295A9FA798EC9C2373AE8FB44D76BCE7F2D1948B676E073D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketDeliveryRuleChecks.cs",
+    "Sha256": "258EC4F1421345E5B2FB9AEAA9706E62CCE1FEF802D74D9AE50D5853D13CA3DF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketEditingChecks.cs",
+    "Sha256": "0E7D09200BAC3CFF4329B1478437947EF9ECEFBE2C2DA18F517A43D968595209"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketOutputChecks.cs",
+    "Sha256": "EC11C1550C4552D15BF8D6B30F8FAD6689D97F4FA36B116FF162951E467CBF63"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketOverAndStrikeChecks.cs",
+    "Sha256": "92801DF97968CB12E57DE0622E8E6452664F741F512ABCF1A649C6C5E0226278"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketOverlayChecks.cs",
+    "Sha256": "5DD9C05BA266BB23F50A3EF401D14A023EC9F12BE98841563F38897E45C18563"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketOverlayScheduler.cs",
+    "Sha256": "A3E970900F6E696ACB7E929C46F614462A8EFA024ED4DF7E41CC41CBE2A1E5D8"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketOverTracker.cs",
+    "Sha256": "1E2668FFC423A9512556F9F13615612732C9734EAAE9F5A093D16FBCE7CD369C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketPersistenceChecks.cs",
+    "Sha256": "4C0A2EFDDF25C1B5C04C40525AB72DD087A98799A92A30EC700AC339ECB59984"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketRecoveryWriter.cs",
+    "Sha256": "100D0220862FCE0D7AFF77FE45D9EA1F953726ABAF5DCA1EE0E516FE4156700D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketReliabilityChecks.cs",
+    "Sha256": "A78C6334F2A97AAA7267783B8F0A566C968669FA792E054FD61956A7228A00B0"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketTossChecks.cs",
+    "Sha256": "5A4F30B29ABE3D5EDA15C1B76FE916611E6C6007F477170EEFE703C4D94F4A54"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketWorkflowChecks.cs",
+    "Sha256": "20002156AE2D68A15A42C691C0A3ABF2EB5215B27622B906574727A6084DA77E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\CricketWorkflowUiChecks.cs",
+    "Sha256": "D4958ED0096F14D3B1ED2F821954D4E6009273F21F1688658D26427824862D4A"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\DisclosureMotion.cs",
+    "Sha256": "B82A82EE9AA80C7634D8D9D8FD5BAA669D866E8B4C0559F958618C786C2DE87D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\DisplaySettings.cs",
+    "Sha256": "FD08F1A188D739261F640FAAE32B53361DE632B1D67EA75F12451A9EF34FD421"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\EyeDropper.cs",
+    "Sha256": "B3CAF90D8CE11DBCEE4C4F839A1DADD7A2A792B5145D8486EBE3CF053763C47F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\FinalsPalette.cs",
+    "Sha256": "2A9A27DBC74E1AFE1E36E7B7774556708F7311E03BBA39AA3A5AEBB155A4122A"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\GameStateService.cs",
+    "Sha256": "1F76E6FA048EE94C2B60FDD9854EF550AF142346DA51BFED53513C3CECB6F97D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\ImageLoadHelper.cs",
+    "Sha256": "98264F64F33760CBF934AE2640EE49F31B00C3BD6DB6983C1D09858A5472D053"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\InteractionMotion.cs",
+    "Sha256": "800A05AFE43F2AD959148D191227E3C29BFAC524EC8E43B672DBDEC2CE885EDF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\MatchStorage.cs",
+    "Sha256": "02DE43E0669E5642403C8E9C825672DE421A814E7007C10456D63FBBAE25E2FC"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\NestedScrollRouting.cs",
+    "Sha256": "F85481E7D705A847F140C0F2E3EA11EF2E269B83D13CC747E18A43AC1B921E86"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\OperatorFeedback.cs",
+    "Sha256": "9AC41EC43CEAFC1EF65406AB9CC00D4BE8BB5254810C3E5C6055234430835BEA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\OperatorMotion.cs",
+    "Sha256": "5B571CBAEB31B8F9E76451DE2292CD86C264687C8AB8BAB211E972B93C574D6E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\OperatorSetupTrainingChecks.cs",
+    "Sha256": "7437447E65630E36775D4290FC410B33483B425619D88B6A8E4B7CC848D7B93A"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\OperatorTabMotion.cs",
+    "Sha256": "D30286F7E8750543C7A7ECE0CBA6912A805758C90B108CEDCD3E6E2F6C2E4FAE"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\OperatorWorkflowPreferences.cs",
+    "Sha256": "89990623D79CF798575A4D64BAAC75B3D20A5AAD0900C1F8E83A7FF04D0DA111"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\OverlayScheduler.cs",
+    "Sha256": "A04D6364EAA4EDE620BF76D7C4839F7A587C61758A6D492FED6674C18BBCB9EE"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\PixelSizeHelper.cs",
+    "Sha256": "D3B953770731E5C39842AF53417C884ADB695C4FB614EAA18B2C7ECBB7E4E670"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\PresetStorage.cs",
+    "Sha256": "45E9167CF165D1367B858789A8F1814F0F6BFF97119ADF948D6EB8ABD4D4B089"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\QuarterLabelService.cs",
+    "Sha256": "AA733129C7451B66E7EF91D13E4A5EE00DCD6EA6111A10A10F0FB9ADBBC399EF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\RecentColorStorage.cs",
+    "Sha256": "2BBAAE07A5EE64ECAF26DA57DC63BD32767583ABA58872119F4F8EA1BFC8223C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\RecentTrainingTimerStorage.cs",
+    "Sha256": "F6ACB91B17C6ADB51B58097597445FC3C41E23C123BEE159A0C9DF2DCDC46769"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\ScrollActivity.cs",
+    "Sha256": "2A349900638327548ED98EAE138BD03FD5BDF96D5D6025092E41DF52C168D07C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\SelectionCheckMotion.cs",
+    "Sha256": "92B686204529207ACCD80D794AB4774C18DB7855018DA871A556005FB5723DFA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\SettingsControlMotion.cs",
+    "Sha256": "1B1B64313EB5674C6A0CD20E2F67C000A063611F3BF97BADEFF3EB63F01FDFD2"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\SmartContrast.cs",
+    "Sha256": "F963F149FBF8D02232EC357CD3570E436A2F5BDC62051112CE517CB03F141955"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\TeamCatalogService.cs",
+    "Sha256": "F5B3283372DCD8884550BB9B0BF5BF500531CF4AEAC9B20A048408B04DE8E61F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\TeamLogoService.Bundled.cs",
+    "Sha256": "1005067C572C590B66FA1DFBBA45749E672AC1CE60F67873A64FCFA71CA324EA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\TeamLogoService.cs",
+    "Sha256": "97F3235D5ADE13D869F8BE6F8B5044D18AC7E8253CB5E51DBFD4A5F5826B13A0"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\TeamVisuals.cs",
+    "Sha256": "C0868A2B5EE1BEB80E2300F92077212925DC15DC643FB5977EF0D5ECD841D585"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\ThemeService.cs",
+    "Sha256": "F0944AE6317C644BCB20C05DAAA4BEAFB740A1476D5B869B851F86020C08CBA9"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\UxPreferences.cs",
+    "Sha256": "9A7F9D3E63589A63FF40D3E3A2219CB0EFBFF878ED527C337AE7E646F05C7392"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\VideoDiagnostics.cs",
+    "Sha256": "D3D59DF68657209711E73762B1F2E470F68E2318D5012A66EA95180AA11F1443"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\VideoOptimizer.cs",
+    "Sha256": "B4AFA1F7B7D0EF430FEB394E8ABAF8ED52ECC517B6DDAFCEF2FB21EA90635ACF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\VlcRuntime.cs",
+    "Sha256": "E961F85D2C729C09D41CF754CE241C4F27C59F37AF74D4FDE237188E5A522BBF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\WeatherService.cs",
+    "Sha256": "6291AB2D1B531FA35D5B7A2AA3E4F35772CCD5F648B22DA09A384C468D713B2C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\WindowChromeEnforcer.cs",
+    "Sha256": "795AFA91A9A7E4AF84BBDF866DC626BEACA6925E0B58F2B45A843E8D7762F123"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Services\\WindowLayoutStorage.cs",
+    "Sha256": "49D39B027827950C27EB5F819670D5D7A9F5BE4A6073E1DCB471255BD6CEF6A1"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\AflPresentationGalleryWindow.xaml",
+    "Sha256": "F8CE5E2B967778B43E376CD3F9EE5E406059A5FF90F24FF97F46F0D4F9E6AF92"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\AflPresentationGalleryWindow.xaml.cs",
+    "Sha256": "3500DA31571F2958F339F17D8A1DE022917B62780E6BD8949A26B63457A6CE36"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\BreakScreenControl.xaml",
+    "Sha256": "23B31906D4D999A9DB4B7B0F325C2F97D01BA180D7501EF86305D2B0D2AD71EB"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\BreakScreenControl.xaml.cs",
+    "Sha256": "8D4BAAE57B18792C1F3CA59D6215D38DF4F39408069DF4F4D3DA388A03B8F9E9"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CalibrationOverlay.xaml",
+    "Sha256": "75BA41BAE3747350616374DCCA25ED77F8961A9E1941E256431829611A9CCDA8"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CalibrationOverlay.xaml.cs",
+    "Sha256": "AFE5BA2D8BC152E43330452A2F4571224D18F05DE0EE8BF2416D94CD666E9785"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CloudRemoteLauncher.xaml",
+    "Sha256": "1925786C3DA5173FB5584068FD62F21675B4C1E01B93BC983405FC6047B82B4E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CloudRemoteLauncher.xaml.cs",
+    "Sha256": "8C95AAD0807864A8E7784A3CDE5A11C993B6BA4036B78074FD0AD207477CD972"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ColorPickerWindow.xaml",
+    "Sha256": "3D4A61B8CA0D0FB15828750D4202ABF30361AF7E40F8F6468771FB755A38BE31"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ColorPickerWindow.xaml.cs",
+    "Sha256": "341032BABF0E57C98F0A2E867A7BA8B8C9E670B4575FF16E46E5C43579578085"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ControlPanel.xaml",
+    "Sha256": "FC566845897AE0B1F9D8A2A6F2585D84CF020828BD934096A9E0773B616D2D67"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ControlPanel.xaml.cs",
+    "Sha256": "8A1ECDCCF2B850688C5C39176DD5E6ED6BAC376B8D025470A80A243E2CB93F39"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.BreakPresentations.cs",
+    "Sha256": "27283FACF3843CE4AFE59579DE51C583C314B369B2E28E63C4FD1F4D8A69538C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.Conditions.cs",
+    "Sha256": "88ACA718D9FABFA5F56E0AC4660904519AA60E85508913B7F617B56439E5DE1D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.Guidance.cs",
+    "Sha256": "C594F547D2BAFF71530269ADC5DF5CEAFC6EC9601D4045594231FFD6C57E0533"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.PlayerMenu.cs",
+    "Sha256": "A13EFD04F9AF15A7D870410387D9D6DAE7457F3D7B9C981CE29AE7D205BB6F81"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.Scorecard.cs",
+    "Sha256": "DB6B9C9996C63E0F959822CCA54859232C021364F2A06E68552350816A4B003A"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.ScorecardDetails.cs",
+    "Sha256": "2EABB17290EFB0CB9CD59CE981CD8958AB569A8F07221BC568EEAFC4F4F1473C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.ScorecardInline.cs",
+    "Sha256": "9E3FE7D82DD9BF75E5D6E9CC6397C73AB97906711DB6FBC4A44EFA9156D726EC"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.ScorecardTransactions.cs",
+    "Sha256": "B551D9547405653C374C4CA57B5CBB21A02B6EE659F1601E8D4D53836AC79958"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.Workflows.cs",
+    "Sha256": "233530FFF391FB47BF966DF75CA579B9F749C587B5BEB8342FDD92F65B2230C2"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.xaml",
+    "Sha256": "B77CB54F30DB0233508676B1216F931A5723F75BD92C24916D2517D37D2AABF5"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketControlPanel.xaml.cs",
+    "Sha256": "C96CF98235375B6297CD7681F4E7E2B1CA6DD2DDA5A457629B1D2EB36DAE1C59"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketDeliveryDialog.xaml",
+    "Sha256": "B2207421E09E7D03288F82AD937FA16F08106CC9AA8C1FEC92F7AFE108AF0624"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketDeliveryDialog.xaml.cs",
+    "Sha256": "18641FF0E95EB54AC7E9BCB8E9603F0749A7D52B7B0BF393B10CAE14A91EE471"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketOverlayHost.cs",
+    "Sha256": "C66A3BDEC5F0C123E854E77E62DF58096DC755131F7E3264EDAFC13B66ED5564"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketOverlayHost.FreeHit.cs",
+    "Sha256": "B96ABDF405394788D7E5D53EB009AED0BCB42C209A2DBE453E04796C28E0B078"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketPrompt.cs",
+    "Sha256": "F9588373C6EC591CE7D6F75CCE590C877B03F7EDDEFE183C99523FFA093ECE25"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketScorebugControl.Broadcast.cs",
+    "Sha256": "35524FE03D426A5BE17B6D992F464A1B0591224EA36A589DFBE46D0F3D2F7AC2"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketScorebugControl.Context.cs",
+    "Sha256": "089DE74292660DFC7A88FBD13DD237B7463E15F59075B427F96AAC19736BE21E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketScorebugControl.Diagnostics.cs",
+    "Sha256": "4476D9811936CD88F507AC0FB86A03ACCE8E04C6CABD9817A056BBDD6358DA16"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketScorebugControl.Moments.cs",
+    "Sha256": "AA3ABE327369F1E57D737F274FB1C97AA1084111F9ADD03428A0A94407AE0D57"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketScorebugControl.Presentation.cs",
+    "Sha256": "7A6E1959809FAC103B1EBCD2E1D257AA5AF29BEE9221DACCFD3ED1F3BD6CC9BA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketScorebugControl.xaml",
+    "Sha256": "A27A71FB08D3C63F52D62BA9A0421E098D6E05C9498123AE2D9A57F10D408164"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketScorebugControl.xaml.cs",
+    "Sha256": "2D8322D62501CBDCCAE438FAE9874ACA3157B68BC116DE1231EA5EB27D278A03"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketSetupWizard.Roles.cs",
+    "Sha256": "51FB1B9A96BA8022429A67905835286846C642131F44EA237CE53BF7B25AB5B0"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketSetupWizard.xaml",
+    "Sha256": "CD1D77CB4E41815D0C13D566853857C1DC8A48B30344781AFD9D449A925BB853"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketSetupWizard.xaml.cs",
+    "Sha256": "C3E8D2C344A2C80B57E1214D16BFAA66C3FF66ED20C5204865D70EA3707F3100"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketSummaryControl.MatchSummary.cs",
+    "Sha256": "DF951F7B639A0AECEE2D96BD8782BE6F595D4536D80DE1E3E81404D7DF941F6D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketSummaryControl.xaml",
+    "Sha256": "F18D963D6A6A280F3E9CA7138E208F015D2DD51A376E854C39D268C4F58345EE"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\CricketSummaryControl.xaml.cs",
+    "Sha256": "E33B4AC8B396CD0C9D4C66A5C8153B7B87A74ADE5239F7679B26C72A7FC421E7"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\DesignSystemGalleryWindow.xaml",
+    "Sha256": "43E817667689D95E4FC2EE8A5E8BEE3AC2F3CC36B26EBC15E3DABF43E760323E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\DesignSystemGalleryWindow.xaml.cs",
+    "Sha256": "B1F39B5278C9E75F6E260DB9B6D533DF4C5AF77E1D47F51E1FECB51913425400"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\EmergencyVideoWindow.cs",
+    "Sha256": "C04DC2D5030D820F7A839AE7F0CEACD73B0B8981EC1579148B4B46578ED3F738"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\GlobalSettingsScreen.xaml",
+    "Sha256": "068C96ECD541E0829800861696BAE12116DE9F37AF6C25BAB1E8301691641EB0"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\GlobalSettingsScreen.xaml.cs",
+    "Sha256": "A7EEA6B09110E20161AD5C32784C0358198C3C1DA6FA945BE21EE976884AB2E5"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\IntroScreenControl.xaml",
+    "Sha256": "A0980EA136237339870B4D67BD251A712B38084C9697994006959E133E776168"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\IntroScreenControl.xaml.cs",
+    "Sha256": "81E7CDA18CB0463217488FE59B353FA9CB431344483197643BF1924B561117B3"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\LogoCropWindow.xaml",
+    "Sha256": "81C8B0A208D1051B2DF598346CC6ACA5A99447CBD56FD20C958EA147E90D3F15"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\LogoCropWindow.xaml.cs",
+    "Sha256": "7379CC409DF4FC190AC566916F75D8BDC9354E42AFCFB1D425783C383BEC6168"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\MatchLoadingScreen.xaml",
+    "Sha256": "6F7119FCF7917923652B8E7B3A9A181964E2E2BCA69BB18356C76B8292E67E6F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\MatchLoadingScreen.xaml.cs",
+    "Sha256": "9BD1C1928773C573D94A363BE83068B21C9C8FB02D83EA861667084513368AFC"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\OperatorActionBorder.cs",
+    "Sha256": "FD49350B63DB5709706C7D76AC7C2631CD38090C01542CE48E73009CE8DC128D"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\OperatorViewport.cs",
+    "Sha256": "BBCC62C2CCF01C5FB21AF5633922E693E03D2978683FE08AD99D5BBE7ACBA816"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\OutputScreensaverControl.xaml",
+    "Sha256": "4F7243A34BB28CC9E7CBA027899B9FF4AE55A746653F4DD366A7FD8160929882"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\OutputScreensaverControl.xaml.cs",
+    "Sha256": "D10DF8E249959ED3175E64A8F8FF154FAC916C410014150C29C1BEB69603CE2C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\PresentationScoreBar.xaml",
+    "Sha256": "430EB9CBCE88FE268689FD269ACFC413850277D6D922DF39B4199AA97CCA80EA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\PresentationScoreBar.xaml.cs",
+    "Sha256": "A3990F05AB4290B25F78D45CBC095D50217B7C0DD5D801F7A9B85D975337FDEC"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\QuarterBreakScorebugControl.xaml",
+    "Sha256": "950392DA7E531006025CD57669BD4BE478C520E752178CC3D7F5DE8FF14057D3"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\QuarterBreakScorebugControl.xaml.cs",
+    "Sha256": "B96D585273CB3315025DBAE27FB2D9E2A6626552FB67CE3B265E695195DBD6BA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ResponsivePresentationTypography.cs",
+    "Sha256": "FB3CE5C7D30CCB1D2F9856950E40BBC11DFDBA0BB706C3B662E76209491BB5A1"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ResumeGameDialog.xaml",
+    "Sha256": "F000D241DFB3FE7FDDAF1D14D32962B842F680B6E7E1AE85090E0A48018A8FD3"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ResumeGameDialog.xaml.cs",
+    "Sha256": "15E6CFF730F0DAF4E04A43129CCEC5F23F2D2FBB2DAB7ED75EE5D3E6B3DCEEB6"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ResumeMatchPrompt.xaml",
+    "Sha256": "75C7E7ECBCCCCE785FCB3252DEE0CA380CE7A759B9138F5B554321AB9F39B3BD"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ResumeMatchPrompt.xaml.cs",
+    "Sha256": "85D72B43C90FD4DB303DD82B7137653A7064CE359694A842750BA12AC8F0737C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\RollingScoreVisual.cs",
+    "Sha256": "068FD97B9BBC45D4379FF1D112405D868682C8DE183F84FEBEBC24032E05B319"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ScoreboardScaleHelper.cs",
+    "Sha256": "16D7479CCACD51B58FAC1CEDA4FC841A94E24A61111BFE358B12F15A8B2F3E49"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ScorebugControl.xaml",
+    "Sha256": "B2DBD41B8E4B10EF33EB4B7017608D18C2D61FFB3356FB57C7A263DB9B88FB05"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ScorebugControl.xaml.cs",
+    "Sha256": "8A98653736CA85126B7CE108F27C97F185DA7B28AFB1431060104A7A4E18B002"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ScoreEventEditorWindow.xaml",
+    "Sha256": "DE1B9E04A42FFE18080F64B20B597177737DF29AD4E9FFB4205C8C0F24146D5B"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ScoreEventEditorWindow.xaml.cs",
+    "Sha256": "EFAE4DBB3C117F70ECA27A6DFAD226D5299A0A70F7C03FCE5BEF7148AD91891F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ScorewormControl.xaml",
+    "Sha256": "5E7F6AACAF679E21B263ED29067F702DB249DDFD68E3798FB2C2E68403B59264"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\ScorewormControl.xaml.cs",
+    "Sha256": "15698BC045058C80F7F480F97EC47FD9C0C23297744FF893FC0F1D133A76A6EB"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\SettingsWorkspace.cs",
+    "Sha256": "F46C7E7408E4A7269A10814C4F03E24D5A60FB628B4BA012292E8DDC4DA28DED"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\SetupWizard.xaml",
+    "Sha256": "EA20642FECF9846205078AE84A786397CCE90DCBCBB4FB046703E6A212494AF6"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\SetupWizard.xaml.cs",
+    "Sha256": "488A1FADE0464F565251A4954457393D325EB639CFE1217A1221F4948827F32F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\SharedSurfaceMotion.cs",
+    "Sha256": "5442AABA918457DF8C87277DE46D1AA10C8F8FB749512B8C93D1C9FEB5E1819B"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\SharedSurfaceMotionChecks.cs",
+    "Sha256": "4964D668688452999BCD2F08C9944E374B7E14490504F8DD3E4DCB0EEA76E38A"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\SportSelectionScreen.Interactions.cs",
+    "Sha256": "3669DC5FAE06B13779D67E6F124505A8530E8C225513CC2D76B29639D906AC66"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\SportSelectionScreen.xaml",
+    "Sha256": "45D4D9159724A13A7C05C453B5BD3889569BAB64499DF6B7553173A8887116BF"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\SportSelectionScreen.xaml.cs",
+    "Sha256": "F95204826547D93506D869DA4116EF46EC04146F0DD327EBA519F0C163A6EFFE"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\StatsScreenControl.xaml",
+    "Sha256": "489554AEAFD78111CB9EC355292352B0FD572E9462651DB9C5113341DE63E2B5"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\StatsScreenControl.xaml.cs",
+    "Sha256": "71B80FC58D01A40A6A14C11D87203F27E5C25642268AE70D09709FBB2E4BD693"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\TeamLibraryWindow.xaml",
+    "Sha256": "03C4337C25E27EC467F423B5424B0B7DE369147745D1AD3DE0F1493AB9950F65"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\TeamLibraryWindow.xaml.cs",
+    "Sha256": "E0B4551CEBB95D796D406456F0C525FFE05DF6FDB7D1BFAF8B86808344E1760E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\TrainingControlPanel.xaml",
+    "Sha256": "9DBC488728172AB58A8A68F86A3322A0FB8F8441D03DB442AD27E996C25714FA"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\TrainingControlPanel.xaml.cs",
+    "Sha256": "71E52F3D29A39BCA06E5A2824C3E1685B7BD772D22E43C6B29DCA9A1389DB21E"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\TrainingScorebugControl.xaml",
+    "Sha256": "8781AE2A55FAC634CCDF66C2FAFC40D5BDA27F50CFBB9EDC59D07790FC37930F"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\TrainingScorebugControl.xaml.cs",
+    "Sha256": "477CECBDFFC12D71937FBA64FA8EF8433B73F927F6B3D1FDC62BF4014B94FCE2"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\UpdatePromptWindow.xaml",
+    "Sha256": "FDBE8412D7A8185F3C62DE7A2E6A6C35F143C1459663E2D265701D4DB7F90A5B"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\UpdatePromptWindow.xaml.cs",
+    "Sha256": "48D02D26F7A96C36DC2F8804C697E815485007B7E6BCFFD4A7AB96F8A06DA9E4"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\VideoPlayerControl.PresentationOverlay.cs",
+    "Sha256": "2B112C179C2C10B97619C23B6E81A9A4F1CE9A14B611C08F244DA6C6075E4B4B"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\VideoPlayerControl.xaml",
+    "Sha256": "2815DF96B1739A54780AB08EC6E810750E8D75CB7B05185AF6ADC6AF03F16C8C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\VideoPlayerControl.xaml.cs",
+    "Sha256": "6005402ADDFCF6D2E92943F274D23289C4B99AE95975B2357F9568B427576E5C"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\WeatherScreenControl.xaml",
+    "Sha256": "44BCDAB56E3FDBE14C8B035700BEFE525442349B121734BF284EF04E5010F033"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\WeatherScreenControl.xaml.cs",
+    "Sha256": "E52313914E2ECB542F4068BC9ED544BB3B82C4765C841704C61665C2A34F7C81"
+  },
+  {
+    "Path": "Roche_Scoreboard\\Views\\WizardPair.cs",
+    "Sha256": "0B238042490AA8F5E25D183DCA8234D4E9BDD6C378CCD368EF886DBE460EDE26"
+  }
+]

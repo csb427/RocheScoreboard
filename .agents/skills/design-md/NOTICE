@@ -1,0 +1,16 @@
+design-md skill
+Copyright 2026 Jeftar Mascarenhas
+
+This product includes material from third parties:
+
+- DESIGN.md format/specification and the example files in assets/examples/
+  (atmospheric-glass, paws-and-paths, totality-festival) are from
+  google-labs-code/design.md (https://github.com/google-labs-code/design.md),
+  licensed under Apache License 2.0.
+
+- assets/catalog-index.json references design-system analyses maintained by
+  VoltAgent/awesome-design-md (MIT, https://github.com/VoltAgent/awesome-design-md)
+  and getdesign.md (https://getdesign.md). This project links to them and does
+  not redistribute their contents.
+
+This project is independent and is not affiliated with or endorsed by Google.

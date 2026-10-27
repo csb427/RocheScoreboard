@@ -364,3 +364,19 @@ FodyWeavers.xsd
 
 # Reproducible local release packages (GitHub Actions creates the public assets)
 /artifacts/
+
+# Local upstream tool checkouts; installed project skills are kept separately.
+/ECC/
+/hermes-agent/
+/microkit-ui/
+/rea/
+/taste-skill/
+/transitions.dev/
+/ui-ux-pro-max-skill/
+/design-md-skill-inspect/
+
+# Graph extraction caches and machine-local metadata; keep the shared graph.
+/graphify-out/cache/
+/graphify-out/.graphify_root
+/graphify-out/.graphify_labels.json.sig
+/graphify-out/.graphify_labels.pending.json

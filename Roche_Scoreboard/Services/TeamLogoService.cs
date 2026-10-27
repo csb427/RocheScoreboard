@@ -10,12 +10,14 @@ using Roche_Scoreboard.Models;
 namespace Roche_Scoreboard.Services;
 
 /// <summary>Downloads, caches and guarantees a transparent PNG team logo.</summary>
-public static class TeamLogoService
+public static partial class TeamLogoService
 {
     private static readonly HttpClient Client = CreateClient();
 
     public static async Task<string> GetTransparentLogoAsync(TeamCatalogEntry team, CancellationToken cancellationToken = default)
     {
+        if (!string.IsNullOrWhiteSpace(team.BundledLogo))
+            return await PrepareBundledLogoAsync(team, null, cancellationToken).ConfigureAwait(false);
         string directory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "Roche_Scoreboard", "team_library", "logos");
@@ -186,7 +188,7 @@ public static class TeamLogoService
     /// Removes only background-like pixels connected to an image edge. This
     /// protects white marks inside a crest while removing a flat JPEG/PNG mat.
     /// </summary>
-    private static void RemoveBorderConnectedBackground(byte[] pixels, int width, int height, int stride)
+    private static void RemoveBorderConnectedBackground(byte[] pixels, int width, int height, int stride, Func<int, int, bool>? protectedForeground = null)
     {
         (double b, double g, double r) background = AverageCorners(pixels, width, height, stride);
         bool[] visited = new bool[width * height];
@@ -200,6 +202,7 @@ public static class TeamLogoService
             int visitIndex = y * width + x;
             if (visited[visitIndex]) continue;
             visited[visitIndex] = true;
+            if (protectedForeground?.Invoke(x, y) == true) continue;
 
             int p = y * stride + x * 4;
             double db = pixels[p] - background.b;
@@ -223,11 +226,11 @@ public static class TeamLogoService
         foreach ((int startX, int startY) in new[] { (0, 0), (width - patch, 0), (0, height - patch), (width - patch, height - patch) })
         {
             for (int y = startY; y < startY + patch; y++)
-            for (int x = startX; x < startX + patch; x++)
-            {
-                int p = y * stride + x * 4;
-                b += pixels[p]; g += pixels[p + 1]; r += pixels[p + 2]; count++;
-            }
+                for (int x = startX; x < startX + patch; x++)
+                {
+                    int p = y * stride + x * 4;
+                    b += pixels[p]; g += pixels[p + 1]; r += pixels[p + 2]; count++;
+                }
         }
         return ((double)b / count, (double)g / count, (double)r / count);
     }

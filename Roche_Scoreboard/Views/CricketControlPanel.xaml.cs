@@ -7,10 +7,12 @@ using System.Windows.Media;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using Roche_Scoreboard.Models;
+using Roche_Scoreboard.Services;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Button = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
+using ColorConverter = System.Windows.Media.ColorConverter;
 using FontFamily = System.Windows.Media.FontFamily;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using MessageBox = System.Windows.MessageBox;
@@ -20,12 +22,108 @@ namespace Roche_Scoreboard.Views
 {
     public partial class CricketControlPanel : UserControl
     {
+        private sealed record PlayerChoice(string Name, string Figures, string Status);
+        public event Action? ApplicationPreferencesRequested;
+        private void OpenApplicationPreferences_Click(object sender, RoutedEventArgs e)
+            => ApplicationPreferencesRequested?.Invoke();
+        private CricketOverlayHost? _overlayHost;
+        private readonly Dictionary<CricketOverlayKind, Button> _overlayButtons = new();
+        public void SetOverlayHost(CricketOverlayHost host)
+        {
+            if (_overlayHost != null) _overlayHost.StateChanged -= RefreshOverlayControls;
+            _overlayHost = host; host.StateChanged += RefreshOverlayControls;
+            host.AutomaticEnabled = CricketAutomaticOverlays.IsChecked == true;
+            CricketOverlayButtons.Children.Clear(); _overlayButtons.Clear();
+            foreach (CricketOverlayGroup group in Enum.GetValues<CricketOverlayGroup>())
+            {
+                var colour = group switch { CricketOverlayGroup.Review => "#75D286", CricketOverlayGroup.Pressure => "#E7B94F", CricketOverlayGroup.Context => "#8FC5FF", _ => "#B9A1FA" };
+                var background = group switch { CricketOverlayGroup.Review => "#081A0E", CricketOverlayGroup.Pressure => "#14100A", CricketOverlayGroup.Context => "#06101C", _ => "#151025" };
+                CricketOverlayButtons.Children.Add(new TextBlock
+                {
+                    Text = group switch { CricketOverlayGroup.Review => "RECENT PLAY", CricketOverlayGroup.Pressure => "PRESSURE", CricketOverlayGroup.Context => "MATCH CONTEXT", _ => "SCORING OUTLOOK" },
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour)),
+                    FontSize = 11,
+                    FontWeight = FontWeights.Black,
+                    Margin = new Thickness(3, 8, 0, 6)
+                });
+                var cards = new System.Windows.Controls.Primitives.UniformGrid { Columns = 2, Margin = new Thickness(0, 0, 0, 10) };
+                CricketOverlayButtons.Children.Add(cards);
+                foreach (var fact in host.Facts.Where(f => f.Group == group))
+                {
+                    CricketOverlayKind kind = fact.Kind;
+                    var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(4, 10, 4, 10) };
+                    content.Children.Add(new TextBlock
+                    {
+                        Text = group switch { CricketOverlayGroup.Review => "↶", CricketOverlayGroup.Pressure => "◷", CricketOverlayGroup.Context => "≡", _ => "↗" },
+                        FontSize = 18,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour)),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Margin = new Thickness(0, 0, 0, 3)
+                    });
+                    content.Children.Add(new TextBlock { Text = OverlayCaption(kind), FontSize = 11, FontWeight = FontWeights.Black, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour)), HorizontalAlignment = HorizontalAlignment.Center });
+                    var button = new Button
+                    {
+                        Tag = kind,
+                        Content = content,
+                        Style = (Style)FindResource("OperatorPresentationButton"),
+                        MinHeight = 72,
+                        Margin = new Thickness(4),
+                        Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(background))
+                    };
+                    button.Click += (_, _) => _overlayHost?.Request(kind);
+                    _overlayButtons[kind] = button; cards.Children.Add(button);
+                }
+            }
+            RefreshOverlayControls();
+        }
+        private static string OverlayCaption(CricketOverlayKind kind) => kind switch
+        {
+            CricketOverlayKind.LastOver => "LAST OVER",
+            CricketOverlayKind.SinceScore => "SINCE SCORE",
+            CricketOverlayKind.SinceWicket => "SINCE WICKET",
+            CricketOverlayKind.SinceBoundary => "SINCE BOUNDARY",
+            CricketOverlayKind.LastWicket => "LAST WICKET",
+            CricketOverlayKind.ScoringWindow => "SCORING WINDOW",
+            CricketOverlayKind.Comparison => "CHASE COMPARISON",
+            CricketOverlayKind.Projection => "PROJECTED SCORE",
+            CricketOverlayKind.Toss => "TOSS RESULT",
+            _ => "EXTRAS"
+        };
+        private void RefreshOverlayControls()
+        {
+            if (_overlayHost is null) return;
+            OverlayStatusText.Text = _overlayHost.Status;
+            foreach (var button in _overlayButtons.Values)
+            {
+                var fact = _overlayHost.Facts.FirstOrDefault(f => f.Kind == (CricketOverlayKind)button.Tag);
+                button.IsEnabled = fact?.Available == true;
+                button.Opacity = button.IsEnabled ? 1 : .45;
+                button.ToolTip = fact?.Available == true ? fact.Title : fact?.UnavailableReason;
+            }
+        }
+        private void AutoOverlays_Changed(object sender, RoutedEventArgs args)
+        { if (_overlayHost != null) _overlayHost.AutomaticEnabled = CricketAutomaticOverlays.IsChecked == true; }
+        private void CancelCricketOverlay_Click(object sender, RoutedEventArgs args) => _overlayHost?.Cancel();
+
         private CricketMatchManager? _match;
         private CricketScorebugControl? _scorebug;
         private Window? _displayWindow;
 
+        private CricketDeliveryDialog? _deliveryEntry;
+        private DateTime _deliveryPointerGuardUntil;
+        private bool _loadingPresentationPreferences = true;
+        private void CricketPresentationPreference_Changed(object sender, RoutedEventArgs args)
+        {
+            if (_loadingPresentationPreferences) return;
+            if (_scorebug != null)
+            {
+                _scorebug.EventAnimationsEnabled = CricketEventAnimations.IsChecked == true; _scorebug.RollingFiguresEnabled = CricketRollingFigures.IsChecked == true;
+                _scorebug.BowlerDetailsEnabled = CricketBowlerDetails.IsChecked == true;
+            }
+            if (System.Windows.Application.Current is not App { IsSelfTestMode: true }) OperatorWorkflowPreferences.Update(p => { p.CricketEventAnimations = CricketEventAnimations.IsChecked == true; p.CricketRollingFigures = CricketRollingFigures.IsChecked == true; p.CricketBowlerDetails = CricketBowlerDetails.IsChecked == true; });
+        }
+
         // Extras popup state
-        private CricketDeliveryType _pendingExtraType;
         // Batter selection mode: "wicket", "striker", "nonstriker"
         private string _batterSelectionMode = "wicket";
 
@@ -36,12 +134,116 @@ namespace Roche_Scoreboard.Views
         // Delivery log: current over group tracking
         private int _logCurrentOver = -1;
         private StackPanel? _logCurrentOverPanel;
+        private CricketInnings? _loggedInnings;
+        private int _loggedDeliveryCount;
 
         public event Action? ResetRequested;
 
         public CricketControlPanel()
         {
             InitializeComponent();
+            PreviewMouseDown += (_, args) => { if (DateTime.UtcNow < _deliveryPointerGuardUntil) args.Handled = true; };
+            PreviewKeyDown += (_, args) =>
+            {
+                if (_deliveryEntry is null || args.OriginalSource is not UIElement source || !ConsoleViewport.IsAncestorOf(source)) return;
+                args.Handled = true; _deliveryEntry.ApplyButton.Focus();
+            };
+            PreviewGotKeyboardFocus += (_, args) =>
+            {
+                if (_deliveryEntry is null || args.NewFocus is not UIElement destination || !ConsoleViewport.IsAncestorOf(destination)) return;
+                args.Handled = true; _deliveryEntry.ApplyButton.Focus();
+            };
+            CricketAutomaticOverlays.IsChecked = OperatorWorkflowPreferences.Load().AflAutoOverlaysEnabled;
+            var preferences = OperatorWorkflowPreferences.Load();
+            CricketEventAnimations.IsChecked = preferences.CricketEventAnimations; CricketRollingFigures.IsChecked = preferences.CricketRollingFigures; CricketBowlerDetails.IsChecked = preferences.CricketBowlerDetails;
+            _loadingPresentationPreferences = false;
+            CricketSettingsColumns.SizeChanged += (_, _) => ReflowSettingsColumns();
+            InitializeWorkflowControls();
+            InitializeBreakPresentations();
+        }
+
+        private bool? _narrowConsole;
+        private readonly Dictionary<Grid, (GridLength[] Columns, (FrameworkElement Element, int Column)[] Children)> _consoleLayouts = new();
+        private void Console_SizeChanged(object sender, SizeChangedEventArgs e) => AdaptConsole();
+
+        private void AdaptConsole()
+        {
+            if (ConsoleViewport is null || ScoringColumns is null) return;
+            bool narrow = ActualWidth < 900;
+            ConsoleViewport.MinimumCanvasWidth = 320;
+            ConsoleViewport.NaturalHeight = false;
+            ConsoleViewport.MinimumCanvasHeight = 0;
+            if (_narrowConsole != narrow)
+            {
+                foreach (Grid grid in new[] { ScoringColumns, DisplayColumns })
+                {
+                    if (!_consoleLayouts.ContainsKey(grid))
+                        _consoleLayouts[grid] = (grid.ColumnDefinitions.Select(c => c.Width).ToArray(),
+                            grid.Children.OfType<FrameworkElement>().Select(child => (child, Grid.GetColumn(child))).ToArray());
+                    var saved = _consoleLayouts[grid];
+                    grid.RowDefinitions.Clear();
+                    if (narrow)
+                    {
+                        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                        grid.RowDefinitions.Add(new RowDefinition { Height = grid == ScoringColumns ? new GridLength(320) : GridLength.Auto });
+                    }
+                    for (int i = 0; i < 3; i++) grid.ColumnDefinitions[i].Width = narrow
+                        ? new GridLength(i == 0 ? 1 : 0, GridUnitType.Star) : saved.Columns[i];
+                    // The original log column has a minimum width which must yield in stacked mode.
+                    grid.ColumnDefinitions[2].MinWidth = !narrow && grid == ScoringColumns ? 260 : 0;
+                    foreach (var child in saved.Children)
+                    {
+                        Grid.SetColumn(child.Element, narrow ? 0 : child.Column);
+                        Grid.SetRow(child.Element, narrow && child.Column == 2 ? 1 : 0);
+                        if(grid==ScoringColumns && child.Column==0 && child.Element is ScrollViewer scorer) scorer.VerticalScrollBarVisibility=narrow ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto;
+                    }
+                }
+                _narrowConsole = narrow;
+            }
+            // Pages scroll independently while the navigation dock remains anchored.
+            double scoringHeight = narrow ? double.NaN : Math.Max(260, CricketMatchPageViewport.ActualHeight - 24);
+            double outputHeight = narrow ? double.NaN : Math.Max(260, CricketOutputPageViewport.ActualHeight - 32);
+            if (narrow) { ScoringColumns.Height = double.NaN; DisplayColumns.Height = double.NaN; }
+            else
+            {
+                if (!double.IsFinite(ScoringColumns.Height) || Math.Abs(ScoringColumns.Height - scoringHeight) > .5) ScoringColumns.Height = scoringHeight;
+                if (!double.IsFinite(DisplayColumns.Height) || Math.Abs(DisplayColumns.Height - outputHeight) > .5) DisplayColumns.Height = outputHeight;
+            }
+            CricketPresentationGrid.Columns = ActualWidth < 650 ? 2 : 3;
+            HeaderOversBadge.Visibility = narrow ? Visibility.Collapsed : Visibility.Visible;
+            bool tiny = ActualWidth < 560;
+            Grid.SetColumnSpan(InningsLabel, tiny ? 3 : 1);
+            WorkflowBadge.Visibility = ActualWidth < 430 ? Visibility.Collapsed : Visibility.Visible;
+            PersistentHeader.ColumnDefinitions[1].Width = new GridLength(ActualWidth < 430 ? 0 : 18);
+            InningsLabel.FontSize = narrow ? 20 : 24;
+            bool shortWindow = ActualHeight < 500;
+            foreach (Border card in new[] { BatterSelectionCard, BowlerSelectionCard })
+                card.Padding = new Thickness(shortWindow ? 14 : 24);
+            BatterSelectionTitle.FontSize = shortWindow ? 20 : 25;
+            BatterSelectionOverlay.Padding = BowlerSelectionOverlay.Padding = new Thickness(shortWindow ? 12 : 24);
+            ConfirmBatterButton.Height = ConfirmBowlerButton.Height = shortWindow ? 42 : 48;
+            ConsoleViewport.RefreshViewport();
+        }
+
+        private bool? _stackedSettings;
+        private void ReflowSettingsColumns()
+        {
+            var grid = CricketSettingsColumns;
+            if (grid.ActualWidth <= 0) return;
+            bool stack = grid.ActualWidth < 720;
+            if (_stackedSettings == stack) return;
+            if (!_consoleLayouts.ContainsKey(grid))
+                _consoleLayouts[grid] = (grid.ColumnDefinitions.Select(c => c.Width).ToArray(),
+                    grid.Children.OfType<FrameworkElement>().Select(child => (child, Grid.GetColumn(child))).ToArray());
+            var saved = _consoleLayouts[grid]; grid.RowDefinitions.Clear();
+            if (stack) { grid.RowDefinitions.Add(new() { Height = GridLength.Auto }); grid.RowDefinitions.Add(new() { Height = GridLength.Auto }); }
+            for (int i = 0; i < 3; i++) grid.ColumnDefinitions[i].Width = stack ? new GridLength(i == 0 ? 1 : 0, GridUnitType.Star) : saved.Columns[i];
+            foreach (var child in saved.Children)
+            {
+                Grid.SetColumn(child.Element, stack ? 0 : child.Column); Grid.SetRow(child.Element, stack && child.Column == 2 ? 1 : 0);
+                child.Element.Margin = new Thickness(0, stack && child.Column == 2 ? 16 : 0, 0, 0);
+            }
+            _stackedSettings = stack;
         }
 
         private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -49,95 +251,80 @@ namespace Roche_Scoreboard.Views
             if (e.Source != MainTabControl)
                 return;
 
+            AdaptConsole();
+            if(MainTabControl.SelectedItem==ScorecardTab) RefreshScorecard();
             AnimateSelectedTabContent();
         }
 
         private void AnimateSelectedTabContent()
         {
-            if (MainTabControl?.SelectedContent is not FrameworkElement content)
-                return;
-
-            if (content.RenderTransform is not TranslateTransform translate)
-            {
-                translate = new TranslateTransform();
-                content.RenderTransform = translate;
-            }
-
-            content.BeginAnimation(UIElement.OpacityProperty, null);
-            translate.BeginAnimation(TranslateTransform.XProperty, null);
-
-            content.Opacity = 0.82;
-            translate.X = 16;
-
-            var slide = new DoubleAnimation
-            {
-                To = 0,
-                Duration = TimeSpan.FromMilliseconds(210),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-
-            var fade = new DoubleAnimation
-            {
-                To = 1,
-                Duration = TimeSpan.FromMilliseconds(200),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-
-            translate.BeginAnimation(TranslateTransform.XProperty, slide);
-            content.BeginAnimation(UIElement.OpacityProperty, fade);
+            if(MainTabControl?.SelectedContent is FrameworkElement content) SharedSurfaceMotion.Reveal(content);
         }
 
         public void SetMatch(CricketMatchManager match)
         {
+            ClearMatch();
+            _match = match;
+            _match.MatchChanged += UpdateUI;
+            _match.DeliveryAdded += OnDeliveryAdded;
+            _match.BatterSelectionNeeded += OnBatterSelectionNeeded;
+            _match.BowlerSelectionNeeded += OnBowlerSelectionNeeded;
+            CricketWeatherLocation.Text = match.WeatherLocation;
+            CricketWeatherTemperature.Text = "—";
+            CricketWeatherDescription.Text = "Weather will update for your selected venue.";
+            UpdateUI();
+
+            RebuildDeliveryLog();
+        }
+
+        /// <summary>Detach the previous game before resetting or binding another.</summary>
+        public void ClearMatch()
+        {
+            ClosePlayerMenu();
+            ResetBreakPresentations();
             if (_match != null)
             {
                 _match.MatchChanged -= UpdateUI;
                 _match.DeliveryAdded -= OnDeliveryAdded;
                 _match.BatterSelectionNeeded -= OnBatterSelectionNeeded;
                 _match.BowlerSelectionNeeded -= OnBowlerSelectionNeeded;
-                _match.MilestoneReached -= OnMilestoneReached;
             }
-            _match = match;
-            _match.MatchChanged += UpdateUI;
-            _match.DeliveryAdded += OnDeliveryAdded;
-            _match.BatterSelectionNeeded += OnBatterSelectionNeeded;
-            _match.BowlerSelectionNeeded += OnBowlerSelectionNeeded;
-            _match.MilestoneReached += OnMilestoneReached;
-            UpdateUI();
-            RefreshBowlerList();
-            RebuildDeliveryLog();
+            if (_overlayHost != null) { _overlayHost.StateChanged -= RefreshOverlayControls; _overlayHost.Dispose(); _overlayHost = null; }
+            TossOverlay.Visibility = Visibility.Collapsed;
+            TossHomeChoice.IsChecked = TossAwayChoice.IsChecked = TossBatChoice.IsChecked = TossBowlChoice.IsChecked = false;
+            _selectorGeneration++;
+            _cpBatLogo = _cpBowlLogo = _cpThemeSignature = null;
+            _match = null;
+            ResetWorkflowControls();
+            _deliveryEntry?.Cancel();
+            _deliveryEntry = null; DeliveryEntryContent.Content = null; DeliveryEntryOverlay.Visibility = Visibility.Collapsed; ConsoleViewport.IsEnabled = true; ConsoleViewport.IsHitTestVisible = true;
+            _scorebug = null;
+            _summaryControl = null;
+            _displayWindow = null;
+            _cpTopBatterIndex = _cpBottomBatterIndex = -1;
+            _currentPresentation = "scorebug";
+            _batterSelectionMode = "striker";
+            BatterSelectionOverlay.Visibility = BowlerSelectionOverlay.Visibility =
+                Visibility.Collapsed;
+            BatterSelectionList.Items.Clear();
+            BowlerSelectionList.Items.Clear();
+            _rebuildingLog = false; _overChoices = [];
+            _refreshingOverChoices = true; DeliveryOverChoice.Items.Clear(); _refreshingOverChoices = false;
+            EventLog.Children.Clear();
+            _logCurrentOver = -1;
+            _logCurrentOverPanel = null;
+            _loggedInnings = null;
+            _loggedDeliveryCount = 0;
+            MainTabControl.SelectedIndex = 0;
+            UpdatePresentationSelection();
         }
 
         public void SetScorebug(CricketScorebugControl scorebug)
         {
-            if (_scorebug != null)
-                _scorebug.OverlayQueueChanged -= OnOverlayQueueChanged;
             _scorebug = scorebug;
-            _scorebug.OverlayQueueChanged += OnOverlayQueueChanged;
-        }
-
-        private void OnMilestoneReached(string playerName, int milestone)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                _scorebug?.ShowMilestoneCelebration(playerName, milestone);
-            });
-        }
-
-        private void OnOverlayQueueChanged(int count)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                if (count > 0)
-                {
-                    OverlayQueueBadge.Visibility = Visibility.Visible;
-                    OverlayQueueText.Text = count == 1 ? "1 overlay queued" : $"{count} overlays queued";
-                }
-                else
-                {
-                    OverlayQueueBadge.Visibility = Visibility.Collapsed;
-                }
-            });
+            scorebug.EventAnimationsEnabled = CricketEventAnimations.IsChecked == true;
+            scorebug.RollingFiguresEnabled = CricketRollingFigures.IsChecked == true;
+            scorebug.BowlerDetailsEnabled = CricketBowlerDetails.IsChecked == true;
         }
 
         public void SetDisplayWindow(Window window)
@@ -147,10 +334,8 @@ namespace Roche_Scoreboard.Views
 
         public void SetMessages(List<string> messages)
         {
-            MessageList.Items.Clear();
-            foreach (var msg in messages)
-                MessageList.Items.Add(msg);
-            _scorebug?.SetMarqueeMessages(messages);
+            // Preserve saved data without exposing a ticker that is no longer on air.
+            if (_match is not null) _match.Messages = new List<string>(messages);
         }
 
         /// <summary>Trigger the initial batter + bowler selection at match start.</summary>
@@ -158,6 +343,7 @@ namespace Roche_Scoreboard.Views
         {
             _cpTopBatterIndex = -1;
             _cpBottomBatterIndex = -1;
+            if (_match?.TossPending == true) return;
             _batterSelectionMode = "striker";
             ShowBatterSelection("SELECT OPENING STRIKER");
         }
@@ -165,11 +351,13 @@ namespace Roche_Scoreboard.Views
         public void ResumePendingSelection()
         {
             var innings = _match?.CurrentInnings;
-            if (innings == null || innings.IsComplete) return;
+            if (innings == null || innings.IsComplete || _match?.TossPending == true || _deliveryEntry != null) return;
             if (innings.NeedsBatterSelection)
             {
-                _batterSelectionMode = innings.StrikerIndex < 0 ? "striker" : "wicket";
-                ShowBatterSelection(innings.StrikerIndex < 0 ? "SELECT OPENING STRIKER" : "SELECT NEW BATTER");
+                _batterSelectionMode = innings.Striker is null ? "striker"
+                    : innings.NonStriker is null ? "nonstriker" : "wicket";
+                ShowBatterSelection(_batterSelectionMode == "striker" ? "SELECT OPENING STRIKER"
+                    : _batterSelectionMode == "nonstriker" ? "SELECT OPENING NON-STRIKER" : "SELECT NEW BATTER");
             }
             else if (innings.NeedsBowlerSelection)
             {
@@ -177,187 +365,136 @@ namespace Roche_Scoreboard.Views
             }
         }
 
+        private void PresentationsbattingGuard(bool waiting)
+        { Presentationbatting.IsEnabled = Presentationbowling.IsEnabled = Presentationsummary.IsEnabled = !waiting; }
+
+        private void OpenToss_Click(object sender, RoutedEventArgs args)
+        {
+            if (_match?.TossPending != true) return;
+            TossHomeChoice.Content = TossTeamCard(_match.TeamAName, _match.TeamAAbbr, _match.TeamALogoPath);
+            TossAwayChoice.Content = TossTeamCard(_match.TeamBName, _match.TeamBAbbr, _match.TeamBLogoPath);
+            TossHomeChoice.Background = TossTeamTint(_match.TeamAPrimaryColor);
+            TossAwayChoice.Background = TossTeamTint(_match.TeamBPrimaryColor);
+            TossError.Text = ""; TossChoice_Checked(this, new RoutedEventArgs()); TossOverlay.Visibility = Visibility.Visible; SharedSurfaceMotion.Reveal(TossSheet); TossHomeChoice.Focus();
+        }
+        private static Brush TossTeamTint(string value)
+        {
+            try { var colour=(Color)ColorConverter.ConvertFromString(value);return new SolidColorBrush(Color.FromArgb(45,colour.R,colour.G,colour.B)); }
+            catch(Exception error) when(error is FormatException or NotSupportedException or ArgumentException) { return Brushes.Transparent; }
+        }
+        private static Grid TossTeamCard(string name, string abbreviation, string? logoPath)
+        {
+            var logo = TeamVisuals.LoadLogo(logoPath);
+            var card = new Grid { MinHeight = 60 };
+            var content = new Grid(); content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(54) }); content.ColumnDefinitions.Add(new ColumnDefinition());
+            if (logo is not null) content.Children.Add(new System.Windows.Controls.Image { Source = logo, Width = 46, Height = 52, Stretch = Stretch.Uniform, VerticalAlignment = VerticalAlignment.Center });
+            else
+            {
+                var monogram=new TextBlock {Text=abbreviation,FontSize=11,FontWeight=FontWeights.Bold,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};
+                monogram.SetBinding(TextBlock.ForegroundProperty,new System.Windows.Data.Binding("Foreground"){RelativeSource=new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.FindAncestor,typeof(System.Windows.Controls.RadioButton),1)});
+                content.Children.Add(new Border {Width=36,Height=36,CornerRadius=new CornerRadius(10),Background=new SolidColorBrush(Color.FromArgb(30,128,150,175)),Child=monogram});
+            }
+            var title = new TextBlock { Text = name, TextTrimming=TextTrimming.CharacterEllipsis, ToolTip=name, FontSize = 17, FontWeight = FontWeights.Bold, Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            title.SetBinding(TextBlock.ForegroundProperty,new System.Windows.Data.Binding("Foreground"){RelativeSource=new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.FindAncestor,typeof(System.Windows.Controls.RadioButton),1)});
+            Grid.SetColumn(title, 1); content.Children.Add(title); card.Children.Add(content); return card;
+        }
+        private void TossChoice_Checked(object sender, RoutedEventArgs args)
+        {
+            if (TossError is null || ConfirmTossButton is null) return;
+            TossError.Text = "";
+            ConfirmTossButton.IsEnabled = (TossHomeChoice.IsChecked == true || TossAwayChoice.IsChecked == true)
+                && (TossBatChoice.IsChecked == true || TossBowlChoice.IsChecked == true);
+            if (TossSelectionSummary is not null && _match is not null)
+                TossSelectionSummary.Text = ConfirmTossButton.IsEnabled ? $"{(TossHomeChoice.IsChecked == true ? _match.TeamAName : _match.TeamBName)} won the toss and will {(TossBatChoice.IsChecked == true ? "bat" : "bowl")} first." : "Choose the toss winner and their decision.";
+        }
+        private void Toss_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs args)
+        {
+            if (args.Key != System.Windows.Input.Key.Escape) return;
+            args.Handled = true; CloseToss_Click(this, new RoutedEventArgs());
+        }
+        private void CloseToss_Click(object sender, RoutedEventArgs args)
+        { TossOverlay.Visibility = Visibility.Collapsed; StartTossButton.Focus(); }
+        private void ConfirmToss_Click(object sender, RoutedEventArgs args)
+        {
+            if (_match is null) return;
+            if (TossHomeChoice.IsChecked != true && TossAwayChoice.IsChecked != true || TossBatChoice.IsChecked != true && TossBowlChoice.IsChecked != true)
+            { TossError.Text = "Choose the toss winner and whether they will bat or bowl."; return; }
+            if (!_match.CompleteToss(TossHomeChoice.IsChecked == true, TossBatChoice.IsChecked == true))
+            { TossError.Text = "The match state changed. Close this panel and check the match."; return; }
+            _cpTopBatterIndex = _cpBottomBatterIndex = -1;
+            TossOverlay.Visibility = Visibility.Collapsed; UpdateUI(); TriggerInitialSelection();
+        }
+        private void SkipPlayerSelection_Click(object sender, RoutedEventArgs args)
+        {
+            _selectorGeneration++; BatterSelectionOverlay.Visibility = BowlerSelectionOverlay.Visibility = Visibility.Collapsed;
+        }
+        private void SelectOpeningBatters_Click(object sender, RoutedEventArgs args)
+        {
+            if (_match?.TossPending != false) return;
+            _batterSelectionMode = _match.CurrentInnings?.Striker is null ? "striker" : _match.CurrentInnings?.NonStriker is null ? "nonstriker" : "wicket";
+            ShowBatterSelection(_batterSelectionMode == "striker" ? "SELECT OPENING STRIKER" : _batterSelectionMode == "nonstriker" ? "SELECT NON-STRIKER" : "SELECT NEW BATTER");
+        }
+        private void SelectOpeningBowler_Click(object sender, RoutedEventArgs args)
+        { if (_match?.TossPending == false) ShowBowlerSelection(false); }
+
         // ---- Scoring ----
 
+        private void RecordQuickScore(int runs, CricketDeliveryType type)
+        { if (_deliveryEntry is null) _match?.RecordDelivery(runs, type); }
         private void Dot_Click(object sender, RoutedEventArgs e) =>
-            _match?.RecordDelivery(0, CricketDeliveryType.Dot);
+            RecordQuickScore(0, CricketDeliveryType.Dot);
         private void Run1_Click(object sender, RoutedEventArgs e) =>
-            _match?.RecordDelivery(1, CricketDeliveryType.Runs);
+            RecordQuickScore(1, CricketDeliveryType.Runs);
         private void Run2_Click(object sender, RoutedEventArgs e) =>
-            _match?.RecordDelivery(2, CricketDeliveryType.Runs);
+            RecordQuickScore(2, CricketDeliveryType.Runs);
         private void Run3_Click(object sender, RoutedEventArgs e) =>
-            _match?.RecordDelivery(3, CricketDeliveryType.Runs);
+            RecordQuickScore(3, CricketDeliveryType.Runs);
         private void Four_Click(object sender, RoutedEventArgs e) =>
-            _match?.RecordDelivery(4, CricketDeliveryType.Four);
+            RecordQuickScore(4, CricketDeliveryType.Four);
         private void Run5_Click(object sender, RoutedEventArgs e) =>
-            _match?.RecordDelivery(5, CricketDeliveryType.Runs);
+            RecordQuickScore(5, CricketDeliveryType.Runs);
         private void Six_Click(object sender, RoutedEventArgs e) =>
-            _match?.RecordDelivery(6, CricketDeliveryType.Six);
-        private void Wicket_Click(object sender, RoutedEventArgs e)
+            RecordQuickScore(6, CricketDeliveryType.Six);
+        private void Wicket_Click(object sender, RoutedEventArgs e) => OpenDeliveryDialog(CricketDeliveryType.Wicket);
+        private void Wide_Click(object sender, RoutedEventArgs e) => OpenDeliveryDialog(CricketDeliveryType.Wide);
+        private void NoBall_Click(object sender, RoutedEventArgs e) => OpenDeliveryDialog(CricketDeliveryType.NoBall);
+        private void Bye_Click(object sender, RoutedEventArgs e) => OpenDeliveryDialog(CricketDeliveryType.Bye);
+        private void LegBye_Click(object sender, RoutedEventArgs e) => OpenDeliveryDialog(CricketDeliveryType.LegBye);
+
+        private void OpenDeliveryDialog(CricketDeliveryType type, CricketDelivery? delivery = null)
         {
-            if (_match?.CurrentInnings == null) return;
-            var inn = _match.CurrentInnings;
-            var striker = inn.Striker;
-            if (striker == null) return;
-
-            // Gather the dismissal once, then commit it atomically. Recording here
-            // used to open the batter selector underneath this dialog and could
-            // credit a run-out to the bowler before the dismissal type was known.
-            WicketBatsmanLabel.Text = $"Batter: {striker.DisplayName}";
-            _pendingDismissalType = DismissalType.Other;
-            _pendingWicketBatter = striker;
-            WicketFielderPanel.Visibility = Visibility.Collapsed;
-            WicketBowlerPanel.Visibility = Visibility.Collapsed;
-            WicketDetailsOverlay.Visibility = Visibility.Visible;
-        }
-
-        // Wicket details state
-        private DismissalType _pendingDismissalType = DismissalType.Other;
-        private CricketPlayer? _pendingWicketBatter;
-
-        private void WicketType_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button btn || btn.Tag is not string tag) return;
-            if (!Enum.TryParse<DismissalType>(tag, out var dtype)) return;
-            _pendingDismissalType = dtype;
-
-            var inn = _match?.CurrentInnings;
-            if (inn == null) return;
-
-            bool needsFielder = dtype == DismissalType.Caught || dtype == DismissalType.Stumped || dtype == DismissalType.RunOut;
-            if (needsFielder)
+            if (_match?.CurrentInnings is not CricketInnings innings) return;
+            if (delivery is null && (innings.IsComplete || innings.NeedsBatterSelection || innings.NeedsBowlerSelection)) return;
+            if (_deliveryEntry != null) return;
+            var entry = new CricketDeliveryDialog(_match, delivery, type); _deliveryEntry = entry;
+            DeliveryEntryContent.Content = entry.Embed(applied =>
             {
-                WicketFielderPanel.Visibility = Visibility.Visible;
-                WicketFielderList.Items.Clear();
-                foreach (var p in inn.BowlingAttack)
-                    WicketFielderList.Items.Add(p.DisplayName);
-                if (WicketFielderList.Items.Count > 0)
-                    WicketFielderList.SelectedIndex = 0;
-            }
-            else
-            {
-                WicketFielderPanel.Visibility = Visibility.Collapsed;
-            }
-
-            // Auto-select bowler for non-runout dismissals
-            bool bowlerCredit = dtype != DismissalType.RunOut && dtype != DismissalType.RetiredHurt && dtype != DismissalType.Other;
-            if (bowlerCredit && inn.CurrentBowler != null)
-            {
-                WicketBowlerPanel.Visibility = Visibility.Visible;
-                WicketBowlerAutoLabel.Text = $"▸ {inn.CurrentBowler.DisplayName} (auto)";
-            }
-            else
-            {
-                WicketBowlerPanel.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void ConfirmWicket_Click(object sender, RoutedEventArgs e)
-        {
-            if (_match?.CurrentInnings == null || _pendingWicketBatter == null) return;
-            var inn = _match.CurrentInnings;
-
-            string? fielder = null;
-            if (WicketFielderPanel.Visibility == Visibility.Visible && WicketFielderList.SelectedIndex >= 0)
-                fielder = WicketFielderList.SelectedItem?.ToString();
-
-            string? bowlerName = null;
-            bool bowlerCredit = _pendingDismissalType != DismissalType.RunOut && _pendingDismissalType != DismissalType.RetiredHurt && _pendingDismissalType != DismissalType.Other;
-            if (bowlerCredit && inn.CurrentBowler != null)
-                bowlerName = inn.CurrentBowler.DisplayName;
-
-            // Build dismissal text
-            string dismissalText = _pendingDismissalType switch
-            {
-                DismissalType.Bowled => $"b {bowlerName}",
-                DismissalType.Caught => $"c {fielder} b {bowlerName}",
-                DismissalType.CaughtAndBowled => $"c&b {bowlerName}",
-                DismissalType.LBW => $"lbw b {bowlerName}",
-                DismissalType.Stumped => $"st {fielder} b {bowlerName}",
-                DismissalType.RunOut => $"run out ({fielder})",
-                DismissalType.HitWicket => $"hit wicket b {bowlerName}",
-                _ => "out"
-            };
-
-            CricketPlayer dismissedBatter = _pendingWicketBatter;
-            WicketDetailsOverlay.Visibility = Visibility.Collapsed;
-            _match.RecordDelivery(0, CricketDeliveryType.Wicket, dismissalText);
-            // Apply the descriptive scorecard detail after the engine captures
-            // its undo snapshot, so undo restores a genuinely clean not-out state.
-            dismissedBatter.DismissalText = dismissalText;
-            dismissedBatter.HowOut = _pendingDismissalType;
-            dismissedBatter.DismissalBowler = bowlerName;
-            dismissedBatter.DismissalFielder = fielder;
-            _match.RaiseMatchChanged();
-            _pendingWicketBatter = null;
-        }
-
-        private void CancelWicket_Click(object sender, RoutedEventArgs e)
-        {
-            _pendingWicketBatter = null;
-            WicketDetailsOverlay.Visibility = Visibility.Collapsed;
-        }
-
-        // ---- Extras with popup ----
-
-        private void Wide_Click(object sender, RoutedEventArgs e) => ShowExtrasPopup(CricketDeliveryType.Wide, "WIDE");
-        private void NoBall_Click(object sender, RoutedEventArgs e) => ShowExtrasPopup(CricketDeliveryType.NoBall, "NO BALL");
-        private void Bye_Click(object sender, RoutedEventArgs e) => ShowExtrasPopup(CricketDeliveryType.Bye, "BYE");
-        private void LegBye_Click(object sender, RoutedEventArgs e) => ShowExtrasPopup(CricketDeliveryType.LegBye, "LEG BYE");
-
-        private void ShowExtrasPopup(CricketDeliveryType type, string title)
-        {
-            _pendingExtraType = type;
-            ExtrasPopupTitle.Text = title;
-            ExtrasHintText.Text = type == CricketDeliveryType.NoBall
-                ? "Total: 1 no-ball + runs off the bat"
-                : "Total: 1 + additional runs";
-            ExtrasPopup.Visibility = Visibility.Visible;
-        }
-
-        private void ExtrasPopupClose_Click(object sender, RoutedEventArgs e)
-        {
-            ExtrasPopup.Visibility = Visibility.Collapsed;
-        }
-
-        private void ExtrasRun_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button btn || btn.Tag is not string tagStr) return;
-            if (!int.TryParse(tagStr, out int additionalRuns)) return;
-
-            int totalRuns = 1 + additionalRuns;
-            _match?.RecordDelivery(totalRuns, _pendingExtraType);
-            ExtrasPopup.Visibility = Visibility.Collapsed;
+                if (!ReferenceEquals(_deliveryEntry, entry)) return;
+                _deliveryPointerGuardUntil = DateTime.UtcNow.AddMilliseconds(250);
+                _deliveryEntry = null; DeliveryEntryOverlay.Visibility = Visibility.Collapsed; DeliveryEntryContent.Content = null; ConsoleViewport.IsEnabled = true; ConsoleViewport.IsHitTestVisible = true;
+                RefreshPlayerCardOpacity();
+                if (applied) ResumePendingSelection();
+                else UndoDeliveryButton.Focus();
+                UpdateWorkflowState();
+            });
+            // Keep read-only match cards visually live while the modal owns
+            // input. Disabling the entire parent previously left their cached
+            // opacity at .45 when an extra refreshed the match before closing.
+            ConsoleViewport.IsEnabled = true; ConsoleViewport.IsHitTestVisible = false; DeliveryEntryOverlay.Visibility = Visibility.Visible;
+            KeyboardNavigation.SetTabNavigation(DeliveryEntryOverlay, KeyboardNavigationMode.Cycle);
+            KeyboardNavigation.SetControlTabNavigation(DeliveryEntryOverlay, KeyboardNavigationMode.Cycle);
+            entry.ApplyButton.Focus();
+            entry.ApplyButton.Dispatcher.BeginInvoke(new Action(() => { if (ReferenceEquals(_deliveryEntry, entry)) entry.ApplyButton.Focus(); }));
         }
 
         // ---- Batter/bowler bars ----
 
-        private void StrikerMenu_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.ContextMenu != null)
-            {
-                btn.ContextMenu.PlacementTarget = btn;
-                btn.ContextMenu.IsOpen = true;
-            }
-        }
+        private void StrikerMenu_Click(object sender, RoutedEventArgs e)=>ShowPlayerMenu(sender as FrameworkElement, false, _cpTopBatterIndex);
 
-        private void NonStrikerMenu_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.ContextMenu != null)
-            {
-                btn.ContextMenu.PlacementTarget = btn;
-                btn.ContextMenu.IsOpen = true;
-            }
-        }
+        private void NonStrikerMenu_Click(object sender, RoutedEventArgs e)=>ShowPlayerMenu(sender as FrameworkElement, false, _cpBottomBatterIndex);
 
         private void BowlerMenu_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.ContextMenu != null)
-            {
-                btn.ContextMenu.PlacementTarget = btn;
-                btn.ContextMenu.IsOpen = true;
-            }
-        }
+            => ShowPlayerMenu(sender as FrameworkElement, true, _match?.CurrentInnings?.CurrentBowlerIndex ?? -1);
 
         private void ChangeStriker_Click(object sender, RoutedEventArgs e)
         {
@@ -378,7 +515,31 @@ namespace Roche_Scoreboard.Views
 
         private void SwapStrike_Click(object sender, RoutedEventArgs e)
         {
+            if (_deliveryEntry is not null) return;
             _match?.RotateStrike();
+        }
+
+        private void ApplySelectionTheme(bool batting)
+        {
+            if (_match is null) return;
+            string primary = batting ? _match.BattingTeamPrimaryColor : _match.BowlingTeamPrimaryColor;
+            string secondary = batting ? _match.BattingTeamSecondaryColor : _match.BowlingTeamSecondaryColor;
+            bool teamA = (batting ? _match.BattingTeamName : _match.BowlingTeamName) == _match.TeamAName;
+            var card = batting ? BatterSelectionCard : BowlerSelectionCard;
+            var logo = batting ? BatterSelectionLogo : BowlerSelectionLogo;
+            var list = batting ? BatterSelectionList : BowlerSelectionList;
+            var accent = TeamVisuals.Accent(primary);
+            card.Background = TeamVisuals.Panel(primary, primary);
+            card.BorderBrush = accent;
+            var confirm = batting ? ConfirmBatterButton : ConfirmBowlerButton;
+            confirm.Background = TeamVisuals.Panel(primary, primary, .4);
+            confirm.BorderBrush = accent;
+            logo.Source = TeamVisuals.LoadLogo(teamA ? _match.TeamALogoPath : _match.TeamBLogoPath);
+            list.Resources["PlayerSelectionSurface"] = TeamVisuals.Panel(primary, primary, .4);
+            list.Resources["PlayerSelectionHover"] = TeamVisuals.Panel(primary, primary, .3);
+            list.Resources["PlayerSelectionAccent"] = accent;
+            if (batting) BatterSelectionTeamText.Text = _match.BattingTeamName.ToUpperInvariant();
+            else BowlerSelectionTeamText.Text = _match.BowlingTeamName.ToUpperInvariant();
         }
 
         // ---- Batter selection ----
@@ -391,15 +552,17 @@ namespace Roche_Scoreboard.Views
 
         private void ShowBatterSelection(string title)
         {
-            if (_match?.CurrentInnings == null) return;
+            _batterWasRequired=_match?.CurrentInnings?.NeedsBatterSelection==true;
+            if (_match?.CurrentInnings == null || _match.TossPending || _deliveryEntry != null) return;
             var inn = _match.CurrentInnings;
 
+            ApplySelectionTheme(batting: true);
             BatterSelectionTitle.Text = title;
             BatterSelectionList.Items.Clear();
             BatterSelectionList.Tag = new List<int>();
 
             var indexList = (List<int>)BatterSelectionList.Tag;
-            for (int i = 0; i < inn.BattingOrder.Count; i++)
+            foreach (int i in Enumerable.Range(0,inn.BattingOrder.Count).OrderBy(i=>inn.BattingOrder[i].BattingPosition))
             {
                 var p = inn.BattingOrder[i];
                 if (p.IsOut) continue;
@@ -415,13 +578,17 @@ namespace Roche_Scoreboard.Views
                               : (i == inn.NonStrikerIndex) ? "  (non-striker)"
                               : "";
                 indexList.Add(i);
-                BatterSelectionList.Items.Add($"{p.FullName}{suffix}");
+                BatterSelectionList.Items.Add(new PlayerChoice(p.FullName, p.BallsFaced > 0 || p.Runs > 0 || p.IsOut ? $"{p.Runs} ({p.BallsFaced})" : "",
+                    string.IsNullOrEmpty(suffix) ? "Available to bat" : suffix.Trim()));
             }
 
             if (BatterSelectionList.Items.Count > 0)
                 BatterSelectionList.SelectedIndex = 0;
 
             BatterSelectionOverlay.Visibility = Visibility.Visible;
+            AnimateSelector(BatterSelectionCard); BatterSelectionList.Focus();
+            ResetPlayerSelectorScroll(BatterSelectionList);
+
         }
 
         private void ConfirmBatterSelection_Click(object sender, RoutedEventArgs e)
@@ -431,6 +598,7 @@ namespace Roche_Scoreboard.Views
             if (indexList == null || BatterSelectionList.SelectedIndex >= indexList.Count) return;
 
             int playerIndex = indexList[BatterSelectionList.SelectedIndex];
+            BatterSelectionOverlay.Visibility = Visibility.Collapsed;
 
             switch (_batterSelectionMode)
             {
@@ -439,42 +607,29 @@ namespace Roche_Scoreboard.Views
                     break;
                 case "striker":
                     _match.SetStriker(playerIndex);
-                    // After selecting striker, prompt for non-striker if both are default (index 0,1)
-                    if (_match.CurrentInnings != null && _match.CurrentInnings.LegalBallsBowled == 0)
-                    {
-                        BatterSelectionOverlay.Visibility = Visibility.Collapsed;
-                        _batterSelectionMode = "nonstriker";
-                        ShowBatterSelection("SELECT OPENING NON-STRIKER");
-                        return;
-                    }
                     break;
                 case "nonstriker":
                     _match.SetNonStriker(playerIndex);
-                    // After selecting non-striker at start, prompt for bowler
-                    if (_match.CurrentInnings != null && _match.CurrentInnings.LegalBallsBowled == 0)
-                    {
-                        BatterSelectionOverlay.Visibility = Visibility.Collapsed;
-                        ShowBowlerSelection(true);
-                        return;
-                    }
                     break;
             }
-
-            BatterSelectionOverlay.Visibility = Visibility.Collapsed;
+            ResumePendingSelection();
         }
 
         // ---- Bowler selection ----
 
         private void OnBowlerSelectionNeeded()
         {
-            ShowBowlerSelection(true);
+            if (_deliveryEntry == null) ShowBowlerSelection(true);
         }
 
         private void ShowBowlerSelection(bool isOverEnd)
         {
+            _bowlerWasRequired=_match?.CurrentInnings?.NeedsBowlerSelection==true;
             if (_match?.CurrentInnings == null) return;
             var inn = _match.CurrentInnings;
 
+            ApplySelectionTheme(batting: false);
+            isOverEnd |= inn.NeedsBowlerSelection && inn.LegalBallsBowled > 0;
             BowlerSelectionHint.Text = isOverEnd
                 ? "End of over — choose the next bowler"
                 : "Select a bowler";
@@ -485,12 +640,13 @@ namespace Roche_Scoreboard.Views
             int currentCompletedOvers = inn.CompletedOvers;
             int suggestedIndex = _match.SuggestedNextBowler();
 
-            for (int i = 0; i < inn.BowlingAttack.Count; i++)
+            foreach (int i in Enumerable.Range(0, inn.BowlingAttack.Count).Where(_match.CanSelectBowler)
+                .OrderByDescending(index => index == suggestedIndex).ThenByDescending(index => inn.BowlingAttack[index].LastOverBowledAt))
             {
                 var p = inn.BowlingAttack[i];
 
                 // Don't allow the bowler who just finished to bowl back-to-back
-                if (isOverEnd && i == inn.CurrentBowlerIndex) continue;
+                if (!_match.CanSelectBowler(i)) continue;
 
                 string hint;
                 if (p.LastOverBowledAt >= 0)
@@ -502,7 +658,7 @@ namespace Roche_Scoreboard.Views
                     hint = "  not yet bowled";
 
                 indexList.Add(i);
-                BowlerSelectionList.Items.Add($"{p.DisplayName}  {p.BowlingFigures} ({p.OversDisplay}){hint}");
+                BowlerSelectionList.Items.Add(new PlayerChoice(p.FullName, p.BallsBowled > 0 || p.RunsConceded > 0 || p.Wickets > 0 ? $"{p.BowlingFigures} ({p.OversDisplay})" : "", (i == suggestedIndex && p.LastOverBowledAt >= 0 ? "RECOMMENDED · " : "") + hint.Trim().ToUpperInvariant()));
             }
 
             // Pre-select the suggested bowler if available in filtered list
@@ -513,6 +669,29 @@ namespace Roche_Scoreboard.Views
                 BowlerSelectionList.SelectedIndex = 0;
 
             BowlerSelectionOverlay.Visibility = Visibility.Visible;
+            AnimateSelector(BowlerSelectionCard); BowlerSelectionList.Focus();
+            ResetPlayerSelectorScroll(BowlerSelectionList);
+        }
+
+        private static void ResetPlayerSelectorScroll(System.Windows.Controls.ListBox list)
+        {
+            list.UpdateLayout();
+            var scroll=FindSelectorScroll(list);
+            scroll?.ScrollToTop();
+            if(list.SelectedItem is object selected)list.ScrollIntoView(selected);
+            list.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,new Action(()=>
+            {
+                if(!list.IsVisible)return;
+                FindSelectorScroll(list)?.ScrollToTop();
+                if(list.SelectedItem is object current)list.ScrollIntoView(current);
+            }));
+        }
+        private static System.Windows.Controls.ScrollViewer? FindSelectorScroll(DependencyObject root)
+        {
+            if(root is System.Windows.Controls.ScrollViewer scroll)return scroll;
+            for(int i=0;i<VisualTreeHelper.GetChildrenCount(root);i++)
+                if(FindSelectorScroll(VisualTreeHelper.GetChild(root,i)) is {} child)return child;
+            return null;
         }
 
         private void ConfirmBowlerSelection_Click(object sender, RoutedEventArgs e)
@@ -523,112 +702,82 @@ namespace Roche_Scoreboard.Views
 
             int bowlerIndex = indexList[BowlerSelectionList.SelectedIndex];
             _match.ConfirmBowler(bowlerIndex);
-            BowlerSelectionOverlay.Visibility = Visibility.Collapsed;
-            RefreshBowlerList();
+            if (_match.CurrentInnings?.NeedsBowlerSelection == true) return;
+            CloseSelector(BowlerSelectionOverlay, BowlerSelectionCard, () => { if (_match?.CurrentInnings?.NeedsBatterSelection == true) ResumePendingSelection(); });
+
+        }
+
+        private void AnimateSelector(Border card)
+        {
+            _selectorGeneration++;
+            if (ReferenceEquals(card, BatterSelectionCard)) BowlerSelectionOverlay.Visibility = Visibility.Collapsed;
+            else if (ReferenceEquals(card, BowlerSelectionCard)) BatterSelectionOverlay.Visibility = Visibility.Collapsed;
+            card.IsHitTestVisible = true;
+            card.RenderTransformOrigin = new System.Windows.Point(.5, .5);
+            if (card.RenderTransform is not TranslateTransform) card.RenderTransform = new TranslateTransform();
+            var translate = (TranslateTransform)card.RenderTransform;
+            translate.BeginAnimation(TranslateTransform.YProperty, null); translate.Y = 0;
+            card.BeginAnimation(OpacityProperty, null); card.Opacity = 1;
+            if (!OperatorMotion.Enabled) return;
+            translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(8, 0, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            card.BeginAnimation(OpacityProperty, new DoubleAnimation(.3, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
+        }
+        private int _selectorGeneration;
+        private void CloseSelector(Border overlay, Border card, Action? next = null)
+        {
+            int generation = ++_selectorGeneration;
+            card.IsHitTestVisible = false;
+            void Complete()
+            {
+                if (generation != _selectorGeneration) return;
+                overlay.Visibility = Visibility.Collapsed; card.BeginAnimation(OpacityProperty, null); card.Opacity = 1; card.IsHitTestVisible = true;
+                next?.Invoke();
+            }
+            if (!OperatorMotion.Enabled || !overlay.IsLoaded) { Complete(); return; }
+            var fade = new DoubleAnimation(0, OperatorMotion.SurfaceClose) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.HoldEnd };
+            fade.Completed += (_, _) => Complete();
+            card.BeginAnimation(OpacityProperty, fade);
+        }
+        private string? _cpBatLogo, _cpBowlLogo, _cpThemeSignature;
+        private void UpdateTeamSurfaces()
+        {
+            if (_match is null) return;
+            string signature = string.Join("|", _match.TossPending, _match.BattingTeamName, _match.BowlingTeamName, _match.TeamAPrimaryColor, _match.TeamASecondaryColor, _match.TeamBPrimaryColor, _match.TeamBSecondaryColor, _match.TeamALogoPath, _match.TeamBLogoPath);
+            if (signature == _cpThemeSignature) return; _cpThemeSignature = signature;
+            BattingZone.Background = TeamVisuals.Panel(_match.BattingTeamPrimaryColor, _match.BattingTeamPrimaryColor, .28);
+            BowlingZone.Background = TeamVisuals.Panel(_match.BowlingTeamPrimaryColor, _match.BowlingTeamPrimaryColor, .28);
+            BattingZone.BorderBrush = TeamVisuals.Accent(_match.BattingTeamPrimaryColor);
+            BowlingZone.BorderBrush = TeamVisuals.Accent(_match.BowlingTeamPrimaryColor);
+            BattingTeamHeading.Text = _match.BattingTeamName.ToUpperInvariant() + " · BATTING";
+            BowlingTeamHeading.Text = _match.BowlingTeamName.ToUpperInvariant() + " · BOWLING";
+            BattingTeamHeading.Foreground = BowlingTeamHeading.Foreground = Brushes.White;
+            bool teamA = _match.BattingTeamName == _match.TeamAName;
+            string? batting = teamA ? _match.TeamALogoPath : _match.TeamBLogoPath;
+            string? bowling = teamA ? _match.TeamBLogoPath : _match.TeamALogoPath;
+            _cpBatLogo = batting; _cpBowlLogo = bowling;
+            BattingZoneLogo.Source = BowlingZoneLogo.Source = null;
+            BattingZoneLogo.Visibility = BowlingZoneLogo.Visibility = Visibility.Collapsed;
+            if (BattingZone.Child is Grid battingGrid) battingGrid.Background = null;
+            if (BowlingZone.Child is Grid bowlingGrid) bowlingGrid.Background = null;
         }
 
         // ---- Actions ----
 
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
+            if (_deliveryEntry is not null) return;
             if (_match?.UndoLastDelivery() == true)
-                RebuildDeliveryLog();
-        }
-
-        private void EndInnings_Click(object sender, RoutedEventArgs e)
-        {
-            if (_match == null) return;
-            var inn = _match.CurrentInnings;
-            if (inn == null) return;
-
-            if (!inn.IsComplete)
             {
-                var res = MessageBox.Show("End the current innings?", "End Innings",
-                    MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (res != MessageBoxResult.Yes) return;
-                _match.EndCurrentInnings();
+                BatterSelectionOverlay.Visibility = BowlerSelectionOverlay.Visibility = Visibility.Collapsed;
+                ResumePendingSelection();
             }
-
-            if (_match.CanStartNextInnings())
-            {
-                _match.StartNextInnings();
-                _cpTopBatterIndex = -1;
-                _cpBottomBatterIndex = -1;
-                _logCurrentOver = -1;
-                _logCurrentOverPanel = null;
-                RefreshBowlerList();
-                EventLog.Children.Clear();
-                TriggerInitialSelection();
-            }
-            else
-            {
-                MessageBox.Show(_match.MatchResult ?? "Match complete.",
-                    "Match Result", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            else if(_match?.LastOperationError is {Length:>0} error) _=ShowErrorAsync("Unable to undo",error);
         }
 
-        // ---- Overlay buttons ----
-
-        private void OverlayStats_Click(object sender, RoutedEventArgs e)
-        {
-            _scorebug?.TriggerStatsBar();
-        }
-
-        private void OverlayPartnership_Click(object sender, RoutedEventArgs e)
-        {
-            if (_match?.CurrentInnings == null) return;
-            var inn = _match.CurrentInnings;
-            _scorebug?.ShowPartnershipOverlay(inn.PartnershipRuns, inn.PartnershipBalls);
-        }
-
-        private void OverlayExtras_Click(object sender, RoutedEventArgs e)
-        {
-            if (_match?.CurrentInnings == null) return;
-            var inn = _match.CurrentInnings;
-            _scorebug?.ShowExtrasOverlay(inn.Wides, inn.NoBalls, inn.Byes, inn.LegByes, inn.TotalExtras);
-        }
-
-        private void OverlayThisOver_Click(object sender, RoutedEventArgs e)
-        {
-            _scorebug?.ShowOverTracker();
-        }
-
-        // ---- Broadcast bar overlay buttons ----
-
-        private void OverlayPartnershipBar_Click(object sender, RoutedEventArgs e)
-        {
-            _scorebug?.ShowPartnershipBar();
-        }
-
-        private void OverlayRunRate_Click(object sender, RoutedEventArgs e)
-        {
-            _scorebug?.ShowRunRateBar();
-        }
-
-        private void OverlayTarget_Click(object sender, RoutedEventArgs e)
-        {
-            _scorebug?.ShowTargetBar();
-        }
-
-        private void OverlayPowerplay_Click(object sender, RoutedEventArgs e)
-        {
-            _scorebug?.ShowPowerplayBar();
-        }
-
-        private void OverlayLast5_Click(object sender, RoutedEventArgs e)
-        {
-            _scorebug?.ShowLast5OversBar();
-        }
-
-        private void OverlayDrought_Click(object sender, RoutedEventArgs e)
-        {
-            _scorebug?.ShowBoundaryDroughtBar();
-        }
+        private async void EndInnings_Click(object sender, RoutedEventArgs e)=>await OpenInningsDecisionAsync(false);
 
         private CricketSummaryControl? _summaryControl;
-        private string _currentPresentation = "scorebug"; // scorebug, batting, bowling, centre
-
-        /// <summary>Fires when the user switches presentation screen. Arg = "scorebug", "batting", "bowling".</summary>
+        private string _currentPresentation = "scorebug";
         public event Action<string>? PresentationChanged;
 
         public void SetSummaryControl(CricketSummaryControl summary)
@@ -660,33 +809,7 @@ namespace Roche_Scoreboard.Views
             SwitchPresentation("bowling");
         }
 
-        private void ShowMatchCentre_Click(object sender, MouseButtonEventArgs e)
-        {
-            if (_match == null) return;
-            SwitchPresentation("centre");
-        }
-
         // ---- Bowler settings list ----
-
-        private void RefreshBowlerList()
-        {
-            BowlerList.Items.Clear();
-            var inn = _match?.CurrentInnings;
-            if (inn == null) return;
-            for (int i = 0; i < inn.BowlingAttack.Count; i++)
-            {
-                var p = inn.BowlingAttack[i];
-                BowlerList.Items.Add($"{p.DisplayName}  {p.BowlingFigures} ({p.OversDisplay})");
-            }
-            if (inn.CurrentBowlerIndex < BowlerList.Items.Count)
-                BowlerList.SelectedIndex = inn.CurrentBowlerIndex;
-        }
-
-        private void BowlerList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (BowlerList.SelectedIndex >= 0 && _match != null)
-                _match.SetCurrentBowler(BowlerList.SelectedIndex);
-        }
 
         // ---- Display ----
 
@@ -714,6 +837,7 @@ namespace Roche_Scoreboard.Views
         private void SwitchPresentation(string target)
         {
             if (_match == null) return;
+            if (target == _currentPresentation) { PresentationChanged?.Invoke(target); return; }
 
             if (target == "scorebug")
             {
@@ -730,13 +854,41 @@ namespace Roche_Scoreboard.Views
                 _summaryControl?.ShowBowlingSummary(_match);
                 _currentPresentation = "bowling";
             }
-            else if (target == "centre")
+            else if (target == "summary")
             {
-                _summaryControl?.ShowMatchCentre(_match);
-                _currentPresentation = "centre";
+                _summaryControl?.ShowMatchSummary(_match);
+                _currentPresentation = "summary";
             }
+            else if(target is "worm" or "manhattan")
+            {
+                _summaryControl?.ShowChart(_match,target);
+                _currentPresentation=target;
+            }
+            else return;
 
+
+            UpdatePresentationSelection();
             PresentationChanged?.Invoke(target);
+        }
+
+        private void PresentationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button { Tag: string target }) return;
+            if (target == "window") PresentationChanged?.Invoke("window");
+            else SwitchPresentation(target);
+        }
+
+        private void UpdatePresentationSelection()
+        {
+            CricketOnAirText.Text = "ON AIR · " + (_currentPresentation == "scorebug" ? "LIVE SCOREBUG" : _currentPresentation == "summary" ? "MATCH SUMMARY" : _currentPresentation=="worm"?"SCOREWORM":_currentPresentation=="manhattan"?"MANHATTAN":_currentPresentation.ToUpperInvariant() + " SCORECARD");
+            foreach (var button in new[] { Presentationscorebug, Presentationbatting, Presentationbowling, Presentationsummary,Presentationworm,Presentationmanhattan })
+            {
+                if (button is null) continue;
+                bool selected = (string)button.Tag == _currentPresentation;
+                button.BorderBrush = new SolidColorBrush(selected ? Color.FromRgb(0x58, 0xA6, 0xFF) : Color.FromRgb(0x7A, 0x86, 0x93));
+                button.Background = new SolidColorBrush(selected ? Color.FromRgb(0x16, 0x2B, 0x47) : Color.FromRgb(0x0A, 0x16, 0x28));
+                System.Windows.Automation.AutomationProperties.SetItemStatus(button, selected ? "Selected" : "");
+            }
         }
 
         /// <summary>Refreshes the current summary card if one is showing (called after score updates).</summary>
@@ -747,55 +899,34 @@ namespace Roche_Scoreboard.Views
                 _summaryControl.RefreshBattingSummary(_match);
             else if (_currentPresentation == "bowling")
                 _summaryControl.RefreshBowlingSummary(_match);
-            else if (_currentPresentation == "centre")
-                _summaryControl.RefreshMatchCentre(_match);
+            else if (_currentPresentation == "summary")
+                _summaryControl.RefreshMatchSummary(_match);
+            else if(_currentPresentation is "worm" or "manhattan")_summaryControl.RefreshChart(_match,_currentPresentation);
+
         }
 
-        // ---- Messages ----
+        // ---- Shared venue weather ----
+        public event Action<string>? WeatherLocationChanged;
 
-        private void AddMessage_Click(object sender, RoutedEventArgs e)
+        private void UpdateCricketWeather_Click(object sender, RoutedEventArgs e)
         {
-            string? text = NewMessageBox.Text?.Trim();
-            if (string.IsNullOrWhiteSpace(text)) return;
-            MessageList.Items.Add(text);
-            NewMessageBox.Text = "";
-            PushMessages();
+            string location = CricketWeatherLocation.Text.Trim();
+            if (_match is null || string.IsNullOrWhiteSpace(location)) return;
+            _match.WeatherLocation = location;
+            _match.RaiseMatchChanged();
+            WeatherLocationChanged?.Invoke(location);
         }
 
-        private void RemoveMessage_Click(object sender, RoutedEventArgs e)
+        public void UpdateWeatherSnapshot(Roche_Scoreboard.Services.WeatherSnapshot snapshot)
         {
-            if (MessageList.SelectedIndex >= 0)
-                MessageList.Items.RemoveAt(MessageList.SelectedIndex);
-            else if (MessageList.Items.Count > 0)
-                MessageList.Items.RemoveAt(MessageList.Items.Count - 1);
-            PushMessages();
-        }
-
-        private void PushMessages()
-        {
-            var messages = new List<string>();
-            foreach (var item in MessageList.Items)
-            {
-                string? s = item?.ToString();
-                if (!string.IsNullOrWhiteSpace(s)) messages.Add(s);
-            }
-            _scorebug?.SetMarqueeMessages(messages);
-            if (_match != null)
-            {
-                _match.Messages = messages;
-                _match.RaiseMatchChanged();
-            }
+            CricketWeatherTemperature.Text = $"{snapshot.Icon} {Math.Round(snapshot.CurrentTemp)}°";
+            CricketWeatherDescription.Text = $"{snapshot.Description}\nFeels like {Math.Round(snapshot.FeelsLike)}° · {Math.Round(snapshot.DayMin)}°–{Math.Round(snapshot.DayMax)}°";
         }
 
         // ---- Reset ----
 
-        private void ResetMatch_Click(object sender, RoutedEventArgs e)
-        {
-            var res = MessageBox.Show("Reset the cricket match and set up a new game?", "Reset",
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (res != MessageBoxResult.Yes) return;
-            ResetRequested?.Invoke();
-        }
+        private async void ResetMatch_Click(object sender, RoutedEventArgs e)
+        { if(await ChooseAsync("Reset this match?","This clears the current match and returns to sports selection. Save any scorecard changes first.",new("cancel","Keep this match",true),new("reset","Reset and set up a new match",false,true))=="reset") ResetRequested?.Invoke(); }
 
         // ---- Delivery log grouped by over ----
 
@@ -803,18 +934,7 @@ namespace Roche_Scoreboard.Views
 
         private void AppendDelivery(CricketDelivery delivery, bool triggerPresentation)
         {
-            // Trigger event banner animations for boundaries and wickets
-            if (triggerPresentation && _match != null && (delivery.Type == CricketDeliveryType.Four
-                || delivery.Type == CricketDeliveryType.Six
-                || delivery.Type == CricketDeliveryType.Wicket))
-            {
-                // 4/6 = batting team color, Wicket = bowling team color
-                string color = delivery.Type == CricketDeliveryType.Wicket
-                    ? _match.BowlingTeamPrimaryColor
-                    : _match.BattingTeamPrimaryColor;
-                _scorebug?.ShowEventBanner(delivery.Type, color);
-            }
-
+            _loggedDeliveryCount++;
             // Start a new over group if the over number changed
             if (delivery.OverNumber != _logCurrentOver)
             {
@@ -830,6 +950,8 @@ namespace Roche_Scoreboard.Views
                     Margin = new Thickness(0, 6, 0, 0)
                 };
                 var headerGrid = new Grid();
+                headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                headerGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -838,7 +960,7 @@ namespace Roche_Scoreboard.Views
                 {
                     Text = $"OVER {delivery.OverNumber + 1}",
                     Foreground = Brushes.White,
-                    FontSize = 11,
+                    FontSize = 12,
                     FontWeight = FontWeights.Black,
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -847,23 +969,25 @@ namespace Roche_Scoreboard.Views
 
                 var bowlerLabel = new TextBlock
                 {
+                    Tag = "overDetail",
                     Text = delivery.BowlerName ?? "",
                     Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
-                    FontSize = 10,
+                    FontSize = 11,
                     FontWeight = FontWeights.Bold,
                     VerticalAlignment = VerticalAlignment.Center,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    TextTrimming = TextTrimming.CharacterEllipsis
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Margin = new Thickness(0, 3, 0, 0),
+                    TextWrapping = TextWrapping.Wrap
                 };
-                Grid.SetColumn(bowlerLabel, 1);
+                Grid.SetColumn(bowlerLabel, 0); Grid.SetColumnSpan(bowlerLabel, 3); Grid.SetRow(bowlerLabel, 1);
                 headerGrid.Children.Add(bowlerLabel);
 
                 var scoreLabel = new TextBlock
                 {
                     Tag = "overScore",
                     Text = $"{delivery.TotalAfter}/{delivery.WicketsAfter}",
-                    Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
-                    FontSize = 11,
+                    Foreground = Brushes.White,
+                    FontSize = 15,
                     FontWeight = FontWeights.Bold,
                     FontFamily = new FontFamily("Bahnschrift"),
                     VerticalAlignment = VerticalAlignment.Center
@@ -873,7 +997,7 @@ namespace Roche_Scoreboard.Views
 
                 header.Child = headerGrid;
 
-                var overGroup = new StackPanel();
+                var overGroup = new StackPanel { Tag = delivery.OverNumber };
                 overGroup.Children.Add(header);
                 overGroup.Children.Add(_logCurrentOverPanel);
 
@@ -890,157 +1014,231 @@ namespace Roche_Scoreboard.Views
                     if (child is TextBlock tb && tb.Tag is string tag && tag == "overScore")
                     {
                         tb.Text = $"{delivery.TotalAfter}/{delivery.WicketsAfter}";
-                        break;
+                    }
+                    if (child is TextBlock detail && Equals(detail.Tag, "overDetail"))
+                    {
+                        var overBalls = _match?.CurrentInnings?.Deliveries.Where(ball => ball.OverNumber == delivery.OverNumber).ToArray() ?? [];
+                        int runs = overBalls.Sum(ball => ball.Runs), wickets = overBalls.Count(ball => ball.Type == CricketDeliveryType.Wicket);
+                        detail.Text = $"{delivery.BowlerName} · {runs} {(runs == 1 ? "run" : "runs")} · {wickets} {(wickets == 1 ? "wicket" : "wickets")}";
                     }
                 }
             }
 
             // Add delivery bar into the current over group
             var bar = CreateDeliveryBar(delivery);
-            _logCurrentOverPanel?.Children.Add(bar);
+            _logCurrentOverPanel?.Children.Insert(0,bar);
+            if (triggerPresentation && SystemParameters.ClientAreaAnimation)
+            {
+                var slide = new TranslateTransform(); bar.RenderTransform = slide;
+                slide.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(18, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }, FillBehavior = FillBehavior.Stop });
+                bar.BeginAnimation(OpacityProperty, new DoubleAnimation(.15, 1, TimeSpan.FromMilliseconds(260)) { FillBehavior = FillBehavior.Stop });
+            }
+            if (!_rebuildingLog) RefreshOverChoices();
         }
 
-        private static Border CreateDeliveryBar(CricketDelivery delivery)
+        private Border CreateDeliveryBar(CricketDelivery delivery)
         {
-            // Colour-coded bar based on delivery type
-            Color barColor = delivery.Type switch
+            Color badgeColour = delivery.Type switch
             {
-                CricketDeliveryType.Wicket => Color.FromRgb(0xDC, 0x26, 0x26),
-                CricketDeliveryType.Four => Color.FromRgb(0x15, 0x80, 0x3D),
-                CricketDeliveryType.Six => Color.FromRgb(0x7C, 0x3A, 0xED),
-                CricketDeliveryType.Wide => Color.FromRgb(0xD9, 0x77, 0x06),
-                CricketDeliveryType.NoBall => Color.FromRgb(0xD9, 0x77, 0x06),
-                CricketDeliveryType.Bye => Color.FromRgb(0x06, 0x59, 0x9D),
-                CricketDeliveryType.LegBye => Color.FromRgb(0x06, 0x59, 0x9D),
-                CricketDeliveryType.Dot => Color.FromRgb(0x33, 0x41, 0x55),
-                _ => Color.FromRgb(0x1E, 0x40, 0xAF),
+                CricketDeliveryType.Wicket => Color.FromRgb(185, 28, 28),
+                CricketDeliveryType.Four => Color.FromRgb(21, 128, 61),
+                CricketDeliveryType.Six => Color.FromRgb(86, 51, 170),
+                CricketDeliveryType.Wide or CricketDeliveryType.NoBall => Color.FromRgb(217, 119, 6),
+                _ => Color.FromRgb(51, 65, 85)
             };
-
-            string overStr = $"{delivery.OverNumber}.{delivery.BallInOver}";
-
-            // Symbol
             string symbol = delivery.Type switch
             {
                 CricketDeliveryType.Wicket => "W",
                 CricketDeliveryType.Four => "4",
                 CricketDeliveryType.Six => "6",
-                CricketDeliveryType.Dot => "•",
                 CricketDeliveryType.Wide => "Wd",
                 CricketDeliveryType.NoBall => "Nb",
                 CricketDeliveryType.Bye => "B",
                 CricketDeliveryType.LegBye => "Lb",
+                CricketDeliveryType.Dot => "•",
                 _ => delivery.Runs.ToString()
             };
-
             var border = new Border
             {
-                CornerRadius = new CornerRadius(6),
-                Margin = new Thickness(0, 0, 0, 3),
-                Padding = new Thickness(8, 5, 8, 5),
-                Background = new SolidColorBrush(Color.FromArgb(0x33, barColor.R, barColor.G, barColor.B)),
-            };
-
-            var grid = new Grid();
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(28) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            // Over number
-            var overText = new TextBlock
-            {
-                Text = overStr,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
-                FontSize = 10,
-                FontWeight = FontWeights.Bold,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            Grid.SetColumn(overText, 0);
-            grid.Children.Add(overText);
-
-            // Symbol pill
-            var pill = new Border
-            {
-                Background = new SolidColorBrush(barColor),
+                Tag = delivery,
                 CornerRadius = new CornerRadius(4),
-                Width = 24,
-                Height = 20,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Child = new TextBlock
-                {
-                    Text = symbol,
-                    Foreground = Brushes.White,
-                    FontSize = 10,
-                    FontWeight = FontWeights.Black,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                }
+                Margin = new Thickness(0, 0, 0, 3),
+                Padding = new Thickness(7, 4, 7, 4),
+                BorderThickness = new Thickness(1),
+                BorderBrush = TeamVisuals.Accent(_match?.BattingTeamPrimaryColor),
+                Background = TeamVisuals.Panel(_match?.BattingTeamPrimaryColor, _match?.BattingTeamPrimaryColor, .2),
+                Cursor = System.Windows.Input.Cursors.Hand,
+                Focusable = true,
+                ToolTip = $"Edit ball · {delivery.BatsmanName} facing {delivery.BowlerName}"
             };
-            Grid.SetColumn(pill, 1);
-            grid.Children.Add(pill);
-
-            // Description
-            var desc = new TextBlock
+            var body = new StackPanel();
+            var header = new Grid(); header.ColumnDefinitions.Add(new() { Width = new GridLength(34) }); header.ColumnDefinitions.Add(new()); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            var code = new Border
             {
-                Text = delivery.Description,
-                Foreground = new SolidColorBrush(Color.FromRgb(0xF1, 0xF5, 0xF9)),
-                FontSize = 11,
-                FontWeight = FontWeights.Normal,
-                VerticalAlignment = VerticalAlignment.Center,
-                TextTrimming = TextTrimming.CharacterEllipsis
+                Width = 28,
+                Height = 24,
+                CornerRadius = new CornerRadius(4),
+                Background = new SolidColorBrush(badgeColour),
+                Child = new TextBlock { Text = symbol, FontSize = 12, FontWeight = FontWeights.Bold, Foreground = ContrastHelper.GetContrastBrush(badgeColour), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
             };
-            Grid.SetColumn(desc, 2);
-            grid.Children.Add(desc);
-
-            // Running score
-            var score = new TextBlock
+            header.Children.Add(code);
+            var description = new TextBlock { Text = delivery.Description, FontSize = 12, FontWeight = FontWeights.Bold, Foreground = Brushes.White, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 8, 0) };
+            Grid.SetColumn(description, 1); header.Children.Add(description);
+            bool legal = CricketOverlayAnalysis.IsLegal(delivery);
+            int ballNumber = legal && delivery.BallInOver > 0 ? delivery.BallInOver : (delivery.StateBefore?.LegalBallsBowled ?? delivery.OverNumber * 6) % 6 + 1;
+            var total = new TextBlock
             {
-                Text = $"{delivery.TotalAfter}/{delivery.WicketsAfter}",
-                Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
-                FontSize = 11,
+                Tag = "ball-number",
+                Text = $"{delivery.OverNumber}.{ballNumber}",
+                FontSize = 15,
                 FontWeight = FontWeights.Bold,
-                FontFamily = new FontFamily("Bahnschrift"),
+                Foreground = Brushes.White,
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(6, 0, 0, 0)
+                ToolTip = legal ? "Over.ball" : "Extra delivery — the same ball number is used again"
             };
-            Grid.SetColumn(score, 3);
-            grid.Children.Add(score);
-
-            border.Child = grid;
+            Grid.SetColumn(total, 2); header.Children.Add(total); body.Children.Add(header);
+            var actionContent = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal };
+            actionContent.Children.Add(new TextBlock { Text = "\uE70F", FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 12, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center });
+            actionContent.Children.Add(new TextBlock { Text = "Edit ball", FontSize = 12, VerticalAlignment = VerticalAlignment.Center });
+            var editAction = new Button
+            {
+                Tag = "edit-ball",
+                Content = actionContent,
+                Style = (Style)FindResource("ToolBtn"),
+                Height = 24,
+                FontSize = 12,
+                Padding = new Thickness(0),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                HorizontalContentAlignment = HorizontalAlignment.Left
+            };
+            System.Windows.Automation.AutomationProperties.SetName(editAction, "Edit ball");
+            editAction.Click += (_, args) => { args.Handled = true; OpenDeliveryDialog(delivery.Type, delivery); };
+            var reveal = new Border { Height = 0, ClipToBounds = true, Child = editAction }; body.Children.Add(reveal); border.Child = body;
+            void Reveal(bool show)
+            {
+                double from = reveal.ActualHeight; reveal.BeginAnimation(HeightProperty, null); reveal.Height = show ? 28 : 0;
+                if (SystemParameters.ClientAreaAnimation) reveal.BeginAnimation(HeightProperty, new DoubleAnimation(from, reveal.Height, TimeSpan.FromMilliseconds(180)) { FillBehavior = FillBehavior.Stop, EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+                editAction.BeginAnimation(OpacityProperty, new DoubleAnimation(show ? 0 : 1, show ? 1 : 0, TimeSpan.FromMilliseconds(160)) { FillBehavior = FillBehavior.HoldEnd });
+            }
+            var rest = border.BorderBrush;
+            border.MouseEnter += (_, _) => { Reveal(true); border.BorderBrush = new SolidColorBrush(Color.FromRgb(121, 185, 255)); };
+            border.MouseLeave += (_, _) => { if (!border.IsKeyboardFocusWithin) Reveal(false); border.BorderBrush = rest; };
+            border.GotKeyboardFocus += (_, _) => Reveal(true); border.LostKeyboardFocus += (_, _) => { if (!border.IsKeyboardFocusWithin && !border.IsMouseOver) Reveal(false); };
+            border.KeyDown += (_, args) => { if (args.OriginalSource is not Button && args.Key is Key.Enter or Key.Space) { args.Handled = true; OpenDeliveryDialog(delivery.Type, delivery); } };
+            border.MouseLeftButtonUp += (_, args) => { args.Handled = true; OpenDeliveryDialog(delivery.Type, delivery); };
             return border;
         }
 
+        private int _loggedRevision = -1;
+        private bool _rebuildingLog, _refreshingOverChoices;
+        private int[] _overChoices = [];
+        private sealed record OverChoice(int Over)
+        {
+            public override string ToString() => Over < 0 ? "All overs · latest first" : $"Over {Over + 1}";
+        }
+        private void RefreshOverChoices()
+        {
+            int selected = (DeliveryOverChoice.SelectedItem as OverChoice)?.Over ?? -1;
+            int[] overs = _match?.CurrentInnings?.Deliveries.Select(delivery => delivery.OverNumber).Distinct().OrderDescending().ToArray() ?? [];
+            if (!overs.SequenceEqual(_overChoices) || DeliveryOverChoice.Items.Count == 0)
+            {
+                _overChoices = overs; _refreshingOverChoices = true;
+                DeliveryOverChoice.Items.Clear(); DeliveryOverChoice.Items.Add(new OverChoice(-1));
+                foreach (int over in overs) DeliveryOverChoice.Items.Add(new OverChoice(over));
+                DeliveryOverChoice.SelectedIndex = Math.Max(0, Array.IndexOf(overs, selected) + 1);
+                _refreshingOverChoices = false;
+            }
+            FilterDeliveryOvers();
+        }
+        private void FilterDeliveryOvers()
+        {
+            int over = (DeliveryOverChoice.SelectedItem as OverChoice)?.Over ?? -1;
+            foreach (StackPanel group in EventLog.Children.OfType<StackPanel>())
+                group.Visibility = over < 0 || (int)group.Tag == over ? Visibility.Visible : Visibility.Collapsed;
+        }
+        private void DeliveryOverChoice_Changed(object sender, SelectionChangedEventArgs args)
+        {
+            if (_refreshingOverChoices || EventLog is null) return;
+            FilterDeliveryOvers(); DeliveryLogScroller.ScrollToTop();
+        }
         private void RebuildDeliveryLog()
         {
+            _rebuildingLog = true;
             EventLog.Children.Clear();
             _logCurrentOver = -1;
             _logCurrentOverPanel = null;
-            var deliveries = _match?.CurrentInnings?.Deliveries;
-            if (deliveries == null) return;
-            foreach (CricketDelivery delivery in deliveries)
-                AppendDelivery(delivery, triggerPresentation: false);
+            _loggedDeliveryCount = 0;
+            _loggedInnings = _match?.CurrentInnings;
+            _loggedRevision = _match?.DeliveryRevision ?? -1;
+            var deliveries = _loggedInnings?.Deliveries;
+            if (deliveries != null)
+                foreach (CricketDelivery delivery in deliveries) AppendDelivery(delivery, triggerPresentation: false);
+            _rebuildingLog = false; RefreshOverChoices();
         }
 
         // ---- UI updates ----
 
+        private void RefreshPlayerCardOpacity()
+        {
+            StrikerBar.Opacity = StrikerBar.IsEnabled ? 1 : .45;
+            NonStrikerBar.Opacity = NonStrikerBar.IsEnabled ? 1 : .45;
+            BowlerBar.Opacity = BowlerBar.IsEnabled ? 1 : .45;
+        }
+
         private void UpdateUI()
         {
+            ClosePlayerMenu();
             if (_match == null) return;
             var inn = _match.CurrentInnings;
             if (inn == null) return;
 
+            if (!ReferenceEquals(inn, _loggedInnings) || _loggedDeliveryCount != inn.Deliveries.Count || _loggedRevision != _match.DeliveryRevision)
+                RebuildDeliveryLog();
+
+            bool waiting = _match.TossPending;
+            StartTossButton.Visibility = waiting ? Visibility.Visible : Visibility.Collapsed;
+            ScoringCommands.Visibility = ExtraCommands.Visibility = waiting ? Visibility.Collapsed : Visibility.Visible;
+            bool battingReady = inn.Striker is { IsOut: false } && inn.NonStriker is { IsOut: false } && inn.StrikerIndex != inn.NonStrikerIndex;
+            bool bowlingReady = inn.CurrentBowler is not null;
+            bool battingNeeded = (inn.NeedsBatterSelection || !battingReady) && !inn.IsComplete;
+            bool bowlingNeeded = (inn.NeedsBowlerSelection || !bowlingReady) && !inn.IsComplete;
+            CloseResolvedSelections(battingNeeded,bowlingNeeded);
+            BattingStartHint.Visibility = waiting || battingNeeded ? Visibility.Visible : Visibility.Collapsed;
+            BowlingStartHint.Visibility = waiting || bowlingNeeded ? Visibility.Visible : Visibility.Collapsed;
+            BattingStartHint.Text = waiting ? "Record the toss before selecting batters." : "Select the batters when you are ready.";
+            BowlingStartHint.Text = waiting ? "Record the toss before selecting a bowler." : "Select the bowler when you are ready.";
+            SelectOpeningBatters.Visibility = battingNeeded && !waiting ? Visibility.Visible : Visibility.Collapsed;
+            SelectOpeningBowler.Visibility = bowlingNeeded && !waiting ? Visibility.Visible : Visibility.Collapsed;
+            StrikerBar.IsEnabled = !waiting && inn.Striker is not null;
+            NonStrikerBar.IsEnabled = !waiting && inn.NonStriker is not null;
+            BowlerBar.IsEnabled = !waiting && inn.CurrentBowler is not null;
+            RefreshPlayerCardOpacity();
+            PresentationsbattingGuard(waiting);
+            UpdateTeamSurfaces();
+            OperatorFreeHitText.Visibility=_match.FreeHitPending && !waiting ? Visibility.Visible : Visibility.Collapsed;
+            EndInningsButton.IsEnabled = !waiting;
+            ScoringCommands.IsEnabled = ExtraCommands.IsEnabled = !waiting && battingReady && bowlingReady && !inn.NeedsBatterSelection && !inn.NeedsBowlerSelection && !inn.IsComplete;
+            ScoringCommands.Opacity = ExtraCommands.Opacity = ScoringCommands.IsEnabled ? 1 : .38;
+            ScoringCommands.ToolTip = ScoringCommands.IsEnabled ? null : "Select both batters and a bowler before scoring.";
+            ScoringLockBanner.Visibility = !waiting && !inn.IsComplete && !ScoringCommands.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
+            ScoringReadyHint.Text = battingNeeded && bowlingNeeded ? "Select batters and bowler →"
+                : battingNeeded ? "Select next batter →" : bowlingNeeded ? "Select next bowler →" : "";
+            if (waiting) { BattingTeamHeading.Text = _match.TeamAName + " · TEAM A"; BowlingTeamHeading.Text = _match.TeamBName + " · TEAM B"; }
+            UndoDeliveryButton.IsEnabled = inn.Deliveries.LastOrDefault()?.StateBefore is not null;
+            UndoDeliveryButton.ToolTip = UndoDeliveryButton.IsEnabled ? "Undo the last delivery exactly" : inn.Deliveries.Count == 0 ? "No delivery to undo" : "This imported ball has no recovery snapshot. Use the delivery editor instead.";
             // Header
-            InningsLabel.Text = _match.CurrentInningsNumber switch
+            InningsLabel.Text = waiting ? "Toss pending" : _match.CurrentInningsNumber switch
             {
                 1 => "1st Innings",
                 2 => "2nd Innings",
                 3 => "3rd Innings",
                 _ => $"{_match.CurrentInningsNumber}th Innings"
             };
-            HeaderScore.Text = $"{inn.TotalRuns}/{inn.TotalWickets}";
-            HeaderOvers.Text = $"Over {inn.OversDisplay}";
-            SettingsMatchText.Text = $"{_match.Format.ToString().ToUpperInvariant()}  •  {(_match.Format == CricketFormat.LimitedOvers ? $"{_match.TotalOvers} OVERS" : "MULTI INNINGS")}";
-            SettingsStateText.Text = $"INNINGS {_match.CurrentInningsNumber}  •  {inn.TotalRuns}/{inn.TotalWickets} ({inn.OversDisplay})";
+            HeaderScore.Text = waiting ? "—" : $"{inn.TotalWickets}/{inn.TotalRuns}";
+            HeaderOvers.Text = waiting ? "NOT STARTED" : $"Over {inn.OversDisplay}";
+            SettingsMatchText.Text = $"{_match.Format.ToString().ToUpperInvariant()}  •  {(_match.Format == CricketFormat.LimitedOvers ? $"{_match.CurrentOverLimit} OVERS" : "MULTI INNINGS")}";
+            SettingsStateText.Text = $"INNINGS {_match.CurrentInningsNumber}  •  {inn.TotalWickets}/{inn.TotalRuns} ({inn.OversDisplay})";
             SettingsSelectionText.Text = inn.IsComplete
                 ? (_match.MatchResult ?? "Innings complete — advance when ready.")
                 : inn.NeedsBatterSelection
@@ -1080,23 +1278,24 @@ namespace Roche_Scoreboard.Views
                 ? inn.BattingOrder[_cpBottomBatterIndex] : null;
 
             bool topIsStriker = _cpTopBatterIndex == si;
-            bool topGreyOut = topPlayer != null && topPlayer.IsOut && inn.NeedsBatterSelection;
-            bool bottomGreyOut = bottomPlayer != null && bottomPlayer.IsOut && inn.NeedsBatterSelection;
+            bool topGreyOut = topPlayer?.IsOut == true;
+            bool bottomGreyOut = bottomPlayer?.IsOut == true;
 
             // Top batter bar (uses Striker* controls)
             if (topPlayer != null)
             {
                 StrikerName.Text = topPlayer.DisplayName;
-                StrikerName.Foreground = Brushes.White;
-                StrikerStats.Text = $"{topPlayer.Runs} ({topPlayer.BallsFaced})  SR {topPlayer.StrikeRate:F1}";
+                StrikerName.Foreground = topGreyOut ? Brushes.Gray : Brushes.White;
+                StrikerStats.Text = $"SR {topPlayer.StrikeRate:F1}";
+                StrikerBallsFaced.Text = $"({topPlayer.BallsFaced})";
                 StrikerRuns.Text = topPlayer.Runs.ToString();
-                StrikerRuns.Foreground = Brushes.White;
-                TopBatterIndicator.Text = topIsStriker ? "▶" : "  ";
+                StrikerRuns.Foreground = StrikerBallsFaced.Foreground = StrikerName.Foreground;
+                TopBatterIndicator.Text = topGreyOut ? "" : topIsStriker ? "▶" : "  ";
             }
             else
             {
                 StrikerName.Text = "—";
-                StrikerStats.Text = "";
+                StrikerStats.Text = ""; StrikerBallsFaced.Text = "";
                 StrikerRuns.Text = "0";
                 TopBatterIndicator.Text = "  ";
             }
@@ -1105,16 +1304,17 @@ namespace Roche_Scoreboard.Views
             if (bottomPlayer != null)
             {
                 NonStrikerName.Text = bottomPlayer.DisplayName;
-                NonStrikerName.Foreground = Brushes.White;
-                NonStrikerStats.Text = $"{bottomPlayer.Runs} ({bottomPlayer.BallsFaced})  SR {bottomPlayer.StrikeRate:F1}";
+                NonStrikerName.Foreground = bottomGreyOut ? Brushes.Gray : Brushes.White;
+                NonStrikerStats.Text = $"SR {bottomPlayer.StrikeRate:F1}";
+                NonStrikerBallsFaced.Text = $"({bottomPlayer.BallsFaced})";
                 NonStrikerRunsText.Text = bottomPlayer.Runs.ToString();
-                NonStrikerRunsText.Foreground = Brushes.White;
-                BottomBatterIndicator.Text = !topIsStriker ? "▶" : "  ";
+                NonStrikerRunsText.Foreground = NonStrikerBallsFaced.Foreground = NonStrikerName.Foreground;
+                BottomBatterIndicator.Text = bottomGreyOut ? "" : !topIsStriker ? "▶" : "  ";
             }
             else
             {
                 NonStrikerName.Text = "—";
-                NonStrikerStats.Text = "";
+                NonStrikerStats.Text = ""; NonStrikerBallsFaced.Text = "";
                 NonStrikerRunsText.Text = "0";
                 BottomBatterIndicator.Text = "  ";
             }
@@ -1124,27 +1324,23 @@ namespace Roche_Scoreboard.Views
             if (bowler != null)
             {
                 BowlerName.Text = bowler.DisplayName;
-                BowlerStats.Text = $"{bowler.BowlingFigures} ({bowler.OversDisplay})  Econ {bowler.Economy:F2}";
+                BowlerStats.Text = $"Economy {bowler.Economy:F2}";
+                BowlerOverFigures.Text = $"({bowler.OversDisplay})";
                 BowlerFigures.Text = bowler.BowlingFigures;
             }
             else
             {
                 BowlerName.Text = "—";
-                BowlerStats.Text = "";
+                BowlerStats.Text = ""; BowlerOverFigures.Text = "";
                 BowlerFigures.Text = "0-0";
             }
 
             OverDisplay.Text = $"This over: {string.Join("  ", inn.CurrentOverBalls)}";
 
-            // Update bowler list figures
-            for (int i = 0; i < inn.BowlingAttack.Count && i < BowlerList.Items.Count; i++)
-            {
-                var p = inn.BowlingAttack[i];
-                BowlerList.Items[i] = $"{p.DisplayName}  {p.BowlingFigures} ({p.OversDisplay})";
-            }
-
             _scorebug?.UpdateFromMatch(_match);
             RefreshSummaryIfShowing();
+            UpdateWorkflowState();
+            UpdateBreakPresentations();
         }
     }
 }

@@ -39,7 +39,9 @@
            SnapsToDevicePixels="False" RenderOptions.EdgeMode="Unspecified">
     <Canvas.Effect><BlurEffect Radius="0.55"/></Canvas.Effect>
     <Canvas.RenderTransform><TranslateTransform x:Name="FieldTranslate"/></Canvas.RenderTransform>
-    <Rectangle Canvas.Left="30" Canvas.Top="28" Width="440" Height="204" RadiusX="52" RadiusY="52" Stroke="#9BC8EE" StrokeThickness="2"/>
+    <Ellipse Canvas.Left="30" Canvas.Top="28" Width="440" Height="204" Stroke="#9BC8EE" StrokeThickness="2"/>
+    <Rectangle Canvas.Left="237" Canvas.Top="84" Width="26" Height="92" Stroke="#9BC8EE" StrokeThickness="1.5" RadiusX="2" RadiusY="2"/>
+    <Line X1="226" Y1="98" X2="274" Y2="98" Stroke="#9BC8EE" StrokeThickness="1.5"/><Line X1="226" Y1="162" X2="274" Y2="162" Stroke="#9BC8EE" StrokeThickness="1.5"/>
     <Line X1="250" Y1="28" X2="250" Y2="232" Stroke="#9BC8EE" StrokeThickness="2"/>
     <Line X1="30" Y1="94" X2="82" Y2="94" Stroke="#9BC8EE" StrokeThickness="2"/>
     <Line X1="418" Y1="166" X2="470" Y2="166" Stroke="#9BC8EE" StrokeThickness="2"/>
@@ -52,13 +54,13 @@
    <Border x:Name="HorizonGlow" Height="3" VerticalAlignment="Bottom" Margin="28,0" Opacity="0.25" IsHitTestVisible="False">
     <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#0058A6FF"/><GradientStop Color="#8058A6FF" Offset="0.35"/><GradientStop Color="#80E7B94F" Offset="0.65"/><GradientStop Color="#00E7B94F" Offset="1"/></LinearGradientBrush></Border.Background>
    </Border>
-   <Grid Margin="12,8">
+  </Grid>
+   <Grid Margin="12,8" IsHitTestVisible="False">
     <TextBlock x:Name="ClockText" Text="8:05 PM" Foreground="#F3F8FC" FontFamily="Arial" FontSize="34" FontWeight="Black"
                VerticalAlignment="Bottom" HorizontalAlignment="Right">
      <TextBlock.Effect><DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/></TextBlock.Effect>
     </TextBlock>
    </Grid>
-  </Grid>
   <Grid.Triggers>
    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
     <BeginStoryboard>

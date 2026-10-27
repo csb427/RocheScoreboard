@@ -93,7 +93,7 @@ public static class CricketAnalyticsEngine
     private static string GetPhase(CricketMatchManager match, CricketInnings innings)
     {
         if (match.Format != CricketFormat.LimitedOvers) return "BUILDING THE INNINGS";
-        double progress = match.TotalOvers <= 0 ? 0 : innings.CompletedOvers / (double)match.TotalOvers;
+        double progress = match.CurrentOverLimit <= 0 ? 0 : innings.CompletedOvers / (double)match.CurrentOverLimit;
         if (progress < 0.30) return match.IsInPowerplay ? "POWERPLAY" : "OPENING PHASE";
         if (progress < 0.75) return "MIDDLE OVERS";
         return "DEATH OVERS";
@@ -139,9 +139,7 @@ public static class CricketAnalyticsEngine
             .ToList();
     }
 
-    private static bool IsLegal(CricketDelivery delivery) =>
-        delivery.Type != CricketDeliveryType.Wide
-        && delivery.Type != CricketDeliveryType.NoBall;
+    private static bool IsLegal(CricketDelivery delivery) => delivery.IsCountedBall;
 
     private static string BallToken(CricketDelivery delivery) => delivery.Type switch
     {
@@ -150,7 +148,7 @@ public static class CricketAnalyticsEngine
         CricketDeliveryType.Four => "4",
         CricketDeliveryType.Six => "6",
         CricketDeliveryType.Wide => $"{delivery.Runs}wd",
-        CricketDeliveryType.NoBall => $"{delivery.Runs}nb",
+        CricketDeliveryType.NoBall => delivery.NoBallRuns == CricketNoBallRuns.Bat || delivery.Runs == 1 ? $"{delivery.Runs}nb" : $"nb+{delivery.Runs - 1}{(delivery.NoBallRuns == CricketNoBallRuns.Byes ? "b" : "lb")}",
         CricketDeliveryType.Bye => $"{delivery.Runs}b",
         CricketDeliveryType.LegBye => $"{delivery.Runs}lb",
         _ => delivery.Runs.ToString()

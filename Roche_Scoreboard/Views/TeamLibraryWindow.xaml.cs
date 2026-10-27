@@ -14,54 +14,92 @@ namespace Roche_Scoreboard.Views;
 public partial class TeamLibraryWindow : Window
 {
     private readonly string _targetLabel;
+    private readonly TeamLibrarySport _sport;
     private TeamCatalogEntry? _selectedTeam;
     private string? _logoPath;
     private int _selectionVersion;
     private readonly HashSet<string> _favouriteIds;
     private bool _restoringFilters = true;
+    private CancellationTokenSource? _logoCancellation;
+    private bool _savingFavourite;
 
     public TeamLibrarySelection? Selection { get; private set; }
     public bool PresetsChanged { get; private set; }
 
-    public TeamLibraryWindow(string targetLabel)
+    public TeamLibraryWindow(string targetLabel, TeamLibrarySport sport = TeamLibrarySport.AustralianFootball)
     {
         InitializeComponent();
+        SharedSurfaceMotion.Attach(LibrarySurface);
+        _sport = sport;
         _targetLabel = targetLabel;
-        _favouriteIds = PresetStorage.LoadAll()
+        _favouriteIds = (sport == TeamLibrarySport.Cricket ? PresetStorage.LoadAllCricket() : PresetStorage.LoadAll())
             .Where(p => !string.IsNullOrWhiteSpace(p.LibraryTeamId))
             .Select(p => p.LibraryTeamId!)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         TargetHeading.Text = $"Choose the {targetLabel.ToLowerInvariant()} team";
+        Title = sport == TeamLibrarySport.Cricket ? "Cricket Club Library" : "Australian Football Club Library";
+        CatalogueDescription.Text = sport == TeamLibrarySport.Cricket ? "Victorian Premier · VSDCA · official crests available offline" : "AFL · VAFA · APS · AGSV · transparent club crests";
+        LeagueFilter.Items.Clear(); LeagueFilter.Items.Add(new ComboBoxItem { Content = "All leagues" });
+        foreach (string league in TeamCatalogService.GetTeams(sport).Select(team => team.League).Distinct().OrderBy(league => league))
+            LeagueFilter.Items.Add(new ComboBoxItem { Content = league });
+        LeagueFilter.SelectedIndex = 0;
         RestoreFilters();
         _restoringFilters = false;
         RefreshResults();
         SearchBox.Focus();
+        SizeChanged += (_, _) => ArrangeLibrary();
+        Loaded += (_, _) => ArrangeLibrary();
+        Closed += (_, _) => { ++_selectionVersion; _logoCancellation?.Cancel(); _logoCancellation?.Dispose(); };
     }
 
+    private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    { if (e.Key == System.Windows.Input.Key.Escape) { e.Handled = true; Close(); } }
+
+    private void ArrangeLibrary()
+    {
+        bool narrow = ActualWidth < 820;
+        Grid.SetColumn(DetailSurface, narrow ? 0 : 1); Grid.SetRow(DetailSurface, narrow ? 1 : 0);
+        ListColumn.Width = new GridLength(narrow ? 1 : 1.2, GridUnitType.Star);
+        DetailColumn.Width = narrow ? new GridLength(0) : new GridLength(.8, GridUnitType.Star);
+        DetailSurface.Margin = narrow ? new Thickness(0, 12, 0, 0) : new Thickness(16, 0, 0, 0);
+        TeamList.Height = narrow ? 240 : Math.Clamp(ActualHeight - 330, 160, 620);
+    }
+
+    private void Search_Changed(object sender, System.Windows.Controls.TextChangedEventArgs e) => Filter_Changed(sender,e);
     private void Filter_Changed(object sender, EventArgs e)
     {
         if (_restoringFilters || (!IsLoaded && TeamList is null)) return;
-        RememberFilters();
+        if (!ReferenceEquals(sender, SearchBox)) RememberFilters();
         RefreshResults();
     }
 
     private void RestoreFilters()
     {
         OperatorWorkflowPreferencesData remembered = OperatorWorkflowPreferences.Load();
-        SelectComboItem(LeagueFilter, remembered.TeamLibraryLeague);
-        SelectComboItem(StateFilter, remembered.TeamLibraryState);
-        SelectComboItem(SortFilter, remembered.TeamLibrarySort);
-        FavouriteOnly.IsChecked = remembered.TeamLibraryFavouritesOnly;
+        bool cricket = _sport == TeamLibrarySport.Cricket;
+        SelectComboItem(LeagueFilter, cricket ? remembered.CricketTeamLibraryLeague : remembered.TeamLibraryLeague);
+        SelectComboItem(StateFilter, cricket ? remembered.CricketTeamLibraryState : remembered.TeamLibraryState);
+        SelectComboItem(SortFilter, cricket ? remembered.CricketTeamLibrarySort : remembered.TeamLibrarySort);
+        FavouriteOnly.IsChecked = cricket ? remembered.CricketTeamLibraryFavouritesOnly : remembered.TeamLibraryFavouritesOnly;
     }
 
     private void RememberFilters()
     {
+        if (System.Windows.Application.Current is App { IsSelfTestMode: true }) return;
         string league = SelectedContent(LeagueFilter, "All leagues");
         string state = SelectedContent(StateFilter, "All states");
         string sort = SelectedContent(SortFilter, "A–Z");
         bool favouritesOnly = FavouriteOnly?.IsChecked == true;
         OperatorWorkflowPreferences.Update(remembered =>
         {
+            if (_sport == TeamLibrarySport.Cricket)
+            {
+                remembered.CricketTeamLibraryLeague = league;
+                remembered.CricketTeamLibraryState = state;
+                remembered.CricketTeamLibrarySort = sort;
+                remembered.CricketTeamLibraryFavouritesOnly = favouritesOnly;
+                return;
+            }
             remembered.TeamLibraryLeague = league;
             remembered.TeamLibraryState = state;
             remembered.TeamLibrarySort = sort;
@@ -93,7 +131,7 @@ public partial class TeamLibraryWindow : Window
         string state = (StateFilter?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "All states";
         string sort = (SortFilter?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "A–Z";
         bool favouritesOnly = FavouriteOnly?.IsChecked == true;
-        IEnumerable<TeamCatalogEntry> filtered = TeamCatalogService.GetTeams().Where(team =>
+        IEnumerable<TeamCatalogEntry> filtered = TeamCatalogService.GetTeams(_sport).Where(team =>
             (league == "All leagues" || team.League == league) &&
             (state == "All states" || team.State == state) &&
             (!favouritesOnly || _favouriteIds.Contains(team.Id)) &&
@@ -110,19 +148,26 @@ public partial class TeamLibraryWindow : Window
         };
         List<TeamCatalogEntry> teams = filtered.ToList();
         TeamList.ItemsSource = teams;
+        EmptyResults.Visibility = teams.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ResultCount.Text = $"{teams.Count} club{(teams.Count == 1 ? string.Empty : "s")}  ·  {_favouriteIds.Count} saved";
     }
 
     private async void TeamList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        int version = ++_selectionVersion;
+        _logoCancellation?.Cancel(); _logoCancellation?.Dispose(); _logoCancellation = new();
         _selectedTeam = TeamList.SelectedItem as TeamCatalogEntry;
         _logoPath = null;
         UseButton.IsEnabled = FavouriteButton.IsEnabled = false;
         LogoPreview.Source = null;
         LogoPlaceholder.Visibility = Visibility.Visible;
-        if (_selectedTeam is null) return;
+        if (_selectedTeam is null)
+        {
+            SelectedName.Text = "Choose a club from the list"; SelectedMeta.Text = ""; StatusText.Text = "";
+            PrimarySwatch.Background = SecondarySwatch.Background = MediaBrushes.Transparent;
+            return;
+        }
 
-        int version = ++_selectionVersion;
         SelectedName.Text = _selectedTeam.TeamName;
         SelectedMeta.Text = $"{_selectedTeam.Abbreviation}  ·  {_selectedTeam.League}  ·  {_selectedTeam.State}";
         PrimarySwatch.Background = ColorBrush(_selectedTeam.PrimaryColor);
@@ -132,12 +177,12 @@ public partial class TeamLibraryWindow : Window
 
         try
         {
-            string path = await TeamLogoService.GetTransparentLogoAsync(_selectedTeam);
+            string path = await TeamLogoService.GetTransparentLogoAsync(_selectedTeam, _logoCancellation.Token);
             if (version != _selectionVersion) return;
             _logoPath = path;
             LogoPreview.Source = ImageLoadHelper.LoadTrimmed(path, 512);
             LogoPlaceholder.Visibility = Visibility.Collapsed;
-            StatusText.Text = "Transparent logo ready and cached locally.";
+            StatusText.Text = "Ready to select";
             UseButton.IsEnabled = FavouriteButton.IsEnabled = true;
             RefreshFavouriteButton();
         }
@@ -150,43 +195,52 @@ public partial class TeamLibraryWindow : Window
 
     private async void Favourite_Click(object sender, RoutedEventArgs e)
     {
-        if (_selectedTeam is null || string.IsNullOrWhiteSpace(_logoPath)) return;
-        List<TeamPreset> presets = await PresetStorage.LoadAllAsync();
-        TeamPreset? existing = presets.FirstOrDefault(p => p.LibraryTeamId == _selectedTeam.Id);
-        if (existing is null)
+        if (_savingFavourite || _selectedTeam is null || string.IsNullOrWhiteSpace(_logoPath)) return;
+        _savingFavourite = true;
+        try
         {
-            presets.Add(CreatePreset(_selectedTeam, _logoPath));
-            _favouriteIds.Add(_selectedTeam.Id);
-            StatusText.Text = "Added to saved team presets.";
+            var team = _selectedTeam; string path = _logoPath; FavouriteButton.IsEnabled = false;
+            List<TeamPreset> presets = _sport == TeamLibrarySport.Cricket ? await PresetStorage.LoadAllCricketAsync() : await PresetStorage.LoadAllAsync();
+            TeamPreset? existing = presets.FirstOrDefault(p => p.LibraryTeamId == team.Id);
+            if (existing is null)
+            {
+                presets.Add(CreatePreset(team, path));
+                _favouriteIds.Add(team.Id);
+                StatusText.Text = "Added to saved team presets.";
+            }
+            else
+            {
+                presets.Remove(existing);
+                _favouriteIds.Remove(team.Id);
+                StatusText.Text = "Removed from saved team presets.";
+            }
+            if (_sport == TeamLibrarySport.Cricket) await PresetStorage.SaveAllCricketAsync(presets); else await PresetStorage.SaveAllAsync(presets);
+            var persisted = _sport == TeamLibrarySport.Cricket ? await PresetStorage.LoadAllCricketAsync() : await PresetStorage.LoadAllAsync();
+            if (persisted.Any(preset => preset.LibraryTeamId == team.Id) != (existing is null))
+            {
+                _favouriteIds.Clear(); foreach (var preset in persisted) if (preset.LibraryTeamId is { } id) _favouriteIds.Add(id);
+                throw new System.IO.IOException("The preset file could not be updated.");
+            }
+            PresetsChanged = true;
+            RefreshFavouriteButton();
+            RefreshResults();
+            TeamList.SelectedItem = TeamList.Items.Cast<TeamCatalogEntry>().FirstOrDefault(item => item.Id == team.Id);
         }
-        else
-        {
-            presets.Remove(existing);
-            _favouriteIds.Remove(_selectedTeam.Id);
-            StatusText.Text = "Removed from saved team presets.";
-        }
-        await PresetStorage.SaveAllAsync(presets);
-        PresetsChanged = true;
-        RefreshFavouriteButton();
-        RefreshResults();
+        catch (Exception error) { StatusText.Text = "Could not save this club. Please try again. " + error.Message; }
+        finally { _savingFavourite = false; FavouriteButton.IsEnabled = _selectedTeam is not null && !string.IsNullOrWhiteSpace(_logoPath); }
     }
 
     private void RefreshFavouriteButton()
     {
         bool favourite = _selectedTeam is not null && _favouriteIds.Contains(_selectedTeam.Id);
-        FavouriteButton.Content = favourite ? "★  SAVED IN PRESETS" : "☆  ADD TO PRESETS";
+        FavouriteButton.Tag = favourite;
+        FavouriteButton.Content = favourite ? "Remove from presets" : "Save to presets";
+        System.Windows.Automation.AutomationProperties.SetItemStatus(FavouriteButton, favourite ? "Saved in presets" : "Not saved");
     }
 
     private void AnimateDetails()
     {
-        DetailContent.BeginAnimation(OpacityProperty, new DoubleAnimation(0.35, 1, TimeSpan.FromMilliseconds(220))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        });
-        DetailTranslate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(12, 0, TimeSpan.FromMilliseconds(260))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        });
+        SharedSurfaceMotion.Reveal(DetailContent);
     }
 
     private void Use_Click(object sender, RoutedEventArgs e)

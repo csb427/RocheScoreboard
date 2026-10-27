@@ -27,9 +27,7 @@ public static class RecentTrainingTimerStorage
 
     private static string GetPath()
     {
-        string dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "training_recent_timers.json");
     }

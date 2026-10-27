@@ -10,20 +10,21 @@
                 <TranslateTransform x:Name="RootTranslate" X="0"/>
             </Grid.RenderTransform>
             <Grid.RowDefinitions>
-                <RowDefinition Height="56"/>    <!-- Header (taller for gradient depth) -->
-                <RowDefinition Height="3"/>     <!-- Team-coloured accent separator -->
+                <RowDefinition Height="72"/>    <!-- Header (taller for gradient depth) -->
+                <RowDefinition Height="44"/>    <!-- Column labels -->
                 <RowDefinition Height="*"/>     <!-- Rows -->
-                <RowDefinition Height="70"/>    <!-- Footer score bar -->
+                <RowDefinition Height="0"/>    <!-- Footer score bar -->
             </Grid.RowDefinitions>
 
             <!-- HEADER — gradient + glossy inner overlay -->
-            <Border Grid.Row="0">
+            <Border x:Name="SummaryHeaderPanel" Grid.Row="0">
                 <Border.Background>
                     <SolidColorBrush x:Name="HeaderBg" Color="#CC0000"/>
                 </Border.Background>
                 <Grid>
+                    <Image x:Name="SummaryHeaderLogo" Width="480" HorizontalAlignment="Center" Stretch="UniformToFill" Opacity=".15" IsHitTestVisible="False"/>
                     <!-- Glossy highlight overlay -->
-                    <Border Opacity="0.15" IsHitTestVisible="False">
+                    <Border x:Name="HeaderSheen" Opacity="0.15" IsHitTestVisible="False">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                 <GradientStop Color="#FFFFFF" Offset="0"/>
@@ -33,7 +34,7 @@
                         </Border.Background>
                     </Border>
                     <!-- Horizontal shimmer -->
-                    <Border Opacity="0.06" IsHitTestVisible="False">
+                    <Border x:Name="HeaderShimmer" Opacity="0.06" IsHitTestVisible="False">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
                                 <GradientStop Color="#00FFFFFF" Offset="0"/>
@@ -42,45 +43,22 @@
                             </LinearGradientBrush>
                         </Border.Background>
                     </Border>
-                    <TextBlock x:Name="HeaderText" Text="TEAM BATTING" Foreground="White" FontSize="24" FontWeight="Black"
-                               FontFamily="Bahnschrift" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock.Effect>
-                            <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="Black" Opacity="0.5"/>
-                        </TextBlock.Effect>
-                    </TextBlock>
+                    <Grid Margin="14,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="HeaderText" Text="TEAM BATTING" Foreground="White" FontSize="40" FontWeight="Bold" FontFamily="Arial" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="SummaryClock" Grid.Column="1" Foreground="White" FontSize="40" FontWeight="Bold" FontFamily="Arial" VerticalAlignment="Center" Margin="16,0,0,0"/></Grid>
                 </Grid>
             </Border>
 
             <!-- TEAM-COLOURED ACCENT SEPARATOR -->
-            <Border Grid.Row="1" IsHitTestVisible="False">
+            <Border x:Name="SummaryColumnPanel" Grid.Row="1" IsHitTestVisible="False">
                 <Border.Background>
                     <SolidColorBrush x:Name="SeparatorBg" Color="#CC0000"/>
                 </Border.Background>
-                <Border Opacity="0.4">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#00FFFFFF" Offset="0"/>
-                            <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
-                            <GradientStop Color="#00FFFFFF" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
+                <Grid x:Name="SummaryColumns" Margin="26,0"/>
             </Border>
 
-            <!-- PLAYER ROWS -->
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Hidden">
-                <StackPanel x:Name="RowsPanel">
-                    <StackPanel.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#0D1526" Offset="0"/>
-                            <GradientStop Color="#0A1020" Offset="1"/>
-                        </LinearGradientBrush>
-                    </StackPanel.Background>
-                </StackPanel>
-            </ScrollViewer>
-
+            <!-- Each page uses the whole canvas: no inaccessible off-screen scorecard rows. -->
+<UniformGrid x:Name="RowsPanel" Grid.Row="2" Columns="1" Margin="12,6" ClipToBounds="True"/>
             <!-- FOOTER SCORE BAR — deeper gradient with top-edge glow -->
-            <Border Grid.Row="3">
+            <Border Grid.Row="3" Visibility="Collapsed">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                         <GradientStop Color="#020614" Offset="0"/>
@@ -116,7 +94,7 @@
                         <TextBlock Grid.Column="0" x:Name="FooterTeamName" Text="TEAM" Foreground="#D6E3EF" FontSize="20" FontWeight="Black"
                                    VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <TextBlock Grid.Column="1" x:Name="FooterTeamScore" Text="0/0" Foreground="White" FontSize="28" FontWeight="Black"
-                                   FontFamily="Bahnschrift" VerticalAlignment="Center">
+                                   FontFamily="Arial" VerticalAlignment="Center">
                             <TextBlock.Effect>
                                 <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="White" Opacity="0.2"/>
                             </TextBlock.Effect>
@@ -124,19 +102,19 @@
                         <TextBlock Grid.Column="3" x:Name="FooterOversLabel" Text="OVERS" Foreground="#D6E3EF" FontSize="16" FontWeight="Black"
                                    VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Grid.Column="4" x:Name="FooterOvers" Text="0" Foreground="White" FontSize="18" FontWeight="Black"
-                                   FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                   FontFamily="Arial" VerticalAlignment="Center" Margin="0,0,14,0"/>
                         <!-- Thin divider -->
                         <Border Grid.Column="5" Width="1" Height="28" VerticalAlignment="Center" Margin="0,0,14,0" Opacity="0.15" Background="White"/>
                         <TextBlock Grid.Column="6" x:Name="FooterStatLabel" Text="RUN RATE" Foreground="#D6E3EF" FontSize="16" FontWeight="Black"
                                    VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Grid.Column="7" x:Name="FooterStatValue" Text="0.00" Foreground="White" FontSize="18" FontWeight="Black"
-                                   FontFamily="Bahnschrift" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                   FontFamily="Arial" VerticalAlignment="Center" Margin="0,0,14,0"/>
                         <!-- Thin divider -->
                         <Border Grid.Column="8" Width="1" Height="28" VerticalAlignment="Center" Margin="0,0,14,0" Opacity="0.15" Background="White"/>
                         <TextBlock Grid.Column="9" x:Name="FooterStat2Label" Text="P'SHIP" Foreground="#D6E3EF" FontSize="16" FontWeight="Black"
                                    VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBlock Grid.Column="10" x:Name="FooterStat2Value" Text="0(0)" Foreground="White" FontSize="18" FontWeight="Black"
-                                   FontFamily="Bahnschrift" VerticalAlignment="Center"/>
+                                   FontFamily="Arial" VerticalAlignment="Center"/>
                     </Grid>
                 </Grid>
             </Border>

@@ -1,0 +1,119 @@
+{
+  "checks": [
+    {
+      "name": "AFL goal applies immediately",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "AFL undo restores score",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Score target remains fixed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Long log stays bounded",
+      "pass": true,
+      "detail": {
+        "before": 641.78125,
+        "after": 641.78125
+      }
+    },
+    {
+      "name": "Paused scores visibly disabled",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Context menu opens",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Escape closes and restores focus",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Invalid timer edit stays in context",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Valid timer edit applies",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Navigation lens travels",
+      "pass": true,
+      "detail": {
+        "oldX": 347,
+        "instantX": 347,
+        "settledX": 730
+      }
+    },
+    {
+      "name": "Reduced motion preference works",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Navigation preserves timer edit",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Cricket score and player figures update",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Ball circle displays recorded value",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "No-ball preserves legal count and adds circle",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Cricket undo restores over strip",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Contextual strike action works",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Mismatch uses integrated decision",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Repeated navigation settles correctly",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Width matrix contains horizontal geometry",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "No uncaught interaction errors",
+      "pass": true,
+      "detail": []
+    }
+  ],
+  "passed": 21,
+  "total": 21,
+  "widthCases": 48
+}

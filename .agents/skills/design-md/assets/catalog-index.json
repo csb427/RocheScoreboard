@@ -1,0 +1,526 @@
+{
+  "spec_version": "alpha",
+  "source": "VoltAgent/awesome-design-md (MIT) + getdesign.md",
+  "note": "Reference DESIGN.md analyses for reuse/inspiration. Fetch the raw_url with web_fetch, then adapt — do not copy a brand's identity wholesale into an unrelated product.",
+  "count": 74,
+  "designs": [
+    {
+      "slug": "airbnb",
+      "name": "Airbnb",
+      "description": "Travel marketplace. Warm coral accent, photography-driven, rounded UI.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/airbnb/DESIGN.md",
+      "source_url": "https://getdesign.md/airbnb/design-md"
+    },
+    {
+      "slug": "airtable",
+      "name": "Airtable",
+      "description": "Spreadsheet-database hybrid. Colorful, friendly, structured data aesthetic.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/airtable/DESIGN.md",
+      "source_url": "https://getdesign.md/airtable/design-md"
+    },
+    {
+      "slug": "apple",
+      "name": "Apple",
+      "description": "Consumer electronics. Premium white space, SF Pro, cinematic imagery.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/apple/DESIGN.md",
+      "source_url": "https://getdesign.md/apple/design-md"
+    },
+    {
+      "slug": "binance",
+      "name": "Binance",
+      "description": "Crypto exchange. Bold yellow accent on monochrome, trading-floor urgency.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/binance/DESIGN.md",
+      "source_url": "https://getdesign.md/binance/design-md"
+    },
+    {
+      "slug": "bmw",
+      "name": "BMW",
+      "description": "Luxury automotive. Dark premium surfaces, precise German engineering aesthetic.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/bmw/DESIGN.md",
+      "source_url": "https://getdesign.md/bmw/design-md"
+    },
+    {
+      "slug": "bmw-m",
+      "name": "BMW M",
+      "description": "BMW M Motorsport. Pure black canvas, M tricolor stripe accents, full-bleed photography.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/bmw-m/DESIGN.md",
+      "source_url": "https://getdesign.md/bmw-m/design-md"
+    },
+    {
+      "slug": "bugatti",
+      "name": "Bugatti",
+      "description": "Hypercar brand. Cinema-black canvas, monochrome austerity, monumental display type.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/bugatti/DESIGN.md",
+      "source_url": "https://getdesign.md/bugatti/design-md"
+    },
+    {
+      "slug": "cal",
+      "name": "Cal.com",
+      "description": "Open-source scheduling. Clean neutral UI, developer-oriented simplicity.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/cal/DESIGN.md",
+      "source_url": "https://getdesign.md/cal/design-md"
+    },
+    {
+      "slug": "claude",
+      "name": "Claude",
+      "description": "Anthropic's AI assistant. Warm terracotta accent, clean editorial layout.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/claude/DESIGN.md",
+      "source_url": "https://getdesign.md/claude/design-md"
+    },
+    {
+      "slug": "clay",
+      "name": "Clay",
+      "description": "Creative agency. Organic shapes, soft gradients, art-directed layout.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/clay/DESIGN.md",
+      "source_url": "https://getdesign.md/clay/design-md"
+    },
+    {
+      "slug": "clickhouse",
+      "name": "ClickHouse",
+      "description": "Fast analytics database. Yellow-accented, technical documentation style.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/clickhouse/DESIGN.md",
+      "source_url": "https://getdesign.md/clickhouse/design-md"
+    },
+    {
+      "slug": "cohere",
+      "name": "Cohere",
+      "description": "Enterprise AI platform. Vibrant gradients, data-rich dashboard aesthetic.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/cohere/DESIGN.md",
+      "source_url": "https://getdesign.md/cohere/design-md"
+    },
+    {
+      "slug": "coinbase",
+      "name": "Coinbase",
+      "description": "Crypto exchange. Clean blue identity, trust-focused, institutional feel.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/coinbase/DESIGN.md",
+      "source_url": "https://getdesign.md/coinbase/design-md"
+    },
+    {
+      "slug": "composio",
+      "name": "Composio",
+      "description": "Tool integration platform. Modern dark with colorful integration icons.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/composio/DESIGN.md",
+      "source_url": "https://getdesign.md/composio/design-md"
+    },
+    {
+      "slug": "cursor",
+      "name": "Cursor",
+      "description": "AI-first code editor. Sleek dark interface, gradient accents.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/cursor/DESIGN.md",
+      "source_url": "https://getdesign.md/cursor/design-md"
+    },
+    {
+      "slug": "dell-1996",
+      "name": "Dell (1996)",
+      "description": "Catalog-era PC retail web. Black page frame, flat color-block ribbon cards.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/dell-1996/DESIGN.md",
+      "source_url": "https://getdesign.md/dell-1996/design-md"
+    },
+    {
+      "slug": "elevenlabs",
+      "name": "ElevenLabs",
+      "description": "AI voice platform. Dark cinematic UI, audio-waveform aesthetics.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/elevenlabs/DESIGN.md",
+      "source_url": "https://getdesign.md/elevenlabs/design-md"
+    },
+    {
+      "slug": "expo",
+      "name": "Expo",
+      "description": "React Native platform. Dark theme, tight letter-spacing, code-centric.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/expo/DESIGN.md",
+      "source_url": "https://getdesign.md/expo/design-md"
+    },
+    {
+      "slug": "ferrari",
+      "name": "Ferrari",
+      "description": "Luxury automotive. Chiaroscuro editorial, Ferrari Red accents, cinematic black.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/ferrari/DESIGN.md",
+      "source_url": "https://getdesign.md/ferrari/design-md"
+    },
+    {
+      "slug": "figma",
+      "name": "Figma",
+      "description": "Collaborative design tool. Vibrant multi-color, playful yet professional.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/figma/DESIGN.md",
+      "source_url": "https://getdesign.md/figma/design-md"
+    },
+    {
+      "slug": "framer",
+      "name": "Framer",
+      "description": "Website builder. Bold black and blue, motion-first, design-forward.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/framer/DESIGN.md",
+      "source_url": "https://getdesign.md/framer/design-md"
+    },
+    {
+      "slug": "hashicorp",
+      "name": "HashiCorp",
+      "description": "Infrastructure automation. Enterprise-clean, black and white.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/hashicorp/DESIGN.md",
+      "source_url": "https://getdesign.md/hashicorp/design-md"
+    },
+    {
+      "slug": "hp",
+      "name": "HP",
+      "description": "Consumer electronics catalog. White canvas with electric blue accent, angular chevron motifs.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/hp/DESIGN.md",
+      "source_url": "https://getdesign.md/hp/design-md"
+    },
+    {
+      "slug": "ibm",
+      "name": "IBM",
+      "description": "Enterprise technology. Carbon design system, structured blue palette.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/ibm/DESIGN.md",
+      "source_url": "https://getdesign.md/ibm/design-md"
+    },
+    {
+      "slug": "intercom",
+      "name": "Intercom",
+      "description": "Customer messaging. Friendly blue palette, conversational UI patterns.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/intercom/DESIGN.md",
+      "source_url": "https://getdesign.md/intercom/design-md"
+    },
+    {
+      "slug": "kraken",
+      "name": "Kraken",
+      "description": "Crypto trading. Purple-accented dark UI, data-dense dashboards.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/kraken/DESIGN.md",
+      "source_url": "https://getdesign.md/kraken/design-md"
+    },
+    {
+      "slug": "lamborghini",
+      "name": "Lamborghini",
+      "description": "Supercar brand. True black surfaces, gold accents, dramatic uppercase typography.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/lamborghini/DESIGN.md",
+      "source_url": "https://getdesign.md/lamborghini/design-md"
+    },
+    {
+      "slug": "linear.app",
+      "name": "Linear",
+      "description": "Project management. Ultra-minimal, precise, purple accent.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/linear.app/DESIGN.md",
+      "source_url": "https://getdesign.md/linear.app/design-md"
+    },
+    {
+      "slug": "lovable",
+      "name": "Lovable",
+      "description": "AI full-stack builder. Playful gradients, friendly dev aesthetic.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/lovable/DESIGN.md",
+      "source_url": "https://getdesign.md/lovable/design-md"
+    },
+    {
+      "slug": "mastercard",
+      "name": "Mastercard",
+      "description": "Global payments network. Warm cream canvas, orbital pill shapes, editorial warmth.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/mastercard/DESIGN.md",
+      "source_url": "https://getdesign.md/mastercard/design-md"
+    },
+    {
+      "slug": "meta",
+      "name": "Meta",
+      "description": "Tech retail store. Photography-first, binary light/dark surfaces, Meta Blue CTAs.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/meta/DESIGN.md",
+      "source_url": "https://getdesign.md/meta/design-md"
+    },
+    {
+      "slug": "minimax",
+      "name": "MiniMax",
+      "description": "AI model provider. Bold dark interface with neon accents.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/minimax/DESIGN.md",
+      "source_url": "https://getdesign.md/minimax/design-md"
+    },
+    {
+      "slug": "mintlify",
+      "name": "Mintlify",
+      "description": "Documentation platform. Clean, green-accented, reading-optimized.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/mintlify/DESIGN.md",
+      "source_url": "https://getdesign.md/mintlify/design-md"
+    },
+    {
+      "slug": "miro",
+      "name": "Miro",
+      "description": "Visual collaboration. Bright yellow accent, infinite canvas aesthetic.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/miro/DESIGN.md",
+      "source_url": "https://getdesign.md/miro/design-md"
+    },
+    {
+      "slug": "mistral.ai",
+      "name": "Mistral AI",
+      "description": "Open-weight LLM provider. French-engineered minimalism, purple-toned.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/mistral.ai/DESIGN.md",
+      "source_url": "https://getdesign.md/mistral.ai/design-md"
+    },
+    {
+      "slug": "mongodb",
+      "name": "MongoDB",
+      "description": "Document database. Green leaf branding, developer documentation focus.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/mongodb/DESIGN.md",
+      "source_url": "https://getdesign.md/mongodb/design-md"
+    },
+    {
+      "slug": "nike",
+      "name": "Nike",
+      "description": "Athletic retail. Monochrome UI, massive uppercase type, full-bleed photography.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/nike/DESIGN.md",
+      "source_url": "https://getdesign.md/nike/design-md"
+    },
+    {
+      "slug": "nintendo-2001",
+      "name": "Nintendo (2001)",
+      "description": "Y2K console chrome web. Brushed-periwinkle metal panels, outlined Arial-Black type.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/nintendo-2001/DESIGN.md",
+      "source_url": "https://getdesign.md/nintendo-2001/design-md"
+    },
+    {
+      "slug": "notion",
+      "name": "Notion",
+      "description": "All-in-one workspace. Warm minimalism, serif headings, soft surfaces.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/notion/DESIGN.md",
+      "source_url": "https://getdesign.md/notion/design-md"
+    },
+    {
+      "slug": "nvidia",
+      "name": "NVIDIA",
+      "description": "GPU computing. Green-black energy, technical power aesthetic.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/nvidia/DESIGN.md",
+      "source_url": "https://getdesign.md/nvidia/design-md"
+    },
+    {
+      "slug": "ollama",
+      "name": "Ollama",
+      "description": "Run LLMs locally. Terminal-first, monochrome simplicity.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/ollama/DESIGN.md",
+      "source_url": "https://getdesign.md/ollama/design-md"
+    },
+    {
+      "slug": "opencode.ai",
+      "name": "OpenCode",
+      "description": "AI coding platform. Developer-centric dark theme.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/opencode.ai/DESIGN.md",
+      "source_url": "https://getdesign.md/opencode.ai/design-md"
+    },
+    {
+      "slug": "pinterest",
+      "name": "Pinterest",
+      "description": "Visual discovery. Red accent, masonry grid, image-first.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/pinterest/DESIGN.md",
+      "source_url": "https://getdesign.md/pinterest/design-md"
+    },
+    {
+      "slug": "playstation",
+      "name": "PlayStation",
+      "description": "Gaming console retail. Three-surface channel layout, cyan hover-scale.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/playstation/DESIGN.md",
+      "source_url": "https://getdesign.md/playstation/design-md"
+    },
+    {
+      "slug": "posthog",
+      "name": "PostHog",
+      "description": "Product analytics. Playful hedgehog branding, developer-friendly dark UI.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/posthog/DESIGN.md",
+      "source_url": "https://getdesign.md/posthog/design-md"
+    },
+    {
+      "slug": "raycast",
+      "name": "Raycast",
+      "description": "Productivity launcher. Sleek dark chrome, vibrant gradient accents.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/raycast/DESIGN.md",
+      "source_url": "https://getdesign.md/raycast/design-md"
+    },
+    {
+      "slug": "renault",
+      "name": "Renault",
+      "description": "French automotive. Vibrant aurora gradients, NouvelR typography, bold energy.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/renault/DESIGN.md",
+      "source_url": "https://getdesign.md/renault/design-md"
+    },
+    {
+      "slug": "replicate",
+      "name": "Replicate",
+      "description": "Run ML models via API. Clean white canvas, code-forward.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/replicate/DESIGN.md",
+      "source_url": "https://getdesign.md/replicate/design-md"
+    },
+    {
+      "slug": "resend",
+      "name": "Resend",
+      "description": "Email API. Minimal dark theme, monospace accents.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/resend/DESIGN.md",
+      "source_url": "https://getdesign.md/resend/design-md"
+    },
+    {
+      "slug": "revolut",
+      "name": "Revolut",
+      "description": "Digital banking. Sleek dark interface, gradient cards, fintech precision.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/revolut/DESIGN.md",
+      "source_url": "https://getdesign.md/revolut/design-md"
+    },
+    {
+      "slug": "runwayml",
+      "name": "Runway",
+      "description": "AI video generation. Cinematic dark UI, media-rich layout.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/runwayml/DESIGN.md",
+      "source_url": "https://getdesign.md/runwayml/design-md"
+    },
+    {
+      "slug": "sanity",
+      "name": "Sanity",
+      "description": "Headless CMS. Red accent, content-first editorial layout.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/sanity/DESIGN.md",
+      "source_url": "https://getdesign.md/sanity/design-md"
+    },
+    {
+      "slug": "sentry",
+      "name": "Sentry",
+      "description": "Error monitoring. Dark dashboard, data-dense, pink-purple accent.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/sentry/DESIGN.md",
+      "source_url": "https://getdesign.md/sentry/design-md"
+    },
+    {
+      "slug": "shopify",
+      "name": "Shopify",
+      "description": "E-commerce platform. Dark-first cinematic, neon green accent, ultra-light type.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/shopify/DESIGN.md",
+      "source_url": "https://getdesign.md/shopify/design-md"
+    },
+    {
+      "slug": "slack",
+      "name": "Slack",
+      "description": "Workplace messaging. Deep-aubergine primary with cream-lavender hero gradients, pill CTAs.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/slack/DESIGN.md",
+      "source_url": "https://getdesign.md/slack/design-md"
+    },
+    {
+      "slug": "spacex",
+      "name": "SpaceX",
+      "description": "Space technology. Stark black and white, full-bleed imagery, futuristic.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/spacex/DESIGN.md",
+      "source_url": "https://getdesign.md/spacex/design-md"
+    },
+    {
+      "slug": "spotify",
+      "name": "Spotify",
+      "description": "Music streaming. Vibrant green on dark, bold type, album-art-driven.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/spotify/DESIGN.md",
+      "source_url": "https://getdesign.md/spotify/design-md"
+    },
+    {
+      "slug": "starbucks",
+      "name": "Starbucks",
+      "description": "Global coffee retail. Four-tier green system, warm cream canvas, full-pill buttons.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/starbucks/DESIGN.md",
+      "source_url": "https://getdesign.md/starbucks/design-md"
+    },
+    {
+      "slug": "stripe",
+      "name": "Stripe",
+      "description": "Payment infrastructure. Signature purple gradients, weight-300 elegance.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/stripe/DESIGN.md",
+      "source_url": "https://getdesign.md/stripe/design-md"
+    },
+    {
+      "slug": "supabase",
+      "name": "Supabase",
+      "description": "Open-source Firebase alternative. Dark emerald theme, code-first.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/supabase/DESIGN.md",
+      "source_url": "https://getdesign.md/supabase/design-md"
+    },
+    {
+      "slug": "superhuman",
+      "name": "Superhuman",
+      "description": "Fast email client. Premium dark UI, keyboard-first, purple glow.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/superhuman/DESIGN.md",
+      "source_url": "https://getdesign.md/superhuman/design-md"
+    },
+    {
+      "slug": "tesla",
+      "name": "Tesla",
+      "description": "Electric automotive. Radical subtraction, full-viewport photography, near-zero UI.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/tesla/DESIGN.md",
+      "source_url": "https://getdesign.md/tesla/design-md"
+    },
+    {
+      "slug": "theverge",
+      "name": "The Verge",
+      "description": "Tech editorial media. Acid-mint and ultraviolet accents, Manuka display.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/theverge/DESIGN.md",
+      "source_url": "https://getdesign.md/theverge/design-md"
+    },
+    {
+      "slug": "together.ai",
+      "name": "Together AI",
+      "description": "Open-source AI infrastructure. Technical, blueprint-style design.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/together.ai/DESIGN.md",
+      "source_url": "https://getdesign.md/together.ai/design-md"
+    },
+    {
+      "slug": "uber",
+      "name": "Uber",
+      "description": "Mobility platform. Bold black and white, tight type, urban energy.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/uber/DESIGN.md",
+      "source_url": "https://getdesign.md/uber/design-md"
+    },
+    {
+      "slug": "vercel",
+      "name": "Vercel",
+      "description": "Frontend deployment. Black and white precision, Geist font.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/vercel/DESIGN.md",
+      "source_url": "https://getdesign.md/vercel/design-md"
+    },
+    {
+      "slug": "vodafone",
+      "name": "Vodafone",
+      "description": "Global telecom. Monumental uppercase display, Vodafone Red chapter bands.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/vodafone/DESIGN.md",
+      "source_url": "https://getdesign.md/vodafone/design-md"
+    },
+    {
+      "slug": "voltagent",
+      "name": "VoltAgent",
+      "description": "AI agent framework. Void-black canvas, emerald accent, terminal-native.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/voltagent/DESIGN.md",
+      "source_url": "https://getdesign.md/voltagent/design-md"
+    },
+    {
+      "slug": "warp",
+      "name": "Warp",
+      "description": "Modern terminal. Dark IDE-like interface, block-based command UI.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/warp/DESIGN.md",
+      "source_url": "https://getdesign.md/warp/design-md"
+    },
+    {
+      "slug": "webflow",
+      "name": "Webflow",
+      "description": "Visual web builder. Blue-accented, polished marketing site aesthetic.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/webflow/DESIGN.md",
+      "source_url": "https://getdesign.md/webflow/design-md"
+    },
+    {
+      "slug": "wired",
+      "name": "WIRED",
+      "description": "Tech magazine. Paper-white broadsheet density, custom serif display, ink-blue links.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/wired/DESIGN.md",
+      "source_url": "https://getdesign.md/wired/design-md"
+    },
+    {
+      "slug": "wise",
+      "name": "Wise",
+      "description": "Money transfer. Bright green accent, friendly and clear.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/wise/DESIGN.md",
+      "source_url": "https://getdesign.md/wise/design-md"
+    },
+    {
+      "slug": "x.ai",
+      "name": "xAI",
+      "description": "Elon Musk's AI lab. Stark monochrome, futuristic minimalism.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/x.ai/DESIGN.md",
+      "source_url": "https://getdesign.md/x.ai/design-md"
+    },
+    {
+      "slug": "zapier",
+      "name": "Zapier",
+      "description": "Automation platform. Warm orange, friendly illustration-driven.",
+      "raw_url": "https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/design-md/zapier/DESIGN.md",
+      "source_url": "https://getdesign.md/zapier/design-md"
+    }
+  ]
+}

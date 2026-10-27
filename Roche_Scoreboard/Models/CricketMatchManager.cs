@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,6 +13,9 @@ namespace Roche_Scoreboard.Models
         Wicket
     }
 
+    public enum CricketNoBallRuns { Bat, Byes, LegByes }
+    public enum CricketWicketRuns { Bat, Wide, NoBall, Byes, LegByes }
+
     public sealed class CricketDelivery
     {
         public DateTime Timestamp { get; init; } = DateTime.Now;
@@ -21,6 +24,31 @@ namespace Roche_Scoreboard.Models
         public int BallInOver { get; init; }
         public CricketDeliveryType Type { get; init; }
         public int Runs { get; init; }
+        public int StrikerIndex { get; init; } = -1;
+        public int NonStrikerIndex { get; init; } = -1;
+        public int BowlerIndex { get; init; } = -1;
+        public int DismissedBatterIndex { get; init; } = -1;
+        public bool RunOutCrossed { get; init; }
+        public bool? CountsInOver { get; init; }
+        public bool WasFreeHit { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsCountedBall => CountsInOver ?? ScoringType is not CricketDeliveryType.Wide and not CricketDeliveryType.NoBall;
+        public CricketNoBallRuns NoBallRuns { get; init; }
+        public CricketWicketRuns WicketRuns { get; init; }
+        /// <summary>Completed running, not a boundary allowance; retained when a winning run precedes a run out.</summary>
+        public bool CompletedRunsOnly { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public CricketDeliveryType ScoringType => Type == CricketDeliveryType.Wicket ? WicketScoringType(WicketRuns) : Type;
+        internal static CricketDeliveryType WicketScoringType(CricketWicketRuns source) => source switch
+        {
+            CricketWicketRuns.Wide => CricketDeliveryType.Wide,
+            CricketWicketRuns.NoBall => CricketDeliveryType.NoBall,
+            CricketWicketRuns.Byes => CricketDeliveryType.Bye,
+            CricketWicketRuns.LegByes => CricketDeliveryType.LegBye,
+            _ => CricketDeliveryType.Runs
+        };
+        public DismissalType Dismissal { get; init; } = DismissalType.NotOut;
+        public string? Fielder { get; init; }
         public string? BatsmanName { get; init; }
         public string? BowlerName { get; init; }
         public string? DismissalText { get; init; }
@@ -35,10 +63,11 @@ namespace Roche_Scoreboard.Models
             CricketDeliveryType.Four => "FOUR",
             CricketDeliveryType.Six => "SIX",
             CricketDeliveryType.Wide => $"Wide (+{Runs})",
-            CricketDeliveryType.NoBall => $"No ball (+{Runs})",
+            CricketDeliveryType.NoBall => Runs <= 1 ? "No ball"
+                : $"No ball + {Runs - 1} {(NoBallRuns == CricketNoBallRuns.Bat ? "off bat" : NoBallRuns == CricketNoBallRuns.Byes ? Runs == 2 ? "bye" : "byes" : Runs == 2 ? "leg bye" : "leg byes")}",
             CricketDeliveryType.Bye => $"Bye (+{Runs})",
             CricketDeliveryType.LegBye => $"Leg bye (+{Runs})",
-            CricketDeliveryType.Wicket => $"WICKET — {DismissalText}",
+            CricketDeliveryType.Wicket => $"Wicket · {DismissalText}" + (Runs > 0 ? $" · +{Runs} {WicketRuns switch { CricketWicketRuns.Wide => "wides", CricketWicketRuns.NoBall => "incl. no-ball", CricketWicketRuns.Byes => "byes", CricketWicketRuns.LegByes => "leg-byes", _ => "runs" }}" : ""),
             _ => Runs == 1 ? "1 run" : $"{Runs} runs"
         };
     }
@@ -59,9 +88,16 @@ namespace Roche_Scoreboard.Models
         public int PreviousBowlerIndex { get; init; }
         public int PartnershipRuns { get; init; }
         public int PartnershipBalls { get; init; }
+        public bool IsDeclared { get; init; }
         public bool IsComplete { get; init; }
+        public bool IgnoreTarget { get; init; }
+        public bool IgnoreOverLimit { get; init; }
+        public int ScorecardAnchor { get; init; } = -1;
+        public List<string>? ManualFallOfWickets { get; init; }
         public bool NeedsBatterSelection { get; init; }
         public bool NeedsBowlerSelection { get; init; }
+        public bool FreeHitPending { get; init; }
+        public string ManualScorecardWarning { get; init; } = "";
         public List<string> CurrentOverBalls { get; init; } = [];
         public List<CricketPlayer> BattingOrder { get; init; } = [];
         public List<CricketPlayer> BowlingAttack { get; init; } = [];
@@ -109,8 +145,19 @@ namespace Roche_Scoreboard.Models
         public bool IsDeclared { get; set; }
         public bool IsAllOut => BattingOrder.Count >= 2 && TotalWickets >= BattingOrder.Count - 1;
         public bool IsComplete { get; set; }
+        public bool IgnoreTarget { get; set; }
+        public bool IgnoreOverLimit { get; set; }
+        public int ScorecardAnchor { get; set; } = -1;
+        public List<string>? ManualFallOfWickets { get; set; }
+        public List<CricketScorecardChange> ScorecardChanges { get; set; } = [];
+        public int? OverLimitOverride { get; set; }
+        public int? TargetOverride { get; set; }
+        public string AdjustmentNote { get; set; } = "";
+        public int ConditionsDeliveryCount { get; set; }
         public bool NeedsBatterSelection { get; set; }
         public bool NeedsBowlerSelection { get; set; }
+        public bool FreeHitPending { get; set; }
+        public string ManualScorecardWarning { get; set; } = "";
 
         public CricketPlayer? Striker => StrikerIndex >= 0 && StrikerIndex < BattingOrder.Count
             ? BattingOrder[StrikerIndex] : null;
@@ -135,7 +182,7 @@ namespace Roche_Scoreboard.Models
                     var d = Deliveries[i];
                     if (d.Type == CricketDeliveryType.Four || d.Type == CricketDeliveryType.Six)
                         break;
-                    if (d.Type != CricketDeliveryType.Wide && d.Type != CricketDeliveryType.NoBall)
+                    if (d.IsCountedBall)
                         count++;
                 }
                 return count;
@@ -151,7 +198,7 @@ namespace Roche_Scoreboard.Models
             for (int i = Deliveries.Count - 1; i >= 0 && legalCounted < ballsWanted; i--)
             {
                 runs += Deliveries[i].Runs;
-                if (Deliveries[i].Type != CricketDeliveryType.Wide && Deliveries[i].Type != CricketDeliveryType.NoBall)
+                if (Deliveries[i].IsCountedBall)
                     legalCounted++;
             }
             return runs;
@@ -166,7 +213,7 @@ namespace Roche_Scoreboard.Models
             get
             {
                 int legalBalls = Deliveries.Count(d =>
-                    d.Type != CricketDeliveryType.Wide && d.Type != CricketDeliveryType.NoBall);
+                    d.IsCountedBall);
                 if (legalBalls == 0) return 0;
                 int dots = Deliveries.Count(d => d.Type == CricketDeliveryType.Dot);
                 return Math.Round(100.0 * dots / legalBalls, 1);
@@ -174,7 +221,7 @@ namespace Roche_Scoreboard.Models
         }
     }
 
-    public sealed class CricketMatchManager
+    public sealed partial class CricketMatchManager
     {
         // Teams
         public string TeamAName { get; private set; } = "Team A";
@@ -205,7 +252,11 @@ namespace Roche_Scoreboard.Models
             ? AllInnings[CurrentInningsNumber - 1] : null;
 
         public bool TeamABatsFirst { get; set; } = true;
+        public string TossWinner { get; set; } = "";
+        public bool TossPending { get; set; }
+        public bool TossWinnerElectedToBat { get; set; } = true;
         public List<string> Messages { get; set; } = [];
+        public string WeatherLocation { get; set; } = "Melbourne, Australia";
 
         // Events
         public event Action? MatchChanged;
@@ -243,15 +294,16 @@ namespace Roche_Scoreboard.Models
         public int TotalRuns => CurrentInnings?.TotalRuns ?? 0;
         public int TotalWickets => CurrentInnings?.TotalWickets ?? 0;
         public string OversDisplay => CurrentInnings?.OversDisplay ?? "0.0";
-        public string ScoreDisplay => $"{TotalRuns}/{TotalWickets}";
+        public string ScoreDisplay => $"{TotalWickets}/{TotalRuns}";
 
         public int? Target
         {
             get
             {
                 if (CurrentInnings == null) return null;
+                if (CurrentInnings.TargetOverride is int revisedTarget) return revisedTarget;
 
-                if (Format == CricketFormat.LimitedOvers)
+                if (Format == CricketFormat.LimitedOvers && AllInnings.Count <= 2)
                 {
                     // Target only in 2nd innings
                     if (CurrentInningsNumber <= 1) return null;
@@ -292,7 +344,7 @@ namespace Roche_Scoreboard.Models
             {
                 if (Format != CricketFormat.LimitedOvers || CurrentInnings == null || Target == null)
                     return null;
-                int totalBalls = TotalOvers * 6;
+                int totalBalls = CurrentOverLimit * 6;
                 int ballsRemaining = totalBalls - CurrentInnings.LegalBallsBowled;
                 if (ballsRemaining <= 0) return null;
                 int needed = Target.Value - CurrentInnings.TotalRuns;
@@ -309,7 +361,7 @@ namespace Roche_Scoreboard.Models
             get
             {
                 if (Format != CricketFormat.LimitedOvers || CurrentInnings == null) return null;
-                return Math.Max(0, TotalOvers * 6 - CurrentInnings.LegalBallsBowled);
+                return Math.Max(0, CurrentOverLimit * 6 - CurrentInnings.LegalBallsBowled);
             }
         }
 
@@ -327,9 +379,9 @@ namespace Roche_Scoreboard.Models
         }
 
         /// <summary>Opening field-restriction overs, scaled for common short and one-day formats.</summary>
-        public int PowerplayOvers => TotalOvers switch
+        public int PowerplayOvers => CurrentOverLimit switch
         {
-            <= 10 => Math.Max(1, (int)Math.Ceiling(TotalOvers * 0.30)),
+            <= 10 => Math.Max(1, (int)Math.Ceiling(CurrentOverLimit * 0.30)),
             <= 20 => 6,
             <= 40 => 8,
             _ => 10
@@ -395,7 +447,7 @@ namespace Roche_Scoreboard.Models
                         for (int j = 0; j <= i; j++)
                             if (AllInnings[j].BattingTeamName == bowlingTeam) innNum++;
                         string ordinal = innNum == 1 ? "1ST" : innNum == 2 ? "2ND" : $"{innNum}TH";
-                        return ($"{abbr} {ordinal} INN", $"{prev.TotalRuns}/{prev.TotalWickets}");
+                        return ($"{abbr} {ordinal} INN", $"{prev.TotalWickets}/{prev.TotalRuns}");
                     }
                 }
                 return null;
@@ -407,15 +459,37 @@ namespace Roche_Scoreboard.Models
         public void SetTeams(string teamAName, string teamAAbbr,
                              string teamBName, string teamBAbbr)
         {
+            string oldA=TeamAName,oldB=TeamBName;
             TeamAName = string.IsNullOrWhiteSpace(teamAName) ? "Team A" : teamAName.Trim();
             TeamAAbbr = string.IsNullOrWhiteSpace(teamAAbbr) ? "TMA" : teamAAbbr.Trim();
             TeamBName = string.IsNullOrWhiteSpace(teamBName) ? "Team B" : teamBName.Trim();
             TeamBAbbr = string.IsNullOrWhiteSpace(teamBAbbr) ? "TMB" : teamBAbbr.Trim();
+            if(string.Equals(TeamAName,TeamBName,StringComparison.OrdinalIgnoreCase)) TeamBName+=" II";
+            foreach(var innings in AllInnings)
+            {
+                innings.BattingTeamName=innings.BattingTeamName==oldA ? TeamAName : innings.BattingTeamName==oldB ? TeamBName : innings.BattingTeamName;
+                innings.BowlingTeamName=innings.BowlingTeamName==oldA ? TeamAName : innings.BowlingTeamName==oldB ? TeamBName : innings.BowlingTeamName;
+            }
+            if(TossWinner==oldA) TossWinner=TeamAName; else if(TossWinner==oldB) TossWinner=TeamBName;
+            if(AllInnings.Count>0 && (oldA!=TeamAName || oldB!=TeamBName)) DeliveryRevision++;
             MatchChanged?.Invoke();
+        }
+
+        public bool CompleteToss(bool teamAWon, bool electedToBat)
+        {
+            if (!TossPending || CurrentInningsNumber != 1 || AllInnings.Any(i => i.Deliveries.Count > 0 || i.TotalRuns > 0 || i.TotalWickets > 0 || i.LegalBallsBowled > 0)) return false;
+            TossWinner = teamAWon ? TeamAName : TeamBName; TossWinnerElectedToBat = electedToBat;
+            TeamABatsFirst = teamAWon == electedToBat;
+            // No players may be selected while pending: safely create the correctly ordered innings once.
+            AllInnings.Clear(); StartNewInnings(); TossPending = false;
+            MatchChanged?.Invoke(); return true;
         }
 
         public void StartMatch()
         {
+            ResetWorkflowState();
+            foreach(var roster in new[] { TeamAPlayers,TeamBPlayers })
+                for(int i=0;i<roster.Count;i++) { roster[i].RosterIndex=i; if(roster[i].BattingPosition<=0) roster[i].BattingPosition=i+1; }
             AllInnings.Clear();
             CurrentInningsNumber = 1;
             StartNewInnings();
@@ -424,6 +498,9 @@ namespace Roche_Scoreboard.Models
 
         private void StartNewInnings()
         {
+            _conditionsVersion++;
+            BreakKind = CricketBreakKind.None;
+            BreakNote = "";
             bool teamABats;
             if (CurrentInningsNumber == 1)
                 teamABats = TeamABatsFirst;
@@ -431,6 +508,8 @@ namespace Roche_Scoreboard.Models
                 teamABats = !TeamABatsFirst;
             else
                 teamABats = (CurrentInningsNumber % 2 == 1) == TeamABatsFirst;
+            if(_nextBattingTeamOverride is bool selected) { teamABats=selected; _nextBattingTeamOverride=null; }
+            if(AllInnings.Count(i=>i.BattingTeamName==(teamABats ? TeamAName : TeamBName))>=2) teamABats=!teamABats;
 
             var battingPlayers = teamABats ? TeamAPlayers : TeamBPlayers;
             var bowlingPlayers = teamABats ? TeamBPlayers : TeamAPlayers;
@@ -442,14 +521,14 @@ namespace Roche_Scoreboard.Models
                 BowlingTeamName = teamABats ? TeamBName : TeamAName,
                 // Every innings owns its statistical player objects. Reusing the
                 // setup roster objects caused a new innings to erase the old scorecard.
-                BattingOrder = battingPlayers.Select(p =>
+                BattingOrder = battingPlayers.OrderBy(p=>p.BattingPosition).Select(p =>
                 {
                     var copy = p.Clone();
                     copy.ResetBatting();
                     copy.ResetBowling();
                     return copy;
                 }).ToList(),
-                BowlingAttack = bowlingPlayers.Select(p =>
+                BowlingAttack = bowlingPlayers.OrderBy(p=>p.BattingPosition).Select(p =>
                 {
                     var copy = p.Clone();
                     copy.ResetBatting();
@@ -472,9 +551,12 @@ namespace Roche_Scoreboard.Models
         public void SetStriker(int index)
         {
             var inn = CurrentInnings;
-            if (inn == null || index < 0 || index >= inn.BattingOrder.Count) return;
+            if (TossPending || inn == null || index < 0 || index >= inn.BattingOrder.Count) return;
             if (inn.BattingOrder[index].IsOut || index == inn.NonStrikerIndex) return;
             inn.StrikerIndex = index;
+            MarkBattingEntry(inn,index);
+            inn.BattingOrder[index].IsRetired=false; inn.BattingOrder[index].RetiredReason=null;
+            RefreshBatterSelectionState(inn);
             MatchChanged?.Invoke();
         }
 
@@ -482,21 +564,62 @@ namespace Roche_Scoreboard.Models
         public void SetNonStriker(int index)
         {
             var inn = CurrentInnings;
-            if (inn == null || index < 0 || index >= inn.BattingOrder.Count) return;
+            if (TossPending || inn == null || index < 0 || index >= inn.BattingOrder.Count) return;
             if (inn.BattingOrder[index].IsOut || index == inn.StrikerIndex) return;
             inn.NonStrikerIndex = index;
+            MarkBattingEntry(inn,index);
+            inn.BattingOrder[index].IsRetired=false; inn.BattingOrder[index].RetiredReason=null;
+            RefreshBatterSelectionState(inn);
             MatchChanged?.Invoke();
         }
 
-        /// <summary>Set the new batter after a wicket (replaces the striker slot).</summary>
+        private static void RefreshBatterSelectionState(CricketInnings inn)
+        {
+            inn.NeedsBatterSelection = !inn.IsComplete &&
+                (inn.Striker is null || inn.NonStriker is null || inn.Striker.IsOut
+                 || inn.NonStriker.IsOut || inn.StrikerIndex == inn.NonStrikerIndex);
+        }
+
+        private static void MarkBattingEntry(CricketInnings innings,int index)
+        {
+            if(index<0 || index>=innings.BattingOrder.Count)return;
+            var player=innings.BattingOrder[index];
+            if(player.BattingEntryOrder>0)return;
+            foreach(var ball in innings.Deliveries)
+                foreach(int actor in new[]{ball.StateBefore?.StrikerIndex??ball.StrikerIndex,ball.StateBefore?.NonStrikerIndex??ball.NonStrikerIndex})
+                    if(actor>=0 && actor<innings.BattingOrder.Count && innings.BattingOrder[actor].BattingEntryOrder<=0)
+                        innings.BattingOrder[actor].BattingEntryOrder=innings.BattingOrder.Max(p=>p.BattingEntryOrder)+1;
+            if(player.BattingEntryOrder<=0)player.BattingEntryOrder=innings.BattingOrder.Max(p=>p.BattingEntryOrder)+1;
+        }
+
+        private static void RepairBowlerSelection(CricketInnings innings)
+        {
+            if (innings.IsComplete) { innings.NeedsBowlerSelection = false; return; }
+            if (innings.CurrentBowler is null) { innings.NeedsBowlerSelection = true; return; }
+            // Physical deliveries include wides/no-balls. Six display circles
+            // cannot end an over which has fewer than six legal deliveries.
+            if (innings.LegalBallsBowled == 0 || innings.BallsInCurrentOver != 0
+                || innings.Deliveries.LastOrDefault()?.OverNumber == innings.CompletedOvers)
+                innings.NeedsBowlerSelection = false;
+        }
+
+        /// <summary>Replace the dismissed slot, including a wicket on ball six.</summary>
         public void SelectNewBatter(int index)
         {
             var inn = CurrentInnings;
-            if (inn == null || index < 0 || index >= inn.BattingOrder.Count) return;
-            if (inn.BattingOrder[index].IsOut || index == inn.NonStrikerIndex) return;
-            inn.StrikerIndex = index;
-            inn.NeedsBatterSelection = false;
+            if (TossPending || inn == null || index < 0 || index >= inn.BattingOrder.Count) return;
+            if (!inn.NeedsBatterSelection || inn.IsComplete || inn.BattingOrder[index].IsOut
+                || index == inn.StrikerIndex || index == inn.NonStrikerIndex) return;
+            if (inn.Striker is null || inn.Striker.IsOut)
+                inn.StrikerIndex = index;
+            else if (inn.NonStriker is null || inn.NonStriker.IsOut)
+                inn.NonStrikerIndex = index;
+            else
+                return;
+            RefreshBatterSelectionState(inn);
             // Reset partnership for new pair
+            MarkBattingEntry(inn,index);
+            RepairBowlerSelection(inn);
             inn.PartnershipRuns = 0;
             inn.PartnershipBalls = 0;
             MatchChanged?.Invoke();
@@ -509,11 +632,24 @@ namespace Roche_Scoreboard.Models
         {
             var inn = CurrentInnings;
             if (inn == null || index < 0 || index >= inn.BowlingAttack.Count) return;
-            if (inn.NeedsBowlerSelection && inn.LegalBallsBowled > 0 && index == inn.CurrentBowlerIndex) return;
+            if (!CanSelectBowler(index)) return;
             inn.PreviousBowlerIndex = inn.CurrentBowlerIndex;
             inn.CurrentBowlerIndex = index;
+            if(inn.BowlingAttack[index].BowlingEntryOrder<=0)
+                inn.BowlingAttack[index].BowlingEntryOrder=inn.BowlingAttack.Max(player=>player.BowlingEntryOrder)+1;
+            if (inn.NeedsBowlerSelection) inn.CurrentOverBalls.Clear();
             inn.NeedsBowlerSelection = false;
             MatchChanged?.Invoke();
+        }
+
+        public bool CanSelectBowler(int index)
+        {
+            var innings = CurrentInnings;
+            if (TossPending || innings is null || index < 0 || index >= innings.BowlingAttack.Count) return false;
+            if (!innings.NeedsBowlerSelection || innings.LegalBallsBowled == 0) return true;
+            int previousOver = innings.CompletedOvers - 1;
+            return !innings.Deliveries.Any(delivery => delivery.OverNumber == previousOver
+                && (delivery.BowlerIndex == index || (delivery.BowlerIndex < 0 && delivery.BowlerName == innings.BowlingAttack[index].DisplayName)));
         }
 
         /// <summary>Get the suggested next bowler (auto-rotation: alternates between last 2).</summary>
@@ -521,34 +657,83 @@ namespace Roche_Scoreboard.Models
         {
             var inn = CurrentInnings;
             if (inn == null || inn.BowlingAttack.Count == 0) return -1;
-            if (inn.PreviousBowlerIndex >= 0 && inn.PreviousBowlerIndex != inn.CurrentBowlerIndex)
-                return inn.PreviousBowlerIndex;
-            // Suggest the next in line
-            return (inn.CurrentBowlerIndex + 1) % inn.BowlingAttack.Count;
+            if (inn.PreviousBowlerIndex >= 0 && CanSelectBowler(inn.PreviousBowlerIndex)) return inn.PreviousBowlerIndex;
+            return Enumerable.Range(0, inn.BowlingAttack.Count).FirstOrDefault(CanSelectBowler, -1);
         }
 
         // ---- Scoring ----
 
-        public void RecordDelivery(int runs, CricketDeliveryType type, string? dismissalText = null)
+        public void RecordDelivery(int runs, CricketDeliveryType type, string? dismissalText = null,
+            CricketNoBallRuns noBallRuns = CricketNoBallRuns.Bat, DismissalType dismissal = DismissalType.Bowled,
+            string? fielder = null, int? dismissedBatterIndex = null, DateTime? timestamp = null,
+            CricketWicketRuns wicketRuns = CricketWicketRuns.Bat, bool completedRunsOnly = false, bool runOutCrossed = false,
+            bool? countsInOverOverride = null)
         {
             var inn = CurrentInnings;
-            if (inn == null || inn.IsComplete || runs < 0) return;
+            LastOperationError = "";
+            if (inn == null || inn.IsComplete || IsMatchFinalized || BreakKind!=CricketBreakKind.None || runs < 0 || runs > 999 || !Enum.IsDefined(type) || !Enum.IsDefined(noBallRuns) || !Enum.IsDefined(wicketRuns)) return;
+            if (type == CricketDeliveryType.Wicket && (!Enum.IsDefined(dismissal) || dismissal is DismissalType.NotOut or DismissalType.RetiredHurt)) return;
+            if (type == CricketDeliveryType.Dot) runs = 0;
+            if (type == CricketDeliveryType.Four) runs = 4;
+            if (type == CricketDeliveryType.Six) runs = 6;
             if (type is CricketDeliveryType.Wide or CricketDeliveryType.NoBall)
                 runs = Math.Max(1, runs);
 
             // Block scoring if batsmen or bowler not yet selected
-            if (inn.StrikerIndex < 0 || inn.NonStrikerIndex < 0 || inn.CurrentBowlerIndex < 0
+            RepairBowlerSelection(inn);
+            if (TossPending || inn.Striker is null || inn.NonStriker is null || inn.CurrentBowler is null
+                || inn.StrikerIndex == inn.NonStrikerIndex
                 || inn.NeedsBatterSelection || inn.NeedsBowlerSelection
                 || inn.Striker?.IsOut == true || inn.NonStriker?.IsOut == true) return;
 
-            bool isLegal = type != CricketDeliveryType.Wide && type != CricketDeliveryType.NoBall;
-            bool isExtra = type == CricketDeliveryType.Wide || type == CricketDeliveryType.NoBall
-                        || type == CricketDeliveryType.Bye || type == CricketDeliveryType.LegBye;
+            if (type == CricketDeliveryType.Wicket && dismissedBatterIndex is int outIndex
+                && outIndex != inn.StrikerIndex && outIndex != inn.NonStrikerIndex) return;
+            if (dismissalText?.StartsWith("run out", StringComparison.OrdinalIgnoreCase) == true) dismissal = DismissalType.RunOut;
+            if (type == CricketDeliveryType.Wicket && FreeHitsEnabled && inn.FreeHitPending && !IsDismissalAllowedOnFreeHit(dismissal))
+            { LastOperationError = "That dismissal is not allowed on a free hit. Record the delivery outcome without a wicket."; return; }
+            if (type == CricketDeliveryType.Wicket && dismissal is not DismissalType.RunOut and not DismissalType.Other and not DismissalType.ObstructingField
+                && dismissedBatterIndex is int victimIndex && victimIndex != inn.StrikerIndex) return;
+            if (type == CricketDeliveryType.Wicket && !IsDismissalAllowedOnFreeHit(dismissal)) runs = 0;
+            if (type == CricketDeliveryType.Wicket && !IsDismissalAllowedOnFreeHit(dismissal) && wicketRuns != CricketWicketRuns.Bat) return;
+            var scoringType = type == CricketDeliveryType.Wicket ? CricketDelivery.WicketScoringType(wicketRuns) : type;
+            if (scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall) runs = Math.Max(1, runs);
+            bool completedOnly = type == CricketDeliveryType.Wicket && dismissal == DismissalType.RunOut
+                || completedRunsOnly && type is CricketDeliveryType.Runs or CricketDeliveryType.Wide or CricketDeliveryType.NoBall or CricketDeliveryType.Bye or CricketDeliveryType.LegBye;
+            // MCC 16.6.1: the result ends the match at the winning run. A
+            // wide/no-ball penalty can win before any batting, running or run
+            // out; completed runs that win likewise precede a later run out.
+            // Genuine boundary events retain the full allowance (16.6.3).
+            if (!inn.IgnoreTarget && Target is int winningTarget && inn.TotalRuns < winningTarget)
+            {
+                int required = winningTarget - inn.TotalRuns;
+                bool penaltyWins = required == 1 && scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall;
+                bool boundaryAllowance = type is CricketDeliveryType.Four or CricketDeliveryType.Six
+                    || !completedOnly && (scoringType == CricketDeliveryType.Wide && runs == 5
+                        || scoringType == CricketDeliveryType.NoBall && (runs == 5 || runs == 7 && noBallRuns == CricketNoBallRuns.Bat)
+                        || scoringType is CricketDeliveryType.Bye or CricketDeliveryType.LegBye && runs == 4);
+                bool completedRunsWin = runs >= required && !boundaryAllowance;
+                if (penaltyWins || completedRunsWin)
+                {
+                    runs = penaltyWins ? 1 : required;
+                    type = scoringType;
+                    wicketRuns = CricketWicketRuns.Bat;
+                    dismissal = DismissalType.NotOut; dismissalText = null; fielder = null; dismissedBatterIndex = null;
+                    if (penaltyWins) noBallRuns = CricketNoBallRuns.Bat;
+                }
+            }
+            bool isLegal = _replaying && countsInOverOverride is bool recordedCount ? recordedCount : CountsInOver(scoringType);
+            bool wasFreeHit = FreeHitsEnabled && inn.FreeHitPending;
+            bool isExtra = scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall or CricketDeliveryType.Bye or CricketDeliveryType.LegBye;
 
             var striker = inn.Striker;
             var bowler = inn.CurrentBowler;
 
+            MarkBattingEntry(inn,inn.StrikerIndex);MarkBattingEntry(inn,inn.NonStrikerIndex);
+            if(bowler is not null && bowler.BowlingEntryOrder<=0)
+                bowler.BowlingEntryOrder=inn.BowlingAttack.Max(player=>player.BowlingEntryOrder)+1;
+
             var stateBefore = CaptureState(inn);
+            var dismissedPlayer = type == CricketDeliveryType.Wicket ? inn.BattingOrder[dismissedBatterIndex ?? inn.StrikerIndex] : null;
 
             // Apply runs
             inn.TotalRuns += runs;
@@ -556,7 +741,7 @@ namespace Roche_Scoreboard.Models
             int batterRunsCredited = 0;
             if (isExtra)
             {
-                switch (type)
+                switch (scoringType)
                 {
                     case CricketDeliveryType.Wide:
                         inn.TotalExtras += runs;
@@ -567,15 +752,18 @@ namespace Roche_Scoreboard.Models
                         // The first run is the no-ball penalty. Additional runs
                         // selected by the quick scorer are runs off the bat.
                         int noBallPenalty = runs > 0 ? 1 : 0;
-                        batterRunsCredited = Math.Max(0, runs - noBallPenalty);
-                        inn.TotalExtras += noBallPenalty;
+                        int additional = Math.Max(0, runs - noBallPenalty);
+                        batterRunsCredited = noBallRuns == CricketNoBallRuns.Bat ? additional : 0;
+                        inn.TotalExtras += noBallPenalty + (noBallRuns == CricketNoBallRuns.Bat ? 0 : additional);
+                        if (noBallRuns == CricketNoBallRuns.Byes) inn.Byes += additional;
+                        if (noBallRuns == CricketNoBallRuns.LegByes) inn.LegByes += additional;
                         inn.NoBalls += noBallPenalty;
-                        if (bowler != null) { bowler.RunsConceded += runs; bowler.NoBalls += noBallPenalty; }
+                        if (bowler != null) { bowler.RunsConceded += noBallPenalty + batterRunsCredited; bowler.NoBalls += noBallPenalty; }
                         if (batterRunsCredited > 0 && striker != null)
                         {
                             striker.Runs += batterRunsCredited;
-                            if (batterRunsCredited == 4) striker.Fours++;
-                            else if (batterRunsCredited == 6) striker.Sixes++;
+                            if (!completedOnly && batterRunsCredited == 4) striker.Fours++;
+                            else if (!completedOnly && batterRunsCredited == 6) striker.Sixes++;
                         }
                         break;
                     case CricketDeliveryType.Bye:
@@ -608,16 +796,22 @@ namespace Roche_Scoreboard.Models
             if (isLegal)
             {
                 inn.LegalBallsBowled++;
-                if (striker != null) striker.BallsFaced++;
+                if (striker != null && scoringType != CricketDeliveryType.Wide) striker.BallsFaced++;
                 if (bowler != null) bowler.BallsBowled++;
                 inn.PartnershipBalls++;
 
                 string ballDisplay = type switch
                 {
-                    CricketDeliveryType.Wicket => "W",
+                    CricketDeliveryType.Wicket => scoringType == CricketDeliveryType.Wide ? $"W+{runs}wd"
+                        : scoringType == CricketDeliveryType.NoBall ? $"W+{runs}nb"
+                        : runs == 0 ? "W" : scoringType == CricketDeliveryType.Bye ? $"W+{runs}b" : scoringType == CricketDeliveryType.LegBye ? $"W+{runs}lb" : $"W+{runs}",
                     CricketDeliveryType.Four => "4",
                     CricketDeliveryType.Six => "6",
                     CricketDeliveryType.Dot => "•",
+                    CricketDeliveryType.Wide => $"{runs}wd",
+                    CricketDeliveryType.NoBall => noBallRuns == CricketNoBallRuns.Bat || runs == 1 ? $"{runs}nb" : $"nb+{runs - 1}{(noBallRuns == CricketNoBallRuns.Byes ? "b" : "lb")}",
+                    CricketDeliveryType.Bye => $"{runs}b",
+                    CricketDeliveryType.LegBye => $"{runs}lb",
                     _ => runs.ToString()
                 };
                 inn.CurrentOverBalls.Add(ballDisplay);
@@ -626,15 +820,15 @@ namespace Roche_Scoreboard.Models
             {
                 // A no-ball is not a legal ball for the over or bowler, but it
                 // is a delivery faced by the striker. Wides are not balls faced.
-                if (type == CricketDeliveryType.NoBall && striker != null)
+                if (scoringType == CricketDeliveryType.NoBall && striker != null)
                     striker.BallsFaced++;
-                string ballDisplay = type switch
+                string ballDisplay = scoringType switch
                 {
                     CricketDeliveryType.Wide => $"{runs}wd",
-                    CricketDeliveryType.NoBall => $"{runs}nb",
+                    CricketDeliveryType.NoBall => noBallRuns == CricketNoBallRuns.Bat || runs == 1 ? $"{runs}nb" : $"nb+{runs - 1}{(noBallRuns == CricketNoBallRuns.Byes ? "b" : "lb")}",
                     _ => runs.ToString()
                 };
-                inn.CurrentOverBalls.Add(ballDisplay);
+                inn.CurrentOverBalls.Add(type == CricketDeliveryType.Wicket ? "W+" + ballDisplay : ballDisplay);
             }
 
             inn.PartnershipRuns += runs;
@@ -643,14 +837,16 @@ namespace Roche_Scoreboard.Models
             if (type == CricketDeliveryType.Wicket)
             {
                 inn.TotalWickets++;
-                if (striker != null)
+                if (dismissedPlayer != null)
                 {
-                    striker.IsOut = true;
-                    striker.DismissalText = dismissalText;
+                    dismissedPlayer.IsOut = true;
+                    dismissedPlayer.DismissalText = dismissalText;
+                    dismissedPlayer.HowOut = dismissal;
+                    dismissedPlayer.DismissalFielder = fielder;
+                    dismissedPlayer.DismissalBowler = BowlerGetsWicket(dismissal) ? bowler?.DisplayName : null;
                 }
                 // Bowler gets wicket credit unless it's a run out
-                bool isRunOut = dismissalText != null && dismissalText.StartsWith("run out", StringComparison.OrdinalIgnoreCase);
-                if (bowler != null && !isRunOut) bowler.Wickets++;
+                if (bowler != null && BowlerGetsWicket(dismissal)) bowler.Wickets++;
 
                 // Flag that batter selection is needed (unless all out)
                 if (!inn.IsAllOut)
@@ -660,11 +856,24 @@ namespace Roche_Scoreboard.Models
             // Create delivery record
             var delivery = new CricketDelivery
             {
+                Timestamp = timestamp ?? DateTime.Now,
                 Innings = inn.InningsNumber,
                 OverNumber = deliveryOver,
                 BallInOver = isLegal ? deliveryBall : 0,
                 Type = type,
                 Runs = runs,
+                StrikerIndex = stateBefore.StrikerIndex,
+                NonStrikerIndex = stateBefore.NonStrikerIndex,
+                BowlerIndex = stateBefore.CurrentBowlerIndex,
+                DismissedBatterIndex = type == CricketDeliveryType.Wicket ? dismissedBatterIndex ?? stateBefore.StrikerIndex : -1,
+                RunOutCrossed = type == CricketDeliveryType.Wicket && dismissal == DismissalType.RunOut && runOutCrossed,
+                CountsInOver = isLegal,
+                WasFreeHit = wasFreeHit,
+                NoBallRuns = noBallRuns,
+                WicketRuns = wicketRuns,
+                CompletedRunsOnly = completedOnly,
+                Dismissal = type == CricketDeliveryType.Wicket ? dismissal : DismissalType.NotOut,
+                Fielder = fielder,
                 BatsmanName = striker?.DisplayName,
                 BowlerName = bowler?.DisplayName,
                 DismissalText = dismissalText,
@@ -674,9 +883,14 @@ namespace Roche_Scoreboard.Models
                 StateBefore = stateBefore
             };
             inn.Deliveries.Add(delivery);
+            inn.FreeHitPending = FreeHitsEnabled && (scoringType == CricketDeliveryType.NoBall
+                || wasFreeHit && scoringType == CricketDeliveryType.Wide);
+            _conditionsVersion++;
+            if (type == CricketDeliveryType.Wicket && inn.ManualFallOfWickets is { } notes)
+                notes.Add($"{inn.TotalWickets}-{inn.TotalRuns} ({inn.OversDisplay})");
 
             // Check for batter milestones (50, 100, 150, 200)
-            if (striker != null && batterRunsCredited > 0 && type != CricketDeliveryType.Wicket)
+            if (!_replaying && striker != null && batterRunsCredited > 0 && type != CricketDeliveryType.Wicket)
             {
                 int prevRuns = striker.Runs - batterRunsCredited;
                 int[] milestones = [50, 100, 150, 200];
@@ -691,13 +905,16 @@ namespace Roche_Scoreboard.Models
             }
 
             // Rotate strike indicator on odd runs (don't reorder, just swap indices)
-            int strikeRuns = type switch
+            int strikeRuns = scoringType switch
             {
                 CricketDeliveryType.Wide => Math.Max(0, runs - 1),
                 CricketDeliveryType.NoBall => Math.Max(0, runs - 1),
                 _ => runs
             };
             if (strikeRuns % 2 == 1)
+                (inn.StrikerIndex, inn.NonStrikerIndex) = (inn.NonStrikerIndex, inn.StrikerIndex);
+            // MCC18.12.1 also accounts for crossing on the uncompleted run.
+            if (type == CricketDeliveryType.Wicket && dismissal == DismissalType.RunOut && runOutCrossed)
                 (inn.StrikerIndex, inn.NonStrikerIndex) = (inn.NonStrikerIndex, inn.StrikerIndex);
 
             // End of over
@@ -706,21 +923,15 @@ namespace Roche_Scoreboard.Models
                 // Check maiden
                 if (bowler != null)
                 {
-                    var lastSixLegal = inn.Deliveries
-                        .Where(d => d.BowlerName == bowler.DisplayName
-                            && d.Type != CricketDeliveryType.Wide
-                            && d.Type != CricketDeliveryType.NoBall)
-                        .TakeLast(6);
-                    if (lastSixLegal.Count() == 6 && lastSixLegal.All(d =>
-                        d.Type == CricketDeliveryType.Bye
-                        || d.Type == CricketDeliveryType.LegBye
-                        || d.Runs == 0))
+                    var completed = inn.Deliveries.Where(d => d.OverNumber == deliveryOver).ToList();
+                    if (completed.Count(d => d.IsCountedBall) == 6
+                        && completed.All(d => d.BowlerIndex == stateBefore.CurrentBowlerIndex && BowlerRuns(d) == 0))
                         bowler.Maidens++;
                 }
 
                 // Swap strike at end of over
                 (inn.StrikerIndex, inn.NonStrikerIndex) = (inn.NonStrikerIndex, inn.StrikerIndex);
-                inn.CurrentOverBalls.Clear();
+                // Keep the complete over visible until the next bowler is confirmed.
 
                 // Track when this bowler last bowled
                 if (bowler != null)
@@ -733,6 +944,7 @@ namespace Roche_Scoreboard.Models
 
             CheckInningsComplete(inn);
 
+            if (_replaying) return;
             DeliveryAdded?.Invoke(delivery);
             MatchChanged?.Invoke();
 
@@ -756,24 +968,24 @@ namespace Roche_Scoreboard.Models
             var inn = CurrentInnings;
             if (inn == null) return;
             if (inn.BallsInCurrentOver != 0) return;
-            if (bowlerIndex >= 0 && bowlerIndex < inn.BowlingAttack.Count)
-            {
-                inn.CurrentBowlerIndex = bowlerIndex;
-                MatchChanged?.Invoke();
-            }
+            if (bowlerIndex == inn.CurrentBowlerIndex) return;
+            ConfirmBowler(bowlerIndex);
         }
 
         private void CheckInningsComplete(CricketInnings inn)
         {
-            if (inn.IsAllOut) { inn.IsComplete = true; return; }
-            if (Format == CricketFormat.LimitedOvers && inn.LegalBallsBowled >= TotalOvers * 6)
-            { inn.IsComplete = true; return; }
-            if (Target != null && inn.TotalRuns >= Target.Value)
-            { inn.IsComplete = true; return; }
+            if (inn.IsAllOut
+                || (!inn.IgnoreOverLimit && Format == CricketFormat.LimitedOvers && inn.LegalBallsBowled >= (inn.OverLimitOverride ?? TotalOvers) * 6)
+                || (!inn.IgnoreTarget && Target is int target && inn.TotalRuns >= target))
+            {
+                inn.IsComplete = true;
+                inn.NeedsBatterSelection = false;
+                inn.NeedsBowlerSelection = false;
+            }
         }
 
         public bool CanStartNextInnings() =>
-            CurrentInnings?.IsComplete == true && CurrentInningsNumber < TotalInnings;
+            !TossPending && !IsMatchFinalized && CurrentInnings?.IsComplete == true && CurrentInningsNumber < TotalInnings;
 
         public void StartNextInnings()
         {
@@ -786,22 +998,32 @@ namespace Roche_Scoreboard.Models
         public void DeclareInnings()
         {
             var inn = CurrentInnings;
-            if (inn == null || Format == CricketFormat.LimitedOvers) return;
+            if (TossPending || inn == null || Format == CricketFormat.LimitedOvers) return;
             inn.IsDeclared = true;
             inn.IsComplete = true;
+            inn.NeedsBatterSelection = false;
+            inn.NeedsBowlerSelection = false;
             MatchChanged?.Invoke();
         }
 
         public bool UndoLastDelivery()
         {
             var inn = CurrentInnings;
+            LastOperationError="";
             if (inn == null || inn.Deliveries.Count == 0) return false;
+            if(IsMatchFinalized) { LastOperationError="This match has been finalized. Use the scorecard to correct its totals."; return false; }
+            if(inn.ScorecardAnchor>=0 && inn.Deliveries.Count<=inn.ScorecardAnchor)
+            { LastOperationError="This ball predates a saved scorecard adjustment. Revert the latest scorecard edit before undoing earlier balls."; return false; }
             var delivery = inn.Deliveries[^1];
+            // Older imports without an undo snapshot cannot be safely reversed.
+            if (delivery.StateBefore is null) return false;
             inn.Deliveries.RemoveAt(inn.Deliveries.Count - 1);
-            if (delivery.StateBefore != null)
-                RestoreState(inn, delivery.StateBefore);
-            else
-                RebuildInningsFromDeliveries(inn);
+            inn.ConditionsDeliveryCount = Math.Min(inn.ConditionsDeliveryCount, inn.Deliveries.Count);
+            bool ignoreTarget = inn.IgnoreTarget, ignoreLimit = inn.IgnoreOverLimit;
+            RestoreState(inn, delivery.StateBefore);
+            inn.IgnoreTarget = ignoreTarget; inn.IgnoreOverLimit = ignoreLimit;
+            _conditionsVersion++;
+            CheckInningsComplete(inn);
             MatchChanged?.Invoke();
             return true;
         }
@@ -822,9 +1044,16 @@ namespace Roche_Scoreboard.Models
             PreviousBowlerIndex = inn.PreviousBowlerIndex,
             PartnershipRuns = inn.PartnershipRuns,
             PartnershipBalls = inn.PartnershipBalls,
+            IsDeclared = inn.IsDeclared,
             IsComplete = inn.IsComplete,
+            IgnoreTarget=inn.IgnoreTarget,
+            IgnoreOverLimit=inn.IgnoreOverLimit,
+            ScorecardAnchor=inn.ScorecardAnchor,
+            ManualFallOfWickets=inn.ManualFallOfWickets is null ? null : [.. inn.ManualFallOfWickets],
             NeedsBatterSelection = inn.NeedsBatterSelection,
             NeedsBowlerSelection = inn.NeedsBowlerSelection,
+            FreeHitPending = inn.FreeHitPending,
+            ManualScorecardWarning = inn.ManualScorecardWarning,
             CurrentOverBalls = [.. inn.CurrentOverBalls],
             BattingOrder = inn.BattingOrder.Select(p => p.Clone()).ToList(),
             BowlingAttack = inn.BowlingAttack.Select(p => p.Clone()).ToList()
@@ -846,88 +1075,20 @@ namespace Roche_Scoreboard.Models
             inn.PreviousBowlerIndex = state.PreviousBowlerIndex;
             inn.PartnershipRuns = state.PartnershipRuns;
             inn.PartnershipBalls = state.PartnershipBalls;
+            inn.IsDeclared = state.IsDeclared;
             inn.IsComplete = state.IsComplete;
+            inn.IgnoreTarget=state.IgnoreTarget;
+            inn.IgnoreOverLimit=state.IgnoreOverLimit;
+            inn.ScorecardAnchor=state.ScorecardAnchor;
+            inn.ManualFallOfWickets=state.ManualFallOfWickets is null ? null : [.. state.ManualFallOfWickets];
             inn.NeedsBatterSelection = state.NeedsBatterSelection;
             inn.NeedsBowlerSelection = state.NeedsBowlerSelection;
+            inn.FreeHitPending = state.FreeHitPending;
+            inn.ManualScorecardWarning = state.ManualScorecardWarning;
             inn.CurrentOverBalls = [.. state.CurrentOverBalls];
             inn.BattingOrder = state.BattingOrder.Select(p => p.Clone()).ToList();
             inn.BowlingAttack = state.BowlingAttack.Select(p => p.Clone()).ToList();
-        }
-
-        private void RebuildInningsFromDeliveries(CricketInnings inn)
-        {
-            inn.TotalRuns = inn.TotalWickets = inn.TotalExtras = 0;
-            inn.Wides = inn.NoBalls = inn.Byes = inn.LegByes = 0;
-            inn.LegalBallsBowled = 0;
-            inn.PartnershipRuns = inn.PartnershipBalls = 0;
-            inn.CurrentOverBalls.Clear();
-            inn.NeedsBatterSelection = false;
-            inn.NeedsBowlerSelection = false;
-
-            foreach (var p in inn.BattingOrder) p.ResetBatting();
-            foreach (var p in inn.BowlingAttack) p.ResetBowling();
-
-            var deliveries = new List<CricketDelivery>(inn.Deliveries);
-            inn.Deliveries.Clear();
-
-            foreach (var d in deliveries)
-                ReplayDelivery(inn, d);
-        }
-
-        private void ReplayDelivery(CricketInnings inn, CricketDelivery d)
-        {
-            bool isLegal = d.Type != CricketDeliveryType.Wide && d.Type != CricketDeliveryType.NoBall;
-            bool isExtra = d.IsExtra;
-
-            var striker = inn.Striker;
-            var bowler = inn.CurrentBowler;
-
-            inn.TotalRuns += d.Runs;
-            if (isExtra)
-            {
-                inn.TotalExtras += d.Runs;
-                switch (d.Type)
-                {
-                    case CricketDeliveryType.Wide: inn.Wides += d.Runs; break;
-                    case CricketDeliveryType.NoBall: inn.NoBalls += d.Runs; break;
-                    case CricketDeliveryType.Bye: inn.Byes += d.Runs; break;
-                    case CricketDeliveryType.LegBye: inn.LegByes += d.Runs; break;
-                }
-            }
-            else if (striker != null)
-            {
-                striker.Runs += d.Runs;
-                if (d.Type == CricketDeliveryType.Four) striker.Fours++;
-                else if (d.Type == CricketDeliveryType.Six) striker.Sixes++;
-            }
-
-            if (isLegal)
-            {
-                inn.LegalBallsBowled++;
-                if (striker != null) striker.BallsFaced++;
-                if (bowler != null) bowler.BallsBowled++;
-                inn.PartnershipBalls++;
-            }
-            inn.PartnershipRuns += d.Runs;
-
-            if (d.Type == CricketDeliveryType.Wicket)
-            {
-                inn.TotalWickets++;
-                if (striker != null) { striker.IsOut = true; striker.DismissalText = d.DismissalText; }
-                if (bowler != null) bowler.Wickets++;
-                inn.PartnershipRuns = 0;
-                inn.PartnershipBalls = 0;
-            }
-
-            inn.Deliveries.Add(d);
-
-            if (isLegal && d.Runs % 2 == 1)
-                (inn.StrikerIndex, inn.NonStrikerIndex) = (inn.NonStrikerIndex, inn.StrikerIndex);
-            if (isLegal && inn.BallsInCurrentOver == 0 && inn.LegalBallsBowled > 0)
-            {
-                (inn.StrikerIndex, inn.NonStrikerIndex) = (inn.NonStrikerIndex, inn.StrikerIndex);
-                inn.CurrentOverBalls.Clear();
-            }
+            RepairBowlerSelection(inn);
         }
 
         // ---- Match result ----
@@ -936,13 +1097,16 @@ namespace Roche_Scoreboard.Models
         {
             get
             {
+                if(IsMatchFinalized && FinalResult is not null) return FinalResult;
                 if (AllInnings.Count < 2) return null;
                 var lastInnings = AllInnings.Last();
                 if (!lastInnings.IsComplete) return null;
 
                 if (Format == CricketFormat.LimitedOvers && AllInnings.Count == 2)
                 {
-                    int firstTotal = AllInnings[0].TotalRuns;
+                    // An externally revised target replaces the first innings'
+                    // par score for the chase result, without rewriting it.
+                    int firstTotal = lastInnings.TargetOverride is int revisedTarget ? revisedTarget - 1 : AllInnings[0].TotalRuns;
                     int secondTotal = AllInnings[1].TotalRuns;
 
                     if (secondTotal > firstTotal)
@@ -960,7 +1124,7 @@ namespace Roche_Scoreboard.Models
 
                 // Multi-innings: an innings victory can finish after the third
                 // innings; otherwise decide the result after the final chase.
-                if (Format != CricketFormat.LimitedOvers && AllInnings.Count >= 3)
+                if (AllInnings.Count >= 3)
                 {
                     int teamATotal = AllInnings.Where(i => i.BattingTeamName == TeamAName).Sum(i => i.TotalRuns);
                     int teamBTotal = AllInnings.Where(i => i.BattingTeamName == TeamBName).Sum(i => i.TotalRuns);
@@ -1006,6 +1170,7 @@ namespace Roche_Scoreboard.Models
 
         public void ResetForNewGame()
         {
+            ResetWorkflowState();
             AllInnings.Clear();
             CurrentInningsNumber = 1;
             foreach (var p in TeamAPlayers) { p.ResetBatting(); p.ResetBowling(); }
@@ -1031,16 +1196,34 @@ namespace Roche_Scoreboard.Models
             TeamBPlayers = TeamBPlayers.Select(p => p.Clone()).ToList(),
             Format = Format,
             TotalOvers = TotalOvers,
+            ReplaceWideBalls = ReplaceWideBalls,
+            ReplaceNoBalls = ReplaceNoBalls,
+            FreeHitsEnabled = FreeHitsEnabled,
             TotalInnings = TotalInnings,
             CurrentInningsNumber = CurrentInningsNumber,
             TeamABatsFirst = TeamABatsFirst,
+            TossWinner = TossWinner,
+            TossWinnerElectedToBat = TossWinnerElectedToBat,
+            TossPending = TossPending,
             Messages = [.. Messages],
+            WeatherLocation = WeatherLocation,
+            BreakKind=BreakKind,
+            BreakNote=BreakNote,
+            IsMatchFinalized=IsMatchFinalized,
+            FinalResult=FinalResult,
             AllInnings = [.. AllInnings]
         };
 
         public void LoadState(CricketSerializableState state)
         {
             ArgumentNullException.ThrowIfNull(state);
+            // A state replacement changes identity even when ball counts match.
+            // Invalidate open editors and discard transient decisions from the
+            // previous match without adding them to the recovery payload.
+            DeliveryRevision++;
+            _conditionsVersion++;
+            LastOperationError = "";
+            _nextBattingTeamOverride = null;
             TeamAName = state.TeamAName;
             TeamAAbbr = state.TeamAAbbr;
             TeamBName = state.TeamBName;
@@ -1055,19 +1238,50 @@ namespace Roche_Scoreboard.Models
             TeamBPlayers = state.TeamBPlayers.Select(p => p.Clone()).ToList();
             Format = state.Format;
             TotalOvers = Math.Max(1, state.TotalOvers);
-            TotalInnings = Math.Max(2, state.TotalInnings);
+            ReplaceWideBalls = state.ReplaceWideBalls;
+            ReplaceNoBalls = state.ReplaceNoBalls;
+            FreeHitsEnabled = state.FreeHitsEnabled;
+            TotalInnings = Math.Clamp(state.TotalInnings,2,4);
             TeamABatsFirst = state.TeamABatsFirst;
+            TossWinner = state.TossWinner; TossWinnerElectedToBat = state.TossWinnerElectedToBat;
+            TossPending = state.TossPending && state.CurrentInningsNumber == 1 && !state.AllInnings.Any(i => i.Deliveries.Count > 0 || i.TotalRuns > 0 || i.TotalWickets > 0 || i.LegalBallsBowled > 0);
             Messages = [.. state.Messages];
+            WeatherLocation = state.WeatherLocation;
+            BreakKind=Enum.IsDefined(state.BreakKind) ? state.BreakKind : CricketBreakKind.None;
+            BreakNote=state.BreakNote ?? "";
+            IsMatchFinalized=state.IsMatchFinalized;
+            FinalResult=state.FinalResult;
             AllInnings.Clear();
             AllInnings.AddRange(state.AllInnings);
+            foreach(var roster in new[] { TeamAPlayers,TeamBPlayers })
+                for(int i=0;i<roster.Count;i++) { roster[i].RosterIndex=i; if(roster[i].BattingPosition<=0) roster[i].BattingPosition=i+1; }
+            foreach(var innings in AllInnings)
+            {
+                innings.ScorecardChanges ??= [];
+                if (innings.OverLimitOverride is < 1 or > 1000) innings.OverLimitOverride = null;
+                if (innings.TargetOverride is < 1 or > 1_000_000) innings.TargetOverride = null;
+                innings.AdjustmentNote ??= "";
+                innings.ManualScorecardWarning ??= "";
+                innings.ConditionsDeliveryCount = Math.Clamp(innings.ConditionsDeliveryCount, 0, innings.Deliveries.Count);
+                var battingRoster=innings.BattingTeamName==TeamAName ? TeamAPlayers : TeamBPlayers;
+                var bowlingRoster=innings.BowlingTeamName==TeamAName ? TeamAPlayers : TeamBPlayers;
+                if(innings.BattingOrder.All(p=>p.RosterIndex<0)) for(int i=0;i<innings.BattingOrder.Count;i++) { int found=battingRoster.FindIndex(p=>p.FullName==innings.BattingOrder[i].FullName); innings.BattingOrder[i].RosterIndex=found>=0 ? found : i; }
+                if(innings.BowlingAttack.All(p=>p.RosterIndex<0)) for(int i=0;i<innings.BowlingAttack.Count;i++) { int found=bowlingRoster.FindIndex(p=>p.FullName==innings.BowlingAttack[i].FullName); innings.BowlingAttack[i].RosterIndex=found>=0 ? found : i; }
+            }
             CurrentInningsNumber = Math.Clamp(state.CurrentInningsNumber, 1, Math.Max(1, AllInnings.Count));
+            if (CurrentInnings is { } current)
+            {
+                RefreshBatterSelectionState(current);
+                RepairBowlerSelection(current);
+                if (current.IsComplete) current.NeedsBowlerSelection = false;
+            }
             MatchChanged?.Invoke();
         }
 
         public void EndCurrentInnings()
         {
             var inn = CurrentInnings;
-            if (inn == null || inn.IsComplete) return;
+            if (TossPending || inn == null || inn.IsComplete) return;
             inn.IsComplete = true;
             inn.NeedsBatterSelection = false;
             inn.NeedsBowlerSelection = false;
@@ -1091,10 +1305,21 @@ namespace Roche_Scoreboard.Models
         public List<CricketPlayer> TeamBPlayers { get; set; } = [];
         public CricketFormat Format { get; set; } = CricketFormat.LimitedOvers;
         public int TotalOvers { get; set; } = 20;
+        public bool ReplaceWideBalls { get; set; } = true;
+        public bool ReplaceNoBalls { get; set; } = true;
+        public bool FreeHitsEnabled { get; set; }
         public int TotalInnings { get; set; } = 2;
         public int CurrentInningsNumber { get; set; } = 1;
         public bool TeamABatsFirst { get; set; } = true;
+        public string TossWinner { get; set; } = "";
+        public bool TossPending { get; set; }
+        public bool TossWinnerElectedToBat { get; set; } = true;
         public List<string> Messages { get; set; } = [];
+        public string WeatherLocation { get; set; } = "Melbourne, Australia";
+        public CricketBreakKind BreakKind { get; set; }
+        public string BreakNote { get; set; } = "";
+        public bool IsMatchFinalized { get; set; }
+        public string? FinalResult { get; set; }
         public List<CricketInnings> AllInnings { get; set; } = [];
     }
 }

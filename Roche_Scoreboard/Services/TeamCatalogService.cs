@@ -9,7 +9,8 @@ public static class TeamCatalogService
 
     private static readonly IReadOnlyList<TeamCatalogEntry> Teams = BuildTeams();
 
-    public static IReadOnlyList<TeamCatalogEntry> GetTeams() => Teams;
+    public static IReadOnlyList<TeamCatalogEntry> GetTeams(TeamLibrarySport sport = TeamLibrarySport.AustralianFootball)
+        => sport == TeamLibrarySport.Cricket ? CricketClubCatalog.Teams : Teams;
 
     private static IReadOnlyList<TeamCatalogEntry> BuildTeams()
     {

@@ -13,9 +13,7 @@ internal static class RecentColorStorage
 {
     private const int Capacity = 12;
     private static readonly object Sync = new();
-    private static string StoragePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-        "Roche_Scoreboard", "recent_colours.json");
+    private static string StoragePath => Path.Combine(SelfTestStorage.DocumentsDirectory, "recent_colours.json");
 
     public static IReadOnlyList<string> Load()
     {

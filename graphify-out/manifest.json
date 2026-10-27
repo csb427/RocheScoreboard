@@ -1,0 +1,3404 @@
+{
+  "Roche_Scoreboard/App.xaml": {
+    "mtime": 1792920367.765996,
+    "seen": 1792995688.9890008,
+    "ast_hash": "524e1db9ca0dcfabbf043af737f5cdac",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/App.xaml.cs": {
+    "mtime": 1793009496.93927,
+    "seen": 1793010334.3012156,
+    "ast_hash": "451109e829a1cde4878f2d37aa778b95",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/AssemblyInfo.cs": {
+    "mtime": 1771484297.3783278,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ab620c0dcb1ef4bc35ed75d4e2bfef89",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Controls/MarqueeTextBlock.cs": {
+    "mtime": 1787313033.6311674,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d48466f5b9f520081f3a979a8264c64f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/ComfortableDensity.xaml": {
+    "mtime": 1785239650.0461621,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c05fb39dcdb1f078dbf3b9418351e4a5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/CompactDensity.xaml": {
+    "mtime": 1785239659.482846,
+    "seen": 1792995688.9890008,
+    "ast_hash": "15b8c51ee64c8f406d3008a2ee59e0f1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/Components.xaml": {
+    "mtime": 1788179238.3573737,
+    "seen": 1792995688.9890008,
+    "ast_hash": "03d16f1a3bfd77ec3bbcce0b06ef8217",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/DarkTheme.xaml": {
+    "mtime": 1792820647.4486248,
+    "seen": 1792995688.9890008,
+    "ast_hash": "703700d3a3f15e1e98dc2bbea0b71933",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/Icons.xaml": {
+    "mtime": 1785302528.2199829,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e595b47d8076de7e6f734380ef29958c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/LightTheme.xaml": {
+    "mtime": 1785241937.5293028,
+    "seen": 1792995688.9890008,
+    "ast_hash": "16bb8d828e73f362fa7652c42ba981bb",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/Tokens.xaml": {
+    "mtime": 1785246683.3642817,
+    "seen": 1792995688.9890008,
+    "ast_hash": "f757bac4113b3d1ef6a6c28ae1abe6b6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/Typography.xaml": {
+    "mtime": 1785239679.7358577,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c6dbbfebdbb2fb56794009c53f087270",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CloudRemote.cs": {
+    "mtime": 1792899735.94012,
+    "seen": 1792995688.9890008,
+    "ast_hash": "8f864037d5b3452db60e5082ad2d5038",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CloudRemoteUi.cs": {
+    "mtime": 1781250896.665647,
+    "seen": 1792995688.9890008,
+    "ast_hash": "67d164048170c65de06e3f2bd3e20756",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.ControlCentre.cs": {
+    "mtime": 1793071293.0914848,
+    "seen": 1793071361.9243176,
+    "ast_hash": "c17630d258ef6a9afe062dc51b44e6db",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.ControlCentreQa.cs": {
+    "mtime": 1793019014.9603949,
+    "seen": 1793020079.301808,
+    "ast_hash": "85e43888fdfb2e6690530d301de348f3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketDiagnostics.cs": {
+    "mtime": 1793096785.51544,
+    "seen": 1793097300.1466153,
+    "ast_hash": "5359744e23faeabd0e2b4c233cb00360",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketFreeHitQa.cs": {
+    "mtime": 1793019934.9767604,
+    "seen": 1793020079.301808,
+    "ast_hash": "b57d11e3e4d52e2e1954fae425bb38fe",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketHierarchyQa.cs": {
+    "mtime": 1793096256.0087805,
+    "seen": 1793096363.997625,
+    "ast_hash": "4068eff4020a91a7b225778d4c75f50c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketInteractionQa.cs": {
+    "mtime": 1793047712.558738,
+    "seen": 1793048874.1123548,
+    "ast_hash": "7975d79a7cd7f09f9a0cc4bfeb5ba63e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketLatestReviewQa.cs": {
+    "mtime": 1793077900.0938728,
+    "seen": 1793078343.3795698,
+    "ast_hash": "0d02562e3462c333c36ad061af88eb9e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketMotionQa.cs": {
+    "mtime": 1793096256.0077753,
+    "seen": 1793096363.997625,
+    "ast_hash": "32255eb091e94e141aa77ff432c9709d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketOutputHandoffQa.cs": {
+    "mtime": 1793019674.1182663,
+    "seen": 1793020079.301808,
+    "ast_hash": "7d85d062f2e4bcd607ada63b8636999b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketOverlayQa.cs": {
+    "mtime": 1793096256.0051882,
+    "seen": 1793096363.997625,
+    "ast_hash": "d3282f26eb978b44e9c508bee77b4d0b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketPersistence.cs": {
+    "mtime": 1792899735.9391165,
+    "seen": 1792995688.9890008,
+    "ast_hash": "2ff5dd4d9309107fdf1f040f3fb7c188",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketPolishQa.cs": {
+    "mtime": 1793096256.006757,
+    "seen": 1793096363.997625,
+    "ast_hash": "0d3a9ad5215b4c3ba44d0d68dd9f8a05",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketPreviewScenarios.cs": {
+    "mtime": 1792907778.1366491,
+    "seen": 1792995688.9890008,
+    "ast_hash": "621edc38716626e1c73ba9c62f84e05b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketQa.cs": {
+    "mtime": 1793095262.1218462,
+    "seen": 1793096363.997625,
+    "ast_hash": "d80c9ad26320a91d28aa61567a79ea92",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketRefinementQa.cs": {
+    "mtime": 1793096256.006757,
+    "seen": 1793096363.997625,
+    "ast_hash": "955fd89aa717d8f5e9128752141ea3c2",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketReviewQa.cs": {
+    "mtime": 1792918410.9136684,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e7f9c8b62ef933a3380294840e602687",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketRulesSetupQa.cs": {
+    "mtime": 1792916822.1260266,
+    "seen": 1792995688.9890008,
+    "ast_hash": "3d9134b575645a7d5b13170fa6025d77",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketSetupQa.cs": {
+    "mtime": 1792923219.9232278,
+    "seen": 1792995688.9890008,
+    "ast_hash": "6597f5f2013353607822d6bfcc310647",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketTossQa.cs": {
+    "mtime": 1793096895.7041736,
+    "seen": 1793097300.1466153,
+    "ast_hash": "74514acf49d549e886b29ac1d7582486",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketWorkflowQa.cs": {
+    "mtime": 1793096443.0437174,
+    "seen": 1793097300.1466153,
+    "ast_hash": "8134d76b2a8329f4b426296ea9b03b9b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.OperatorInteractionQa.cs": {
+    "mtime": 1793010234.779746,
+    "seen": 1793010334.3012156,
+    "ast_hash": "fa264ef96fbb7e929599a69ce50b3ba9",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.OperatorTileActions.cs": {
+    "mtime": 1792920996.967942,
+    "seen": 1792995688.9890008,
+    "ast_hash": "bcfefb6f6db86e02893720a8174596c0",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.OutputWindows.cs": {
+    "mtime": 1792813670.678455,
+    "seen": 1792995688.9890008,
+    "ast_hash": "bb223bae7f112abe1ecce4413595aaed",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.QuarterLabels.cs": {
+    "mtime": 1779592830.394619,
+    "seen": 1792995688.9890008,
+    "ast_hash": "6b67c30fe20741d30d865d3080b38903",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.RestoreMembers.cs": {
+    "mtime": 1793071621.4417453,
+    "seen": 1793071791.3105412,
+    "ast_hash": "bfda0b3b2d22bc9f31ef2b781b8874a5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.SportInteractionQa.cs": {
+    "mtime": 1793010234.777736,
+    "seen": 1793010334.3012156,
+    "ast_hash": "80dc04f3f369544e710e939414e20195",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.TrainingCloudRemote.cs": {
+    "mtime": 1781354415.4731822,
+    "seen": 1792995688.9890008,
+    "ast_hash": "18540e5e2681b54864337ecbe430e822",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.xaml": {
+    "mtime": 1793138885.3019156,
+    "seen": 1793138966.8550763,
+    "ast_hash": "f025e5862e89b147a6142db88c319031",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.xaml.cs": {
+    "mtime": 1793077770.7507133,
+    "seen": 1793078343.3795698,
+    "ast_hash": "e9aac2f71a538537e3e82743a985844f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketAnalytics.cs": {
+    "mtime": 1792916064.0246646,
+    "seen": 1792995688.9890008,
+    "ast_hash": "129f0f7450a7f77913715ef63c692aa7",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketDeliveryEditing.cs": {
+    "mtime": 1792916232.9303555,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e229b7fa1f14055b7ffd80054621ca47",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketDeliveryRules.cs": {
+    "mtime": 1792916064.0198536,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e945a4558164e608210f80c8cdf17f4e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketMatchConditions.cs": {
+    "mtime": 1792912283.1151133,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d582ef7bec85489738e950084455c90f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketMatchManager.cs": {
+    "mtime": 1793095317.4324572,
+    "seen": 1793096363.997625,
+    "ast_hash": "17ad95638b61d3bca2cb4d52688b642b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketMatchOperations.cs": {
+    "mtime": 1792912103.9584422,
+    "seen": 1792995688.9890008,
+    "ast_hash": "0ff393b23479b021139460cf17f23e04",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketOverlayAnalysis.cs": {
+    "mtime": 1793094834.1878517,
+    "seen": 1793096363.997625,
+    "ast_hash": "f0048968d83e2113c4ea499ab3b644e5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketPersistenceSnapshot.cs": {
+    "mtime": 1792916064.02209,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e60da526108245420cde580a9ba3b811",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketPlayer.cs": {
+    "mtime": 1793094665.9482114,
+    "seen": 1793096363.997625,
+    "ast_hash": "cc59fe1ecd9513e96785808b9b552b3a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketPlayerOperations.cs": {
+    "mtime": 1793095262.2035728,
+    "seen": 1793096363.997625,
+    "ast_hash": "1b15f145984d11b1e4ce24ee68752c89",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketScorecardEditing.cs": {
+    "mtime": 1793095262.2046895,
+    "seen": 1793096363.997625,
+    "ast_hash": "2d150f93e1ad4dec8c328078e005951c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketSetupResult.cs": {
+    "mtime": 1792916032.8686523,
+    "seen": 1792995688.9890008,
+    "ast_hash": "f232587ce629fd75d777eab62f11de2f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/GoalAnimationStyle.cs": {
+    "mtime": 1788220011.5784166,
+    "seen": 1792995688.9890008,
+    "ast_hash": "03f8f34eb35ed5e613795a3015aeacb7",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/MarqueeMessage.cs": {
+    "mtime": 1788058825.8140562,
+    "seen": 1792995688.9890008,
+    "ast_hash": "504e297c5ff17548f2f12285e3f5f4d2",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/MatchManager.cs": {
+    "mtime": 1788477472.3191793,
+    "seen": 1792995688.9890008,
+    "ast_hash": "cf092c012b091e7e21b3f136677546f2",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/MatchStats.cs": {
+    "mtime": 1788090156.5075636,
+    "seen": 1792995688.9890008,
+    "ast_hash": "9a782b87da389669d5612152cc4395a3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/ScoreEvent.cs": {
+    "mtime": 1788438010.745323,
+    "seen": 1792995688.9890008,
+    "ast_hash": "8f51960f2272761bb8b5c43610e3fbd2",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/ScorebugLayout.cs": {
+    "mtime": 1788269765.140475,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ea717cb7affab4a050be64d1ec3157ce",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/SetupResult.cs": {
+    "mtime": 1784708798.4010239,
+    "seen": 1792995688.9890008,
+    "ast_hash": "0f23c6df90778f26e407cde84bb9c00a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/SportMode.cs": {
+    "mtime": 1784890594.9155352,
+    "seen": 1792995688.9890008,
+    "ast_hash": "37dad29288c62bbdb9dd31152d764334",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/TeamCatalogEntry.cs": {
+    "mtime": 1792895268.9271455,
+    "seen": 1792995688.9890008,
+    "ast_hash": "0bf0a3716378c5b8fc0b235e4ff359a7",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/TeamNameDisplayMode.cs": {
+    "mtime": 1776248849.2075598,
+    "seen": 1792995688.9890008,
+    "ast_hash": "bfccd3451ad4f18c0a1de9ea27ee0970",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/TeamPreset.cs": {
+    "mtime": 1787965592.0185692,
+    "seen": 1792995688.9890008,
+    "ast_hash": "493af91d1bbb9691a9fe95461773d02b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/TrainingSession.cs": {
+    "mtime": 1779277122.292405,
+    "seen": 1792995688.9890008,
+    "ast_hash": "2a58d61d55f875c169afc51692ba269a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/TrainingTimer.cs": {
+    "mtime": 1777371569.119205,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e1ee377e932af543128b4fdc5acf5aa3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/WinProbabilityEngine.cs": {
+    "mtime": 1778280134.6322227,
+    "seen": 1792995688.9890008,
+    "ast_hash": "0e2d9946de523a790b24790f53118d6e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Properties/launchSettings.json": {
+    "mtime": 1785303268.920209,
+    "seen": 1792995688.9890008,
+    "ast_hash": "0c9d8078af256c7d3c5066bf7c9cd0ad",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ControlCentre.xaml": {
+    "mtime": 1793076317.4312992,
+    "seen": 1793076411.4273293,
+    "ast_hash": "cd73ab6daf4494269385737faa425dfe",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/CricketActions.xaml": {
+    "mtime": 1792922725.1877024,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7d0e682ad8b3e89262802eee1387761f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/CricketClubs.json": {
+    "mtime": 1792895815.9392157,
+    "seen": 1792995688.9890008,
+    "ast_hash": "46122b12bdd197d1144c99c3ec00ab8c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/OperatorControls.xaml": {
+    "mtime": 1792923068.6709673,
+    "seen": 1792995688.9890008,
+    "ast_hash": "8c1c2d4584b56f7a530383a7264bcb42",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/OperatorInputs.xaml": {
+    "mtime": 1792921210.9993703,
+    "seen": 1792995688.9890008,
+    "ast_hash": "6fc7bb615feed0321bed97248fa977a8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/Scrollbars.xaml": {
+    "mtime": 1792826744.910884,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c7e7d164397df36175f2a0bba38731b5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/SettingsControls.xaml": {
+    "mtime": 1792922725.1887352,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d7d9d31bcc8406e0f59bcb4612eca83c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Roche_Scoreboard.csproj": {
+    "mtime": 1793138885.2995949,
+    "seen": 1793138966.8693743,
+    "ast_hash": "2532509f370d2e1f75cb8f717325bcab",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/AflDroughtCalculator.cs": {
+    "mtime": 1788162971.8581703,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d44f9b34e79bb0d75bef059aa7d8bb6c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/AflGoalRunDetector.cs": {
+    "mtime": 1788072192.1707497,
+    "seen": 1792995688.9890008,
+    "ast_hash": "2b0de6d391a5afa3a63b6b9bcae44726",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/AflKeybindSettings.cs": {
+    "mtime": 1792991396.925694,
+    "seen": 1792995688.9890008,
+    "ast_hash": "246191e4a9dad12aaa34339dc6cddaa8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/AflReliabilityStressSuite.cs": {
+    "mtime": 1788563773.2165911,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7b002fc4630bdd9dd8cb635ca0bbac08",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/AtomicFile.cs": {
+    "mtime": 1788091094.3303535,
+    "seen": 1792995688.9890008,
+    "ast_hash": "73c597d698ffb17f1667671f6159d2bc",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/AutoUpdateService.cs": {
+    "mtime": 1788315415.4267983,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e50f095f13252427a040f093fbbf88a8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/BroadcastClock.cs": {
+    "mtime": 1792814005.1650248,
+    "seen": 1792995688.9890008,
+    "ast_hash": "873267c07808954c04697bf910fcaadc",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/BroadcastLayout.cs": {
+    "mtime": 1792818178.7300131,
+    "seen": 1792995688.9890008,
+    "ast_hash": "228182946ed58daebe51dbdb38c9772d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/BroadcastMotion.cs": {
+    "mtime": 1792813934.6890879,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b7a2001d08021f80f88b0434e6be816d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/BroadcastTeamTheme.cs": {
+    "mtime": 1792818847.9143085,
+    "seen": 1792995688.9890008,
+    "ast_hash": "419ae16f69a6a0106451a256afec4ece",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/ChangelogService.cs": {
+    "mtime": 1793138885.2995949,
+    "seen": 1793138966.8729372,
+    "ast_hash": "47d9e296d73a5bdeb1b3ed66d61cfcde",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/CloudGameSessionService.cs": {
+    "mtime": 1781005021.515307,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e5775bf69d07b594ecb808291f268f0d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/JoinCodeGenerator.cs": {
+    "mtime": 1781004955.0372143,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e40efa05e4518ecf7dbf4d526831196e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/LiveStateSnapshot.cs": {
+    "mtime": 1787474039.7250345,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a1fbf64de5fb28fb27f0c683bd9a3891",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/RemoteCommandDispatcher.cs": {
+    "mtime": 1787474041.0248504,
+    "seen": 1792995688.9890008,
+    "ast_hash": "1cf0c95a272cc41ec436caad4d3b84f8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/RemoteControlService.cs": {
+    "mtime": 1788249319.5673094,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b82093addea731d80859f697cd237f28",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/RemoteEvent.cs": {
+    "mtime": 1787474042.3493993,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b2d6d3229291f230df3f95c19d96a074",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/SupabaseConfig.cs": {
+    "mtime": 1781006040.1690958,
+    "seen": 1792995688.9890008,
+    "ast_hash": "89099ea51b40b06fa388a82f534b1a04",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/SupabaseRealtimeClient.cs": {
+    "mtime": 1781005003.9726877,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ffe766c0e0c984fd1ee06f6d522e39a4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/Cloud/SupabaseRestClient.cs": {
+    "mtime": 1781004976.3461642,
+    "seen": 1792995688.9890008,
+    "ast_hash": "025fba00691b74341e5697f1796b54c5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/ContrastHelper.cs": {
+    "mtime": 1778280134.6342244,
+    "seen": 1792995688.9890008,
+    "ast_hash": "3fb9dec84eda809c66d3b2ca7d0aa8cc",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketActionMotion.cs": {
+    "mtime": 1792918380.3000271,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b0b40a8fb9ee4cf59f1dc5b094f7dbbd",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketBroadcastStyle.cs": {
+    "mtime": 1792916141.5239086,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c54352ac89879e315d8514f6c58988a1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketClubCatalog.cs": {
+    "mtime": 1792895117.6403759,
+    "seen": 1792995688.9890008,
+    "ast_hash": "deb23025b06aca28238d6d839e26645a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketClubChecks.cs": {
+    "mtime": 1792896514.148977,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ff1c90fa0a4124ed810b7350a63c4fe1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketConditionsChecks.cs": {
+    "mtime": 1792912313.7112105,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d26e0e2a57a7878fb58610d2292186a3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketDeliveryLogChecks.cs": {
+    "mtime": 1792918213.3494503,
+    "seen": 1792995688.9890008,
+    "ast_hash": "05c88b9465e3f7d7325a52f75be02930",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketDeliveryRuleChecks.cs": {
+    "mtime": 1792916171.741971,
+    "seen": 1792995688.9890008,
+    "ast_hash": "62c74caf29a010ae52bfdec71d65ce05",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketEditingChecks.cs": {
+    "mtime": 1792919298.1386614,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ff5c7dc51f21322a6c2f1262413cdb86",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketOutputChecks.cs": {
+    "mtime": 1792912403.022233,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d05e2464c0506f29a0d82344f0f6060e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketOverAndStrikeChecks.cs": {
+    "mtime": 1792903533.9861093,
+    "seen": 1792995688.9890008,
+    "ast_hash": "004729e579d561d277cce04b09be491b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketOverTracker.cs": {
+    "mtime": 1792916232.9303555,
+    "seen": 1792995688.9890008,
+    "ast_hash": "8d86311ee201811c7dff0d5ebca5df9e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketOverlayChecks.cs": {
+    "mtime": 1793095262.1188328,
+    "seen": 1793096363.997625,
+    "ast_hash": "f20af475e8ac6fe9a677a53fa9322396",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketOverlayScheduler.cs": {
+    "mtime": 1793094834.1888554,
+    "seen": 1793096363.997625,
+    "ast_hash": "16d6dd8df3ef913819c2b3a95b506713",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketPersistenceChecks.cs": {
+    "mtime": 1792893051.4692152,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e7e665808a3a164d6048bf906165ed8c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketRecoveryWriter.cs": {
+    "mtime": 1792893051.4707198,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b8a943db30d6f8957abda2c45776f1f6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketReliabilityChecks.cs": {
+    "mtime": 1792918213.3494503,
+    "seen": 1792995688.9890008,
+    "ast_hash": "fcc177b3864b25131d5c55923b8ed805",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketTossChecks.cs": {
+    "mtime": 1792833587.9463415,
+    "seen": 1792995688.9890008,
+    "ast_hash": "59f483b56e3ee4561120dc514952d148",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketWorkflowChecks.cs": {
+    "mtime": 1792902600.7686412,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ebf5d822e5cf7e31e8f4484c4d2e0df4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/CricketWorkflowUiChecks.cs": {
+    "mtime": 1793010976.640786,
+    "seen": 1793011311.1298633,
+    "ast_hash": "9532d56d2b2649bdb0d885197ea649ce",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/DisclosureMotion.cs": {
+    "mtime": 1792921819.3319857,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c18a1617306f7d0fcf0b4db645b6baf6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/DisplaySettings.cs": {
+    "mtime": 1792991597.5223207,
+    "seen": 1792995688.9890008,
+    "ast_hash": "566dfd65e422998c0cf21a79b7533d4a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/EyeDropper.cs": {
+    "mtime": 1779002816.8047144,
+    "seen": 1792995688.9890008,
+    "ast_hash": "fa03ae94cb7726089d67e0ba056abf38",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/FinalsPalette.cs": {
+    "mtime": 1787307966.8615987,
+    "seen": 1792995688.9890008,
+    "ast_hash": "8ba74c97f1c789b3ef29364abae84bcd",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/GameStateService.cs": {
+    "mtime": 1792991396.9246843,
+    "seen": 1792995688.9890008,
+    "ast_hash": "f13c1a5c45cdd51a448c143d2300b63a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/ImageLoadHelper.cs": {
+    "mtime": 1788563722.0230951,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7cfcd4cbaa0b3fe15e8489a2bf546d15",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/InteractionMotion.cs": {
+    "mtime": 1792920300.2290874,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5f8aec8b6c86a42475b323ca79515632",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/MatchStorage.cs": {
+    "mtime": 1792991597.5253515,
+    "seen": 1792995688.9890008,
+    "ast_hash": "be8e3ee7083294d7d9d2892dbff2711f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/NestedScrollRouting.cs": {
+    "mtime": 1788068765.3718636,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7135e75cc00d12af240de4dd23143f2e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorControlMotion.cs": {
+    "mtime": 1793078072.7888033,
+    "seen": 1793078343.3795698,
+    "ast_hash": "35f96a169e5dba3b2f0a5ab65b702571",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorDensityTransition.cs": {
+    "mtime": 1793017890.1660242,
+    "seen": 1793018920.3027697,
+    "ast_hash": "664115c0eca3204a4ff149c676421c5d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorDesign.cs": {
+    "mtime": 1793073822.61512,
+    "seen": 1793076411.4273293,
+    "ast_hash": "3f9c4f8cc0b88cab8c82b9eca9cd247e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorFeedback.cs": {
+    "mtime": 1793077814.3960028,
+    "seen": 1793078343.3795698,
+    "ast_hash": "bf01b8b17541307b221fceba59b38dcc",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorInsetConverter.cs": {
+    "mtime": 1792992876.6231027,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a6d87fa2c49f175ad79dcb797328247e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorMotion.cs": {
+    "mtime": 1793007705.9629707,
+    "seen": 1793010334.3012156,
+    "ast_hash": "8a51dcec8c15922a0399ebcaee0b398e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorSelectionLens.cs": {
+    "mtime": 1793077603.7751138,
+    "seen": 1793078343.3795698,
+    "ast_hash": "f30def6bc7d54f2c18ddb5ec9dc9a430",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorSetupTrainingChecks.cs": {
+    "mtime": 1793010234.7787411,
+    "seen": 1793010334.3012156,
+    "ast_hash": "c1f8c51fa94577f45e85886fabd72d74",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorSymbol.cs": {
+    "mtime": 1793090503.9433925,
+    "seen": 1793090740.9316435,
+    "ast_hash": "a2e647aa4546ebeb3d779d76aef61cea",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorTabMotion.cs": {
+    "mtime": 1792991771.655685,
+    "seen": 1792995688.9890008,
+    "ast_hash": "95bacf7298304e2d40bda2811113d91d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorWorkflowPreferences.cs": {
+    "mtime": 1792902491.2424514,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5a01777bd7821bfc87f6d84270d671e1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OverlayScheduler.cs": {
+    "mtime": 1788562137.4510665,
+    "seen": 1792995688.9890008,
+    "ast_hash": "33f88c7c1fa974495e12c307e060a77a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/PixelSizeHelper.cs": {
+    "mtime": 1787310416.9127443,
+    "seen": 1792995688.9890008,
+    "ast_hash": "2e85609b0b4742d99d7612b63905f20c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/PresetStorage.cs": {
+    "mtime": 1792895447.3264873,
+    "seen": 1792995688.9890008,
+    "ast_hash": "fce1638347c0ab89053841582f0936b9",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/QuarterLabelService.cs": {
+    "mtime": 1792991396.9266975,
+    "seen": 1792995688.9890008,
+    "ast_hash": "00f1675b19f7bc15e68740bd9472201d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/RecentColorStorage.cs": {
+    "mtime": 1792991597.5223207,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a066a3b0d25ea44052d692dd03fe9723",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/RecentTrainingTimerStorage.cs": {
+    "mtime": 1792991597.52335,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7036f639f7c7429be9053d5b9e8a28e5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/ScrollActivity.cs": {
+    "mtime": 1792825843.9331973,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7e2a2f5422e3096931fd0fd3dfb97ef8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/SelectionCheckMotion.cs": {
+    "mtime": 1793077814.3950002,
+    "seen": 1793078343.3795698,
+    "ast_hash": "7e53c73cf7cb80b38e18f561c8e8de2b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/SelfTestStorage.cs": {
+    "mtime": 1792991414.1728673,
+    "seen": 1792995688.9890008,
+    "ast_hash": "cdef1375872eb3a9f03a4b6638bd40ab",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/SettingsControlMotion.cs": {
+    "mtime": 1792918998.9210744,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ce44a86442f4b8658c890bb22525845a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/SmartContrast.cs": {
+    "mtime": 1788078855.051407,
+    "seen": 1792995688.9890008,
+    "ast_hash": "87cf46e0f715aec87f59c9f0750eaa78",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/TeamCatalogService.cs": {
+    "mtime": 1792895000.250029,
+    "seen": 1792995688.9890008,
+    "ast_hash": "88acba935f4081192b7b8c272740a9d8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/TeamLogoService.Bundled.cs": {
+    "mtime": 1792896581.4429722,
+    "seen": 1792995688.9890008,
+    "ast_hash": "04c59e9773908235ba5a6f2c1f116ce3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/TeamLogoService.cs": {
+    "mtime": 1792896686.167368,
+    "seen": 1792995688.9890008,
+    "ast_hash": "bd1e62c6ab6e96b30d4db7692a32d91a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/TeamVisuals.cs": {
+    "mtime": 1792829922.6270373,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e99cd9ae389a9facf689c4f4795e8367",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/ThemeService.cs": {
+    "mtime": 1792992247.6097083,
+    "seen": 1792995688.9890008,
+    "ast_hash": "55396b81a50883b493b159fee1e32a94",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/UxPreferences.cs": {
+    "mtime": 1793073822.61254,
+    "seen": 1793076411.4273293,
+    "ast_hash": "7c0d440bb17a5d77335ec03704c25ead",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/VideoDiagnostics.cs": {
+    "mtime": 1792991597.5263526,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c40139e528c0dd15cc9f6679e12f2c4f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/VideoOptimizer.cs": {
+    "mtime": 1779275064.367516,
+    "seen": 1792995688.9890008,
+    "ast_hash": "3e33360d95360763dafec5c57d1ff06c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/VlcRuntime.cs": {
+    "mtime": 1779880776.1411414,
+    "seen": 1792995688.9890008,
+    "ast_hash": "331980c83b36f0a6cc9b4b7a77608891",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/WeatherService.cs": {
+    "mtime": 1788249361.5763478,
+    "seen": 1792995688.9890008,
+    "ast_hash": "3f8d3ebd17acc10db493f0a497581fe0",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/WindowChromeEnforcer.cs": {
+    "mtime": 1779362161.2457628,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d755f5b5519aa4ede334a974591ddb32",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/WindowLayoutStorage.cs": {
+    "mtime": 1792991396.9287522,
+    "seen": 1792995688.9890008,
+    "ast_hash": "baa4adc4347a287d54a5cce23a1ff06a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/AflPresentationGalleryWindow.xaml": {
+    "mtime": 1788003012.4008193,
+    "seen": 1792995688.9890008,
+    "ast_hash": "8aa878fb2c3f58942ddce3ad4e89cf39",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/AflPresentationGalleryWindow.xaml.cs": {
+    "mtime": 1788506594.1716475,
+    "seen": 1792995688.9890008,
+    "ast_hash": "2ed0b17c3854f67f7f4cf451448e3fe5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/BreakScreenControl.xaml": {
+    "mtime": 1788339462.0440829,
+    "seen": 1792995688.9890008,
+    "ast_hash": "23af19f0b90a107e8130078e344c9bb0",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/BreakScreenControl.xaml.cs": {
+    "mtime": 1788173954.953534,
+    "seen": 1792995688.9890008,
+    "ast_hash": "827f1cd62244151a69a582a1e007a58b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CalibrationOverlay.xaml": {
+    "mtime": 1787312930.0763192,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7b61e8a9ea4a5011fc9edfc75c025a96",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CalibrationOverlay.xaml.cs": {
+    "mtime": 1778062805.5375586,
+    "seen": 1792995688.9890008,
+    "ast_hash": "1504b54498ac9cc608686a2bf6bae13e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml": {
+    "mtime": 1792993759.716585,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e2bd056c5a6d508aad69754bce90671a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml.cs": {
+    "mtime": 1781250718.895171,
+    "seen": 1792995688.9890008,
+    "ast_hash": "361151043fc0cab44063d998e9ef37a4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ColorPickerWindow.xaml": {
+    "mtime": 1793012913.3007488,
+    "seen": 1793013363.7524102,
+    "ast_hash": "8cd6ef3ca8fe5241f73316515371362e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ColorPickerWindow.xaml.cs": {
+    "mtime": 1792920422.936587,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a645f4b1d5431986b2166dcef60cd457",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ControlPanel.xaml": {
+    "mtime": 1785039175.9718957,
+    "seen": 1792995688.9890008,
+    "ast_hash": "6900f89ee34408fbc6db983344e1a569",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ControlPanel.xaml.cs": {
+    "mtime": 1778280134.6414025,
+    "seen": 1792995688.9890008,
+    "ast_hash": "94d879d64e0abebdec0ae21db4b5dc62",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.BreakPresentations.cs": {
+    "mtime": 1793095443.436024,
+    "seen": 1793096363.997625,
+    "ast_hash": "877714d4e837401367aa2009619442f0",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.Conditions.cs": {
+    "mtime": 1793075452.1292918,
+    "seen": 1793076411.4273293,
+    "ast_hash": "dc5cc737efe7a77b9ce8d54a9d3233a1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.Guidance.cs": {
+    "mtime": 1793073822.6187077,
+    "seen": 1793076411.4273293,
+    "ast_hash": "17f683ce2d7416d6cd473ccfb449ad83",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.PlayerMenu.cs": {
+    "mtime": 1793012345.5077596,
+    "seen": 1793013363.7524102,
+    "ast_hash": "4047e9fe0123b00019da9a650c34c774",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.Scorecard.cs": {
+    "mtime": 1793076705.4960508,
+    "seen": 1793076753.1913056,
+    "ast_hash": "f815cdac293fc5d449c13ce7bbfe3c55",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.ScorecardDetails.cs": {
+    "mtime": 1793008632.9639385,
+    "seen": 1793010334.3012156,
+    "ast_hash": "486a82dc670262d6355d04f532c65fac",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.ScorecardInline.cs": {
+    "mtime": 1793008727.4013476,
+    "seen": 1793010334.3012156,
+    "ast_hash": "c1e7214373f450802ac12a6feeb42a52",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.ScorecardTransactions.cs": {
+    "mtime": 1792916563.722669,
+    "seen": 1792995688.9890008,
+    "ast_hash": "70d5409f102f8c7ddcda0f2b63244d05",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.Workflows.cs": {
+    "mtime": 1793074546.8959782,
+    "seen": 1793076411.4273293,
+    "ast_hash": "7fa6e35a7e164958dbb4ffa8f3c8abe8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.xaml": {
+    "mtime": 1793096785.5165663,
+    "seen": 1793097300.1466153,
+    "ast_hash": "7de2e92833ff10a762f04addf4a3f533",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketControlPanel.xaml.cs": {
+    "mtime": 1793094790.2952645,
+    "seen": 1793096363.997625,
+    "ast_hash": "b2c537864e58b9154329d0ef371c47d1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml": {
+    "mtime": 1793094816.4361446,
+    "seen": 1793096363.997625,
+    "ast_hash": "5cc8f2cd657a4a06003f6ae3a1741e8f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml.cs": {
+    "mtime": 1793096984.4884179,
+    "seen": 1793097300.1466153,
+    "ast_hash": "2f0339fd619f7f579dfe3c8a2cc4e342",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketOverlayHost.FreeHit.cs": {
+    "mtime": 1793071979.6482642,
+    "seen": 1793072017.6204324,
+    "ast_hash": "719314e55e694a48809ef91c39f386f4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketOverlayHost.cs": {
+    "mtime": 1793094849.9250715,
+    "seen": 1793096363.997625,
+    "ast_hash": "ace8b158a1c998a607fbac3c460c1381",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketPrompt.cs": {
+    "mtime": 1793074950.9355648,
+    "seen": 1793076411.4273293,
+    "ast_hash": "5d12caab3906581ad40a18ee4f8ba9d9",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketScorebugControl.Broadcast.cs": {
+    "mtime": 1793095786.9906752,
+    "seen": 1793096363.997625,
+    "ast_hash": "5a3b189fc4e6892a3de95dc766332a86",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketScorebugControl.Context.cs": {
+    "mtime": 1792916114.8312435,
+    "seen": 1792995688.9890008,
+    "ast_hash": "05bc68cf7b9e6887a750ac7fcf538cb3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketScorebugControl.Diagnostics.cs": {
+    "mtime": 1793096785.51544,
+    "seen": 1793097300.1466153,
+    "ast_hash": "d468ed06c3c9aa04f1cc96bc4b8cc85a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketScorebugControl.Moments.cs": {
+    "mtime": 1792922882.056696,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7646bceb3d7ba3802d37e54ffaa5c530",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketScorebugControl.Presentation.cs": {
+    "mtime": 1792923789.3761227,
+    "seen": 1792995688.9890008,
+    "ast_hash": "4d2cb4501a1e1a8d0f55bd43c03c335e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketScorebugControl.xaml": {
+    "mtime": 1792895167.9998124,
+    "seen": 1792995688.9890008,
+    "ast_hash": "30547fc8fd86a59c3d500cdc099fc612",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketScorebugControl.xaml.cs": {
+    "mtime": 1793074270.9022555,
+    "seen": 1793076411.4273293,
+    "ast_hash": "6c855741d505f7e07c883a492b64f497",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketSetupWizard.Roles.cs": {
+    "mtime": 1793074367.4164598,
+    "seen": 1793076411.4273293,
+    "ast_hash": "eab0eaaf595477de04ff8d314f188729",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketSetupWizard.xaml": {
+    "mtime": 1793090525.9214256,
+    "seen": 1793090740.9316435,
+    "ast_hash": "cfe792fcc99e9968eb91a406d449dcd4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketSetupWizard.xaml.cs": {
+    "mtime": 1793090503.9413137,
+    "seen": 1793090740.9316435,
+    "ast_hash": "e9781c11775414dd0d2e837913f33381",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketSummaryControl.MatchSummary.cs": {
+    "mtime": 1792912298.5054426,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5ba0238b48380761914101a0e99f0d27",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketSummaryControl.xaml": {
+    "mtime": 1792892087.9942453,
+    "seen": 1792995688.9890008,
+    "ast_hash": "69f809d657ff6d838936d5219692df9d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketSummaryControl.xaml.cs": {
+    "mtime": 1793094919.6967177,
+    "seen": 1793096363.997625,
+    "ast_hash": "5f4a11cb217253c8b7f435a2850e8907",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/DesignSystemGalleryWindow.xaml": {
+    "mtime": 1785302541.8908665,
+    "seen": 1792995688.9890008,
+    "ast_hash": "4e5178f95f91e1b054364a17aa0cc370",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/DesignSystemGalleryWindow.xaml.cs": {
+    "mtime": 1785246870.20875,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a30f5d6c5a5c1ba04f86e0e8df5e08eb",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/EmergencyVideoWindow.cs": {
+    "mtime": 1779881578.0971863,
+    "seen": 1792995688.9890008,
+    "ast_hash": "739394f3ff06b955a15e7bc3c99458be",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml": {
+    "mtime": 1793070961.821842,
+    "seen": 1793071361.9243176,
+    "ast_hash": "0ce4448d68d54c320823c9b0f259cac7",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml.cs": {
+    "mtime": 1793073822.61254,
+    "seen": 1793076411.4273293,
+    "ast_hash": "e77cbeab3789ba0e38dd6d6f669dad7d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/IntroScreenControl.xaml": {
+    "mtime": 1787310782.792368,
+    "seen": 1792995688.9890008,
+    "ast_hash": "f4bb91612d5ef07b8e9f73eb5feac39c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/IntroScreenControl.xaml.cs": {
+    "mtime": 1787307897.0649316,
+    "seen": 1792995688.9890008,
+    "ast_hash": "9c0c2b81be82c75a160edc4b1ceb1a02",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/LogoCropWindow.xaml": {
+    "mtime": 1793003543.3416262,
+    "seen": 1793006150.4805672,
+    "ast_hash": "cca05c73c225e4758531448de03136b3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/LogoCropWindow.xaml.cs": {
+    "mtime": 1778280134.6537197,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b434a786b1c0ae46f24f18cfcc2f9f68",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/MatchLoadingScreen.xaml": {
+    "mtime": 1779364513.4895823,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a73ab0772264be56f0c6a7c1bee3335b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/MatchLoadingScreen.xaml.cs": {
+    "mtime": 1779365194.9485774,
+    "seen": 1792995688.9890008,
+    "ast_hash": "351bcad06c2aff5747b50b263db7e203",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorActionBorder.cs": {
+    "mtime": 1793074855.4408019,
+    "seen": 1793076411.4273293,
+    "ast_hash": "077803455e7c019ff569a8a04f7375e4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorViewport.cs": {
+    "mtime": 1792900509.0917258,
+    "seen": 1792995688.9890008,
+    "ast_hash": "2befaf17086503e2015b63344a561c81",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OutputScreensaverControl.xaml": {
+    "mtime": 1792902491.2510693,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e781ed6d35b90606bc03c6cb3b73eeb9",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OutputScreensaverControl.xaml.cs": {
+    "mtime": 1792903533.993163,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c5d39fc62e8ceb1516c8dac18e4723d6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/PresentationScoreBar.xaml": {
+    "mtime": 1788434865.6709187,
+    "seen": 1792995688.9890008,
+    "ast_hash": "47148c06ca9d3469db6df3cf7aba4e1f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/PresentationScoreBar.xaml.cs": {
+    "mtime": 1788434893.755785,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5a885059aa34ff32f675feca296d1392",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/QuarterBreakScorebugControl.xaml": {
+    "mtime": 1788346781.479483,
+    "seen": 1792995688.9890008,
+    "ast_hash": "6b81277ce8ae48a0940eb8465a3e3c01",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/QuarterBreakScorebugControl.xaml.cs": {
+    "mtime": 1788346783.3244414,
+    "seen": 1792995688.9890008,
+    "ast_hash": "776558d6ed87989a52bbf81dc7f81c00",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ResponsivePresentationTypography.cs": {
+    "mtime": 1788174429.3710518,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d50802a58759717285d03f4008a20e3a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ResumeGameDialog.xaml": {
+    "mtime": 1793003461.2166696,
+    "seen": 1793006150.4805672,
+    "ast_hash": "2504cc8ff4b2e7b04eeef556e8f6a571",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ResumeGameDialog.xaml.cs": {
+    "mtime": 1792920093.6802535,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c71798a345f4d9e975399e6393b6da36",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ResumeMatchPrompt.xaml": {
+    "mtime": 1793003869.195864,
+    "seen": 1793006150.4805672,
+    "ast_hash": "feafcfce2e6583933a749e6f51f24c51",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ResumeMatchPrompt.xaml.cs": {
+    "mtime": 1793003869.1968975,
+    "seen": 1793006150.4805672,
+    "ast_hash": "e8045d2f159d4bb084ad262c0e7591aa",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/RollingScoreVisual.cs": {
+    "mtime": 1792899577.4484613,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b8eb38d248e8583c84b171b05900657f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml": {
+    "mtime": 1793003543.342627,
+    "seen": 1793006150.4805672,
+    "ast_hash": "4fcb21cdba175a62aa19ec3085d952f0",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml.cs": {
+    "mtime": 1788438170.544128,
+    "seen": 1792995688.9890008,
+    "ast_hash": "919e0afa97ffe179d8c9d194e13fe7eb",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ScoreboardScaleHelper.cs": {
+    "mtime": 1778149499.9697683,
+    "seen": 1792995688.9890008,
+    "ast_hash": "8490a74f5230b36859d4a9757af677d3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ScorebugControl.xaml": {
+    "mtime": 1788563765.9072258,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7daad7772cc4c0d8f159f7a06cc653a4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ScorebugControl.xaml.cs": {
+    "mtime": 1792814101.4684691,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e5bb28248dfd233e23d23397d4ba2d1b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ScorewormControl.xaml": {
+    "mtime": 1788343433.9094274,
+    "seen": 1792995688.9890008,
+    "ast_hash": "3b12f38aaca6c3a0861eac6cc13dadd7",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/ScorewormControl.xaml.cs": {
+    "mtime": 1788343435.735689,
+    "seen": 1792995688.9890008,
+    "ast_hash": "bf239e72019ad1d9816432c841240cfb",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SettingsWorkspace.cs": {
+    "mtime": 1793070509.8349514,
+    "seen": 1793071361.9243176,
+    "ast_hash": "151b55ad8136341a2eee566b872352a1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SetupWizard.xaml": {
+    "mtime": 1793071294.759313,
+    "seen": 1793071361.9243176,
+    "ast_hash": "8662437bf9c566e81a19a4ec6babd5db",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SetupWizard.xaml.cs": {
+    "mtime": 1793075454.742404,
+    "seen": 1793076411.4273293,
+    "ast_hash": "071b15bacce70c7153e782705fdaf605",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SharedSurfaceMotion.cs": {
+    "mtime": 1793077698.4381034,
+    "seen": 1793078343.3805704,
+    "ast_hash": "127cc0a58a31de3a80bb22cd4b9bb0e6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SharedSurfaceMotionChecks.cs": {
+    "mtime": 1792993295.839445,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c2306581e3ebf68e0baac58aceae5d0b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SportSelectionScreen.Interactions.cs": {
+    "mtime": 1793077900.0907474,
+    "seen": 1793078343.3805704,
+    "ast_hash": "d2d532ab4d0a591c9df453a4b05f00a5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SportSelectionScreen.xaml": {
+    "mtime": 1793077900.0895603,
+    "seen": 1793078343.3805704,
+    "ast_hash": "000b7fe51501290b9bb289c2c6f0f1d6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SportSelectionScreen.xaml.cs": {
+    "mtime": 1793078703.4477222,
+    "seen": 1793078735.634588,
+    "ast_hash": "2c6204b7c31aad6778e74ac579bcacb4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/StatsScreenControl.xaml": {
+    "mtime": 1788343437.588174,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b224752165ba24c68db0864482c22d0b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/StatsScreenControl.xaml.cs": {
+    "mtime": 1788343439.4486473,
+    "seen": 1792995688.9890008,
+    "ast_hash": "3cbfb71fb375fbbd957506de7b298e94",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/TeamLibraryWindow.xaml": {
+    "mtime": 1793047745.5151615,
+    "seen": 1793048874.113585,
+    "ast_hash": "3555775bf01acba4c8d33e69d3ae2758",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/TeamLibraryWindow.xaml.cs": {
+    "mtime": 1793047745.5937433,
+    "seen": 1793048874.113585,
+    "ast_hash": "737dba5c3e745fb892fc3e3ce4fa7835",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/TrainingControlPanel.ControlCentre.cs": {
+    "mtime": 1792992431.2721603,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e1793742293f45999123891222681401",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/TrainingControlPanel.xaml": {
+    "mtime": 1792992884.6647155,
+    "seen": 1792995688.9890008,
+    "ast_hash": "936f0bd28a40640d10e34f2a0ac61aad",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/TrainingControlPanel.xaml.cs": {
+    "mtime": 1792920762.2273405,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b22cde0ac999095e5edf311c655f8d76",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/TrainingScorebugControl.xaml": {
+    "mtime": 1787310786.7968764,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b5ad799b437336a3a12df75b242ae1be",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/TrainingScorebugControl.xaml.cs": {
+    "mtime": 1780304258.872281,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b0cc042147668bcc19015cf14b85f3b8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/UpdatePromptWindow.xaml": {
+    "mtime": 1793003461.2166696,
+    "seen": 1793006150.4805672,
+    "ast_hash": "e68c8ca288988fbe66688cd5f802597b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/UpdatePromptWindow.xaml.cs": {
+    "mtime": 1792920093.6802535,
+    "seen": 1792995688.9890008,
+    "ast_hash": "978989a7a566b7658125d15adc93f3c6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/VideoPlayerControl.PresentationOverlay.cs": {
+    "mtime": 1792903533.9941638,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d37f78781638133837c713d629acc204",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/VideoPlayerControl.xaml": {
+    "mtime": 1779363474.6846955,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7a8d62e952956389128737b3df5aacbf",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/VideoPlayerControl.xaml.cs": {
+    "mtime": 1788222414.7720246,
+    "seen": 1792995688.9890008,
+    "ast_hash": "6ed04fd532589e4d7396c2b3f8502595",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/WeatherScreenControl.xaml": {
+    "mtime": 1788343441.2595966,
+    "seen": 1792995688.9890008,
+    "ast_hash": "0e59d9fa1c9753f9098dd05a81dc788c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/WeatherScreenControl.xaml.cs": {
+    "mtime": 1788343443.0745363,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7beb3b8e216e8b7a7ac805347c74fe58",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/WizardPair.cs": {
+    "mtime": 1792992013.6842456,
+    "seen": 1792995688.9890008,
+    "ast_hash": "918abb559d30d176b6b4cfb759b9cd65",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/DesignSystem/README.md": {
+    "mtime": 1785240209.922259,
+    "seen": 1792995688.9890008,
+    "ast_hash": "05e6cc8770d7ac1133a454988a3348ee",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Output-Build.txt": {
+    "mtime": 1772696270.9456484,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ecaa88f7fa0bf610a5a26cf545dcd3aa",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-box-hill-official.png": {
+    "mtime": 1792895746.53443,
+    "seen": 1792995688.9890008,
+    "ast_hash": "fa47e8d8932b52a694b0f2ff1d4cb434",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-camberwell-magpies.png": {
+    "mtime": 1792895151.4797118,
+    "seen": 1792995688.9890008,
+    "ast_hash": "9f7c5be49515757135fe6338b29745ea",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-carlton.jpg": {
+    "mtime": 1792895151.3516562,
+    "seen": 1792995688.9890008,
+    "ast_hash": "4ad0f5044ab14d2289113160ff802eea",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-casey-south-melbourne.jpg": {
+    "mtime": 1792895151.5182264,
+    "seen": 1792995688.9890008,
+    "ast_hash": "074dbc41efc548a76da71d12bc20bf4a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-dandenong.png": {
+    "mtime": 1792895151.4302254,
+    "seen": 1792995688.9890008,
+    "ast_hash": "668d766f8516793da003e42c3f92e9b6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-essendon-maribyrnong-park-ladies.png": {
+    "mtime": 1792895151.6116095,
+    "seen": 1792995688.9890008,
+    "ast_hash": "2e8aba55f5eb9ca438fa29d52208aed5",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-essendon.png": {
+    "mtime": 1792895151.1441984,
+    "seen": 1792995688.9890008,
+    "ast_hash": "fdf766291e3684424cda4901cafc06e6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-fitzroy-doncaster.png": {
+    "mtime": 1792895151.571182,
+    "seen": 1792995688.9890008,
+    "ast_hash": "8fc34983a72d585afd90bc9795e5813e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-footscray-directory.jpg": {
+    "mtime": 1792895788.272802,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d5c3e717bcf8bf23c8b1785d5d7300c0",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-frankston-peninsula.png": {
+    "mtime": 1792895150.9343536,
+    "seen": 1792995688.9890008,
+    "ast_hash": "4b48d41f7f08509ed6c77f166a18f847",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-geelong.jpg": {
+    "mtime": 1792895151.1268444,
+    "seen": 1792995688.9890008,
+    "ast_hash": "f7d5b251eca1f20b10742882a9871275",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-greenvale-kangaroos.png": {
+    "mtime": 1792895151.1933975,
+    "seen": 1792995688.9890008,
+    "ast_hash": "886f82fee5a530a9e7502197c8bc9136",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-kingston-hawthorn.png": {
+    "mtime": 1792895151.267437,
+    "seen": 1792995688.9890008,
+    "ast_hash": "d6b46df2be9517cfab2609b463a3107c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-melbourne-university.png": {
+    "mtime": 1792895151.3208418,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5d5c2367a0c4b6e9b81f9eea59103455",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-melbourne.png": {
+    "mtime": 1792895151.2922566,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a68ee3ebd28972c264c6583c8dc029bf",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-northcote.jpg": {
+    "mtime": 1792895151.4103582,
+    "seen": 1792995688.9890008,
+    "ast_hash": "798a2afc5738513e59a2542ba379dd51",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-plenty-valley.png": {
+    "mtime": 1792895151.5918167,
+    "seen": 1792995688.9890008,
+    "ast_hash": "4f55f5bbcef0d629f3ffc7bf887fabad",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-prahran.png": {
+    "mtime": 1792895151.4589283,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5c944038404210e3290e4266e34af57c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-richmond-vic.png": {
+    "mtime": 1792895151.499953,
+    "seen": 1792995688.9890008,
+    "ast_hash": "daeedf3f62866890d6303e84b6077d15",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-ringwood.jpg": {
+    "mtime": 1792895151.2283165,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e8782f8e748babca1498d5c76204aa46",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vpc-st-kilda.png": {
+    "mtime": 1792895151.5367599,
+    "seen": 1792995688.9890008,
+    "ast_hash": "392fc3ccd76072cfbb76986a9c78d056",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-altona.png": {
+    "mtime": 1792895150.1388595,
+    "seen": 1792995688.9890008,
+    "ast_hash": "aba5f4efb68e2f772f7195340afc859c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-balwyn.png": {
+    "mtime": 1792895150.4748967,
+    "seen": 1792995688.9890008,
+    "ast_hash": "9c342eebe877aadeb98e7921342d8f25",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-bayswater.jpg": {
+    "mtime": 1792895150.7679248,
+    "seen": 1792995688.9890008,
+    "ast_hash": "6ac7049dee1328fe82e4ce03a9ff0e69",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-box-hill-official.png": {
+    "mtime": 1792895746.53443,
+    "seen": 1792995688.9890008,
+    "ast_hash": "fa47e8d8932b52a694b0f2ff1d4cb434",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-brighton.png": {
+    "mtime": 1792895150.5408516,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ef757ca764add41142f60b087894a877",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-brunswick.png": {
+    "mtime": 1792895150.2271912,
+    "seen": 1792995688.9890008,
+    "ast_hash": "7cdedacb8d6449fd1b9bde8c34a87ab4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-caulfield.png": {
+    "mtime": 1792895150.890463,
+    "seen": 1792995688.9890008,
+    "ast_hash": "bd70afe0842f66c6a0f54106e2830af2",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-coburg.jpg": {
+    "mtime": 1792895150.3594575,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a3ada047be7cac323d64d195b0884484",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-croydon.jpg": {
+    "mtime": 1792895150.5292768,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b7633ffe0afabd178903e8b86ae93580",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-donvale.png": {
+    "mtime": 1792895150.690758,
+    "seen": 1792995688.9890008,
+    "ast_hash": "526a110601c12c6b21f0cd10f7f2f07b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-elsternwick.jpg": {
+    "mtime": 1792895150.835053,
+    "seen": 1792995688.9890008,
+    "ast_hash": "1a90a735b1c6a3a36430eb5e3d58e15e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-endeavour-hills.jpg": {
+    "mtime": 1792895150.8685787,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a98d7a0a4eb07238201f2dc97d6d043e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-hoppers-crossing.png": {
+    "mtime": 1792895150.0231383,
+    "seen": 1792995688.9890008,
+    "ast_hash": "e11f47a57bf7ff3a79e4eecf65685ef9",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-ivanhoe.png": {
+    "mtime": 1792895150.2620237,
+    "seen": 1792995688.9890008,
+    "ast_hash": "136c1ff8ecae988a5a3706b8d1bf3450",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-kew.jpg": {
+    "mtime": 1792895150.0543625,
+    "seen": 1792995688.9890008,
+    "ast_hash": "3e40d68d28d3f25db63c09a3dc5725cb",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-malvern.jpg": {
+    "mtime": 1792895150.7482524,
+    "seen": 1792995688.9890008,
+    "ast_hash": "cbd78b86eac02e96ad667594ee16035b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-melton.png": {
+    "mtime": 1792895150.2387364,
+    "seen": 1792995688.9890008,
+    "ast_hash": "2e026a21a1bfa49b039aa26443420bb1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-moorabbin.jpg": {
+    "mtime": 1792895150.786777,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b5c509b4f018f47466724c9ef9235443",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-mt-waverley.jpg": {
+    "mtime": 1792895150.8031228,
+    "seen": 1792995688.9890008,
+    "ast_hash": "a8a4384cfa5524d06d91f6b8c7a9cc24",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-noble-park.png": {
+    "mtime": 1792895150.5553064,
+    "seen": 1792995688.9890008,
+    "ast_hash": "4886e80666d3891636d94baef2b5d28e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-oakleigh.png": {
+    "mtime": 1792895150.508618,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c9e566d4fff59c3f743e01050290d0fe",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-ormond.png": {
+    "mtime": 1792895150.7216227,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5b9c96e95ceb0b015cdc62c0d2d03a3a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-plenty-valley.png": {
+    "mtime": 1792895149.8945374,
+    "seen": 1792995688.9890008,
+    "ast_hash": "4f55f5bbcef0d629f3ffc7bf887fabad",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-port-melbourne.jpg": {
+    "mtime": 1792895150.6093001,
+    "seen": 1792995688.9890008,
+    "ast_hash": "f2a8d6d0c7e360858e9dd95457f9db76",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-preston.png": {
+    "mtime": 1792895149.965585,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5811bfb9bb2f227ba3e1c4baa9a5dd59",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-spotswood.jpg": {
+    "mtime": 1792895150.2792187,
+    "seen": 1792995688.9890008,
+    "ast_hash": "f42799f33a546888af1eb4698a99c6eb",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-st-bernards-oc.png": {
+    "mtime": 1792895150.1746838,
+    "seen": 1792995688.9890008,
+    "ast_hash": "ea85f1e99f46cdcb72bf686dc1141039",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-strathmore.jpg": {
+    "mtime": 1792895150.1070185,
+    "seen": 1792995688.9890008,
+    "ast_hash": "faf7c8b51003e63bb7811291b1b5ea05",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-taylors-lakes.png": {
+    "mtime": 1792895150.2095883,
+    "seen": 1792995688.9890008,
+    "ast_hash": "cee9b5e5ac8e816ef7b3174bf9356908",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-werribee.jpg": {
+    "mtime": 1792895150.0870893,
+    "seen": 1792995688.9890008,
+    "ast_hash": "c83c8eb5513e7e4fc00dabc50f54f503",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-williamstown.jpg": {
+    "mtime": 1792895149.9469118,
+    "seen": 1792995688.9890008,
+    "ast_hash": "57c2e3ee689033d941d8907dad358d3d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/ClubLogos/cricket-vsdca-yarraville.png": {
+    "mtime": 1792895150.119706,
+    "seen": 1792995688.9890008,
+    "ast_hash": "b2bbe7e8531ef3228fb02bffd760514e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/app.png": {
+    "mtime": 1774429311.115512,
+    "seen": 1792995688.9890008,
+    "ast_hash": "5cf4afb8ad7474299ef6f30b1770fb88",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.GlassQa.cs": {
+    "mtime": 1793013258.0784187,
+    "seen": 1793013363.7524102,
+    "ast_hash": "48d872b6a53a02500711ad86a99f1a12",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorGlassEffect.cs": {
+    "mtime": 1793068223.078947,
+    "seen": 1793069349.5335,
+    "ast_hash": "b5b01b2d09968a44ae859ab4cb73684a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorWindowChrome.cs": {
+    "mtime": 1793005839.5304992,
+    "seen": 1793006150.4805672,
+    "ast_hash": "c79deb30b3dc86a0cd7d625bba41681e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorGlassSurface.cs": {
+    "mtime": 1793074270.9043963,
+    "seen": 1793076411.4273293,
+    "ast_hash": "3eddf9a5321c8bc879940aab52bc1c48",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorSceneBackdrop.cs": {
+    "mtime": 1793067950.1175165,
+    "seen": 1793069349.5335,
+    "ast_hash": "c632a69fa81da8d5fc3faf67c5bb4407",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorSegmentedPanel.cs": {
+    "mtime": 1793019014.9593925,
+    "seen": 1793020079.301808,
+    "ast_hash": "437834bb51b94408ff6f6c6092246489",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.AppleInteractionQa.cs": {
+    "mtime": 1793075205.9888923,
+    "seen": 1793076411.4273293,
+    "ast_hash": "3d6c9212b955477812959789fced5832",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorAppearance.cs": {
+    "mtime": 1793066487.876431,
+    "seen": 1793069349.5335,
+    "ast_hash": "3c065fe5be0d62f46bfdd1a5b1784512",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorTabLabelConverter.cs": {
+    "mtime": 1793008554.2616765,
+    "seen": 1793010334.3012156,
+    "ast_hash": "46a045ef3237831b73c2999c1c4e681c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/WizardFlowDesign.cs": {
+    "mtime": 1793068522.8446171,
+    "seen": 1793069349.5335,
+    "ast_hash": "5a787bebbb019f5dd699f27a3ac8f688",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.IphoneInteractionQa.cs": {
+    "mtime": 1793013760.2162054,
+    "seen": 1793014000.3929832,
+    "ast_hash": "517bcb1e661595be5152d5f6c27c1dd4",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorMenuMotion.cs": {
+    "mtime": 1793013322.5835361,
+    "seen": 1793013363.7524102,
+    "ast_hash": "74f7a537d66979b1e4d712c4ac606ce8",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorSliderMotion.cs": {
+    "mtime": 1793012759.168979,
+    "seen": 1793013363.7524102,
+    "ast_hash": "9cbd1ef85e9a7ece48e38b5a8a1c7682",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorSearchBox.cs": {
+    "mtime": 1793012508.4019442,
+    "seen": 1793013363.7524102,
+    "ast_hash": "c4ee8829db9a9427437f4996f8c94a6c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.OperatorSetupTransition.cs": {
+    "mtime": 1793013680.911492,
+    "seen": 1793014000.3929832,
+    "ast_hash": "641066e3c8f1822f3fef79b368edc4c1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.LiquidSelectionQa.cs": {
+    "mtime": 1793018785.9823115,
+    "seen": 1793018920.3027697,
+    "ast_hash": "cc0ba7662aa33665ef3f168cbe4bd7f7",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorLiquidSelection.cs": {
+    "mtime": 1793090503.9443953,
+    "seen": 1793090740.9316435,
+    "ast_hash": "64b2fcba37695bd89691824e159e725c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.AppleReviewQa.cs": {
+    "mtime": 1793048947.4291017,
+    "seen": 1793049043.3866563,
+    "ast_hash": "a61d8e9d21d3ad75a14ce774c88a65b3",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/WizardTeamEditor.cs": {
+    "mtime": 1793070888.0114725,
+    "seen": 1793071361.9243176,
+    "ast_hash": "0d200e053efa4b9cf17f04165e7aea36",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.SculptedGlassQa.cs": {
+    "mtime": 1793068840.8516297,
+    "seen": 1793069349.5335,
+    "ast_hash": "af67441206cc3eb78c8c13b7c3c899ac",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorMaterialPreferences.cs": {
+    "mtime": 1793067295.9903803,
+    "seen": 1793069349.5335,
+    "ast_hash": "0473e1225d6fda04d2b1c527e83fb3d0",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.OperatorFormRefresh.cs": {
+    "mtime": 1793071590.7383213,
+    "seen": 1793071791.3105412,
+    "ast_hash": "8a7bcaf42d42ca1bb7d8cbe35016d99c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.OperatorResponseQa.cs": {
+    "mtime": 1793071293.0914848,
+    "seen": 1793071361.9243176,
+    "ast_hash": "ff631db5b279319b1e681743519754b7",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorChoiceMotion.cs": {
+    "mtime": 1793070662.404227,
+    "seen": 1793071361.9243176,
+    "ast_hash": "fcb0145d90741410815d84529e90ea4a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorInputFocus.cs": {
+    "mtime": 1793070662.4029133,
+    "seen": 1793071361.9243176,
+    "ast_hash": "c78446d24a4cc735076cf1a42fee61dd",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.IllustratedOperatorQa.cs": {
+    "mtime": 1793090592.5376854,
+    "seen": 1793090740.9316435,
+    "ast_hash": "35f8df7ca9dece49a5d346949be42f58",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorGuidance.cs": {
+    "mtime": 1793073822.613801,
+    "seen": 1793076411.4273293,
+    "ast_hash": "99ef3a8aa1cbf417a2c319d0c850796d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketSetupWizard.PlayerEntry.cs": {
+    "mtime": 1793090503.9423687,
+    "seen": 1793090740.9316435,
+    "ast_hash": "d6725cd918a7fe81511c733311faab30",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorClubPresetDesign.cs": {
+    "mtime": 1793077900.0928717,
+    "seen": 1793078343.3805704,
+    "ast_hash": "781327cbdbde879b28cc13dcb3e410c6",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/OperatorSportArtwork.cs": {
+    "mtime": 1793090525.9214256,
+    "seen": 1793090740.9328632,
+    "ast_hash": "e7facf440803214fb5040d64e5b3d65a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/SportSelectionScreen.Landing.cs": {
+    "mtime": 1793078326.098312,
+    "seen": 1793078343.3805704,
+    "ast_hash": "aab2f6d3f815d002aeb5323acd60757d",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Services/OperatorRoundedClip.cs": {
+    "mtime": 1793077603.7674525,
+    "seen": 1793078343.3795698,
+    "ast_hash": "c64eee5bb7b96b41ef14d6be3a274809",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/SportArtwork/afl-animated-v1.png": {
+    "mtime": 1793077334.4769337,
+    "seen": 1793078343.3805704,
+    "ast_hash": "41569cff39a1b188cdb653ae1f36d65c",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/SportArtwork/cricket-animated-v1.png": {
+    "mtime": 1793077550.8579166,
+    "seen": 1793078343.3805704,
+    "ast_hash": "d5b998e14f161d67739bf3eedb68451e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/SportArtwork/training-animated-v1.png": {
+    "mtime": 1793077531.8394797,
+    "seen": 1793078343.3805704,
+    "ast_hash": "812bca97ab78a6fbf0e0887395aa1c9f",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/SportArtwork/README.md": {
+    "mtime": 1793090972.9381115,
+    "seen": 1793096363.997625,
+    "ast_hash": "51a95c9763b8711c26fa3af7e7ad0b2b",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/SportArtwork/afl-cartoon-v2.png": {
+    "mtime": 1793089649.2704656,
+    "seen": 1793090740.9328632,
+    "ast_hash": "8f05673b4eee82301cf8b3fd4af3c66e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/SportArtwork/cricket-cartoon-v2.png": {
+    "mtime": 1793089668.5395908,
+    "seen": 1793090740.9328632,
+    "ast_hash": "4f080ade5b492773ad77e8fc43a9d1b1",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Resources/SportArtwork/training-cartoon-v2.png": {
+    "mtime": 1793089683.8021314,
+    "seen": 1793090740.9328632,
+    "ast_hash": "d9352ccf6ce8386c7e51af0bed0d7ffa",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/MainWindow.CricketBroadcastExpansionQa.cs": {
+    "mtime": 1793097121.8474438,
+    "seen": 1793097300.1466153,
+    "ast_hash": "02881a5020e2df0164bd994361bc1468",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketChartData.cs": {
+    "mtime": 1793094919.6162002,
+    "seen": 1793096363.997625,
+    "ast_hash": "002cc3e1322bb4cb520e85c406e7904a",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketMilestone.cs": {
+    "mtime": 1793094977.0935009,
+    "seen": 1793096363.997625,
+    "ast_hash": "07fec0f93b226239b5c58b14090bb794",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Models/CricketPresentationOrder.cs": {
+    "mtime": 1793095986.6994562,
+    "seen": 1793096363.997625,
+    "ast_hash": "d246e641b5f518c9fff902f7497b34ed",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketChartVisual.cs": {
+    "mtime": 1793096408.8875692,
+    "seen": 1793097300.1466153,
+    "ast_hash": "fdde471a129a73b102ed6c49cb185bfa",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketScorebugControl.Milestones.cs": {
+    "mtime": 1793095262.123144,
+    "seen": 1793096363.997625,
+    "ast_hash": "a314ecb8d6718746f1a450c735c37771",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard/Views/CricketSummaryControl.Charts.cs": {
+    "mtime": 1793094919.6162002,
+    "seen": 1793096363.997625,
+    "ast_hash": "3f06e3b07ba52d214fcafef43ced937b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/assets/catalog-index.json": {
+    "mtime": 1792917578.9602327,
+    "seen": 1793138966.829712,
+    "ast_hash": "e9dacb2a79680ee7177f9c78f2bf22d8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/evals/evals.json": {
+    "mtime": 1792917578.966774,
+    "seen": 1793138966.829712,
+    "ast_hash": "d459358bccc355e0a116214448bb2e50",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/scripts/catalog.py": {
+    "mtime": 1792917578.974307,
+    "seen": 1793138966.829712,
+    "ast_hash": "211d91ef45a0a99ba336784f7f623d69",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/scripts/dmd.py": {
+    "mtime": 1792917578.9753084,
+    "seen": 1793138966.829712,
+    "ast_hash": "b27fd976ce56b725802519341beb43f3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/scripts/preview.py": {
+    "mtime": 1792917578.9763086,
+    "seen": 1793138966.829712,
+    "ast_hash": "744da2e1e5dd4310fbafeafb9744c179",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/scripts/scaffold.py": {
+    "mtime": 1792917578.9773228,
+    "seen": 1793138966.829712,
+    "ast_hash": "2e623d4ec88d6de4b98f1bcdb58e4ba8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/scripts/selftest.py": {
+    "mtime": 1792917578.978328,
+    "seen": 1793138966.829712,
+    "ast_hash": "ab1ac3b85718df2ff29c55aa7150a04a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/agents/openai.yml": {
+    "mtime": 1792917006.7470737,
+    "seen": 1793138966.829712,
+    "ast_hash": "a93201a1b378a868c0795edbf1ae751c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/assets/showcase/color-pair.tsx": {
+    "mtime": 1792917006.7512314,
+    "seen": 1793138966.829712,
+    "ast_hash": "deea9209282815e9639465ac4ff41a5e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/assets/showcase/state-matrix.tsx": {
+    "mtime": 1792917006.7532506,
+    "seen": 1793138966.829712,
+    "ast_hash": "2a2bb1b70c07b3f2df8f4b8df2f47a62",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/evals/evals.json": {
+    "mtime": 1792917006.7579167,
+    "seen": 1793138966.829712,
+    "ast_hash": "ff2596fefcdd2ddb853a73870214164c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/scripts/showcase-coverage.mjs": {
+    "mtime": 1792917006.7680888,
+    "seen": 1793138966.829712,
+    "ast_hash": "2cbb4e479b376730348e82fea973d9bf",
+    "semantic_hash": ""
+  },
+  ".codex/hooks.json": {
+    "mtime": 1792890155.06934,
+    "seen": 1793138966.829712,
+    "ast_hash": "5ebef3dd159986e465ab65e4014107ec",
+    "semantic_hash": ""
+  },
+  ".github/workflows/publish-release.yml": {
+    "mtime": 1788315562.8673415,
+    "seen": 1793138966.829712,
+    "ast_hash": "bb75295c4992bbb5db6485ba83f7fde0",
+    "semantic_hash": ""
+  },
+  "Build-Release.ps1": {
+    "mtime": 1787994048.828074,
+    "seen": 1793138966.829712,
+    "ast_hash": "726430033a679c4d218ec240c20b612e",
+    "semantic_hash": ""
+  },
+  "Roche_Scoreboard.slnx": {
+    "mtime": 1771484299.1612754,
+    "seen": 1793138966.829712,
+    "ast_hash": "31fa65058d1edf680d6abbff40733021",
+    "semantic_hash": ""
+  },
+  "gallery-self-test.json": {
+    "mtime": 1785246897.505284,
+    "seen": 1793138966.94567,
+    "ast_hash": "a3ad07d7305832ea3baae4c33f0a7e1e",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/implementation/source-baseline.json": {
+    "mtime": 1792990942.0162618,
+    "seen": 1793138966.94567,
+    "ast_hash": "0be1349974077c0627956cc80cd041de",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/interactive-study-checks.json": {
+    "mtime": 1792986988.0928218,
+    "seen": 1793138966.94567,
+    "ast_hash": "1d348646b894a5e19e6f38682a6ddf9b",
+    "semantic_hash": ""
+  },
+  "preferences-self-test.json": {
+    "mtime": 1785247046.8897996,
+    "seen": 1793138966.94567,
+    "ast_hash": "8ac65554e22c12ae5a6f3dbf6838bc81",
+    "semantic_hash": ""
+  },
+  "skills-lock.json": {
+    "mtime": 1792964161.1341882,
+    "seen": 1793138966.94567,
+    "ast_hash": "230e1d2e8256e7738e03f69d3c69a352",
+    "semantic_hash": ""
+  },
+  "startup-self-test.json": {
+    "mtime": 1785246953.301309,
+    "seen": 1793138966.94567,
+    "ast_hash": "fcf4c371460d502b38259f89e03bd817",
+    "semantic_hash": ""
+  },
+  "tools/compile-operator-glass.py": {
+    "mtime": 1793003295.6018882,
+    "seen": 1793138966.94567,
+    "ast_hash": "45310ff0ca60ff976b930e16801c07eb",
+    "semantic_hash": ""
+  },
+  "web/remote/package.json": {
+    "mtime": 1781007205.9185598,
+    "seen": 1793138966.94567,
+    "ast_hash": "d423f37faa11ca7d9d9dff5ae366af80",
+    "semantic_hash": ""
+  },
+  "web/remote/postcss.config.js": {
+    "mtime": 1781007205.894253,
+    "seen": 1793138966.94567,
+    "ast_hash": "6722eb9bbda02181ece04650d047d414",
+    "semantic_hash": ""
+  },
+  "web/remote/src/app.ts": {
+    "mtime": 1781252858.3348286,
+    "seen": 1793138966.94567,
+    "ast_hash": "71b18abab9d22b65493982920da42a88",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/afl/aflApp.ts": {
+    "mtime": 1781253127.8973536,
+    "seen": 1793138966.94567,
+    "ast_hash": "de52c29f4baac40345282413142d0192",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/afl/aflHero.ts": {
+    "mtime": 1781252954.8956559,
+    "seen": 1793138966.94567,
+    "ast_hash": "b054f7637e937dfa85d0eb1431616e69",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/afl/fire.ts": {
+    "mtime": 1781252934.4094603,
+    "seen": 1793138966.94567,
+    "ast_hash": "f8a4cc172305c1341c0612eb802091b0",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/afl/screens/displayTab.ts": {
+    "mtime": 1781253094.6165059,
+    "seen": 1793138966.94567,
+    "ast_hash": "0db1d05fd40c892548b7d1cee0c6bd8d",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/afl/screens/moreTab.ts": {
+    "mtime": 1781253056.2704463,
+    "seen": 1793138966.94567,
+    "ast_hash": "7a049ede34816a60bfbd80d532711015",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/afl/screens/scoreClockTab.ts": {
+    "mtime": 1781253091.1437209,
+    "seen": 1793138966.94567,
+    "ast_hash": "952299ead1b740bbcef05d4e48d90465",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/afl/screens/settingsTab.ts": {
+    "mtime": 1781253059.6162999,
+    "seen": 1793138966.94567,
+    "ast_hash": "d90160fc62a49d80d84753407e823626",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/training/fire.ts": {
+    "mtime": 1781253144.7274492,
+    "seen": 1793138966.94567,
+    "ast_hash": "d6516cc42fae3d9fd092ee79350de956",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/training/screens/controlTab.ts": {
+    "mtime": 1781354951.6116965,
+    "seen": 1793138966.94567,
+    "ast_hash": "d362a11b2920184d608a4f8344fb158a",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/training/screens/moreTab.ts": {
+    "mtime": 1781253217.7394483,
+    "seen": 1793138966.94567,
+    "ast_hash": "d0e01b3e5a78d6c3a8eb76f1a1381fea",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/training/trainingApp.ts": {
+    "mtime": 1781354843.1030686,
+    "seen": 1793138966.94567,
+    "ast_hash": "0243f91f05bf96b9f7a0e65998c831bd",
+    "semantic_hash": ""
+  },
+  "web/remote/src/apps/training/trainingHero.ts": {
+    "mtime": 1781253146.9444244,
+    "seen": 1793138966.94567,
+    "ast_hash": "fc06bd22cd33dcb556d599c36218f5fb",
+    "semantic_hash": ""
+  },
+  "web/remote/src/contract/events.ts": {
+    "mtime": 1781354429.0501106,
+    "seen": 1793138966.94567,
+    "ast_hash": "cf2b7bf9136f3fe97d59a36d7d0001df",
+    "semantic_hash": ""
+  },
+  "web/remote/src/contract/liveState.ts": {
+    "mtime": 1781251862.4589975,
+    "seen": 1793138966.94567,
+    "ast_hash": "074d28ad2ef9608419b76b5b131b849c",
+    "semantic_hash": ""
+  },
+  "web/remote/src/lib/events.ts": {
+    "mtime": 1781007312.652797,
+    "seen": 1793138966.94567,
+    "ast_hash": "15b44213c6e5b7864f070e0c0c2c43e1",
+    "semantic_hash": ""
+  },
+  "web/remote/src/lib/recentTimers.ts": {
+    "mtime": 1781354445.109235,
+    "seen": 1793138966.94567,
+    "ast_hash": "3b3534af01baf86d8c1b3a1c586ccbf8",
+    "semantic_hash": ""
+  },
+  "web/remote/src/lib/safe.ts": {
+    "mtime": 1781251780.5816762,
+    "seen": 1793138966.94567,
+    "ast_hash": "cd031b34beb645836019e6af8dcf3763",
+    "semantic_hash": ""
+  },
+  "web/remote/src/lib/session.ts": {
+    "mtime": 1781007312.1035764,
+    "seen": 1793138966.94567,
+    "ast_hash": "8cc2b0087289f783af18e15a7845cc83",
+    "semantic_hash": ""
+  },
+  "web/remote/src/lib/supabase.ts": {
+    "mtime": 1781007312.116758,
+    "seen": 1793138966.94567,
+    "ast_hash": "dca0ce5cbaeb27ba427096bde5039bd3",
+    "semantic_hash": ""
+  },
+  "web/remote/src/main.ts": {
+    "mtime": 1781007588.7652767,
+    "seen": 1793138966.94567,
+    "ast_hash": "68dccd3e03a0d912d9070256bf2e6a0e",
+    "semantic_hash": ""
+  },
+  "web/remote/src/screens/joinScreen.ts": {
+    "mtime": 1781252885.3360784,
+    "seen": 1793138966.94567,
+    "ast_hash": "009f1616950ce1816600e433d49462eb",
+    "semantic_hash": ""
+  },
+  "web/remote/src/state/liveStateStore.ts": {
+    "mtime": 1781007366.2717605,
+    "seen": 1793138966.94567,
+    "ast_hash": "42bd7e7dfe4fd77425125b6ccfdf7654",
+    "semantic_hash": ""
+  },
+  "web/remote/src/ui/dom.ts": {
+    "mtime": 1781007411.7009742,
+    "seen": 1793138966.94567,
+    "ast_hash": "9ee7f842f4da9f6c08b8bd73618c162e",
+    "semantic_hash": ""
+  },
+  "web/remote/src/ui/phoneShell.ts": {
+    "mtime": 1781252906.643975,
+    "seen": 1793138966.94567,
+    "ast_hash": "e39d509e761d61cfcfb4f8656ea701cf",
+    "semantic_hash": ""
+  },
+  "web/remote/src/ui/toast.ts": {
+    "mtime": 1781253257.7088766,
+    "seen": 1793138966.94567,
+    "ast_hash": "899aa7b53e68425c26ff2d4098d51c39",
+    "semantic_hash": ""
+  },
+  "web/remote/tailwind.config.ts": {
+    "mtime": 1781007207.0012705,
+    "seen": 1793138966.94567,
+    "ast_hash": "51263281aa1f0e190e7e14c409ea7104",
+    "semantic_hash": ""
+  },
+  "web/remote/tsconfig.json": {
+    "mtime": 1781007206.3998623,
+    "seen": 1793138966.94567,
+    "ast_hash": "ffb3542e4301f651e675a640df03f521",
+    "semantic_hash": ""
+  },
+  "web/remote/vite.config.ts": {
+    "mtime": 1781007205.8820415,
+    "seen": 1793138966.94567,
+    "ast_hash": "30d99724428693833894c1f8d04763f3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/animate-expo/RECIPES.md": {
+    "mtime": 1792964155.0704846,
+    "seen": 1793138966.94567,
+    "ast_hash": "5e6c16577de658238695064a4b606fbe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/animate-expo/SKILL.md": {
+    "mtime": 1792964155.0714931,
+    "seen": 1793138966.94567,
+    "ast_hash": "c2c4a0de57e40c1573b12305c3a514cd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/animate/RECIPES.md": {
+    "mtime": 1792964155.072497,
+    "seen": 1793138966.94567,
+    "ast_hash": "278b01cdc80a6ec30b97e35f2e046c28",
+    "semantic_hash": ""
+  },
+  ".agents/skills/animate/SKILL.md": {
+    "mtime": 1792964155.073497,
+    "seen": 1793138966.94567,
+    "ast_hash": "f9a8ba37921b62c111e7d0fd325a5ec7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/animation-performance/SKILL.md": {
+    "mtime": 1792964155.0751865,
+    "seen": 1793138966.94567,
+    "ast_hash": "33079295920a9534674b471541e696f8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/animation-vocabulary/SKILL.md": {
+    "mtime": 1792964155.077275,
+    "seen": 1793138966.94567,
+    "ast_hash": "d5a92df486a9768799515bc8d2f68ce3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/apple-design/SKILL.md": {
+    "mtime": 1792964155.0782762,
+    "seen": 1793138966.94567,
+    "ast_hash": "b6e45240038f62aeeec9a39fdd6fcbbe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ask-sonner/API.md": {
+    "mtime": 1792964155.0802927,
+    "seen": 1793138966.94567,
+    "ast_hash": "064a5fc55a21aa77c982b1e231e036bc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ask-sonner/SKILL.md": {
+    "mtime": 1792964155.0813847,
+    "seen": 1793138966.94567,
+    "ast_hash": "c239b45387252ec601231797fc0e346c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/break-ui/CATALOG.md": {
+    "mtime": 1792964155.0823884,
+    "seen": 1793138966.94567,
+    "ast_hash": "9c139cdf967d077550e8695ac7d2229f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/break-ui/SKILL.md": {
+    "mtime": 1792964155.0838926,
+    "seen": 1793138966.94567,
+    "ast_hash": "3704bbee3e3d51ec2ba0f357c12e9333",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/README.md": {
+    "mtime": 1792917578.9581225,
+    "seen": 1793138966.94567,
+    "ast_hash": "53e299213a5f502880fe8d408083ad97",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/SKILL.md": {
+    "mtime": 1792917578.9592307,
+    "seen": 1793138966.94567,
+    "ast_hash": "54c96c20fb77b0c4e5bb924e1920932d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/assets/examples/atmospheric-glass.md": {
+    "mtime": 1792917578.9622462,
+    "seen": 1793138966.94567,
+    "ast_hash": "126c5bf76824336d4c528876cbcfd128",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/assets/examples/paws-and-paths.md": {
+    "mtime": 1792917578.9627516,
+    "seen": 1793138966.94567,
+    "ast_hash": "91cdcd23c8a921ca0356ab276952c086",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/assets/examples/totality-festival.md": {
+    "mtime": 1792917578.9637566,
+    "seen": 1793138966.94567,
+    "ast_hash": "406d13797091c8d5b977daeb2adf9a4b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/evals/fixtures/broken.md": {
+    "mtime": 1792917578.9687817,
+    "seen": 1793138966.94567,
+    "ast_hash": "e84f897eef73d7020ccf01463c44a7e7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/evals/fixtures/preview-input.md": {
+    "mtime": 1792917578.9687817,
+    "seen": 1793138966.94567,
+    "ast_hash": "91cdcd23c8a921ca0356ab276952c086",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/references/linting-rules.md": {
+    "mtime": 1792917578.9707932,
+    "seen": 1793138966.94567,
+    "ast_hash": "a31bba0200ac74bc25176985c99a54d8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/references/security.md": {
+    "mtime": 1792917578.9707932,
+    "seen": 1793138966.94567,
+    "ast_hash": "258581ea2f85391c449b2fb776bd7758",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/references/spec.md": {
+    "mtime": 1792917578.972296,
+    "seen": 1793138966.94567,
+    "ast_hash": "9a2b599dd89516394e28a85835fc56cf",
+    "semantic_hash": ""
+  },
+  ".agents/skills/dotnet-wpf-modern/SKILL.md": {
+    "mtime": 1792963701.2309518,
+    "seen": 1793138966.94567,
+    "ast_hash": "52e1ab87e672f62c68139386572649f2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/emil-design-eng/SKILL.md": {
+    "mtime": 1792964155.084895,
+    "seen": 1793138966.94567,
+    "ast_hash": "f1fd6a7bc856a0615044eb2a4854cf02",
+    "semantic_hash": ""
+  },
+  ".agents/skills/find-animation-opportunities/SKILL.md": {
+    "mtime": 1792964155.0869062,
+    "seen": 1793138966.94567,
+    "ast_hash": "5626beadfd8903e4689b4fc66e6acd7b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/improve-animations/AUDIT.md": {
+    "mtime": 1792964155.087913,
+    "seen": 1793138966.94567,
+    "ast_hash": "feab993eb7a204985c7be06c1a2c5c87",
+    "semantic_hash": ""
+  },
+  ".agents/skills/improve-animations/PLAN-TEMPLATE.md": {
+    "mtime": 1792964155.0889158,
+    "seen": 1793138966.94567,
+    "ast_hash": "bde30d8893f5140f914a25d847a92887",
+    "semantic_hash": ""
+  },
+  ".agents/skills/improve-animations/SKILL.md": {
+    "mtime": 1792964155.0899353,
+    "seen": 1793138966.94567,
+    "ast_hash": "dbd851dc5a7f270a51923bb9f167bdfb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/microkit-ui/SKILL.md": {
+    "mtime": 1792917101.1744037,
+    "seen": 1793138966.94567,
+    "ast_hash": "60e71bbcc26f95645218cd36028c65dc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/SKILL.md": {
+    "mtime": 1792917006.7348006,
+    "seen": 1793138966.94567,
+    "ast_hash": "eba9320f617aa04a297304210abda5fd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/class-mapping.md": {
+    "mtime": 1792917006.7358153,
+    "seen": 1793138966.94567,
+    "ast_hash": "fd06b33a824e6e33b333c83730bc55c9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/consumer-props.md": {
+    "mtime": 1792917006.7368176,
+    "seen": 1793138966.94567,
+    "ast_hash": "f501f3041be77d6a0371c7c24d4cece6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/disclosure.md": {
+    "mtime": 1792917006.7378876,
+    "seen": 1793138966.94567,
+    "ast_hash": "15692f74fd690d68ac7db89f6674cafc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/display-misc.md": {
+    "mtime": 1792917006.7388914,
+    "seen": 1793138966.94567,
+    "ast_hash": "236493d22b0740bc53bda217d24f79f2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/form-controls.md": {
+    "mtime": 1792917006.7400112,
+    "seen": 1793138966.94567,
+    "ast_hash": "d46b192223d4dfe9904303de3dda2951",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/menus.md": {
+    "mtime": 1792917006.7410145,
+    "seen": 1793138966.94567,
+    "ast_hash": "ca6976c6abb7c3220427508a61719c21",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/overlays.md": {
+    "mtime": 1792917006.7420201,
+    "seen": 1793138966.94567,
+    "ast_hash": "9c21ba46b86ec30c38ab99579d4b67d6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/universal-patterns.md": {
+    "mtime": 1792917006.7430456,
+    "seen": 1793138966.94567,
+    "ast_hash": "2d648fe43669e4bbe4cbcbb90adce50f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/migrate-radix-to-base/wrapper-shapes.md": {
+    "mtime": 1792917006.7440493,
+    "seen": 1793138966.94567,
+    "ast_hash": "28b9d934754b2e85900e493c4206969c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/mobile-native/SKILL.md": {
+    "mtime": 1792964155.0909407,
+    "seen": 1793138966.94567,
+    "ast_hash": "d51fd8669185efa1e8502d1ad4563122",
+    "semantic_hash": ""
+  },
+  ".agents/skills/pick-ui-library/SKILL.md": {
+    "mtime": 1792964155.093453,
+    "seen": 1793138966.94567,
+    "ast_hash": "8d026a860017ea18e54022531d64a20d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/prototype/PICKER.md": {
+    "mtime": 1792964155.094466,
+    "seen": 1793138966.94567,
+    "ast_hash": "47fc07814e8cc878ad67649897dfaed5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/prototype/SKILL.md": {
+    "mtime": 1792964155.0954683,
+    "seen": 1793138966.94567,
+    "ast_hash": "8287be29f829489d8ae747b76e8ead6c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/review-animations/SKILL.md": {
+    "mtime": 1792964155.0965319,
+    "seen": 1793138966.94567,
+    "ast_hash": "376ae64dc8f6a7fa0f48bc46c3389012",
+    "semantic_hash": ""
+  },
+  ".agents/skills/review-animations/STANDARDS.md": {
+    "mtime": 1792964155.0975351,
+    "seen": 1793138966.94567,
+    "ast_hash": "87d07efe01db0af87187e601f707198f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/SKILL.md": {
+    "mtime": 1792917006.7460735,
+    "seen": 1793138966.94567,
+    "ast_hash": "4a57d8723afac2230bc1738475c3e559",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/cli.md": {
+    "mtime": 1792917006.7532506,
+    "seen": 1793138966.94567,
+    "ast_hash": "06dc1478b5449f2a3c60f4bf4e043687",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/customization.md": {
+    "mtime": 1792917006.7542827,
+    "seen": 1793138966.94567,
+    "ast_hash": "f012ac15403e90fec2533ec7fc6638a6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/design-system-page.md": {
+    "mtime": 1792917006.7554018,
+    "seen": 1793138966.94567,
+    "ast_hash": "08e7dea8cfb14593d18e3db5ca57b266",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/design-system.md": {
+    "mtime": 1792917006.756905,
+    "seen": 1793138966.94567,
+    "ast_hash": "33bde97198b0d0a941643f25df17d31b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/mcp.md": {
+    "mtime": 1792917006.7589207,
+    "seen": 1793138966.94567,
+    "ast_hash": "aa876f97643326a64e99b86d5ac41bc5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/registry.md": {
+    "mtime": 1792917006.759925,
+    "seen": 1793138966.94567,
+    "ast_hash": "f7e28f2e510e8ec5847619641ddfeea4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/rules/base-vs-radix.md": {
+    "mtime": 1792917006.7609308,
+    "seen": 1793138966.94567,
+    "ast_hash": "582481904d3c35aae4125153db97fc37",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/rules/chat.md": {
+    "mtime": 1792917006.7619364,
+    "seen": 1793138966.94567,
+    "ast_hash": "650b1871f8aea9e8f9ce486ba97e7bf5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/rules/composition.md": {
+    "mtime": 1792917006.762944,
+    "seen": 1793138966.94567,
+    "ast_hash": "44ec3d642cf72d48e1d370fb267b79a3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/rules/forms.md": {
+    "mtime": 1792917006.763949,
+    "seen": 1793138966.94567,
+    "ast_hash": "41155ed5a844952613e717a5add76606",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/rules/icons.md": {
+    "mtime": 1792917006.7659562,
+    "seen": 1793138966.94567,
+    "ast_hash": "56b5a01599f8c03c90f248c5e5e01f67",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/rules/styling.md": {
+    "mtime": 1792917006.766957,
+    "seen": 1793138966.94567,
+    "ast_hash": "3eaa3bb2a07262feabbea63b33fd0f67",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/01-card-resize.md": {
+    "mtime": 1792916783.758992,
+    "seen": 1793138966.94567,
+    "ast_hash": "7bdeba023dc06eb9e4de6f1d66c5920e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/02-number-pop-in.md": {
+    "mtime": 1792916783.760115,
+    "seen": 1793138966.94567,
+    "ast_hash": "25b2220584ef6d683d962e450cbe2a61",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/03-notification-badge.md": {
+    "mtime": 1792916783.762386,
+    "seen": 1793138966.94567,
+    "ast_hash": "d5e6e16e2103fe2e2fac1ad6c78e5710",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/04-text-states-swap.md": {
+    "mtime": 1792916783.762386,
+    "seen": 1793138966.94567,
+    "ast_hash": "c08c06dd84bdd29857c09a159afb58f7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/05-menu-dropdown.md": {
+    "mtime": 1792916783.763734,
+    "seen": 1793138966.94567,
+    "ast_hash": "f1f4159a4d5ebd975f3a1442f547fcd0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/06-modal.md": {
+    "mtime": 1792916783.7651544,
+    "seen": 1793138966.94567,
+    "ast_hash": "1c1ccbdca9e3519f3c61ace46433af5e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/07-panel-reveal.md": {
+    "mtime": 1792916783.7661612,
+    "seen": 1793138966.94567,
+    "ast_hash": "360baec84cde673bf8f189c5c0e6a5e3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/08-page-side-by-side.md": {
+    "mtime": 1792916783.767164,
+    "seen": 1793138966.94567,
+    "ast_hash": "956d3c0b09b8176dd84debd297f81abe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/09-icon-swap.md": {
+    "mtime": 1792916783.767164,
+    "seen": 1793138966.94567,
+    "ast_hash": "45b5cef7f25fdf1792fbc0aacef0be9a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/10-success-check.md": {
+    "mtime": 1792916783.7686665,
+    "seen": 1793138966.94567,
+    "ast_hash": "76e57f63ca81a27a5398570c2eab10b9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/11-avatar-group-hover.md": {
+    "mtime": 1792916783.7696803,
+    "seen": 1793138966.946671,
+    "ast_hash": "7906e9b489b5ad9ecfd7c3c1b2573441",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/12-error-state-shake.md": {
+    "mtime": 1792916783.7706814,
+    "seen": 1793138966.946671,
+    "ast_hash": "8045f74d011d69186ff80f401bb63c68",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/13-input-clear-dissolve.md": {
+    "mtime": 1792916783.7716832,
+    "seen": 1793138966.946671,
+    "ast_hash": "c197a08d6d078fbfbeb9f5e90d6ed12b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/14-skeleton-reveal.md": {
+    "mtime": 1792916783.772684,
+    "seen": 1793138966.946671,
+    "ast_hash": "b07de889a50480af8b3201bc9a30280b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/15-shimmer-text.md": {
+    "mtime": 1792916783.7738588,
+    "seen": 1793138966.946671,
+    "ast_hash": "33b85e38b38a951bd772991ca5ae0511",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/16-tabs-sliding.md": {
+    "mtime": 1792916783.7748652,
+    "seen": 1793138966.946671,
+    "ast_hash": "fdc47613cdcc2ec718ccb0f6d8bef503",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/17-tooltip.md": {
+    "mtime": 1792916783.775866,
+    "seen": 1793138966.946671,
+    "ast_hash": "b0eaa60887c2818b2734ff6da5bbfcf3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/18-texts-reveal.md": {
+    "mtime": 1792916783.776867,
+    "seen": 1793138966.946671,
+    "ast_hash": "d85df0f866f76003275674564dca13eb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/19-card-tilt.md": {
+    "mtime": 1792916783.777878,
+    "seen": 1793138966.946671,
+    "ast_hash": "f621c866752d2f516cd48db955b6189f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/20-plus-menu-morph.md": {
+    "mtime": 1792916783.7793808,
+    "seen": 1793138966.946671,
+    "ast_hash": "9d8847fa4a884441c5fd235cea29e9c6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/21-accordion.md": {
+    "mtime": 1792916783.7803824,
+    "seen": 1793138966.946671,
+    "ast_hash": "e733ffec2088c70749d2a6f8fcf0f679",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/22-toast.md": {
+    "mtime": 1792916783.7813919,
+    "seen": 1793138966.946671,
+    "ast_hash": "e387d516de334d69e453e9d3cb6061ac",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/23-like-button.md": {
+    "mtime": 1792916783.7813919,
+    "seen": 1793138966.946671,
+    "ast_hash": "c79d56cc444ba8723274ee9c6148092a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/24-learn-more-hover.md": {
+    "mtime": 1792916783.7823927,
+    "seen": 1793138966.946671,
+    "ast_hash": "29351dc5523be4487f30208568a99d9b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/25-checkbox-check.md": {
+    "mtime": 1792916783.7833936,
+    "seen": 1793138966.946671,
+    "ast_hash": "c5ea84ba5f64d9d95e77fefd1c07700e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/26-spinning-counter.md": {
+    "mtime": 1792916783.7843945,
+    "seen": 1793138966.946671,
+    "ast_hash": "17f5a87dd5dd9f9202aff7eb945087f5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/27-toggle.md": {
+    "mtime": 1792916783.7853959,
+    "seen": 1793138966.946671,
+    "ast_hash": "e39a84ae6775b9893947d9a4a504146d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/28-thinking-states.md": {
+    "mtime": 1792916783.7864075,
+    "seen": 1793138966.946671,
+    "ast_hash": "a18d18ce2c42353c112b32be617c9fe3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/29-reasoning-stream.md": {
+    "mtime": 1792916783.7874124,
+    "seen": 1793138966.946671,
+    "ast_hash": "3c186a7bf06bc96511e9010983029025",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/30-streaming-text.md": {
+    "mtime": 1792916783.788917,
+    "seen": 1793138966.946671,
+    "ast_hash": "079a401c53b13a44bb7b6281b3ca8dd9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/31-matrix-loader.md": {
+    "mtime": 1792916783.7901442,
+    "seen": 1793138966.946671,
+    "ast_hash": "624e0815c7bc4ef0951eb8ea122c3842",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/32-banner-stacking.md": {
+    "mtime": 1792916783.7912216,
+    "seen": 1793138966.946671,
+    "ast_hash": "6e8cffcdbdc289c1b92f880451f151cf",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/33-text-morph.md": {
+    "mtime": 1792916783.7922254,
+    "seen": 1793138966.946671,
+    "ast_hash": "841ec777a5af21e33f615b8b1c922019",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/34-text-swap-soft.md": {
+    "mtime": 1792916783.7932663,
+    "seen": 1793138966.946671,
+    "ast_hash": "42f4b6cd63b5923113665d859b22b97a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/35-donut-chart.md": {
+    "mtime": 1792916783.7942705,
+    "seen": 1793138966.946671,
+    "ast_hash": "467035c99a9248b4e1ab4459547d4498",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/LICENSE.txt": {
+    "mtime": 1792916783.7952733,
+    "seen": 1793138966.946671,
+    "ast_hash": "918e7b136dcf9527b83ed35151c85d8f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-dev/SKILL.md": {
+    "mtime": 1792916783.796274,
+    "seen": 1793138966.946671,
+    "ast_hash": "e98ba4f12405da3983239db8a38bb09f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-polish/LICENSE.txt": {
+    "mtime": 1792916783.798778,
+    "seen": 1793138966.946671,
+    "ast_hash": "918e7b136dcf9527b83ed35151c85d8f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-polish/SKILL.md": {
+    "mtime": 1792916783.7997913,
+    "seen": 1793138966.946671,
+    "ast_hash": "9d5447e532a63213e22bf2d20aa7f5a4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/transitions-polish/_refine-rules.md": {
+    "mtime": 1792916783.8008032,
+    "seen": 1793138966.946671,
+    "ast_hash": "472a661067a9255260aaa585325a8f85",
+    "semantic_hash": ""
+  },
+  ".agents/skills/write-swift/SKILL.md": {
+    "mtime": 1792964155.099853,
+    "seen": 1793138966.946671,
+    "ast_hash": "46f63a3f4bfc4c92b769996004ad3022",
+    "semantic_hash": ""
+  },
+  ".github/copilot-instructions.md": {
+    "mtime": 1785656176.0749743,
+    "seen": 1793138966.946671,
+    "ast_hash": "4daea849e360923f828cc4a76ae37626",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1792963723.553718,
+    "seen": 1793138966.946671,
+    "ast_hash": "a920bff22bfd83d53e45141253205575",
+    "semantic_hash": ""
+  },
+  "DESIGN.md": {
+    "mtime": 1792922960.4866695,
+    "seen": 1793138966.946671,
+    "ast_hash": "8f7e4490e07b61a9dc4e5e959c9dae50",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1793138885.3029184,
+    "seen": 1793138966.946671,
+    "ast_hash": "410dd5be27cac0224bd0c7632b02d51e",
+    "semantic_hash": ""
+  },
+  "RELEASING.md": {
+    "mtime": 1788315385.4361548,
+    "seen": 1793138966.946671,
+    "ast_hash": "cf5bc54f3f869f06492718c6a01a9c40",
+    "semantic_hash": ""
+  },
+  "SCOREBOARD_HORIZONTAL_REDESIGN.md": {
+    "mtime": 1771497586.9246776,
+    "seen": 1793138966.9476721,
+    "ast_hash": "26a15fdfbe5b27a03f6f3810741b07d7",
+    "semantic_hash": ""
+  },
+  "SCOREBOARD_REVAMP_SUMMARY.md": {
+    "mtime": 1771496806.1776264,
+    "seen": 1793138966.9476721,
+    "ast_hash": "ae1d0332ca6491ff4a42aebe3efe1e2d",
+    "semantic_hash": ""
+  },
+  "USER_GUIDE.md": {
+    "mtime": 1771496843.017771,
+    "seen": 1793138966.9476721,
+    "ast_hash": "f3d655a9f5b7192c6f118696f03cd65e",
+    "semantic_hash": ""
+  },
+  "docs/CHANGELOG-5.0.md": {
+    "mtime": 1793138885.303933,
+    "seen": 1793138966.9476721,
+    "ast_hash": "e3fc81ee79fb0ce3f15955751cd49d67",
+    "semantic_hash": ""
+  },
+  "docs/cloud-remote/EVENT_CATALOG.md": {
+    "mtime": 1781004153.7422247,
+    "seen": 1793138966.9476721,
+    "ast_hash": "fd0bf043d059ac0a3ab52cf04dcf9f40",
+    "semantic_hash": ""
+  },
+  "packaging/GITHUB-RELEASE-INTRO.md": {
+    "mtime": 1788315385.4374938,
+    "seen": 1793138966.9476721,
+    "ast_hash": "24729c12c8ea65ee7e8768d6f4ff774a",
+    "semantic_hash": ""
+  },
+  "packaging/README-FIRST.txt": {
+    "mtime": 1788315385.4361548,
+    "seen": 1793138966.9476721,
+    "ast_hash": "4065a3743cf3c2b061b23c10ae2ade3f",
+    "semantic_hash": ""
+  },
+  "plans/README.md": {
+    "mtime": 1792980499.5331037,
+    "seen": 1793138966.9476721,
+    "ast_hash": "0cd57becae189c8615befa588ba1ccb9",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/01-foundations.md": {
+    "mtime": 1792982667.9465075,
+    "seen": 1793138966.9476721,
+    "ast_hash": "13076aee6804729e17bd20e1b2094f45",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/02-navigation-and-coverage.md": {
+    "mtime": 1792982721.0049076,
+    "seen": 1793138966.9476721,
+    "ast_hash": "1c57ec27aa6b43ad49c86ecf7d598762",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/03-motion-and-interaction.md": {
+    "mtime": 1792982721.0059118,
+    "seen": 1793138966.9476721,
+    "ast_hash": "c558526a8470d663361e4f2dadb0d7a9",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/04-screen-specifications.md": {
+    "mtime": 1792982721.0059118,
+    "seen": 1793138966.9476721,
+    "ast_hash": "ff18f5a05c19c066a791d2b3b128e329",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/05-public-output.md": {
+    "mtime": 1792983291.6274352,
+    "seen": 1793138966.9476721,
+    "ast_hash": "92627d5bbadbf1f15c3af14eaead409f",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/06-delivery-and-review.md": {
+    "mtime": 1792982721.0069141,
+    "seen": 1793138966.9476721,
+    "ast_hash": "c1197a47a1a1b109fbc078eee537427b",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/07-source-inventory-and-research.md": {
+    "mtime": 1792986931.8280666,
+    "seen": 1793138966.9476721,
+    "ast_hash": "849f17e4954b1b2edab9d77637d456b3",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/08-concept-boards.md": {
+    "mtime": 1792984543.547815,
+    "seen": 1793138966.9476721,
+    "ast_hash": "8a0e4b50252395d99f197fe6cf9fb778",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/09-control-centre-direction.md": {
+    "mtime": 1792984542.2047052,
+    "seen": 1793138966.9476721,
+    "ast_hash": "457adde9ca2c57359252798c3b393c4b",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/10-motion-vfx-specification.md": {
+    "mtime": 1792990436.8306806,
+    "seen": 1793138966.9476721,
+    "ast_hash": "8de5e63775516464a1951adaaee490de",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/11-review-refinement-and-first-demonstration.md": {
+    "mtime": 1792986931.827063,
+    "seen": 1793138966.9476721,
+    "ast_hash": "10b38e0dbc39c9d36846a9ecb81884ba",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/12-controls-information-and-adaptation.md": {
+    "mtime": 1792986931.824038,
+    "seen": 1793138966.9476721,
+    "ast_hash": "99e5fdc8a39647d3093663acd4eabd2f",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/13-interactive-study-and-verification.md": {
+    "mtime": 1792986931.824038,
+    "seen": 1793138966.9476721,
+    "ast_hash": "19888b75a937af69d1221c284406f7b7",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/14-fluid-motion-and-coordinated-resizing.md": {
+    "mtime": 1792990436.8296702,
+    "seen": 1793138966.9476721,
+    "ast_hash": "1dab5da96e3eb32e8d11e07d0f2f204c",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/15-native-implementation.md": {
+    "mtime": 1792995937.8437364,
+    "seen": 1793138966.9476721,
+    "ast_hash": "c159beaddd8924e60e45ae81ef0ac0ee",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/16-liquid-glass-refinement.md": {
+    "mtime": 1793006447.682809,
+    "seen": 1793138966.9476721,
+    "ast_hash": "591df6509ee1cbf838df9f567aabe266",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/17-apple-interaction-refinement.md": {
+    "mtime": 1793011428.9515586,
+    "seen": 1793138966.9476721,
+    "ast_hash": "c8234138a1e3e31c0497894aa817587a",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/18-iphone-controls-and-navigation.md": {
+    "mtime": 1793014152.106495,
+    "seen": 1793138966.9476721,
+    "ast_hash": "8f313d663b90468b08eb2d7e88c61545",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/19-fluid-motion-and-installed-skills.md": {
+    "mtime": 1793020084.2550538,
+    "seen": 1793138966.9476721,
+    "ast_hash": "e136bfa70b7dbc09a2e1bff7da5b81d6",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/20-materials-setup-and-selection-corrections.md": {
+    "mtime": 1793049053.7690268,
+    "seen": 1793138966.9476721,
+    "ast_hash": "43205dc9e52ec81a537a872d9aa82600",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/21-sculpted-glass-and-customisation.md": {
+    "mtime": 1793069450.2020147,
+    "seen": 1793138966.9476721,
+    "ast_hash": "b321f16c5f132a2e38b97985af4bf989",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/22-response-performance-and-form-refinement.md": {
+    "mtime": 1793072135.230638,
+    "seen": 1793138966.9476721,
+    "ast_hash": "316f7cb03f14ed2c300eb316aa2d472b",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/23-illustrated-launch-and-connected-interactions.md": {
+    "mtime": 1793076863.871659,
+    "seen": 1793138966.9476721,
+    "ast_hash": "4a3ed974e4b82c93e57ce08bd9c2a5e7",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/24-coordinated-motion-and-generated-art.md": {
+    "mtime": 1793078868.9438398,
+    "seen": 1793138966.9476721,
+    "ast_hash": "91ad269379af5f2c418674f267a5f6c6",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/25-player-roster-and-cartoon-art.md": {
+    "mtime": 1793090896.1013305,
+    "seen": 1793138966.9476721,
+    "ast_hash": "c3d47ee128cf0e599994f7cd11eac7c3",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/26-cricket-broadcast-order-charts-and-milestones.md": {
+    "mtime": 1793097430.5054657,
+    "seen": 1793138966.9476721,
+    "ast_hash": "002cb4415b2dbfd5b607f59503e57447",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/README.md": {
+    "mtime": 1793096633.5945535,
+    "seen": 1793138966.9476721,
+    "ast_hash": "322979ed69495229b3d28b61043fa95a",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/concept-prompts.md": {
+    "mtime": 1792984544.0057247,
+    "seen": 1793138966.9476721,
+    "ast_hash": "3d1d800b5542ec7d99f8474f2e5edb9e",
+    "semantic_hash": ""
+  },
+  "plans/roche-operator-study.html": {
+    "mtime": 1792987013.4673047,
+    "seen": 1793138966.9476721,
+    "ast_hash": "5e9669bcf8acc27b5f03e925950c156e",
+    "semantic_hash": ""
+  },
+  "supabase/README.md": {
+    "mtime": 1785149473.7536228,
+    "seen": 1793138966.9476721,
+    "ast_hash": "25acb31bef304135e350080eeba3a19e",
+    "semantic_hash": ""
+  },
+  "web/remote/README.md": {
+    "mtime": 1781007698.7221348,
+    "seen": 1793138966.9476721,
+    "ast_hash": "1704472215ae39335d70a766ec05faee",
+    "semantic_hash": ""
+  },
+  "web/remote/index.html": {
+    "mtime": 1781007205.4545908,
+    "seen": 1793138966.9476721,
+    "ast_hash": "dd21b4f4a529f4b75a82e74bee36d5d1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/design-md/assets/preview.png": {
+    "mtime": 1792917578.965771,
+    "seen": 1793138966.9476721,
+    "ast_hash": "5ed8f28a6223ee773300ef5be9d2842a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/assets/shadcn-small.png": {
+    "mtime": 1792917006.748221,
+    "seen": 1793138966.9476721,
+    "ast_hash": "72349c6b7f303e6be598a2196391291b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shadcn/assets/shadcn.png": {
+    "mtime": 1792917006.7492247,
+    "seen": 1793138966.9476721,
+    "ast_hash": "cb56bf002d36bb860c3d320a23bd871a",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/assets/01-afl-control-centre.png": {
+    "mtime": 1792982264.684546,
+    "seen": 1793138966.970456,
+    "ast_hash": "09cdbca82ba3a601c83332ab3f9d72c4",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/assets/02-cricket-control-centre.png": {
+    "mtime": 1792982294.8280165,
+    "seen": 1793138966.970456,
+    "ast_hash": "dd05841d3f8e08eb55ddce7f7a275652",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/assets/03-home-settings.png": {
+    "mtime": 1792982476.8626232,
+    "seen": 1793138966.970456,
+    "ast_hash": "41e9b38050b2bbed5d9f8d272826ff4c",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/assets/04-setup-decisions.png": {
+    "mtime": 1792982506.9485478,
+    "seen": 1793138966.970456,
+    "ast_hash": "23adc0b0507b993f3e40c6176f80c42b",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/assets/05-motion-atlas.png": {
+    "mtime": 1792982549.0060496,
+    "seen": 1793138966.970456,
+    "ast_hash": "4d4bd53366d608053dcfcb45aaf27f52",
+    "semantic_hash": ""
+  },
+  "plans/control-panel-redesign-2026-10-26/assets/06-refined-material-balance.png": {
+    "mtime": 1792984405.9038916,
+    "seen": 1793138966.970456,
+    "ast_hash": "5b3c0b59d99cbb68b46a203127cd9e2e",
+    "semantic_hash": ""
+  }
+}

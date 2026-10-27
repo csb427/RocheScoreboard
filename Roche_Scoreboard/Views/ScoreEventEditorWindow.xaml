@@ -1,43 +1,54 @@
 <Window x:Class="Roche_Scoreboard.Views.ScoreEventEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:design="clr-namespace:Roche_Scoreboard.Services" design:OperatorDesign.IsEnabled="True"
         Title="Edit Score Event"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         SizeToContent="Height"
-        Width="360"
-        Background="#161B22"
-        Foreground="#E6EDF3"
+        Width="430" MaxHeight="{Binding Height, Source={x:Static SystemParameters.WorkArea}}"
+        Background="#19191C" FontFamily="Segoe UI Variable, Segoe UI" FontSize="15"
+        Foreground="#FAFAFC"
         ShowInTaskbar="False"
-        WindowStyle="ToolWindow">
+        WindowStyle="None">
+    <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="34" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="30"/></shell:WindowChrome.WindowChrome>
 
-    <StackPanel Margin="18,16,18,18">
+    <Window.Resources><ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="../Resources/ControlCentre.xaml"/></ResourceDictionary.MergedDictionaries>
+        <Style TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+            <Setter Property="ContentTemplate"><Setter.Value><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap"/></DataTemplate></Setter.Value></Setter>
+        </Style>
+    </ResourceDictionary></Window.Resources>
+    <glass:OperatorGlassSurface Material="Regular" GlassSource="{Binding Owner.Content, RelativeSource={RelativeSource AncestorType=Window}}" CornerRadius="30" BorderBrush="#68FFFFFF" BorderThickness="1" Background="{DynamicResource ControlCentre.GlassBrush}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="22,20,22,22">
         <!-- Header -->
-        <TextBlock x:Name="DialogHeading" Text="EDIT SCORE EVENT" Foreground="#58A6FF" FontSize="11" FontWeight="Black" Margin="0,0,0,14"/>
+        <Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="34"/></Grid.ColumnDefinitions><TextBlock x:Name="DialogHeading" Text="EDIT SCORE EVENT" Foreground="#58A6FF" FontSize="13" FontWeight="Black" VerticalAlignment="Center"/><Button Grid.Column="1" Content="×" ToolTip="Cancel score changes" Click="Cancel_Click" Width="32" Height="32" MinHeight="0" Padding="0" FontSize="22" shell:WindowChrome.IsHitTestVisibleInChrome="True"/></Grid>
 
         <!-- Event info (read-only) -->
-        <Border x:Name="EventSummaryBorder" Background="#0D1117" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,16">
+        <Border x:Name="EventSummaryBorder" Background="#111113" BorderBrush="#3D3D44" BorderThickness="1" CornerRadius="16" Padding="12,10" Margin="0,0,0,16">
             <StackPanel>
-                <TextBlock x:Name="EventInfoText" Text="Q1 02:15" Foreground="#8B949E" FontSize="13" FontWeight="SemiBold"/>
-                <TextBlock x:Name="EventScoreText" Text="After: 2.3.15 – 1.2.8" Foreground="#6B7E95" FontSize="11" Margin="0,3,0,0"/>
+                <TextBlock x:Name="EventInfoText" Text="Q1 02:15" Foreground="#B6B6C0" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock x:Name="EventScoreText" Text="After: 2.3.15 – 1.2.8" Foreground="#AAAAB8" FontSize="13" Margin="0,3,0,0"/>
             </StackPanel>
         </Border>
 
         <Grid Margin="0,0,0,16">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
             <StackPanel>
-                <TextBlock Text="QUARTER" Foreground="#8B949E" FontSize="10" FontWeight="Black" Margin="0,0,0,8"/>
-                <ComboBox x:Name="QuarterBox" Height="38" SelectedIndex="0" Background="#0D1117" Foreground="#E6EDF3" BorderBrush="#30363D">
+                <TextBlock Text="QUARTER" Foreground="#B6B6C0" FontSize="12" FontWeight="Black" Margin="0,0,0,8"/>
+                <ComboBox x:Name="QuarterBox" Height="38" SelectedIndex="0" Background="#111113" Foreground="#E6EDF3" BorderBrush="#3D3D44">
                     <ComboBoxItem Content="Q1"/><ComboBoxItem Content="Q2"/><ComboBoxItem Content="Q3"/><ComboBoxItem Content="Q4"/>
                 </ComboBox>
             </StackPanel>
             <CheckBox x:Name="UseCurrentQuarterBox" Grid.Column="2" Content="USE CURRENT QUARTER" IsChecked="True"
-                      Foreground="#C7D2DF" FontSize="10" FontWeight="Bold" VerticalAlignment="Bottom" Margin="0,0,0,10"
+                      Foreground="#C7D2DF" FontSize="12" FontWeight="Bold" VerticalAlignment="Bottom" Margin="0,0,0,10"
                       Checked="OptionalTiming_Changed" Unchecked="OptionalTiming_Changed"/>
         </Grid>
 
         <!-- Time editor -->
-        <TextBlock Text="TIME IN QUARTER" Foreground="#8B949E" FontSize="10" FontWeight="Black" Margin="0,0,0,8"/>
+        <TextBlock Text="TIME IN QUARTER" Foreground="#B6B6C0" FontSize="12" FontWeight="Black" Margin="0,0,0,8"/>
         <Grid Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -45,22 +56,22 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <TextBox x:Name="MinutesBox" Grid.Column="0" Text="00" MaxLength="2"
-                     Background="#0D1117" Foreground="#E6EDF3" BorderBrush="#30363D" BorderThickness="1"
-                     FontSize="20" FontWeight="Bold" FontFamily="Bahnschrift" TextAlignment="Center"
+                     Background="#111113" Foreground="#E6EDF3" BorderBrush="#3D3D44" BorderThickness="1"
+                     FontSize="20" FontWeight="Bold" FontFamily="Segoe UI Variable, Segoe UI" TextAlignment="Center"
                      VerticalContentAlignment="Center" Padding="4,6" CaretBrush="#58A6FF"/>
-            <TextBlock Grid.Column="1" Text=":" Foreground="#6B7E95" FontSize="20" FontWeight="Bold"
+            <TextBlock Grid.Column="1" Text=":" Foreground="#AAAAB8" FontSize="20" FontWeight="Bold"
                        VerticalAlignment="Center" Margin="6,0"/>
             <TextBox x:Name="SecondsBox" Grid.Column="2" Text="00" MaxLength="2"
-                     Background="#0D1117" Foreground="#E6EDF3" BorderBrush="#30363D" BorderThickness="1"
-                     FontSize="20" FontWeight="Bold" FontFamily="Bahnschrift" TextAlignment="Center"
+                     Background="#111113" Foreground="#E6EDF3" BorderBrush="#3D3D44" BorderThickness="1"
+                     FontSize="20" FontWeight="Bold" FontFamily="Segoe UI Variable, Segoe UI" TextAlignment="Center"
                      VerticalContentAlignment="Center" Padding="4,6" CaretBrush="#58A6FF"/>
         </Grid>
         <CheckBox x:Name="UseCurrentTimeBox" Content="USE CURRENT MATCH TIME" IsChecked="True"
-                  Foreground="#C7D2DF" FontSize="10" FontWeight="Bold" Margin="0,-8,0,16"
+                  Foreground="#C7D2DF" FontSize="12" FontWeight="Bold" Margin="0,-8,0,16"
                   Checked="OptionalTiming_Changed" Unchecked="OptionalTiming_Changed"/>
 
         <!-- Team selector -->
-        <TextBlock Text="TEAM" Foreground="#8B949E" FontSize="10" FontWeight="Black" Margin="0,0,0,8"/>
+        <TextBlock Text="TEAM" Foreground="#B6B6C0" FontSize="12" FontWeight="Black" Margin="0,0,0,8"/>
         <Grid Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -68,25 +79,25 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border x:Name="HomeTeamBtn" Grid.Column="0" CornerRadius="6" Padding="12,10"
+            <Border x:Name="HomeTeamBtn" Grid.Column="0" CornerRadius="16" Padding="12,10"
                     Cursor="Hand" MouseLeftButtonUp="HomeTeam_Click"
-                    Background="#0D1117" BorderBrush="#30363D" BorderThickness="2">
+                    Background="#111113" BorderBrush="#3D3D44" BorderThickness="2">
                 <StackPanel HorizontalAlignment="Center">
                     <TextBlock Text="&#xE80F;" FontFamily="Segoe MDL2 Assets" FontSize="22"
                                Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-                    <TextBlock Text="HOME" Foreground="#6B7E95" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                    <TextBlock Text="HOME" Foreground="#AAAAB8" FontSize="12" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                     <TextBlock x:Name="HomeTeamLabel" Text="Home" Foreground="#E6EDF3" FontSize="13" FontWeight="Bold"
                                HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="130"/>
                 </StackPanel>
             </Border>
 
-            <Border x:Name="AwayTeamBtn" Grid.Column="2" CornerRadius="6" Padding="12,10"
+            <Border x:Name="AwayTeamBtn" Grid.Column="2" CornerRadius="16" Padding="12,10"
                     Cursor="Hand" MouseLeftButtonUp="AwayTeam_Click"
-                    Background="#0D1117" BorderBrush="#30363D" BorderThickness="2">
+                    Background="#111113" BorderBrush="#3D3D44" BorderThickness="2">
                 <StackPanel HorizontalAlignment="Center">
                     <TextBlock Text="&#xE128;" FontFamily="Segoe MDL2 Assets" FontSize="22"
                                Foreground="#FF7755" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-                    <TextBlock Text="AWAY" Foreground="#6B7E95" FontSize="9" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                    <TextBlock Text="AWAY" Foreground="#AAAAB8" FontSize="12" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2"/>
                     <TextBlock x:Name="AwayTeamLabel" Text="Away" Foreground="#E6EDF3" FontSize="13" FontWeight="Bold"
                                HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="130"/>
                 </StackPanel>
@@ -94,7 +105,7 @@
         </Grid>
 
         <!-- Type selector -->
-        <TextBlock Text="TYPE" Foreground="#8B949E" FontSize="10" FontWeight="Black" Margin="0,0,0,8"/>
+        <TextBlock Text="TYPE" Foreground="#B6B6C0" FontSize="12" FontWeight="Black" Margin="0,0,0,8"/>
         <Grid Margin="0,0,0,20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -102,24 +113,24 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border x:Name="GoalBtn" Grid.Column="0" CornerRadius="6" Padding="12,10"
+            <Border x:Name="GoalBtn" Grid.Column="0" CornerRadius="16" Padding="12,10"
                     Cursor="Hand" MouseLeftButtonUp="Goal_Click"
-                    Background="#0D1117" BorderBrush="#30363D" BorderThickness="2">
+                    Background="#111113" BorderBrush="#3D3D44" BorderThickness="2">
                 <StackPanel HorizontalAlignment="Center">
                     <Ellipse Width="20" Height="20" Fill="#3FB950" HorizontalAlignment="Center" Margin="0,2,0,6"/>
                     <TextBlock Text="GOAL" Foreground="#E6EDF3" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="6 PTS" Foreground="#6B7E95" FontSize="9" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="6 PTS" Foreground="#AAAAB8" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
-            <Border x:Name="BehindBtn" Grid.Column="2" CornerRadius="6" Padding="12,10"
+            <Border x:Name="BehindBtn" Grid.Column="2" CornerRadius="16" Padding="12,10"
                     Cursor="Hand" MouseLeftButtonUp="Behind_Click"
-                    Background="#0D1117" BorderBrush="#30363D" BorderThickness="2">
+                    Background="#111113" BorderBrush="#3D3D44" BorderThickness="2">
                 <StackPanel HorizontalAlignment="Center">
                     <Ellipse Width="20" Height="20" Stroke="#D29922" StrokeThickness="2.5" Fill="Transparent"
                              HorizontalAlignment="Center" Margin="0,2,0,6"/>
                     <TextBlock Text="BEHIND" Foreground="#E6EDF3" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="1 PT" Foreground="#6B7E95" FontSize="9" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="1 PT" Foreground="#AAAAB8" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
         </Grid>
@@ -138,13 +149,14 @@
                     Background="#2A1416" Foreground="#F85149" BorderBrush="#6B3A3E" BorderThickness="1"
                     FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand"/>
 
-            <Button x:Name="SaveButton" Grid.Column="2" Content="SAVE" Click="Save_Click"
-                    Background="#0D2818" Foreground="#3FB950" BorderBrush="#2B6E3F" BorderThickness="1"
+            <Button x:Name="SaveButton" Grid.Column="2" Content="SAVE" Click="Save_Click" Style="{StaticResource ControlCentre.PrimaryButton}"
                     FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand" IsDefault="True"/>
 
             <Button Grid.Column="4" Content="CANCEL" Click="Cancel_Click"
-                    Background="#21262D" Foreground="#8B949E" BorderBrush="#30363D" BorderThickness="1"
+                    Background="#21262D" Foreground="#B6B6C0" BorderBrush="#3D3D44" BorderThickness="1"
                     FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand" IsCancel="True"/>
         </Grid>
     </StackPanel>
+    </ScrollViewer>
+    </glass:OperatorGlassSurface>
 </Window>

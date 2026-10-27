@@ -1,3 +1,4 @@
+﻿using KeyEventArgs=System.Windows.Input.KeyEventArgs;
 using System;
 using System.Globalization;
 using System.Windows;
@@ -12,6 +13,7 @@ using Button = System.Windows.Controls.Button;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Point = System.Windows.Point;
 using ColorConverter = System.Windows.Media.ColorConverter;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace Roche_Scoreboard.Views;
 
@@ -30,6 +32,10 @@ public partial class ColorPickerWindow : Window
     private ColorPickerWindow(Color initial)
     {
         InitializeComponent();
+        SharedSurfaceMotion.Attach(PickerSurface);
+        ColourField.GotKeyboardFocus += (_, _) => { ColourMarker.Stroke = new SolidColorBrush(Color.FromRgb(0x58, 0xA6, 0xFF)); ColourMarker.StrokeThickness = 4; };
+        ColourField.LostKeyboardFocus += (_, _) => { ColourMarker.Stroke = Brushes.White; ColourMarker.StrokeThickness = 3; };
+        Closed += (_, _) => { _dragging = false; if (ColourField.IsMouseCaptured) ColourField.ReleaseMouseCapture(); };
         MaxHeight = Math.Max(560, SystemParameters.WorkArea.Height - 24);
         Height = Math.Min(760, MaxHeight);
         SelectedColor = initial;
@@ -54,6 +60,7 @@ public partial class ColorPickerWindow : Window
 
     private void ColourField_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        ColourField.Focus();
         _dragging = true;
         ColourField.CaptureMouse();
         UpdateFromPoint(e.GetPosition(ColourField));
@@ -70,6 +77,25 @@ public partial class ColorPickerWindow : Window
         UpdateFromPoint(e.GetPosition(ColourField));
         _dragging = false;
         ColourField.ReleaseMouseCapture();
+    }
+
+    private void ColourField_LostMouseCapture(object sender, MouseEventArgs e) => _dragging = false;
+
+    private void ColourField_KeyDown(object sender, KeyEventArgs e)
+    {
+        double step = (Keyboard.Modifiers & ModifierKeys.Shift) != 0 ? 10 : 1;
+        switch (e.Key)
+        {
+            case Key.Left: _hue = (_hue - step + 360) % 360; break;
+            case Key.Right: _hue = (_hue + step) % 360; break;
+            case Key.Up: _saturation = Math.Clamp(_saturation + step / 100, 0, 1); break;
+            case Key.Down: _saturation = Math.Clamp(_saturation - step / 100, 0, 1); break;
+            case Key.PageUp: _value = Math.Clamp(_value + step / 100, 0, 1); break;
+            case Key.PageDown: _value = Math.Clamp(_value - step / 100, 0, 1); break;
+            default: return;
+        }
+        e.Handled = true;
+        RefreshFieldAndSelection();
     }
 
     private void UpdateFromPoint(Point point)
@@ -136,6 +162,7 @@ public partial class ColorPickerWindow : Window
     {
         var colour = (Color)ColorConverter.ConvertFromString(hex);
         var button = new Button { Tag = hex, Background = new SolidColorBrush(colour), ToolTip = hex };
+        System.Windows.Automation.AutomationProperties.SetName(button, $"Use colour {hex}");
         button.SetResourceReference(StyleProperty, "ColourSwatch");
         button.Click += Swatch_Click;
         return button;

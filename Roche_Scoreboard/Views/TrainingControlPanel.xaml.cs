@@ -36,8 +36,7 @@ public partial class TrainingControlPanel : UserControl
     private TrainingSession? _session;
     private readonly DispatcherTimer _ui;
     private Guid? _editingTimerId;
-
-    private static readonly CubicEase EaseOut = new() { EasingMode = EasingMode.EaseOut };
+    private readonly HashSet<Guid> _revealedTimerIds = [];
 
     public TrainingControlPanel()
     {
@@ -49,11 +48,23 @@ public partial class TrainingControlPanel : UserControl
             _ui.Start();
             // Pull keyboard focus when the panel loads so global shortcuts work
             // straight away (Space/S/R/Esc).
-            Focus();
-            Keyboard.Focus(this);
+            if (!IsKeyboardFocusWithin) { Focus(); Keyboard.Focus(this); }
             RefreshRecentTimers();
         };
-        Unloaded += (_, _) => _ui.Stop();
+        Unloaded += (_, _) =>
+        {
+            _ui.Stop(); HideDropIndicator(); _dragArmed = false;
+            foreach (var row in QueueItems.Items.OfType<Border>())
+            {
+                row.BeginAnimation(OpacityProperty, null);
+                if (row.RenderTransform is TranslateTransform shift) { shift.BeginAnimation(TranslateTransform.XProperty, null); shift.X = 0; }
+            }
+        };
+        IsVisibleChanged += (_, args) =>
+        {
+            if (args.NewValue is false) _ui.Stop();
+            else if (IsLoaded) { _ui.Start(); RefreshLiveText(); }
+        };
         // Operator shortcuts at the panel level — only when focus isn't in a
         // TextBox so typing into the title or number fields still works.
         PreviewKeyDown += OnPanelPreviewKeyDown;
@@ -62,6 +73,10 @@ public partial class TrainingControlPanel : UserControl
     private void OnPanelPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (Keyboard.FocusedElement is TextBox) return;
+        if (Keyboard.Modifiers != ModifierKeys.None) return;
+        // Space/Enter belong to a focused command or check box. Do not
+        // hijack their native activation to start or pause the session.
+        if (Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase && e.Key is Key.Space or Key.Enter) return;
 
         switch (e.Key)
         {
@@ -144,6 +159,7 @@ public partial class TrainingControlPanel : UserControl
             _session.StructuralChanged -= OnStructuralChanged;
         }
         _session = session;
+        _revealedTimerIds.IntersectWith(session.Timers.Select(timer => timer.Id));
         _session.Changed += OnSessionChanged;
         _session.StructuralChanged += OnStructuralChanged;
         AutoAdvanceToggle.IsChecked = _session.AutoAdvance;
@@ -264,6 +280,7 @@ public partial class TrainingControlPanel : UserControl
         }
 
         QueueItems.Items.Clear();
+        _revealedTimerIds.IntersectWith(_session.Timers.Select(timer => timer.Id));
         for (int i = 0; i < _session.Timers.Count; i++)
         {
             var t = _session.Timers[i];
@@ -417,6 +434,19 @@ public partial class TrainingControlPanel : UserControl
 
         border.Child = grid;
 
+        var surface = (SolidColorBrush)border.Background;
+        void PaintRow()
+        {
+            Color target = (Color)System.Windows.Media.ColorConverter.ConvertFromString(border.IsMouseOver || border.IsKeyboardFocusWithin ? "#192A3D" : "#10161D")!;
+            Color from = surface.Color; surface.BeginAnimation(SolidColorBrush.ColorProperty, null); surface.Color = target;
+            if (OperatorMotion.Enabled) surface.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(from, target,
+                border.IsMouseOver || border.IsKeyboardFocusWithin ? OperatorMotion.HoverIn : OperatorMotion.HoverOut)
+            { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut });
+        }
+        border.MouseEnter += (_, _) => PaintRow(); border.MouseLeave += (_, _) => PaintRow();
+        border.GotKeyboardFocus += (_, _) => PaintRow(); border.LostKeyboardFocus += (_, _) => PaintRow();
+        border.Unloaded += (_, _) => { surface.BeginAnimation(SolidColorBrush.ColorProperty, null); surface.Color = Color.FromRgb(0x10, 0x16, 0x1D); };
+
         // ─── Drag-to-reorder ──────────────────────────────────────────
         // Grab anywhere on the row (except the action buttons, which keep
         // their click semantics) and drag onto another row to reorder.
@@ -427,17 +457,19 @@ public partial class TrainingControlPanel : UserControl
         // Slide-in animation for newly added rows. Suppressed during a drag
         // reorder so the queue doesn't visibly re-animate every row when
         // the model rebuilds — that's what was causing the glitchy feel.
-        border.Opacity = _suppressNextRowAnim ? (isFinished ? 0.45 : 1.0) : 0;
-        border.RenderTransform = new TranslateTransform(_suppressNextRowAnim ? 0 : 20, 0);
-        if (!_suppressNextRowAnim)
+        bool reveal = !_suppressNextRowAnim && !isFinished && _revealedTimerIds.Add(t.Id) && OperatorMotion.Enabled;
+        border.Opacity = isFinished ? .45 : 1;
+        border.RenderTransform = new TranslateTransform();
+        if (reveal)
         {
             border.Loaded += (_, _) =>
             {
-                border.BeginAnimation(OpacityProperty,
-                    new DoubleAnimation(0, isFinished ? 0.45 : 1.0, TimeSpan.FromMilliseconds(280)) { EasingFunction = EaseOut });
+                if (!OperatorMotion.Enabled) return;
+                border.BeginAnimation(OpacityProperty, new DoubleAnimation(.72, 1, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut });
                 ((TranslateTransform)border.RenderTransform).BeginAnimation(TranslateTransform.XProperty,
-                    new DoubleAnimation(20, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = EaseOut });
+                    new DoubleAnimation(8, 0, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut });
             };
+            border.Unloaded += (_, _) => { border.BeginAnimation(OpacityProperty, null); ((TranslateTransform)border.RenderTransform).BeginAnimation(TranslateTransform.XProperty, null); };
         }
 
         return border;

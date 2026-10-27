@@ -48,7 +48,7 @@ public partial class MainWindow
         // measured with unlimited height. Explicitly cap the log to the live
         // viewport so event cards scroll inside the log rather than increasing
         // the desired height of the entire control panel.
-        MatchLogPanel.MaxHeight = CalculateMatchLogPanelMaxHeight(windowSize.Height);
+        MatchLogPanel.MaxHeight = CalculateMatchLogPanelMaxHeight(Math.Max(windowSize.Height, MainContent.MinimumCanvasHeight));
     }
 
     internal static double CalculateMatchLogPanelMaxHeight(double windowHeight)
@@ -460,14 +460,14 @@ public partial class MainWindow
             : (MediaColor)MediaColorConverter.ConvertFromString("#2A2020"));
         SettingsFinalsCard.BorderThickness = new Thickness(2);
         SettingsFinalsCard.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#1A1408")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#0A0806"));
+            ? (MediaColor)MediaColorConverter.ConvertFromString("#70521D")
+            : (MediaColor)MediaColorConverter.ConvertFromString("#242428"));
 
-        SettingsFinalsGlow.Opacity = on ? 0.15 : 0;
+        SettingsFinalsGlow.Opacity = 0;
 
         SettingsFinalsTitle.Foreground = new SolidColorBrush(on
             ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#5A4A20"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#E1D2AF"));
 
         // Toggle track + thumb
         SettingsFinalsTrack.Background = new SolidColorBrush(on
@@ -478,7 +478,7 @@ public partial class MainWindow
             : (MediaColor)MediaColorConverter.ConvertFromString("#3A3018"));
         SettingsFinalsThumb.Background = new SolidColorBrush(on
             ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#5A4A20"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#E1D2AF"));
         SettingsFinalsThumb.HorizontalAlignment = on
             ? System.Windows.HorizontalAlignment.Right
             : System.Windows.HorizontalAlignment.Left;
@@ -3739,20 +3739,8 @@ public partial class MainWindow
             return;
         }
 
-        if (_displayWindow is { IsVisible: true })
-        {
-            PixelSizeHelper.SetWindowPixels(_displayWindow, w, h);
-            WindowDimensionsStatus.Text = $"Output set to {w} × {h} physical pixels";
-        }
-        else if (_cricketDisplayWindow is { IsVisible: true })
-        {
-            PixelSizeHelper.SetWindowPixels(_cricketDisplayWindow, w, h);
-            WindowDimensionsStatus.Text = $"Output set to {w} × {h} physical pixels";
-        }
-        else
-        {
-            WindowDimensionsStatus.Text = "No display window is open.";
-        }
+        ApplySharedOutputDimensions(w, h);
+        WindowDimensionsStatus.Text = $"All outputs set to {w} × {h} physical pixels";
     }
 
     private void ApplyTeamsAndStyling_Click(object sender, RoutedEventArgs e) => ApplyTeamSettingsLive();
@@ -3908,12 +3896,6 @@ public partial class MainWindow
         WindowWidthBox.Text = "386";
         WindowHeightBox.Text = "193";
         ApplyWindowDimensions_Click(sender, e);
-        OperatorWorkflowPreferences.Update(data =>
-        {
-            data.OutputWindowWidth = 386;
-            data.OutputWindowHeight = 193;
-        });
-        GlobalSettingsPanel.SetOutputDimensions(386, 193);
     }
 
     private void EnsureTickerSlots()
@@ -5432,7 +5414,12 @@ public partial class MainWindow
                 // live feed. Don't trigger the forecast overlay here — that
                 // belongs to the OverlayScheduler / manual buttons so it does
                 // not pop up unexpectedly (e.g. when continuing a quarter).
-                Dispatcher.Invoke(() => _scorebug?.UpdateWeatherSnapshot(snap));
+                Dispatcher.Invoke(() =>
+                {
+                    _scorebug?.UpdateWeatherSnapshot(snap);
+                    _cricketScorebug?.UpdateWeatherSnapshot(snap);
+                    CricketControlPanelView.UpdateWeatherSnapshot(snap);
+                });
             };
         }
 
@@ -5441,6 +5428,8 @@ public partial class MainWindow
             && _weatherService.LatestSnapshot is not null)
         {
             _scorebug?.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
+            _cricketScorebug?.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
+            CricketControlPanelView.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
             return;
         }
 
@@ -6007,6 +5996,14 @@ public partial class MainWindow
         SettingsCountdownGlow.Opacity = !countUp ? 0.12 : 0;
         SettingsCountdownCheck.Visibility = !countUp ? Visibility.Visible : Visibility.Collapsed;
 
+        if(_aflSettingsWorkspace is not null)
+        {
+            SettingsCountUpCard.BorderThickness=SettingsCountdownCard.BorderThickness=new Thickness(0);
+            SettingsCountUpCard.Background=SettingsCountdownCard.Background=System.Windows.Media.Brushes.Transparent;
+            SettingsCountUpCheck.Visibility=SettingsCountdownCheck.Visibility=Visibility.Collapsed;
+            SettingsCountUpGlow.Opacity=SettingsCountdownGlow.Opacity=0;
+        }
+
         UpdateSettingsControlPanelCountdownOptionVisuals();
     }
 
@@ -6513,35 +6510,24 @@ public partial class MainWindow
         {
             if (pill is null) continue;
             bool active = string.Equals(key, _settingsActiveCategory, System.StringComparison.OrdinalIgnoreCase);
-            var activeBorder = string.Equals(key, "controls", System.StringComparison.OrdinalIgnoreCase)
-                ? System.Windows.Media.Color.FromRgb(0xA7, 0x8B, 0xFA)
-                : System.Windows.Media.Color.FromRgb(0x58, 0xA6, 0xFF);
-            pill.Background = active
-                ? new System.Windows.Media.LinearGradientBrush(
-                    System.Windows.Media.Color.FromRgb(0x20, 0x31, 0x49),
-                    System.Windows.Media.Color.FromRgb(0x12, 0x1C, 0x2A), 90)
-                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x0A, 0x10, 0x1A));
-            pill.BorderBrush = active
-                ? new System.Windows.Media.SolidColorBrush(activeBorder)
-                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x2B, 0x3A, 0x4E));
-            pill.BorderThickness = new Thickness(2);
-            pill.Effect = active
-                ? new System.Windows.Media.Effects.DropShadowEffect
-                {
-                    BlurRadius = 14,
-                    ShadowDepth = 0,
-                    Color = activeBorder,
-                    Opacity = 0.32
-                }
-                : null;
-            pill.BeginAnimation(OpacityProperty, new DoubleAnimation
+            pill.Background = TryFindResource(active ? "ControlCentre.GlassBrush" : "ControlCentre.SurfaceBrush") as System.Windows.Media.Brush;
+            pill.BorderBrush = TryFindResource(active ? "ControlCentre.AccentBrush" : "ControlCentre.BorderBrush") as System.Windows.Media.Brush;
+            pill.BorderThickness = new Thickness(1);
+            pill.CornerRadius = new CornerRadius(14);
+            pill.Effect = null;
+            pill.BeginAnimation(OpacityProperty, null);
+            pill.Opacity = 1;
+            var label = pill.Child as System.Windows.Controls.TextBlock ?? (pill.Child as System.Windows.Controls.Grid)?.Children.OfType<System.Windows.Controls.TextBlock>().FirstOrDefault();
+            if (label is not null)
             {
-                From = active ? 0.72 : pill.Opacity,
-                To = 1,
-                Duration = TimeSpan.FromMilliseconds(active ? 220 : 130),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            });
+                label.FontSize = 15;
+                label.FontWeight = FontWeights.SemiBold;
+                label.Foreground = TryFindResource(active ? "ControlCentre.TextBrush" : "ControlCentre.SecondaryTextBrush") as System.Windows.Media.Brush;
+            }
         }
+        if (AflSettingsCompactCaption is not null)
+            AflSettingsCompactCaption.Text = _settingsActiveCategory switch { "controls" => "Interaction", "scoreboard" => "Scoreboard", "automation" => "Automation", "assets" => "Assets", "system" => "Application", _ => "Match" };
+        if (_aflSettingsCategoryMenu is not null) _aflSettingsCategoryMenu.IsOpen = false;
     }
 
     private void SettingsSearch_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -6565,6 +6551,7 @@ public partial class MainWindow
 
     private void ApplySettingsFilter()
     {
+        if(_aflSettingsWorkspace is not null){_aflSettingsWorkspace.NavigateCategory(_settingsActiveCategory);return;}
         string query = SettingsSearchBox?.Text?.Trim().ToLowerInvariant() ?? string.Empty;
         string category = string.IsNullOrWhiteSpace(_settingsActiveCategory) ? "match" : _settingsActiveCategory;
 

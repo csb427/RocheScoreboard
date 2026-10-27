@@ -35,9 +35,7 @@ internal static class WindowLayoutStorage
 
     private static string GetStorageDirectory()
     {
-        string dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return dir;
     }

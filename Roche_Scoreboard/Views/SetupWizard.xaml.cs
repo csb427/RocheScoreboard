@@ -52,11 +52,8 @@ namespace Roche_Scoreboard.Views
 
         // ── Easing curves (matching sport selection screen) ──
         private static readonly CubicEase Smooth = new() { EasingMode = EasingMode.EaseOut };
-        private static readonly BackEase Overshoot = new() { EasingMode = EasingMode.EaseOut, Amplitude = 0.4 };
         private static readonly SineEase Sine = new() { EasingMode = EasingMode.EaseInOut };
 
-        private static readonly TimeSpan HoverIn = TimeSpan.FromMilliseconds(250);
-        private static readonly TimeSpan HoverOut = TimeSpan.FromMilliseconds(350);
 
         internal static readonly string[] AustralianCities =
         [
@@ -162,6 +159,7 @@ namespace Roche_Scoreboard.Views
         public SetupWizard()
         {
             InitializeComponent();
+            WizardFlowDesign.Enable(this);
             SetupMessageList.ItemsSource = _setupMessages;
             _presets = PresetStorage.LoadAll();
             RefreshPresetPanels();
@@ -173,6 +171,8 @@ namespace Roche_Scoreboard.Views
             SetupWeatherLocation.DropDownOpened += (_, _) => _weatherBoxActivated = true;
 
             Loaded += OnLoaded;
+            Unloaded += OnWizardUnloaded;
+            IsVisibleChanged += (_, args) => { if (args.NewValue is false) OnWizardUnloaded(this, new RoutedEventArgs()); };
         }
 
         // ═══════════════════════════════════════════════════════
@@ -181,434 +181,167 @@ namespace Roche_Scoreboard.Views
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            UpdateClockModeVisuals();
+            UpdateControlPanelCountdownOptionVisuals();
             ShowStep(1, animate: false);
             PlayEntryAnimation();
         }
 
+        private void SettleWizardMotion()
+        {
+            foreach (var element in new UIElement[] { HeaderPanel, StepIndicator, HomePresetCard, AwayPresetCard, HomeTeamCard, AwayTeamCard,
+                HomeHeaderGroup, AwayHeaderGroup, ClockHeaderGroup, MsgHeaderGroup, NavBar, BottomAccent })
+            { element.BeginAnimation(OpacityProperty, null); element.Opacity = 1; }
+            foreach (var shift in new[] { HeaderTranslate, StepIndicatorTranslate, HomePresetTranslate, AwayPresetTranslate,
+                HomeCardTranslate, AwayCardTranslate, HomeHeaderTranslate, AwayHeaderTranslate, ClockHeaderTranslate, MsgHeaderTranslate, NavBarTranslate, BeamTranslate })
+            { shift.BeginAnimation(TranslateTransform.XProperty, null); shift.BeginAnimation(TranslateTransform.YProperty, null); shift.X = shift.Y = 0; }
+            DividerScale.BeginAnimation(ScaleTransform.ScaleYProperty, null); DividerScale.ScaleY = 1;
+            foreach (var glow in new UIElement[] { HomeGlow, AwayGlow, BgGlow, ClockGlow, MsgGlow, DividerGlowLine })
+            { glow.BeginAnimation(OpacityProperty, null); glow.Opacity = .22; }
+            _countdownOptionHideTimer?.Stop(); _countdownOptionHideTimer = null;
+            ControlPanelCountdownOptionCard.BeginAnimation(OpacityProperty, null); ControlPanelCountdownOptionCard.Opacity = 1;
+            ControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null); ControlPanelCountdownCardTranslate.Y = 0;
+            ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null); ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            ControlPanelCountdownCardScale.ScaleX = ControlPanelCountdownCardScale.ScaleY = 1;
+            bool showCountdownOption = SetupCountUp.IsChecked == true;
+            ControlPanelCountdownOptionCard.Visibility = showCountdownOption ? Visibility.Visible : Visibility.Collapsed;
+            ControlPanelCountdownOptionCard.IsHitTestVisible = showCountdownOption;
+            _countdownOptionCardWasCollapsed = !showCountdownOption;
+            ControlPanelCountdownThumbTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            ControlPanelCountdownThumbTranslate.X = SetupControlPanelCountdown.IsChecked == true ? 26 : 0;
+            ControlPanelCountdownToggleLabel.BeginAnimation(OpacityProperty, null); ControlPanelCountdownToggleLabel.Opacity = 1;
+            if (ControlPanelCountdownToggleTrack.Background is SolidColorBrush track)
+            {
+                if (track.IsFrozen) { track = track.Clone(); ControlPanelCountdownToggleTrack.Background = track; }
+                track.BeginAnimation(SolidColorBrush.ColorProperty, null); track.Color = (Color)ColorConverter.ConvertFromString(SetupControlPanelCountdown.IsChecked == true ? "#1F6FEB" : "#4B5563");
+            }
+        }
+        private void OnWizardUnloaded(object sender, RoutedEventArgs args)
+        {
+            _stepTransitionVersion++;
+            _ambientRestartTimer?.Stop(); _ambientRestartTimer = null;
+            _countdownOptionHideTimer?.Stop(); _countdownOptionHideTimer = null;
+            if (_stepTransitionStoryboard is not null) { _stepTransitionStoryboard.Remove(this); _stepTransitionStoryboard = null; }
+            SettleWizardMotion();
+            ShowStep(_currentStep, false);
+        }
         private void PlayEntryAnimation()
         {
-            // Reset all animated elements to initial states so the staggered
-            // reveal replays cleanly (clears any held animation values).
-            HeaderPanel.BeginAnimation(OpacityProperty, null);
-            HeaderPanel.Opacity = 0;
-            HeaderTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            HeaderTranslate.Y = -30;
-
-            StepIndicator.BeginAnimation(OpacityProperty, null);
-            StepIndicator.Opacity = 0;
-            StepIndicatorTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            StepIndicatorTranslate.Y = -20;
-
-            BgGlow.BeginAnimation(OpacityProperty, null);
-            BgGlow.Opacity = 0;
-
-            HomePresetCard.BeginAnimation(OpacityProperty, null);
-            HomePresetCard.Opacity = 0;
-            HomePresetTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-            HomePresetTranslate.X = -60;
-
-            AwayPresetCard.BeginAnimation(OpacityProperty, null);
-            AwayPresetCard.Opacity = 0;
-            AwayPresetTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-            AwayPresetTranslate.X = 60;
-
-            HomeTeamCard.BeginAnimation(OpacityProperty, null);
-            HomeTeamCard.Opacity = 0;
-            HomeCardTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-            HomeCardTranslate.X = -80;
-
-            AwayTeamCard.BeginAnimation(OpacityProperty, null);
-            AwayTeamCard.Opacity = 0;
-            AwayCardTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-            AwayCardTranslate.X = 80;
-
-            DividerScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-            DividerScale.ScaleY = 0;
-            DividerGlowLine.BeginAnimation(OpacityProperty, null);
-            DividerGlowLine.Opacity = 0;
-
-            HomeHeaderGroup.BeginAnimation(OpacityProperty, null);
-            HomeHeaderGroup.Opacity = 0;
-            HomeHeaderTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            HomeHeaderTranslate.Y = 15;
-
-            AwayHeaderGroup.BeginAnimation(OpacityProperty, null);
-            AwayHeaderGroup.Opacity = 0;
-            AwayHeaderTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            AwayHeaderTranslate.Y = 15;
-
-            HomeGlow.BeginAnimation(OpacityProperty, null);
-            HomeGlow.Opacity = 0;
-            AwayGlow.BeginAnimation(OpacityProperty, null);
-            AwayGlow.Opacity = 0;
-
-            NavBar.BeginAnimation(OpacityProperty, null);
-            NavBar.Opacity = 0;
-            NavBarTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            NavBarTranslate.Y = 30;
-
-            BottomAccent.BeginAnimation(OpacityProperty, null);
-            BottomAccent.Opacity = 0;
-
-            // Header: fade + slide down
-            Animate(HeaderPanel, OpacityProperty, 1, 500, delay: 100, easing: Smooth);
-            Animate(HeaderTranslate, TranslateTransform.YProperty, 0, 500, delay: 100, easing: Smooth);
-
-            // Step indicator: fade + slide down
-            Animate(StepIndicator, OpacityProperty, 1, 500, delay: 200, easing: Smooth);
-            Animate(StepIndicatorTranslate, TranslateTransform.YProperty, 0, 500, delay: 200, easing: Smooth);
-
-            // Background glow
-            Animate(BgGlow, OpacityProperty, 0.25, 800, delay: 200);
-
-            // Home preset card: fade + slide from left
-            Animate(HomePresetCard, OpacityProperty, 1, 500, delay: 300, easing: Smooth);
-            Animate(HomePresetTranslate, TranslateTransform.XProperty, 0, 600, delay: 300, easing: Smooth);
-
-            // Away preset card: fade + slide from right
-            Animate(AwayPresetCard, OpacityProperty, 1, 500, delay: 400, easing: Smooth);
-            Animate(AwayPresetTranslate, TranslateTransform.XProperty, 0, 600, delay: 400, easing: Smooth);
-
-            // Home team card: fade + slide from left
-            Animate(HomeTeamCard, OpacityProperty, 1, 600, delay: 400);
-            Animate(HomeCardTranslate, TranslateTransform.XProperty, 0, 700, delay: 400, easing: Smooth);
-
-            // Away team card: fade + slide from right
-            Animate(AwayTeamCard, OpacityProperty, 1, 600, delay: 500);
-            Animate(AwayCardTranslate, TranslateTransform.XProperty, 0, 700, delay: 500, easing: Smooth);
-
-            // Divider: grow from centre
-            Animate(DividerScale, ScaleTransform.ScaleYProperty, 1, 800, delay: 500, easing: Smooth);
-            Animate(DividerGlowLine, OpacityProperty, 0.6, 800, delay: 500);
-
-            // Home header: fade + slide up with overshoot
-            Animate(HomeHeaderGroup, OpacityProperty, 1, 500, delay: 650);
-            Animate(HomeHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 650, easing: Overshoot);
-
-            // Away header: fade + slide up with overshoot
-            Animate(AwayHeaderGroup, OpacityProperty, 1, 500, delay: 750);
-            Animate(AwayHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 750, easing: Overshoot);
-
-            // Hero glows
-            Animate(HomeGlow, OpacityProperty, 0.30, 600, delay: 700);
-            Animate(AwayGlow, OpacityProperty, 0.30, 600, delay: 800);
-
-            // Nav bar: fade + slide up
-            Animate(NavBar, OpacityProperty, 1, 500, delay: 800, easing: Smooth);
-            Animate(NavBarTranslate, TranslateTransform.YProperty, 0, 500, delay: 800, easing: Smooth);
-
-            // Bottom accent: last to appear, triggers ambient loop
-            var lastAnim = new DoubleAnimation(1, TimeSpan.FromMilliseconds(500))
+            SettleWizardMotion();
+            if (!OperatorMotion.Enabled || !IsLoaded) return;
+            int index = 0;
+            foreach (var element in new UIElement[] { HeaderPanel, StepIndicator, HomePresetCard, AwayPresetCard, HomeTeamCard, AwayTeamCard, NavBar })
             {
-                BeginTime = TimeSpan.FromMilliseconds(900)
-            };
-            lastAnim.Completed += (_, _) => StartAmbientAnimations();
-            BottomAccent.BeginAnimation(OpacityProperty, lastAnim);
+                element.BeginAnimation(OpacityProperty, new DoubleAnimation(.82, 1, OperatorMotion.Page)
+                { BeginTime = TimeSpan.FromMilliseconds(Math.Min(index++, 3) * OperatorMotion.Stagger.TotalMilliseconds), FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut });
+            }
+            StartAmbientAnimations();
         }
-
         // ═══════════════════════════════════════════════════════
         //  AMBIENT ANIMATIONS — continuous atmosphere
         // ═══════════════════════════════════════════════════════
 
         private void StartAmbientAnimations()
         {
-            // Glow pulse
-            PulseForever(HomeGlow, OpacityProperty, 0.18, 0.40, 2800);
-            PulseForever(AwayGlow, OpacityProperty, 0.18, 0.40, 3100);
-            PulseForever(BgGlow, OpacityProperty, 0.15, 0.30, 4000);
-
-            // Light beam sweep
-            PulseForever(BeamTranslate, TranslateTransform.XProperty, -300, 1200, 6000);
+            HomeGlow.BeginAnimation(OpacityProperty, null);
+            AwayGlow.BeginAnimation(OpacityProperty, null);
+            BgGlow.BeginAnimation(OpacityProperty, null);
+            BeamTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            HomeGlow.Opacity = AwayGlow.Opacity = 0;
+            WizardFlowDesign.StopDecoration(this);
+            BgGlow.Opacity = 0;
+            BeamTranslate.X = -300;
         }
 
         // ═══════════════════════════════════════════════════════
         //  HOVER — nav button scale effects
         // ═══════════════════════════════════════════════════════
 
-        private void NavBtn_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if (sender is not Border btn) return;
-            ScaleTransform sc = btn == BackButton ? BackBtnScale : NextBtnScale;
-            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(1.05, HoverIn, Smooth));
-            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(1.05, HoverIn, Smooth));
-        }
 
-        private void NavBtn_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (sender is not Border btn) return;
-            ScaleTransform sc = btn == BackButton ? BackBtnScale : NextBtnScale;
-            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(1.0, HoverOut, Smooth));
-            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(1.0, HoverOut, Smooth));
-        }
 
         // ═══════════════════════════════════════════════════════
         //  STEP NAVIGATION — cinematic transitions
         // ═══════════════════════════════════════════════════════
 
         private static readonly SolidColorBrush s_accentBrush = new((Color)ColorConverter.ConvertFromString("#58A6FF"));
-        private static readonly SolidColorBrush s_surfaceBrush = new((Color)ColorConverter.ConvertFromString("#1A2436"));
-        private static readonly SolidColorBrush s_textMutedBrush = new((Color)ColorConverter.ConvertFromString("#484F58"));
+        private static readonly SolidColorBrush s_surfaceBrush = new((Color)ColorConverter.ConvertFromString("#242427"));
+        private static readonly SolidColorBrush s_textMutedBrush = new((Color)ColorConverter.ConvertFromString("#8E8E98"));
         private static readonly SolidColorBrush s_whiteBrush = new(Colors.White);
-        private static readonly SolidColorBrush s_edgeBrush = new((Color)ColorConverter.ConvertFromString("#2A3A52"));
+        private static readonly SolidColorBrush s_edgeBrush = new((Color)ColorConverter.ConvertFromString("#3A3A40"));
 
         private void ShowStep(int step, bool animate = true)
         {
-            int previousStep = _currentStep;
-            _currentStep = step;
-
+            int previous = _currentStep;
+            _currentStep = Math.Clamp(step, 1, TotalSteps);
+            int version = ++_stepTransitionVersion;
+            _ambientRestartTimer?.Stop(); _ambientRestartTimer = null;
+            if (_stepTransitionStoryboard is not null) { _stepTransitionStoryboard.Remove(this); _stepTransitionStoryboard = null; }
+            FlashOverlay.BeginAnimation(OpacityProperty, null); FlashOverlay.Opacity = 0;
             FrameworkElement[] panels = [TeamsStepContainer, Step3Panel, Step4Panel];
-            FrameworkElement activePanel = step switch
+            var active = panels[_currentStep - 1];
+            foreach (var panel in panels)
             {
-                1 => TeamsStepContainer,
-                2 => Step3Panel,
-                _ => Step4Panel
-            };
-            int transitionVersion = ++_stepTransitionVersion;
-            if (_stepTransitionStoryboard is not null)
-            {
-                try { _stepTransitionStoryboard.Remove(this); } catch { }
-                _stepTransitionStoryboard = null;
+                panel.BeginAnimation(OpacityProperty, null); panel.Opacity = 1;
+                if (panel.RenderTransform is TranslateTransform old) old.BeginAnimation(TranslateTransform.XProperty, null);
+                panel.RenderTransform = Transform.Identity;
+                panel.Visibility = ReferenceEquals(panel, active) ? Visibility.Visible : Visibility.Collapsed;
             }
-            FlashOverlay.BeginAnimation(OpacityProperty, null);
-            FlashOverlay.Opacity = 0;
-            foreach (FrameworkElement panel in panels)
+            SettleWizardMotion();
+            if (animate && previous != _currentStep && OperatorMotion.Enabled && IsLoaded)
             {
-                panel.BeginAnimation(OpacityProperty, null);
-                panel.Opacity = 1;
-                if (panel.RenderTransform is TranslateTransform existingTranslate)
-                    existingTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-                panel.RenderTransform = null;
-            }
-
-            bool forward = step >= previousStep;
-            double slideOutX = forward ? -60 : 60;
-            double slideInX = forward ? 60 : -60;
-
-            if (animate && step != previousStep)
-            {
-                // Animate outgoing panel exit
-                FrameworkElement? outgoing = null;
-                foreach (FrameworkElement p in panels)
+                var shift = new TranslateTransform(); active.RenderTransform = shift;
+                var storyboard = new Storyboard();
+                var fade = new DoubleAnimation(.82, 1, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut };
+                Storyboard.SetTarget(fade, active); Storyboard.SetTargetProperty(fade, new PropertyPath(OpacityProperty)); storyboard.Children.Add(fade);
+                var slide = new DoubleAnimation(_currentStep > previous ? 8 : -8, 0, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut };
+                Storyboard.SetTarget(slide, shift); Storyboard.SetTargetProperty(slide, new PropertyPath(TranslateTransform.XProperty)); storyboard.Children.Add(slide);
+                storyboard.Completed += (_, _) =>
                 {
-                    if (p.Visibility == Visibility.Visible)
-                    {
-                        outgoing = p;
-                        break;
-                    }
-                }
-
-                if (outgoing is not null)
-                {
-                    FrameworkElement fading = outgoing;
-                    fading.RenderTransform = new TranslateTransform(0, 0);
-
-                    var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200))
-                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-                    var slideOut = new DoubleAnimation(0, slideOutX, TimeSpan.FromMilliseconds(250))
-                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-
-                    fadeOut.Completed += (_, _) =>
-                    {
-                        if (transitionVersion != _stepTransitionVersion || ReferenceEquals(fading, activePanel)) return;
-                        fading.BeginAnimation(OpacityProperty, null);
-                        fading.Visibility = Visibility.Collapsed;
-                        fading.Opacity = 1;
-                        fading.RenderTransform = null;
-                    };
-
-                    fading.BeginAnimation(OpacityProperty, fadeOut);
-                    ((TranslateTransform)fading.RenderTransform).BeginAnimation(TranslateTransform.XProperty, slideOut);
-                }
-            }
-            else
-            {
-                foreach (FrameworkElement p in panels)
-                {
-                    p.BeginAnimation(OpacityProperty, null);
-                    p.Visibility = Visibility.Collapsed;
-                    p.Opacity = 1;
-                    p.RenderTransform = null;
-                }
-            }
-
-            if (animate && step != previousStep)
-            {
-                activePanel.Visibility = Visibility.Visible;
-                activePanel.Opacity = 0;
-                activePanel.RenderTransform = new TranslateTransform(slideInX, 0);
-
-                Storyboard sb = new();
-                DoubleAnimation fadeIn = new(0, 1, TimeSpan.FromMilliseconds(300))
-                {
-                    BeginTime = TimeSpan.FromMilliseconds(80),
-                    EasingFunction = Smooth
+                    if (version != _stepTransitionVersion) return;
+                    storyboard.Remove(this); active.Opacity = 1; active.RenderTransform = Transform.Identity; _stepTransitionStoryboard = null;
                 };
-                Storyboard.SetTarget(fadeIn, activePanel);
-                Storyboard.SetTargetProperty(fadeIn, new PropertyPath(OpacityProperty));
-                sb.Children.Add(fadeIn);
-
-                DoubleAnimation slideIn = new(slideInX, 0, TimeSpan.FromMilliseconds(400))
-                {
-                    BeginTime = TimeSpan.FromMilliseconds(60),
-                    EasingFunction = Smooth
-                };
-                Storyboard.SetTarget(slideIn, activePanel);
-                Storyboard.SetTargetProperty(slideIn, new PropertyPath("RenderTransform.(TranslateTransform.X)"));
-                sb.Children.Add(slideIn);
-                sb.Completed += (_, _) =>
-                {
-                    if (transitionVersion != _stepTransitionVersion) return;
-                    activePanel.BeginAnimation(OpacityProperty, null);
-                    activePanel.Opacity = 1;
-                    activePanel.RenderTransform = null;
-                    if (ReferenceEquals(_stepTransitionStoryboard, sb))
-                        _stepTransitionStoryboard = null;
-                };
-                _stepTransitionStoryboard = sb;
-                sb.Begin(this, HandoffBehavior.SnapshotAndReplace, isControllable: true);
-
-                // Animate step-specific hero content
-                PlayStepEntryAnimation(step, transitionVersion);
-
-                // Flash overlay for dramatic transition
-                var flashIn = new DoubleAnimation(0.08, TimeSpan.FromMilliseconds(80));
-                flashIn.Completed += (_, _) =>
-                {
-                    if (transitionVersion == _stepTransitionVersion)
-                        FlashOverlay.BeginAnimation(OpacityProperty,
-                            new DoubleAnimation(0, TimeSpan.FromMilliseconds(300)));
-                };
-                FlashOverlay.BeginAnimation(OpacityProperty, flashIn);
+                _stepTransitionStoryboard = storyboard; storyboard.Begin(this, HandoffBehavior.SnapshotAndReplace, true);
             }
-            else
-            {
-                activePanel.Visibility = Visibility.Visible;
-                activePanel.Opacity = 1;
-                activePanel.RenderTransform = null;
-            }
-
             BackButton.Visibility = Visibility.Visible;
-            NextButtonText.Text = step == TotalSteps ? "START MATCH →" : "NEXT →";
-
-            UpdateStepDot(Step1Dot, Step1Label, true, step == 1);
-            UpdateStepDot(Step2Dot, Step2Label, step >= 2, step == 2);
-            UpdateStepDot(Step3Dot, Step3Label, step >= 3, step == 3);
-
+            NextButtonText.Text = _currentStep == TotalSteps ? "Start match" : "Continue";
+            WizardFlowDesign.SelectStep(this, _currentStep, TotalSteps);
+            UpdateStepDot(Step1Dot, Step1Label, true, _currentStep == 1);
+            UpdateStepDot(Step2Dot, Step2Label, _currentStep >= 2, _currentStep == 2);
+            UpdateStepDot(Step3Dot, Step3Label, _currentStep >= 3, _currentStep == 3);
             UpdateSetupClockSummary();
         }
-
-        private void PlayStepEntryAnimation(int step, int transitionVersion)
-        {
-            switch (step)
-            {
-                case 1:
-                    // Reset and replay team card animations
-                    HomeHeaderGroup.Opacity = 0;
-                    HomeHeaderTranslate.Y = 15;
-                    AwayHeaderGroup.Opacity = 0;
-                    AwayHeaderTranslate.Y = 15;
-
-                    Animate(HomeHeaderGroup, OpacityProperty, 1, 500, delay: 200);
-                    Animate(HomeHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 200, easing: Overshoot);
-                    Animate(AwayHeaderGroup, OpacityProperty, 1, 500, delay: 300);
-                    Animate(AwayHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 300, easing: Overshoot);
-
-                    // Reset and animate glows
-                    HomeGlow.Opacity = 0;
-                    AwayGlow.Opacity = 0;
-                    Animate(HomeGlow, OpacityProperty, 0.30, 600, delay: 300);
-                    Animate(AwayGlow, OpacityProperty, 0.30, 600, delay: 400);
-
-                    // Restart ambient glow pulse after entry
-                    _ambientRestartTimer?.Stop();
-                    _ambientRestartTimer = new System.Windows.Threading.DispatcherTimer
-                    {
-                        Interval = TimeSpan.FromMilliseconds(800)
-                    };
-                    _ambientRestartTimer.Tick += (_, _) =>
-                    {
-                        _ambientRestartTimer?.Stop();
-                        _ambientRestartTimer = null;
-                        if (transitionVersion != _stepTransitionVersion || _currentStep != 1) return;
-                        PulseForever(HomeGlow, OpacityProperty, 0.18, 0.40, 2800);
-                        PulseForever(AwayGlow, OpacityProperty, 0.18, 0.40, 3100);
-                    };
-                    _ambientRestartTimer.Start();
-                    break;
-
-                case 2:
-                    ClockHeaderGroup.Opacity = 0;
-                    ClockHeaderTranslate.Y = 15;
-                    ClockGlow.Opacity = 0;
-
-                    Animate(ClockHeaderGroup, OpacityProperty, 1, 500, delay: 200);
-                    Animate(ClockHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 200, easing: Overshoot);
-                    Animate(ClockGlow, OpacityProperty, 0.30, 600, delay: 300);
-                    break;
-
-                case 3:
-                    MsgHeaderGroup.Opacity = 0;
-                    MsgHeaderTranslate.Y = 15;
-                    MsgGlow.Opacity = 0;
-
-                    Animate(MsgHeaderGroup, OpacityProperty, 1, 500, delay: 200);
-                    Animate(MsgHeaderTranslate, TranslateTransform.YProperty, 0, 600, delay: 200, easing: Overshoot);
-                    Animate(MsgGlow, OpacityProperty, 0.30, 600, delay: 300);
-
-                    // Animate Finals card glow
-                    FinalsGlowBg.Opacity = 0;
-                    WeatherGlowBg.Opacity = 0;
-                    MsgSectionGlow.Opacity = 0;
-                    Animate(FinalsGlowBg, OpacityProperty, SetupFinalsMode.IsChecked == true ? 0.15 : 0.0, 600, delay: 400);
-                    Animate(WeatherGlowBg, OpacityProperty, 0.08, 600, delay: 500);
-                    Animate(MsgSectionGlow, OpacityProperty, 0.06, 600, delay: 500);
-                    break;
-            }
-        }
-
         private void UpdateStepDot(Border dot, TextBlock label, bool reached, bool active)
         {
             dot.Background = reached ? s_accentBrush : s_surfaceBrush;
             dot.BorderBrush = reached ? s_accentBrush : s_edgeBrush;
             var dotText = (TextBlock)dot.Child;
             dotText.Foreground = reached ? s_whiteBrush : s_textMutedBrush;
-            label.Foreground = active ? s_whiteBrush : (reached ? s_accentBrush : s_textMutedBrush);
+            // The shared segmented lens owns label contrast and selection ink.
 
             // Glow effect on active dot
             if (dot.Effect is DropShadowEffect glow)
-                glow.Opacity = active ? 0.6 : 0;
+                glow.Opacity = 0;
         }
 
-        private void Next_Click(object sender, MouseButtonEventArgs e)
+        private void Next_Click(object sender, RoutedEventArgs e)
         {
-            // Click punch animation
-            NextBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty,
-                new DoubleAnimation(0.93, 1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
-            NextBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty,
-                new DoubleAnimation(0.93, 1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
-
             if (_currentStep < TotalSteps)
                 ShowStep(_currentStep + 1);
             else
                 FinishWizard();
         }
 
-        private void Back_Click(object sender, MouseButtonEventArgs e)
+        private void Back_Click(object sender, RoutedEventArgs e)
         {
-            BackBtnScale.BeginAnimation(ScaleTransform.ScaleXProperty,
-                new DoubleAnimation(0.93, 1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
-            BackBtnScale.BeginAnimation(ScaleTransform.ScaleYProperty,
-                new DoubleAnimation(0.93, 1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
-
             if (_currentStep > 1)
                 ShowStep(_currentStep - 1);
             else
                 BackToSportSelection?.Invoke();
         }
 
-        private void GoToStep1_Click(object sender, MouseButtonEventArgs e) => ShowStep(1);
-        private void GoToStep2_Click(object sender, MouseButtonEventArgs e) => ShowStep(2);
-        private void GoToStep3_Click(object sender, MouseButtonEventArgs e) => ShowStep(3);
+        private void GoToStep1_Click(object sender, RoutedEventArgs e) => ShowStep(1);
+        private void GoToStep2_Click(object sender, RoutedEventArgs e) => ShowStep(2);
+        private void GoToStep3_Click(object sender, RoutedEventArgs e) => ShowStep(3);
 
         // ═══════════════════════════════════════════════════════
         //  RESET
@@ -809,6 +542,7 @@ namespace Roche_Scoreboard.Views
 
         private void SetupClockMode_Changed(object sender, RoutedEventArgs e)
         {
+            if(!IsInitialized)return;
             UpdateClockModeVisuals();
             UpdateControlPanelCountdownOptionVisuals();
             UpdateSetupClockSummary();
@@ -816,53 +550,20 @@ namespace Roche_Scoreboard.Views
 
         private void UpdateClockModeVisuals()
         {
-            if (CountUpCard is null) return;
-
-            bool isCountdown = SetupCountdown.IsChecked == true;
-
-            // Count Up card visuals
-            CountUpCard.BorderBrush = new SolidColorBrush(isCountdown
-                ? (Color)ColorConverter.ConvertFromString("#1A2436")
-                : (Color)ColorConverter.ConvertFromString("#58A6FF"));
-            CountUpCard.BorderThickness = new Thickness(2);
-            CountUpCard.Background = new SolidColorBrush(isCountdown
-                ? (Color)ColorConverter.ConvertFromString("#0A0E14")
-                : (Color)ColorConverter.ConvertFromString("#0A1628"));
-            CountUpGlowBg.Opacity = isCountdown ? 0 : 0.15;
-            CountUpIcon.Foreground = new SolidColorBrush(isCountdown
-                ? (Color)ColorConverter.ConvertFromString("#2A3A52")
-                : (Color)ColorConverter.ConvertFromString("#58A6FF"));
-            CountUpIcon.Effect = isCountdown ? null
-                : new DropShadowEffect { BlurRadius = 15, ShadowDepth = 0, Color = (Color)ColorConverter.ConvertFromString("#58A6FF"), Opacity = 0.6 };
-            CountUpSelected.Visibility = isCountdown ? Visibility.Collapsed : Visibility.Visible;
-
-            // Countdown card visuals
-            CountdownCard.BorderBrush = new SolidColorBrush(isCountdown
-                ? (Color)ColorConverter.ConvertFromString("#D29922")
-                : (Color)ColorConverter.ConvertFromString("#3A3018"));
-            CountdownCard.BorderThickness = new Thickness(2);
-            CountdownCard.Background = new SolidColorBrush(isCountdown
-                ? (Color)ColorConverter.ConvertFromString("#1A1408")
-                : (Color)ColorConverter.ConvertFromString("#0E0C08"));
-            CountdownGlowBg.Opacity = isCountdown ? 0.15 : 0;
-            CountdownIcon.Foreground = new SolidColorBrush(isCountdown
-                ? (Color)ColorConverter.ConvertFromString("#D29922")
-                : (Color)ColorConverter.ConvertFromString("#6B5A00"));
-            CountdownIcon.Effect = isCountdown
-                ? new DropShadowEffect { BlurRadius = 15, ShadowDepth = 0, Color = (Color)ColorConverter.ConvertFromString("#D29922"), Opacity = 0.6 }
-                : null;
-            CountdownSelected.Visibility = isCountdown ? Visibility.Visible : Visibility.Collapsed;
-
-            bool keepDurationEditable = SetupCountUp.IsChecked == true && SetupControlPanelCountdown.IsChecked == true;
-
-            // Duration panel and glow
-            DurationGlowBg.Opacity = isCountdown || keepDurationEditable ? 0.08 : 0;
-            SetupDurationPanel.BorderBrush = new SolidColorBrush(isCountdown || keepDurationEditable
-                ? (Color)ColorConverter.ConvertFromString("#6B5A00")
-                : (Color)ColorConverter.ConvertFromString("#3A3018"));
-
-            // Keep duration editable for countdown and for count-up with timing stoppages enabled.
-            DurationDisabledOverlay.Visibility = isCountdown || keepDurationEditable ? Visibility.Collapsed : Visibility.Visible;
+            if(!IsInitialized || CountUpCard is null || CountdownCard is null || QuarterLengthControls is null)return;
+            bool isCountdown=SetupCountdown.IsChecked==true;
+            WizardFlowDesign.StyleChoice(CountUpCard,!isCountdown);WizardFlowDesign.StyleChoice(CountdownCard,isCountdown);
+            CountUpSelected.Visibility=isCountdown?Visibility.Collapsed:Visibility.Visible;
+            CountdownSelected.Visibility=isCountdown?Visibility.Visible:Visibility.Collapsed;
+            foreach(var mark in new[]{CountUpSelected,CountdownSelected})
+            {mark.Background=new SolidColorBrush((Color)ColorConverter.ConvertFromString("#368EEE"));if(mark.Child is TextBlock text)text.Foreground=System.Windows.Media.Brushes.White;}
+            bool editable=isCountdown || SetupControlPanelCountdown.IsChecked==true;
+            QuarterLengthControls.IsEnabled=editable;QuarterLengthControls.Opacity=editable?1:.4;
+            DurationDisabledOverlay.Visibility=editable?Visibility.Collapsed:Visibility.Visible;
+            SetupDurationPanel.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush");
+            SetupDurationPanel.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");
+            DurationGlowBg.Opacity=0;CountUpIcon.Effect=CountdownIcon.Effect=null;
+            HighlightActivePresetTile(int.TryParse(SetupQuarterMinutes.Text,out int minutes)?minutes:20);
         }
 
         // Tracks previous visibility state so we only play the entrance animation once per appearance.
@@ -927,7 +628,7 @@ namespace Roche_Scoreboard.Views
                 Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleXProperty, 0.98, 220, easing: Smooth);
                 Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleYProperty, 0.98, 220, easing: Smooth);
 
-                _countdownOptionHideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(230) };
+                _countdownOptionHideTimer = new DispatcherTimer { Interval = OperatorMotion.SurfaceClose };
                 _countdownOptionHideTimer.Tick += (_, _) =>
                 {
                     _countdownOptionHideTimer?.Stop();
@@ -937,12 +638,15 @@ namespace Roche_Scoreboard.Views
                         ControlPanelCountdownOptionCard.Visibility = Visibility.Collapsed;
                     }
                 };
-                _countdownOptionHideTimer.Start();
+                if (OperatorMotion.Enabled) _countdownOptionHideTimer.Start();
+                else { _countdownOptionHideTimer = null; ControlPanelCountdownOptionCard.Visibility = Visibility.Collapsed; }
             }
 
             ControlPanelCountdownOptionCard.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#12253A" : "#151E29"));
             ControlPanelCountdownOptionCard.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#6CB6FF" : "#4D637C"));
-            ControlPanelCountdownOptionCard.BorderThickness = new Thickness(2);
+            ControlPanelCountdownOptionCard.SetResourceReference(Border.BackgroundProperty,"ControlCentre.GlassBrush");
+            ControlPanelCountdownOptionCard.SetResourceReference(Border.BorderBrushProperty,isEnabled?"ControlCentre.AccentBrush":"ControlCentre.BorderBrush");
+            ControlPanelCountdownOptionCard.BorderThickness = new Thickness(1);
 
             if (ControlPanelCountdownToggleTrack?.Background is not SolidColorBrush trackBrush)
             {
@@ -954,10 +658,12 @@ namespace Roche_Scoreboard.Views
             }
 
             Color targetTrackColor = (Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#4B5563");
-            trackBrush.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation
+            trackBrush.BeginAnimation(SolidColorBrush.ColorProperty, null);
+            if (!OperatorMotion.Enabled) trackBrush.Color = targetTrackColor;
+            else trackBrush.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation
             {
                 To = targetTrackColor,
-                Duration = TimeSpan.FromMilliseconds(220),
+                Duration = OperatorMotion.Toggle,
                 EasingFunction = Sine
             });
 
@@ -983,13 +689,13 @@ namespace Roche_Scoreboard.Views
             }
         }
 
-        private void MinutesMinus_Click(object sender, MouseButtonEventArgs e)
+        private void MinutesMinus_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(SetupQuarterMinutes.Text, out int mins) && mins > 1)
                 SetQuickDuration(mins - 1, 0);
         }
 
-        private void MinutesPlus_Click(object sender, MouseButtonEventArgs e)
+        private void MinutesPlus_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(SetupQuarterMinutes.Text, out int mins) && mins < 60)
                 SetQuickDuration(mins + 1, 0);
@@ -998,10 +704,10 @@ namespace Roche_Scoreboard.Views
         private void SetupQuarterDuration_TextChanged(object sender, TextChangedEventArgs e)
             => UpdateSetupClockSummary();
 
-        private void SetupQuickDuration10_Click(object sender, MouseButtonEventArgs e) => SetQuickDuration(10, 0);
-        private void SetupQuickDuration15_Click(object sender, MouseButtonEventArgs e) => SetQuickDuration(15, 0);
-        private void SetupQuickDuration20_Click(object sender, MouseButtonEventArgs e) => SetQuickDuration(20, 0);
-        private void SetupQuickDuration25_Click(object sender, MouseButtonEventArgs e) => SetQuickDuration(25, 0);
+        private void SetupQuickDuration10_Click(object sender, RoutedEventArgs e) => SetQuickDuration(10, 0);
+        private void SetupQuickDuration15_Click(object sender, RoutedEventArgs e) => SetQuickDuration(15, 0);
+        private void SetupQuickDuration20_Click(object sender, RoutedEventArgs e) => SetQuickDuration(20, 0);
+        private void SetupQuickDuration25_Click(object sender, RoutedEventArgs e) => SetQuickDuration(25, 0);
 
         private void SetQuickDuration(int minutes, int seconds)
         {
@@ -1014,23 +720,12 @@ namespace Roche_Scoreboard.Views
 
         private void HighlightActivePresetTile(int minutes)
         {
-            if (Preset10Tile is null) return;
-
-            var dimBorder = (Color)ColorConverter.ConvertFromString("#3A3018");
-            var dimBg = (Color)ColorConverter.ConvertFromString("#141008");
-            var dimFg = (Color)ColorConverter.ConvertFromString("#8A7A40");
-            var activeBorder = (Color)ColorConverter.ConvertFromString("#6B5A00");
-            var activeBg = (Color)ColorConverter.ConvertFromString("#1A1408");
-            var activeFg = (Color)ColorConverter.ConvertFromString("#D29922");
-
-            (Border tile, int value)[] presets = [(Preset10Tile, 10), (Preset15Tile, 15), (Preset20Tile, 20), (Preset25Tile, 25)];
-            foreach ((Border tile, int value) in presets)
+            foreach(var (tile,value) in new[]{(Preset10Tile,10),(Preset15Tile,15),(Preset20Tile,20),(Preset25Tile,25)})
             {
-                bool active = value == minutes;
-                tile.BorderBrush = new SolidColorBrush(active ? activeBorder : dimBorder);
-                tile.Background = new SolidColorBrush(active ? activeBg : dimBg);
-                if (tile.Child is TextBlock tb)
-                    tb.Foreground = new SolidColorBrush(active ? activeFg : dimFg);
+                if(tile?.Child is not System.Windows.Controls.Button button)continue;
+                bool selected=value==minutes;
+                button.SetResourceReference(StyleProperty,selected?"ControlCentre.PrimaryButton":"ControlCentre.Button");
+                System.Windows.Automation.AutomationProperties.SetItemStatus(button,selected?"Selected quarter length":"Not selected");
             }
         }
 
@@ -1043,21 +738,13 @@ namespace Roche_Scoreboard.Views
         private void UpdateFinalsToggleVisuals()
         {
             if (FinalsCard is null) return;
-
             bool on = SetupFinalsMode.IsChecked == true;
-
-            FinalsCard.BorderBrush = new SolidColorBrush(on
-                ? (Color)ColorConverter.ConvertFromString("#D4A017")
-                : (Color)ColorConverter.ConvertFromString("#2A2020"));
-            FinalsCard.BorderThickness = new Thickness(2);
-            FinalsCard.Background = new SolidColorBrush(on
-                ? (Color)ColorConverter.ConvertFromString("#1A1408")
-                : (Color)ColorConverter.ConvertFromString("#0A0806"));
-            FinalsGlowBg.Opacity = on ? 0.20 : 0;
-            FinalsSelectedBadge.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
-            FinalsIcon.Effect = on
-                ? new DropShadowEffect { BlurRadius = 20, ShadowDepth = 0, Color = (Color)ColorConverter.ConvertFromString("#D4A017"), Opacity = 0.7 }
-                : null;
+            WizardFlowDesign.StyleChoice(FinalsCard, on);
+            if(on)FinalsCard.Background=new SolidColorBrush((Color)ColorConverter.ConvertFromString("#76551C"));
+            FinalsGlowBg.Visibility = Visibility.Collapsed;
+            FinalsSelectedBadge.Visibility = Visibility.Collapsed;
+            if(FinalsCard.Child is Grid content)foreach(var symbol in content.Children.OfType<OperatorSymbol>())symbol.IsActive=on;
+            FinalsIcon.Effect = null;
         }
 
         private void UpdateSetupClockSummary()
@@ -1365,6 +1052,12 @@ namespace Roche_Scoreboard.Views
 
         private void BuildPresetTiles(System.Windows.Controls.WrapPanel panel, TextBlock emptyLabel, bool isHome)
         {
+            if(panel.Children.Count==_presets.Count && panel.Children.OfType<Border>().Select(tile=>tile.Tag).SequenceEqual(_presets.Cast<object>()))
+            {
+                foreach(var existing in panel.Children.OfType<Border>())if(existing.Tag is TeamPreset preset)
+                    OperatorClubPresetDesign.Update(existing,preset,string.Equals((isHome?_selectedHomePreset:_selectedAwayPreset)?.PresetName,preset.PresetName,StringComparison.OrdinalIgnoreCase));
+                emptyLabel.Visibility=_presets.Count==0?Visibility.Visible:Visibility.Collapsed;return;
+            }
             panel.Children.Clear();
 
             if (_presets.Count == 0)
@@ -1445,16 +1138,15 @@ namespace Roche_Scoreboard.Views
                     };
                     tileContent.Children.Add(tickText);
 
-                    var scaleEase = new ElasticEase { Oscillations = 1, Springiness = 5, EasingMode = EasingMode.EaseOut };
-                    var scaleIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(400)) { EasingFunction = scaleEase };
-                    ((ScaleTransform)tickText.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, scaleIn);
-                    ((ScaleTransform)tickText.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, scaleIn.Clone());
-
-                    overlay.Opacity = 0;
-                    overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220))
+                    ((ScaleTransform)tickText.RenderTransform).ScaleX = ((ScaleTransform)tickText.RenderTransform).ScaleY = 1;
+                    overlay.Opacity = 1;
+                    if (OperatorMotion.Enabled)
                     {
-                        EasingFunction = Smooth
-                    });
+                        var scaleIn = new DoubleAnimation(.75, 1, OperatorMotion.CheckDraw) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop };
+                        ((ScaleTransform)tickText.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, scaleIn);
+                        ((ScaleTransform)tickText.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, scaleIn.Clone());
+                        overlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+                    }
                 }
 
                 var tileScaleTransform = new ScaleTransform(1, 1);
@@ -1470,6 +1162,7 @@ namespace Roche_Scoreboard.Views
                     Padding = new Thickness(4),
                     Margin = new Thickness(0, 0, 8, 8),
                     Cursor = System.Windows.Input.Cursors.Hand,
+                    Focusable = true,
                     ToolTip = $"{preset.TeamName}\n{abbr}\n{(HasValidFile(preset.LogoPath) ? "Logo set" : "No logo")} · {(HasValidFile(preset.GoalVideoPath) ? "Video set" : "No video")}",
                     Child = tileContent,
                     Tag = preset,
@@ -1486,6 +1179,7 @@ namespace Roche_Scoreboard.Views
                         new System.Windows.Point(1, 1))
                 };
 
+                OperatorClubPresetDesign.Update(tile,preset,isSelected);
                 tile.MouseLeftButtonDown += (_, me) =>
                 {
                     if (_isDragging) return;
@@ -1569,27 +1263,9 @@ namespace Roche_Scoreboard.Views
                     CompleteDrag(panel, isHome, preset);
                 };
 
-                tile.MouseEnter += (_, _) =>
-                {
-                    if (_isDragging) return;
-                    tileScaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty,
-                        new DoubleAnimation(1.06, TimeSpan.FromMilliseconds(140)) { EasingFunction = Smooth });
-                    tileScaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty,
-                        new DoubleAnimation(1.06, TimeSpan.FromMilliseconds(140)) { EasingFunction = Smooth });
-                    tile.BeginAnimation(OpacityProperty,
-                        new DoubleAnimation(0.92, TimeSpan.FromMilliseconds(120)) { EasingFunction = Smooth });
-                };
-                tile.MouseLeave += (_, _) =>
-                {
-                    if (_isDragging) return;
-                    tileScaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty,
-                        new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
-                    tileScaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty,
-                        new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(200)) { EasingFunction = Smooth });
-                    tile.BeginAnimation(OpacityProperty,
-                        new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(180)));
-                };
-
+                var restEdge = tile.BorderBrush;
+                void PaintInteraction()=>OperatorClubPresetDesign.Hover(tile,tile.IsMouseOver||tile.IsKeyboardFocusWithin);
+                tile.MouseEnter+=(_,_)=>PaintInteraction();tile.MouseLeave+=(_,_)=>PaintInteraction();tile.GotKeyboardFocus+=(_,_)=>PaintInteraction();tile.LostKeyboardFocus+=(_,_)=>PaintInteraction();
                 panel.Children.Add(tile);
             }
         }
@@ -1885,14 +1561,15 @@ namespace Roche_Scoreboard.Views
         //  ANIMATION HELPERS (matching sport selection screen)
         // ═══════════════════════════════════════════════════════
 
-        private static DoubleAnimation Anim(double to, TimeSpan duration, IEasingFunction? easing = null)
-        {
-            return new DoubleAnimation(to, duration) { EasingFunction = easing };
-        }
-
         private static void Animate(IAnimatable target, DependencyProperty prop,
             double to, int durationMs, int delay = 0, IEasingFunction? easing = null)
         {
+            if (!OperatorMotion.Enabled)
+            {
+                target.BeginAnimation(prop, null);
+                if (target is DependencyObject value) value.SetValue(prop, to);
+                return;
+            }
             var anim = new DoubleAnimation(to, TimeSpan.FromMilliseconds(durationMs))
             {
                 BeginTime = delay > 0 ? TimeSpan.FromMilliseconds(delay) : TimeSpan.Zero,
@@ -1904,6 +1581,7 @@ namespace Roche_Scoreboard.Views
         private static void PulseForever(IAnimatable target, DependencyProperty prop,
             double from, double to, int periodMs)
         {
+            if (!OperatorMotion.Enabled) { target.BeginAnimation(prop, null); return; }
             var anim = new DoubleAnimation(from, to, TimeSpan.FromMilliseconds(periodMs))
             {
                 AutoReverse = true,

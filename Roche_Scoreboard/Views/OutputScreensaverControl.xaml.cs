@@ -13,10 +13,12 @@ public partial class OutputScreensaverControl : UserControl
     private readonly DispatcherTimer _clockTimer;
     private string? _configuredPath;
     private VideoPlayerControl? _customVideo;
+    public void SetClockVisible(bool visible) => ClockText.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
 
     public OutputScreensaverControl()
     {
         InitializeComponent();
+        SizeChanged += (_, _) => ClockText.FontSize = Math.Max(16, Math.Min(ActualHeight * .2, ActualWidth * .11));
         _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _clockTimer.Tick += (_, _) => UpdateClock();
         UpdateClock();
@@ -96,6 +98,24 @@ public partial class OutputScreensaverControl : UserControl
     {
         if (_customVideo is not null) return;
         _customVideo = new VideoPlayerControl { Loop = true };
+        // Source selection can happen before VideoPlayer's native HWND and
+        // MediaPlayer exist. Retry after its own Loaded handler creates them.
+        _customVideo.Loaded += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
+        { if (IsVisible && CustomVideoHost.Visibility == Visibility.Visible && _customVideo?.HasSource == true) _customVideo.Play(); }));
+        var overlay = new Grid { IsHitTestVisible = false, Margin = new Thickness(12, 8, 12, 8) };
+        var clock = new System.Windows.Controls.TextBlock
+        {
+            FontFamily = new System.Windows.Media.FontFamily("Arial"),
+            FontWeight = FontWeights.Black,
+            Foreground = System.Windows.Media.Brushes.White,
+            VerticalAlignment = System.Windows.VerticalAlignment.Bottom,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
+            Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = System.Windows.Media.Colors.Black, BlurRadius = 8, ShadowDepth = 0, Opacity = .8 }
+        };
+        clock.SetBinding(System.Windows.Controls.TextBlock.TextProperty, new System.Windows.Data.Binding("Text") { Source = ClockText });
+        clock.SetBinding(System.Windows.Controls.TextBlock.FontSizeProperty, new System.Windows.Data.Binding("FontSize") { Source = ClockText });
+        clock.SetBinding(UIElement.VisibilityProperty, new System.Windows.Data.Binding("Visibility") { Source = ClockText });
+        overlay.Children.Add(clock); _customVideo.SetPresentationOverlay(overlay);
         _customVideo.MediaLoadFailed += (_, _) => ShowDefault();
         CustomVideoHost.Children.Add(_customVideo);
     }

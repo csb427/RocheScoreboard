@@ -76,9 +76,7 @@ internal static class QuarterLabelService
 
     private static string GetStoragePath()
     {
-        string dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "quarter_labels.json");
     }

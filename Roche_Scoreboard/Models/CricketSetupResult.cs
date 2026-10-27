@@ -23,6 +23,10 @@ namespace Roche_Scoreboard.Models
         // Match settings
         public CricketFormat Format { get; set; } = CricketFormat.LimitedOvers;
         public int TotalOvers { get; set; } = 50;
+        public bool ReplaceWideBalls { get; set; } = true;
+        public bool ReplaceNoBalls { get; set; } = true;
+        public bool FreeHitsEnabled { get; set; }
+        public string WeatherLocation { get; set; } = "Melbourne, Australia";
 
         // Toss
         public string TossWinner { get; set; } = "";  // team name that won the toss
@@ -31,5 +35,16 @@ namespace Roche_Scoreboard.Models
 
         // Messages
         public List<string> Messages { get; set; } = [];
+
+        /// <summary>Each empty squad gets its own numbered eleven.</summary>
+        internal void FillEmptySquads()
+        {
+            if (TeamAPlayers.Count == 0) TeamAPlayers = CreateDefaultEleven();
+            if (TeamBPlayers.Count == 0) TeamBPlayers = CreateDefaultEleven();
+        }
+
+        private static List<CricketPlayer> CreateDefaultEleven() =>
+            System.Linq.Enumerable.Range(1, 11)
+                .Select(number => new CricketPlayer { LastName = $"Player {number}" }).ToList();
     }
 }

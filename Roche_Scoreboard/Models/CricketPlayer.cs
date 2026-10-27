@@ -11,15 +11,30 @@ namespace Roche_Scoreboard.Models
         HitWicket,
         RetiredHurt,
         CaughtAndBowled,
-        Other
+        Other,
+        RetiredOut,
+        ObstructingField,
+        HitBallTwice
     }
 
-    public sealed class CricketPlayer
+    public sealed class CricketPlayer : System.ComponentModel.INotifyPropertyChanged
     {
-        public string FirstName { get; set; } = "";
-        public string LastName { get; set; } = "";
+        private string _firstName="",_lastName="";
+        public string FirstName { get=>_firstName; set{if(_firstName==value)return;_firstName=value;NameChanged(nameof(FirstName));} }
+        public string LastName { get=>_lastName; set{if(_lastName==value)return;_lastName=value;NameChanged(nameof(LastName));} }
+        private void NameChanged(string property)
+        {PropertyChanged?.Invoke(this,new(property));PropertyChanged?.Invoke(this,new(nameof(FullName)));PropertyChanged?.Invoke(this,new(nameof(DisplayName)));}
 
-        public bool IsWicketkeeper { get; set; }
+        private bool _isWicketkeeper,_isCaptain;
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        public bool IsWicketkeeper { get=>_isWicketkeeper; set{if(_isWicketkeeper==value)return;_isWicketkeeper=value;PropertyChanged?.Invoke(this,new(nameof(IsWicketkeeper)));} }
+        public bool IsCaptain { get=>_isCaptain; set{if(_isCaptain==value)return;_isCaptain=value;PropertyChanged?.Invoke(this,new(nameof(IsCaptain)));} }
+        public int BattingPosition { get; set; }
+        public int BattingEntryOrder { get; set; }
+        public int BowlingEntryOrder { get; set; }
+        public int RosterIndex { get; set; } = -1;
+        public bool IsRetired { get; set; }
+        public string? RetiredReason { get; set; }
 
         public string DisplayName => string.IsNullOrWhiteSpace(FirstName)
             ? LastName
@@ -43,6 +58,7 @@ namespace Roche_Scoreboard.Models
         {
             get
             {
+                if (IsRetired) return RetiredReason ?? "retired not out";
                 if (!IsOut) return "not out";
                 return HowOut switch
                 {
@@ -54,6 +70,8 @@ namespace Roche_Scoreboard.Models
                     DismissalType.RunOut => $"run out ({DismissalFielder ?? "?"})",
                     DismissalType.HitWicket => $"hit wicket b: {DismissalBowler ?? "?"}",
                     DismissalType.RetiredHurt => "retired hurt",
+                    DismissalType.ObstructingField => "obstructing the field",
+                    DismissalType.HitBallTwice => "hit the ball twice",
                     _ => DismissalText ?? "out"
                 };
             }
@@ -93,8 +111,10 @@ namespace Roche_Scoreboard.Models
 
         public void ResetBatting()
         {
+            BattingEntryOrder = 0;
             Runs = BallsFaced = Fours = Sixes = 0;
             IsOut = false;
+            IsRetired = false; RetiredReason = null;
             DismissalText = null;
             HowOut = DismissalType.NotOut;
             DismissalBowler = null;
@@ -103,6 +123,7 @@ namespace Roche_Scoreboard.Models
 
         public void ResetBowling()
         {
+            BowlingEntryOrder = 0;
             BallsBowled = RunsConceded = Wickets = Maidens = Wides = NoBalls = 0;
             LastOverBowledAt = -1;
         }
@@ -112,6 +133,13 @@ namespace Roche_Scoreboard.Models
             FirstName = FirstName,
             LastName = LastName,
             IsWicketkeeper = IsWicketkeeper,
+            IsCaptain = IsCaptain,
+            BattingPosition = BattingPosition,
+            BattingEntryOrder = BattingEntryOrder,
+            BowlingEntryOrder = BowlingEntryOrder,
+            RosterIndex = RosterIndex,
+            IsRetired = IsRetired,
+            RetiredReason = RetiredReason,
             Runs = Runs,
             BallsFaced = BallsFaced,
             Fours = Fours,

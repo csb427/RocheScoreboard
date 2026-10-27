@@ -1,0 +1,320 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views">
+    <motion:OperatorInsetConverter x:Key="ControlCentre.Insets"/>
+    <motion:OperatorTabLabelConverter x:Key="ControlCentre.TabLabel"/>
+    <!-- This dictionary belongs to operator roots, never Application.Resources. -->
+    <FontFamily x:Key="ControlCentre.Font">Segoe UI Variable, Segoe UI</FontFamily>
+    <SolidColorBrush x:Key="ControlCentre.TabSelectedInkBrush" Color="#ACD7FF"/>
+    <SolidColorBrush x:Key="ControlCentre.SelectedTextBrush" Color="#FAFAFC"/>
+    <SolidColorBrush x:Key="ControlCentre.SegmentSelectedInkBrush" Color="#101318"/>
+    <SolidColorBrush x:Key="ControlCentre.ActionTextBrush" Color="#FAFAFC"/>
+    <SolidColorBrush x:Key="ControlCentre.CanvasBrush" Color="#09090B"/>
+    <SolidColorBrush x:Key="ControlCentre.SurfaceBrush" Color="#19191C"/>
+    <SolidColorBrush x:Key="ControlCentre.RaisedBrush" Color="#29292D"/>
+    <SolidColorBrush x:Key="ControlCentre.TextBrush" Color="#FAFAFC"/>
+    <SolidColorBrush x:Key="ControlCentre.SecondaryTextBrush" Color="#B6B6C0"/>
+    <SolidColorBrush x:Key="ControlCentre.BorderBrush" Color="#44444B"/>
+    <SolidColorBrush x:Key="ControlCentre.AccentBrush" Color="#7BB8FF"/>
+    <SolidColorBrush x:Key="ControlCentre.SelectionBrush" Color="#253D55"/>
+    <sys:Double x:Key="ControlCentre.BodySize">15</sys:Double>
+    <sys:Double x:Key="ControlCentre.CaptionSize">13</sys:Double>
+    <sys:Double x:Key="ControlCentre.ControlHeight">42</sys:Double>
+    <Thickness x:Key="ControlCentre.ControlPadding">16,10</Thickness>
+    <LinearGradientBrush x:Key="ControlCentre.SatinBrush" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#36363B" Offset="0"/><GradientStop Color="#252529" Offset="1"/></LinearGradientBrush>
+    <LinearGradientBrush x:Key="ControlCentre.NavigationGlassBrush" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#F03B3B40" Offset="0"/><GradientStop Color="#F0212125" Offset="1"/></LinearGradientBrush>
+    <LinearGradientBrush x:Key="ControlCentre.GlassBrush" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#F03B3B40" Offset="0"/><GradientStop Color="#F0212125" Offset="1"/></LinearGradientBrush>
+    <DataTemplate x:Key="ControlCentre.MoreGlyph"><motion:OperatorSymbol Kind="more" Width="20" Height="20" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/></DataTemplate>
+    <Style x:Key="ControlCentre.Button" TargetType="Button"><Setter Property="ToolTipService.IsEnabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}"/>
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="False"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/><Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}"/><Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="Background" Value="{DynamicResource ControlCentre.GlassBrush}"/>
+        <Setter Property="BorderBrush" Value="#4B4B51"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="{DynamicResource ControlCentre.ControlPadding}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+            <Grid Background="Transparent"><Grid x:Name="PART_Surface" RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform>
+                <glass:OperatorGlassSurface x:Name="Bd" CornerRadius="26" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                <Border x:Name="ActionGlow" CornerRadius="26" Background="White" Opacity="0" IsHitTestVisible="False" Margin="1"/>
+                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"><ContentPresenter.Margin><MultiBinding Converter="{StaticResource ControlCentre.Insets}"><Binding Path="Width" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="Height" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="Padding" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="FontSize" RelativeSource="{RelativeSource TemplatedParent}"/></MultiBinding></ContentPresenter.Margin></ContentPresenter>
+            </Grid></Grid>
+            <ControlTemplate.Triggers>
+                <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter TargetName="Bd" Property="BorderThickness" Value="2"/></MultiTrigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="PART_Surface" Property="Opacity" Value=".38"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+        <Style.Triggers><Trigger Property="Content" Value="⋯"><Setter Property="ContentTemplate" Value="{StaticResource ControlCentre.MoreGlyph}"/><Setter Property="AutomationProperties.Name" Value="More actions"/></Trigger></Style.Triggers>
+    </Style>
+    <Style x:Key="ControlCentre.PrimaryButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}"><Setter Property="Background" Value="#F3F3F7"/><Setter Property="Foreground" Value="#121216"/><Setter Property="BorderBrush" Value="#FFFFFF"/></Style>
+    <Style x:Key="ToolBtn" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}"/>
+    <Style x:Key="PrimaryCommandButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.PrimaryButton}"/>
+    <Style x:Key="CricketActionButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}"/>
+    <Style x:Key="OperatorPresentationButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}"/>
+    <Style TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}"/>
+    <Style x:Key="SettingsInput" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/><Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="12,8"/><Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="SelectionBrush" Value="#4374A4"/><Setter Property="CaretBrush" Value="{DynamicResource ControlCentre.TextBrush}"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TextBox"><Border x:Name="Outline" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12"><ScrollViewer x:Name="PART_ContentHost"><ScrollViewer.Margin><MultiBinding Converter="{StaticResource ControlCentre.Insets}"><Binding Path="Width" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="Height" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="Padding" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="FontSize" RelativeSource="{RelativeSource TemplatedParent}"/></MultiBinding></ScrollViewer.Margin></ScrollViewer></Border><ControlTemplate.Triggers><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocusWithin" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="Outline" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/></MultiTrigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="TextBox" BasedOn="{StaticResource SettingsInput}"/>
+    <Style TargetType="glass:OperatorSearchBox" BasedOn="{StaticResource SettingsInput}">
+        <Setter Property="MinWidth" Value="0"/><Setter Property="MinHeight" Value="44"/><Setter Property="Padding" Value="0"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="glass:OperatorSearchBox">
+            <glass:OperatorGlassSurface x:Name="SearchSurface" Material="Regular" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="24">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                    <motion:OperatorSymbol x:Name="PART_SearchSymbol" Kind="search" Width="19" Height="19" VerticalAlignment="Center" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}"/>
+                    <ScrollViewer x:Name="PART_ContentHost" Grid.Column="1" Margin="0,9" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="PART_Placeholder" Grid.Column="1" Text="{TemplateBinding Placeholder}" FontSize="{TemplateBinding FontSize}" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" VerticalAlignment="Center" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"/>
+                    <Button x:Name="PART_Clear" Grid.Column="2" Width="28" Height="28" MinHeight="0" Padding="0" Margin="0,0,6,0" Focusable="False" IsTabStop="False" Visibility="Collapsed" Background="Transparent" BorderBrush="Transparent" ToolTip="Clear search" AutomationProperties.Name="Clear search">
+                        <motion:OperatorSymbol Kind="close" Width="16" Height="16" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}"/>
+                    </Button>
+                </Grid>
+            </glass:OperatorGlassSurface>
+            <ControlTemplate.Triggers>
+                <Trigger Property="HasQuery" Value="True"><Setter TargetName="PART_Placeholder" Property="Visibility" Value="Collapsed"/><Setter TargetName="PART_Clear" Property="Visibility" Value="Visible"/></Trigger>
+                <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocusWithin" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="SearchSurface" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/></MultiTrigger>
+                <Trigger Property="IsReadOnly" Value="True"><Setter TargetName="PART_Clear" Property="Visibility" Value="Collapsed"/></Trigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="SearchSurface" Property="Opacity" Value=".4"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="SettingsToggle" TargetType="CheckBox"><Setter Property="ToolTipService.IsEnabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}"/>
+        <Setter Property="motion:SettingsControlMotion.Enabled" Value="False"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/>
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}"/><Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox">
+            <Grid Background="Transparent"><Grid.ColumnDefinitions><ColumnDefinition Width="56"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Border x:Name="Track" Width="50" Height="30" CornerRadius="15" Background="#48484D" BorderBrush="#66666C" BorderThickness="1" VerticalAlignment="Center">
+                    <Ellipse x:Name="ToggleKnob" Width="24" Height="24" Fill="White" HorizontalAlignment="Left" Margin="2,0,0,0" RenderTransformOrigin=".5,.5"><Ellipse.RenderTransform><TransformGroup><ScaleTransform x:Name="TbSc"/><TranslateTransform x:Name="Thumb"/></TransformGroup></Ellipse.RenderTransform></Ellipse>
+                </Border><ContentPresenter Grid.Column="1" VerticalAlignment="Center" Margin="8,2,0,2" RecognizesAccessKey="True"/>
+            </Grid><ControlTemplate.Triggers>
+                <Trigger Property="IsChecked" Value="True"><Setter TargetName="Track" Property="Background" Value="#209A58"/><Setter TargetName="Track" Property="BorderBrush" Value="#42C27B"/></Trigger>
+                <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter TargetName="Track" Property="BorderThickness" Value="2"/></MultiTrigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}"/>
+    <Style x:Key="SettingsTile" TargetType="RadioButton"><Setter Property="ToolTipService.IsEnabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}"/>
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="False"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/><Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}"/><Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}"/>
+        <Setter Property="Padding" Value="16,12"/><Setter Property="Margin" Value="0,0,8,8"/><Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}"/><Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
+            <Grid Background="Transparent"><Grid RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform>
+                <glass:OperatorGlassSurface x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="20"/>
+                <Border x:Name="ActionGlow" Background="White" CornerRadius="20" Margin="1" Opacity="0" IsHitTestVisible="False"/>
+                <Grid Margin="{TemplateBinding Padding}"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True"/>
+                    <Border x:Name="SelectionMark" Grid.Column="1" Width="20" Height="20" CornerRadius="10" Background="#8DCDFF" Margin="10,0,0,0" Visibility="Hidden"><Path x:Name="PART_CheckPath" StrokeDashArray="22 22" StrokeDashOffset="0" Data="M4,10 L8,14 16,6" Stroke="#0A1824" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/></Border>
+                </Grid>
+            </Grid></Grid><ControlTemplate.Triggers>
+                <Trigger Property="IsChecked" Value="True"><Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}"/><Setter TargetName="Tile" Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}"/><Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}"/><Setter TargetName="SelectionMark" Property="Visibility" Value="Visible"/></Trigger>
+                <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter TargetName="Tile" Property="BorderThickness" Value="2"/></MultiTrigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="RadioButton" BasedOn="{StaticResource SettingsTile}"/>
+    <Style x:Key="SettingsSectionSurface" TargetType="Border"><Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}"/><Setter Property="BorderBrush" Value="#303035"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="22"/><Setter Property="Padding" Value="20"/><Setter Property="Margin" Value="0,0,0,16"/><Setter Property="Effect" Value="{x:Null}"/></Style>
+    <Style x:Key="PanelTab" TargetType="TabItem"><Setter Property="ToolTipService.IsEnabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}"/>
+        <Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/><Setter Property="Foreground" Value="{DynamicResource ControlCentre.SecondaryTextBrush}"/><Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/><Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem">
+            <Grid x:Name="TabHitTarget" Background="Transparent" MinWidth="44" Height="64" Margin="1,0">
+             <Grid x:Name="PART_Surface" RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform>
+              <Border x:Name="ActionGlow" CornerRadius="28" Background="White" Opacity="0" IsHitTestVisible="False"/>
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5,0">
+                <motion:OperatorSymbol Kind="{TemplateBinding Header}" IsActive="{Binding IsSelected, RelativeSource={RelativeSource TemplatedParent}}" Foreground="{TemplateBinding Foreground}" Width="24" Height="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource ControlCentre.TabLabel}}" Foreground="{TemplateBinding Foreground}" TextAlignment="Center" TextTrimming="CharacterEllipsis"/>
+              </StackPanel>
+             </Grid><Border x:Name="FocusFrame" CornerRadius="28" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Collapsed" IsHitTestVisible="False"/>
+            </Grid>
+            <ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Foreground" Value="{DynamicResource ControlCentre.TabSelectedInkBrush}"/></Trigger><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="FocusFrame" Property="Visibility" Value="Visible"/></MultiTrigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="OperatorTabs" TargetType="TabControl">
+        <Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="ItemContainerStyle" Value="{StaticResource PanelTab}"/>
+        <Setter Property="ItemsPanel"><Setter.Value><ItemsPanelTemplate><UniformGrid Rows="1"/></ItemsPanelTemplate></Setter.Value></Setter>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabControl">
+            <Grid KeyboardNavigation.TabNavigation="Local"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="0,0,0,6"/>
+                <glass:OperatorGlassSurface x:Name="PART_OperatorDock" Grid.Row="1" CornerRadius="36" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="#486886A6" BorderThickness="1" Padding="5" Margin="12,4,12,12" HorizontalAlignment="Stretch" MinWidth="0" MaxWidth="600">
+                    <Grid><motion:OperatorSelectionLens x:Name="PART_OperatorLens"/><ItemsPresenter KeyboardNavigation.TabIndex="0"/></Grid>
+                </glass:OperatorGlassSurface>
+            </Grid>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="SettingsChoiceItem" TargetType="ComboBoxItem">
+        <Setter Property="Padding" Value="12,9"/><Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem">
+            <Border x:Name="Item" Padding="{TemplateBinding Padding}" Background="Transparent" CornerRadius="10"><ContentPresenter/></Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}"/></Trigger>
+                <Trigger Property="IsSelected" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}"/><Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="SettingsChoice" TargetType="ComboBox"><Setter Property="motion:SettingsControlMotion.Enabled" Value="False"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}"/>
+        <Setter Property="FontSize" Value="14"/><Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="{DynamicResource ControlCentre.ControlPadding}"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource SettingsChoiceItem}"/>
+        <Setter Property="ItemTemplate"><Setter.Value><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap"/></DataTemplate></Setter.Value></Setter>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox">
+            <Grid>
+                <ToggleButton x:Name="Toggle" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
+                    <ToggleButton.Template><ControlTemplate TargetType="ToggleButton">
+                        <glass:OperatorGlassSurface x:Name="Frame" Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderThickness="1" CornerRadius="12">
+                            <TextBlock Text="⌄" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="21" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,4"/>
+                        </glass:OperatorGlassSurface>
+                        <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}"/></Trigger><Trigger Property="IsChecked" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}"/></Trigger></ControlTemplate.Triggers>
+                    </ControlTemplate></ToggleButton.Template>
+                </ToggleButton>
+                <ContentPresenter x:Name="SelectionLabel" Margin="12,5,36,5" VerticalAlignment="Center" IsHitTestVisible="False" ClipToBounds="True" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+                <TextBox MinHeight="0" Padding="0" x:Name="PART_EditableTextBox" Visibility="Collapsed" Margin="10,4,36,4" Background="Transparent" BorderThickness="0" Foreground="{TemplateBinding Foreground}" CaretBrush="{TemplateBinding Foreground}" VerticalContentAlignment="Center" IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" PopupAnimation="None" Focusable="False">
+                    <glass:OperatorGlassSurface GlassSource="{Binding RelativeSource={RelativeSource TemplatedParent}}" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="6" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="320">
+                        <ScrollViewer CanContentScroll="True"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer>
+                    </glass:OperatorGlassSurface>
+                </Popup>
+            </Grid>
+            <ControlTemplate.Triggers><Trigger Property="IsEditable" Value="True"><Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/><Setter TargetName="SelectionLabel" Property="Visibility" Value="Collapsed"/></Trigger><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocusWithin" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/></MultiTrigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger></ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+
+    <Style TargetType="ComboBox" BasedOn="{StaticResource SettingsChoice}"/>
+    <Style x:Key="ControlCentre.RangeTrack" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False"/><Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton">
+            <Grid Background="Transparent"><Border x:Name="Fill" Height="6" Background="{TemplateBinding Background}" CornerRadius="3" VerticalAlignment="Center"/></Grid>
+            <ControlTemplate.Triggers><DataTrigger Binding="{Binding Orientation, RelativeSource={RelativeSource AncestorType=Slider}}" Value="Vertical"><Setter TargetName="Fill" Property="Height" Value="Auto"/><Setter TargetName="Fill" Property="Width" Value="6"/><Setter TargetName="Fill" Property="VerticalAlignment" Value="Stretch"/><Setter TargetName="Fill" Property="HorizontalAlignment" Value="Center"/></DataTrigger></ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="Slider">
+        <Setter Property="motion:OperatorSliderMotion.Enabled" Value="True"/><Setter Property="MinHeight" Value="34"/>
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.AccentBrush}"/><Setter Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Slider">
+            <Grid Background="Transparent" Margin="5,3">
+                <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+                    <Track.DecreaseRepeatButton><RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource ControlCentre.RangeTrack}" Background="{TemplateBinding Foreground}"/></Track.DecreaseRepeatButton>
+                    <Track.Thumb><Thumb x:Name="SliderHandle" Width="28" Height="28"><Thumb.Template><ControlTemplate TargetType="Thumb">
+                        <Grid Background="Transparent"><Border x:Name="Grip" Width="24" Height="24" CornerRadius="12" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" RenderTransformOrigin=".5,.5">
+                            <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#D9E2EF" Offset="1"/></LinearGradientBrush></Border.Background>
+                            <Border.RenderTransform><ScaleTransform x:Name="PART_GripScale"/></Border.RenderTransform>
+                        </Border></Grid>
+                        <ControlTemplate.Triggers><MultiDataTrigger><MultiDataTrigger.Conditions><Condition Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Slider}}" Value="True"/><Condition Binding="{Binding Path=(motion:OperatorInputFocus.IsKeyboardMode), RelativeSource={RelativeSource AncestorType=Slider}}" Value="True"/></MultiDataTrigger.Conditions><Setter TargetName="Grip" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter TargetName="Grip" Property="BorderThickness" Value="2"/></MultiDataTrigger></ControlTemplate.Triggers>
+                    </ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+                    <Track.IncreaseRepeatButton><RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource ControlCentre.RangeTrack}" Background="{TemplateBinding Background}"/></Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+            <ControlTemplate.Triggers><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="ContextMenu">
+        <Setter Property="motion:OperatorMenuMotion.Enabled" Value="True"/><Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/><Setter Property="FontSize" Value="15"/><Setter Property="MinWidth" Value="224"/><Setter Property="MaxWidth" Value="380"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ContextMenu"><AdornerDecorator>
+            <glass:OperatorGlassSurface x:Name="PART_MenuSurface" GlassSource="{Binding PlacementTarget, RelativeSource={RelativeSource TemplatedParent}}" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Padding="7" CornerRadius="26">
+                <ScrollViewer CanContentScroll="True" MaxHeight="480" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"/></ScrollViewer>
+            </glass:OperatorGlassSurface>
+        </AdornerDecorator></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="FontSize" Value="15"/><Setter Property="MinHeight" Value="44"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="MenuItem">
+            <Grid><Border CornerRadius="16" x:Name="ItemSurface" Background="Transparent" Padding="10,10"><Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <motion:OperatorSymbol x:Name="Check" Kind="check" Width="17" Height="17" VerticalAlignment="Center" IsActive="{TemplateBinding IsChecked}" Visibility="Hidden" Foreground="{TemplateBinding Foreground}"/>
+                <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="{TemplateBinding InputGestureText}" FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <ContentPresenter x:Name="CommandIcon" Grid.Column="3" Content="{TemplateBinding Icon}" Width="21" Height="21" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock x:Name="Arrow" Grid.Column="4" Text="›" FontSize="22" Margin="12,0,0,0" Foreground="{TemplateBinding Foreground}" Visibility="Collapsed" VerticalAlignment="Center"/>
+            </Grid></Border>
+            <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsSubmenuOpen}" Placement="Right" AllowsTransparency="True" Focusable="False">
+                <glass:OperatorGlassSurface Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Padding="7" CornerRadius="24"><ScrollViewer MaxHeight="480" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"/></ScrollViewer></glass:OperatorGlassSurface>
+            </Popup></Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="ItemSurface" Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}"/></Trigger>
+                <Trigger Property="IsChecked" Value="True"><Setter TargetName="Check" Property="Visibility" Value="Visible"/></Trigger>
+                <Trigger Property="Icon" Value="{x:Null}"><Setter TargetName="CommandIcon" Property="Visibility" Value="Collapsed"/></Trigger>
+                <Trigger Property="HasItems" Value="True"><Setter TargetName="Arrow" Property="Visibility" Value="Visible"/></Trigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="Separator"><Setter Property="Margin" Value="12,5"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Separator"><Border Height="1" Background="{DynamicResource ControlCentre.BorderBrush}" Opacity=".6"/></ControlTemplate></Setter.Value></Setter></Style>
+    <Style TargetType="ScrollBar">
+        <Setter Property="Width" Value="10"/><Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Opacity" Value="0"/><Setter Property="MinWidth" Value="0"/><Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar">
+            <Grid Background="Transparent" Margin="2">
+                <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="True"
+                       Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" ViewportSize="{TemplateBinding ViewportSize}" Value="{TemplateBinding Value}">
+                    <Track.DecreaseRepeatButton><RepeatButton x:Name="PageBefore" Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/></Track.DecreaseRepeatButton>
+                    <Track.Thumb><Thumb x:Name="Handle" MinHeight="22" MinWidth="4"><Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="#A8A8AE" CornerRadius="3"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+                    <Track.IncreaseRepeatButton><RepeatButton x:Name="PageAfter" Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/></Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+            <ControlTemplate.Triggers><Trigger Property="Orientation" Value="Horizontal"><Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False"/><Setter TargetName="Handle" Property="MinHeight" Value="4"/><Setter TargetName="Handle" Property="MinWidth" Value="22"/><Setter TargetName="PageBefore" Property="Command" Value="ScrollBar.PageLeftCommand"/><Setter TargetName="PageAfter" Property="Command" Value="ScrollBar.PageRightCommand"/></Trigger></ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal"><Setter Property="Width" Value="Auto"/><Setter Property="Height" Value="10"/></Trigger>
+            <Trigger Property="motion:ScrollActivity.Active" Value="True">
+                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="Opacity" To=".85" Duration="0:0:0.12"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
+                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="ToolTip"><Setter Property="Foreground" Value="{DynamicResource ControlCentre.ActionTextBrush}"/><Setter Property="Background" Value="#303035"/><Setter Property="BorderBrush" Value="#65656B"/><Setter Property="Padding" Value="12,8"/><Setter Property="FontSize" Value="13"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToolTip"><glass:OperatorGlassSurface GlassSource="{Binding PlacementTarget, RelativeSource={RelativeSource TemplatedParent}}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="{TemplateBinding Padding}"><ContentPresenter/></glass:OperatorGlassSurface></ControlTemplate></Setter.Value></Setter></Style>
+    <Style TargetType="ListBox"><Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}"/><Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}"/></Style>
+    <Style TargetType="ListBoxItem"><Setter Property="Padding" Value="12,10"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><Border x:Name="Row" Padding="{TemplateBinding Padding}" CornerRadius="12" Background="Transparent"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Row" Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}"/></Trigger><Trigger Property="IsSelected" Value="True"><Setter TargetName="Row" Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}"/></Trigger><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="Row" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter TargetName="Row" Property="BorderThickness" Value="1"/></MultiTrigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+
+    <Style x:Key="SettingsSegment" TargetType="RadioButton">
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="False"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/>
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/><Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}"/><Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="MinHeight" Value="42"/><Setter Property="Padding" Value="12,9"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton"><Grid Background="Transparent"><Grid RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform><ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/></Grid><Border x:Name="FocusFrame" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" CornerRadius="22" Visibility="Hidden" IsHitTestVisible="False"/></Grid><ControlTemplate.Triggers><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="FocusFrame" Property="Visibility" Value="Visible"/></MultiTrigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="SettingsPower" TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox">
+        <Grid Background="Transparent"><Border x:Name="PowerBody" Width="50" Height="42" CornerRadius="15" Background="{DynamicResource ControlCentre.RaisedBrush}" RenderTransformOrigin=".5,.5"><Border.RenderTransform><ScaleTransform x:Name="TbSc"/></Border.RenderTransform><motion:OperatorSymbol Kind="power" Width="25" Height="25" Foreground="{DynamicResource ControlCentre.TextBrush}"/></Border>
+        <Border x:Name="PowerFocus" Width="54" Height="46" CornerRadius="17" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Collapsed" IsHitTestVisible="False"/></Grid>
+        <ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="PowerBody" Property="Background" Value="#23784B"/></Trigger><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="PowerFocus" Property="Visibility" Value="Visible"/></MultiTrigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="SettingsCommand" TargetType="RadioButton" BasedOn="{StaticResource SettingsTile}">
+      <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
+        <Grid Background="Transparent"><Grid RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform>
+          <glass:OperatorGlassSurface x:Name="ChoiceSurface" CornerRadius="23" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1"/>
+          <Border CornerRadius="23" Background="#55FFFFFF" IsHitTestVisible="False" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}"/>
+          <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+          <Ellipse Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0" Fill="{DynamicResource ControlCentre.TextBrush}" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False"/>
+        </Grid><Border x:Name="FocusFrame" CornerRadius="23" BorderThickness="2" BorderBrush="{DynamicResource ControlCentre.TextBrush}" Visibility="Collapsed" IsHitTestVisible="False"/></Grid>
+        <ControlTemplate.Triggers><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="FocusFrame" Property="Visibility" Value="Visible"/></MultiTrigger><Trigger Property="IsChecked" Value="True"><Setter TargetName="ChoiceSurface" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="SettingsRole" TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+      <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}"/>
+      <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox">
+        <Grid Background="Transparent"><Grid RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform>
+          <glass:OperatorGlassSurface x:Name="ChoiceSurface" CornerRadius="23" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1"/>
+          <Border x:Name="RoleFill" CornerRadius="23" Background="{DynamicResource ControlCentre.SelectionBrush}" IsHitTestVisible="False" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}"/>
+          <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+          <Ellipse Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0" Fill="{DynamicResource ControlCentre.TextBrush}" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False"/>
+        </Grid><Border x:Name="FocusFrame" CornerRadius="23" BorderThickness="2" BorderBrush="{DynamicResource ControlCentre.TextBrush}" Visibility="Collapsed" IsHitTestVisible="False"/></Grid>
+        <ControlTemplate.Triggers><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="FocusFrame" Property="Visibility" Value="Visible"/></MultiTrigger><Trigger Property="IsChecked" Value="True"><Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}"/><Setter TargetName="ChoiceSurface" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+</ResourceDictionary>

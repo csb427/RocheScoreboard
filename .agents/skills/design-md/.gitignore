@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Generated previews / exports
+*.preview.html
+/tmp/
+
+# OS
+.DS_Store
+Thumbs.db

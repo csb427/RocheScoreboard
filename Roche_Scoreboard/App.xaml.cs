@@ -49,7 +49,9 @@ public partial class App : Application
     /// Path to the crash log file. Each unhandled exception is appended with a
     /// timestamp so the next crash is diagnosable even if no WER dump is produced.
     /// </summary>
-    private static readonly string CrashLogPath = Path.Combine(
+    private static string CrashLogPath => SelfTestStorage.IsEnabled
+        ? SelfTestStorage.PathFor("diagnostics", "crash.log")
+        : Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Roche_Scoreboard",
         "crash.log");
@@ -57,15 +59,25 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        OperatorFeedback.Install();
 
         IsSelfTestMode = e.Args.Any(arg =>
             arg.StartsWith("--gallery-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--startup-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--preferences-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--afl-reliability-stress-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--operator-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--control-centre-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--apple-interaction-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--operator-design-preview", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--cricket-motion-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--cricket-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--cricket-workflow-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--vlc-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--prompt-snapshots=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--afl-presentation-snapshots=", StringComparison.OrdinalIgnoreCase));
+
+        SelfTestStorage.Initialize(IsSelfTestMode);
 
         // Install global exception handlers up-front so any error from here on
         // is logged (and, where possible, non-fatal ones are swallowed) rather
@@ -159,8 +171,34 @@ public partial class App : Application
         string? startupSelfTestPath = GetArgumentValue(e.Args, "--startup-self-test-output=");
         string? preferencesSelfTestPath = GetArgumentValue(e.Args, "--preferences-self-test-output=");
         string? aflReliabilityStressPath = GetArgumentValue(e.Args, "--afl-reliability-stress-output=");
+        string? cricketSelfTestPath = GetArgumentValue(e.Args, "--cricket-self-test-output=");
+        string? operatorSelfTestPath = GetArgumentValue(e.Args, "--operator-self-test-output=");
+        string? controlCentreSelfTestDirectory = GetArgumentValue(e.Args, "--control-centre-self-test-output=");
+        string? appleInteractionDirectory = GetArgumentValue(e.Args, "--apple-interaction-self-test-output=");
+        string? cricketMotionPath = GetArgumentValue(e.Args, "--cricket-motion-self-test-output=");
+        string? cricketWorkflowPath = GetArgumentValue(e.Args, "--cricket-workflow-self-test-output=");
         string? vlcSelfTestPath = GetArgumentValue(e.Args, "--vlc-self-test-output=");
         string? promptSnapshotDirectory = GetArgumentValue(e.Args, "--prompt-snapshots=");
+
+        if(e.Args.Contains("--operator-design-preview",StringComparer.OrdinalIgnoreCase))
+        {
+            MainWindow preview=new(); MainWindow=preview; preview.Show(); return;
+        }
+
+        if (controlCentreSelfTestDirectory is not null) { RunControlCentreSelfTest(controlCentreSelfTestDirectory); return; }
+        if (appleInteractionDirectory is not null) { RunControlCentreSelfTest(appleInteractionDirectory,true); return; }
+        if (operatorSelfTestPath is not null) { RunCricketSelfTest(operatorSelfTestPath, operatorOnly: true); return; }
+        if (cricketMotionPath is not null) { RunCricketSelfTest(cricketMotionPath, motionOnly: true); return; }
+        if (cricketWorkflowPath is not null)
+        {
+            RunCricketSelfTest(cricketWorkflowPath, workflowsOnly: true);
+            return;
+        }
+        if (cricketSelfTestPath is not null)
+        {
+            RunCricketSelfTest(cricketSelfTestPath);
+            return;
+        }
 
         if (promptSnapshotDirectory is not null)
         {
@@ -504,10 +542,7 @@ public partial class App : Application
     private void RunPreferencesSelfTest(string outputPath)
     {
         string resolvedOutputPath = ResolveSelfTestOutputPath(outputPath, "preferences-self-test.json");
-        string preferencesPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard",
-            "ux_preferences.json");
+        string preferencesPath = Services.UxPreferences.GetStoragePath();
 
         Directory.CreateDirectory(Path.GetDirectoryName(preferencesPath)!);
 
@@ -590,6 +625,85 @@ public partial class App : Application
         Shutdown();
     }
 
+    private void RunControlCentreSelfTest(string outputDirectory,bool focusedInteractions=false)
+    {
+        string directory = string.IsNullOrWhiteSpace(outputDirectory)
+            ? Path.Combine(SelfTestStorage.RootPath, "control-centre")
+            : Path.GetFullPath(outputDirectory);
+        Directory.CreateDirectory(directory);
+        string path = Path.Combine(directory, focusedInteractions ? "apple-interaction-self-test.json" : "control-centre-self-test.json");
+        MainWindow window;
+        try { window = new(); MainWindow = window; window.Show(); }
+        catch (Exception error)
+        {
+            File.WriteAllText(path, JsonSerializer.Serialize(new { error = error.ToString() }));
+            Shutdown();
+            return;
+        }
+        window.Dispatcher.InvokeAsync(async () =>
+        {
+            try
+            {
+                var checks = focusedInteractions ? await window.RunAppleInteractionChecksAsync(directory) : await window.RunControlCentreChecksAsync(directory);
+                checks["qa-preferences-isolated"] = Services.UxPreferences.GetStoragePath().StartsWith(
+                    SelfTestStorage.RootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                checks["qa-recovery-isolated"] = GameStateService.RecoveryStatePath.StartsWith(
+                    SelfTestStorage.RootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                checks["qa-diagnostics-isolated"] = CrashLogPath.StartsWith(
+                    SelfTestStorage.RootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                File.WriteAllText(path, JsonSerializer.Serialize(new
+                {
+                    failures = checks.Count(check => !check.Value),
+                    checks,
+                    selfTestStorageRoot = SelfTestStorage.RootPath
+                }, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception error)
+            {
+                File.WriteAllText(path, JsonSerializer.Serialize(new { error = error.ToString() }));
+            }
+            finally
+            {
+                window.Close();
+                Shutdown();
+            }
+        }, DispatcherPriority.ApplicationIdle);
+    }
+
+    private void RunCricketSelfTest(string outputPath, bool workflowsOnly = false, bool operatorOnly = false, bool motionOnly = false)
+    {
+        string path = ResolveSelfTestOutputPath(outputPath, "cricket-self-test.json");
+        MainWindow window;
+        try { window=new(); MainWindow=window; window.Show(); }
+        catch(Exception error) {File.WriteAllText(path,JsonSerializer.Serialize(new {error=error.ToString()}));Shutdown();return;}
+        window.Dispatcher.InvokeAsync(async () =>
+        {
+            try
+            {
+                var checks = operatorOnly || motionOnly ? new System.Collections.Generic.Dictionary<string,bool>() : workflowsOnly ? CricketWorkflowChecks.Run() : CricketReliabilityChecks.Run();
+                var native = motionOnly ? await window.RunCricketMotionReviewChecksAsync(Path.GetDirectoryName(path)!) : operatorOnly ? await window.RunOperatorInteractionChecksAsync(Path.GetDirectoryName(path)!) : workflowsOnly
+                    ? await window.RunCricketTargetedWorkflowChecksAsync(Path.GetDirectoryName(path)!)
+                    : await window.RunCricketLifecycleChecksAsync(Path.GetDirectoryName(path)!);
+                foreach (var check in native)
+                    checks[check.Key] = check.Value;
+                File.WriteAllText(path, JsonSerializer.Serialize(new
+                {
+                    failures = checks.Count(check => !check.Value),
+                    checks
+                }, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(path, JsonSerializer.Serialize(new { error = ex.ToString() }));
+            }
+            finally
+            {
+                window.Close();
+                Shutdown();
+            }
+        }, DispatcherPriority.ApplicationIdle);
+    }
+
     private void RunAflReliabilityStressTest(string outputPath)
     {
         string resolvedOutputPath = ResolveSelfTestOutputPath(outputPath, "afl-reliability-stress.json");
@@ -659,6 +773,7 @@ public partial class App : Application
     {
         if (!string.IsNullOrWhiteSpace(outputPath))
         {
+            outputPath = Path.GetFullPath(outputPath);
             string directory = Path.GetDirectoryName(outputPath) ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(directory))
                 Directory.CreateDirectory(directory);

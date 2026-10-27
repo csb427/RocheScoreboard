@@ -13,18 +13,32 @@ namespace Roche_Scoreboard.Services;
 /// </summary>
 internal static class GameStateService
 {
-    private static readonly string StateFilePath = Path.Combine(
+    private static string StateFilePath => SelfTestStorage.IsEnabled
+        ? SelfTestStorage.PathFor("recovery", "game_state.json")
+        : Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Roche_Scoreboard",
         "game_state.json");
-    private static readonly string BackupFilePath = StateFilePath + ".bak";
-    private static readonly string LegacyStateFilePath = Path.Combine(AppContext.BaseDirectory, "game_state.json");
+    private static string BackupFilePath => StateFilePath + ".bak";
+    private static string LegacyStateFilePath => SelfTestStorage.IsEnabled
+        ? SelfTestStorage.PathFor("legacy", "game_state.json")
+        : Path.Combine(AppContext.BaseDirectory, "game_state.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
         Converters = { new JsonStringEnumConverter() }
     };
+
+    internal static string RecoveryStatePath => StateFilePath;
+
+    // Cricket's background writer shares exactly the established recovery format.
+    // The state supplied here is detached from the live match before queuing.
+    internal static string SerializeRecoverySnapshot(GameState state)
+    {
+        state.SavedAtUtc=DateTimeOffset.UtcNow;
+        return JsonSerializer.Serialize(state,JsonOptions);
+    }
 
     /// <summary>
     /// Saves the current match state and UI configuration to disk.
