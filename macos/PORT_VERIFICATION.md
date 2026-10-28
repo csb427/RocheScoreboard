@@ -27,6 +27,9 @@ Windows source match that commit; see `windows-baseline-verification.json`.
   unsupported fonts, paint layers covering text, and SVG image-brush support.
 - Bounded scrollable screen roots and a native keyboard-focus reveal pass adjust
   nested viewports from inside out. Pointer focus does not trigger this scrolling.
+- Mac VLC initialization synchronizes plugin/data paths with native libc environment
+  variables. The first Mac CI run exposed the managed-only environment mismatch;
+  the video regression also checks native path visibility and records diagnostics.
 - Managed animations share a Background frame clock. Existing input-starvation timeout,
   diagnostics and composited software-video protections are preserved.
 

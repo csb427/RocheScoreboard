@@ -13,6 +13,9 @@ namespace RocheScoreboard.Mac.Tests;
 
 public sealed class NativeProductionTests
 {
+    [System.Runtime.InteropServices.DllImport("/usr/lib/libSystem.B.dylib", EntryPoint="getenv")]
+    private static extern nint NativeEnvironment([System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)] string name);
+
     private static async Task Settle(int milliseconds)
     {
         await Task.Delay(milliseconds);
@@ -198,11 +201,15 @@ public sealed class NativeProductionTests
         try
         {
             window.Show(); await Settle(150);
+            if(OperatingSystem.IsMacOS() && Roche_Scoreboard.Services.VlcRuntime.IsAvailable)
+                foreach(string name in new[]{"VLC_PLUGIN_PATH","VLC_DATA_PATH"})
+                    Assert.Equal(Environment.GetEnvironmentVariable(name),System.Runtime.InteropServices.Marshal.PtrToStringUTF8(NativeEnvironment(name)));
             view.SetVideoSource(Path.Combine(AppContext.BaseDirectory, "Fixtures", "test-pattern.mp4"));
             view.Play();
             var surface = view.FindControl<NativeVideoSurface>("VideoPlayer")!;
             for (int attempt = 0; attempt < 40 && surface.FramesPresented == 0; attempt++) await Settle(100);
-            Assert.True(surface.FramesPresented > 0, "VLC must deliver a real decoded frame to the output compositor.");
+            Assert.True(surface.FramesPresented > 0, "VLC must deliver a real decoded frame to the output compositor.\n"+
+                string.Join("\n",Roche_Scoreboard.Services.VideoDiagnostics.RecentEntries().Take(16).Select(entry=>$"{entry.Category}: {entry.Message} {entry.ExceptionText}")));
             Capture(window, "production-video-decoded");
             Assert.True(view.HasSource); Assert.True(view.IsPlaying);
             view.Pause(); await Settle(200); Assert.False(view.IsPlaying);
@@ -213,7 +220,15 @@ public sealed class NativeProductionTests
             Assert.True(view.Position.TotalSeconds >= 1.8);
             view.Stop(); await Settle(150); Assert.False(view.IsPlaying);
         }
-        finally { window.Close(); }
+        finally
+        {
+            if(Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR") is {} directory)
+            {
+                Directory.CreateDirectory(directory);
+                File.WriteAllLines(Path.Combine(directory,"production-video-diagnostics.txt"),Roche_Scoreboard.Services.VideoDiagnostics.RecentEntries().Select(entry=>$"{entry.TimestampUtc:O} {entry.Category}: {entry.Message} {entry.ExceptionText}"));
+            }
+            window.Close();
+        }
     }
 
     [AvaloniaFact]
