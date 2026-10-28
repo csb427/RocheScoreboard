@@ -43,13 +43,14 @@ public partial class CricketScorebugControl
         PregameHomeFallback.Text = match.TeamAAbbr; PregameAwayFallback.Text = match.TeamBAbbr;
         PregameHomeFallback.Visibility = PregameHomeLogo.Source is null ? Visibility.Visible : Visibility.Collapsed;
         PregameAwayFallback.Visibility = PregameAwayLogo.Source is null ? Visibility.Visible : Visibility.Collapsed;
-        if (_pregamePending == match.TossPending) return;
-        bool reveal = _pregamePending == true && !match.TossPending; _pregamePending = match.TossPending;
+        bool pending = match.TossPending && !match.IsMatchFinalized;
+        if (_pregamePending == pending) return;
+        bool reveal = _pregamePending == true && !pending && !match.IsMatchFinalized; _pregamePending = pending;
         int generation = ++_pregameGeneration;
         MainScoreboard.BeginAnimation(OpacityProperty, null); MainScoreboard.Opacity = 1;
         foreach (var panel in new[] { PregameHome, PregameAway }) { panel.BeginAnimation(OpacityProperty, null); panel.Opacity = 1; panel.RenderTransform = Transform.Identity; }
-        MainScoreboard.Visibility = match.TossPending ? Visibility.Hidden : Visibility.Visible;
-        PregameScreen.Visibility = match.TossPending ? Visibility.Visible : Visibility.Collapsed;
+        MainScoreboard.Visibility = pending ? Visibility.Hidden : Visibility.Visible;
+        PregameScreen.Visibility = pending ? Visibility.Visible : Visibility.Collapsed;
         if (!reveal || !IsVisible || !SystemParameters.ClientAreaAnimation) return;
         PregameScreen.Visibility = Visibility.Visible;
         var duration = TimeSpan.FromMilliseconds(700);

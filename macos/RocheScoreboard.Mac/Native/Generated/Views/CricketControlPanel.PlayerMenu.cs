@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.PlayerMenu.cs; edit translator/adapters.
-// Source SHA-256: 24c8bf27a3690b5edd13f0c1814e3d5e6bc940535e30effa00cbff79282734da
+// Source SHA-256: be0c03e8769b054e7d3f5efd6aee9b6197f19d80c8daaf77bfa0176131a11bb5
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -78,6 +78,7 @@ public partial class CricketControlPanel
         bool Active() => !closing && !completed && generation == _playerMenuGeneration && ReferenceEquals(_playerMenu, popup);
         void Detach()
         {
+            OperatorAppearance.Changed -= PreferenceChanged;
             anchor.Unloaded -= AnchorUnloaded; Unloaded -= PanelUnloaded;
             if (owner is not null)
             {
@@ -96,6 +97,14 @@ public partial class CricketControlPanel
             if (ReferenceEquals(_retiringPlayerMenu, popup)) _retiringPlayerMenu = null;
             popup.IsOpen = false;
             popup.Child = null;
+        }
+        void PreferenceChanged()
+        {
+            if (OperatorMotion.Enabled || completed) return;
+            if (closing) { Complete(); return; }
+            surface.BeginAnimation(OpacityProperty, null); surface.Opacity = 1;
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, null); scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            shift.BeginAnimation(TranslateTransform.YProperty, null); scale.ScaleX = scale.ScaleY = 1; shift.Y = 0;
         }
         void Dismiss(bool restoreFocus, bool immediate)
         {
@@ -161,6 +170,8 @@ public partial class CricketControlPanel
         {
             Add("Replace batter", "replace-batter", () => OpenBatterActionsAsync(playerIndex, true), !innings.IsComplete && !match.IsMatchFinalized);
             Add("Swap strike", "swap-strike", () => { match.RotateStrike(); return Task.CompletedTask; }, !innings.IsComplete && !match.IsMatchFinalized && innings.Striker is not null && innings.NonStriker is not null);
+            if (playerIndex == innings.NonStrikerIndex)
+                Add("Run out before delivery", "before-delivery", () => OpenUndeliveredRunOutAsync(playerIndex), match.CanRecordNonDeliveryRunOut);
         }
         Add("Edit figures", "figures", () => BeginPlayerFiguresEdit(bowling, playerIndex));
         options.KeyDown += (_, e) =>
@@ -180,9 +191,9 @@ public partial class CricketControlPanel
             if (!Active()) return;
             if (OperatorMotion.Enabled)
             {
-                scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.90, 1, TimeSpan.FromMilliseconds(260)) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-                scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.90, 1, TimeSpan.FromMilliseconds(260)) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-                shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-7, 0, TimeSpan.FromMilliseconds(260)) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.94, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.68, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+                shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-18, 0, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
                 surface.BeginAnimation(OpacityProperty, new DoubleAnimation(.65, 1, TimeSpan.FromMilliseconds(180)) { FillBehavior = FillBehavior.Stop });
             }
             Dispatcher.UIThread.Post(new Action(() =>
@@ -191,6 +202,7 @@ public partial class CricketControlPanel
                 options.Children.OfType<Button>().FirstOrDefault(b => b.IsEnabled)?.Focus();
             }), DispatcherPriority.Input);
         };
+        OperatorAppearance.Changed += PreferenceChanged;
         popup.IsOpen = true;
     }
 }

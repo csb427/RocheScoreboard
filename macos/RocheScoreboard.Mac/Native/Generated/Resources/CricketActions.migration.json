@@ -5,32 +5,38 @@
     {
       "name": "ActionRoot",
       "type": "Grid",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "TbLift",
       "type": "TranslateTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "Bd",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "ActionGlow",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "FocusFrame",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     }
   ],
   "code_source_sha256": null,

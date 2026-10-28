@@ -1,5 +1,5 @@
 // Generated from Views/CricketScorebugControl.Presentation.cs; edit translator/adapters.
-// Source SHA-256: 7a6e1959809fac103b1ebcd2e1d257aa5af29bee9221daccfd3ed1f3bd6cc9ba
+// Source SHA-256: 7ecf5034e899066d784bcc2021d4e3fb364be23f75f7b980977b3297008fe264
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -48,13 +48,14 @@ public partial class CricketScorebugControl
         PregameHomeFallback.Text = match.TeamAAbbr; PregameAwayFallback.Text = match.TeamBAbbr;
         PregameHomeFallback.IsVisible = PregameHomeLogo.Source is null ? true : false;
         PregameAwayFallback.IsVisible = PregameAwayLogo.Source is null ? true : false;
-        if (_pregamePending == match.TossPending) return;
-        bool reveal = _pregamePending == true && !match.TossPending; _pregamePending = match.TossPending;
+        bool pending = match.TossPending && !match.IsMatchFinalized;
+        if (_pregamePending == pending) return;
+        bool reveal = _pregamePending == true && !pending && !match.IsMatchFinalized; _pregamePending = pending;
         int generation = ++_pregameGeneration;
         MainScoreboard.BeginAnimation(OpacityProperty, null); MainScoreboard.Opacity = 1;
         foreach (var panel in new[] { PregameHome, PregameAway }) { panel.BeginAnimation(OpacityProperty, null); panel.Opacity = 1; panel.RenderTransform = new MatrixTransform(Matrix.Identity); }
-        MainScoreboard.IsVisible = match.TossPending ? false : true;
-        PregameScreen.IsVisible = match.TossPending ? true : false;
+        MainScoreboard.IsVisible = pending ? false : true;
+        PregameScreen.IsVisible = pending ? true : false;
         if (!reveal || !IsVisible || !NativeSystemPreferences.ClientAreaAnimation) return;
         PregameScreen.IsVisible = true;
         var duration = TimeSpan.FromMilliseconds(700);

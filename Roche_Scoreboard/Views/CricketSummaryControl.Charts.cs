@@ -5,7 +5,7 @@ namespace Roche_Scoreboard.Views;
 public partial class CricketSummaryControl
 {
     public void ShowChart(CricketMatchManager match,string mode)
-    {if(mode is not ("worm" or "manhattan") || match.CurrentInnings is null)return;SetPagedMode(match,mode);PopulateChart(match,mode);ShowSummary();}
+    {if(mode is not ("worm" or "manhattan") || match.CurrentInnings is null)return;PreparePresentationChange();SetPagedMode(match,mode);PopulateChart(match,mode);ShowSummary();}
     public void RefreshChart(CricketMatchManager match,string mode)
     {if(!IsVisible || match.CurrentInnings is null)return;SetPagedMode(match,mode);PopulateChart(match,mode);}
     private void PopulateChart(CricketMatchManager match,string mode)

@@ -1,0 +1,307 @@
+source,installed,link,status,mapped_target
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/signal-forms.md,resolved in installed layout,.agents/skills/angular-developer/references/signal-forms.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/components.md,resolved in installed layout,.agents/skills/angular-developer/references/components.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/inputs.md,resolved in installed layout,.agents/skills/angular-developer/references/inputs.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/outputs.md,resolved in installed layout,.agents/skills/angular-developer/references/outputs.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/host-elements.md,resolved in installed layout,.agents/skills/angular-developer/references/host-elements.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/signals-overview.md,resolved in installed layout,.agents/skills/angular-developer/references/signals-overview.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/linked-signal.md,resolved in installed layout,.agents/skills/angular-developer/references/linked-signal.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/resource.md,resolved in installed layout,.agents/skills/angular-developer/references/resource.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/effects.md,resolved in installed layout,.agents/skills/angular-developer/references/effects.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/signal-forms.md,resolved in installed layout,.agents/skills/angular-developer/references/signal-forms.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/template-driven-forms.md,resolved in installed layout,.agents/skills/angular-developer/references/template-driven-forms.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/reactive-forms.md,resolved in installed layout,.agents/skills/angular-developer/references/reactive-forms.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/di-fundamentals.md,resolved in installed layout,.agents/skills/angular-developer/references/di-fundamentals.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/creating-services.md,resolved in installed layout,.agents/skills/angular-developer/references/creating-services.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/defining-providers.md,resolved in installed layout,.agents/skills/angular-developer/references/defining-providers.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/injection-context.md,resolved in installed layout,.agents/skills/angular-developer/references/injection-context.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/hierarchical-injectors.md,resolved in installed layout,.agents/skills/angular-developer/references/hierarchical-injectors.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/angular-aria.md,resolved in installed layout,.agents/skills/angular-developer/references/angular-aria.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/define-routes.md,resolved in installed layout,.agents/skills/angular-developer/references/define-routes.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/loading-strategies.md,resolved in installed layout,.agents/skills/angular-developer/references/loading-strategies.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/show-routes-with-outlets.md,resolved in installed layout,.agents/skills/angular-developer/references/show-routes-with-outlets.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/navigate-to-routes.md,resolved in installed layout,.agents/skills/angular-developer/references/navigate-to-routes.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/route-guards.md,resolved in installed layout,.agents/skills/angular-developer/references/route-guards.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/data-resolvers.md,resolved in installed layout,.agents/skills/angular-developer/references/data-resolvers.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/router-lifecycle.md,resolved in installed layout,.agents/skills/angular-developer/references/router-lifecycle.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/rendering-strategies.md,resolved in installed layout,.agents/skills/angular-developer/references/rendering-strategies.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/route-animations.md,resolved in installed layout,.agents/skills/angular-developer/references/route-animations.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/tailwind-css.md,resolved in installed layout,.agents/skills/angular-developer/references/tailwind-css.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/angular-animations.md,resolved in installed layout,.agents/skills/angular-developer/references/angular-animations.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/component-styling.md,resolved in installed layout,.agents/skills/angular-developer/references/component-styling.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/testing-fundamentals.md,resolved in installed layout,.agents/skills/angular-developer/references/testing-fundamentals.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/component-harnesses.md,resolved in installed layout,.agents/skills/angular-developer/references/component-harnesses.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/router-testing.md,resolved in installed layout,.agents/skills/angular-developer/references/router-testing.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/e2e-testing.md,resolved in installed layout,.agents/skills/angular-developer/references/e2e-testing.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/cli.md,resolved in installed layout,.agents/skills/angular-developer/references/cli.md
+ecc/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/mcp.md,resolved in installed layout,.agents/skills/angular-developer/references/mcp.md
+ecc/architecture-decision-records/SKILL.md,.agents/skills/architecture-decision-records/SKILL.md,0001-use-nextjs.md,absent from approved text bundle or illustrative,
+ecc/architecture-decision-records/SKILL.md,.agents/skills/architecture-decision-records/SKILL.md,0002-postgres-over-mongo.md,absent from approved text bundle or illustrative,
+ecc/architecture-decision-records/SKILL.md,.agents/skills/architecture-decision-records/SKILL.md,0003-rest-over-graphql.md,absent from approved text bundle or illustrative,
+ecc/brand-voice/SKILL.md,.agents/skills/brand-voice/SKILL.md,references/voice-profile-schema.md,resolved in installed layout,.agents/skills/brand-voice/references/voice-profile-schema.md
+ecc/counterparty-channel-discipline/SKILL.md,.agents/skills/counterparty-channel-discipline/SKILL.md,references/strict-prompt.template.md,resolved in installed layout,.agents/skills/counterparty-channel-discipline/references/strict-prompt.template.md
+ecc/counterparty-channel-discipline/SKILL.md,.agents/skills/counterparty-channel-discipline/SKILL.md,references/channel-policy.example.yaml,resolved in installed layout,
+ecc/deep-research/SKILL.md,.agents/skills/deep-research/SKILL.md,url,absent from approved text bundle or illustrative,
+ecc/deep-research/SKILL.md,.agents/skills/deep-research/SKILL.md,url,absent from approved text bundle or illustrative,
+ecc/deep-research/SKILL.md,.agents/skills/deep-research/SKILL.md,url,absent from approved text bundle or illustrative,
+ecc/defi-amm-security/SKILL.md,.agents/skills/defi-amm-security/SKILL.md,2,absent from approved text bundle or illustrative,
+ecc/docs-governance/SKILL.md,.agents/skills/docs-governance/SKILL.md,references/artifact-role-contract.md,resolved in installed layout,.agents/skills/docs-governance/references/artifact-role-contract.md
+ecc/docs/design/plan-canvas.md,.agents/skills/_provenance/personal-skill-transfer/ecc/docs/design/plan-canvas.md,assets/plan-canvas-demo.png,absent from approved text bundle or illustrative,
+ecc/ecc-tools-cost-audit/SKILL.md,.agents/skills/ecc-tools-cost-audit/SKILL.md,../../ECC-Tools,absent from approved text bundle or illustrative,
+ecc/esign-field-placement/SKILL.md,.agents/skills/esign-field-placement/SKILL.md,references/placement-checklist.md,resolved in installed layout,.agents/skills/esign-field-placement/references/placement-checklist.md
+ecc/github-ops/SKILL.md,.agents/skills/github-ops/SKILL.md,references/ecc-release-checklist.md,resolved in installed layout,.agents/skills/github-ops/references/ecc-release-checklist.md
+ecc/golang-testing/SKILL.md,.agents/skills/golang-testing/SKILL.md,"t *testing.T, got, want T",absent from approved text bundle or illustrative,
+ecc/growth-log/SKILL.md,.agents/skills/growth-log/SKILL.md,../path/to/related-entry.md,absent from approved text bundle or illustrative,
+ecc/i18n-sync/SKILL.md,.agents/skills/i18n-sync/SKILL.md,../../hooks/README.md,absent from approved text bundle or illustrative,
+ecc/i18n-sync/SKILL.md,.agents/skills/i18n-sync/SKILL.md,../frontend-patterns/SKILL.md,resolved in installed layout,.agents/skills/frontend-patterns/SKILL.md
+ecc/i18n-sync/SKILL.md,.agents/skills/i18n-sync/SKILL.md,../seo/SKILL.md,resolved in installed layout,.agents/skills/seo/SKILL.md
+ecc/manim-video/SKILL.md,.agents/skills/manim-video/SKILL.md,assets/network_graph_scene.py,absent from approved text bundle or illustrative,
+ecc/master-agreement-generator/SKILL.md,.agents/skills/master-agreement-generator/SKILL.md,references/master-template.example.md,resolved in installed layout,.agents/skills/master-agreement-generator/references/master-template.example.md
+ecc/master-agreement-generator/SKILL.md,.agents/skills/master-agreement-generator/SKILL.md,references/spec.example.json,resolved in installed layout,
+ecc/mcp-server-patterns/SKILL.md,.agents/skills/mcp-server-patterns/SKILL.md,../../docs/capability-surface-selection.md,absent from approved text bundle or illustrative,
+ecc/openclaw-persona-forge/SKILL.md,.agents/skills/openclaw-persona-forge/SKILL.md,references/identity-tension.md,resolved in installed layout,.agents/skills/openclaw-persona-forge/references/identity-tension.md
+ecc/openclaw-persona-forge/SKILL.md,.agents/skills/openclaw-persona-forge/SKILL.md,references/boundary-rules.md,resolved in installed layout,.agents/skills/openclaw-persona-forge/references/boundary-rules.md
+ecc/openclaw-persona-forge/SKILL.md,.agents/skills/openclaw-persona-forge/SKILL.md,references/naming-system.md,resolved in installed layout,.agents/skills/openclaw-persona-forge/references/naming-system.md
+ecc/openclaw-persona-forge/SKILL.md,.agents/skills/openclaw-persona-forge/SKILL.md,references/avatar-style.md,resolved in installed layout,.agents/skills/openclaw-persona-forge/references/avatar-style.md
+ecc/openclaw-persona-forge/SKILL.md,.agents/skills/openclaw-persona-forge/SKILL.md,references/output-template.md,resolved in installed layout,.agents/skills/openclaw-persona-forge/references/output-template.md
+ecc/openclaw-persona-forge/SKILL.md,.agents/skills/openclaw-persona-forge/SKILL.md,references/error-handling.md,resolved in installed layout,.agents/skills/openclaw-persona-forge/references/error-handling.md
+ecc/operator-approval-loop/SKILL.md,.agents/skills/operator-approval-loop/SKILL.md,references/approval-ledger.sql,absent from approved text bundle or illustrative,
+ecc/operator-approval-loop/SKILL.md,.agents/skills/operator-approval-loop/SKILL.md,references/approval_claims.py,absent from approved text bundle or illustrative,
+ecc/orch-add-feature/SKILL.md,.agents/skills/orch-add-feature/SKILL.md,../orch-pipeline/SKILL.md,resolved in installed layout,.agents/skills/orch-pipeline/SKILL.md
+ecc/orch-build-mvp/SKILL.md,.agents/skills/orch-build-mvp/SKILL.md,../orch-pipeline/SKILL.md,resolved in installed layout,.agents/skills/orch-pipeline/SKILL.md
+ecc/orch-change-feature/SKILL.md,.agents/skills/orch-change-feature/SKILL.md,../orch-pipeline/SKILL.md,resolved in installed layout,.agents/skills/orch-pipeline/SKILL.md
+ecc/orch-fix-defect/SKILL.md,.agents/skills/orch-fix-defect/SKILL.md,../orch-pipeline/SKILL.md,resolved in installed layout,.agents/skills/orch-pipeline/SKILL.md
+ecc/orch-refine-code/SKILL.md,.agents/skills/orch-refine-code/SKILL.md,../orch-pipeline/SKILL.md,resolved in installed layout,.agents/skills/orch-pipeline/SKILL.md
+ecc/osint-investigation/SKILL.md,.agents/skills/osint-investigation/SKILL.md,../research-ops/SKILL.md,resolved in installed layout,.agents/skills/research-ops/SKILL.md
+ecc/osint-investigation/SKILL.md,.agents/skills/osint-investigation/SKILL.md,../deep-research/SKILL.md,resolved in installed layout,.agents/skills/deep-research/SKILL.md
+ecc/osint-investigation/SKILL.md,.agents/skills/osint-investigation/SKILL.md,../exa-search/SKILL.md,resolved in installed layout,.agents/skills/exa-search/SKILL.md
+ecc/osint-investigation/SKILL.md,.agents/skills/osint-investigation/SKILL.md,../security-review/SKILL.md,resolved in installed layout,.agents/skills/security-review/SKILL.md
+ecc/osint-investigation/SKILL.md,.agents/skills/osint-investigation/SKILL.md,LICENSE.txt,resolved in installed layout,.agents/skills/osint-investigation/LICENSE.txt
+ecc/plan-canvas/SKILL.md,.agents/skills/plan-canvas/SKILL.md,../../docs/design/plan-canvas.md,absent from approved text bundle or illustrative,
+ecc/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../../rules/react/hooks.md,absent from approved text bundle or illustrative,
+ecc/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../react-testing/SKILL.md,resolved in installed layout,.agents/skills/react-testing/SKILL.md
+ecc/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../../rules/react/,absent from approved text bundle or illustrative,
+ecc/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../react-performance/SKILL.md,resolved in installed layout,.agents/skills/react-performance/SKILL.md
+ecc/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../frontend-patterns/SKILL.md,resolved in installed layout,.agents/skills/frontend-patterns/SKILL.md
+ecc/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../angular-developer/SKILL.md,resolved in installed layout,.agents/skills/angular-developer/SKILL.md
+ecc/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../react-patterns/SKILL.md,resolved in installed layout,.agents/skills/react-patterns/SKILL.md
+ecc/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../react-testing/SKILL.md,resolved in installed layout,.agents/skills/react-testing/SKILL.md
+ecc/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../frontend-patterns/SKILL.md,resolved in installed layout,.agents/skills/frontend-patterns/SKILL.md
+ecc/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../nextjs-turbopack/SKILL.md,resolved in installed layout,.agents/skills/nextjs-turbopack/SKILL.md
+ecc/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../../rules/react/,absent from approved text bundle or illustrative,
+ecc/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../e2e-testing/SKILL.md,resolved in installed layout,.agents/skills/e2e-testing/SKILL.md
+ecc/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../../rules/react/testing.md,absent from approved text bundle or illustrative,
+ecc/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../react-patterns/SKILL.md,resolved in installed layout,.agents/skills/react-patterns/SKILL.md
+ecc/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../e2e-testing/SKILL.md,resolved in installed layout,.agents/skills/e2e-testing/SKILL.md
+ecc/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../tdd-workflow/SKILL.md,resolved in installed layout,.agents/skills/tdd-workflow/SKILL.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/3d.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/3d.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/animations.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/animations.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/assets.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/assets.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/audio.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/audio.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/calculate-metadata.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/calculate-metadata.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/can-decode.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/can-decode.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/charts.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/charts.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/compositions.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/compositions.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/display-captions.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/display-captions.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/extract-frames.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/extract-frames.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/fonts.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/fonts.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/get-audio-duration.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/get-audio-duration.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/get-video-dimensions.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/get-video-dimensions.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/get-video-duration.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/get-video-duration.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/gifs.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/gifs.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/images.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/images.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/import-srt-captions.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/import-srt-captions.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/lottie.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/lottie.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/measuring-dom-nodes.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/measuring-dom-nodes.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/measuring-text.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/measuring-text.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/sequencing.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/sequencing.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/tailwind.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/tailwind.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/text-animations.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/text-animations.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/timing.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/timing.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/transcribe-captions.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/transcribe-captions.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/transitions.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/transitions.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/trimming.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/trimming.md
+ecc/remotion-video-creation/SKILL.md,.agents/skills/remotion-video-creation/SKILL.md,rules/videos.md,resolved in installed layout,.agents/skills/remotion-video-creation/rules/videos.md
+ecc/remotion-video-creation/rules/charts.md,.agents/skills/remotion-video-creation/rules/charts.md,assets/charts-bar-chart.tsx,absent from approved text bundle or illustrative,
+ecc/remotion-video-creation/rules/text-animations.md,.agents/skills/remotion-video-creation/rules/text-animations.md,assets/text-animations-typewriter.tsx,absent from approved text bundle or illustrative,
+ecc/remotion-video-creation/rules/text-animations.md,.agents/skills/remotion-video-creation/rules/text-animations.md,assets/text-animations-word-highlight.tsx,absent from approved text bundle or illustrative,
+ecc/rules/react/hooks.md,.agents/skills/_provenance/personal-skill-transfer/ecc/rules/react/hooks.md,../typescript/patterns.md,absent from approved text bundle or illustrative,
+ecc/rules/react/hooks.md,.agents/skills/_provenance/personal-skill-transfer/ecc/rules/react/hooks.md,../common/patterns.md,absent from approved text bundle or illustrative,
+ecc/rules/react/testing.md,.agents/skills/_provenance/personal-skill-transfer/ecc/rules/react/testing.md,../typescript/testing.md,absent from approved text bundle or illustrative,
+ecc/rules/react/testing.md,.agents/skills/_provenance/personal-skill-transfer/ecc/rules/react/testing.md,../common/testing.md,absent from approved text bundle or illustrative,
+ecc/rules/react/testing.md,.agents/skills/_provenance/personal-skill-transfer/ecc/rules/react/testing.md,../../skills/e2e-testing/SKILL.md,available at mapped path,.agents/skills/e2e-testing/SKILL.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/signal-forms.md,resolved in installed layout,.agents/skills/angular-developer/references/signal-forms.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/components.md,resolved in installed layout,.agents/skills/angular-developer/references/components.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/inputs.md,resolved in installed layout,.agents/skills/angular-developer/references/inputs.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/outputs.md,resolved in installed layout,.agents/skills/angular-developer/references/outputs.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/host-elements.md,resolved in installed layout,.agents/skills/angular-developer/references/host-elements.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/signals-overview.md,resolved in installed layout,.agents/skills/angular-developer/references/signals-overview.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/linked-signal.md,resolved in installed layout,.agents/skills/angular-developer/references/linked-signal.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/resource.md,resolved in installed layout,.agents/skills/angular-developer/references/resource.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/effects.md,resolved in installed layout,.agents/skills/angular-developer/references/effects.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/signal-forms.md,resolved in installed layout,.agents/skills/angular-developer/references/signal-forms.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/template-driven-forms.md,resolved in installed layout,.agents/skills/angular-developer/references/template-driven-forms.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/reactive-forms.md,resolved in installed layout,.agents/skills/angular-developer/references/reactive-forms.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/di-fundamentals.md,resolved in installed layout,.agents/skills/angular-developer/references/di-fundamentals.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/creating-services.md,resolved in installed layout,.agents/skills/angular-developer/references/creating-services.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/defining-providers.md,resolved in installed layout,.agents/skills/angular-developer/references/defining-providers.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/injection-context.md,resolved in installed layout,.agents/skills/angular-developer/references/injection-context.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/hierarchical-injectors.md,resolved in installed layout,.agents/skills/angular-developer/references/hierarchical-injectors.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/angular-aria.md,resolved in installed layout,.agents/skills/angular-developer/references/angular-aria.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/define-routes.md,resolved in installed layout,.agents/skills/angular-developer/references/define-routes.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/loading-strategies.md,resolved in installed layout,.agents/skills/angular-developer/references/loading-strategies.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/show-routes-with-outlets.md,resolved in installed layout,.agents/skills/angular-developer/references/show-routes-with-outlets.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/navigate-to-routes.md,resolved in installed layout,.agents/skills/angular-developer/references/navigate-to-routes.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/route-guards.md,resolved in installed layout,.agents/skills/angular-developer/references/route-guards.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/data-resolvers.md,resolved in installed layout,.agents/skills/angular-developer/references/data-resolvers.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/router-lifecycle.md,resolved in installed layout,.agents/skills/angular-developer/references/router-lifecycle.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/rendering-strategies.md,resolved in installed layout,.agents/skills/angular-developer/references/rendering-strategies.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/route-animations.md,resolved in installed layout,.agents/skills/angular-developer/references/route-animations.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/tailwind-css.md,resolved in installed layout,.agents/skills/angular-developer/references/tailwind-css.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/angular-animations.md,resolved in installed layout,.agents/skills/angular-developer/references/angular-animations.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/component-styling.md,resolved in installed layout,.agents/skills/angular-developer/references/component-styling.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/testing-fundamentals.md,resolved in installed layout,.agents/skills/angular-developer/references/testing-fundamentals.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/component-harnesses.md,resolved in installed layout,.agents/skills/angular-developer/references/component-harnesses.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/router-testing.md,resolved in installed layout,.agents/skills/angular-developer/references/router-testing.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/e2e-testing.md,resolved in installed layout,.agents/skills/angular-developer/references/e2e-testing.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/cli.md,resolved in installed layout,.agents/skills/angular-developer/references/cli.md
+ecc/skills/angular-developer/SKILL.md,.agents/skills/angular-developer/SKILL.md,references/mcp.md,resolved in installed layout,.agents/skills/angular-developer/references/mcp.md
+ecc/skills/deep-research/SKILL.md,.agents/skills/deep-research/SKILL.md,url,absent from approved text bundle or illustrative,
+ecc/skills/deep-research/SKILL.md,.agents/skills/deep-research/SKILL.md,url,absent from approved text bundle or illustrative,
+ecc/skills/deep-research/SKILL.md,.agents/skills/deep-research/SKILL.md,url,absent from approved text bundle or illustrative,
+ecc/skills/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../../rules/react/hooks.md,available at mapped path,.agents/skills/_provenance/personal-skill-transfer/ecc/rules/react/hooks.md
+ecc/skills/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../react-testing/SKILL.md,resolved in installed layout,.agents/skills/react-testing/SKILL.md
+ecc/skills/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/skills/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../../rules/react/,absent from approved text bundle or illustrative,
+ecc/skills/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../react-performance/SKILL.md,resolved in installed layout,.agents/skills/react-performance/SKILL.md
+ecc/skills/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../frontend-patterns/SKILL.md,resolved in installed layout,.agents/skills/frontend-patterns/SKILL.md
+ecc/skills/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/skills/react-patterns/SKILL.md,.agents/skills/react-patterns/SKILL.md,../angular-developer/SKILL.md,resolved in installed layout,.agents/skills/angular-developer/SKILL.md
+ecc/skills/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../react-patterns/SKILL.md,resolved in installed layout,.agents/skills/react-patterns/SKILL.md
+ecc/skills/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../react-testing/SKILL.md,resolved in installed layout,.agents/skills/react-testing/SKILL.md
+ecc/skills/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../frontend-patterns/SKILL.md,resolved in installed layout,.agents/skills/frontend-patterns/SKILL.md
+ecc/skills/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/skills/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../nextjs-turbopack/SKILL.md,resolved in installed layout,.agents/skills/nextjs-turbopack/SKILL.md
+ecc/skills/react-performance/SKILL.md,.agents/skills/react-performance/SKILL.md,../../rules/react/,absent from approved text bundle or illustrative,
+ecc/skills/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/skills/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../e2e-testing/SKILL.md,resolved in installed layout,.agents/skills/e2e-testing/SKILL.md
+ecc/skills/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../../rules/react/testing.md,available at mapped path,.agents/skills/_provenance/personal-skill-transfer/ecc/rules/react/testing.md
+ecc/skills/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../react-patterns/SKILL.md,resolved in installed layout,.agents/skills/react-patterns/SKILL.md
+ecc/skills/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../accessibility/SKILL.md,resolved in installed layout,.agents/skills/accessibility/SKILL.md
+ecc/skills/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../e2e-testing/SKILL.md,resolved in installed layout,.agents/skills/e2e-testing/SKILL.md
+ecc/skills/react-testing/SKILL.md,.agents/skills/react-testing/SKILL.md,../tdd-workflow/SKILL.md,resolved in installed layout,.agents/skills/tdd-workflow/SKILL.md
+ecc/skills/remotion-video-creation/rules/charts.md,.agents/skills/remotion-video-creation/rules/charts.md,assets/charts-bar-chart.tsx,absent from approved text bundle or illustrative,
+ecc/skills/remotion-video-creation/rules/text-animations.md,.agents/skills/remotion-video-creation/rules/text-animations.md,assets/text-animations-typewriter.tsx,absent from approved text bundle or illustrative,
+ecc/skills/remotion-video-creation/rules/text-animations.md,.agents/skills/remotion-video-creation/rules/text-animations.md,assets/text-animations-word-highlight.tsx,absent from approved text bundle or illustrative,
+ecc/skills/video-editing/assets/fusion/ito-production-v1/README.md,.agents/skills/video-editing/assets/fusion/ito-production-v1/README.md,provenance.json,absent from approved text bundle or illustrative,
+ecc/skills/video-editing/assets/fusion/ito-production-v1/README.md,.agents/skills/video-editing/assets/fusion/ito-production-v1/README.md,../ito-v28/README.md,resolved in installed layout,.agents/skills/video-editing/assets/fusion/ito-v28/README.md
+ecc/skills/video-editing/assets/fusion/ito-v28/README.md,.agents/skills/video-editing/assets/fusion/ito-v28/README.md,provenance.json,absent from approved text bundle or illustrative,
+ecc/skills/video-editing/assets/fusion/ito-v28/README.md,.agents/skills/video-editing/assets/fusion/ito-v28/README.md,provenance.json,absent from approved text bundle or illustrative,
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/api-reference.md,resolved in installed layout,.agents/skills/videodb/reference/api-reference.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/search.md,resolved in installed layout,.agents/skills/videodb/reference/search.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/streaming.md,resolved in installed layout,.agents/skills/videodb/reference/streaming.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/generative.md,resolved in installed layout,.agents/skills/videodb/reference/generative.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/rtstream.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/capture.md,resolved in installed layout,.agents/skills/videodb/reference/capture.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/skills/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/use-cases.md,resolved in installed layout,.agents/skills/videodb/reference/use-cases.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,../SKILL.md,resolved in installed layout,.agents/skills/videodb/SKILL.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,search.md,resolved in installed layout,.agents/skills/videodb/reference/search.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/skills/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/skills/videodb/reference/capture-reference.md,.agents/skills/videodb/reference/capture-reference.md,capture.md,resolved in installed layout,.agents/skills/videodb/reference/capture.md
+ecc/skills/videodb/reference/capture-reference.md,.agents/skills/videodb/reference/capture-reference.md,../scripts/ws_listener.py,absent from approved text bundle or illustrative,
+ecc/skills/videodb/reference/capture-reference.md,.agents/skills/videodb/reference/capture-reference.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/skills/videodb/reference/capture-reference.md,.agents/skills/videodb/reference/capture-reference.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/skills/videodb/reference/capture.md,.agents/skills/videodb/reference/capture.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/skills/videodb/reference/editor.md,.agents/skills/videodb/reference/editor.md,streaming.md,resolved in installed layout,.agents/skills/videodb/reference/streaming.md
+ecc/skills/videodb/reference/generative.md,.agents/skills/videodb/reference/generative.md,editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/skills/videodb/reference/rtstream-reference.md,.agents/skills/videodb/reference/rtstream-reference.md,rtstream.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream.md
+ecc/skills/videodb/reference/rtstream-reference.md,.agents/skills/videodb/reference/rtstream-reference.md,../SKILL.md,resolved in installed layout,.agents/skills/videodb/SKILL.md
+ecc/skills/videodb/reference/rtstream-reference.md,.agents/skills/videodb/reference/rtstream-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/skills/videodb/reference/rtstream.md,.agents/skills/videodb/reference/rtstream.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/skills/videodb/reference/rtstream.md,.agents/skills/videodb/reference/rtstream.md,capture.md,resolved in installed layout,.agents/skills/videodb/reference/capture.md
+ecc/skills/videodb/reference/streaming.md,.agents/skills/videodb/reference/streaming.md,search.md,resolved in installed layout,.agents/skills/videodb/reference/search.md
+ecc/skills/videodb/reference/streaming.md,.agents/skills/videodb/reference/streaming.md,editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/skills/videodb/reference/use-cases.md,.agents/skills/videodb/reference/use-cases.md,api-reference.md,resolved in installed layout,.agents/skills/videodb/reference/api-reference.md
+ecc/skills/videodb/reference/use-cases.md,.agents/skills/videodb/reference/use-cases.md,capture.md,resolved in installed layout,.agents/skills/videodb/reference/capture.md
+ecc/skills/videodb/reference/use-cases.md,.agents/skills/videodb/reference/use-cases.md,editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/skills/videodb/reference/use-cases.md,.agents/skills/videodb/reference/use-cases.md,search.md,resolved in installed layout,.agents/skills/videodb/reference/search.md
+ecc/tinystruct-patterns/SKILL.md,.agents/skills/tinystruct-patterns/SKILL.md,references/architecture.md,resolved in installed layout,.agents/skills/tinystruct-patterns/references/architecture.md
+ecc/tinystruct-patterns/SKILL.md,.agents/skills/tinystruct-patterns/SKILL.md,references/routing.md,resolved in installed layout,.agents/skills/tinystruct-patterns/references/routing.md
+ecc/tinystruct-patterns/SKILL.md,.agents/skills/tinystruct-patterns/SKILL.md,references/data-handling.md,resolved in installed layout,.agents/skills/tinystruct-patterns/references/data-handling.md
+ecc/tinystruct-patterns/SKILL.md,.agents/skills/tinystruct-patterns/SKILL.md,references/database.md,resolved in installed layout,.agents/skills/tinystruct-patterns/references/database.md
+ecc/tinystruct-patterns/SKILL.md,.agents/skills/tinystruct-patterns/SKILL.md,references/system-usage.md,resolved in installed layout,.agents/skills/tinystruct-patterns/references/system-usage.md
+ecc/tinystruct-patterns/SKILL.md,.agents/skills/tinystruct-patterns/SKILL.md,references/testing.md,resolved in installed layout,.agents/skills/tinystruct-patterns/references/testing.md
+ecc/token-budget-advisor/SKILL.md,.agents/skills/token-budget-advisor/SKILL.md,../context-budget/SKILL.md,resolved in installed layout,.agents/skills/context-budget/SKILL.md
+ecc/token-card/SKILL.md,.agents/skills/token-card/SKILL.md,./tokenchit.svg,absent from approved text bundle or illustrative,
+ecc/video-editing/SKILL.md,.agents/skills/video-editing/SKILL.md,assets/fusion/ito-production-v1/README.md,resolved in installed layout,.agents/skills/video-editing/assets/fusion/ito-production-v1/README.md
+ecc/video-editing/SKILL.md,.agents/skills/video-editing/SKILL.md,assets/fusion/ito-v28/README.md,resolved in installed layout,.agents/skills/video-editing/assets/fusion/ito-v28/README.md
+ecc/video-editing/assets/fusion/ito-production-v1/README.md,.agents/skills/video-editing/assets/fusion/ito-production-v1/README.md,provenance.json,absent from approved text bundle or illustrative,
+ecc/video-editing/assets/fusion/ito-production-v1/README.md,.agents/skills/video-editing/assets/fusion/ito-production-v1/README.md,../ito-v28/README.md,resolved in installed layout,.agents/skills/video-editing/assets/fusion/ito-v28/README.md
+ecc/video-editing/assets/fusion/ito-v28/README.md,.agents/skills/video-editing/assets/fusion/ito-v28/README.md,provenance.json,absent from approved text bundle or illustrative,
+ecc/video-editing/assets/fusion/ito-v28/README.md,.agents/skills/video-editing/assets/fusion/ito-v28/README.md,provenance.json,absent from approved text bundle or illustrative,
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/api-reference.md,resolved in installed layout,.agents/skills/videodb/reference/api-reference.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/search.md,resolved in installed layout,.agents/skills/videodb/reference/search.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/streaming.md,resolved in installed layout,.agents/skills/videodb/reference/streaming.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/generative.md,resolved in installed layout,.agents/skills/videodb/reference/generative.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/rtstream.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/capture.md,resolved in installed layout,.agents/skills/videodb/reference/capture.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/videodb/SKILL.md,.agents/skills/videodb/SKILL.md,reference/use-cases.md,resolved in installed layout,.agents/skills/videodb/reference/use-cases.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,../SKILL.md,resolved in installed layout,.agents/skills/videodb/SKILL.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,search.md,resolved in installed layout,.agents/skills/videodb/reference/search.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/videodb/reference/api-reference.md,.agents/skills/videodb/reference/api-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/videodb/reference/capture-reference.md,.agents/skills/videodb/reference/capture-reference.md,capture.md,resolved in installed layout,.agents/skills/videodb/reference/capture.md
+ecc/videodb/reference/capture-reference.md,.agents/skills/videodb/reference/capture-reference.md,../scripts/ws_listener.py,absent from approved text bundle or illustrative,
+ecc/videodb/reference/capture-reference.md,.agents/skills/videodb/reference/capture-reference.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/videodb/reference/capture-reference.md,.agents/skills/videodb/reference/capture-reference.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/videodb/reference/capture.md,.agents/skills/videodb/reference/capture.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/videodb/reference/editor.md,.agents/skills/videodb/reference/editor.md,streaming.md,resolved in installed layout,.agents/skills/videodb/reference/streaming.md
+ecc/videodb/reference/generative.md,.agents/skills/videodb/reference/generative.md,editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/videodb/reference/rtstream-reference.md,.agents/skills/videodb/reference/rtstream-reference.md,rtstream.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream.md
+ecc/videodb/reference/rtstream-reference.md,.agents/skills/videodb/reference/rtstream-reference.md,../SKILL.md,resolved in installed layout,.agents/skills/videodb/SKILL.md
+ecc/videodb/reference/rtstream-reference.md,.agents/skills/videodb/reference/rtstream-reference.md,capture-reference.md,resolved in installed layout,.agents/skills/videodb/reference/capture-reference.md
+ecc/videodb/reference/rtstream.md,.agents/skills/videodb/reference/rtstream.md,rtstream-reference.md,resolved in installed layout,.agents/skills/videodb/reference/rtstream-reference.md
+ecc/videodb/reference/rtstream.md,.agents/skills/videodb/reference/rtstream.md,capture.md,resolved in installed layout,.agents/skills/videodb/reference/capture.md
+ecc/videodb/reference/streaming.md,.agents/skills/videodb/reference/streaming.md,search.md,resolved in installed layout,.agents/skills/videodb/reference/search.md
+ecc/videodb/reference/streaming.md,.agents/skills/videodb/reference/streaming.md,editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/videodb/reference/use-cases.md,.agents/skills/videodb/reference/use-cases.md,api-reference.md,resolved in installed layout,.agents/skills/videodb/reference/api-reference.md
+ecc/videodb/reference/use-cases.md,.agents/skills/videodb/reference/use-cases.md,capture.md,resolved in installed layout,.agents/skills/videodb/reference/capture.md
+ecc/videodb/reference/use-cases.md,.agents/skills/videodb/reference/use-cases.md,editor.md,resolved in installed layout,.agents/skills/videodb/reference/editor.md
+ecc/videodb/reference/use-cases.md,.agents/skills/videodb/reference/use-cases.md,search.md,resolved in installed layout,.agents/skills/videodb/reference/search.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/motion-cookbook.md,resolved in installed layout,.agents/skills/design-motion-principles/references/motion-cookbook.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/creation-gotchas.md,resolved in installed layout,.agents/skills/design-motion-principles/references/creation-gotchas.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/audit-checklist.md,resolved in installed layout,.agents/skills/design-motion-principles/references/audit-checklist.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/anti-checklist.md,resolved in installed layout,.agents/skills/design-motion-principles/references/anti-checklist.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/emil-kowalski.md,resolved in installed layout,.agents/skills/design-motion-principles/references/emil-kowalski.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/jakub-krehel.md,resolved in installed layout,.agents/skills/design-motion-principles/references/jakub-krehel.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/jhey-tompkins.md,resolved in installed layout,.agents/skills/design-motion-principles/references/jhey-tompkins.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/accessibility.md,resolved in installed layout,.agents/skills/design-motion-principles/references/accessibility.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/performance.md,resolved in installed layout,.agents/skills/design-motion-principles/references/performance.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/output-format.md,resolved in installed layout,.agents/skills/design-motion-principles/references/output-format.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,references/demo-shell.html,resolved in installed layout,.agents/skills/design-motion-principles/references/demo-shell.html
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,workflows/create.md,resolved in installed layout,.agents/skills/design-motion-principles/workflows/create.md
+personal/design-motion-principles/SKILL.md,.agents/skills/design-motion-principles/SKILL.md,workflows/audit.md,resolved in installed layout,.agents/skills/design-motion-principles/workflows/audit.md

@@ -1,36 +1,42 @@
 {
   "source": "Roche_Scoreboard/Resources/ControlCentre.xaml",
-  "source_sha256": "c1168cbef40c97f11003867f022645477ea10ca1c84ff2b200db99e293f2db7d",
+  "source_sha256": "b32b558beb5568410c0b721a366950f9d701d086e7f9ba9ac64a8094c28dbd05",
   "names": [
     {
       "name": "PART_Surface",
       "type": "Grid",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "Bd",
       "type": "OperatorGlassSurface",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "ActionGlow",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Outline",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_ContentHost",
       "type": "ScrollViewer",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_TextPresenter",
@@ -40,17 +46,20 @@
     {
       "name": "SearchSurface",
       "type": "OperatorGlassSurface",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_SearchSymbol",
       "type": "OperatorSymbol",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_ContentHost",
       "type": "ScrollViewer",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_TextPresenter",
@@ -60,197 +69,236 @@
     {
       "name": "PART_Placeholder",
       "type": "TextBlock",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Clear",
       "type": "Button",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Track",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "ToggleKnob",
       "type": "Ellipse",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "Thumb",
       "type": "TranslateTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "Tile",
       "type": "OperatorGlassSurface",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "ActionGlow",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "SelectionMark",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_CheckPath",
       "type": "Path",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TabHitTarget",
       "type": "Grid",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Surface",
       "type": "Grid",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "ActionGlow",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "FocusFrame",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_SelectedContentHost",
       "type": "ContentPresenter",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_OperatorDock",
       "type": "OperatorGlassSurface",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_OperatorLens",
       "type": "OperatorSelectionLens",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Item",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Toggle",
       "type": "ToggleButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Frame",
       "type": "OperatorGlassSurface",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "SelectionLabel",
       "type": "ContentPresenter",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_EditableTextBox",
       "type": "TextBox",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Popup",
       "type": "Popup",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Fill",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Track",
       "type": "Track",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_DecreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "SliderHandle",
       "type": "Thumb",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Grip",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_GripScale",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "PART_IncreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_MenuSurface",
       "type": "OperatorGlassSurface",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "ItemSurface",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Check",
       "type": "OperatorSymbol",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "CommandIcon",
       "type": "ContentPresenter",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Arrow",
       "type": "TextBlock",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Popup",
       "type": "Popup",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Track",
       "type": "Track",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PageBefore",
@@ -261,12 +309,14 @@
     {
       "name": "PART_DecreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Handle",
       "type": "Thumb",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PageAfter",
@@ -277,72 +327,86 @@
     {
       "name": "PART_IncreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Row",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "FocusFrame",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PowerBody",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "PowerFocus",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "ChoiceSurface",
       "type": "OperatorGlassSurface",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "FocusFrame",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "ChoiceSurface",
       "type": "OperatorGlassSurface",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "RoleFill",
-      "type": "Border",
-      "object": false
+      "type": "OperatorChoiceSurface",
+      "object": false,
+      "template": true
     },
     {
       "name": "FocusFrame",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     }
   ],
   "code_source_sha256": null,

@@ -1,5 +1,5 @@
 // Generated from MainWindow.CricketPersistence.cs; edit translator/adapters.
-// Source SHA-256: 081e9a210b400a017fbd743db95a08831198bacbed015f4999fefc7dde47b093
+// Source SHA-256: f2c75b7fdc7d3e4ba1222b55551d185c1b78187fffd7c77fcd84a49527857fd8
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -24,10 +24,9 @@ public partial class MainWindow
         if (_cricketPreviewBackup is not null) return;
 #endif
         if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true } || _cricketMatch?.CurrentInnings is null) return;
-        if (_cricketMatch.IsMatchFinalized) { ClearCricketGameStateSave(); return; }
-        bool hasStarted = _cricketMatch.AllInnings.Any(innings => innings.Deliveries.Count > 0)
-            || _cricketMatch.CurrentInnings.StrikerIndex >= 0 || _cricketMatch.CurrentInnings.CurrentBowlerIndex >= 0;
-        if (!hasStarted) return;
+        // Finalised outcomes remain available for review/reopening after a
+        // restart. Explicit reset still clears recovery through its own path.
+        if (!_cricketMatch.HasRecoverableCricketState) return;
         var cricket = _cricketMatch.CapturePersistenceState();
         var state = new GameState
         {

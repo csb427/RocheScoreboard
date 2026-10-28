@@ -1,5 +1,5 @@
 // Generated from Views/CricketScorebugControl.Context.cs; edit translator/adapters.
-// Source SHA-256: 089de74292660dfc7a88fbd13dd237b7463e15f59075b427f96aac19736be21e
+// Source SHA-256: d28dc72606ddfd473aea4e78c880c9a188941384fa0f8fdbd11273c86310a3be
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -18,6 +18,7 @@ public partial class CricketScorebugControl
     {
         var innings = match.CurrentInnings;
         if (innings is null) return ("RUN RATE", "0.00");
+        if (match.IsMatchFinalized) return ("MATCH", match.ResultKind == CricketMatchResultKind.ScoreBased ? "ENDED" : match.ResultStatusLabel);
         if (match.BreakKind != CricketBreakKind.None)
             return ("BREAK", match.BreakKind switch { CricketBreakKind.Rain => "RAIN", CricketBreakKind.Other => "PAUSED", _ => match.BreakKind.ToString().ToUpperInvariant() });
         if(match.FreeHitsEnabled && match.FreeHitPending) return ("NEXT BALL","FREE HIT");
@@ -63,6 +64,7 @@ public partial class CricketScorebugControl
     {
         var innings=match.CurrentInnings;
         if(innings is null) return ("RUN RATE","0.00");
+        if(match.IsMatchFinalized) return SelectRailContext(match,phase);
         return (((phase%4)+4)%4) switch
         {
             0 => ("REQUIRED RATE",match.RequiredRunRate?.ToString("0.00",CultureInfo.InvariantCulture) ?? "—"),

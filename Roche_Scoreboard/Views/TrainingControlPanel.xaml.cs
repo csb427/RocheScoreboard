@@ -486,6 +486,8 @@ public partial class TrainingControlPanel : UserControl
     private FrameworkElement BuildEditRowContent(TrainingTimer t, int index, string accent)
     {
         var grid = new Grid();
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -565,13 +567,23 @@ public partial class TrainingControlPanel : UserControl
         Grid.SetColumn(timeStack, 2);
         grid.Children.Add(timeStack);
 
+        var error = new TextBlock
+        {
+            Tag = "training-edit-error", Visibility = Visibility.Collapsed,
+            Foreground = FindResource("Training.ErrorBrush") as System.Windows.Media.Brush ?? throw new InvalidOperationException("Training validation brush is missing."), FontSize = 14,
+            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0)
+        };
+        Grid.SetRow(error, 1); Grid.SetColumnSpan(error, 5); grid.Children.Add(error);
+
         void Commit()
         {
             if (_session is null) return;
-            int m = ParseInt(minBox.Text, 0);
-            int s = ParseInt(secBox.Text, 0);
-            TimeSpan dur = TimeSpan.FromSeconds(Math.Max(1, m * 60 + s));
-            _session.UpdateTimer(t, titleBox.Text, dur);
+            if (!TryReadTimerDuration(minBox.Text, secBox.Text, out int totalSeconds, out string message))
+            {
+                error.Text = message; error.Visibility = Visibility.Visible; OperatorViewport.RevealValidationError(error);
+                return;
+            }
+            _session.UpdateTimer(t, titleBox.Text, TimeSpan.FromSeconds(totalSeconds));
             _editingTimerId = null;
             RebuildQueueList();
         }
@@ -836,9 +848,13 @@ public partial class TrainingControlPanel : UserControl
         if (_session is null) return;
 
         string title = string.IsNullOrWhiteSpace(NewTitleBox.Text) ? "TIMER" : NewTitleBox.Text.Trim();
-        int mins = ParseInt(NewMinutesBox.Text, 0);
-        int secs = ParseInt(NewSecondsBox.Text, 0);
-        int totalSeconds = Math.Max(1, mins * 60 + secs);
+        if (!TryReadTimerDuration(NewMinutesBox.Text, NewSecondsBox.Text, out int totalSeconds, out string message))
+        {
+            TrainingEntryError.Text = message; TrainingEntryError.Visibility = Visibility.Visible;
+            OperatorViewport.RevealValidationError(TrainingEntryError);
+            return;
+        }
+        TrainingEntryError.Text = ""; TrainingEntryError.Visibility = Visibility.Collapsed;
         TimeSpan dur = TimeSpan.FromSeconds(totalSeconds);
 
         _session.AddTimer(new TrainingTimer(title, dur));
@@ -946,4 +962,17 @@ public partial class TrainingControlPanel : UserControl
 
     private static int ParseInt(string s, int fallback) =>
         int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
+
+    private static bool TryReadTimerDuration(string? minutes, string? seconds, out int totalSeconds, out string error)
+    {
+        totalSeconds = 0; error = "Use whole, non-negative minutes and seconds.";
+        string m = string.IsNullOrWhiteSpace(minutes) ? "0" : minutes.Trim();
+        string s = string.IsNullOrWhiteSpace(seconds) ? "0" : seconds.Trim();
+        if (!int.TryParse(m, NumberStyles.None, CultureInfo.InvariantCulture, out int mins)
+            || !int.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out int secs)) return false;
+        long total = (long)mins * 60 + secs;
+        if (total == 0) { error = "Enter a duration of at least 1 second."; return false; }
+        if (total > int.MaxValue) { error = "This duration is too long. Use fewer minutes or seconds."; return false; }
+        totalSeconds = (int)total; error = ""; return true;
+    }
 }

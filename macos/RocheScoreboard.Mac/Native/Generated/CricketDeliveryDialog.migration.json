@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
-  "source_sha256": "daec7e9dba71e2a4563c5cf2cd57ca36c1435227cb9c8215fbd2dd7245ad8d2e",
+  "source_sha256": "8d064accbd5bc0ec76711908cf24d27087d22bec3f3b115ce6e3c190003102ae",
   "names": [
     {
       "name": "EntryLayout",
@@ -49,6 +49,11 @@
     },
     {
       "name": "FreeHitEntryHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WicketRuleHint",
       "type": "TextBlock",
       "object": false
     },
@@ -105,6 +110,11 @@
     {
       "name": "RunOutSourceTiles",
       "type": "UniformGrid",
+      "object": false
+    },
+    {
+      "name": "RunOutCrossingOptions",
+      "type": "StackPanel",
       "object": false
     },
     {
@@ -243,7 +253,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "4f8958ba3181e5b7cc36119811bea5823b25b276e33068b7f7589603fef2a7c1",
+  "code_source_sha256": "9247270c1a9c69694ad91e4beb215facaa28b3b5baa0acbc8e91052970b04238",
   "native_events": [
     {
       "name": "TypeChoice",

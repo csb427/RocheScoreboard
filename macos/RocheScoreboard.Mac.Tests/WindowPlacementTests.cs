@@ -8,6 +8,16 @@ using Xunit;
 namespace RocheScoreboard.Mac.Tests;
 public sealed class WindowPlacementTests
 {
+    [AvaloniaTheory]
+    [InlineData(false)] [InlineData(true)]
+    public void WindowCanCloseBeforeItsFirstShowWithoutAccessingAnUninitialisedBackend(bool owned)
+    {
+        var owner = new NativeWindow();
+        var window = new NativeWindow { Owner = owned ? owner : null };
+        int closed = 0; window.Closed += (_, _) => closed++;
+        window.Close(); owner.Close();
+        Assert.Equal(1, closed);
+    }
     [Theory]
     [InlineData(0,0,1280,720,1)]
     [InlineData(0,46,2560,1394,2)]

@@ -1,5 +1,5 @@
 // Generated from Views/OperatorViewport.cs; edit translator/adapters.
-// Source SHA-256: bbcc62c2ccf01c5fb21af5633922e693e03d2978683fe08ad99d5bbe7acba816
+// Source SHA-256: dfd6905d2f069b157be8723ca8ecb51a6dc4b2342b63ae4d9d63c1932cfe569a
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -14,6 +14,7 @@ namespace Roche_Scoreboard.Views;
 public class OperatorViewport : ScrollViewer
 {
     protected override Type StyleKeyOverride=>typeof(ScrollViewer);
+    private static int _validationScrollDepth;
     public double MinimumCanvasWidth { get; set; } = 760;
     public double MinimumCanvasHeight { get; set; } = 560;
     private bool _naturalHeight;
@@ -35,8 +36,18 @@ public class OperatorViewport : ScrollViewer
         // Focus must not scroll a different command beneath the pointer.
         NativeEvents.BringIntoView(this,(_, e) =>
         {
-            if (!NativeKeyboard.IsKeyDown(Avalonia.Input.Key.Tab)) e.Handled = true;
+            if (_validationScrollDepth == 0 && !NativeKeyboard.IsKeyDown(Avalonia.Input.Key.Tab)) e.Handled = true;
         });
+    }
+
+    /// <summary>Explicit feedback after a rejected submission must be readable,
+    /// even when pointer focus scrolling is otherwise suppressed.</summary>
+    public static void RevealValidationError(Control error)
+    {
+        error.UpdateLayout();
+        _validationScrollDepth++;
+        try { error.BringIntoView(); }
+        finally { _validationScrollDepth--; }
     }
 
     protected void FitContent()

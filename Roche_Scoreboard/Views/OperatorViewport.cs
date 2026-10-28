@@ -6,6 +6,7 @@ namespace Roche_Scoreboard.Views;
 /// <summary>Fill the operator window; scroll a usable minimum canvas instead of shrinking the entire UI.</summary>
 public class OperatorViewport : ScrollViewer
 {
+    private static int _validationScrollDepth;
     public double MinimumCanvasWidth { get; set; } = 760;
     public double MinimumCanvasHeight { get; set; } = 560;
     private bool _naturalHeight;
@@ -27,8 +28,18 @@ public class OperatorViewport : ScrollViewer
         // Focus must not scroll a different command beneath the pointer.
         RequestBringIntoView += (_, e) =>
         {
-            if (!System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.Tab)) e.Handled = true;
+            if (_validationScrollDepth == 0 && !System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.Tab)) e.Handled = true;
         };
+    }
+
+    /// <summary>Explicit feedback after a rejected submission must be readable,
+    /// even when pointer focus scrolling is otherwise suppressed.</summary>
+    public static void RevealValidationError(FrameworkElement error)
+    {
+        error.UpdateLayout();
+        _validationScrollDepth++;
+        try { error.BringIntoView(); }
+        finally { _validationScrollDepth--; }
     }
 
     protected void FitContent()

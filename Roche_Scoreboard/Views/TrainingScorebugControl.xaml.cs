@@ -38,7 +38,11 @@ public partial class TrainingScorebugControl : UserControl
     private DispatcherTimer? _strobeTimer;
     private DispatcherTimer? _holdTimer;
     private DispatcherTimer? _sessionCompleteTimer;
+    private DispatcherTimer? _promotionTimer;
     private bool _flashing;
+    private bool _advancingAfterFinish;
+    private Guid? _flashActiveId;
+    private int _visualGeneration;
 
     public TrainingScorebugControl()
     {
@@ -54,31 +58,50 @@ public partial class TrainingScorebugControl : UserControl
             }
             UpdateLive();
         };
-        Loaded += (_, _) => _uiTimer.Start();
-        Unloaded += (_, _) => _uiTimer.Stop();
+        Loaded += (_, _) => { AttachSessionEvents(); UpdateLive(); UpdateUpNext(); _uiTimer.Start(); };
+        Unloaded += (_, _) => { _uiTimer.Stop(); DetachSessionEvents(); ResetVisuals(); };
     }
 
     public void Bind(TrainingSession session)
     {
-        if (_session is not null)
-        {
-            _session.Changed -= OnSessionChanged;
-            _session.StructuralChanged -= OnStructuralChanged;
-            _session.IntervalFinished -= OnIntervalFinished;
-        }
-
+        DetachSessionEvents();
+        ResetVisuals();
         _session = session;
-        _session.Changed += OnSessionChanged;
-        _session.StructuralChanged += OnStructuralChanged;
-        _session.IntervalFinished += OnIntervalFinished;
+        AttachSessionEvents();
 
         OnStructuralChanged();
         OnSessionChanged();
     }
 
+    private void DetachSessionEvents()
+    {
+        if (_session is null) return;
+        _session.Changed -= OnSessionChanged;
+        _session.StructuralChanged -= OnStructuralChanged;
+        _session.IntervalFinished -= OnIntervalFinished;
+    }
+
+    private void AttachSessionEvents()
+    {
+        DetachSessionEvents();
+        if (_session is null) return;
+        _session.Changed += OnSessionChanged;
+        _session.StructuralChanged += OnStructuralChanged;
+        _session.IntervalFinished += OnIntervalFinished;
+    }
+
+    private void CancelInterruptedFinish()
+    {
+        // Our own advance stages the next timer. A later Clear/Skip/Remove
+        // replaces that timer and must cancel every pending visual callback.
+        if (_flashing && !_advancingAfterFinish
+            && (_session?.Active?.Id != _flashActiveId || _session?.Timers.Count == 0)) ResetVisuals();
+    }
+
     /// <summary>Light-weight refresh: live values only, no expensive layout work.</summary>
     private void OnSessionChanged()
     {
+        CancelInterruptedFinish();
         if (_flashing)
         {
             // While the finish flash is running, the visible scorebug stays
@@ -87,6 +110,7 @@ public partial class TrainingScorebugControl : UserControl
             // in real time as the next timer runs in the background.
             if (_session is not null && StagedTimerHost.Visibility == Visibility.Visible)
             {
+                StagedTitleText.Text = _session.Active?.Title.ToUpperInvariant() ?? "";
                 StagedTimerText.Text = FormatTime(_session.ActiveRemaining);
             }
             return;
@@ -97,6 +121,7 @@ public partial class TrainingScorebugControl : UserControl
     /// <summary>Heavy refresh: only fires when the queue actually changes structure.</summary>
     private void OnStructuralChanged()
     {
+        CancelInterruptedFinish();
         if (_flashing) return; // up-next visibility is owned by the finish flow during a flash
         UpdateUpNext();
     }
@@ -324,7 +349,8 @@ public partial class TrainingScorebugControl : UserControl
 
     private void OnIntervalFinished(TrainingTimer finished)
     {
-        if (_session is null) return;
+        if (_session is null || !ReferenceEquals(_session.Active, finished) || !finished.HasFinished) return;
+        ResetVisuals();
 
         // 1) Lock the visible scorebug on the just-finished timer.
         _lockedFinishedTitle = finished.Title.ToUpperInvariant();
@@ -343,7 +369,9 @@ public partial class TrainingScorebugControl : UserControl
         //    paused and waits for a manual Start press).
         bool sessionFinishing = _session.UpNext is null;
         bool autoStart = !sessionFinishing && _session.AutoAdvance;
-        _session.AdvanceAfterFinish(autoStart: autoStart);
+        _advancingAfterFinish = true;
+        try { _session.AdvanceAfterFinish(autoStart: autoStart); }
+        finally { _flashActiveId = _session.Active?.Id; _advancingAfterFinish = false; }
 
         // 4) Start the strobe (background colour change, no overlay).
         StartStrobe();
@@ -365,10 +393,13 @@ public partial class TrainingScorebugControl : UserControl
         //    finished panel slides up & out, the staged bar grows up to
         //    centre as the new active timer.
         _holdTimer?.Stop();
-        _holdTimer = new DispatcherTimer { Interval = FinishHold };
-        _holdTimer.Tick += (_, _) =>
+        var hold = new DispatcherTimer { Interval = FinishHold };
+        _holdTimer = hold;
+        int generation = _visualGeneration;
+        hold.Tick += (_, _) =>
         {
-            _holdTimer!.Stop();
+            hold.Stop();
+            if (generation != _visualGeneration || !ReferenceEquals(_holdTimer, hold)) return;
             _holdTimer = null;
             EndFlashAndPromoteStaged();
         };
@@ -425,10 +456,15 @@ public partial class TrainingScorebugControl : UserControl
             { EasingFunction = EaseOut });
 
         // Hand off after the fade completes.
+        _promotionTimer?.Stop();
         var settle = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(crossMs + 20) };
+        _promotionTimer = settle;
+        int generation = _visualGeneration;
         settle.Tick += (_, _) =>
         {
             settle.Stop();
+            if (generation != _visualGeneration || !ReferenceEquals(_promotionTimer, settle)) return;
+            _promotionTimer = null;
             FinalizeSwap();
         };
         settle.Start();
@@ -480,8 +516,10 @@ public partial class TrainingScorebugControl : UserControl
         StopStrobe();
         bool on = false;
         _strobeTimer = new DispatcherTimer { Interval = StrobePeriod };
+        int generation = _visualGeneration;
         _strobeTimer.Tick += (_, _) =>
         {
+            if (generation != _visualGeneration) return;
             on = !on;
             // Animate the ROOT background colour (no overlay layer). On the
             // "on" frame the gradient layer fades down so the red dominates;
@@ -538,10 +576,13 @@ public partial class TrainingScorebugControl : UserControl
             new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(450)) { EasingFunction = EaseOut });
 
         _sessionCompleteTimer?.Stop();
-        _sessionCompleteTimer = new DispatcherTimer { Interval = SessionCompleteFlash };
-        _sessionCompleteTimer.Tick += (_, _) =>
+        var complete = new DispatcherTimer { Interval = SessionCompleteFlash };
+        _sessionCompleteTimer = complete;
+        int generation = _visualGeneration;
+        complete.Tick += (_, _) =>
         {
-            _sessionCompleteTimer!.Stop();
+            complete.Stop();
+            if (generation != _visualGeneration || !ReferenceEquals(_sessionCompleteTimer, complete)) return;
             _sessionCompleteTimer = null;
             StopStrobe();
             SessionCompleteOverlay.BeginAnimation(OpacityProperty,
@@ -560,12 +601,15 @@ public partial class TrainingScorebugControl : UserControl
     /// </summary>
     public void ResetVisuals()
     {
+        _visualGeneration++;
         _strobeTimer?.Stop();
         _strobeTimer = null;
         _holdTimer?.Stop();
         _holdTimer = null;
         _sessionCompleteTimer?.Stop();
         _sessionCompleteTimer = null;
+        _promotionTimer?.Stop();
+        _promotionTimer = null;
         RootBg.BeginAnimation(SolidColorBrush.ColorProperty, null);
         RootBg.Color = FlashOffColor;
         GradientBg.BeginAnimation(OpacityProperty, null);
@@ -583,10 +627,19 @@ public partial class TrainingScorebugControl : UserControl
         StagedTranslate.Y = 0;
         ActiveTimerHost.BeginAnimation(OpacityProperty, null);
         ActiveTimerHost.Opacity = 1;
+        TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        TimerScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        TimerTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        TitleScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        TitleScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        TitleScale.ScaleX = TitleScale.ScaleY = 1;
         TimerScale.ScaleX = 1;
         TimerScale.ScaleY = 1;
         TimerTranslate.Y = 0;
         _flashing = false;
         _lockedFinishedTitle = null;
+        _flashActiveId = null;
+        UpdateLive();
+        UpdateUpNext();
     }
 }

@@ -13,10 +13,9 @@ public partial class MainWindow
         if (_cricketPreviewBackup is not null) return;
 #endif
         if (System.Windows.Application.Current is App { IsSelfTestMode: true } || _cricketMatch?.CurrentInnings is null) return;
-        if (_cricketMatch.IsMatchFinalized) { ClearCricketGameStateSave(); return; }
-        bool hasStarted = _cricketMatch.AllInnings.Any(innings => innings.Deliveries.Count > 0)
-            || _cricketMatch.CurrentInnings.StrikerIndex >= 0 || _cricketMatch.CurrentInnings.CurrentBowlerIndex >= 0;
-        if (!hasStarted) return;
+        // Finalised outcomes remain available for review/reopening after a
+        // restart. Explicit reset still clears recovery through its own path.
+        if (!_cricketMatch.HasRecoverableCricketState) return;
         var cricket = _cricketMatch.CapturePersistenceState();
         var state = new GameState
         {

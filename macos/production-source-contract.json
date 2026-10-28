@@ -1351,7 +1351,7 @@
     {
       "source": "Roche_Scoreboard/Resources/ControlCentre.xaml",
       "class": null,
-      "sha256": "c1168cbef40c97f11003867f022645477ea10ca1c84ff2b200db99e293f2db7d",
+      "sha256": "b32b558beb5568410c0b721a366950f9d701d086e7f9ba9ac64a8094c28dbd05",
       "named_elements": [
         "PART_Surface",
         "TbSc",
@@ -1756,8 +1756,12 @@
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
       "class": "Roche_Scoreboard.Views.CricketControlPanel",
-      "sha256": "ff2481d1422937d384394116f3bc206c5b216ccbcd2a994ec5e4706ab6da768b",
+      "sha256": "edd49be06f9d05412fd73ceefd1f3a0150a8486ffab7b1dcd6152272d72c3812",
       "named_elements": [
+        "PART_Surface",
+        "TbSc",
+        "ActionGlow",
+        "MenuKeyboardFocus",
         "PART_Surface",
         "TbSc",
         "Surface",
@@ -2174,7 +2178,7 @@
     {
       "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
       "class": "Roche_Scoreboard.Views.CricketDeliveryDialog",
-      "sha256": "daec7e9dba71e2a4563c5cf2cd57ca36c1435227cb9c8215fbd2dd7245ad8d2e",
+      "sha256": "8d064accbd5bc0ec76711908cf24d27087d22bec3f3b115ce6e3c190003102ae",
       "named_elements": [
         "EntryLayout",
         "TeamHeader",
@@ -2186,6 +2190,7 @@
         "TypeChoice",
         "WicketOptions",
         "FreeHitEntryHint",
+        "WicketRuleHint",
         "DismissalChoice",
         "DismissalTiles",
         "DismissedChoice",
@@ -2197,6 +2202,7 @@
         "RunOutOptions",
         "RunOutChoice",
         "RunOutSourceTiles",
+        "RunOutCrossingOptions",
         "RunOutNotCrossed",
         "RunOutCrossed",
         "NoBallOptions",
@@ -2498,7 +2504,7 @@
     {
       "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
       "class": "Roche_Scoreboard.Views.CricketSetupWizard",
-      "sha256": "3091861d60ba581461402c755cc07b9e220a126588fe5befb2c77b100866889d",
+      "sha256": "9539a7a091074054dd624661cc69064bbe491952a738dd486060e4b82a4c7e9c",
       "named_elements": [
         "WizardBody",
         "TeamsStepContainer",
@@ -4991,7 +4997,7 @@
     {
       "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml",
       "class": "Roche_Scoreboard.Views.TrainingControlPanel",
-      "sha256": "2582e3c6c7d577eb550a74818aeb46c8c31421163b8571c5e6712fa133176f67",
+      "sha256": "6f35748007e28b2e38c611bafad7993aa87b5ae5c2ec3a72f1c9bfc77b048ce8",
       "named_elements": [
         "TrainingViewport",
         "TrainingHeaderGrid",
@@ -5028,6 +5034,7 @@
         "NewTitleBox",
         "NewMinutesBox",
         "NewSecondsBox",
+        "TrainingEntryError",
         "AddTimerButton",
         "RecentTimersPanel",
         "RecentTimersEmptyText",
@@ -5303,7 +5310,7 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CloudRemote.cs",
-      "sha256": "ffafb26376ea241b8cde813e55d1f728916aec6969d9e6ce369746db6e8946fa",
+      "sha256": "bb71d5893fb12588197c64b047092cdc04f6a3a74d5ceffb709e4af05ac05946",
       "lines": 578,
       "native_libraries": []
     },
@@ -5381,8 +5388,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CricketPersistence.cs",
-      "sha256": "081e9a210b400a017fbd743db95a08831198bacbed015f4999fefc7dde47b093",
-      "lines": 46,
+      "sha256": "f2c75b7fdc7d3e4ba1222b55551d185c1b78187fffd7c77fcd84a49527857fd8",
+      "lines": 45,
       "native_libraries": []
     },
     {
@@ -5535,32 +5542,38 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.xaml.cs",
-      "sha256": "782b9f76632578fd65e836f1ad1f2c23159f63e1f60b2e8acbc17a4c1243252b",
+      "sha256": "703df122a5eeaaa8cdd287a7b5645184327799ecc6915b6796e17588bb198ad1",
       "lines": 3572,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Models/CricketAnalytics.cs",
-      "sha256": "2ec883877eb2bb6c0118c7efe37687babdde6ea7f82fe5b3d4c06006b61f7543",
+      "sha256": "ac9fc697c1b28c4cc3dfaaa9bfc55cc587e6ffa7648ce91c38415a927da4380e",
       "lines": 156,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Models/CricketChartData.cs",
-      "sha256": "d49b74406d1458ebdaa9c60eff5b96ba2e401faad779892b93136603b83cf770",
-      "lines": 32,
+      "sha256": "0f625c6b74d95cd59a16b7ea589236051c281e02ec88729fd092729cac8997d3",
+      "lines": 48,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Models/CricketDeliveryEditing.cs",
-      "sha256": "3efe439c5da2ff6e8490f6536d299dbc20ecf42d0e7fa5c538337547873053db",
-      "lines": 222,
+      "sha256": "ff2fcaf92ae7695a83715c4c3239820f90dbd3fec6e0edfd68b311c336fe4e49",
+      "lines": 224,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Models/CricketDeliveryRules.cs",
-      "sha256": "bb674772de4581c751d113b60eaf00c2ea322dd7e1a4350d9920eb24fd5976d4",
-      "lines": 19,
+      "sha256": "39c8644051cc3cb9ae2c8f7cf08a62e78ac861103ae7fe750287d979639a062d",
+      "lines": 36,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketExceptionalEvents.cs",
+      "sha256": "332ff4ce44540c6d1a38dd57f9cd12371ae2ed30cdca86b2b17730c1e254d42c",
+      "lines": 139,
       "native_libraries": []
     },
     {
@@ -5571,14 +5584,14 @@
     },
     {
       "source": "Roche_Scoreboard/Models/CricketMatchManager.cs",
-      "sha256": "dec9b9b41dccdf2690f792356cdc84360765b9e5445293aad662d01aa08cc399",
-      "lines": 1325,
+      "sha256": "0effa5aa8e244ea0b3f45529b28a0d387f5817ec598bf285358367c9a7d89853",
+      "lines": 1363,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Models/CricketMatchOperations.cs",
-      "sha256": "eac796b9e03d046ddffdc5c2de4fd205f20d42b44caacb6e823bfaf4e5ec6e63",
-      "lines": 186,
+      "sha256": "85e135bd69a2f0f744c28b9858c1ca3a2cf9d884082a8140eec9ec35df19a78e",
+      "lines": 168,
       "native_libraries": []
     },
     {
@@ -5607,8 +5620,8 @@
     },
     {
       "source": "Roche_Scoreboard/Models/CricketPlayerOperations.cs",
-      "sha256": "5e81b9c0efe01748c2a5ad230a204df1b32223211be4f3af4bf9111fa2d2088a",
-      "lines": 75,
+      "sha256": "e00d2e30247c48c8787920d205cdc8ca93de759cee35c787719b1277f3fddb8e",
+      "lines": 80,
       "native_libraries": []
     },
     {
@@ -5619,8 +5632,8 @@
     },
     {
       "source": "Roche_Scoreboard/Models/CricketScorecardEditing.cs",
-      "sha256": "27f0e8be16afeafd5370e75d1c1b707e974aadde73ef56ea8d3a82415bc22b67",
-      "lines": 230,
+      "sha256": "bbfba2abeb3db8890ac2730bca48f566be3a4eb7cb570f3a280399d48ca4e1b8",
+      "lines": 227,
       "native_libraries": []
     },
     {
@@ -5697,8 +5710,8 @@
     },
     {
       "source": "Roche_Scoreboard/Models/TrainingSession.cs",
-      "sha256": "a60aa61a0a5ea7b08519e73d8e99b4e33d40a2c4300acfe9f0278168c3143bd5",
-      "lines": 355,
+      "sha256": "0fa53afab4ef2848e807b9abe944a1d08b65c57d0606b176d13df69eea9d8fee",
+      "lines": 359,
       "native_libraries": []
     },
     {
@@ -5919,8 +5932,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/CricketPersistenceChecks.cs",
-      "sha256": "4c0a2efddf25c1b5c04c40525ab72dd087a98799a92a30ec700ac339ecb59984",
-      "lines": 85,
+      "sha256": "5cb94217540ac18cbed82010784f6658efb02f70e28fcb4a27358fd951b3783e",
+      "lines": 92,
       "native_libraries": []
     },
     {
@@ -6018,8 +6031,14 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorChoiceMotion.cs",
-      "sha256": "3e8bca3f4f4f4441c549c138154431c8a03f8c5aec8f3d6144114e37a3f42738",
-      "lines": 34,
+      "sha256": "3eebbcc99bcdaaab9f034fcbb984d2141e017f8feace258d5a74124604e8c3d1",
+      "lines": 37,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorChoiceSurface.cs",
+      "sha256": "beda71025254cd615ec08768c399b1b0bae5cde17fe7ade323c6df9daa2fed8b",
+      "lines": 24,
       "native_libraries": []
     },
     {
@@ -6042,8 +6061,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorFeedback.cs",
-      "sha256": "b8adc289366351690a97074a513c87d32e1e585ac62b0476bc72aa22f21ca410",
-      "lines": 215,
+      "sha256": "dcaa8f0837f5bdb71b2564287680030530584887e52d077131ad70a4131d2410",
+      "lines": 223,
       "native_libraries": []
     },
     {
@@ -6078,14 +6097,14 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorMenuMotion.cs",
-      "sha256": "260e4be135b41ba7f697a933b751dd2581ce3533715eee4bdfa6752c8ae5e873",
+      "sha256": "67eb1987719c777147ebc83ae383be5c290186b0eda763ceed59dd9321cb6b15",
       "lines": 62,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorMotion.cs",
-      "sha256": "738936e0e1700c1eb61f84718855e6f5711b78a4e09ae2b5c9f11e2ad2ab808c",
-      "lines": 23,
+      "sha256": "635357d16110c2dccff926b782d3378176f03a6ab780299331ad6775caa1a316",
+      "lines": 25,
       "native_libraries": []
     },
     {
@@ -6114,8 +6133,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorSymbol.cs",
-      "sha256": "6c7e5a92eddf188090eec3d57ad0c819fd36903aaae76ce8da94f577183f6061",
-      "lines": 183,
+      "sha256": "43b033c0eb10243d57941495624d1e6e1d24aed6cf2824af9bb3b28128c74923",
+      "lines": 190,
       "native_libraries": []
     },
     {
@@ -6322,8 +6341,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketChartVisual.cs",
-      "sha256": "c4169d6846000da841613fa1039a2fc0b786ac5e27f5cec0cfcba3000915eff6",
-      "lines": 131,
+      "sha256": "d5988e02fd023d15d9fdf5ffbee484ef9eac5d30dc2f56fca126089dd8f947c6",
+      "lines": 150,
       "native_libraries": []
     },
     {
@@ -6339,15 +6358,21 @@
       "native_libraries": []
     },
     {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.ExceptionalEvents.cs",
+      "sha256": "e68ddef1aee5f3e9013625aa40a366bd15e15d52e390f3e74f17f4ae0d5a30c6",
+      "lines": 81,
+      "native_libraries": []
+    },
+    {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.Guidance.cs",
-      "sha256": "9cfbeb2b07675ad6084571ea1f5598adb73939d092839d6eac6ba856c7010d57",
+      "sha256": "2956eecd2efa3f04648f4024b63e2b772cf7bd9efd86e8b7bddd89d08bd1f4fa",
       "lines": 57,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.PlayerMenu.cs",
-      "sha256": "24c8bf27a3690b5edd13f0c1814e3d5e6bc940535e30effa00cbff79282734da",
-      "lines": 209,
+      "sha256": "be0c03e8769b054e7d3f5efd6aee9b6197f19d80c8daaf77bfa0176131a11bb5",
+      "lines": 221,
       "native_libraries": []
     },
     {
@@ -6370,38 +6395,38 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.ScorecardTransactions.cs",
-      "sha256": "b551d9547405653c374c4ca57b5cbb21a02b6ee659f1601e8d4d53836ac79958",
-      "lines": 69,
+      "sha256": "c526d77764cc7ffeaf7c510301e34b4ec8314c990362fec2ab0b1d8e88ebaa44",
+      "lines": 70,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.Workflows.cs",
-      "sha256": "fcd4c276b450597395335fe8197a346c1f3252f404845f677473c0649e90e880",
-      "lines": 322,
+      "sha256": "dd5d8cd1c2c617df69dfba75dbab907e03d0387d0b192fbc75427f2a2da1271e",
+      "lines": 330,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml.cs",
-      "sha256": "ffdfb5d50652117fe5255e78694584e4264738a3ca0d5f811419b6c8c03f2704",
-      "lines": 1346,
+      "sha256": "ff07b46ceeb00096ff36235248381214abd6f39adc0b448fe7df13f23aa7c61c",
+      "lines": 1352,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml.cs",
-      "sha256": "4f8958ba3181e5b7cc36119811bea5823b25b276e33068b7f7589603fef2a7c1",
-      "lines": 378,
+      "sha256": "9247270c1a9c69694ad91e4beb215facaa28b3b5baa0acbc8e91052970b04238",
+      "lines": 398,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketOverlayHost.FreeHit.cs",
-      "sha256": "d0fd5cb7d18c7398251b2403efc22ce13f1253143473a06a45ca28ab971fdb8f",
-      "lines": 143,
+      "sha256": "3666b2d9bee5a6f54072183fc17efdc8c6075f1accb83f981bb3c604c69c9b92",
+      "lines": 144,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketOverlayHost.cs",
-      "sha256": "1acbfd98cfb3a4cc50011367651b49e3f3c34f9cb101bcde8a595bd4f5ebe36f",
-      "lines": 366,
+      "sha256": "afd5659e70b09e7741b9ce0f602bf0803e1c15e2c24fcde9a0d12d5523b823cd",
+      "lines": 393,
       "native_libraries": []
     },
     {
@@ -6418,8 +6443,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketScorebugControl.Context.cs",
-      "sha256": "089de74292660dfc7a88fbd13dd237b7463e15f59075b427f96aac19736be21e",
-      "lines": 65,
+      "sha256": "d28dc72606ddfd473aea4e78c880c9a188941384fa0f8fdbd11273c86310a3be",
+      "lines": 67,
       "native_libraries": []
     },
     {
@@ -6442,13 +6467,13 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketScorebugControl.Presentation.cs",
-      "sha256": "7a6e1959809fac103b1ebcd2e1d257aa5af29bee9221daccfd3ed1f3bd6cc9ba",
-      "lines": 243,
+      "sha256": "7ecf5034e899066d784bcc2021d4e3fb364be23f75f7b980977b3297008fe264",
+      "lines": 244,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml.cs",
-      "sha256": "b217f75a47d5322c8902867596800de8d4e664e050d81019aae5f93a8eeb7ff1",
+      "sha256": "d9867b9f899378b46a3d226a7519f01a4d0c710e9a3823e5e356adc17302740b",
       "lines": 796,
       "native_libraries": []
     },
@@ -6472,20 +6497,20 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketSummaryControl.Charts.cs",
-      "sha256": "bf2d42c65604844decd4372a1d42ee79c98b63ff49ef99b4a6dd27040f3612c6",
+      "sha256": "e306d97159dcfc173ceecd092a0f1adad5b4cb3822e6449ed68f621497919389",
       "lines": 19,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketSummaryControl.MatchSummary.cs",
-      "sha256": "df951f7b639a0aecee2d96bd8782be6f595d4536d80de1e3e81404d7df941f6d",
-      "lines": 113,
+      "sha256": "3e412f10527152ca512c20f90b7febc26e22a0b16254322c21a285c3d70537e2",
+      "lines": 114,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketSummaryControl.xaml.cs",
-      "sha256": "6324c11c31d0fe743e999903fe557b208bee522b97dd51cacb0b02b30162c2a2",
-      "lines": 339,
+      "sha256": "fee27b3441d7d020faa6f4c4d53f6010002913788b1ba0e34262ccb01400deff",
+      "lines": 375,
       "native_libraries": []
     },
     {
@@ -6574,8 +6599,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/OperatorViewport.cs",
-      "sha256": "bbcc62c2ccf01c5fb21af5633922e693e03d2978683fe08ad99d5bbe7acba816",
-      "lines": 61,
+      "sha256": "dfd6905d2f069b157be8723ca8ecb51a6dc4b2342b63ae4d9d63c1932cfe569a",
+      "lines": 72,
       "native_libraries": []
     },
     {
@@ -6610,8 +6635,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/ResumeMatchPrompt.xaml.cs",
-      "sha256": "eee699730172d4c1bd1654007adb73b511e9927843162757755c8c57c941d42a",
-      "lines": 117,
+      "sha256": "38f4d7623ca17f54f466fedd9af868526cad13fa27229fec3a7c63657685cf04",
+      "lines": 119,
       "native_libraries": []
     },
     {
@@ -6658,8 +6683,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/SharedSurfaceMotion.cs",
-      "sha256": "b6811fab20a0ae7dfc2c7748cbe3c1161c133ca20da97d08ef74829bd10f162f",
-      "lines": 77,
+      "sha256": "32ba9aca6e98750639ec63106f349d5e81b266c0c851c6581d7bf2f33452e741",
+      "lines": 80,
       "native_libraries": []
     },
     {
@@ -6706,14 +6731,14 @@
     },
     {
       "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml.cs",
-      "sha256": "8db294f05c3fd2dab11718e5436d19e6154973e49e975d084cd38f40651a4817",
-      "lines": 949,
+      "sha256": "885d2e5186bad869951c386d08d67e6bc4146678a4af972df2de784e85149a87",
+      "lines": 978,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/TrainingScorebugControl.xaml.cs",
-      "sha256": "39d2f25f73532db6ce2c2b8d5e97994342d853947667dda9374fdd6e9bcd1e7b",
-      "lines": 592,
+      "sha256": "3c114a4bfa8029ed72e275087fb625d0f6700cbe2dad6c9e57aef553adc72e26",
+      "lines": 645,
       "native_libraries": []
     },
     {

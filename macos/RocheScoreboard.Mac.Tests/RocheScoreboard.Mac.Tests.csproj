@@ -21,5 +21,6 @@
     <Compile Include="../../Roche_Scoreboard/Services/CricketWorkflowChecks.cs" Link="ProductionChecks/CricketWorkflowChecks.cs" />
     <Compile Include="../../Roche_Scoreboard/Services/CricketDeliveryLogChecks.cs" Link="ProductionChecks/CricketDeliveryLogChecks.cs" />
     <Compile Include="../../Roche_Scoreboard/Services/CricketTossChecks.cs" Link="ProductionChecks/CricketTossChecks.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/CricketPersistenceChecks.cs" Link="ProductionChecks/CricketPersistenceChecks.cs" />
   </ItemGroup>
 </Project>

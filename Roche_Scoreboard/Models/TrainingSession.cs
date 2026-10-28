@@ -260,6 +260,7 @@ public sealed class TrainingSession
     /// </summary>
     public void Skip()
     {
+        if (Active is null) return;
         if (Active is { } a)
         {
             a.Remaining = TimeSpan.Zero;
@@ -279,6 +280,9 @@ public sealed class TrainingSession
     /// </summary>
     public void AdvanceAfterFinish(bool autoStart)
     {
+        // A delayed or duplicate finish notification must not consume a new
+        // interval after Skip, Clear or a queue edit.
+        if (Active is not { HasFinished: true }) return;
         if (Active is { } a)
         {
             a.Remaining = TimeSpan.Zero;

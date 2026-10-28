@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketSummaryControl.xaml.cs; edit translator/adapters.
-// Source SHA-256: 6324c11c31d0fe743e999903fe557b208bee522b97dd51cacb0b02b30162c2a2
+// Source SHA-256: fee27b3441d7d020faa6f4c4d53f6010002913788b1ba0e34262ccb01400deff
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -10,6 +10,7 @@ using Avalonia.Layout;
 using Avalonia.Input;
 using RocheScoreboard.Mac.Native;
 using System;
+using Avalonia.Media.Imaging;
 using Roche_Scoreboard.Models;
 using Roche_Scoreboard.Services;
 using Color = Avalonia.Media.Color;
@@ -23,6 +24,23 @@ namespace Roche_Scoreboard.Views
     public partial class CricketSummaryControl : UserControl
     {
         private int _transitionGeneration;
+        private Avalonia.Controls.Image? _presentationGhost;
+        private IImage? _previousPresentation;
+        private void PreparePresentationChange()
+        {
+            _previousPresentation = null;
+            if (!IsVisible || !OperatorMotion.Enabled || !OverlayMotionEnabled || RootGrid.NativeWidth() < 1 || RootGrid.NativeHeight() < 1) return;
+            // Capture the current composition, including an interrupted outgoing
+            // frame, before replacing any rows. The incoming screen stays opaque.
+            var frame = new NativeRenderTargetBitmap((int)Math.Ceiling(RootGrid.NativeWidth()), (int)Math.Ceiling(RootGrid.NativeHeight()), 96, 96, PixelFormats.Bgra32);
+            frame.Render(RootGrid); frame.Freeze(); _previousPresentation = frame;
+        }
+        private void ClearPresentationGhost()
+        {
+            if (_presentationGhost is null) return;
+            _presentationGhost.BeginAnimation(OpacityProperty, null);
+            RootGrid.Children.Remove(_presentationGhost); _presentationGhost = null;
+        }
         private bool _overlayCompact;
         internal bool OverlayMotionEnabled {get;set;}=true;
         public void SetOverlayCompact(bool compact)
@@ -90,7 +108,7 @@ namespace Roche_Scoreboard.Views
             _pageTimer.Tick += (_, __) => TickSummary();
             Loaded += (_, __) => { if (IsVisible) _pageTimer.Start(); };
             NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, __) => { if (IsVisible) _pageTimer.Start(); else _pageTimer.Stop(); });
-            Unloaded += (_, __) => _pageTimer.Stop();
+            Unloaded += (_, __) => { _pageTimer.Stop(); ++_transitionGeneration; ClearPresentationGhost(); _previousPresentation = null; };
             SizeChanged += (_, e) => { BroadcastLayout.FitCanvas(RootGrid,e.NewSize.Width,e.NewSize.Height); if(_overlayCompact) RootGrid.RowDefinitions[0].Height=new GridLength(RootGrid.Height*.27); };
         }
 
@@ -98,7 +116,7 @@ namespace Roche_Scoreboard.Views
         {
             var inn = match.CurrentInnings;
             if (inn == null) return;
-
+            PreparePresentationChange();
             SetPagedMode(match, "batting");
             PopulateBatting(match, inn);
             ShowSummary();
@@ -108,7 +126,7 @@ namespace Roche_Scoreboard.Views
         {
             var inn = match.CurrentInnings;
             if (inn == null) return;
-
+            PreparePresentationChange();
             SetPagedMode(match, "bowling");
             PopulateBowling(match, inn);
             ShowSummary();
@@ -295,13 +313,27 @@ namespace Roche_Scoreboard.Views
 
         private void ShowSummary()
         {
-            _transitionGeneration++;
+            int generation = ++_transitionGeneration;
+            bool replacing = IsVisible;
+            ClearPresentationGhost();
             this.BeginAnimation(OpacityProperty, null);
             RootTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             RootTranslate.BeginAnimation(TranslateTransform.YProperty, null);
             RootTranslate.X = RootTranslate.Y = 0;
             IsVisible = true;
             Opacity = 1;
+            if (_previousPresentation is not null && OperatorMotion.Enabled && OverlayMotionEnabled)
+            {
+                var ghost = new Avalonia.Controls.Image { Source = _previousPresentation, Stretch = Stretch.Fill, IsHitTestVisible = false, Tag = "presentation-outgoing-frame" };
+                _previousPresentation = null; _presentationGhost = ghost;
+                Avalonia.Controls.Grid.SetRowSpan(ghost, 4); RootGrid.Children.Add(ghost);
+                var dissolve = new DoubleAnimation(1, 0, BroadcastMotion.PresentationDuration) { FillBehavior = FillBehavior.Stop, EasingFunction = BroadcastMotion.CreateOverlayEase() };
+                dissolve.Completed += (_, _) => { if (generation == _transitionGeneration) ClearPresentationGhost(); };
+                ghost.BeginAnimation(OpacityProperty, dissolve);
+                return;
+            }
+            _previousPresentation = null;
+            if (replacing || !OperatorMotion.Enabled || !OverlayMotionEnabled) return;
             this.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, BroadcastMotion.PresentationDuration)
             { FillBehavior = FillBehavior.Stop, EasingFunction = BroadcastMotion.CreateOverlayEase() });
             RootTranslate.BeginAnimation(TranslateTransform.YProperty,
@@ -318,11 +350,15 @@ namespace Roche_Scoreboard.Views
             RootTranslate.BeginAnimation(TranslateTransform.YProperty, null);
             RootTranslate.X = RootTranslate.Y = 0;
             Opacity = 0;
+            _previousPresentation = null;
+            if (!OperatorMotion.Enabled || !OverlayMotionEnabled)
+            { ClearPresentationGhost(); IsVisible = false; Opacity = 1; return; }
             var fadeOut = new DoubleAnimation(opacity, 0, BroadcastMotion.PresentationDuration)
             { FillBehavior = FillBehavior.Stop, EasingFunction = BroadcastMotion.CreateOverlayEase() };
             fadeOut.Completed += (_, __) =>
             {
                 if (generation != _transitionGeneration) return;
+                ClearPresentationGhost();
                 IsVisible = false;
             };
             this.BeginAnimation(OpacityProperty, fadeOut);

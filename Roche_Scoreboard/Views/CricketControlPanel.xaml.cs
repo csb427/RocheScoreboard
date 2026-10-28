@@ -32,6 +32,7 @@ namespace Roche_Scoreboard.Views
         {
             if (_overlayHost != null) _overlayHost.StateChanged -= RefreshOverlayControls;
             _overlayHost = host; host.StateChanged += RefreshOverlayControls;
+            host.SetPresentation(_currentPresentation);
             host.AutomaticEnabled = CricketAutomaticOverlays.IsChecked == true;
             CricketOverlayButtons.Children.Clear(); _overlayButtons.Clear();
             foreach (CricketOverlayGroup group in Enum.GetValues<CricketOverlayGroup>())
@@ -87,6 +88,7 @@ namespace Roche_Scoreboard.Views
             CricketOverlayKind.Comparison => "CHASE COMPARISON",
             CricketOverlayKind.Projection => "PROJECTED SCORE",
             CricketOverlayKind.Toss => "TOSS RESULT",
+            CricketOverlayKind.Boundaries => "INNINGS BOUNDARIES",
             _ => "EXTRAS"
         };
         private void RefreshOverlayControls()
@@ -96,9 +98,9 @@ namespace Roche_Scoreboard.Views
             foreach (var button in _overlayButtons.Values)
             {
                 var fact = _overlayHost.Facts.FirstOrDefault(f => f.Kind == (CricketOverlayKind)button.Tag);
-                button.IsEnabled = fact?.Available == true;
+                button.IsEnabled = _overlayHost.AllowsOverlays && fact?.Available == true;
                 button.Opacity = button.IsEnabled ? 1 : .45;
-                button.ToolTip = fact?.Available == true ? fact.Title : fact?.UnavailableReason;
+                button.ToolTip = !_overlayHost.AllowsOverlays ? "Return to the live scorebug to show overlays" : fact?.Available == true ? fact.Title : fact?.UnavailableReason;
             }
         }
         private void AutoOverlays_Changed(object sender, RoutedEventArgs args)
@@ -343,7 +345,7 @@ namespace Roche_Scoreboard.Views
         {
             _cpTopBatterIndex = -1;
             _cpBottomBatterIndex = -1;
-            if (_match?.TossPending == true) return;
+            if (_match?.TossPending == true || _match?.IsMatchFinalized == true) return;
             _batterSelectionMode = "striker";
             ShowBatterSelection("SELECT OPENING STRIKER");
         }
@@ -351,7 +353,7 @@ namespace Roche_Scoreboard.Views
         public void ResumePendingSelection()
         {
             var innings = _match?.CurrentInnings;
-            if (innings == null || innings.IsComplete || _match?.TossPending == true || _deliveryEntry != null) return;
+            if (innings == null || innings.IsComplete || _match?.IsMatchFinalized == true || _match?.TossPending == true || _deliveryEntry != null) return;
             if (innings.NeedsBatterSelection)
             {
                 _batterSelectionMode = innings.Striker is null ? "striker"
@@ -766,7 +768,7 @@ namespace Roche_Scoreboard.Views
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
             if (_deliveryEntry is not null) return;
-            if (_match?.UndoLastDelivery() == true)
+            if (_match is { } match && match.TryUndoLastScoringAction(match.WorkflowToken, out _))
             {
                 BatterSelectionOverlay.Visibility = BowlerSelectionOverlay.Visibility = Visibility.Collapsed;
                 ResumePendingSelection();
@@ -837,7 +839,10 @@ namespace Roche_Scoreboard.Views
         private void SwitchPresentation(string target)
         {
             if (_match == null) return;
+            if (target is not ("scorebug" or "batting" or "bowling" or "summary" or "worm" or "manhattan")) return;
             if (target == _currentPresentation) { PresentationChanged?.Invoke(target); return; }
+
+            _overlayHost?.SetPresentation(target);
 
             if (target == "scorebug")
             {
@@ -1155,7 +1160,7 @@ namespace Roche_Scoreboard.Views
         {
             int over = (DeliveryOverChoice.SelectedItem as OverChoice)?.Over ?? -1;
             foreach (StackPanel group in EventLog.Children.OfType<StackPanel>())
-                group.Visibility = over < 0 || (int)group.Tag == over ? Visibility.Visible : Visibility.Collapsed;
+                group.Visibility = group.Tag is not int groupOver || over < 0 || groupOver == over ? Visibility.Visible : Visibility.Collapsed;
         }
         private void DeliveryOverChoice_Changed(object sender, SelectionChangedEventArgs args)
         {
@@ -1174,6 +1179,7 @@ namespace Roche_Scoreboard.Views
             var deliveries = _loggedInnings?.Deliveries;
             if (deliveries != null)
                 foreach (CricketDelivery delivery in deliveries) AppendDelivery(delivery, triggerPresentation: false);
+            RenderNonDeliveryHistory(_loggedInnings);
             _rebuildingLog = false; RefreshOverChoices();
         }
 
@@ -1225,8 +1231,8 @@ namespace Roche_Scoreboard.Views
             ScoringReadyHint.Text = battingNeeded && bowlingNeeded ? "Select batters and bowler →"
                 : battingNeeded ? "Select next batter →" : bowlingNeeded ? "Select next bowler →" : "";
             if (waiting) { BattingTeamHeading.Text = _match.TeamAName + " · TEAM A"; BowlingTeamHeading.Text = _match.TeamBName + " · TEAM B"; }
-            UndoDeliveryButton.IsEnabled = inn.Deliveries.LastOrDefault()?.StateBefore is not null;
-            UndoDeliveryButton.ToolTip = UndoDeliveryButton.IsEnabled ? "Undo the last delivery exactly" : inn.Deliveries.Count == 0 ? "No delivery to undo" : "This imported ball has no recovery snapshot. Use the delivery editor instead.";
+            UndoDeliveryButton.IsEnabled = _match.CanUndoLastScoringAction;
+            UndoDeliveryButton.ToolTip = _match.CanUndoNonDeliveryRunOut ? "Undo the run-out before delivery" : UndoDeliveryButton.IsEnabled ? "Undo the last delivery exactly" : _match.IsMatchFinalized ? "Reopen the match or use scorecard corrections" : inn.ScorecardAnchor >= 0 && inn.Deliveries.Count <= inn.ScorecardAnchor ? "Revert the latest scorecard adjustment before undoing earlier balls" : inn.Deliveries.Count == 0 ? "No scoring action to undo" : "This imported ball has no recovery snapshot. Use the delivery editor instead.";
             // Header
             InningsLabel.Text = waiting ? "Toss pending" : _match.CurrentInningsNumber switch
             {
@@ -1239,7 +1245,7 @@ namespace Roche_Scoreboard.Views
             HeaderOvers.Text = waiting ? "NOT STARTED" : $"Over {inn.OversDisplay}";
             SettingsMatchText.Text = $"{_match.Format.ToString().ToUpperInvariant()}  •  {(_match.Format == CricketFormat.LimitedOvers ? $"{_match.CurrentOverLimit} OVERS" : "MULTI INNINGS")}";
             SettingsStateText.Text = $"INNINGS {_match.CurrentInningsNumber}  •  {inn.TotalWickets}/{inn.TotalRuns} ({inn.OversDisplay})";
-            SettingsSelectionText.Text = inn.IsComplete
+            SettingsSelectionText.Text = _match.IsMatchFinalized ? (_match.MatchResult ?? "Match ended") + (string.IsNullOrWhiteSpace(_match.ResultNote) ? "" : " · " + _match.ResultNote) : inn.IsComplete
                 ? (_match.MatchResult ?? "Innings complete — advance when ready.")
                 : inn.NeedsBatterSelection
                     ? "Scoring is safely paused until the next batter is selected."

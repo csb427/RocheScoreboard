@@ -1,5 +1,5 @@
 // Generated from Services/OperatorMotion.cs; edit translator/adapters.
-// Source SHA-256: 738936e0e1700c1eb61f84718855e6f5711b78a4e09ae2b5c9f11e2ad2ab808c
+// Source SHA-256: 635357d16110c2dccff926b782d3378176f03a6ab780299331ad6775caa1a316
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -26,5 +26,7 @@ public static class OperatorMotion
     public static TimeSpan Stagger => TimeSpan.FromMilliseconds(40);
     public static TimeSpan Toggle => TimeSpan.FromMilliseconds(350);
     public static TimeSpan CheckDraw => TimeSpan.FromMilliseconds(350);
+    public static TimeSpan MaterialArrival => TimeSpan.FromMilliseconds(500);
+    public static TimeSpan ChoiceArrival => TimeSpan.FromMilliseconds(440);
     public static IEasingFunction SmoothOut => new CubicEase { EasingMode = EasingMode.EaseOut };
 }

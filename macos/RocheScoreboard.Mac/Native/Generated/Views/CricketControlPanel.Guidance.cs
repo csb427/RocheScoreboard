@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.Guidance.cs; edit translator/adapters.
-// Source SHA-256: 9cfbeb2b07675ad6084571ea1f5598adb73939d092839d6eac6ba856c7010d57
+// Source SHA-256: 2956eecd2efa3f04648f4024b63e2b772cf7bd9efd86e8b7bddd89d08bd1f4fa
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -38,7 +38,7 @@ public partial class CricketControlPanel
     private void UpdateScoringGate()
     {
         if(_match?.CurrentInnings is not {} innings) return;
-        bool waiting=_match.TossPending,paused=_match.BreakKind!=Models.CricketBreakKind.None;
+        bool waiting=_match.TossPending && !_match.IsMatchFinalized,paused=_match.BreakKind!=Models.CricketBreakKind.None;
         bool batters=innings.Striker is{IsOut:false} && innings.NonStriker is{IsOut:false} && innings.StrikerIndex!=innings.NonStrikerIndex && !innings.NeedsBatterSelection;
         bool bowler=innings.CurrentBowler is not null && !innings.NeedsBowlerSelection;
         bool ready=!waiting&&!paused&&!innings.IsComplete&&!_match.IsMatchFinalized&&batters&&bowler;

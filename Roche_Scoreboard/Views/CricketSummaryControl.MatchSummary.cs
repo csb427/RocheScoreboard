@@ -16,6 +16,7 @@ public partial class CricketSummaryControl
     public void ShowMatchSummary(CricketMatchManager match)
     {
         if (match.CurrentInnings is not CricketInnings innings) return;
+        PreparePresentationChange();
         SetPagedMode(match, "summary");
         PopulateMatchSummary(match, innings);
         ShowSummary();

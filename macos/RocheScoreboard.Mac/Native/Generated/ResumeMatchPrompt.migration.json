@@ -70,15 +70,17 @@
     {
       "name": "PART_Track",
       "type": "Grid",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Indicator",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     }
   ],
-  "code_source_sha256": "eee699730172d4c1bd1654007adb73b511e9927843162757755c8c57c941d42a",
+  "code_source_sha256": "38f4d7623ca17f54f466fedd9af868526cad13fa27229fec3a7c63657685cf04",
   "native_events": [
     {
       "name": null,

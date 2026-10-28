@@ -75,22 +75,26 @@
     {
       "name": "Card",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "SavedStar",
       "type": "OperatorSymbol",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "SelectedMark",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "EmptyResults",

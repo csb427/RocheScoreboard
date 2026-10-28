@@ -989,7 +989,7 @@ namespace Roche_Scoreboard
             bool ctrlPressed = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
             if (_sportMode == SportMode.Cricket && CricketControlPanelView.IsVisible)
             {
-                if (CricketControlPanelView.TossOverlay.IsVisible || CricketControlPanelView.BatterSelectionOverlay.IsVisible
+                if (CricketControlPanelView.HasActiveDecision || CricketControlPanelView.TossOverlay.IsVisible || CricketControlPanelView.BatterSelectionOverlay.IsVisible
                     || CricketControlPanelView.BowlerSelectionOverlay.IsVisible || CricketControlPanelView.DeliveryEntryOverlay.IsVisible) return;
                 int cricketTab = e.Key switch { Key.D1 or Key.NumPad1 => 0, Key.D2 or Key.NumPad2 => 1, Key.D3 or Key.NumPad3 => 2, Key.D4 or Key.NumPad4 => 3, _ => -1 };
                 if (ctrlPressed && cricketTab >= 0) { CricketControlPanelView.MainTabControl.SelectedIndex = cricketTab; e.Handled = true; }

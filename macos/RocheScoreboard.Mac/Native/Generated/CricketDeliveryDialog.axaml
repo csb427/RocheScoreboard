@@ -51,6 +51,7 @@
                 <ComboBox x:Name="TypeChoice" SelectionChanged="Native_Details_Changed" />
                 <StackPanel x:Name="WicketOptions">
                     <TextBlock x:Name="FreeHitEntryHint" Text="FREE HIT · Only run out, obstructing field or hit ball twice can be recorded." Foreground="#FFD980" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,12" IsVisible="False" />
+                    <TextBlock x:Name="WicketRuleHint" Text="This dismissal does not apply to the selected outcome. Choose an available dismissal or change the delivery outcome below." Foreground="#FFD980" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,12" IsVisible="False" />
                     <TextBlock Text="HOW OUT" Theme="{StaticResource FieldTitle}" />
                     <ComboBox x:Name="DismissalChoice" IsVisible="False" SelectionChanged="Native_Details_Changed" />
                     <WrapPanel x:Name="DismissalTiles" Margin="0,6,0,14" />
@@ -65,7 +66,7 @@
                     </StackPanel>
                 </StackPanel>
                 <StackPanel x:Name="RunOutOptions" IsVisible="False">
-                    <TextBlock Text="RUN OUT DELIVERY" Theme="{StaticResource FieldTitle}" />
+                    <TextBlock Text="DELIVERY OUTCOME" Theme="{StaticResource FieldTitle}" />
                     <ComboBox x:Name="RunOutChoice" IsVisible="False" SelectionChanged="Native_Details_Changed" />
                     <UniformGrid x:Name="RunOutSourceTiles" Columns="3" Margin="0,6,0,12">
                         <Button Content="OFF THE BAT" Tag="0" Click="RunOutSource_Click" MinHeight="44" Margin="0,0,4,4" Theme="{StaticResource ToolBtn}" />
@@ -74,11 +75,12 @@
                         <Button Content="BYES" Tag="3" Click="RunOutSource_Click" MinHeight="44" Margin="0,0,4,4" Theme="{StaticResource ToolBtn}" />
                         <Button Content="LEG-BYES" Tag="4" Click="RunOutSource_Click" MinHeight="44" Margin="0,0,4,4" Theme="{StaticResource ToolBtn}" />
                     </UniformGrid>
-                    <UniformGrid IsVisible="False">
-                        <RadioButton x:Name="RunOutNotCrossed" IsChecked="True" GroupName="RunOutCrossing" IsCheckedChanged="Native_RunOutCrossing_Changed_Checked" />
-                        <RadioButton x:Name="RunOutCrossed" GroupName="RunOutCrossing" IsCheckedChanged="Native_RunOutCrossing_Changed_Checked" />
-                    </UniformGrid>
-                    <TextBlock Text="Check the strike after recording the wicket. Use Swap strike from the player menu if needed." TextWrapping="Wrap" Foreground="#B6B6C0" FontSize="13" Margin="0,4,0,12" />
+                    <StackPanel x:Name="RunOutCrossingOptions">
+                        <TextBlock Text="ON THE UNFINISHED RUN" Margin="0,4,0,6" Theme="{StaticResource FieldTitle}" />
+                        <RadioButton x:Name="RunOutNotCrossed" Content="Batters had not crossed" IsChecked="True" GroupName="RunOutCrossing" MinHeight="36" IsCheckedChanged="Native_RunOutCrossing_Changed_Checked" />
+                        <RadioButton x:Name="RunOutCrossed" Content="Batters had crossed" GroupName="RunOutCrossing" MinHeight="36" IsCheckedChanged="Native_RunOutCrossing_Changed_Checked" />
+                        <TextBlock Text="Use umpire-confirmed runs and positions. If obstruction prevented a catch, use original ends and no completed runs. Otherwise choose whether the batters crossed. The preview includes the end of the over." TextWrapping="Wrap" Foreground="#B6B6C0" FontSize="13" Margin="0,4,0,12" />
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel x:Name="NoBallOptions">
                     <TextBlock Text="NO-BALL RUNS CAME FROM" Theme="{StaticResource FieldTitle}" />
@@ -130,8 +132,8 @@
                     <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="2*" />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="CancelButton" Content="CANCEL" Click="Cancel_Click" Height="48" MinHeight="0" Padding="12,0" IsVisible="False" Theme="{StaticResource ToolBtn}" />
-                <Button x:Name="ApplyButton" Foreground="White" Grid.ColumnSpan="3" Content="APPLY CORRECTION" Height="48" MinHeight="0" Padding="12,0" Click="Apply_Click" Theme="{StaticResource PrimaryCommandButton}" />
+                <Button x:Name="CancelButton" Content="CANCEL" Click="Cancel_Click" Height="48" MinHeight="0" Padding="12,0" Theme="{StaticResource ToolBtn}" />
+                <Button x:Name="ApplyButton" Foreground="White" Grid.Column="2" Content="APPLY CORRECTION" Height="48" MinHeight="0" Padding="12,0" Click="Apply_Click" Theme="{StaticResource PrimaryCommandButton}" />
             </Grid>
         </StackPanel>
     </Grid>

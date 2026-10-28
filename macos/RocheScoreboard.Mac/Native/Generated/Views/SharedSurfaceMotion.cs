@@ -1,5 +1,5 @@
 // Generated from Views/SharedSurfaceMotion.cs; edit translator/adapters.
-// Source SHA-256: b6811fab20a0ae7dfc2c7748cbe3c1161c133ca20da97d08ef74829bd10f162f
+// Source SHA-256: 32ba9aca6e98750639ec63106f349d5e81b266c0c851c6581d7bf2f33452e741
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -44,10 +44,13 @@ internal static class SharedSurfaceMotion
             _transforms.Children.Add(_original as Transform??new MatrixTransform(_original?.Value??Matrix.Identity));
             _transforms.Children.Add(_travel);
             _transforms.Children.Add(_morph);
-            target.Loaded += (_, _) => Reveal();
-            target.Unloaded += (_, _) => Reset();
+            target.Loaded += (_, _) => { OperatorAppearance.Changed -= PreferenceChanged; OperatorAppearance.Changed += PreferenceChanged; Reveal(); };
+            target.Unloaded += (_, _) => { OperatorAppearance.Changed -= PreferenceChanged; Reset(); };
             NativeEvents.WatchProperty(target,Avalonia.Controls.Control.IsVisibleProperty,true,(_, args) => { if (args.NewValue is false) Reset(); else if (target.IsLoaded) Reveal(); });
+            if(target.IsLoaded)OperatorAppearance.Changed += PreferenceChanged;
         }
+
+        private void PreferenceChanged() { if(!OperatorMotion.Enabled)Reset(); }
 
         private void Reset()
         {
@@ -66,16 +69,16 @@ internal static class SharedSurfaceMotion
         {
             if (!OperatorMotion.Enabled) { Reset(); return; }
             if (!_target.IsLoaded || !_target.IsVisible) return;
-            if (!_revealing) { _originalCache=NativeCache.Get(_target);NativeCache.Set(_target, new NativeBitmapCache());_target.Opacity = .82; _travel.Y = 16;_morph.ScaleX=.96;_morph.ScaleY=.90;_target.RenderTransformOrigin=new RelativePoint(.5,.08,RelativeUnit.Relative); }
+            if (!_revealing) { _originalCache=NativeCache.Get(_target);NativeCache.Set(_target, new NativeBitmapCache());_target.Opacity = .72; _travel.Y = 24;_morph.ScaleX=.94;_morph.ScaleY=.82;_target.RenderTransformOrigin=new RelativePoint(.5,.08,RelativeUnit.Relative); }
             _revealing = true;
             int generation=++_generation;
             _target.RenderTransform = _transforms;
-            _morph.BeginAnimation(ScaleTransform.ScaleXProperty,new DoubleAnimation(1,OperatorMotion.SurfaceOpen){EasingFunction=OperatorMotion.SmoothOut});
-            _morph.BeginAnimation(ScaleTransform.ScaleYProperty,new DoubleAnimation(1,OperatorMotion.SurfaceOpen){EasingFunction=OperatorMotion.SmoothOut});
+            _morph.BeginAnimation(ScaleTransform.ScaleXProperty,new DoubleAnimation(1,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut});
+            _morph.BeginAnimation(ScaleTransform.ScaleYProperty,new DoubleAnimation(1,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut});
             // No reset on re-entry: WPF continues from the current presentation value.
-            _target.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(1, OperatorMotion.SurfaceOpen)
+            _target.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(1, OperatorMotion.MaterialArrival)
                 { EasingFunction = OperatorMotion.SmoothOut });
-            var travel=new DoubleAnimation(0,OperatorMotion.SurfaceOpen){EasingFunction=OperatorMotion.SmoothOut};
+            var travel=new DoubleAnimation(0,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut};
             travel.Completed+=(_,_)=>{if(generation==_generation)Reset();};
             _travel.BeginAnimation(TranslateTransform.YProperty,travel);
         }

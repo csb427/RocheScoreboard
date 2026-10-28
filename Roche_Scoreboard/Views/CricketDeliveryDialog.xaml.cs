@@ -22,7 +22,15 @@ public partial class CricketDeliveryDialog : UserControl
     private bool EntryIsFreeHit => _delivery?.WasFreeHit ?? _match.FreeHitPending;
     private bool _initializing = true;
     private int _originalStriker;
-    private readonly int _openedCount, _openedRevision, _openedStriker, _openedBowler;
+    private readonly int _openedCount, _openedRevision, _openedStriker, _openedNonStriker, _openedBowler;
+    private readonly string _openedConditionsToken;
+    private bool EntryContextIsCurrent => ReferenceEquals(_match.CurrentInnings, _innings)
+        && _openedCount == _innings.Deliveries.Count && _openedRevision == _match.DeliveryRevision
+        && _openedStriker == _innings.StrikerIndex && _openedNonStriker == _innings.NonStrikerIndex
+        && _openedBowler == _innings.CurrentBowlerIndex && _openedConditionsToken == _match.MatchConditionsToken;
+    private bool SelectedWicketIsAllowed => CricketMatchManager.IsDismissalAllowedForDelivery(
+        _dismissals[Math.Max(0, DismissalChoice.SelectedIndex)],
+        (CricketWicketRuns)Math.Max(0, RunOutChoice.SelectedIndex), EntryIsFreeHit);
     private Action<bool>? _embeddedCompletion;
     private bool _completed;
     public event Action<bool>? Completed;
@@ -58,6 +66,7 @@ public partial class CricketDeliveryDialog : UserControl
     {
         _match = match; _innings = match.CurrentInnings ?? throw new ArgumentException("An innings is required."); _delivery = delivery;
         _openedCount = _innings.Deliveries.Count; _openedRevision = match.DeliveryRevision; _openedStriker = _innings.StrikerIndex; _openedBowler = _innings.CurrentBowlerIndex;
+        _openedNonStriker = _innings.NonStrikerIndex; _openedConditionsToken = match.MatchConditionsToken;
         InitializeComponent();
         InteractionMotion.Enable(this);
         MaxHeight = Math.Max(300, SystemParameters.WorkArea.Height - 32);
@@ -191,8 +200,10 @@ public partial class CricketDeliveryDialog : UserControl
         ApplyButton.Background = TeamVisuals.Panel(neutral ? "#48617A" : EntryColour, neutral ? "#48617A" : EntryColour, .4);
         var dismissal = DismissalChoice.SelectedIndex >= 0 ? _dismissals[DismissalChoice.SelectedIndex] : DismissalType.Bowled;
         bool runOut = type == CricketDeliveryType.Wicket && dismissal == DismissalType.RunOut;
-        var scoringType = runOut ? CricketDelivery.WicketScoringType((CricketWicketRuns)Math.Max(0, RunOutChoice.SelectedIndex)) : type;
-        RunOutOptions.Visibility = runOut ? Visibility.Visible : Visibility.Collapsed;
+        bool runningDismissal = type == CricketDeliveryType.Wicket && dismissal is DismissalType.RunOut or DismissalType.ObstructingField;
+        var scoringType = type == CricketDeliveryType.Wicket ? CricketDelivery.WicketScoringType((CricketWicketRuns)Math.Max(0, RunOutChoice.SelectedIndex)) : type;
+        RunOutOptions.Visibility = type == CricketDeliveryType.Wicket ? Visibility.Visible : Visibility.Collapsed;
+        RunOutCrossingOptions.Visibility = runningDismissal ? Visibility.Visible : Visibility.Collapsed;
         foreach (var tile in RunOutSourceTiles.Children.OfType<System.Windows.Controls.Button>())
         {
             bool selected = tile.Tag?.ToString() == RunOutChoice.SelectedIndex.ToString();
@@ -206,8 +217,8 @@ public partial class CricketDeliveryDialog : UserControl
         RunOptions.Visibility = type is CricketDeliveryType.Dot or CricketDeliveryType.Four or CricketDeliveryType.Six ? Visibility.Collapsed : Visibility.Visible;
         if (type == CricketDeliveryType.Wicket)
         {
-            RunOptions.Visibility = DismissalChoice.SelectedIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
-            RunsLabel.Text = scoringType is CricketDeliveryType.NoBall or CricketDeliveryType.Wide ? "COMPLETED RUNS (PENALTY IS AUTOMATIC)" : "COMPLETED RUNS BEFORE THE RUN OUT";
+            RunOptions.Visibility = runningDismissal ? Visibility.Visible : Visibility.Collapsed;
+            RunsLabel.Text = scoringType is CricketDeliveryType.NoBall or CricketDeliveryType.Wide ? "COMPLETED RUNS (PENALTY IS AUTOMATIC)" : "COMPLETED RUNS BEFORE THE DISMISSAL";
         }
         else RunsLabel.Text = type is CricketDeliveryType.NoBall or CricketDeliveryType.Wide ? "ADDITIONAL RUNS (PENALTY IS AUTOMATIC)" : "RUNS";
         DismissedChoice.IsEnabled = dismissal is DismissalType.RunOut or DismissalType.Other or DismissalType.ObstructingField;
@@ -217,11 +228,12 @@ public partial class CricketDeliveryDialog : UserControl
         foreach(var tile in DismissalTiles.Children.OfType<System.Windows.Controls.Button>())
         {
             int choice=((ValueTuple<System.Windows.Controls.ComboBox,int>)tile.Tag).Item2;
-            bool allowed=!EntryIsFreeHit || CricketMatchManager.IsDismissalAllowedOnFreeHit(_dismissals[choice]);
-            tile.IsEnabled=allowed;tile.ToolTip=allowed?null:"This dismissal is not available on a free hit.";
+            bool allowed=CricketMatchManager.IsDismissalAllowedForDelivery(_dismissals[choice], (CricketWicketRuns)Math.Max(0,RunOutChoice.SelectedIndex), EntryIsFreeHit);
+            tile.IsEnabled=allowed;tile.ToolTip=allowed?null:"Choose a different delivery outcome. This dismissal is not available for the selected outcome or free hit.";
         }
         FreeHitEntryHint.Visibility=EntryIsFreeHit && type==CricketDeliveryType.Wicket ? Visibility.Visible : Visibility.Collapsed;
-        ApplyButton.IsEnabled=!_applying && !_completed && (type!=CricketDeliveryType.Wicket || !EntryIsFreeHit || CricketMatchManager.IsDismissalAllowedOnFreeHit(dismissal));
+        WicketRuleHint.Visibility=type==CricketDeliveryType.Wicket && !SelectedWicketIsAllowed ? Visibility.Visible : Visibility.Collapsed;
+        ApplyButton.IsEnabled=!_applying && !_completed && (type!=CricketDeliveryType.Wicket || SelectedWicketIsAllowed);
         foreach (var tile in DismissedTiles.Children.OfType<System.Windows.Controls.Button>())
         {
             int index = ((ValueTuple<System.Windows.Controls.ComboBox, int>)tile.Tag).Item2;
@@ -240,19 +252,20 @@ public partial class CricketDeliveryDialog : UserControl
             CricketDeliveryType.Dot => 0,
             CricketDeliveryType.Four => 4,
             CricketDeliveryType.Six => 6,
-            CricketDeliveryType.Wicket when dismissal != DismissalType.RunOut => 0,
+            CricketDeliveryType.Wicket when !runningDismissal => penalty ? 1 : 0,
             _ => additional + (penalty ? 1 : 0)
         };
         string extraSource=NoBallChoice.SelectedIndex==1?(additional==1?"bye":"byes"):NoBallChoice.SelectedIndex==2?(additional==1?"leg-bye":"leg-byes"):(additional==1?"run off bat":"runs off bat");
         string composition = scoringType == CricketDeliveryType.NoBall ? additional==0?"1 no-ball = 1 run":$"1 no-ball + {additional} {extraSource} = {total} runs"
             : scoringType == CricketDeliveryType.Wide ? additional==0?"1 wide = 1 run":$"1 wide + {additional} completed = {total} wides"
             : $"{additional} {(scoringType == CricketDeliveryType.Bye ? "byes" : scoringType == CricketDeliveryType.LegBye ? "leg-byes" : "runs off bat")}";
-        PreviewText.Text = type == CricketDeliveryType.Wicket ? runOut ? $"RUN OUT · {composition}" : CricketMatchManager.DismissalLabel(dismissal, FielderChoice.SelectedIndex > 0 ? _innings.BowlingAttack[FielderChoice.SelectedIndex - 1].DisplayName : null, _innings.CurrentBowler?.DisplayName)
+        PreviewText.Text = type == CricketDeliveryType.Wicket ? runningDismissal ? $"{(runOut ? "RUN OUT" : "OBSTRUCTING FIELD")} · {composition}" : CricketMatchManager.DismissalLabel(dismissal, FielderChoice.SelectedIndex > 0 ? _innings.BowlingAttack[FielderChoice.SelectedIndex - 1].DisplayName : null, _innings.CurrentBowler?.DisplayName)
+                + (penalty ? $" · +1 {(scoringType == CricketDeliveryType.Wide ? "wide" : "no-ball")}" : "")
             : type is CricketDeliveryType.NoBall or CricketDeliveryType.Wide ? composition
             : $"{TypeChoice.SelectedItem} · +{total} to the total";
-        if (runOut)
+        if (runningDismissal)
         {
-            int start = SelectedBatterIndex, other = _delivery?.NonStrikerIndex ?? _innings.NonStrikerIndex;
+            int start = SelectedBatterIndex, other = _batterIndices.FirstOrDefault(index => index != start, -1);
             bool swap = (additional % 2 == 1) ^ (RunOutCrossed.IsChecked == true);
             int legalBefore = _delivery?.StateBefore?.LegalBallsBowled ?? _innings.LegalBallsBowled;
             bool countsInOver = scoringType switch
@@ -276,12 +289,14 @@ public partial class CricketDeliveryDialog : UserControl
         try
         {
             ErrorText.Text = ""; ErrorText.Visibility = Visibility.Visible;
-            if (_delivery is null && (_openedCount != _innings.Deliveries.Count || _openedRevision != _match.DeliveryRevision || _openedStriker != _innings.StrikerIndex || _openedBowler != _innings.CurrentBowlerIndex))
+            if (!EntryContextIsCurrent)
             { ErrorText.Text = "The match changed while this panel was open. Cancel and reopen it to use the current players and score."; return; }
             if (!ReferenceEquals(_match.CurrentInnings, _innings)) { ErrorText.Text = "The innings changed. Close this window and reopen the delivery."; return; }
             var type = (CricketDeliveryType)TypeChoice.SelectedIndex;
             var dismissal = _dismissals[Math.Max(0, DismissalChoice.SelectedIndex)];
-            var wicketRuns = type == CricketDeliveryType.Wicket && dismissal == DismissalType.RunOut ? (CricketWicketRuns)Math.Max(0, RunOutChoice.SelectedIndex) : CricketWicketRuns.Bat;
+            var wicketRuns = type == CricketDeliveryType.Wicket ? (CricketWicketRuns)Math.Max(0, RunOutChoice.SelectedIndex) : CricketWicketRuns.Bat;
+            if (type == CricketDeliveryType.Wicket && !SelectedWicketIsAllowed)
+            { ErrorText.Text = "Choose a dismissal allowed for this delivery outcome and free-hit status."; return; }
             var scoringType = type == CricketDeliveryType.Wicket ? CricketDelivery.WicketScoringType(wicketRuns) : type;
             bool requiresRuns = RunOptions.Visibility == Visibility.Visible;
             if (requiresRuns && (!int.TryParse(RunsBox.Text, out int value) || value < 0 || value > 998))
@@ -299,6 +314,10 @@ public partial class CricketDeliveryDialog : UserControl
                 if (_completed || propagate is null or "cancel") return;
                 RestOfOverBowler.IsChecked = propagate == "yes";
             }
+            // Prompts yield to input/remote commands. Recheck after the last
+            // await so a confirmation never overwrites a newer match state.
+            if (!EntryContextIsCurrent)
+            { ErrorText.Text = "The match changed during confirmation. Cancel and reopen this delivery before applying it."; return; }
             int.TryParse(RunsBox.Text, out int entered);
             int runs = type switch
             {
@@ -306,7 +325,8 @@ public partial class CricketDeliveryDialog : UserControl
                 CricketDeliveryType.Four => 4,
                 CricketDeliveryType.Six => 6,
                 CricketDeliveryType.NoBall or CricketDeliveryType.Wide => entered + 1,
-                CricketDeliveryType.Wicket when dismissal != DismissalType.RunOut => 0,
+                CricketDeliveryType.Wicket when dismissal is not DismissalType.RunOut and not DismissalType.ObstructingField
+                    => scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall ? 1 : 0,
                 CricketDeliveryType.Wicket when scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall => entered + 1,
                 _ => entered
             };
@@ -321,7 +341,7 @@ public partial class CricketDeliveryDialog : UserControl
                 BowlerIndex = BowlerChoice.SelectedIndex,
                 NoBallRuns = (CricketNoBallRuns)Math.Max(0, NoBallChoice.SelectedIndex),
                 WicketRuns = wicketRuns,
-                RunOutCrossed = RunOutCrossed.IsChecked == true && type == CricketDeliveryType.Wicket && dismissal == DismissalType.RunOut,
+                RunOutCrossed = RunOutCrossed.IsChecked == true && type == CricketDeliveryType.Wicket && dismissal is DismissalType.RunOut or DismissalType.ObstructingField,
                 CompletedRunsOnly = _delivery?.CompletedRunsOnly == true && type == _delivery.Type && runs == _delivery.Runs
                     && (CricketNoBallRuns)Math.Max(0, NoBallChoice.SelectedIndex) == _delivery.NoBallRuns,
                 Dismissal = dismissal,
@@ -346,7 +366,7 @@ public partial class CricketDeliveryDialog : UserControl
             _applying = false;
             if (!_completed)
                 ApplyButton.IsEnabled = (CricketDeliveryType)TypeChoice.SelectedIndex != CricketDeliveryType.Wicket
-                    || !EntryIsFreeHit || CricketMatchManager.IsDismissalAllowedOnFreeHit(_dismissals[Math.Max(0, DismissalChoice.SelectedIndex)]);
+                    || SelectedWicketIsAllowed;
         }
     }
     private int SelectedBatterIndex => BatterChoice.SelectedIndex >= 0 && BatterChoice.SelectedIndex < _batterIndices.Count ? _batterIndices[BatterChoice.SelectedIndex] : -1;

@@ -141,9 +141,6 @@ namespace Roche_Scoreboard.Views
 {
 public partial class ControlPanel
 {
-    private ScaleTransform Sc => (ScaleTransform)ProductionNames.RegistryFor(this)["Sc"];
-    private TranslateTransform Lift => (TranslateTransform)ProductionNames.RegistryFor(this)["Lift"];
-    private ScaleTransform TbSc => (ScaleTransform)ProductionNames.RegistryFor(this)["TbSc"];
-    private TranslateTransform TbLift => (TranslateTransform)ProductionNames.RegistryFor(this)["TbLift"];
+
 }
 }

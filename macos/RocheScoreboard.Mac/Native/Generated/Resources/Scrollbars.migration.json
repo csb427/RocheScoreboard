@@ -5,7 +5,8 @@
     {
       "name": "PART_Track",
       "type": "Track",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PageBefore",
@@ -16,12 +17,14 @@
     {
       "name": "PART_DecreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Handle",
       "type": "Thumb",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PageAfter",
@@ -32,7 +35,8 @@
     {
       "name": "PART_IncreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     }
   ],
   "code_source_sha256": null,

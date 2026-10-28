@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.ScorecardTransactions.cs; edit translator/adapters.
-// Source SHA-256: b551d9547405653c374c4ca57b5cbb21a02b6ee659f1601e8d4d53836ac79958
+// Source SHA-256: c526d77764cc7ffeaf7c510301e34b4ec8314c990362fec2ab0b1d8e88ebaa44
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -60,7 +60,8 @@ public partial class CricketControlPanel
         if (match is null || draft is null) return;
         var innings = match.AllInnings[draft.InningsNumber - 1];
         bool canRevert = innings.ScorecardChanges.Count > 0 && innings.Deliveries.Count == innings.ScorecardChanges[^1].AfterDeliveryCount;
-        string message = string.IsNullOrWhiteSpace(innings.ManualScorecardWarning) ? "Manual figures are saved. Original deliveries remain protected by their adjustment checkpoint." : innings.ManualScorecardWarning;
+        string latest = innings.ScorecardChanges.LastOrDefault()?.Reason ?? "Scorecard adjustment";
+        string message = string.IsNullOrWhiteSpace(innings.ManualScorecardWarning) ? latest + ". Original deliveries remain protected by this checkpoint." : innings.ManualScorecardWarning;
         if (!canRevert) message += "\n\nUndo deliveries added after the latest adjustment before reverting it.";
         var choices = new List<CricketPrompt.Choice> { new("close", "Close") };
         if (_scorecardDirty) choices.Add(new("discard-pending", "Discard pending row and reload current figures"));

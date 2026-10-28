@@ -83,7 +83,7 @@ public static class CricketAnalyticsEngine
             MomentumHeadline = headline,
             MomentumDetail = detail,
             RecentOvers = BuildRecentOvers(innings),
-            FallOfWickets = innings.Deliveries
+            FallOfWickets = innings.ManualFallOfWickets is { } manual ? [.. manual] : innings.Deliveries
                 .Where(d => d.Type == CricketDeliveryType.Wicket)
                 .Select(d => $"{d.WicketsAfter}-{d.TotalAfter}  {d.BatsmanName}")
                 .ToList()

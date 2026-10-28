@@ -550,7 +550,7 @@ public partial class MainWindow : IRemoteCommandTarget
     void IRemoteCommandTarget.CricketUndo()
     {
         if (_sportMode == SportMode.Cricket)
-            _cricketMatch?.UndoLastDelivery();
+            if (_cricketMatch is { } match) match.TryUndoLastScoringAction(match.WorkflowToken, out _);
     }
 
     void IRemoteCommandTarget.CricketSelectBatter(int index, string role)

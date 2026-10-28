@@ -1,5 +1,5 @@
 // Generated from Views/CricketChartVisual.cs; edit translator/adapters.
-// Source SHA-256: c4169d6846000da841613fa1039a2fc0b786ac5e27f5cec0cfcba3000915eff6
+// Source SHA-256: d5988e02fd023d15d9fdf5ffbee484ef9eac5d30dc2f56fca126089dd8f947c6
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -59,6 +59,12 @@ internal sealed class CricketChartVisual:Control
             d.DrawText(text,new Point(center?x-text.WidthIncludingTrailingWhitespace/2:x,y));
         }
         var colours=_series.Select(series=>Readable(Colour(series.Colour))).ToArray();
+        for(int i=1;i<_series.Count;i++)
+        {
+            if(_series[i].Name==_series[0].Name || Distance(colours[0],colours[i])>=150)continue;
+            var secondary=Readable(Colour(_series[i].Secondary));
+            colours[i]=Distance(colours[0],secondary)>=150?secondary:new[]{"#FFDA7B","#7CE8FF","#DDAAFF"}.Select(value=>Readable(Colour(value))).OrderByDescending(value=>Distance(colours[0],value)).First();
+        }
         bool similar=colours.Length==2 && Distance(colours[0],colours[1])<150;
         if(similar)
         {
@@ -73,16 +79,21 @@ internal sealed class CricketChartVisual:Control
             d.DrawRectangle(brush,null,new Rect(left,0,7,76));
             if(similar && index==1)d.DrawLine(new Pen(Brushes.White,3){DashStyle=DashStyle.Dash},new Point(left+12,69),new Point(left+span-12,69));
             string name=string.IsNullOrWhiteSpace(series.Abbreviation)?(series.Name ?? string.Empty):series.Abbreviation;
-            string ordinal=series.Innings switch{1=>"1ST",2=>"2ND",3=>"3RD",_=>series.Innings+"TH"};
-            Text(name.ToUpperInvariant()+" · "+ordinal,42,left+18,11,maxWidth:span-34);
+            string ordinal=series.TeamInnings switch{1=>"1ST",2=>"2ND",3=>"3RD",_=>series.TeamInnings+"TH"};
+            Text(name.ToUpperInvariant()+" · "+ordinal,36,left+18,5,maxWidth:span-34);
+            Text($"{series.TotalRuns} R · {series.LegalBalls/6}.{series.LegalBalls%6} OV",22,left+18,45,maxWidth:span-34);
+            if(series.TeamInnings>1)d.DrawLine(new Pen(Brushes.White,3){DashStyle=DashStyle.Dash},new Point(left+12,73),new Point(left+span-12,73));
         }
         if(!_series.Any(series=>series.Progress.Count>1))
         {Text("NO DELIVERIES YET",42,width/2,height/2,center:true);d.Pop();return;}
-        double legendBottom=94,bottom=height-94;
+        bool incomplete=_series.Any(series=>series.HistoryIncomplete);
+        double legendBottom=incomplete?120:94,bottom=height-94;
+        if(incomplete)Text("ADJUSTED SCORECARD · RECORDED BALL HISTORY ONLY",25,12,83,maxWidth:width-24);
         var plot=new Rect(86,legendBottom,Math.Max(1,width-112),Math.Max(1,bottom-legendBottom));
         int maxOver=Math.Max(1,_series.SelectMany(series=>series.Overs).Select(point=>point.Over).DefaultIfEmpty(1).Max());
-        int pageCount=Math.Max(1,(maxOver+19)/20);
-        FirstOver=(_page%pageCount)*20+1;LastOver=Math.Min(maxOver,FirstOver+19);
+        int pageSize=_series.Count>2?12:20;
+        int pageCount=Math.Max(1,(maxOver+pageSize-1)/pageSize);
+        FirstOver=(Math.Max(0,_page)%pageCount)*pageSize+1;LastOver=Math.Min(maxOver,FirstOver+pageSize-1);
         double xMaximum=Math.Max(1,Math.Ceiling(_series.SelectMany(series=>series.Progress).Select(point=>point.LegalBalls/6d).DefaultIfEmpty(0).Max()));
         double maxValue=_manhattan?_series.SelectMany(series=>series.Overs).Where(point=>point.Over>=FirstOver && point.Over<=LastOver).Select(point=>(double)point.Runs).DefaultIfEmpty(0).Max():_series.SelectMany(series=>series.Progress).Select(point=>(double)point.Runs).DefaultIfEmpty(0).Max();
         double ceiling=NiceMaximum(Math.Max(1,maxValue)*1.12);
@@ -93,7 +104,9 @@ internal sealed class CricketChartVisual:Control
             double y=Y(tick);d.DrawLine(guide,new Point(plot.Left,y),new Point(plot.Right,y));
             Text(tick>=1000?(tick/1000).ToString("0.#",CultureInfo.InvariantCulture)+"k":tick.ToString("0.#",CultureInfo.InvariantCulture),36,0,y-23);
         }
-        Text(_manhattan?$"OVERS {FirstOver}–{LastOver}":"OVERS",32,plot.Left+plot.Width/2,height-39,center:true);
+        string overCaption=_manhattan?$"OVERS {FirstOver}–{LastOver}":"OVERS";
+        if(_manhattan && _series.Any(series=>series.LegalBalls%6!=0))overCaption+=" · INCLUDES PARTIAL OVERS";
+        Text(overCaption,28,plot.Left+plot.Width/2,height-39,center:true,maxWidth:plot.Width);
         if(_manhattan)
         {
             int count=LastOver-FirstOver+1;double slot=plot.Width/count;
@@ -107,7 +120,7 @@ internal sealed class CricketChartVisual:Control
                     double barWidth=slot*.78/Math.Max(1,_series.Count),x=center-slot*.39+index*barWidth;
                     double y=Y(point.Runs);var ink=new SolidColorBrush(colours[index]);
                     d.DrawRectangle(ink,null,new Rect(x,y,Math.Max(.8,barWidth-1),Math.Max(1,plot.Bottom-y)));
-                    if(similar && index==1)d.DrawLine(new Pen(Brushes.Black,Math.Min(2,barWidth*.2)),new Point(x+barWidth*.5,y),new Point(x+barWidth*.5,plot.Bottom));
+                    if(_series[index].TeamInnings>1 || similar && index==1)d.DrawLine(new Pen(Brushes.Black,Math.Min(2,barWidth*.2)),new Point(x+barWidth*.5,y),new Point(x+barWidth*.5,plot.Bottom));
                     for(int wicket=0;wicket<point.Wickets;wicket++)
                         d.DrawEllipse(Brushes.White,new Pen(Brushes.Black,1),new Point(x+barWidth/2,Math.Max(plot.Top+4,y-6-wicket*9)),3.5,3.5);
                 }
@@ -124,12 +137,18 @@ internal sealed class CricketChartVisual:Control
                 using(var path=geometry.Open())
                 {
                     path.BeginFigure(new Point(plot.Left,plot.Bottom),false,false);
-                    foreach(var point in series.Progress.Skip(1))path.LineTo(new Point(plot.Left+plot.Width*(point.LegalBalls/6d)/xMaximum,Y(point.Runs)),true,false);
+                    foreach(var point in series.Progress.Skip(1))
+                    {
+                        var position=new Point(plot.Left+plot.Width*(point.LegalBalls/6d)/xMaximum,Y(point.Runs));
+                        if(point.BreakBefore)path.BeginFigure(position,false,false);else path.LineTo(position,true,false);
+                    }
                 }
-                geometry.Freeze();var pen=new Pen(ink,5){LineJoin=PenLineJoin.Round};if(similar && index==1)pen.DashStyle=DashStyle.Dash;
+                geometry.Freeze();var pen=new Pen(ink,5){LineJoin=PenLineJoin.Round};if(series.TeamInnings>1 || similar && index==1)pen.DashStyle=DashStyle.Dash;
                 d.DrawGeometry(null,new Pen(Brushes.Black,8),geometry);d.DrawGeometry(null,pen,geometry);
                 foreach(var point in series.Progress.Where(point=>point.Wickets>0))
                     d.DrawEllipse(ink,new Pen(Brushes.White,2),new Point(plot.Left+plot.Width*(point.LegalBalls/6d)/xMaximum,Y(point.Runs)),5.5,5.5);
+                foreach(var point in series.Progress.Where(point=>point.BreakBefore))
+                    d.DrawEllipse(null,new Pen(ink,3),new Point(plot.Left+plot.Width*(point.LegalBalls/6d)/xMaximum,Y(point.Runs)),6,6);
             }
         }
         d.Pop();

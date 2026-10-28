@@ -56,6 +56,8 @@ public partial class ResumeMatchPrompt : UserControl
         AwayNameText.Text = cricket ? saved.CricketMatchState!.TeamBName : saved.MatchState?.AwayName ?? "AWAY";
         PhaseText.Text = cricket ? $"CRICKET · INNINGS {Math.Max(1, saved.CricketMatchState!.CurrentInningsNumber)}"
             : $"AFL · QUARTER {Math.Max(1, saved.MatchState?.Quarter ?? 1)}";
+        if (cricket && saved.CricketMatchState!.IsMatchFinalized)
+            PhaseText.Text = "CRICKET · " + (saved.CricketMatchState.FinalResult ?? "ENDED");
         string? homeLogo = cricket ? saved.CricketMatchState!.TeamALogoPath : saved.HomeLogoPath;
         string? awayLogo = cricket ? saved.CricketMatchState!.TeamBLogoPath : saved.AwayLogoPath;
         HomeLogoImage.Source = TeamVisuals.LoadLogo(homeLogo); AwayLogoImage.Source = TeamVisuals.LoadLogo(awayLogo);

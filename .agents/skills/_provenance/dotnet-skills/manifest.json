@@ -1,0 +1,90 @@
+{
+  "repository": "https://github.com/dotnet/skills",
+  "commit": "586f13f8d898a60583a3364f146a3b6f5a763164",
+  "license": "MIT",
+  "installation_scope": "repository-local; Markdown only",
+  "files": [
+    {
+      "path": ".agents/skills/test-gap-analysis/SKILL.md",
+      "source_path": "plugins/dotnet-test/skills/test-gap-analysis/SKILL.md",
+      "sha256": "1214a29071033d4b3da9f24062dcb517b88f7b1f7265a330f72521d92773495a"
+    },
+    {
+      "path": ".agents/skills/test-gap-analysis/references/per-test-read-only.md",
+      "source_path": "plugins/dotnet-test/skills/test-gap-analysis/references/per-test-read-only.md",
+      "sha256": "ce9582d6dccc52847c51f717818f049a831e6eed4e9cda6b1931f3bc21421bea"
+    },
+    {
+      "path": ".agents/skills/test-gap-analysis/references/mutation-catalog.md",
+      "source_path": "plugins/dotnet-test/skills/test-gap-analysis/references/mutation-catalog.md",
+      "sha256": "38db5656c50813868692c9fff592e6c8cb928b3bfd574dab00674394d9a0e7ca"
+    },
+    {
+      "path": ".agents/skills/assertion-quality/SKILL.md",
+      "source_path": "plugins/dotnet-test/skills/assertion-quality/SKILL.md",
+      "sha256": "6c6cc5d4646a8b1eeaae7bf3db18ea5418fce35e48cc4f84a9493d3890a5a107"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/SKILL.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/SKILL.md",
+      "sha256": "2e442c224b78c5b07097fde53bf055060d2d703d4d90418e0e8a07af8cbda673"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/powershell.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/powershell.md",
+      "sha256": "2dbbac3f475b7f7f4f817597379789af228e034d4c179460403757af26240f9b"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/rust.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/rust.md",
+      "sha256": "d92041fc8142311070e9c02a5590ac9d10eef0baa4aa9136e163e2c526871725"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/typescript.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/typescript.md",
+      "sha256": "7dd98060c3941ec791f1128ef67d77cad2733ee8381e39f14ccdc19ad48f90ef"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/kotlin.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/kotlin.md",
+      "sha256": "ef1176cc48c807bfb6e57329df6ee093f6e2475cd629980ffc477d85d879605c"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/python.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/python.md",
+      "sha256": "e532c6eb1d362e8c0a14b90cb906a84449f0a03330ff432a72d484c79ece0e5d"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/java.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/java.md",
+      "sha256": "05f3bd254cad71e2b4ac36a3483e2a8fef41dba0ac6a983925754b60bc50758b"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/cpp.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/cpp.md",
+      "sha256": "da2de0bb820edaf523731bf36381d2a7e71009561072204773be548e43911d50"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/swift.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/swift.md",
+      "sha256": "41f4b7c9b8827de0737778ca24de5de26ccd1a3f5ff58d6f58a135fc576c4c52"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/go.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/go.md",
+      "sha256": "a885da2e49efbedfe30307c196ec71876433571ce3e5c781e6741ee9a77ab8c3"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/dotnet.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/dotnet.md",
+      "sha256": "ef257a931a25501697fde8a36e027ba9195ff624ff701dd5fd276d746c0d25be"
+    },
+    {
+      "path": ".agents/skills/test-analysis-extensions/extensions/ruby.md",
+      "source_path": "plugins/dotnet-test/skills/test-analysis-extensions/extensions/ruby.md",
+      "sha256": "422044981b8672c26f6c47ac9f828aa25f03eac5cc0c9a2354843a6980a297bc"
+    }
+  ],
+  "license_file": ".agents/skills/_provenance/dotnet-skills/LICENSE",
+  "license_sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310"
+}

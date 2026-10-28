@@ -67,24 +67,10 @@ public sealed partial class CricketMatchManager
         DeliveryRevision++; MatchChanged?.Invoke(); return true;
     }
     public bool TryFinishMatch(out string error)
-    {
-        error = ""; LastOperationError = "";
-        if (TossPending || CurrentInnings is null)
-        { error = LastOperationError = "There is no started match to finish."; return false; }
-        CurrentInnings.IsComplete = true; CurrentInnings.NeedsBatterSelection = CurrentInnings.NeedsBowlerSelection = false;
-        FinalResult = MatchResult;
-        if (FinalResult is null)
-        {
-            int a = AllInnings.Where(i => i.BattingTeamName == TeamAName).Sum(i => i.TotalRuns);
-            int b = AllInnings.Where(i => i.BattingTeamName == TeamBName).Sum(i => i.TotalRuns);
-            FinalResult = a == b ? "Scores level · match ended" : $"{(a > b ? TeamAName : TeamBName)} finished {Math.Abs(a - b)} runs ahead";
-        }
-        IsMatchFinalized = true; BreakKind = CricketBreakKind.None; BreakNote = "";
-        MatchChanged?.Invoke(); return true;
-    }
+        => TrySetMatchOutcome(CricketMatchResultKind.ScoreBased, "", WorkflowToken, out error);
     private bool? _nextBattingTeamOverride;
     private void ResetWorkflowState()
-    { BreakKind = CricketBreakKind.None; BreakNote = ""; IsMatchFinalized = false; FinalResult = null; LastOperationError = ""; _nextBattingTeamOverride = null; }
+    { BreakKind = CricketBreakKind.None; BreakNote = ""; IsMatchFinalized = false; FinalResult = null; LastOperationError = ""; _nextBattingTeamOverride = null; ResetExceptionalState(); }
 
     public List<CricketLineupPlayer> GetLineup(bool teamA)
         => (teamA ? TeamAPlayers : TeamBPlayers).Select((player, index) => new CricketLineupPlayer
@@ -138,11 +124,7 @@ public sealed partial class CricketMatchManager
         if (TossWinner == oldName) TossWinner = newName;
         if (teamA) { TeamAName = newName; TeamAAbbr = abbreviation.Trim(); }
         else { TeamBName = newName; TeamBAbbr = abbreviation.Trim(); }
-        if (IsMatchFinalized)
-        {
-            IsMatchFinalized = false; FinalResult = null;
-            TryFinishMatch(out _);
-        }
+        RefreshFinalizedResult();
         DeliveryRevision++; MatchChanged?.Invoke(); return true;
     }
     public bool TryUpdateTeams(string nameA, string abbreviationA, IReadOnlyList<CricketLineupPlayer> playersA,

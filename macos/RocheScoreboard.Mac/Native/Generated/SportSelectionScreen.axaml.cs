@@ -612,7 +612,6 @@ public partial class SportSelectionScreen : UserControl
 
 public partial class SportSelectionScreen
 {
-    private ScaleTransform TbSc => (ScaleTransform)ProductionNames.RegistryFor(this)["TbSc"];
     private ScaleTransform SettingsTileScale => (ScaleTransform)ProductionNames.RegistryFor(this)["SettingsTileScale"];
     private TranslateTransform SettingsTileTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["SettingsTileTranslate"];
     private DropShadowEffect SettingsTileGlow => (DropShadowEffect)ProductionNames.RegistryFor(this)["SettingsTileGlow"];

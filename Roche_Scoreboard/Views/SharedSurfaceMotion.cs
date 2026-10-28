@@ -38,10 +38,13 @@ internal static class SharedSurfaceMotion
             _transforms.Children.Add(_original);
             _transforms.Children.Add(_travel);
             _transforms.Children.Add(_morph);
-            target.Loaded += (_, _) => Reveal();
-            target.Unloaded += (_, _) => Reset();
+            target.Loaded += (_, _) => { OperatorAppearance.Changed -= PreferenceChanged; OperatorAppearance.Changed += PreferenceChanged; Reveal(); };
+            target.Unloaded += (_, _) => { OperatorAppearance.Changed -= PreferenceChanged; Reset(); };
             target.IsVisibleChanged += (_, args) => { if (args.NewValue is false) Reset(); else if (target.IsLoaded) Reveal(); };
+            if(target.IsLoaded)OperatorAppearance.Changed += PreferenceChanged;
         }
+
+        private void PreferenceChanged() { if(!OperatorMotion.Enabled)Reset(); }
 
         private void Reset()
         {
@@ -60,16 +63,16 @@ internal static class SharedSurfaceMotion
         {
             if (!OperatorMotion.Enabled) { Reset(); return; }
             if (!_target.IsLoaded || !_target.IsVisible) return;
-            if (!_revealing) { _originalCache=_target.CacheMode;_target.CacheMode=new BitmapCache();_target.Opacity = .82; _travel.Y = 16;_morph.ScaleX=.96;_morph.ScaleY=.90;_target.RenderTransformOrigin=new System.Windows.Point(.5,.08); }
+            if (!_revealing) { _originalCache=_target.CacheMode;_target.CacheMode=new BitmapCache();_target.Opacity = .72; _travel.Y = 24;_morph.ScaleX=.94;_morph.ScaleY=.82;_target.RenderTransformOrigin=new System.Windows.Point(.5,.08); }
             _revealing = true;
             int generation=++_generation;
             _target.RenderTransform = _transforms;
-            _morph.BeginAnimation(ScaleTransform.ScaleXProperty,new DoubleAnimation(1,OperatorMotion.SurfaceOpen){EasingFunction=OperatorMotion.SmoothOut});
-            _morph.BeginAnimation(ScaleTransform.ScaleYProperty,new DoubleAnimation(1,OperatorMotion.SurfaceOpen){EasingFunction=OperatorMotion.SmoothOut});
+            _morph.BeginAnimation(ScaleTransform.ScaleXProperty,new DoubleAnimation(1,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut});
+            _morph.BeginAnimation(ScaleTransform.ScaleYProperty,new DoubleAnimation(1,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut});
             // No reset on re-entry: WPF continues from the current presentation value.
-            _target.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, OperatorMotion.SurfaceOpen)
+            _target.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, OperatorMotion.MaterialArrival)
                 { EasingFunction = OperatorMotion.SmoothOut });
-            var travel=new DoubleAnimation(0,OperatorMotion.SurfaceOpen){EasingFunction=OperatorMotion.SmoothOut};
+            var travel=new DoubleAnimation(0,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut};
             travel.Completed+=(_,_)=>{if(generation==_generation)Reset();};
             _travel.BeginAnimation(TranslateTransform.YProperty,travel);
         }

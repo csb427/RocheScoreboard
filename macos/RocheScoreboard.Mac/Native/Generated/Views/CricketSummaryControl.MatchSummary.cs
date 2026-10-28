@@ -1,5 +1,5 @@
 // Generated from Views/CricketSummaryControl.MatchSummary.cs; edit translator/adapters.
-// Source SHA-256: df951f7b639a0aecee2d96bd8782be6f595d4536d80de1e3e81404d7df941f6d
+// Source SHA-256: 3e412f10527152ca512c20f90b7febc26e22a0b16254322c21a285c3d70537e2
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -22,6 +22,7 @@ public partial class CricketSummaryControl
     public void ShowMatchSummary(CricketMatchManager match)
     {
         if (match.CurrentInnings is not CricketInnings innings) return;
+        PreparePresentationChange();
         SetPagedMode(match, "summary");
         PopulateMatchSummary(match, innings);
         ShowSummary();

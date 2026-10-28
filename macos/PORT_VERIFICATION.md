@@ -1,10 +1,19 @@
 # Windows 5.0 Mac port verification
 
+> The [28 October refresh](../docs/refinement/2026-10-28-preview-refresh.md)
+> includes batches 1–4 and the imported project skills. Final local verification:
+> **182/182 Linux headless tests**, clean Windows build and both Mac cross-builds.
+> The matching GitHub Actions run/artifact manifests record native-runner and
+> package results for the exact delivery commit. Native Mac GUI acceptance is
+> still pending. The detailed implementation evidence below records the original
+> preview at `6cdadb4`; newer batch reports supersede its original test counts.
+
 Baseline: `origin/master` at **636140761a9348b5030de731d3d91e5f741c1cbf** (5.0.0).
 The port uses the separate `codex/mac-download-preview` branch. GitHub Actions preview
 builds are authorized; master merges, deployment and release publication are excluded.
-Research and existing user work are preserved. All **364 files** under the imported
-Windows source match that commit; see `windows-baseline-verification.json`.
+Research and existing user work are preserved. At the preview commit, all **364 files**
+under the imported Windows source matched that baseline; the saved
+`windows-baseline-verification.json` is historical evidence for that import.
 
 ## Implementation
 

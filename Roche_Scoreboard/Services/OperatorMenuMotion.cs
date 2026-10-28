@@ -33,9 +33,9 @@ public static class OperatorMenuMotion
             OperatorAppearance.Changed += PreferenceChanged;
             _surface.RenderTransformOrigin = Origin(); _surface.RenderTransform = _scale;
             if (!OperatorMotion.Enabled) return;
-            _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.96, 1, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.90, 1, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            _surface.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(.45, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
+            _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.94, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.68, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            _surface.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(.65, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
         }
         private System.Windows.Point Origin()
         {

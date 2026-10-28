@@ -42,7 +42,12 @@ public sealed partial class CricketMatchManager
                     actor >= 0 && actor < innings.BattingOrder.Count ? innings.BattingOrder[actor].DisplayName : null);
             }
             for (int i = 0; i < innings.ScorecardChanges.Count; i++)
-                innings.ScorecardChanges[i] = innings.ScorecardChanges[i] with { Before = Remap(innings.ScorecardChanges[i].Before) };
+                innings.ScorecardChanges[i] = innings.ScorecardChanges[i] with
+                {
+                    Before = Remap(innings.ScorecardChanges[i].Before),
+                    NonDeliveryWicket = innings.ScorecardChanges[i].NonDeliveryWicket is { } wicket
+                        ? wicket with { BatterIndex = Map(wicket.BatterIndex) } : null
+                };
         }
         else
         {
@@ -62,7 +67,7 @@ public sealed partial class CricketMatchManager
             previous.HowOut = previous.IsOut ? DismissalType.RetiredOut : DismissalType.RetiredHurt;
             previous.DismissalBowler = previous.DismissalFielder = null;
             if (previous.IsOut) innings.TotalWickets++;
-            incoming.IsRetired = false; incoming.RetiredReason = null;
+            ClearRetirementState(incoming);
             if (striker) innings.StrikerIndex = replacementIndex; else innings.NonStrikerIndex = replacementIndex;
             MarkBattingEntry(innings,replacementIndex);
             innings.PartnershipRuns = innings.PartnershipBalls = 0;

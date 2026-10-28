@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml",
-  "source_sha256": "2582e3c6c7d577eb550a74818aeb46c8c31421163b8571c5e6712fa133176f67",
+  "source_sha256": "6f35748007e28b2e38c611bafad7993aa87b5ae5c2ec3a72f1c9bfc77b048ce8",
   "names": [
     {
       "name": "TrainingViewport",
@@ -178,6 +178,11 @@
       "object": false
     },
     {
+      "name": "TrainingEntryError",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "AddTimerButton",
       "type": "Button",
       "object": false
@@ -213,7 +218,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "8db294f05c3fd2dab11718e5436d19e6154973e49e975d084cd38f40651a4817",
+  "code_source_sha256": "885d2e5186bad869951c386d08d67e6bc4146678a4af972df2de784e85149a87",
   "native_events": [
     {
       "name": "AutoAdvanceToggle",

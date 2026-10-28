@@ -9,6 +9,7 @@ public partial class CricketScorebugControl
     {
         var innings = match.CurrentInnings;
         if (innings is null) return ("RUN RATE", "0.00");
+        if (match.IsMatchFinalized) return ("MATCH", match.ResultKind == CricketMatchResultKind.ScoreBased ? "ENDED" : match.ResultStatusLabel);
         if (match.BreakKind != CricketBreakKind.None)
             return ("BREAK", match.BreakKind switch { CricketBreakKind.Rain => "RAIN", CricketBreakKind.Other => "PAUSED", _ => match.BreakKind.ToString().ToUpperInvariant() });
         if(match.FreeHitsEnabled && match.FreeHitPending) return ("NEXT BALL","FREE HIT");
@@ -54,6 +55,7 @@ public partial class CricketScorebugControl
     {
         var innings=match.CurrentInnings;
         if(innings is null) return ("RUN RATE","0.00");
+        if(match.IsMatchFinalized) return SelectRailContext(match,phase);
         return (((phase%4)+4)%4) switch
         {
             0 => ("REQUIRED RATE",match.RequiredRunRate?.ToString("0.00",CultureInfo.InvariantCulture) ?? "—"),

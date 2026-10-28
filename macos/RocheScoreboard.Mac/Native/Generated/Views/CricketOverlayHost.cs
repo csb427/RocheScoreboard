@@ -1,5 +1,5 @@
 // Generated from Views/CricketOverlayHost.cs; edit translator/adapters.
-// Source SHA-256: 1acbfd98cfb3a4cc50011367651b49e3f3c34f9cb101bcde8a595bd4f5ebe36f
+// Source SHA-256: afd5659e70b09e7741b9ce0f602bf0803e1c15e2c24fcde9a0d12d5523b823cd
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -55,6 +55,29 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
     private Action? _momentReady;
     private readonly HashSet<CricketScorebugControl> _guardedScorebugs=new();
     public Grid Scene { get; } = new() { ClipToBounds = true };
+    public bool AllowsOverlays { get; private set; } = true;
+    public void SetPresentation(string presentation)
+    {
+        bool allowed = presentation == "scorebug";
+        if (AllowsOverlays == allowed) return;
+        AllowsOverlays = allowed;
+        if (!allowed)
+        {
+            // Presentation changes are a hard boundary. Do not replay an old
+            // manual request, free-hit alarm or exit callback on another screen.
+            ++_motionGeneration; _handoff.Stop();
+            _pending = null; _pendingFreeHitAlarm = false; _active = null;
+            _freeHitAlarm = false; _exiting = false; _manual = false;
+            StopFreeHitMotion(); _freeHitBackdrop.IsVisible = false;
+            _shellMotion.BeginAnimation(TranslateTransform.YProperty, null);
+            _shell.IsVisible = false; _shell.Height = 0;
+            CompactScorebug(false);
+            var ready = _momentReady; _momentReady = null; ready?.Invoke();
+        }
+        _scheduler.Cancel(_clock.Elapsed.TotalSeconds);
+        _resumeQuietUntil = _clock.Elapsed.TotalSeconds + 24;
+        StateChanged?.Invoke();
+    }
     private bool _motionEnabled=true;
     public bool MotionEnabled {get=>_motionEnabled;set {_motionEnabled=value;if(!value)StopFreeHitMotion();}}
     public bool AutomaticEnabled { get => _scheduler.AutomaticEnabled; set { _scheduler.AutomaticEnabled = value; if (!value && !_manual && !_freeHitAlarm && !_pendingFreeHitAlarm) Cancel(); } }
@@ -145,7 +168,7 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
     }
     public bool Request(CricketOverlayKind kind)
     {
-        if (_disposed || !_facts.Any(f => f.Kind == kind && f.Available)) return false;
+        if (_disposed || !AllowsOverlays || !_facts.Any(f => f.Kind == kind && f.Available)) return false;
         if(MomentInProgress || _momentReady is not null) { _pending=kind; StateChanged?.Invoke(); return true; }
         if (!_exiting && _active?.Kind == kind)
         {
@@ -172,8 +195,10 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         AnimateShell(false, () => { if (!_disposed) _handoff.Start(); }); StateChanged?.Invoke();
     }
     private void Tick(object? sender, EventArgs args)
+        => EvaluateAt(_clock.Elapsed.TotalSeconds);
+    internal void EvaluateAt(double now)
     {
-        double now = _clock.Elapsed.TotalSeconds;
+        if (_disposed || !AllowsOverlays) return;
         if (_exiting || MomentInProgress || _momentReady is not null) return;
         if (_active != null || _freeHitAlarm)
         {
@@ -187,6 +212,7 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
     }
     private void ShowPending()
     {
+        if (!AllowsOverlays) { _pending = null; _pendingFreeHitAlarm = false; return; }
         if(_pendingFreeHitAlarm)
         {
             _pendingFreeHitAlarm=false;
@@ -198,6 +224,7 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
     }
     private void Show(CricketOverlayFact fact, bool manual)
     {
+        if (!AllowsOverlays) return;
         // Construct and measure the incoming card before the scorebug begins
         // moving, so the first compositor frame contains the complete shell.
         _active = fact; _freeHitAlarm=false; _manual = manual; SizeOverlay(); Render(fact);

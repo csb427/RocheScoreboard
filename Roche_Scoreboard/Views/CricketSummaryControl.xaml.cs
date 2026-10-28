@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using Roche_Scoreboard.Models;
 using Roche_Scoreboard.Services;
 using Color = System.Windows.Media.Color;
@@ -16,6 +17,23 @@ namespace Roche_Scoreboard.Views
     public partial class CricketSummaryControl : UserControl
     {
         private int _transitionGeneration;
+        private System.Windows.Controls.Image? _presentationGhost;
+        private ImageSource? _previousPresentation;
+        private void PreparePresentationChange()
+        {
+            _previousPresentation = null;
+            if (!IsVisible || !OperatorMotion.Enabled || !OverlayMotionEnabled || RootGrid.ActualWidth < 1 || RootGrid.ActualHeight < 1) return;
+            // Capture the current composition, including an interrupted outgoing
+            // frame, before replacing any rows. The incoming screen stays opaque.
+            var frame = new RenderTargetBitmap((int)Math.Ceiling(RootGrid.ActualWidth), (int)Math.Ceiling(RootGrid.ActualHeight), 96, 96, PixelFormats.Pbgra32);
+            frame.Render(RootGrid); frame.Freeze(); _previousPresentation = frame;
+        }
+        private void ClearPresentationGhost()
+        {
+            if (_presentationGhost is null) return;
+            _presentationGhost.BeginAnimation(OpacityProperty, null);
+            RootGrid.Children.Remove(_presentationGhost); _presentationGhost = null;
+        }
         private bool _overlayCompact;
         internal bool OverlayMotionEnabled {get;set;}=true;
         public void SetOverlayCompact(bool compact)
@@ -83,7 +101,7 @@ namespace Roche_Scoreboard.Views
             _pageTimer.Tick += (_, __) => TickSummary();
             Loaded += (_, __) => { if (IsVisible) _pageTimer.Start(); };
             IsVisibleChanged += (_, __) => { if (IsVisible) _pageTimer.Start(); else _pageTimer.Stop(); };
-            Unloaded += (_, __) => _pageTimer.Stop();
+            Unloaded += (_, __) => { _pageTimer.Stop(); ++_transitionGeneration; ClearPresentationGhost(); _previousPresentation = null; };
             SizeChanged += (_, e) => { BroadcastLayout.FitCanvas(RootGrid,e.NewSize.Width,e.NewSize.Height); if(_overlayCompact) RootGrid.RowDefinitions[0].Height=new GridLength(RootGrid.Height*.27); };
         }
 
@@ -91,7 +109,7 @@ namespace Roche_Scoreboard.Views
         {
             var inn = match.CurrentInnings;
             if (inn == null) return;
-
+            PreparePresentationChange();
             SetPagedMode(match, "batting");
             PopulateBatting(match, inn);
             ShowSummary();
@@ -101,7 +119,7 @@ namespace Roche_Scoreboard.Views
         {
             var inn = match.CurrentInnings;
             if (inn == null) return;
-
+            PreparePresentationChange();
             SetPagedMode(match, "bowling");
             PopulateBowling(match, inn);
             ShowSummary();
@@ -288,13 +306,27 @@ namespace Roche_Scoreboard.Views
 
         private void ShowSummary()
         {
-            _transitionGeneration++;
+            int generation = ++_transitionGeneration;
+            bool replacing = IsVisible;
+            ClearPresentationGhost();
             BeginAnimation(OpacityProperty, null);
             RootTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             RootTranslate.BeginAnimation(TranslateTransform.YProperty, null);
             RootTranslate.X = RootTranslate.Y = 0;
             Visibility = Visibility.Visible;
             Opacity = 1;
+            if (_previousPresentation is not null && OperatorMotion.Enabled && OverlayMotionEnabled)
+            {
+                var ghost = new System.Windows.Controls.Image { Source = _previousPresentation, Stretch = Stretch.Fill, IsHitTestVisible = false, Tag = "presentation-outgoing-frame" };
+                _previousPresentation = null; _presentationGhost = ghost;
+                System.Windows.Controls.Grid.SetRowSpan(ghost, 4); RootGrid.Children.Add(ghost);
+                var dissolve = new DoubleAnimation(1, 0, BroadcastMotion.PresentationDuration) { FillBehavior = FillBehavior.Stop, EasingFunction = BroadcastMotion.CreateOverlayEase() };
+                dissolve.Completed += (_, _) => { if (generation == _transitionGeneration) ClearPresentationGhost(); };
+                ghost.BeginAnimation(OpacityProperty, dissolve);
+                return;
+            }
+            _previousPresentation = null;
+            if (replacing || !OperatorMotion.Enabled || !OverlayMotionEnabled) return;
             BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, BroadcastMotion.PresentationDuration)
             { FillBehavior = FillBehavior.Stop, EasingFunction = BroadcastMotion.CreateOverlayEase() });
             RootTranslate.BeginAnimation(TranslateTransform.YProperty,
@@ -311,11 +343,15 @@ namespace Roche_Scoreboard.Views
             RootTranslate.BeginAnimation(TranslateTransform.YProperty, null);
             RootTranslate.X = RootTranslate.Y = 0;
             Opacity = 0;
+            _previousPresentation = null;
+            if (!OperatorMotion.Enabled || !OverlayMotionEnabled)
+            { ClearPresentationGhost(); Visibility = Visibility.Collapsed; Opacity = 1; return; }
             var fadeOut = new DoubleAnimation(opacity, 0, BroadcastMotion.PresentationDuration)
             { FillBehavior = FillBehavior.Stop, EasingFunction = BroadcastMotion.CreateOverlayEase() };
             fadeOut.Completed += (_, __) =>
             {
                 if (generation != _transitionGeneration) return;
+                ClearPresentationGhost();
                 Visibility = Visibility.Collapsed;
             };
             BeginAnimation(OpacityProperty, fadeOut);

@@ -1,46 +1,78 @@
 {
   "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-  "source_sha256": "ff2481d1422937d384394116f3bc206c5b216ccbcd2a994ec5e4706ab6da768b",
+  "source_sha256": "edd49be06f9d05412fd73ceefd1f3a0150a8486ffab7b1dcd6152272d72c3812",
   "names": [
     {
       "name": "PART_Surface",
       "type": "Grid",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "TbSc",
       "type": "ScaleTransform",
-      "object": true
-    },
-    {
-      "name": "Surface",
-      "type": "Border",
-      "object": false
+      "object": true,
+      "template": true
     },
     {
       "name": "ActionGlow",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "MenuKeyboardFocus",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "PART_Surface",
+      "type": "Grid",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "Surface",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false,
+      "template": true
     },
     {
       "name": "PlayerSelected",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "SelectionPop",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "SelectionStroke",
       "type": "Path",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PlayerFocus",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "CricketRoot",
@@ -583,7 +615,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "ffdfb5d50652117fe5255e78694584e4264738a3ca0d5f811419b6c8c03f2704",
+  "code_source_sha256": "ff07b46ceeb00096ff36235248381214abd6f39adc0b448fe7df13f23aa7c61c",
   "native_events": [
     {
       "name": "MainTabControl",

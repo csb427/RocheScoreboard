@@ -1054,7 +1054,7 @@
                     </RadioButton>
                     <RadioButton x:Name="Step3Navigation" Click="GoToStep3_Click" GroupName="WizardSteps" Padding="4,6" MinHeight="0" Height="60" Theme="{StaticResource SettingsSegment}" ToolTip.Tip="Go to format">
                         <StackPanel VerticalAlignment="Center">
-                            <ns2:OperatorSymbol Kind="settings" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step3Symbol" Margin="0,0,0,3" />
+                            <ns2:OperatorSymbol Kind="clock" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step3Symbol" Margin="0,0,0,3" />
                             <TextBlock x:Name="Step3Label" Text="Format" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
                             <Border x:Name="Step3Dot" Width="36" Height="36" CornerRadius="18" Background="#242427" BorderBrush="#3A3A40" BorderThickness="2" IsVisible="False">
                                 <TextBlock Text="3" Foreground="#8E8E98" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -1063,7 +1063,7 @@
                     </RadioButton>
                     <RadioButton x:Name="Step4Navigation" Click="GoToStep4_Click" GroupName="WizardSteps" Padding="4,6" MinHeight="0" Height="60" Theme="{StaticResource SettingsSegment}" ToolTip.Tip="Go to options">
                         <StackPanel VerticalAlignment="Center">
-                            <ns2:OperatorSymbol Kind="settings" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step4Symbol" Margin="0,0,0,3" />
+                            <ns2:OperatorSymbol Kind="sliders" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step4Symbol" Margin="0,0,0,3" />
                             <TextBlock x:Name="Step4Label" Text="Options" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
                             <Border x:Name="Step4Dot" Width="36" Height="36" CornerRadius="18" Background="#242427" BorderBrush="#3A3A40" BorderThickness="2" IsVisible="False">
                                 <TextBlock Text="4" Foreground="#8E8E98" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />

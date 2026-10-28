@@ -219,6 +219,8 @@ def translate_markup(name):
         identifier = e.get(f'{{{X}}}Name')
         if identifier:
             names.append({'name': identifier, 'type': tag, 'object': tag in OBJECTS})
+            if id(e) in inside_template:
+                names[-1]['template'] = True
             if tag in OBJECTS:
                 del e.attrib[f'{{{X}}}Name']
                 e.set(f'{{{PORT}}}ProductionNames.' + ('TemplateId' if id(e) in inside_template else 'Id'), identifier)
@@ -475,7 +477,7 @@ def translate_markup(name):
     template_names = {e.get(f'{{{X}}}Name') for template in root.iter() if template.tag.endswith('}ControlTemplate') for e in template.iter()}
     fields = []
     for n in names:
-        if n['name'] in template_names or not n['object']:
+        if n.get('template', False) or n['name'] in template_names or not n['object']:
             continue
         expression = f'ProductionNames.RegistryFor(this)["{n["name"]}"]' if n['object'] else f'this.FindControl<{n["type"]}>("{n["name"]}")!'
         fields.append(f'    private {n["type"]} {n["name"]} => ({n["type"]}){expression};')

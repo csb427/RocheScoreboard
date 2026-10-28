@@ -260,7 +260,6 @@ public partial class ColorPickerWindow : NativeWindow
 
 public partial class ColorPickerWindow
 {
-    private ScaleTransform PART_GripScale => (ScaleTransform)ProductionNames.RegistryFor(this)["PART_GripScale"];
     private void Native_ColourField_LostMouseCapture(object? sender, PointerCaptureLostEventArgs e) { ColourField_PointerCaptureLost(sender!, e); }
     private void Native_ColourField_MouseLeftButtonDown(object? sender, PointerPressedEventArgs e) { ColourField_MouseLeftButtonDown(sender!, e); }
     private void Native_ColourField_MouseLeftButtonUp(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; ColourField_MouseLeftButtonUp(sender!, e); }

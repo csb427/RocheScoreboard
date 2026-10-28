@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
-  "source_sha256": "3091861d60ba581461402c755cc07b9e220a126588fe5befb2c77b100866889d",
+  "source_sha256": "9539a7a091074054dd624661cc69064bbe491952a738dd486060e4b82a4c7e9c",
   "names": [
     {
       "name": "WizardBody",
@@ -360,7 +360,8 @@
     {
       "name": "PART_ContentHost",
       "type": "ScrollViewer",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_TextPresenter",

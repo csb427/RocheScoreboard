@@ -5,37 +5,44 @@
     {
       "name": "HeaderToggle",
       "type": "ToggleButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "HB",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Chev",
       "type": "TextBlock",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Body",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Track",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Thumb",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "StateText",
       "type": "TextBlock",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "ApplicationSurface",
@@ -1623,7 +1630,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "782b9f76632578fd65e836f1ad1f2c23159f63e1f60b2e8acbc17a4c1243252b",
+  "code_source_sha256": "703df122a5eeaaa8cdd287a7b5645184327799ecc6915b6796e17588bb198ad1",
   "native_events": [
     {
       "name": "MainTabControl",

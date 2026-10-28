@@ -52,7 +52,8 @@ public partial class CricketControlPanel
         if (match is null || draft is null) return;
         var innings = match.AllInnings[draft.InningsNumber - 1];
         bool canRevert = innings.ScorecardChanges.Count > 0 && innings.Deliveries.Count == innings.ScorecardChanges[^1].AfterDeliveryCount;
-        string message = string.IsNullOrWhiteSpace(innings.ManualScorecardWarning) ? "Manual figures are saved. Original deliveries remain protected by their adjustment checkpoint." : innings.ManualScorecardWarning;
+        string latest = innings.ScorecardChanges.LastOrDefault()?.Reason ?? "Scorecard adjustment";
+        string message = string.IsNullOrWhiteSpace(innings.ManualScorecardWarning) ? latest + ". Original deliveries remain protected by this checkpoint." : innings.ManualScorecardWarning;
         if (!canRevert) message += "\n\nUndo deliveries added after the latest adjustment before reverting it.";
         var choices = new List<CricketPrompt.Choice> { new("close", "Close") };
         if (_scorecardDirty) choices.Add(new("discard-pending", "Discard pending row and reload current figures"));

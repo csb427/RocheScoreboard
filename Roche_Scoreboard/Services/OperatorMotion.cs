@@ -19,5 +19,7 @@ public static class OperatorMotion
     public static TimeSpan Stagger => TimeSpan.FromMilliseconds(40);
     public static TimeSpan Toggle => TimeSpan.FromMilliseconds(350);
     public static TimeSpan CheckDraw => TimeSpan.FromMilliseconds(350);
+    public static TimeSpan MaterialArrival => TimeSpan.FromMilliseconds(500);
+    public static TimeSpan ChoiceArrival => TimeSpan.FromMilliseconds(440);
     public static IEasingFunction SmoothOut => new CubicEase { EasingMode = EasingMode.EaseOut };
 }

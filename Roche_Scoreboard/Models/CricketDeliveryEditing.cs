@@ -63,6 +63,8 @@ public sealed partial class CricketMatchManager
     public bool TryEditDelivery(CricketDelivery expected, CricketDeliveryEdit edit, out string error)
     {
         error = "";
+        if (IsMatchFinalized)
+        { error = "This match has been finalized. Use the scorecard to correct its totals and result."; return false; }
         var original = CurrentInnings;
         int index = original?.Deliveries.IndexOf(expected) ?? -1;
         if (original is null || index < 0) { error = "This ball has changed or was undone. Reopen it from the delivery log."; return false; }
@@ -170,7 +172,7 @@ public sealed partial class CricketMatchManager
                     input.Type == CricketDeliveryType.Wicket ? DismissalLabel(input.Dismissal, input.Fielder, rebuilt.CurrentBowler!.DisplayName) : null,
                     input.NoBallRuns, input.Dismissal, input.Fielder, dismissed, old.Timestamp, input.WicketRuns, input.CompletedRunsOnly, input.RunOutCrossed,
                     (input.Type == CricketDeliveryType.Wicket ? CricketDelivery.WicketScoringType(input.WicketRuns) : input.Type) == old.ScoringType ? old.CountsInOver : null);
-                if (rebuilt.Deliveries.Count != count + 1) { error = $"Delivery {i + 1} is not valid. No changes were applied."; return false; }
+                if (rebuilt.Deliveries.Count != count + 1) { error = $"Delivery {i + 1} is not valid. {scratch.LastOperationError} No changes were applied."; return false; }
                 if (i >= index) propagating = true;
             }
             // Preserve the operator's selections made after the most recent ball, unless strike propagation was requested.

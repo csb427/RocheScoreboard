@@ -281,7 +281,6 @@ public partial class TeamLibraryWindow
 {
     private ColumnDefinition ListColumn => (ColumnDefinition)ProductionNames.RegistryFor(this)["ListColumn"];
     private ColumnDefinition DetailColumn => (ColumnDefinition)ProductionNames.RegistryFor(this)["DetailColumn"];
-    private ScaleTransform TbSc => (ScaleTransform)ProductionNames.RegistryFor(this)["TbSc"];
     private TranslateTransform DetailTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["DetailTranslate"];
     private void Native_Filter_Changed(object? sender, RoutedEventArgs e) { Filter_Changed(sender!, e); }
     private void Native_Filter_Changed(object? sender, SelectionChangedEventArgs e) { Filter_Changed(sender!, e); }

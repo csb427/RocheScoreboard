@@ -113,13 +113,14 @@
   ],
   "verification": {
     "environment": "Linux headless Avalonia with local LibVLC",
-    "passed_checks": 71,
+    "passed_checks": 182,
     "failed_checks": 0,
     "skipped_checks": 0,
-    "final_combined_run": "2026-10-28; 71/71 passed; 2.0432 minutes",
+    "final_combined_run": "2026-10-28; batches 1\u20134; 182/182 passed; Linux headless + native LibVLC; 3m17s",
     "mac_runtime_exercised": false,
     "visual_reference_comparison": false,
-    "acceptance_guide": "macos/MAC_ACCEPTANCE.md"
+    "acceptance_guide": "macos/MAC_ACCEPTANCE.md",
+    "local_refinement_report": "docs/refinement/2026-10-28-preview-refresh.md"
   },
   "known_differences": [
     "Native borders/title bars on output windows are allowed.",

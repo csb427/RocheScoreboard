@@ -5,62 +5,74 @@
     {
       "name": "Rail",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Track",
       "type": "Track",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_DecreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "SliderHandle",
       "type": "Thumb",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Grip",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_IncreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Header",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Body",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "ItemSurface",
       "type": "Border",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Check",
       "type": "TextBlock",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Arrow",
       "type": "TextBlock",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_Popup",
       "type": "Popup",
-      "object": false
+      "object": false,
+      "template": true
     }
   ],
   "code_source_sha256": null,

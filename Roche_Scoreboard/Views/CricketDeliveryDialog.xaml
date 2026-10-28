@@ -33,11 +33,12 @@
                 <ComboBox x:Name="TypeChoice" SelectionChanged="Details_Changed"/>
                 <StackPanel x:Name="WicketOptions">
                     <TextBlock x:Name="FreeHitEntryHint" Visibility="Collapsed" Text="FREE HIT · Only run out, obstructing field or hit ball twice can be recorded." Foreground="#FFD980" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                    <TextBlock x:Name="WicketRuleHint" Visibility="Collapsed" Text="This dismissal does not apply to the selected outcome. Choose an available dismissal or change the delivery outcome below." Foreground="#FFD980" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,12"/>
                     <TextBlock Text="HOW OUT" Style="{StaticResource FieldTitle}"/><ComboBox x:Name="DismissalChoice" Visibility="Collapsed" SelectionChanged="Details_Changed"/><WrapPanel x:Name="DismissalTiles" Margin="0,6,0,14"/>
                     <TextBlock Text="DISMISSED BATTER" Style="{StaticResource FieldTitle}"/><ComboBox x:Name="DismissedChoice" Visibility="Collapsed" SelectionChanged="Details_Changed"/><WrapPanel x:Name="DismissedTiles" Margin="0,6,0,4"/><TextBlock x:Name="DismissedBatterHint" Text="Only the striker can be dismissed this way." Foreground="#F0CB78" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,14"/>
                     <StackPanel x:Name="FielderOptions"><TextBlock Text="FIELDER (OPTIONAL)" Style="{StaticResource FieldTitle}"/><ComboBox x:Name="FielderChoice" SelectionChanged="Details_Changed"/><WrapPanel x:Name="FielderTiles" Visibility="Collapsed" Margin="0,6,0,14"/></StackPanel>
                 </StackPanel>
-                <StackPanel x:Name="RunOutOptions" Visibility="Collapsed"><TextBlock Text="RUN OUT DELIVERY" Style="{StaticResource FieldTitle}"/>
+                <StackPanel x:Name="RunOutOptions" Visibility="Collapsed"><TextBlock Text="DELIVERY OUTCOME" Style="{StaticResource FieldTitle}"/>
                     <ComboBox x:Name="RunOutChoice" Visibility="Collapsed" SelectionChanged="Details_Changed"/>
                     <UniformGrid x:Name="RunOutSourceTiles" Columns="3" Margin="0,6,0,12">
                         <Button Content="OFF THE BAT" Tag="0" Click="RunOutSource_Click" Style="{StaticResource ToolBtn}" MinHeight="44" Margin="0,0,4,4"/>
@@ -46,8 +47,12 @@
                         <Button Content="BYES" Tag="3" Click="RunOutSource_Click" Style="{StaticResource ToolBtn}" MinHeight="44" Margin="0,0,4,4"/>
                         <Button Content="LEG-BYES" Tag="4" Click="RunOutSource_Click" Style="{StaticResource ToolBtn}" MinHeight="44" Margin="0,0,4,4"/>
                     </UniformGrid>
-                    <UniformGrid Visibility="Collapsed"><RadioButton x:Name="RunOutNotCrossed" IsChecked="True" GroupName="RunOutCrossing" Checked="RunOutCrossing_Changed"/><RadioButton x:Name="RunOutCrossed" GroupName="RunOutCrossing" Checked="RunOutCrossing_Changed"/></UniformGrid>
-                    <TextBlock Text="Check the strike after recording the wicket. Use Swap strike from the player menu if needed." TextWrapping="Wrap" Foreground="#B6B6C0" FontSize="13" Margin="0,4,0,12"/>
+                    <StackPanel x:Name="RunOutCrossingOptions">
+                        <TextBlock Text="ON THE UNFINISHED RUN" Style="{StaticResource FieldTitle}" Margin="0,4,0,6"/>
+                        <RadioButton x:Name="RunOutNotCrossed" Content="Batters had not crossed" IsChecked="True" GroupName="RunOutCrossing" Checked="RunOutCrossing_Changed" MinHeight="36"/>
+                        <RadioButton x:Name="RunOutCrossed" Content="Batters had crossed" GroupName="RunOutCrossing" Checked="RunOutCrossing_Changed" MinHeight="36"/>
+                        <TextBlock Text="Use umpire-confirmed runs and positions. If obstruction prevented a catch, use original ends and no completed runs. Otherwise choose whether the batters crossed. The preview includes the end of the over." TextWrapping="Wrap" Foreground="#B6B6C0" FontSize="13" Margin="0,4,0,12"/>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel x:Name="NoBallOptions"><TextBlock Text="NO-BALL RUNS CAME FROM" Style="{StaticResource FieldTitle}"/>
                     <ComboBox x:Name="NoBallChoice" Visibility="Collapsed" SelectionChanged="Details_Changed"/>
@@ -84,8 +89,8 @@
         </ScrollViewer>
         <StackPanel x:Name="EntryFooter" Grid.Row="2"><Border CornerRadius="18" x:Name="PreviewPanel" Background="#222226" BorderBrush="#44444B" BorderThickness="1" Padding="14,10" Margin="0,10,0,10"><TextBlock x:Name="PreviewText" TextWrapping="Wrap" FontSize="18" FontWeight="Bold"/></Border><TextBlock x:Name="ErrorText" Visibility="Collapsed" Foreground="#FFB1B1" TextWrapping="Wrap" Margin="0,6"/>
             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
-                <Button x:Name="CancelButton" Visibility="Collapsed" Content="CANCEL" Click="Cancel_Click" Height="48" MinHeight="0" Padding="12,0" Style="{StaticResource ToolBtn}"/>
-                <Button x:Name="ApplyButton" Foreground="White" Grid.ColumnSpan="3" Content="APPLY CORRECTION" Height="48" MinHeight="0" Padding="12,0" Style="{StaticResource PrimaryCommandButton}" Click="Apply_Click"/>
+                <Button x:Name="CancelButton" Content="CANCEL" Click="Cancel_Click" Height="48" MinHeight="0" Padding="12,0" Style="{StaticResource ToolBtn}"/>
+                <Button x:Name="ApplyButton" Foreground="White" Grid.Column="2" Content="APPLY CORRECTION" Height="48" MinHeight="0" Padding="12,0" Style="{StaticResource PrimaryCommandButton}" Click="Apply_Click"/>
             </Grid>
         </StackPanel>
     </Grid>

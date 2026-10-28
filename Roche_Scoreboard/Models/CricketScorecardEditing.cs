@@ -17,7 +17,10 @@ public sealed class CricketScorecardDraft
     public List<CricketPlayer> Bowlers { get; set; } = [];
     public List<string> FallOfWickets { get; set; } = [];
 }
-public sealed record CricketScorecardChange(int AfterDeliveryCount, CricketInningsState Before, string Reason = "Scorecard correction");
+public sealed record CricketScorecardChange(int AfterDeliveryCount, CricketInningsState Before, string Reason = "Scorecard correction")
+{
+    public CricketNonDeliveryWicket? NonDeliveryWicket { get; init; }
+}
 
 public sealed partial class CricketMatchManager
 {
@@ -139,11 +142,7 @@ public sealed partial class CricketMatchManager
             CheckInningsComplete(current);
             RefreshBatterSelectionState(current);
         }
-        if (IsMatchFinalized)
-        {
-            IsMatchFinalized = false; FinalResult = null;
-            TryFinishMatch(out _);
-        }
+        RefreshFinalizedResult();
         DeliveryRevision++; MatchChanged?.Invoke(); return true;
     }
     public bool TryRevertLatestScorecardCorrection(int inningsNumber, out string error)
@@ -153,6 +152,8 @@ public sealed partial class CricketMatchManager
         var innings = AllInnings[inningsNumber - 1];
         if (innings.ScorecardChanges.Count == 0) { error = "There is no manual scorecard edit to revert."; return false; }
         var change = innings.ScorecardChanges[^1];
+        if (change.NonDeliveryWicket is not null && !ReferenceEquals(innings, CurrentInnings))
+        { error = "A later innings has started. Correct the earlier figures in the scorecard; this action cannot reopen an earlier innings."; return false; }
         if (innings.Deliveries.Count != change.AfterDeliveryCount) { error = "Undo balls added after this scorecard change first. No history was removed."; return false; }
         bool chaseWasComplete = CurrentInnings is { IsComplete: true, IsDeclared: false, IgnoreTarget: false } chase
             && Target is int previousTarget && chase.TotalRuns >= previousTarget;
@@ -166,11 +167,7 @@ public sealed partial class CricketMatchManager
             CheckInningsComplete(current);
             RefreshBatterSelectionState(current);
         }
-        if (IsMatchFinalized)
-        {
-            IsMatchFinalized = false; FinalResult = null;
-            TryFinishMatch(out _);
-        }
+        RefreshFinalizedResult();
         DeliveryRevision++; MatchChanged?.Invoke(); return true;
     }
     private static void CopyBatting(CricketPlayer source, CricketPlayer target)

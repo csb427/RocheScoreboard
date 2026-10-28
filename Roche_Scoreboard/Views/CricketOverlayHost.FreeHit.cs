@@ -33,7 +33,7 @@ public sealed partial class CricketOverlayHost
         bool correction = _freeHitRevision != _match.DeliveryRevision;
         bool appended = !changedInnings && !correction && count > _freeHitDeliveryCount;
         _freeHitInnings = innings; _freeHitRevision = _match.DeliveryRevision; _freeHitDeliveryCount = count;
-        bool available = _match.FreeHitsEnabled && _match.FreeHitPending && !_match.IsMatchFinalized && _match.BreakKind == CricketBreakKind.None;
+        bool available = AllowsOverlays && _match.FreeHitsEnabled && _match.FreeHitPending && !_match.IsMatchFinalized && _match.BreakKind == CricketBreakKind.None;
         if (!available || changedInnings || correction)
         {
             // Recovery and history edits retain the domain's pending indication,
@@ -48,7 +48,7 @@ public sealed partial class CricketOverlayHost
 
     private void QueueFreeHitAlarm()
     {
-        if (_disposed || !IsLoaded || !IsVisible) return;
+        if (_disposed || !AllowsOverlays || !IsLoaded || !IsVisible) return;
         _scheduler.Cancel(_clock.Elapsed.TotalSeconds);
         if (_freeHitAlarm && !_exiting)
         {
@@ -64,6 +64,7 @@ public sealed partial class CricketOverlayHost
 
     private void ShowFreeHitAlarm()
     {
+        if (!AllowsOverlays) return;
         _active = null; _freeHitAlarm = true; _manual = false; _renderSignature = null;
         _hideAt = _clock.Elapsed.TotalSeconds + FreeHitAlarmSeconds;
         _resumeQuietUntil = _clock.Elapsed.TotalSeconds + 24;

@@ -28,6 +28,7 @@ internal static class OperatorFeedback
     internal static void SetManaged(DependencyObject target,bool value)=>target.SetValue(ManagedProperty,value);
     private static readonly ConditionalWeakTable<FrameworkElement,Scope> Scopes=new();
     private static readonly ConditionalWeakTable<FrameworkElement,Feedback> States=new();
+    private static readonly ConditionalWeakTable<Window,object> Arrivals=new();
     private static bool _installed;
     internal static void Install()
     {
@@ -49,6 +50,7 @@ internal static class OperatorFeedback
         string type=window.GetType().Name;
         if(type is "EmergencyVideoWindow" or "VideoPlayerWindow" or "AflPresentationGalleryWindow")return false;
         if(window.GetType().Namespace=="Roche_Scoreboard.Views" && !type.Contains("Display"))return true;
+        if(window.Title?.Contains("Display", StringComparison.OrdinalIgnoreCase)==true)return false;
         return window.WindowStyle!=WindowStyle.None;
     }
     internal static void Enable(FrameworkElement root)
@@ -62,6 +64,12 @@ internal static class OperatorFeedback
         // Explicit local scope prevents the operator theme leaking into public display windows.
         if(root.GetType().Namespace=="Roche_Scoreboard.Views" || root is MainWindow || root is Window { Owner: { } ownerWindow } && IsOperatorWindow(ownerWindow))OperatorDesign.Apply(root);
         Scopes.GetValue(root,key=>new Scope(key));
+        if(root is Window arriving && !Arrivals.TryGetValue(arriving,out _) && arriving.Content is FrameworkElement content)
+        {
+            Arrivals.Add(arriving,new object());
+            Roche_Scoreboard.Views.SharedSurfaceMotion.Attach(content);
+            if(content.IsLoaded)Roche_Scoreboard.Views.SharedSurfaceMotion.Reveal(content);
+        }
     }
     private static void AttachOwner(object sender,RoutedEventArgs args)
     {var root=(FrameworkElement)sender;root.Loaded-=AttachOwner;if(Window.GetWindow(root) is Window owner)Enable(owner);}

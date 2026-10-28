@@ -272,7 +272,7 @@ public partial class CricketScorebugControl : UserControl
             _lastMatch = match;
             var inn = match.CurrentInnings;
             if (inn == null) return;
-            if(match.BreakKind!=CricketBreakKind.None) HideBowlerDetails();
+            if(match.BreakKind!=CricketBreakKind.None || match.IsMatchFinalized) HideBowlerDetails();
             UpdatePregame(match);
 
             // Reset batter row tracking on new innings
@@ -563,7 +563,7 @@ public partial class CricketScorebugControl : UserControl
             var inn = match.CurrentInnings;
             if (inn == null) return;
 
-            bool chase=match.Format==CricketFormat.LimitedOvers && match.CurrentInningsNumber>1 && match.Target is not null && match.BreakKind==CricketBreakKind.None && !match.FreeHitPending;
+            bool chase=!match.IsMatchFinalized && match.Format==CricketFormat.LimitedOvers && match.CurrentInningsNumber>1 && match.Target is not null && match.BreakKind==CricketBreakKind.None && !match.FreeHitPending;
             if(!chase) { _chaseMiniTimer.Stop(); _chaseMiniShowing=false; }
             var (newLabel,newValue)=_chaseMiniShowing ? SelectChaseMiniContext(match,_infoRotationIndex-1) : SelectRailContext(match,_infoRotationIndex);
 
@@ -641,7 +641,7 @@ public partial class CricketScorebugControl : UserControl
                 _infoRotationIndex++;
                 if (_lastMatch != null && !EventShowing && !MomentAwaitingLayout)
                 {
-                    if(!_overlayCompact && _lastMatch.Format==CricketFormat.LimitedOvers && _lastMatch.CurrentInningsNumber>1 && _lastMatch.Target is not null && _lastMatch.BreakKind==CricketBreakKind.None)
+                    if(!_lastMatch.IsMatchFinalized && !_overlayCompact && _lastMatch.Format==CricketFormat.LimitedOvers && _lastMatch.CurrentInningsNumber>1 && _lastMatch.Target is not null && _lastMatch.BreakKind==CricketBreakKind.None)
                     { _chaseMiniShowing=true; _chaseMiniTimer.Stop(); _chaseMiniTimer.Start(); }
                     UpdateInfoTile(_lastMatch);
                 }

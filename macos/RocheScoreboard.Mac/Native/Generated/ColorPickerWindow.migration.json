@@ -5,27 +5,32 @@
     {
       "name": "PART_Track",
       "type": "Track",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_DecreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "Grip",
       "type": "Ellipse",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PART_GripScale",
       "type": "ScaleTransform",
-      "object": true
+      "object": true,
+      "template": true
     },
     {
       "name": "PART_IncreaseButton",
       "type": "RepeatButton",
-      "object": false
+      "object": false,
+      "template": true
     },
     {
       "name": "PickerSurface",

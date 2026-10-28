@@ -87,9 +87,15 @@ under System Settings → Privacy & Security.
 
 ## Maintaining the translation
 
-The Windows source under `Roche_Scoreboard/` is the authority and is unchanged.
+The Windows source under `Roche_Scoreboard/` is the authority. The
+[28 October preview refresh](../docs/refinement/2026-10-28-preview-refresh.md)
+includes shared refinements recorded in [batch 1](../docs/refinement/2026-10-28-batch-1.md),
+[batch 2](../docs/refinement/2026-10-28-batch-2.md) and
+[batch 3](../docs/refinement/2026-10-28-batch-3.md) and
+[batch 4](../docs/refinement/2026-10-28-batch-4.md);
+model fixes compile directly on both platforms and view edits must be regenerated.
 [production-source-contract.json](production-source-contract.json) records the
-source inventory (49 XAML surfaces, 246 C# files, 530 UI event bindings).
+source inventory (49 XAML surfaces, 249 C# files, 530 UI event bindings).
 
 ```bash
 python3 macos/tools/translate_production.py

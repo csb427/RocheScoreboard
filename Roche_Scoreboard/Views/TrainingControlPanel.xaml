@@ -14,6 +14,7 @@
             <SolidColorBrush x:Key="RegionBrush" Color="#09090B"/>
             <SolidColorBrush x:Key="RegionAltBrush" Color="#19191C"/>
             <SolidColorBrush x:Key="RegionEdgeBrush" Color="#303035"/>
+            <SolidColorBrush x:Key="Training.ErrorBrush" Color="#FF7B72"/>
             <Style x:Key="SectionHead" TargetType="TextBlock"><Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/><Setter Property="FontSize" Value="{DynamicResource ControlCentre.CaptionSize}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="{DynamicResource ControlCentre.SecondaryTextBrush}"/><Setter Property="Margin" Value="0,0,0,8"/></Style>
 
         <Style x:Key="InputBox" TargetType="TextBox" BasedOn="{StaticResource SettingsInput}">
@@ -311,6 +312,9 @@
                                     </StackPanel>
                                 </Grid>
 
+                                <TextBlock x:Name="TrainingEntryError" Visibility="Collapsed"
+                                           Foreground="{StaticResource Training.ErrorBrush}" TextWrapping="Wrap"
+                                           FontSize="14" Margin="0,10,0,0"/>
                                 <Button x:Name="AddTimerButton" Click="OnAddTimerClicked"
                                         Content="＋  ADD TO QUEUE"
                                         Style="{StaticResource ActionButton}"

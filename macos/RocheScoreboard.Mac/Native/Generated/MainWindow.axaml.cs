@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from MainWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 782b9f76632578fd65e836f1ad1f2c23159f63e1f60b2e8acbc17a4c1243252b
+// Source SHA-256: 703df122a5eeaaa8cdd287a7b5645184327799ecc6915b6796e17588bb198ad1
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -994,7 +994,7 @@ namespace Roche_Scoreboard
             bool ctrlPressed = (NativeKeyboard.Modifiers & KeyModifiers.Control) != 0;
             if (_sportMode == SportMode.Cricket && CricketControlPanelView.IsVisible)
             {
-                if (CricketControlPanelView.TossOverlay.IsVisible || CricketControlPanelView.BatterSelectionOverlay.IsVisible
+                if (CricketControlPanelView.HasActiveDecision || CricketControlPanelView.TossOverlay.IsVisible || CricketControlPanelView.BatterSelectionOverlay.IsVisible
                     || CricketControlPanelView.BowlerSelectionOverlay.IsVisible || CricketControlPanelView.DeliveryEntryOverlay.IsVisible) return;
                 int cricketTab = e.Key switch { Key.D1 or Key.NumPad1 => 0, Key.D2 or Key.NumPad2 => 1, Key.D3 or Key.NumPad3 => 2, Key.D4 or Key.NumPad4 => 3, _ => -1 };
                 if (ctrlPressed && cricketTab >= 0) { CricketControlPanelView.MainTabControl.SelectedIndex = cricketTab; e.Handled = true; }

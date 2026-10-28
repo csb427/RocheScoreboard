@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.Workflows.cs; edit translator/adapters.
-// Source SHA-256: fcd4c276b450597395335fe8197a346c1f3252f404845f677473c0649e90e880
+// Source SHA-256: dd5d8cd1c2c617df69dfba75dbab907e03d0387d0b192fbc75427f2a2da1271e
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -23,6 +23,7 @@ namespace Roche_Scoreboard.Views;
 public partial class CricketControlPanel
 {
     private bool _workflowBusy;
+    internal bool HasActiveDecision => _workflowBusy;
     private string? _completionShown;
     private int _workflowGeneration;
     private void InitializeWorkflowControls() { InitializeScorecard(); NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, _) => UpdateWorkflowState()); }
@@ -87,7 +88,12 @@ public partial class CricketControlPanel
     {
         if (_match?.CurrentInnings is not { } innings) return;
         bool pause = _match.BreakKind != CricketBreakKind.None || _match.IsMatchFinalized;
-        WorkflowStatus.Text = _match.IsMatchFinalized ? "ENDED" : _match.TossPending ? "SETUP" : pause ? _match.BreakKind.ToString().ToUpperInvariant() : "LIVE";
+        WorkflowStatus.Text = _match.IsMatchFinalized ? _match.ResultStatusLabel : _match.TossPending ? "SETUP" : pause ? _match.BreakKind.ToString().ToUpperInvariant() : "LIVE";
+        if (_match.IsMatchFinalized)
+        {
+            BatterSelectionOverlay.IsVisible = BowlerSelectionOverlay.IsVisible = TossOverlay.IsVisible = false;
+            _deliveryEntry?.Cancel();
+        }
         EndInningsButton.IsEnabled = !_match.TossPending && !_match.IsMatchFinalized;
         UpdateScoringGate();
         UpdateScorecardStatus();
@@ -135,10 +141,7 @@ public partial class CricketControlPanel
             if (!match.TryContinueCurrentInnings(out string error)) await ShowErrorAsync("Unable to continue", error); else ResumePendingSelection();
         }
         else if (answer == "finish")
-        {
-            if (await ChooseAsync("End this game?", "Scoring will stop. The scorecard and delivery history remain available until you reset the game.", new("back", "Keep game open"), new("yes", "End game", Destructive: true)) != "yes") return false;
-            if (!match.TryFinishMatch(out string error)) await ShowErrorAsync("Unable to finish", error);
-        }
+            await OpenMatchOutcomeAsync();
         return false;
     }
     private async void MatchOptions_Click(object? sender, RoutedEventArgs args)
@@ -148,10 +151,13 @@ public partial class CricketControlPanel
         if (_match is not { } match) return;
         while (ReferenceEquals(match, _match))
         {
-            var actions = new List<CricketPrompt.Choice> { new("close", "Close"), new("break", match.BreakKind == CricketBreakKind.None ? "Take a break / rain delay" : "Change the break"), new("teams", "Edit teams") };
+            var actions = new List<CricketPrompt.Choice> { new("close", "Close"), new("teams", "Edit teams") };
+            if (!match.IsMatchFinalized) actions.Add(new("break", match.BreakKind == CricketBreakKind.None ? "Take a break / rain delay" : "Change the break"));
             if (!match.IsMatchFinalized) actions.Add(new("conditions", "Format and over limit"));
             if (!match.TossPending && !match.IsMatchFinalized && match.Format == CricketFormat.LimitedOvers) actions.Add(new("rain", "Duckworth-Lewis"));
             if (!match.TossPending && !match.IsMatchFinalized) actions.Add(new("innings", "Innings and game options"));
+            if (!match.TossPending && !match.IsMatchFinalized) actions.Add(new("before-delivery", "Non-striker run out before delivery"));
+            actions.Add(new("outcome", match.IsMatchFinalized ? "Review outcome / reopen match" : "End match / record outcome"));
             string? answer = await ChooseAsync("Match options", "Manage breaks, teams and playing conditions.", actions.ToArray());
             if (!ReferenceEquals(match, _match)) return;
             if (answer == "break")
@@ -166,6 +172,8 @@ public partial class CricketControlPanel
             else if (answer == "innings") { if (await OpenInningsDecisionAsync(false, true)) continue; }
             else if (answer == "conditions") { if (await OpenConditionsEditorAsync(false)) continue; }
             else if (answer == "rain") { if (await OpenConditionsEditorAsync(true)) continue; }
+            else if (answer == "before-delivery") await OpenUndeliveredRunOutAsync();
+            else if (answer == "outcome") await OpenMatchOutcomeAsync();
             return;
         }
     }

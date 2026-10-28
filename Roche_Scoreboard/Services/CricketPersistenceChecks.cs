@@ -60,11 +60,18 @@ internal static class CricketPersistenceChecks
         { resetStarted.Set(); if (!resetRelease.Wait(TimeSpan.FromSeconds(4))) throw new TimeoutException("Fixture reset gate was not released."); });
         try
         {
-            resetWriter.Queue(Capture()); await Task.Run(() => resetStarted.Wait(TimeSpan.FromSeconds(3)));
-            var bounded = Stopwatch.StartNew();
-            bool timedOut = await Task.Run(() => !resetWriter.Flush(TimeSpan.FromMilliseconds(25)));
-            bounded.Stop();
-            checks["recovery-shutdown-flush-has-a-bounded-timeout"] = timedOut && bounded.ElapsedMilliseconds < 1000;
+            resetWriter.Queue(Capture());
+            checks["recovery-reset-worker-reaches-injected-disk-boundary"] = await Task.Run(() => resetStarted.Wait(TimeSpan.FromSeconds(3)));
+            // Measure Flush itself, not the time its test delegate spends queued
+            // behind other pool work (including the deliberately blocked writer).
+            // A dedicated fixture thread also avoids starving the release path.
+            checks["recovery-shutdown-flush-has-a-bounded-timeout"] = await Task.Factory.StartNew(() =>
+            {
+                var bounded = Stopwatch.StartNew();
+                bool timedOut = !resetWriter.Flush(TimeSpan.FromMilliseconds(25));
+                bounded.Stop();
+                return timedOut && bounded.ElapsedMilliseconds < 1000;
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             resetWriter.Clear(); resetRelease.Set();
             await Task.Run(() => resetWriter.Flush(TimeSpan.FromSeconds(4)));
             checks["recovery-reset-invalidates-a-prepared-stale-snapshot"] = !File.Exists(resetPath) && !File.Exists(resetPath + ".bak");

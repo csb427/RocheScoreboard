@@ -1,5 +1,5 @@
 // Generated from Services/OperatorMenuMotion.cs; edit translator/adapters.
-// Source SHA-256: 260e4be135b41ba7f697a933b751dd2581ce3533715eee4bdfa6752c8ae5e873
+// Source SHA-256: 67eb1987719c777147ebc83ae383be5c290186b0eda763ceed59dd9321cb6b15
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -38,9 +38,9 @@ public static class OperatorMenuMotion
             OperatorAppearance.Changed += PreferenceChanged;
             _surface.RenderTransformOrigin = new RelativePoint(Origin(),RelativeUnit.Relative); _surface.RenderTransform = _scale;
             if (!OperatorMotion.Enabled) return;
-            _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.96, 1, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.90, 1, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            _surface.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(.45, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
+            _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.94, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.68, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            _surface.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(.65, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
         }
         private Avalonia.Point Origin()
         {

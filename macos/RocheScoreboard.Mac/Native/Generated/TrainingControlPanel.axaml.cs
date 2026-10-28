@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/TrainingControlPanel.xaml.cs; edit translator/adapters.
-// Source SHA-256: 8db294f05c3fd2dab11718e5436d19e6154973e49e975d084cd38f40651a4817
+// Source SHA-256: 885d2e5186bad869951c386d08d67e6bc4146678a4af972df2de784e85149a87
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -490,6 +490,8 @@ public partial class TrainingControlPanel : UserControl
     private Control BuildEditRowContent(TrainingTimer t, int index, string accent)
     {
         var grid = new Grid();
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -569,13 +571,23 @@ public partial class TrainingControlPanel : UserControl
         Grid.SetColumn(timeStack, 2);
         grid.Children.Add(timeStack);
 
+        var error = new NativeTextBlock
+        {
+            Tag = "training-edit-error", IsVisible = false,
+            Foreground = this.FindResource("Training.ErrorBrush") as Avalonia.Media.IBrush ?? throw new InvalidOperationException("Training validation brush is missing."), FontSize = 14,
+            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0)
+        };
+        Grid.SetRow(error, 1); Grid.SetColumnSpan(error, 5); grid.Children.Add(error);
+
         void Commit()
         {
             if (_session is null) return;
-            int m = ParseInt((minBox.Text ?? string.Empty), 0);
-            int s = ParseInt((secBox.Text ?? string.Empty), 0);
-            TimeSpan dur = TimeSpan.FromSeconds(Math.Max(1, m * 60 + s));
-            _session.UpdateTimer(t, (titleBox.Text ?? string.Empty), dur);
+            if (!TryReadTimerDuration((minBox.Text ?? string.Empty), (secBox.Text ?? string.Empty), out int totalSeconds, out string message))
+            {
+                error.Text = message; error.IsVisible = true; OperatorViewport.RevealValidationError(error);
+                return;
+            }
+            _session.UpdateTimer(t, (titleBox.Text ?? string.Empty), TimeSpan.FromSeconds(totalSeconds));
             _editingTimerId = null;
             RebuildQueueList();
         }
@@ -840,9 +852,13 @@ public partial class TrainingControlPanel : UserControl
         if (_session is null) return;
 
         string title = string.IsNullOrWhiteSpace((NewTitleBox.Text ?? string.Empty)) ? "TIMER" : (NewTitleBox.Text ?? string.Empty).Trim();
-        int mins = ParseInt((NewMinutesBox.Text ?? string.Empty), 0);
-        int secs = ParseInt((NewSecondsBox.Text ?? string.Empty), 0);
-        int totalSeconds = Math.Max(1, mins * 60 + secs);
+        if (!TryReadTimerDuration((NewMinutesBox.Text ?? string.Empty), (NewSecondsBox.Text ?? string.Empty), out int totalSeconds, out string message))
+        {
+            TrainingEntryError.Text = message; TrainingEntryError.IsVisible = true;
+            OperatorViewport.RevealValidationError(TrainingEntryError);
+            return;
+        }
+        TrainingEntryError.Text = ""; TrainingEntryError.IsVisible = false;
         TimeSpan dur = TimeSpan.FromSeconds(totalSeconds);
 
         _session.AddTimer(new TrainingTimer(title, dur));
@@ -950,6 +966,19 @@ public partial class TrainingControlPanel : UserControl
 
     private static int ParseInt(string s, int fallback) =>
         int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
+
+    private static bool TryReadTimerDuration(string? minutes, string? seconds, out int totalSeconds, out string error)
+    {
+        totalSeconds = 0; error = "Use whole, non-negative minutes and seconds.";
+        string m = string.IsNullOrWhiteSpace(minutes) ? "0" : minutes.Trim();
+        string s = string.IsNullOrWhiteSpace(seconds) ? "0" : seconds.Trim();
+        if (!int.TryParse(m, NumberStyles.None, CultureInfo.InvariantCulture, out int mins)
+            || !int.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out int secs)) return false;
+        long total = (long)mins * 60 + secs;
+        if (total == 0) { error = "Enter a duration of at least 1 second."; return false; }
+        if (total > int.MaxValue) { error = "This duration is too long. Use fewer minutes or seconds."; return false; }
+        totalSeconds = (int)total; error = ""; return true;
+    }
 }
 
 public partial class TrainingControlPanel

@@ -148,6 +148,13 @@ public sealed class OperatorSymbol : FrameworkElement
         {for(int i=0;i<4;i++){var rect=new Rect(3+i%2*11,3+i/2*11,7,7);d.DrawRoundedRectangle(fill*4>i?Foreground:null,pen,rect,2,2);}}
         else if(kind.Contains("timer") || kind.Contains("clock") || kind.Contains("session"))
         {d.DrawEllipse(null,pen,new Point(12,13),8,8);Path("M9,2 L15,2 M12,2 L12,5");d.PushTransform(new RotateTransform(turn*360,12,13));Path("M12,7 L12,13 16,13");d.Pop();}
+        else if(kind=="sliders")
+        {
+            Path("M3,6 L21,6 M3,12 L21,12 M3,18 L21,18");
+            d.DrawEllipse(Brushes.Black,pen,new Point(8,6),2.4,2.4);
+            d.DrawEllipse(Brushes.Black,pen,new Point(16,12),2.4,2.4);
+            d.DrawEllipse(Brushes.Black,pen,new Point(10,18),2.4,2.4);
+        }
         else if(kind.Contains("setting") || kind.Contains("control"))
         {
             d.PushTransform(new RotateTransform(turn*360,12,13));

@@ -30,7 +30,7 @@ public partial class CricketControlPanel
     private void UpdateScoringGate()
     {
         if(_match?.CurrentInnings is not {} innings) return;
-        bool waiting=_match.TossPending,paused=_match.BreakKind!=Models.CricketBreakKind.None;
+        bool waiting=_match.TossPending && !_match.IsMatchFinalized,paused=_match.BreakKind!=Models.CricketBreakKind.None;
         bool batters=innings.Striker is{IsOut:false} && innings.NonStriker is{IsOut:false} && innings.StrikerIndex!=innings.NonStrikerIndex && !innings.NeedsBatterSelection;
         bool bowler=innings.CurrentBowler is not null && !innings.NeedsBowlerSelection;
         bool ready=!waiting&&!paused&&!innings.IsComplete&&!_match.IsMatchFinalized&&batters&&bowler;

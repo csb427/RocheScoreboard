@@ -1,5 +1,5 @@
 // Generated from MainWindow.CloudRemote.cs; edit translator/adapters.
-// Source SHA-256: ffafb26376ea241b8cde813e55d1f728916aec6969d9e6ce369746db6e8946fa
+// Source SHA-256: bb71d5893fb12588197c64b047092cdc04f6a3a74d5ceffb709e4af05ac05946
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -560,7 +560,7 @@ public partial class MainWindow : IRemoteCommandTarget
     void IRemoteCommandTarget.CricketUndo()
     {
         if (_sportMode == SportMode.Cricket)
-            _cricketMatch?.UndoLastDelivery();
+            if (_cricketMatch is { } match) match.TryUndoLastScoringAction(match.WorkflowToken, out _);
     }
 
     void IRemoteCommandTarget.CricketSelectBatter(int index, string role)

@@ -1,5 +1,5 @@
 // Generated from Services/OperatorFeedback.cs; edit translator/adapters.
-// Source SHA-256: b8adc289366351690a97074a513c87d32e1e585ac62b0476bc72aa22f21ca410
+// Source SHA-256: dcaa8f0837f5bdb71b2564287680030530584887e52d077131ad70a4131d2410
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -32,6 +32,7 @@ internal static class OperatorFeedback
     internal static void SetManaged(AvaloniaObject target,bool value)=>target.SetValue(ManagedProperty,value);
     private static readonly ConditionalWeakTable<Control,Scope> Scopes=new();
     private static readonly ConditionalWeakTable<Control,Feedback> States=new();
+    private static readonly ConditionalWeakTable<Window,object> Arrivals=new();
     private static bool _installed;
     internal static void Install()
     {
@@ -53,6 +54,7 @@ internal static class OperatorFeedback
         string type=window.GetType().Name;
         if(type is "EmergencyVideoWindow" or "VideoPlayerWindow" or "AflPresentationGalleryWindow")return false;
         if(window.GetType().Namespace=="Roche_Scoreboard.Views" && !type.Contains("Display"))return true;
+        if(window.Title?.Contains("Display", StringComparison.OrdinalIgnoreCase)==true)return false;
         return !((window as NativeWindow)?.IsOutputWindow??false);
     }
     internal static void Enable(Control root)
@@ -66,6 +68,12 @@ internal static class OperatorFeedback
         // Explicit local scope prevents the operator theme leaking into public display windows.
         if(root.GetType().Namespace=="Roche_Scoreboard.Views" || root is MainWindow || root is Window { Owner: { } ownerWindow } && ownerWindow is Window owningWindow && IsOperatorWindow(owningWindow))OperatorDesign.Apply(root);
         Scopes.GetValue(root,key=>new Scope(key));
+        if(root is Window arriving && !Arrivals.TryGetValue(arriving,out _) && arriving.Content is Control content)
+        {
+            Arrivals.Add(arriving,new object());
+            Roche_Scoreboard.Views.SharedSurfaceMotion.Attach(content);
+            if(content.IsLoaded)Roche_Scoreboard.Views.SharedSurfaceMotion.Reveal(content);
+        }
     }
     private static void AttachOwner(object sender,RoutedEventArgs args)
     {var root=(Control)sender;root.Loaded-=AttachOwner;if(NativeWindow.GetWindow(root) is Window owner)Enable(owner);}

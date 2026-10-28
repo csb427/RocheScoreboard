@@ -24,6 +24,8 @@ public sealed class SmallSurfaceTests
     [InlineData("delivery",700,450)][InlineData("settings",700,450)][InlineData("resume",700,450)]
     [InlineData("afl-setup",480,320)][InlineData("cricket-console",480,320)]
     [InlineData("settings",480,320)][InlineData("resume",420,280)]
+    [InlineData("delivery",420,280)]
+    [InlineData("training-console",700,450)][InlineData("training-console",420,280)]
     public async Task CurrentProductionSurfacesRenderAndKeepTheirActionsReachableOnShortWindows(string surface,int width,int height)
     {
         var match=CricketReliabilityChecks.CreateMatch(ready:true);match.SetTeams(new string('A',90),"AAA",new string('B',90),"BBB");
@@ -31,11 +33,17 @@ public sealed class SmallSurfaceTests
         {
             "afl-setup"=>new SetupWizard(),"cricket-setup"=>new CricketSetupWizard(),
             "cricket-console"=>new CricketControlPanel(),"delivery"=>new CricketDeliveryDialog(match),
+            "training-console"=>new TrainingControlPanel(),
             "settings"=>new GlobalSettingsScreen(),"resume"=>new ResumeMatchPrompt(new GameState()),
             _=>throw new ArgumentOutOfRangeException(nameof(surface))
         };
         var window=new NativeWindow{Width=width,Height=height,Content=content,Title="Small "+surface};
         if(content is CricketControlPanel panel)panel.SetMatch(match);
+        if(content is TrainingControlPanel training)
+        {
+            var session = new TrainingSession(); session.AddTimer(new TrainingTimer(new string('T',90),TimeSpan.FromMinutes(2)));
+            training.Bind(session);
+        }
         try
         {
             window.Show();await Task.Delay(1000);Dispatcher.UIThread.RunJobs();

@@ -79,7 +79,9 @@ public class NativeWindow : Window
         {
             Content=null;Content=new NativeAccessibleWindowContent(body,this is Roche_Scoreboard.MainWindow);
         }
-        Screens.Changed+=ScreensChanged;
+        if (_observedScreens is not null) _observedScreens.Changed -= ScreensChanged;
+        _observedScreens = Screens;
+        _observedScreens.Changed += ScreensChanged;
         FitToWorkArea();
         base.OnOpened(e);
         ScheduleFit();
@@ -117,10 +119,19 @@ public class NativeWindow : Window
             },DispatcherPriority.Input);
         },Avalonia.Interactivity.RoutingStrategies.Bubble,handledEventsToo:true);
         Deactivated+=(_,_)=>NativeKeyboard.ClearPressed();
-        Closed+=(_,_)=>{_moveFit.Stop();Screens.Changed-=ScreensChanged;if(Owner is {} owner&&owner.IsVisible)owner.Activate();};
+        Closed+=(_,_)=>
+        {
+            _moveFit.Stop();
+            // Closed may run before the first Show, or after the backend has
+            // been disposed. Unsubscribe the object that was actually observed.
+            if (_observedScreens is not null) _observedScreens.Changed -= ScreensChanged;
+            _observedScreens = null;
+            if(Owner is {} owner&&owner.IsVisible)owner.Activate();
+        };
         void Remember() { if (WindowState == WindowState.Normal && Bounds.Width>0 && Bounds.Height>0) {_restoreBounds = new Rect(Left, Top, Bounds.Width, Bounds.Height);_restorePixelPosition=Position;} }
     }
     private void ScreensChanged(object? sender,EventArgs args)=>ScheduleFit();
+    private Screens? _observedScreens;
     private Window? _dialogOwner;
     public new Window? Owner { get => _dialogOwner ?? base.Owner as Window; set => _dialogOwner = value; }
     private bool? _dialogResult;
