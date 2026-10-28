@@ -1,0 +1,376 @@
+{
+  "source": "Roche_Scoreboard/Resources/ControlCentre.xaml",
+  "source_sha256": "c1168cbef40c97f11003867f022645477ea10ca1c84ff2b200db99e293f2db7d",
+  "names": [
+    {
+      "name": "PART_Surface",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "Bd",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Outline",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_ContentHost",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "PART_TextPresenter",
+      "type": "TextPresenter",
+      "object": false
+    },
+    {
+      "name": "SearchSurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "PART_SearchSymbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "PART_ContentHost",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "PART_TextPresenter",
+      "type": "TextPresenter",
+      "object": false
+    },
+    {
+      "name": "PART_Placeholder",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PART_Clear",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Track",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ToggleKnob",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "Thumb",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "Tile",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SelectionMark",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_CheckPath",
+      "type": "Path",
+      "object": false
+    },
+    {
+      "name": "TabHitTarget",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "PART_Surface",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_SelectedContentHost",
+      "type": "ContentPresenter",
+      "object": false
+    },
+    {
+      "name": "PART_OperatorDock",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "PART_OperatorLens",
+      "type": "OperatorSelectionLens",
+      "object": false
+    },
+    {
+      "name": "Item",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Toggle",
+      "type": "ToggleButton",
+      "object": false
+    },
+    {
+      "name": "Frame",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "SelectionLabel",
+      "type": "ContentPresenter",
+      "object": false
+    },
+    {
+      "name": "PART_EditableTextBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "PART_Popup",
+      "type": "Popup",
+      "object": false
+    },
+    {
+      "name": "Fill",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_Track",
+      "type": "Track",
+      "object": false
+    },
+    {
+      "name": "PART_DecreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "SliderHandle",
+      "type": "Thumb",
+      "object": false
+    },
+    {
+      "name": "Grip",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_GripScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "PART_IncreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "PART_MenuSurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "ItemSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Check",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "CommandIcon",
+      "type": "ContentPresenter",
+      "object": false
+    },
+    {
+      "name": "Arrow",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PART_Popup",
+      "type": "Popup",
+      "object": false
+    },
+    {
+      "name": "PART_Track",
+      "type": "Track",
+      "object": false
+    },
+    {
+      "name": "PageBefore",
+      "type": "RepeatButton",
+      "object": false,
+      "native_name": "PART_DecreaseButton"
+    },
+    {
+      "name": "PART_DecreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "Handle",
+      "type": "Thumb",
+      "object": false
+    },
+    {
+      "name": "PageAfter",
+      "type": "RepeatButton",
+      "object": false,
+      "native_name": "PART_IncreaseButton"
+    },
+    {
+      "name": "PART_IncreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "Row",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PowerBody",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "PowerFocus",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ChoiceSurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "ChoiceSurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "RoleFill",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false
+    }
+  ],
+  "code_source_sha256": null,
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "PART_Popup",
+      "property": "AllowsTransparency",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": null,
+      "property": "CanContentScroll",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "CanContentScroll",
+      "source": "True"
+    },
+    {
+      "name": "PART_Popup",
+      "property": "AllowsTransparency",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

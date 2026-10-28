@@ -1,8 +1,11 @@
 // Generated from Services/AflKeybindSettings.cs; edit translator/adapters.
-// Source SHA-256: 1db7a74516e24f85886af9c0a3a90441a1facee2e065b758f89e48c2ee6a199c
+// Source SHA-256: be7687661a27e3aa4429dbc47f4de276df88899c8687134054abc55adc616bc5
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
@@ -47,9 +50,7 @@ internal static class AflKeybindSettings
 
     private static string GetStoragePath()
     {
-        string dir = Path.Combine(
-            NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "afl_keybind_settings.json");
     }

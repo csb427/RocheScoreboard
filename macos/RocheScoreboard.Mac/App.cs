@@ -16,6 +16,7 @@ public sealed partial class App : Application
 {
     public override void Initialize()
     {
+        NativeKeyboard.EnsureInitialized();
         RequestedThemeVariant = ThemeVariant.Dark;
         Styles.Add(new FluentTheme());
         NativeResources.CaptureFrameworkThemes(this);

@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/TrainingControlPanel.xaml.cs; edit translator/adapters.
-// Source SHA-256: 1b0d5892ad979452db97840b6953722f52a74d4a2243546c0dca00419dcf9d56
+// Source SHA-256: 8db294f05c3fd2dab11718e5436d19e6154973e49e975d084cd38f40651a4817
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -40,12 +40,11 @@ public partial class TrainingControlPanel : UserControl
     private TrainingSession? _session;
     private readonly DispatcherTimer _ui;
     private Guid? _editingTimerId;
-
-    private static readonly CubicEase EaseOut = new() { EasingMode = EasingMode.EaseOut };
+    private readonly HashSet<Guid> _revealedTimerIds = [];
 
     public TrainingControlPanel()
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
         _ui = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
         _ui.Tick += (_, _) => RefreshLiveText();
         Loaded += (_, _) =>
@@ -53,11 +52,23 @@ public partial class TrainingControlPanel : UserControl
             _ui.Start();
             // Pull keyboard focus when the panel loads so global shortcuts work
             // straight away (Space/S/R/Esc).
-            Focus();
-            NativeKeyboard.Focus(this);
+            if (!IsKeyboardFocusWithin) { Focus(); NativeKeyboard.Focus(this); }
             RefreshRecentTimers();
         };
-        Unloaded += (_, _) => _ui.Stop();
+        Unloaded += (_, _) =>
+        {
+            _ui.Stop(); HideDropIndicator(); _dragArmed = false;
+            foreach (var row in QueueItems.Items.OfType<Border>())
+            {
+                row.BeginAnimation(OpacityProperty, null);
+                if (row.RenderTransform is TranslateTransform shift) { shift.BeginAnimation(TranslateTransform.XProperty, null); shift.X = 0; }
+            }
+        };
+        NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, args) =>
+        {
+            if (args.NewValue is false) _ui.Stop();
+            else if (IsLoaded) { _ui.Start(); RefreshLiveText(); }
+        });
         // Operator shortcuts at the panel level — only when focus isn't in a
         // TextBox so typing into the title or number fields still works.
         KeyDown += OnPanelPreviewKeyDown;
@@ -66,6 +77,10 @@ public partial class TrainingControlPanel : UserControl
     private void OnPanelPreviewKeyDown(object? sender, KeyEventArgs e)
     {
         if (NativeKeyboard.FocusedElement is TextBox) return;
+        if (NativeKeyboard.Modifiers != KeyModifiers.None) return;
+        // Space/Enter belong to a focused command or check box. Do not
+        // hijack their native activation to start or pause the session.
+        if (NativeKeyboard.FocusedElement is Avalonia.Controls.Button && e.Key is Key.Space or Key.Enter) return;
 
         switch (e.Key)
         {
@@ -126,9 +141,9 @@ public partial class TrainingControlPanel : UserControl
         if (e.Key == Key.Enter)
         {
             // For interval-builder fields, build the session; otherwise add one timer.
-            if (sender is TextBox tb && (tb.Name == nameof(IntervalRoundsBox) ||
-                                          tb.Name == nameof(IntervalWorkBox) ||
-                                          tb.Name == nameof(IntervalRestBox)))
+            if (sender is TextBox tb && ((tb.Name ?? string.Empty) == nameof(IntervalRoundsBox) ||
+                                          (tb.Name ?? string.Empty) == nameof(IntervalWorkBox) ||
+                                          (tb.Name ?? string.Empty) == nameof(IntervalRestBox)))
             {
                 OnBuildIntervalClicked(this, new RoutedEventArgs());
             }
@@ -148,6 +163,7 @@ public partial class TrainingControlPanel : UserControl
             _session.StructuralChanged -= OnStructuralChanged;
         }
         _session = session;
+        _revealedTimerIds.IntersectWith(session.Timers.Select(timer => timer.Id));
         _session.Changed += OnSessionChanged;
         _session.StructuralChanged += OnStructuralChanged;
         AutoAdvanceToggle.IsChecked = _session.AutoAdvance;
@@ -268,6 +284,7 @@ public partial class TrainingControlPanel : UserControl
         }
 
         QueueItems.Items.Clear();
+        _revealedTimerIds.IntersectWith(_session.Timers.Select(timer => timer.Id));
         for (int i = 0; i < _session.Timers.Count; i++)
         {
             var t = _session.Timers[i];
@@ -328,7 +345,7 @@ public partial class TrainingControlPanel : UserControl
             Margin = new Thickness(0, 0, 12, 0),
             VerticalAlignment = VerticalAlignment.Center
         };
-        idxBorder.Child = new TextBlock
+        idxBorder.Child = new NativeTextBlock
         {
             Text = $"#{index + 1}",
             FontFamily = NativeFonts.Family("Bahnschrift"),
@@ -341,7 +358,7 @@ public partial class TrainingControlPanel : UserControl
 
         // Title
         var titleStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        titleStack.Children.Add(new TextBlock
+        titleStack.Children.Add(new NativeTextBlock
         {
             Text = t.Title,
             FontFamily = NativeFonts.Family("Bahnschrift"),
@@ -352,7 +369,7 @@ public partial class TrainingControlPanel : UserControl
         });
         if (isActive)
         {
-            titleStack.Children.Add(new TextBlock
+            titleStack.Children.Add(new NativeTextBlock
             {
                 Text = "ACTIVE",
                 FontFamily = NativeFonts.Family("Bahnschrift"),
@@ -364,7 +381,7 @@ public partial class TrainingControlPanel : UserControl
         }
         else if (isFinished)
         {
-            titleStack.Children.Add(new TextBlock
+            titleStack.Children.Add(new NativeTextBlock
             {
                 Text = "DONE",
                 FontFamily = NativeFonts.Family("Bahnschrift"),
@@ -378,7 +395,7 @@ public partial class TrainingControlPanel : UserControl
         grid.Children.Add(titleStack);
 
         // Duration
-        var dur = new TextBlock
+        var dur = new NativeTextBlock
         {
             Text = FormatTime(t.Duration),
             FontFamily = NativeFonts.Family("Bahnschrift"),
@@ -421,6 +438,19 @@ public partial class TrainingControlPanel : UserControl
 
         border.Child = grid;
 
+        var surface = (SolidColorBrush)border.Background;
+        void PaintRow()
+        {
+            Color target = (Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString(border.IsPointerOver || border.IsKeyboardFocusWithin ? "#192A3D" : "#10161D")!;
+            Color from = surface.Color; surface.BeginAnimation(SolidColorBrush.ColorProperty, null); surface.Color = target;
+            if (OperatorMotion.Enabled) surface.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(from, target,
+                border.IsPointerOver || border.IsKeyboardFocusWithin ? OperatorMotion.HoverIn : OperatorMotion.HoverOut)
+            { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut });
+        }
+        border.PointerEntered += (_, _) => PaintRow(); border.PointerExited += (_, _) => PaintRow();
+        border.GotFocus += (_, _) => PaintRow(); border.LostFocus += (_, _) => PaintRow();
+        border.Unloaded += (_, _) => { surface.BeginAnimation(SolidColorBrush.ColorProperty, null); surface.Color = Color.FromRgb(0x10, 0x16, 0x1D); };
+
         // ─── Drag-to-reorder ──────────────────────────────────────────
         // Grab anywhere on the row (except the action buttons, which keep
         // their click semantics) and drag onto another row to reorder.
@@ -431,17 +461,19 @@ public partial class TrainingControlPanel : UserControl
         // Slide-in animation for newly added rows. Suppressed during a drag
         // reorder so the queue doesn't visibly re-animate every row when
         // the model rebuilds — that's what was causing the glitchy feel.
-        border.Opacity = _suppressNextRowAnim ? (isFinished ? 0.45 : 1.0) : 0;
-        border.RenderTransform = new TranslateTransform(_suppressNextRowAnim ? 0 : 20, 0);
-        if (!_suppressNextRowAnim)
+        bool reveal = !_suppressNextRowAnim && !isFinished && _revealedTimerIds.Add(t.Id) && OperatorMotion.Enabled;
+        border.Opacity = isFinished ? .45 : 1;
+        border.RenderTransform = new TranslateTransform();
+        if (reveal)
         {
             border.Loaded += (_, _) =>
             {
-                border.BeginAnimation(OpacityProperty,
-                    new DoubleAnimation(0, isFinished ? 0.45 : 1.0, TimeSpan.FromMilliseconds(280)) { EasingFunction = EaseOut });
+                if (!OperatorMotion.Enabled) return;
+                border.BeginAnimation(OpacityProperty, new DoubleAnimation(.72, 1, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut });
                 ((TranslateTransform)border.RenderTransform).BeginAnimation(TranslateTransform.XProperty,
-                    new DoubleAnimation(20, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = EaseOut });
+                    new DoubleAnimation(8, 0, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut });
             };
+            border.Unloaded += (_, _) => { border.BeginAnimation(OpacityProperty, null); ((TranslateTransform)border.RenderTransform).BeginAnimation(TranslateTransform.XProperty, null); };
         }
 
         return border;
@@ -473,7 +505,7 @@ public partial class TrainingControlPanel : UserControl
             Margin = new Thickness(0, 0, 12, 0),
             VerticalAlignment = VerticalAlignment.Center
         };
-        idxBorder.Child = new TextBlock
+        idxBorder.Child = new NativeTextBlock
         {
             Text = $"#{index + 1}",
             FontFamily = NativeFonts.Family("Bahnschrift"),
@@ -513,7 +545,7 @@ public partial class TrainingControlPanel : UserControl
             TextAlignment = TextAlignment.Center
         };
         minBox.TextInput += OnNumericPreviewTextInput;
-        var colon = new TextBlock
+        var colon = new NativeTextBlock
         {
             Text = ":",
             Foreground = ColorFromHex("#E5E7EB"),
@@ -717,9 +749,9 @@ public partial class TrainingControlPanel : UserControl
         if (DropIndicator is null || QueueArea is null) return;
 
         // Convert the row's edge into QueueArea coordinates.
-        var origin = row.TranslatePoint(new Avalonia.Point(0, above ? 0 : row.NativeHeight()), QueueArea);
+        var origin = row.NativeTranslatePoint(new Avalonia.Point(0, above ? 0 : row.NativeHeight()), QueueArea);
         // Centre the 3px line on the boundary so it reads as an insertion gap.
-        double y = (origin?.Y ?? 0) - 1.5;
+        double y = (origin.Y) - 1.5;
         if (y < 0) y = 0;
 
         DropIndicator.Margin = new Thickness(6, y, 6, 0);
@@ -858,14 +890,14 @@ public partial class TrainingControlPanel : UserControl
             int mins = entry.Seconds / 60;
             int secs = entry.Seconds % 60;
             var chipContent = new StackPanel { Orientation = Orientation.Horizontal };
-            chipContent.Children.Add(new TextBlock
+            chipContent.Children.Add(new NativeTextBlock
             {
                 Text = entry.Title,
                 MaxWidth = 150,
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = VerticalAlignment.Center
             });
-            chipContent.Children.Add(new TextBlock
+            chipContent.Children.Add(new NativeTextBlock
             {
                 Text = $" · {mins}:{secs:D2}",
                 FontWeight = FontWeight.Black,
@@ -922,8 +954,6 @@ public partial class TrainingControlPanel : UserControl
 
 public partial class TrainingControlPanel
 {
-    private ScaleTransform BtnSc => (ScaleTransform)ProductionNames.RegistryFor(this)["BtnSc"];
-    private TranslateTransform BtnLift => (TranslateTransform)ProductionNames.RegistryFor(this)["BtnLift"];
     private void Native_OnAutoAdvanceChanged(object? sender, RoutedEventArgs e) { OnAutoAdvanceChanged(sender!, e); }
     private void Native_OnNewTitleBoxPreviewMouseLeftButtonDown(object? sender, PointerPressedEventArgs e) { OnNewTitleBoxPreviewMouseLeftButtonDown(sender!, e); }
     private void Native_OnNumericPreviewTextInput(object? sender, TextInputEventArgs e) { OnNumericPreviewTextInput(sender!, e); }

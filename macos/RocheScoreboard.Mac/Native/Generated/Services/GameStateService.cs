@@ -1,8 +1,11 @@
 // Generated from Services/GameStateService.cs; edit translator/adapters.
-// Source SHA-256: 5ce45882cabbe4a2b7df17fd601d4545e77497137a9e23afa5d9b22cf8dcf9df
+// Source SHA-256: 84367b283c908d109bc64f282e7c48a36d3b6a015ca8805bae4c7c93b0bc91a3
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
@@ -19,18 +22,32 @@ namespace Roche_Scoreboard.Services;
 /// </summary>
 internal static class GameStateService
 {
-    private static readonly string StateFilePath = Path.Combine(
+    private static string StateFilePath => SelfTestStorage.IsEnabled
+        ? SelfTestStorage.PathFor("recovery", "game_state.json")
+        : Path.Combine(
         NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Roche_Scoreboard",
         "game_state.json");
-    private static readonly string BackupFilePath = StateFilePath + ".bak";
-    private static readonly string LegacyStateFilePath = Path.Combine(AppContext.BaseDirectory, "game_state.json");
+    private static string BackupFilePath => StateFilePath + ".bak";
+    private static string LegacyStateFilePath => SelfTestStorage.IsEnabled
+        ? SelfTestStorage.PathFor("legacy", "game_state.json")
+        : Path.Combine(AppContext.BaseDirectory, "game_state.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
         Converters = { new JsonStringEnumConverter() }
     };
+
+    internal static string RecoveryStatePath => StateFilePath;
+
+    // Cricket's background writer shares exactly the established recovery format.
+    // The state supplied here is detached from the live match before queuing.
+    internal static string SerializeRecoverySnapshot(GameState state)
+    {
+        state.SavedAtUtc=DateTimeOffset.UtcNow;
+        return JsonSerializer.Serialize(state,JsonOptions);
+    }
 
     /// <summary>
     /// Saves the current match state and UI configuration to disk.

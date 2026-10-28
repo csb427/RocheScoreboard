@@ -45,7 +45,7 @@ public partial class ScoreEventEditorWindow : NativeWindow
     public ScoreEventEditorWindow(ScoreEvent ev, string homeName, string awayName,
         string homeColor = "#58A6FF", string awayColor = "#FF7755")
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
 
         _currentQuarter = ev.Quarter;
         _currentGameTime = ev.GameTime;
@@ -77,7 +77,7 @@ public partial class ScoreEventEditorWindow : NativeWindow
     public ScoreEventEditorWindow(string homeName, string awayName, int currentQuarter, TimeSpan currentGameTime,
         string homeColor = "#58A6FF", string awayColor = "#FF7755")
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
         _isAddMode = true;
         _currentQuarter = Math.Clamp(currentQuarter, 1, 4);
         _currentGameTime = currentGameTime < TimeSpan.Zero ? TimeSpan.Zero : currentGameTime;

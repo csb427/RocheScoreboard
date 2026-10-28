@@ -1,0 +1,208 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:RocheScoreboard.Mac.Native" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <ControlTheme x:Key="SettingsInput" TargetType="TextBox">
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.ControlBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Outline" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}">
+                            <TextPresenter x:Name="PART_TextPresenter" Text="{TemplateBinding Text, Mode=TwoWay}" CaretIndex="{TemplateBinding CaretIndex}" SelectionStart="{TemplateBinding SelectionStart}" SelectionEnd="{TemplateBinding SelectionEnd}" TextAlignment="{TemplateBinding TextAlignment}" TextWrapping="{TemplateBinding TextWrapping}" LineHeight="{TemplateBinding LineHeight}" PasswordChar="{TemplateBinding PasswordChar}" SelectionBrush="{TemplateBinding SelectionBrush}" SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}" CaretBrush="{TemplateBinding CaretBrush}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus-within /template/ Border#Outline">
+            <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsChoiceItem" TargetType="ComboBoxItem">
+        <Setter Property="Padding" Value="12,9" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Item" Padding="{TemplateBinding Padding}" Background="Transparent" CornerRadius="4">
+                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:selected /template/ Border#Item">
+            <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.SurfaceSubtle}" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#Item">
+            <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.AccentBackground}" />
+        </Style>
+        <Style Selector="^:selected">
+            <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.AccentForeground}" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsChoice" TargetType="ComboBox">
+        <Setter Property="motion:SettingsControlMotion.Enabled" Value="True" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.ControlBorder}" />
+        <Setter Property="MinHeight" Value="{DynamicResource ScoreGrid.Height.ControlImportant}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="{DynamicResource ScoreGrid.Padding.Control}" />
+        <Setter Property="ItemContainerTheme" Value="{StaticResource SettingsChoiceItem}" />
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton x:Name="Toggle" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border x:Name="Frame" Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderThickness="1" CornerRadius="6">
+                                        <TextBlock Text="⌄" Foreground="{DynamicResource ScoreGrid.Brush.TextPrimary}" FontSize="21" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,4" />
+                                    </Border>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                            <ToggleButton.Styles>
+                                <Style Selector="ToggleButton:pointerover /template/ Border#Frame">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
+                                </Style>
+                                <Style Selector="ToggleButton:checked /template/ Border#Frame">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
+                                </Style>
+                            </ToggleButton.Styles>
+                        </ToggleButton>
+                        <ContentPresenter x:Name="SelectionLabel" Margin="12,5,36,5" VerticalAlignment="Center" IsHitTestVisible="False" ClipToBounds="True" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+                        <TextBox x:Name="PART_EditableTextBox" Margin="10,4,36,4" Background="Transparent" BorderThickness="0" Foreground="{TemplateBinding Foreground}" CaretBrush="{TemplateBinding Foreground}" VerticalContentAlignment="Center" IsReadOnly="False" IsVisible="False" />
+                        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" Focusable="False" ns2:PopupMotion.Kind="None">
+                            <Border Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.ControlBorder}" BorderThickness="1" CornerRadius="6" Padding="4" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="320">
+                                <ScrollViewer>
+                                    <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" KeyboardNavigation.TabNavigation="Contained" />
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^[IsEditable=True] /template/ TextBox#PART_EditableTextBox">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[IsEditable=True] /template/ ContentPresenter#SelectionLabel">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^:focus-within">
+            <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsToggle" TargetType="CheckBox">
+        <Setter Property="motion:SettingsControlMotion.Enabled" Value="True" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="MinHeight" Value="{DynamicResource ScoreGrid.Height.ControlImportant}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="48" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="Track" Width="42" Height="24" Background="{DynamicResource ScoreGrid.Brush.DisabledSurface}" BorderBrush="{DynamicResource ScoreGrid.Brush.ControlBorder}" BorderThickness="1" CornerRadius="12" VerticalAlignment="Center">
+                            <Ellipse x:Name="ToggleKnob" Width="16" Height="16" Fill="{DynamicResource ScoreGrid.Brush.TextSecondary}" HorizontalAlignment="Left" Margin="3,0,0,0">
+                                <Ellipse.RenderTransform>
+                                    <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </Border>
+                        <ContentPresenter Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:checked /template/ Border#Track">
+            <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.AccentBackground}" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
+        </Style>
+        <Style Selector="^:checked /template/ Ellipse#ToggleKnob">
+            <Setter Property="Fill" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.Focus}" />
+        </Style>
+        <Style Selector="^:focus /template/ Border#Track">
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsTile" TargetType="RadioButton">
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
+        <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ScoreGrid.Brush.ControlBorder}" />
+        <Setter Property="Padding" Value="12,10" />
+        <Setter Property="Margin" Value="0,0,6,6" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid RenderTransformOrigin="50%,50%">
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                <TranslateTransform port:ProductionNames.TemplateId="TbLift" />
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <Border x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="6" />
+                        <Border x:Name="ActionGlow" Background="White" CornerRadius="6" Opacity="0" IsHitTestVisible="False" Margin="2" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#Tile">
+            <Setter Property="BorderBrush" Value="#8FC5FF" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#Tile">
+            <Setter Property="BorderBrush" Value="#58A6FF" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#Tile">
+            <Setter Property="Opacity" Value=".65" />
+        </Style>
+        <Style Selector="^:focus /template/ Border#Tile">
+            <Setter Property="BorderBrush" Value="#B9DFFF" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".45" />
+        </Style>
+        <Style Selector="^:checked">
+            <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.AccentBackground}" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

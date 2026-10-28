@@ -1,8 +1,11 @@
 // Generated from Services/DisplaySettings.cs; edit translator/adapters.
-// Source SHA-256: ee5d3b7d6d23f4351e5a3cd15a9623e230f50607b19654141facca613ad9b47a
+// Source SHA-256: fcf79db846d74a2b0cd9a14963364504935897b130b91d24eacc94ff38e6c670
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.IO;
@@ -35,9 +38,7 @@ internal static class DisplaySettings
 
     private static string GetStoragePath()
     {
-        string dir = Path.Combine(
-            NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "display_settings.json");
     }
@@ -70,7 +71,7 @@ internal static class DisplaySettings
 
     /// <summary>
     /// When true, the AFL / Cricket / Training display windows are created
-    /// with <c>AllowsTransparency=false</c> + a solid black background and
+    /// with <c></c> + a solid black background and
     /// a normal (non-borderless) chrome. This restores WPF's GPU-accelerated
     /// composition path and is the primary mitigation for global framerate
     /// drops during MP4 playback on the scoreboard PC.

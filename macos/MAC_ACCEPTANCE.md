@@ -7,12 +7,14 @@ A preview build is available for native review; it is not a verified release.
 
 ## Evidence already available
 
-The Linux headless run passed 36 checks, including the unchanged scoring engines,
-the production launcher and three-step AFL setup, scoring/undo/clock and all four
-console tabs, original operator mode checks, all six goal styles, ticker/overlay
-priority, training controls and actual LibVLC frame decoding with transport,
-volume, mute, speed and seek. Captures are generated under `ROCHE_CAPTURE_DIR`.
-Headless checks do not exercise macOS window management or native integrations.
+See [PORT_VERIFICATION.md](PORT_VERIFICATION.md) for the current Windows 5.0
+baseline, exact Linux results, captures and local artifact checks. Headless checks
+exercise shared rules, source screens and software rendering. They do not exercise
+macOS window management, screen permissions, Cocoa event delivery or native input.
+
+The prior AFL mouse/keyboard freeze after roughly 30 seconds is **not confirmed
+fixed on Mac**. A 35-second Linux animation/input stress check complements the
+existing Background scheduling, video upload and input diagnostics protections.
 
 ## Run on both Apple silicon and Intel
 
@@ -65,3 +67,35 @@ fixes. Only then mark `mac_acceptance_verified`, completed screens/features and
 `ready_to_package` in `port-state.json`. Release packaging remains guarded until
 those fields are complete. Public distribution signing/notarisation is separate
 from the included local ad-hoc signing helper.
+
+## Window and input acceptance matrix for this port
+
+Run on a small laptop and Retina display; repeat after connecting/disconnecting
+an external display and changing scale. Include left/above-primary displays.
+
+- Launch and restore the console and every dialog: all frame bounds inside the
+  available work area, even after a saved monitor disappears. Check OS menu bar,
+  Dock and display notches; physical desktop positions and logical sizes differ.
+- Resize to 1280×720, 800×500, and approximately 480×320 client areas. Scroll every
+  setup step, settings section, roster, event editor, delivery sheet and long list.
+  Reach primary, cancel and close actions by pointer and Tab/Shift-Tab.
+- Maximize, enter/exit native fullscreen, minimize and restore. Check minimum sizes,
+  restored normal size, preserved output separation and no constraint oscillation.
+- Open an owned modal from each output/control context. Check owner interaction is
+  blocked by the native modal mechanism, Escape/Return, focus restoration, repeated
+  open/cancel and closing the owner while a child is open.
+- Open player menus, search results and context menus at every screen edge. Confirm
+  native popup flipping/sliding and keyboard dismissal without trapped focus.
+- Use 90-character team/player names, many roster entries, long messages and empty
+  names. Confirm labels retain visible text and actions remain reachable by scrolling.
+- Set each output to **386×193 physical pixels** at normal and Retina scale; move
+  between differently scaled displays, then close/reopen it and restore saved bounds.
+- Enter AFL and operate for at least 10 minutes with clocks, ticker, repeated goal
+  animations and video overlays. Exercise mouse and keyboard every 10 seconds,
+  including after 30 seconds, switching tabs, returning home and starting again.
+  Repeat with Reduce Motion, Increase Contrast and glass preferences changed.
+- If input stops, retain `input-diagnostics.log` and `crash.log`, and record active
+  screen, video, elapsed time, whether menus/Tab/Return respond and window focus.
+
+Windows DirectX glass refraction is replaced by the source's software fallback;
+compare selected-tab ink, text contrast, material layers and all animation states.

@@ -1,15 +1,10 @@
 {
   "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml",
-  "source_sha256": "8cf301d9a545358df316c4ee38f8ed5c2dcf51822e5c159efd215c15fb2a0242",
+  "source_sha256": "a24fb169d68a9c9e44a5ad3d9cfae4008e8057831c630e6de5b3f2668af9612c",
   "names": [
     {
       "name": "CollapsedButton",
       "type": "Button",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
       "object": false
     },
     {
@@ -103,6 +98,12 @@
     }
   ],
   "platform_translations": [
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Variable, Segoe UI",
+      "native_fallback": "Inter"
+    },
     {
       "name": "JoinCodeText",
       "property": "FontFamily",

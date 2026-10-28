@@ -1,17 +1,7 @@
 {
   "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml",
-  "source_sha256": "fdbe8412d7a8185f3c62de7a2e6a6c35f143c1459663e2d265701d4db7f90a5b",
+  "source_sha256": "e029f88be2c1b9c96ab7ba5b5a1144e44db7491dc9dfcd193bdfa88202f7d2b7",
   "names": [
-    {
-      "name": "Surface",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "FocusRing",
-      "type": "Border",
-      "object": false
-    },
     {
       "name": "PART_Track",
       "type": "Grid",
@@ -24,7 +14,7 @@
     },
     {
       "name": "DialogShell",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -98,7 +88,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "3237a9fba5800e3fa5037007996a208164061437bec1184b15d9644ac9e4a473",
+  "code_source_sha256": "48d02d26f7a96c36dc2f8804c697e815485007b7e6bcffd4a7ab96f8a06da9e4",
   "native_events": [
     {
       "name": null,
@@ -116,37 +106,43 @@
     },
     {
       "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Variable, Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
       "property": "SnapsToDevicePixels",
       "source": "True"
     },
     {
       "name": null,
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     },
     {
       "name": null,
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     },
     {
       "name": "CurrentVersionText",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     },
     {
       "name": "NewVersionText",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     },
     {
       "name": "ProgressPercentText",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     }
   ],

@@ -1,8 +1,11 @@
 // Generated from Services/UxPreferences.cs; edit translator/adapters.
-// Source SHA-256: d4b4787315e6f57b89e232e462f7132a9e72da3b91758351af38bc3c4a96a302
+// Source SHA-256: f65a703ec204c2a6f2d255ca9b1b337e300d8bdef7043527c5dd3c1309413be8
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.IO;
@@ -81,13 +84,13 @@ internal sealed class UxPreferencesData
     public PersistedMode LastMode { get; set; } = PersistedMode.SportSelection;
     public string LastSettingsCategory { get; set; } = "teams";
     public int LastMainTabIndex { get; set; } = 0;
-    public bool EnableQuickStartupHints { get; set; } = true;
+    public bool EnableQuickStartupHints { get; set; }
     public bool HideTeamNames { get; set; }
     public string ScorebugLayout { get; set; } = "classic";
     public bool GuidedOperatorMode { get; set; } = true;
 
     [JsonConverter(typeof(TolerantEnumConverter<AppTheme>))]
-    public AppTheme Theme { get; set; } = AppTheme.Light;
+    public AppTheme Theme { get; set; } = AppTheme.Dark;
 
     [JsonConverter(typeof(TolerantEnumConverter<UiDensity>))]
     public UiDensity Density { get; set; } = UiDensity.Comfortable;
@@ -102,11 +105,9 @@ internal static class UxPreferences
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
-    private static string GetStoragePath()
+    internal static string GetStoragePath()
     {
-        string dir = Path.Combine(
-            NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "ux_preferences.json");
     }

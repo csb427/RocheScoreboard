@@ -1,0 +1,43 @@
+{
+  "source": "Roche_Scoreboard/Resources/Scrollbars.xaml",
+  "source_sha256": "f230ca9cacc4a83510d93eddf2e3297f001229b2358e075ac8c545ec2547ff36",
+  "names": [
+    {
+      "name": "PART_Track",
+      "type": "Track",
+      "object": false
+    },
+    {
+      "name": "PageBefore",
+      "type": "RepeatButton",
+      "object": false,
+      "native_name": "PART_DecreaseButton"
+    },
+    {
+      "name": "PART_DecreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "Handle",
+      "type": "Thumb",
+      "object": false
+    },
+    {
+      "name": "PageAfter",
+      "type": "RepeatButton",
+      "object": false,
+      "native_name": "PART_IncreaseButton"
+    },
+    {
+      "name": "PART_IncreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    }
+  ],
+  "code_source_sha256": null,
+  "native_events": [],
+  "platform_translations": [],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

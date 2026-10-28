@@ -1,940 +1,673 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:RocheScoreboard.Mac.Native" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.SetupWizard" Background="#080C12" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.SetupWizard" Background="Transparent" ns2:OperatorDesign.IsEnabled="True" xmlns:layout="clr-namespace:Roche_Scoreboard.Views" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
     <UserControl.Resources>
-        <Color x:Key="Shell">#080C12</Color>
-        <Color x:Key="Surface0">#0E1420</Color>
-        <Color x:Key="Surface1">#141C2A</Color>
-        <Color x:Key="Surface2">#1A2436</Color>
-        <Color x:Key="Surface3">#243044</Color>
-        <Color x:Key="Edge">#2A3A52</Color>
-        <Color x:Key="EdgeHi">#3A5070</Color>
-        <Color x:Key="Accent">#58A6FF</Color>
-        <Color x:Key="AccentDim">#1F6FEB</Color>
-        <Color x:Key="TextBright">#E6EDF3</Color>
-        <Color x:Key="TextMid">#8B949E</Color>
-        <Color x:Key="TextDim">#484F58</Color>
-        <Color x:Key="Go">#3FB950</Color>
-        <SolidColorBrush x:Key="ShellBrush" Color="{StaticResource Shell}" />
-        <SolidColorBrush x:Key="Surface0Brush" Color="{StaticResource Surface0}" />
-        <SolidColorBrush x:Key="Surface1Brush" Color="{StaticResource Surface1}" />
-        <SolidColorBrush x:Key="Surface2Brush" Color="{StaticResource Surface2}" />
-        <SolidColorBrush x:Key="Surface3Brush" Color="{StaticResource Surface3}" />
-        <SolidColorBrush x:Key="EdgeBrush" Color="{StaticResource Edge}" />
-        <SolidColorBrush x:Key="EdgeHiBrush" Color="{StaticResource EdgeHi}" />
-        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
-        <SolidColorBrush x:Key="AccentDimBrush" Color="{StaticResource AccentDim}" />
-        <SolidColorBrush x:Key="TextBrightBrush" Color="{StaticResource TextBright}" />
-        <SolidColorBrush x:Key="TextMidBrush" Color="{StaticResource TextMid}" />
-        <SolidColorBrush x:Key="TextDimBrush" Color="{StaticResource TextDim}" />
-        <SolidColorBrush x:Key="GoBrush" Color="{StaticResource Go}" />
-        <ControlTheme x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#6688AA" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Margin" Value="0,0,0,4" />
-        </ControlTheme>
-        <ControlTheme x:Key="WizardField" TargetType="TextBox" BasedOn="{StaticResource Native.Base.TextBox}">
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Background">
-                <Setter.Value>
-                    <SolidColorBrush Color="#0A1018" />
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Foreground" Value="{StaticResource TextBrightBrush}" />
-            <Setter Property="BorderBrush" Value="#1E3050" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="10,7" />
-            <Setter Property="CaretBrush" Value="White" />
-        </ControlTheme>
-        <ControlTheme x:Key="SmallBtn" TargetType="Button">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="{StaticResource TextBrightBrush}" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid RenderTransformOrigin="50%,50%" ns3:TemplateMotion.Spec="[{&quot;event&quot;:&quot;MouseEnter&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;BdSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;To&quot;:&quot;1.06&quot;,&quot;Duration&quot;:&quot;0:0:0.13&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.35&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;BdSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;To&quot;:&quot;1.06&quot;,&quot;Duration&quot;:&quot;0:0:0.13&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.35&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;BdLift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;To&quot;:&quot;-2&quot;,&quot;Duration&quot;:&quot;0:0:0.13&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;To&quot;:&quot;0.25&quot;,&quot;Duration&quot;:&quot;0:0:0.1&quot;}]},{&quot;event&quot;:&quot;MouseLeave&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;BdSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;To&quot;:&quot;1&quot;,&quot;Duration&quot;:&quot;0:0:0.17&quot;,&quot;Easing&quot;:&quot;ElasticEase&quot;,&quot;Oscillations&quot;:&quot;1&quot;,&quot;Springiness&quot;:&quot;5&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;BdSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;To&quot;:&quot;1&quot;,&quot;Duration&quot;:&quot;0:0:0.17&quot;,&quot;Easing&quot;:&quot;ElasticEase&quot;,&quot;Oscillations&quot;:&quot;1&quot;,&quot;Springiness&quot;:&quot;5&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;BdLift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.17&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.12&quot;}]},{&quot;event&quot;:&quot;Button.Click&quot;,&quot;animations&quot;:[{&quot;Storyboard.TargetName&quot;:&quot;BdSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleX&quot;,&quot;From&quot;:&quot;0.9&quot;,&quot;To&quot;:&quot;1.08&quot;,&quot;Duration&quot;:&quot;0:0:0.18&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.45&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;BdSc&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;ScaleY&quot;,&quot;From&quot;:&quot;0.9&quot;,&quot;To&quot;:&quot;1.08&quot;,&quot;Duration&quot;:&quot;0:0:0.18&quot;,&quot;Easing&quot;:&quot;BackEase&quot;,&quot;Amplitude&quot;:&quot;0.45&quot;,&quot;EasingMode&quot;:&quot;EaseOut&quot;},{&quot;Storyboard.TargetName&quot;:&quot;BdLift&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Y&quot;,&quot;From&quot;:&quot;1&quot;,&quot;To&quot;:&quot;-1&quot;,&quot;Duration&quot;:&quot;0:0:0.14&quot;},{&quot;Storyboard.TargetName&quot;:&quot;RewardFlash&quot;,&quot;Storyboard.TargetProperty&quot;:&quot;Opacity&quot;,&quot;From&quot;:&quot;0.5&quot;,&quot;To&quot;:&quot;0&quot;,&quot;Duration&quot;:&quot;0:0:0.24&quot;}]}]">
-                            <Grid.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.TemplateId="BdSc" />
-                                    <TranslateTransform Y="0" port:ProductionNames.TemplateId="BdLift" />
-                                </TransformGroup>
-                            </Grid.RenderTransform>
-                            <Border x:Name="RewardFlash" Background="#6658A6FF" Opacity="0" IsHitTestVisible="False" />
-                            <Border x:Name="Bd" Padding="12,5" Background="#141C2A" BorderBrush="#2A3A52" BorderThickness="1">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style Selector="^:pointerover /template/ Border#Bd">
-                <Setter Property="Background" Value="#1E2C40" />
-            </Style>
-            <Style Selector="^:pointerover /template/ Border#Bd">
-                <Setter Property="BorderBrush" Value="#3A5070" />
-            </Style>
-            <Style Selector="^:pressed /template/ Border#Bd">
-                <Setter Property="Background" Value="#0A1018" />
-            </Style>
-            <Style Selector="^:pressed /template/ Border#Bd">
-                <Setter Property="Opacity" Value="0.85" />
-            </Style>
-        </ControlTheme>
-        <ControlTheme x:Key="DarkCombo" TargetType="ComboBox">
-            <Setter Property="Foreground" Value="{StaticResource TextBrightBrush}" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="UseLayoutRounding" Value="True" />
-            <Setter Property="ItemContainerTheme">
-                <Setter.Value>
-                    <ControlTheme TargetType="ComboBoxItem">
-                        <Setter Property="Foreground" Value="{StaticResource TextBrightBrush}" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="Padding" Value="10,6" />
-                        <Setter Property="Cursor" Value="Hand" />
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ComboBoxItem">
-                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style Selector="^:selected /template/ Border#Bd">
-                            <Setter Property="Background" Value="#243044" />
-                        </Style>
-                        <Style Selector="^:pointerover /template/ Border#Bd">
-                            <Setter Property="Background" Value="#1A2436" />
-                        </Style>
-                    </ControlTheme>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/CricketActions.axaml" />
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/SettingsControls.axaml" />
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/ControlCentre.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Color x:Key="Shell">#09090B</Color>
+            <Color x:Key="Surface0">#141416</Color>
+            <Color x:Key="Surface1">#1C1C1F</Color>
+            <Color x:Key="Surface2">#242427</Color>
+            <Color x:Key="Surface3">#2C2C30</Color>
+            <Color x:Key="Edge">#3A3A40</Color>
+            <Color x:Key="EdgeHi">#5B5B66</Color>
+            <Color x:Key="Accent">#58A6FF</Color>
+            <Color x:Key="AccentDim">#1F6FEB</Color>
+            <Color x:Key="TextBright">#E6EDF3</Color>
+            <Color x:Key="TextMid">#B6B6C0</Color>
+            <Color x:Key="TextDim">#8E8E98</Color>
+            <Color x:Key="Go">#3FB950</Color>
+            <SolidColorBrush x:Key="ShellBrush" Color="{StaticResource Shell}" />
+            <SolidColorBrush x:Key="Surface0Brush" Color="{StaticResource Surface0}" />
+            <SolidColorBrush x:Key="Surface1Brush" Color="{StaticResource Surface1}" />
+            <SolidColorBrush x:Key="Surface2Brush" Color="{StaticResource Surface2}" />
+            <SolidColorBrush x:Key="Surface3Brush" Color="{StaticResource Surface3}" />
+            <SolidColorBrush x:Key="EdgeBrush" Color="{StaticResource Edge}" />
+            <SolidColorBrush x:Key="EdgeHiBrush" Color="{StaticResource EdgeHi}" />
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentDimBrush" Color="{StaticResource AccentDim}" />
+            <SolidColorBrush x:Key="TextBrightBrush" Color="{StaticResource TextBright}" />
+            <SolidColorBrush x:Key="TextMidBrush" Color="{StaticResource TextMid}" />
+            <SolidColorBrush x:Key="TextDimBrush" Color="{StaticResource TextDim}" />
+            <SolidColorBrush x:Key="GoBrush" Color="{StaticResource Go}" />
+            <ControlTheme x:Key="FieldLabel" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#B6B6C0" />
+                <Setter Property="FontSize" Value="{DynamicResource ControlCentre.CaptionSize}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Margin" Value="0,0,0,4" />
+            </ControlTheme>
+            <ControlTheme x:Key="WizardField" TargetType="TextBox" BasedOn="{StaticResource SettingsInput}" />
+            <ControlTheme x:Key="SmallBtn" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}">
+                <Setter Property="MinHeight" Value="30" />
+                <Setter Property="Padding" Value="12,5" />
+                <Setter Property="FontSize" Value="{DynamicResource ControlCentre.CaptionSize}" />
+            </ControlTheme>
+            <ControlTheme x:Key="DarkCombo" TargetType="ComboBox" BasedOn="{StaticResource SettingsChoice}" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ns4:WizardViewport x:Name="ResponsiveScrollHost" MinimumCanvasWidth="320" MinimumCanvasHeight="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Grid.Row="1" PointerWheelChanged="Native_ResponsiveScrollHost_PreviewMouseWheel">
+            <Grid>
+                <Grid Margin="18,8,18,22" MaxWidth="1440" HorizontalAlignment="Stretch" x:Name="WizardBody">
+                    <Grid x:Name="TeamsStepContainer" IsVisible="False">
+                        <Grid ns4:WizardPair.MinimumColumnWidth="360">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="28" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Border x:Name="Border" Grid.ColumnSpan="2" Background="#0A1018" BorderBrush="#1E3050" BorderThickness="1" />
-                            <TextBox x:Name="PART_EditableTextBox" Grid.Column="0" Margin="10,7" IsReadOnly="False" Background="Transparent" Foreground="{StaticResource TextBrightBrush}" CaretBrush="White" BorderThickness="0" Focusable="True" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
-                            <ToggleButton Grid.Column="1" Focusable="False" ClickMode="Press" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border Background="#141C2A" BorderBrush="#1E3050" BorderThickness="1,0,0,0" Cursor="Hand">
-                                            <Path Data="M 0 0 L 4 4 L 8 0" Stroke="{StaticResource TextMidBrush}" StrokeThickness="1.5" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-                            <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" Focusable="False" ns3:PopupMotion.Kind="Slide">
-                                <Border Background="#0E1420" BorderBrush="#3A5070" BorderThickness="1" MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                        <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
-                                    </ScrollViewer>
-                                </Border>
-                            </Popup>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style Selector="^:pointerover /template/ Border#Border">
-                <Setter Property="BorderBrush" Value="#3A5070" />
-            </Style>
-            <Style Selector="^:focus-within /template/ Border#Border">
-                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-            </Style>
-        </ControlTheme>
-    </UserControl.Resources>
-    <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" PointerWheelChanged="Native_ResponsiveScrollHost_PreviewMouseWheel">
-        <Grid MinWidth="820" MinHeight="620">
-            <Border Opacity="0.02" IsHitTestVisible="False">
-                <Border.Background>
-                    <VisualBrush TileMode="Tile" DestinationRect="0,0,40,40" SourceRect="0,0,40,40">
-                        <VisualBrush.Visual>
-                            <Canvas Width="40" Height="40">
-                                <Line Stroke="White" StrokeThickness="1" StartPoint="0,40" EndPoint="40,0" />
-                            </Canvas>
-                        </VisualBrush.Visual>
-                    </VisualBrush>
-                </Border.Background>
-            </Border>
-            <Border x:Name="BgGlow" Opacity="0" IsHitTestVisible="False">
-                <Border.Background>
-                    <RadialGradientBrush Center="50%,30%" RadiusX="70%" RadiusY="70%">
-                        <GradientStop Color="#2058A6FF" Offset="0" />
-                        <GradientStop Color="#0858A6FF" Offset="0.5" />
-                        <GradientStop Color="#00000000" Offset="1" />
-                    </RadialGradientBrush>
-                </Border.Background>
-            </Border>
-            <Border ClipToBounds="True" IsHitTestVisible="False" Opacity="0.04">
-                <Border Width="200" HorizontalAlignment="Left">
-                    <Border.RenderTransform>
-                        <TranslateTransform X="-300" port:ProductionNames.Id="BeamTranslate" />
-                    </Border.RenderTransform>
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-                            <GradientStop Color="#00FFFFFF" Offset="0" />
-                            <GradientStop Color="#30FFFFFF" Offset="0.5" />
-                            <GradientStop Color="#00FFFFFF" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
-            </Border>
-            <Canvas IsHitTestVisible="False">
-                <Ellipse Width="6" Height="6" Fill="#1858A6FF" Canvas.Left="60" Canvas.Top="80">
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="3" />
-                    </Ellipse.Effect>
-                </Ellipse>
-                <Ellipse Width="10" Height="10" Fill="#1258A6FF" Canvas.Left="180" Canvas.Top="200">
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="4" />
-                    </Ellipse.Effect>
-                </Ellipse>
-                <Ellipse Width="4" Height="4" Fill="#2058A6FF" Canvas.Left="300" Canvas.Top="120">
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="2" />
-                    </Ellipse.Effect>
-                </Ellipse>
-                <Ellipse Width="8" Height="8" Fill="#1558A6FF" Canvas.Left="420" Canvas.Top="350">
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="3" />
-                    </Ellipse.Effect>
-                </Ellipse>
-                <Ellipse Width="5" Height="5" Fill="#1858A6FF" Canvas.Left="550" Canvas.Top="50">
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="2" />
-                    </Ellipse.Effect>
-                </Ellipse>
-                <Ellipse Width="7" Height="7" Fill="#10FF6B6B" Canvas.Left="650" Canvas.Top="280">
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="3" />
-                    </Ellipse.Effect>
-                </Ellipse>
-                <Ellipse Width="9" Height="9" Fill="#10FF6B6B" Canvas.Left="750" Canvas.Top="100">
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="4" />
-                    </Ellipse.Effect>
-                </Ellipse>
-            </Canvas>
-            <Border IsHitTestVisible="False">
-                <Border.Background>
-                    <RadialGradientBrush>
-                        <GradientStop Color="#00000000" Offset="0.3" />
-                        <GradientStop Color="#60000000" Offset="1.0" />
-                    </RadialGradientBrush>
-                </Border.Background>
-            </Border>
-            <Border x:Name="HeaderPanel" VerticalAlignment="Top" Height="90" Opacity="0" IsHitTestVisible="False" ZIndex="10">
-                <Border.RenderTransform>
-                    <TranslateTransform Y="-30" port:ProductionNames.Id="HeaderTranslate" />
-                </Border.RenderTransform>
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                        <GradientStop Color="#EE080C12" Offset="0" />
-                        <GradientStop Color="#00080C12" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="ROCHE SCOREBOARD" FontSize="9" FontWeight="Black" Foreground="#4058A6FF" TextAlignment="Center" Margin="0,0,0,2" />
-                    <TextBlock x:Name="HeaderTitle" Text="MATCH SETUP" FontSize="18" FontWeight="Black" Foreground="#CCFFFFFF" TextAlignment="Center" />
-                    <Border Height="2" Width="80" Margin="0,8,0,0" CornerRadius="1">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-                                <GradientStop Color="#0058A6FF" Offset="0" />
-                                <GradientStop Color="#6058A6FF" Offset="0.5" />
-                                <GradientStop Color="#0058A6FF" Offset="1" />
-                            </LinearGradientBrush>
-                        </Border.Background>
-                    </Border>
-                </StackPanel>
-            </Border>
-            <StackPanel x:Name="StepIndicator" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,78,0,0" Opacity="0" IsHitTestVisible="True" ZIndex="11">
-                <StackPanel.RenderTransform>
-                    <TranslateTransform Y="-20" port:ProductionNames.Id="StepIndicatorTranslate" />
-                </StackPanel.RenderTransform>
-                <StackPanel Orientation="Horizontal" Cursor="Hand" PointerReleased="Native_GoToStep1_Click">
-                    <Border x:Name="Step1Dot" Width="36" Height="36" CornerRadius="18" Background="#58A6FF" BorderBrush="#58A6FF" BorderThickness="2">
-                        <Border.Effect>
-                            <DropShadowEffect Color="#58A6FF" BlurRadius="15" Opacity="0.6" port:ProductionNames.Id="Step1Glow" OffsetX="0" OffsetY="0" />
-                        </Border.Effect>
-                        <TextBlock Text="1" Foreground="White" FontWeight="Black" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock x:Name="Step1Label" Text="TEAMS" Foreground="White" FontWeight="Black" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0" />
-                </StackPanel>
-                <Border Width="40" Height="2" VerticalAlignment="Center" Margin="12,0">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-                            <GradientStop Color="#4058A6FF" Offset="0" />
-                            <GradientStop Color="#2058A6FF" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
-                <StackPanel Orientation="Horizontal" Cursor="Hand" PointerReleased="Native_GoToStep2_Click">
-                    <Border x:Name="Step2Dot" Width="36" Height="36" CornerRadius="18" Background="#1A2436" BorderBrush="#2A3A52" BorderThickness="2">
-                        <TextBlock Text="2" Foreground="#484F58" FontWeight="Black" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock x:Name="Step2Label" Text="CLOCK" Foreground="#484F58" FontWeight="Black" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0" />
-                </StackPanel>
-                <Border Width="40" Height="2" VerticalAlignment="Center" Margin="12,0">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-                            <GradientStop Color="#2058A6FF" Offset="0" />
-                            <GradientStop Color="#1058A6FF" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
-                <StackPanel Orientation="Horizontal" Cursor="Hand" PointerReleased="Native_GoToStep3_Click">
-                    <Border x:Name="Step3Dot" Width="36" Height="36" CornerRadius="18" Background="#1A2436" BorderBrush="#2A3A52" BorderThickness="2">
-                        <TextBlock Text="3" Foreground="#484F58" FontWeight="Black" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock x:Name="Step3Label" Text="OPTIONAL" Foreground="#484F58" FontWeight="Black" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0" />
-                </StackPanel>
-            </StackPanel>
-            <Grid Margin="0,120,0,50">
-                <Grid x:Name="TeamsStepContainer" IsVisible="False">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="20,0,20,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="20" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border x:Name="HomePresetCard" Grid.Column="0" Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1,2,1,1" Padding="12,10" Opacity="0" ClipToBounds="True">
-                            <Border.RenderTransform>
-                                <TranslateTransform X="-60" port:ProductionNames.Id="HomePresetTranslate" />
-                            </Border.RenderTransform>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <Border Background="#1A3A6A" Padding="8,3" Margin="0,0,8,0">
-                                        <TextBlock Text="HOME TEAM" Foreground="#7EB4FF" FontSize="10" FontWeight="Black" />
-                                    </Border>
-                                    <TextBlock x:Name="HomePresetEmpty" Text="No saved presets" Foreground="#3A5070" FontSize="10" VerticalAlignment="Center" IsVisible="False" />
-                                </StackPanel>
-                                <WrapPanel x:Name="HomePresetPanel" Grid.Row="1" />
-                                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
-                                    <Button Content="⌕  Find Club" Height="28" Margin="0,0,6,0" Click="BrowseHomeTeam_Click" Theme="{StaticResource SmallBtn}" />
-                                    <Button Content="Save Current" Height="26" Margin="0,0,6,0" Click="SaveHomePreset_Click" Theme="{StaticResource SmallBtn}" />
-                                    <Button Content="Delete" Height="26" Click="DeleteHomePreset_Click" Theme="{StaticResource SmallBtn}" />
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-                        <Border x:Name="AwayPresetCard" Grid.Column="2" Background="#1A0A0A" BorderBrush="#6A1A1A" BorderThickness="1,2,1,1" Padding="12,10" Opacity="0" ClipToBounds="True">
-                            <Border.RenderTransform>
-                                <TranslateTransform X="60" port:ProductionNames.Id="AwayPresetTranslate" />
-                            </Border.RenderTransform>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <Border Background="#4A1A1A" Padding="8,3" Margin="0,0,8,0">
-                                        <TextBlock Text="AWAY TEAM" Foreground="#FF9A9A" FontSize="10" FontWeight="Black" />
-                                    </Border>
-                                    <TextBlock x:Name="AwayPresetEmpty" Text="No saved presets" Foreground="#523030" FontSize="10" VerticalAlignment="Center" IsVisible="False" />
-                                </StackPanel>
-                                <WrapPanel x:Name="AwayPresetPanel" Grid.Row="1" />
-                                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
-                                    <Button Content="⌕  Find Club" Height="28" Margin="0,0,6,0" Click="BrowseAwayTeam_Click" Theme="{StaticResource SmallBtn}" />
-                                    <Button Content="Save Current" Height="26" Margin="0,0,6,0" Click="SaveAwayPreset_Click" Theme="{StaticResource SmallBtn}" />
-                                    <Button Content="Delete" Height="26" Click="DeleteAwayPreset_Click" Theme="{StaticResource SmallBtn}" />
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                    <Grid x:Name="Step2Panel" Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="6" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border x:Name="HomeTeamCard" Grid.Column="0" ClipToBounds="True" Opacity="0" RenderTransformOrigin="50%,50%">
-                            <Border.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform port:ProductionNames.Id="HomeCardScale" />
-                                    <TranslateTransform X="-80" port:ProductionNames.Id="HomeCardTranslate" />
-                                </TransformGroup>
-                            </Border.RenderTransform>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                                    <GradientStop Color="#0A1628" Offset="0" />
-                                    <GradientStop Color="#122040" Offset="0.5" />
-                                    <GradientStop Color="#0D1830" Offset="1" />
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Grid>
-                                <Border x:Name="HomeGlow" Opacity="0" IsHitTestVisible="False">
-                                    <Border.Background>
-                                        <RadialGradientBrush Center="50%,15%" RadiusX="60%" RadiusY="50%">
-                                            <GradientStop Color="#3058A6FF" Offset="0" />
-                                            <GradientStop Color="#1058A6FF" Offset="0.5" />
-                                            <GradientStop Color="#00000000" Offset="1" />
-                                        </RadialGradientBrush>
-                                    </Border.Background>
-                                </Border>
-                                <Border IsHitTestVisible="False">
-                                    <Border.Background>
-                                        <RadialGradientBrush>
-                                            <GradientStop Color="#00000000" Offset="0.2" />
-                                            <GradientStop Color="#40000000" Offset="1.0" />
-                                        </RadialGradientBrush>
-                                    </Border.Background>
-                                </Border>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,14">
-                                    <StackPanel Margin="20,10,20,14">
-                                        <StackPanel x:Name="HomeHeaderGroup" Opacity="0" HorizontalAlignment="Center" Margin="0,0,0,14">
-                                            <StackPanel.RenderTransform>
-                                                <TranslateTransform Y="15" port:ProductionNames.Id="HomeHeaderTranslate" />
-                                            </StackPanel.RenderTransform>
-                                            <TextBlock Text="HOME" FontSize="28" FontWeight="Black" Foreground="White" TextAlignment="Center" HorizontalAlignment="Center">
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect BlurRadius="20" Color="#58A6FF" Opacity="0.5" OffsetX="0" OffsetY="0" />
-                                                </TextBlock.Effect>
-                                            </TextBlock>
-                                            <TextBlock Text="TEAM CONFIGURATION" FontSize="9" FontWeight="SemiBold" Foreground="#4058A6FF" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0" />
-                                        </StackPanel>
-                                        <TextBlock Text="Team Name" Theme="{StaticResource FieldLabel}" />
-                                        <TextBox x:Name="SetupHomeNameBox" Text="" Margin="0,0,0,10" Theme="{StaticResource WizardField}" />
-                                        <TextBlock Text="Abbreviation (3-4 letters)" Theme="{StaticResource FieldLabel}" />
-                                        <TextBox x:Name="SetupHomeAbbrBox" Text="" MaxLength="4" Margin="0,0,0,12" Theme="{StaticResource WizardField}" />
-                                        <Grid Margin="0,0,0,12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="12" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel>
-                                                <TextBlock Text="Primary Colour" Theme="{StaticResource FieldLabel}" />
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBox x:Name="SetupHomeColorBox" Width="80" Text="#0A2A6A" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#0A1018" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#1E3050" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupHomeColorBox_TextChanged" />
-                                                    <Border x:Name="SetupHomeColorPreview" Width="28" Height="26" Background="#0A2A6A" BorderBrush="#3A5070" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" PointerReleased="Native_PickSetupHomeColor_Click" />
-                                                    <Border Width="26" Height="26" Background="#141C2A" BorderBrush="#2A3A52" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupHomeColor_Click">
-                                                        <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                </StackPanel>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Text Colour" Theme="{StaticResource FieldLabel}" />
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBox x:Name="SetupHomeSecondaryBox" Width="80" Text="#FFFFFF" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#0A1018" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#1E3050" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupHomeSecondaryBox_TextChanged" />
-                                                    <Border x:Name="SetupHomeSecondaryPreview" Width="28" Height="26" Background="#FFFFFF" BorderBrush="#3A5070" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" PointerReleased="Native_PickSetupHomeSecondary_Click" />
-                                                    <Border Width="26" Height="26" Background="#141C2A" BorderBrush="#2A3A52" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupHomeSecondary_Click">
-                                                        <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Grid>
-                                        <Border Height="1" Margin="0,2,0,12">
-                                            <Border.Background>
-                                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-                                                    <GradientStop Color="#0058A6FF" Offset="0" />
-                                                    <GradientStop Color="#3058A6FF" Offset="0.5" />
-                                                    <GradientStop Color="#0058A6FF" Offset="1" />
-                                                </LinearGradientBrush>
-                                            </Border.Background>
-                                        </Border>
-                                        <TextBlock Text="Logo" Theme="{StaticResource FieldLabel}" />
-                                        <Grid Margin="0,0,0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Button Content="Choose Logo" Height="28" Click="ChooseSetupHomeLogo_Click" Theme="{StaticResource SmallBtn}" />
-                                            <TextBlock Grid.Column="1" x:Name="SetupHomeLogoText" Text="(none)" Foreground="#3A5070" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
-                                        </Grid>
-                                        <Border x:Name="SetupHomeLogoPreview" Background="#0A1018" Padding="8" Margin="0,4,0,0" HorizontalAlignment="Left" IsVisible="False">
-                                            <Image x:Name="SetupHomeLogoImage" MaxHeight="60" MaxWidth="160" Stretch="Uniform" RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                        </Border>
-                                        <Border Height="1" Background="#1E3050" Margin="0,12,0,12" />
-                                        <TextBlock Text="Goal Video (optional)" Theme="{StaticResource FieldLabel}" />
+                            <ns4:OperatorGlassSurface Material="Regular" CornerRadius="28" Grid.Column="0" Padding="0">
+                                <StackPanel>
+                                    <Border x:Name="HomePresetCard" Grid.Column="0" Background="Transparent" BorderBrush="#383840" BorderThickness="0" Padding="18,16,18,8" Opacity="1" ClipToBounds="False" CornerRadius="20" Margin="0" MinHeight="0">
+                                        <Border.RenderTransform>
+                                            <TranslateTransform X="-60" port:ProductionNames.Id="HomePresetTranslate" />
+                                        </Border.RenderTransform>
                                         <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Button Content="Choose MP4" Height="28" Click="ChooseSetupHomeVideo_Click" Theme="{StaticResource SmallBtn}" />
-                                            <TextBlock Grid.Column="1" x:Name="SetupHomeVideoText" Text="(none)" Foreground="#3A5070" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
-                                        </Grid>
-                                    </StackPanel>
-                                </ScrollViewer>
-                            </Grid>
-                        </Border>
-                        <Border Grid.Column="1" HorizontalAlignment="Center" IsHitTestVisible="False" Width="6" RenderTransformOrigin="50%,50%">
-                            <Border.RenderTransform>
-                                <ScaleTransform ScaleY="0" port:ProductionNames.Id="DividerScale" />
-                            </Border.RenderTransform>
-                            <Grid>
-                                <Border x:Name="DividerGlowLine" Opacity="0">
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                                            <GradientStop Color="#00FFFFFF" Offset="0" />
-                                            <GradientStop Color="#30FFFFFF" Offset="0.3" />
-                                            <GradientStop Color="#50FFFFFF" Offset="0.5" />
-                                            <GradientStop Color="#30FFFFFF" Offset="0.7" />
-                                            <GradientStop Color="#00FFFFFF" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                    <Border.Effect>
-                                        <BlurEffect Radius="3" />
-                                    </Border.Effect>
-                                </Border>
-                                <Border Width="1" Opacity="0.5">
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                                            <GradientStop Color="#00FFFFFF" Offset="0" />
-                                            <GradientStop Color="#FFFFFFFF" Offset="0.3" />
-                                            <GradientStop Color="#FFFFFFFF" Offset="0.7" />
-                                            <GradientStop Color="#00FFFFFF" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                </Border>
-                            </Grid>
-                        </Border>
-                        <Border x:Name="AwayTeamCard" Grid.Column="2" ClipToBounds="True" Opacity="0" RenderTransformOrigin="50%,50%">
-                            <Border.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform port:ProductionNames.Id="AwayCardScale" />
-                                    <TranslateTransform X="80" port:ProductionNames.Id="AwayCardTranslate" />
-                                </TransformGroup>
-                            </Border.RenderTransform>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                                    <GradientStop Color="#1A0A0A" Offset="0" />
-                                    <GradientStop Color="#2A1218" Offset="0.5" />
-                                    <GradientStop Color="#1E0D10" Offset="1" />
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Grid>
-                                <Border x:Name="AwayGlow" Opacity="0" IsHitTestVisible="False">
-                                    <Border.Background>
-                                        <RadialGradientBrush Center="50%,15%" RadiusX="60%" RadiusY="50%">
-                                            <GradientStop Color="#30FF6B6B" Offset="0" />
-                                            <GradientStop Color="#10FF6B6B" Offset="0.5" />
-                                            <GradientStop Color="#00000000" Offset="1" />
-                                        </RadialGradientBrush>
-                                    </Border.Background>
-                                </Border>
-                                <Border IsHitTestVisible="False">
-                                    <Border.Background>
-                                        <RadialGradientBrush>
-                                            <GradientStop Color="#00000000" Offset="0.2" />
-                                            <GradientStop Color="#40000000" Offset="1.0" />
-                                        </RadialGradientBrush>
-                                    </Border.Background>
-                                </Border>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,14">
-                                    <StackPanel Margin="20,10,20,14">
-                                        <StackPanel x:Name="AwayHeaderGroup" Opacity="0" HorizontalAlignment="Center" Margin="0,0,0,14">
-                                            <StackPanel.RenderTransform>
-                                                <TranslateTransform Y="15" port:ProductionNames.Id="AwayHeaderTranslate" />
-                                            </StackPanel.RenderTransform>
-                                            <TextBlock Text="AWAY" FontSize="28" FontWeight="Black" Foreground="White" TextAlignment="Center" HorizontalAlignment="Center">
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect BlurRadius="20" Color="#FF6B6B" Opacity="0.5" OffsetX="0" OffsetY="0" />
-                                                </TextBlock.Effect>
-                                            </TextBlock>
-                                            <TextBlock Text="TEAM CONFIGURATION" FontSize="9" FontWeight="SemiBold" Foreground="#40FF6B6B" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0" />
-                                        </StackPanel>
-                                        <TextBlock Text="Team Name" Theme="{StaticResource FieldLabel}" />
-                                        <TextBox x:Name="SetupAwayNameBox" Text="" Margin="0,0,0,10" Theme="{StaticResource WizardField}" />
-                                        <TextBlock Text="Abbreviation (3-4 letters)" Theme="{StaticResource FieldLabel}" />
-                                        <TextBox x:Name="SetupAwayAbbrBox" Text="" MaxLength="4" Margin="0,0,0,12" Theme="{StaticResource WizardField}" />
-                                        <Grid Margin="0,0,0,12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="12" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel>
-                                                <TextBlock Text="Primary Colour" Theme="{StaticResource FieldLabel}" />
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBox x:Name="SetupAwayColorBox" Width="80" Text="#7A1A1A" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#0A1018" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#1E3050" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupAwayColorBox_TextChanged" />
-                                                    <Border x:Name="SetupAwayColorPreview" Width="28" Height="26" Background="#7A1A1A" BorderBrush="#3A5070" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" PointerReleased="Native_PickSetupAwayColor_Click" />
-                                                    <Border Width="26" Height="26" Background="#141C2A" BorderBrush="#2A3A52" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupAwayColor_Click">
-                                                        <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                </StackPanel>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                <Border Background="Transparent" Padding="0" Margin="0,0,8,0" BorderThickness="0">
+                                                    <TextBlock Text="Home team" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="20" FontWeight="SemiBold" />
+                                                </Border>
+                                                <TextBlock x:Name="HomePresetEmpty" Text="No saved presets" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" VerticalAlignment="Center" IsVisible="False" />
                                             </StackPanel>
-                                            <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Text Colour" Theme="{StaticResource FieldLabel}" />
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBox x:Name="SetupAwaySecondaryBox" Width="80" Text="#FFFFFF" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#0A1018" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#1E3050" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupAwaySecondaryBox_TextChanged" />
-                                                    <Border x:Name="SetupAwaySecondaryPreview" Width="28" Height="26" Background="#FFFFFF" BorderBrush="#3A5070" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" PointerReleased="Native_PickSetupAwaySecondary_Click" />
-                                                    <Border Width="26" Height="26" Background="#141C2A" BorderBrush="#2A3A52" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupAwaySecondary_Click">
-                                                        <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Grid>
-                                        <Border Height="1" Margin="0,2,0,12">
-                                            <Border.Background>
-                                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-                                                    <GradientStop Color="#00FF6B6B" Offset="0" />
-                                                    <GradientStop Color="#30FF6B6B" Offset="0.5" />
-                                                    <GradientStop Color="#00FF6B6B" Offset="1" />
-                                                </LinearGradientBrush>
-                                            </Border.Background>
-                                        </Border>
-                                        <TextBlock Text="Logo" Theme="{StaticResource FieldLabel}" />
-                                        <Grid Margin="0,0,0,6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Button Content="Choose Logo" Height="28" Click="ChooseSetupAwayLogo_Click" Theme="{StaticResource SmallBtn}" />
-                                            <TextBlock Grid.Column="1" x:Name="SetupAwayLogoText" Text="(none)" Foreground="#523030" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
-                                        </Grid>
-                                        <Border x:Name="SetupAwayLogoPreview" Background="#0A1018" Padding="8" Margin="0,4,0,0" HorizontalAlignment="Left" IsVisible="False">
-                                            <Image x:Name="SetupAwayLogoImage" MaxHeight="60" MaxWidth="160" Stretch="Uniform" RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                        </Border>
-                                        <Border Height="1" Background="#1E3050" Margin="0,12,0,12" />
-                                        <TextBlock Text="Goal Video (optional)" Theme="{StaticResource FieldLabel}" />
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Button Content="Choose MP4" Height="28" Click="ChooseSetupAwayVideo_Click" Theme="{StaticResource SmallBtn}" />
-                                            <TextBlock Grid.Column="1" x:Name="SetupAwayVideoText" Text="(none)" Foreground="#523030" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
-                                        </Grid>
-                                    </StackPanel>
-                                </ScrollViewer>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                </Grid>
-                <Border x:Name="Step3Panel" ClipToBounds="True" Opacity="0" RenderTransformOrigin="50%,50%" Margin="30,0,30,0" IsVisible="False">
-                    <Border.RenderTransform>
-                        <TranslateTransform X="80" port:ProductionNames.Id="Step3Translate" />
-                    </Border.RenderTransform>
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                            <GradientStop Color="#0A1220" Offset="0" />
-                            <GradientStop Color="#101828" Offset="0.5" />
-                            <GradientStop Color="#0D1520" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <Grid>
-                        <Border x:Name="ClockGlow" Opacity="0" IsHitTestVisible="False">
-                            <Border.Background>
-                                <RadialGradientBrush Center="50%,20%" RadiusX="50%" RadiusY="40%">
-                                    <GradientStop Color="#2558A6FF" Offset="0" />
-                                    <GradientStop Color="#0858A6FF" Offset="0.6" />
-                                    <GradientStop Color="#00000000" Offset="1" />
-                                </RadialGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <Border IsHitTestVisible="False">
-                            <Border.Background>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="#00000000" Offset="0.3" />
-                                    <GradientStop Color="#30000000" Offset="1.0" />
-                                </RadialGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <RadioButton x:Name="SetupCountUp" GroupName="SetupClock" IsVisible="False" IsCheckedChanged="Native_SetupClockMode_Changed" />
-                        <RadioButton x:Name="SetupCountdown" IsChecked="True" GroupName="SetupClock" IsVisible="False" IsCheckedChanged="Native_SetupClockMode_Changed" />
-                        <CheckBox x:Name="SetupControlPanelCountdown" IsChecked="True" IsVisible="False" />
-                        <TextBox x:Name="SetupQuarterMinutes" Text="20" IsVisible="False" TextChanged="Native_SetupQuarterDuration_TextChanged" />
-                        <TextBox x:Name="SetupQuarterSeconds" Text="00" IsVisible="False" TextChanged="Native_SetupQuarterDuration_TextChanged" />
-                        <Grid Margin="24,10,24,10">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <StackPanel x:Name="ClockHeaderGroup" Opacity="0" HorizontalAlignment="Center" Margin="0,0,0,14">
-                                <StackPanel.RenderTransform>
-                                    <TranslateTransform Y="15" port:ProductionNames.Id="ClockHeaderTranslate" />
-                                </StackPanel.RenderTransform>
-                                <TextBlock Text="CLOCK" FontSize="32" FontWeight="Black" Foreground="White" TextAlignment="Center" HorizontalAlignment="Center">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect BlurRadius="25" Color="#58A6FF" Opacity="0.5" OffsetX="0" OffsetY="0" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                                <TextBlock Text="TIMING CONFIGURATION" FontSize="9" FontWeight="SemiBold" Foreground="#4058A6FF" TextAlignment="Center" Margin="0,2,0,0" />
-                            </StackPanel>
-                            <Grid Grid.Row="1">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="16" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,8,0,8">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <Border x:Name="CountUpCard" Grid.Row="0" Cursor="Hand" Margin="0,0,0,12" MinHeight="210" Background="#0A1628" BorderBrush="#58A6FF" BorderThickness="2" PointerReleased="Native_CountUpCard_Click">
-                                        <Grid>
-                                            <Border x:Name="CountUpGlowBg" Opacity="0.15" IsHitTestVisible="False">
-                                                <Border.Background>
-                                                    <RadialGradientBrush Center="50%,50%" RadiusX="60%" RadiusY="60%">
-                                                        <GradientStop Color="#58A6FF" Offset="0" />
-                                                        <GradientStop Color="#00000000" Offset="1" />
-                                                    </RadialGradientBrush>
-                                                </Border.Background>
-                                            </Border>
-                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                <TextBlock x:Name="CountUpIcon" Text="▲" FontSize="36" FontWeight="Black" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,6">
-                                                    <TextBlock.Effect>
-                                                        <DropShadowEffect BlurRadius="15" Color="#58A6FF" Opacity="0.6" OffsetX="0" OffsetY="0" />
-                                                    </TextBlock.Effect>
-                                                </TextBlock>
-                                                <TextBlock Text="COUNT UP" FontSize="20" FontWeight="Black" Foreground="White" HorizontalAlignment="Center" />
-                                                <TextBlock Text="Open-ended timing" FontSize="10" FontWeight="SemiBold" Foreground="#5080AA" HorizontalAlignment="Center" Margin="0,4,0,0" />
-                                            </StackPanel>
-                                            <Border x:Name="CountUpSelected" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#58A6FF" Padding="8,4" Margin="0,0,0,0">
-                                                <TextBlock Text="✓" FontSize="12" FontWeight="Black" Foreground="White" />
-                                            </Border>
+                                            <WrapPanel x:Name="HomePresetPanel" Grid.Row="1" />
+                                            <WrapPanel Grid.Row="2" Margin="0,6,0,0">
+                                                <Button Content="Find a club" MinWidth="120" Height="40" FontSize="13" Margin="0,0,10,0" Click="BrowseHomeTeam_Click" Padding="14,8" Theme="{StaticResource PrimaryCommandButton}" />
+                                                <Button Content="Save Current" Height="34" Margin="0,0,6,0" Click="SaveHomePreset_Click" Theme="{StaticResource SmallBtn}" />
+                                                <Button Content="Delete" Height="34" Click="DeleteHomePreset_Click" Foreground="#FF999F" Theme="{StaticResource SmallBtn}" />
+                                            </WrapPanel>
                                         </Grid>
                                     </Border>
-                                    <Border x:Name="ControlPanelCountdownOptionCard" Grid.Row="1" Margin="0,0,0,12" Padding="16,12" Background="#0E1B2B" BorderBrush="#58A6FF" BorderThickness="2" CornerRadius="12" Cursor="Hand" Opacity="0" MinHeight="90" RenderTransformOrigin="50%,50%" IsVisible="False" PointerReleased="Native_ControlPanelCountdownOptionCard_Click">
+                                    <Border x:Name="HomeTeamCard" Grid.Column="0" ClipToBounds="False" Opacity="1" RenderTransformOrigin="50%,50%" CornerRadius="20" Background="Transparent" BorderThickness="0" Margin="0" MinHeight="0" Padding="0">
                                         <Border.RenderTransform>
                                             <TransformGroup>
-                                                <TranslateTransform Y="24" port:ProductionNames.Id="ControlPanelCountdownCardTranslate" />
-                                                <ScaleTransform ScaleX="0.96" ScaleY="0.96" port:ProductionNames.Id="ControlPanelCountdownCardScale" />
+                                                <ScaleTransform port:ProductionNames.Id="HomeCardScale" />
+                                                <TranslateTransform X="-80" port:ProductionNames.Id="HomeCardTranslate" />
                                             </TransformGroup>
                                         </Border.RenderTransform>
                                         <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel VerticalAlignment="Center">
-                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                                    <TextBlock Text="⏱" FontSize="18" Foreground="#58A6FF" VerticalAlignment="Center" Margin="0,0,8,0">
-                                                        <TextBlock.Effect>
-                                                            <DropShadowEffect BlurRadius="10" Color="#58A6FF" Opacity="0.7" OffsetX="0" OffsetY="0" />
-                                                        </TextBlock.Effect>
-                                                    </TextBlock>
-                                                    <TextBlock Text="Timing stoppages" Foreground="White" FontSize="15" FontWeight="Black" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                                <TextBlock Text="Control stoppage timing from the panel during count-up matches." Foreground="#B1BAC4" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" LineHeight="17" />
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,0,0" HorizontalAlignment="Center">
-                                                <Border x:Name="ControlPanelCountdownToggleTrack" Width="54" Height="28" CornerRadius="14" Background="#1F6FEB">
-                                                    <Border.Effect>
-                                                        <DropShadowEffect BlurRadius="10" Color="#58A6FF" Opacity="0.5" OffsetX="0" OffsetY="0" />
-                                                    </Border.Effect>
-                                                    <Canvas Width="54" Height="28" IsHitTestVisible="False" ClipToBounds="True">
-                                                        <Ellipse x:Name="ControlPanelCountdownToggleThumb" Width="22" Height="22" Canvas.Left="3" Canvas.Top="3" Fill="White">
-                                                            <Ellipse.RenderTransform>
-                                                                <TranslateTransform X="26" port:ProductionNames.Id="ControlPanelCountdownThumbTranslate" />
-                                                            </Ellipse.RenderTransform>
-                                                        </Ellipse>
-                                                    </Canvas>
-                                                </Border>
-                                                <TextBlock x:Name="ControlPanelCountdownToggleLabel" Text="ON" HorizontalAlignment="Center" Margin="0,5,0,0" FontSize="10" FontWeight="Black" Foreground="#58A6FF" />
-                                                <TextBlock x:Name="ControlPanelCountdownHintText" Text="Quarter length editable" HorizontalAlignment="Center" Margin="0,2,0,0" FontSize="9" FontWeight="SemiBold" Foreground="#9CC9FF" />
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                    <Border x:Name="CountdownCard" Grid.Row="2" Cursor="Hand" MinHeight="210" Background="#0E0C08" BorderBrush="#3A3018" BorderThickness="1" PointerReleased="Native_CountdownCard_Click">
-                                        <Grid>
-                                            <Border x:Name="CountdownGlowBg" Opacity="0" IsHitTestVisible="False">
+                                            <Border x:Name="HomeGlow" Opacity="0" IsHitTestVisible="False" IsVisible="False">
                                                 <Border.Background>
-                                                    <RadialGradientBrush Center="50%,50%" RadiusX="60%" RadiusY="60%">
-                                                        <GradientStop Color="#D29922" Offset="0" />
+                                                    <RadialGradientBrush Center="50%,15%" RadiusX="60%" RadiusY="50%">
+                                                        <GradientStop Color="#3058A6FF" Offset="0" />
+                                                        <GradientStop Color="#1058A6FF" Offset="0.5" />
                                                         <GradientStop Color="#00000000" Offset="1" />
                                                     </RadialGradientBrush>
                                                 </Border.Background>
                                             </Border>
-                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                <TextBlock x:Name="CountdownIcon" Text="▼" FontSize="36" FontWeight="Black" Foreground="#6B5A00" HorizontalAlignment="Center" Margin="0,0,0,6" />
-                                                <TextBlock Text="COUNTDOWN" FontSize="20" FontWeight="Black" Foreground="#8A7A50" HorizontalAlignment="Center" />
-                                                <TextBlock Text="Timed quarters" FontSize="10" FontWeight="SemiBold" Foreground="#5A5030" HorizontalAlignment="Center" Margin="0,4,0,0" />
-                                            </StackPanel>
-                                            <Border x:Name="CountdownSelected" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="8,4" IsVisible="False">
-                                                <TextBlock Text="✓" FontSize="12" FontWeight="Black" Foreground="#1A1400" />
-                                            </Border>
-                                        </Grid>
-                                    </Border>
-                                </Grid>
-                                <Grid Grid.Column="2">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-                                    <Border x:Name="SetupDurationPanel" Grid.Row="0" Background="#0C0A04" BorderBrush="#3A3018" BorderThickness="1">
-                                        <Grid>
-                                            <Border x:Name="DurationGlowBg" Opacity="0" IsHitTestVisible="False">
+                                            <Border IsHitTestVisible="False">
                                                 <Border.Background>
-                                                    <RadialGradientBrush Center="50%,40%" RadiusX="50%" RadiusY="50%">
-                                                        <GradientStop Color="#D29922" Offset="0" />
-                                                        <GradientStop Color="#00000000" Offset="1" />
+                                                    <RadialGradientBrush>
+                                                        <GradientStop Color="#00000000" Offset="0.2" />
+                                                        <GradientStop Color="#40000000" Offset="1.0" />
                                                     </RadialGradientBrush>
                                                 </Border.Background>
                                             </Border>
-                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                <TextBlock Text="QUARTER LENGTH" FontSize="10" FontWeight="Black" Foreground="#8A7A40" HorizontalAlignment="Center" Margin="0,0,0,8" />
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                    <Border Background="#141008" BorderBrush="#3A3018" BorderThickness="1" Width="40" Height="40" Cursor="Hand" Margin="0,0,6,0" PointerReleased="Native_MinutesMinus_Click">
-                                                        <TextBlock Text="−" FontSize="22" FontWeight="Black" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                    <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" MinWidth="64" Height="64" Padding="10,0">
-                                                        <TextBlock x:Name="DurationMinutesDisplay" Text="20" FontSize="38" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Consolas'}" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled" Padding="18,4,18,18">
+                                                <StackPanel Margin="0">
+                                                    <StackPanel x:Name="HomeHeaderGroup" Opacity="0" HorizontalAlignment="Center" Margin="0,0,0,14" IsVisible="False">
+                                                        <StackPanel.RenderTransform>
+                                                            <TranslateTransform Y="15" port:ProductionNames.Id="HomeHeaderTranslate" />
+                                                        </StackPanel.RenderTransform>
+                                                        <TextBlock Text="HOME" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextAlignment="Center" HorizontalAlignment="Center">
                                                             <TextBlock.Effect>
-                                                                <DropShadowEffect BlurRadius="12" Color="#D29922" Opacity="0.4" OffsetX="0" OffsetY="0" />
+                                                                <DropShadowEffect BlurRadius="0" Color="#58A6FF" Opacity="0" OffsetX="0" OffsetY="0" />
                                                             </TextBlock.Effect>
                                                         </TextBlock>
+                                                        <TextBlock Text="TEAM CONFIGURATION" FontSize="9" FontWeight="SemiBold" Foreground="#4058A6FF" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="Team Name" Theme="{StaticResource FieldLabel}" />
+                                                    <TextBox x:Name="SetupHomeNameBox" Text="" Margin="0,0,0,10" Theme="{StaticResource WizardField}" />
+                                                    <TextBlock Text="Abbreviation (3-4 letters)" Theme="{StaticResource FieldLabel}" />
+                                                    <TextBox x:Name="SetupHomeAbbrBox" Text="" MaxLength="4" Margin="0,0,0,12" Theme="{StaticResource WizardField}" />
+                                                    <Grid Margin="0,0,0,12" ns4:WizardPair.MinimumColumnWidth="135">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="12" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel>
+                                                            <TextBlock Text="Primary Colour" Theme="{StaticResource FieldLabel}" />
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBox x:Name="SetupHomeColorBox" Width="80" Text="#0A2A6A" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupHomeColorBox_TextChanged" />
+                                                                <Border x:Name="SetupHomeColorPreview" Width="28" Height="26" Background="#0A2A6A" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" native:NativeActivation.Enabled="True" PointerReleased="Native_PickSetupHomeColor_Click" />
+                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupHomeColor_Click">
+                                                                    <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                </Border>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2">
+                                                            <TextBlock Text="Text Colour" Theme="{StaticResource FieldLabel}" />
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBox x:Name="SetupHomeSecondaryBox" Width="80" Text="#FFFFFF" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupHomeSecondaryBox_TextChanged" />
+                                                                <Border x:Name="SetupHomeSecondaryPreview" Width="28" Height="26" Background="#FFFFFF" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" native:NativeActivation.Enabled="True" PointerReleased="Native_PickSetupHomeSecondary_Click" />
+                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupHomeSecondary_Click">
+                                                                    <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                </Border>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                    <Border Height="1" Margin="0,2,0,12">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                                                <GradientStop Color="#0058A6FF" Offset="0" />
+                                                                <GradientStop Color="#3058A6FF" Offset="0.5" />
+                                                                <GradientStop Color="#0058A6FF" Offset="1" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
                                                     </Border>
-                                                    <Border Background="#141008" BorderBrush="#3A3018" BorderThickness="1" Width="40" Height="40" Cursor="Hand" Margin="6,0,0,0" PointerReleased="Native_MinutesPlus_Click">
-                                                        <TextBlock Text="+" FontSize="22" FontWeight="Black" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    <TextBlock Text="Logo" Theme="{StaticResource FieldLabel}" />
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button Content="Choose Logo" Height="28" Click="ChooseSetupHomeLogo_Click" Theme="{StaticResource SmallBtn}" />
+                                                        <TextBlock Grid.Column="1" x:Name="SetupHomeLogoText" Text="(none)" Foreground="#5B5B66" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                                                    </Grid>
+                                                    <Border x:Name="SetupHomeLogoPreview" Background="#111113" Padding="8" Margin="0,4,0,0" HorizontalAlignment="Left" IsVisible="False">
+                                                        <Image x:Name="SetupHomeLogoImage" MaxHeight="60" MaxWidth="160" Stretch="Uniform" RenderOptions.BitmapInterpolationMode="HighQuality" />
                                                     </Border>
+                                                    <Border Height="1" Background="#3A3A40" Margin="0,12,0,12" />
+                                                    <TextBlock Text="Goal Video (optional)" Theme="{StaticResource FieldLabel}" />
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button Content="Choose MP4" Height="28" Click="ChooseSetupHomeVideo_Click" Theme="{StaticResource SmallBtn}" />
+                                                        <TextBlock Grid.Column="1" x:Name="SetupHomeVideoText" Text="(none)" Foreground="#5B5B66" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                                                    </Grid>
                                                 </StackPanel>
-                                                <TextBlock Text="MINUTES" FontSize="9" FontWeight="SemiBold" Foreground="#6B5A00" HorizontalAlignment="Center" Margin="0,4,0,12" />
-                                                <TextBlock Text="PRESETS" FontSize="9" FontWeight="Black" Foreground="#5A5030" HorizontalAlignment="Center" Margin="0,0,0,8" />
-                                                <UniformGrid Columns="4" HorizontalAlignment="Center" MaxWidth="300">
-                                                    <Border x:Name="Preset10Tile" Background="#141008" BorderBrush="#3A3018" BorderThickness="1" Cursor="Hand" Margin="3" PointerReleased="Native_SetupQuickDuration10_Click">
-                                                        <TextBlock Text="10" FontSize="18" FontWeight="Black" Foreground="#8A7A40" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8" />
-                                                    </Border>
-                                                    <Border x:Name="Preset15Tile" Background="#141008" BorderBrush="#3A3018" BorderThickness="1" Cursor="Hand" Margin="3" PointerReleased="Native_SetupQuickDuration15_Click">
-                                                        <TextBlock Text="15" FontSize="18" FontWeight="Black" Foreground="#8A7A40" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8" />
-                                                    </Border>
-                                                    <Border x:Name="Preset20Tile" Background="#1A1408" BorderBrush="#6B5A00" BorderThickness="1" Cursor="Hand" Margin="3" PointerReleased="Native_SetupQuickDuration20_Click">
-                                                        <TextBlock Text="20" FontSize="18" FontWeight="Black" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8" />
-                                                    </Border>
-                                                    <Border x:Name="Preset25Tile" Background="#141008" BorderBrush="#3A3018" BorderThickness="1" Cursor="Hand" Margin="3" PointerReleased="Native_SetupQuickDuration25_Click">
-                                                        <TextBlock Text="25" FontSize="18" FontWeight="Black" Foreground="#8A7A40" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8" />
-                                                    </Border>
-                                                </UniformGrid>
-                                            </StackPanel>
-                                            <Border x:Name="DurationDisabledOverlay" Background="#D0080C12" IsVisible="True">
-                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <TextBlock Text="▲" FontSize="28" FontWeight="Black" Foreground="#2A3A52" HorizontalAlignment="Center" Margin="0,0,0,8" />
-                                                    <TextBlock Text="NOT AVAILABLE" FontSize="13" FontWeight="Black" Foreground="#3A4A60" HorizontalAlignment="Center" />
-                                                    <TextBlock Text="Enable Timing stoppages (or use Countdown) to set quarter length" FontSize="10" Foreground="#2A3A52" HorizontalAlignment="Center" Margin="0,4,0,0" />
-                                                </StackPanel>
-                                            </Border>
+                                            </ScrollViewer>
                                         </Grid>
                                     </Border>
-                                </Grid>
+                                </StackPanel>
+                            </ns4:OperatorGlassSurface>
+                            <ns4:OperatorGlassSurface Material="Regular" CornerRadius="28" Grid.Column="2" Padding="0">
+                                <StackPanel>
+                                    <Border x:Name="AwayPresetCard" Grid.Column="2" Background="Transparent" BorderBrush="#383840" BorderThickness="0" Padding="18,16,18,8" Opacity="1" ClipToBounds="False" CornerRadius="20" Margin="0" MinHeight="0">
+                                        <Border.RenderTransform>
+                                            <TranslateTransform X="60" port:ProductionNames.Id="AwayPresetTranslate" />
+                                        </Border.RenderTransform>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                <Border Background="Transparent" Padding="0" Margin="0,0,8,0" BorderThickness="0">
+                                                    <TextBlock Text="Away team" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="20" FontWeight="SemiBold" />
+                                                </Border>
+                                                <TextBlock x:Name="AwayPresetEmpty" Text="No saved presets" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" VerticalAlignment="Center" IsVisible="False" />
+                                            </StackPanel>
+                                            <WrapPanel x:Name="AwayPresetPanel" Grid.Row="1" />
+                                            <WrapPanel Grid.Row="2" Margin="0,6,0,0">
+                                                <Button Content="Find a club" MinWidth="120" Height="40" FontSize="13" Margin="0,0,10,0" Click="BrowseAwayTeam_Click" Padding="14,8" Theme="{StaticResource PrimaryCommandButton}" />
+                                                <Button Content="Save Current" Height="34" Margin="0,0,6,0" Click="SaveAwayPreset_Click" Theme="{StaticResource SmallBtn}" />
+                                                <Button Content="Delete" Height="34" Click="DeleteAwayPreset_Click" Foreground="#FF999F" Theme="{StaticResource SmallBtn}" />
+                                            </WrapPanel>
+                                        </Grid>
+                                    </Border>
+                                    <Border x:Name="AwayTeamCard" Grid.Column="2" ClipToBounds="False" Opacity="1" RenderTransformOrigin="50%,50%" CornerRadius="20" Background="Transparent" BorderThickness="0" Margin="0" MinHeight="0" Padding="0">
+                                        <Border.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform port:ProductionNames.Id="AwayCardScale" />
+                                                <TranslateTransform X="80" port:ProductionNames.Id="AwayCardTranslate" />
+                                            </TransformGroup>
+                                        </Border.RenderTransform>
+                                        <Grid>
+                                            <Border x:Name="AwayGlow" Opacity="0" IsHitTestVisible="False" IsVisible="False">
+                                                <Border.Background>
+                                                    <RadialGradientBrush Center="50%,15%" RadiusX="60%" RadiusY="50%">
+                                                        <GradientStop Color="#30FF6B6B" Offset="0" />
+                                                        <GradientStop Color="#10FF6B6B" Offset="0.5" />
+                                                        <GradientStop Color="#00000000" Offset="1" />
+                                                    </RadialGradientBrush>
+                                                </Border.Background>
+                                            </Border>
+                                            <Border IsHitTestVisible="False">
+                                                <Border.Background>
+                                                    <RadialGradientBrush>
+                                                        <GradientStop Color="#00000000" Offset="0.2" />
+                                                        <GradientStop Color="#40000000" Offset="1.0" />
+                                                    </RadialGradientBrush>
+                                                </Border.Background>
+                                            </Border>
+                                            <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled" Padding="18,4,18,18">
+                                                <StackPanel Margin="0">
+                                                    <StackPanel x:Name="AwayHeaderGroup" Opacity="0" HorizontalAlignment="Center" Margin="0,0,0,14" IsVisible="False">
+                                                        <StackPanel.RenderTransform>
+                                                            <TranslateTransform Y="15" port:ProductionNames.Id="AwayHeaderTranslate" />
+                                                        </StackPanel.RenderTransform>
+                                                        <TextBlock Text="AWAY" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextAlignment="Center" HorizontalAlignment="Center">
+                                                            <TextBlock.Effect>
+                                                                <DropShadowEffect BlurRadius="0" Color="#FF6B6B" Opacity="0" OffsetX="0" OffsetY="0" />
+                                                            </TextBlock.Effect>
+                                                        </TextBlock>
+                                                        <TextBlock Text="TEAM CONFIGURATION" FontSize="9" FontWeight="SemiBold" Foreground="#40FF6B6B" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="Team Name" Theme="{StaticResource FieldLabel}" />
+                                                    <TextBox x:Name="SetupAwayNameBox" Text="" Margin="0,0,0,10" Theme="{StaticResource WizardField}" />
+                                                    <TextBlock Text="Abbreviation (3-4 letters)" Theme="{StaticResource FieldLabel}" />
+                                                    <TextBox x:Name="SetupAwayAbbrBox" Text="" MaxLength="4" Margin="0,0,0,12" Theme="{StaticResource WizardField}" />
+                                                    <Grid Margin="0,0,0,12" ns4:WizardPair.MinimumColumnWidth="135">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="12" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel>
+                                                            <TextBlock Text="Primary Colour" Theme="{StaticResource FieldLabel}" />
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBox x:Name="SetupAwayColorBox" Width="80" Text="#7A1A1A" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupAwayColorBox_TextChanged" />
+                                                                <Border x:Name="SetupAwayColorPreview" Width="28" Height="26" Background="#7A1A1A" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" native:NativeActivation.Enabled="True" PointerReleased="Native_PickSetupAwayColor_Click" />
+                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupAwayColor_Click">
+                                                                    <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                </Border>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2">
+                                                            <TextBlock Text="Text Colour" Theme="{StaticResource FieldLabel}" />
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBox x:Name="SetupAwaySecondaryBox" Width="80" Text="#FFFFFF" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupAwaySecondaryBox_TextChanged" />
+                                                                <Border x:Name="SetupAwaySecondaryPreview" Width="28" Height="26" Background="#FFFFFF" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" native:NativeActivation.Enabled="True" PointerReleased="Native_PickSetupAwaySecondary_Click" />
+                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupAwaySecondary_Click">
+                                                                    <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                </Border>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                    <Border Height="1" Margin="0,2,0,12">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                                                <GradientStop Color="#00FF6B6B" Offset="0" />
+                                                                <GradientStop Color="#30FF6B6B" Offset="0.5" />
+                                                                <GradientStop Color="#00FF6B6B" Offset="1" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                    </Border>
+                                                    <TextBlock Text="Logo" Theme="{StaticResource FieldLabel}" />
+                                                    <Grid Margin="0,0,0,6">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button Content="Choose Logo" Height="28" Click="ChooseSetupAwayLogo_Click" Theme="{StaticResource SmallBtn}" />
+                                                        <TextBlock Grid.Column="1" x:Name="SetupAwayLogoText" Text="(none)" Foreground="#523030" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                                                    </Grid>
+                                                    <Border x:Name="SetupAwayLogoPreview" Background="#111113" Padding="8" Margin="0,4,0,0" HorizontalAlignment="Left" IsVisible="False">
+                                                        <Image x:Name="SetupAwayLogoImage" MaxHeight="60" MaxWidth="160" Stretch="Uniform" RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                                    </Border>
+                                                    <Border Height="1" Background="#3A3A40" Margin="0,12,0,12" />
+                                                    <TextBlock Text="Goal Video (optional)" Theme="{StaticResource FieldLabel}" />
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button Content="Choose MP4" Height="28" Click="ChooseSetupAwayVideo_Click" Theme="{StaticResource SmallBtn}" />
+                                                        <TextBlock Grid.Column="1" x:Name="SetupAwayVideoText" Text="(none)" Foreground="#523030" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis" />
+                                                    </Grid>
+                                                </StackPanel>
+                                            </ScrollViewer>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </ns4:OperatorGlassSurface>
+                        </Grid>
+                        <Grid IsHitTestVisible="False" IsVisible="False">
+                            <Grid Grid.Row="0" Margin="20,0,20,10" ns4:WizardPair.MinimumColumnWidth="330">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                            </Grid>
+                            <Grid x:Name="Step2Panel" Grid.Row="1" Margin="20,0,20,0" ns4:WizardPair.MinimumColumnWidth="330">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="6" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="1" HorizontalAlignment="Center" IsHitTestVisible="False" Width="6" RenderTransformOrigin="50%,50%">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform ScaleY="0" port:ProductionNames.Id="DividerScale" />
+                                    </Border.RenderTransform>
+                                    <Grid>
+                                        <Border x:Name="DividerGlowLine" Opacity="0" IsHitTestVisible="False" IsVisible="False">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                                    <GradientStop Color="#00FFFFFF" Offset="0" />
+                                                    <GradientStop Color="#30FFFFFF" Offset="0.3" />
+                                                    <GradientStop Color="#50FFFFFF" Offset="0.5" />
+                                                    <GradientStop Color="#30FFFFFF" Offset="0.7" />
+                                                    <GradientStop Color="#00FFFFFF" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="3" />
+                                            </Border.Effect>
+                                        </Border>
+                                        <Border Width="1" Opacity="0.5">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                                    <GradientStop Color="#00FFFFFF" Offset="0" />
+                                                    <GradientStop Color="#FFFFFFFF" Offset="0.3" />
+                                                    <GradientStop Color="#FFFFFFFF" Offset="0.7" />
+                                                    <GradientStop Color="#00FFFFFF" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                        </Border>
+                                    </Grid>
+                                </Border>
                             </Grid>
                         </Grid>
                     </Grid>
-                </Border>
-                <Border x:Name="Step4Panel" ClipToBounds="True" Opacity="0" RenderTransformOrigin="50%,50%" IsVisible="False">
-                    <Border.RenderTransform>
-                        <TranslateTransform X="80" port:ProductionNames.Id="Step4Translate" />
-                    </Border.RenderTransform>
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                            <GradientStop Color="#0A1220" Offset="0" />
-                            <GradientStop Color="#101828" Offset="0.5" />
-                            <GradientStop Color="#0D1520" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <Grid>
-                        <Border x:Name="MsgGlow" Opacity="0" IsHitTestVisible="False">
-                            <Border.Background>
-                                <RadialGradientBrush Center="50%,20%" RadiusX="50%" RadiusY="40%">
-                                    <GradientStop Color="#203FB950" Offset="0" />
-                                    <GradientStop Color="#083FB950" Offset="0.6" />
-                                    <GradientStop Color="#00000000" Offset="1" />
-                                </RadialGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <Border IsHitTestVisible="False">
-                            <Border.Background>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="#00000000" Offset="0.3" />
-                                    <GradientStop Color="#30000000" Offset="1.0" />
-                                </RadialGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <CheckBox x:Name="SetupFinalsMode" IsVisible="False" />
-                        <Grid Margin="24,10,24,10">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <StackPanel x:Name="MsgHeaderGroup" Opacity="0" HorizontalAlignment="Center" Margin="0,0,0,14">
-                                <StackPanel.RenderTransform>
-                                    <TranslateTransform Y="15" port:ProductionNames.Id="MsgHeaderTranslate" />
-                                </StackPanel.RenderTransform>
-                                <TextBlock Text="OPTIONAL" FontSize="32" FontWeight="Black" Foreground="White" TextAlignment="Center" HorizontalAlignment="Center">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect BlurRadius="25" Color="#3FB950" Opacity="0.5" OffsetX="0" OffsetY="0" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                                <TextBlock Text="You can skip these and change them later in Setup" FontSize="10" FontWeight="SemiBold" Foreground="#86C997" TextAlignment="Center" Margin="0,2,0,0" />
-                            </StackPanel>
-                            <Grid Grid.Row="1">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="16" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="12" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-                                    <Border x:Name="FinalsCard" Grid.Row="0" Cursor="Hand" Background="#0A0806" BorderBrush="#2A2020" BorderThickness="1" PointerReleased="Native_FinalsCard_Click">
+                    <Border x:Name="Step3Panel" ClipToBounds="False" Opacity="0" RenderTransformOrigin="50%,50%" Margin="0" Background="Transparent" BorderThickness="0" MinHeight="0" Padding="0" IsVisible="False">
+                        <Border.RenderTransform>
+                            <TranslateTransform X="80" port:ProductionNames.Id="Step3Translate" />
+                        </Border.RenderTransform>
+                        <Grid>
+                            <StackPanel>
+                                <StackPanel x:Name="ClockHeaderGroup" Opacity="1" HorizontalAlignment="Stretch" Margin="0,0,0,20">
+                                    <StackPanel.RenderTransform>
+                                        <TranslateTransform Y="15" port:ProductionNames.Id="ClockHeaderTranslate" />
+                                    </StackPanel.RenderTransform>
+                                    <TextBlock Text="Match clock" FontSize="27" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
+                                    <TextBlock Text="Choose how the scoreboard counts time." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                                </StackPanel>
+                                <Grid ns4:WizardPair.MinimumColumnWidth="260" Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <ns4:OperatorGlassSurface x:Name="CountUpCard" Grid.Row="0" Cursor="Hand" Margin="0" MinHeight="132" Background="Transparent" BorderBrush="#58A6FF" BorderThickness="2" CornerRadius="24" Material="Regular" Padding="20" ClipToBounds="False" Grid.Column="0" native:NativeActivation.Enabled="True" PointerReleased="Native_CountUpCard_Click">
                                         <Grid>
-                                            <Border x:Name="FinalsGlowBg" Opacity="0" IsHitTestVisible="False">
-                                                <Border.Background>
-                                                    <RadialGradientBrush Center="50%,50%" RadiusX="60%" RadiusY="60%">
-                                                        <GradientStop Color="#D4A017" Offset="0" />
-                                                        <GradientStop Color="#00000000" Offset="1" />
-                                                    </RadialGradientBrush>
-                                                </Border.Background>
-                                            </Border>
-                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                <TextBlock x:Name="FinalsIcon" Text="★" FontSize="48" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontWeight="Black" Foreground="#D8B84F" HorizontalAlignment="Center" Margin="0,0,0,8" />
-                                                <TextBlock Text="FINALS MODE" FontSize="22" FontWeight="Black" Foreground="#D8B84F" HorizontalAlignment="Center" />
-                                                <TextBlock Text="Tap to enable" FontSize="10" FontWeight="SemiBold" Foreground="#B8A56B" HorizontalAlignment="Center" Margin="0,6,0,0" />
-                                            </StackPanel>
-                                            <Border x:Name="FinalsSelectedBadge" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D4A017" Padding="8,4" IsVisible="False">
-                                                <TextBlock Text="✓" FontSize="12" FontWeight="Black" Foreground="#1A1400" />
-                                            </Border>
-                                        </Grid>
-                                    </Border>
-                                    <Border x:Name="WeatherCard" Grid.Row="2" Background="#080E1A" BorderBrush="#1A3060" BorderThickness="1">
-                                        <Grid>
-                                            <Border x:Name="WeatherGlowBg" Opacity="0.08" IsHitTestVisible="False">
-                                                <Border.Background>
-                                                    <RadialGradientBrush Center="50%,40%" RadiusX="50%" RadiusY="50%">
-                                                        <GradientStop Color="#58A6FF" Offset="0" />
-                                                        <GradientStop Color="#00000000" Offset="1" />
-                                                    </RadialGradientBrush>
-                                                </Border.Background>
-                                            </Border>
-                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                <TextBlock Text="☁" FontSize="48" FontFamily="{fonts:ProductionFont 'Segoe UI Symbol'}" Foreground="#8AC5FF" HorizontalAlignment="Center" Margin="0,0,0,8" />
-                                                <TextBlock Text="LIVE WEATHER" FontSize="22" FontWeight="Black" Foreground="#58A6FF" HorizontalAlignment="Center" />
-                                                <TextBlock Text="Location for real-time conditions" FontSize="10" FontWeight="SemiBold" Foreground="#87B4E5" HorizontalAlignment="Center" Margin="0,6,0,14" />
-                                                <Border Background="#06091A" BorderBrush="#2A4A70" BorderThickness="1" HorizontalAlignment="Center" MinWidth="260" Padding="4">
-                                                    <ComboBox x:Name="SetupWeatherLocation" IsEditable="True" IsTextSearchEnabled="False" MaxDropDownHeight="200" VerticalAlignment="Center" FontSize="14" Text="Melbourne, Australia" Theme="{StaticResource DarkCombo}" />
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="42" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <ns2:OperatorSymbol Kind="clock" Width="30" Height="30" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Top" />
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="Count up" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
+                                                    <TextBlock Text="Start at zero and show elapsed playing time." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                                                </StackPanel>
+                                                <Border x:Name="CountUpSelected" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#58A6FF" Padding="6" Margin="0,0,0,0" Grid.Column="2" CornerRadius="10">
+                                                    <TextBlock Text="✓" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" />
                                                 </Border>
-                                            </StackPanel>
+                                            </Grid>
+                                            <Grid IsHitTestVisible="False" IsVisible="False">
+                                                <Grid>
+                                                    <Border x:Name="CountUpGlowBg" Opacity="0.15" IsHitTestVisible="False" IsVisible="False">
+                                                        <Border.Background>
+                                                            <RadialGradientBrush Center="50%,50%" RadiusX="60%" RadiusY="60%">
+                                                                <GradientStop Color="#58A6FF" Offset="0" />
+                                                                <GradientStop Color="#00000000" Offset="1" />
+                                                            </RadialGradientBrush>
+                                                        </Border.Background>
+                                                    </Border>
+                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                        <TextBlock x:Name="CountUpIcon" Text="▲" FontSize="36" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,6">
+                                                            <TextBlock.Effect>
+                                                                <DropShadowEffect BlurRadius="0" Color="#58A6FF" Opacity="0" OffsetX="0" OffsetY="0" />
+                                                            </TextBlock.Effect>
+                                                        </TextBlock>
+                                                        <TextBlock Text="COUNT UP" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" />
+                                                        <TextBlock Text="Open-ended timing" FontSize="10" FontWeight="SemiBold" Foreground="#5080AA" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Grid>
                                         </Grid>
-                                    </Border>
+                                    </ns4:OperatorGlassSurface>
+                                    <ns4:OperatorGlassSurface x:Name="CountdownCard" Grid.Row="0" Cursor="Hand" MinHeight="132" Background="Transparent" BorderBrush="#3A3018" BorderThickness="1" CornerRadius="24" Material="Regular" Padding="20" Margin="0" ClipToBounds="False" Grid.Column="2" native:NativeActivation.Enabled="True" PointerReleased="Native_CountdownCard_Click">
+                                        <Grid>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="42" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <ns2:OperatorSymbol Kind="clock" Width="30" Height="30" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Top" />
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="Count down" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
+                                                    <TextBlock Text="Start at the quarter limit and count back to zero." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                                                </StackPanel>
+                                                <Border x:Name="CountdownSelected" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="6" Grid.Column="2" CornerRadius="10" IsVisible="False">
+                                                    <TextBlock Text="✓" FontSize="12" FontWeight="SemiBold" Foreground="#1A1400" />
+                                                </Border>
+                                            </Grid>
+                                            <Grid IsHitTestVisible="False" IsVisible="False">
+                                                <Grid>
+                                                    <Border x:Name="CountdownGlowBg" Opacity="0" IsHitTestVisible="False" IsVisible="False">
+                                                        <Border.Background>
+                                                            <RadialGradientBrush Center="50%,50%" RadiusX="60%" RadiusY="60%">
+                                                                <GradientStop Color="#D29922" Offset="0" />
+                                                                <GradientStop Color="#00000000" Offset="1" />
+                                                            </RadialGradientBrush>
+                                                        </Border.Background>
+                                                    </Border>
+                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                        <TextBlock x:Name="CountdownIcon" Text="▼" FontSize="36" FontWeight="SemiBold" Foreground="#6B5A00" HorizontalAlignment="Center" Margin="0,0,0,6" />
+                                                        <TextBlock Text="COUNTDOWN" FontSize="20" FontWeight="SemiBold" Foreground="#8A7A50" HorizontalAlignment="Center" />
+                                                        <TextBlock Text="Timed quarters" FontSize="10" FontWeight="SemiBold" Foreground="#5A5030" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                    </ns4:OperatorGlassSurface>
                                 </Grid>
-                                <Border Grid.Column="2" Background="#0A0E18" BorderBrush="#1A2A40" BorderThickness="1" ClipToBounds="True">
+                                <ns4:OperatorGlassSurface x:Name="ControlPanelCountdownOptionCard" Grid.Row="1" Margin="0,16,0,16" Padding="16,12" Background="#0E1B2B" BorderBrush="#58A6FF" BorderThickness="2" CornerRadius="22" Cursor="Hand" Opacity="0" MinHeight="90" RenderTransformOrigin="50%,50%" Material="Regular" IsVisible="False" native:NativeActivation.Enabled="True" PointerReleased="Native_ControlPanelCountdownOptionCard_Click">
+                                    <Border.RenderTransform>
+                                        <TransformGroup>
+                                            <TranslateTransform Y="24" port:ProductionNames.Id="ControlPanelCountdownCardTranslate" />
+                                            <ScaleTransform ScaleX="0.96" ScaleY="0.96" port:ProductionNames.Id="ControlPanelCountdownCardScale" />
+                                        </TransformGroup>
+                                    </Border.RenderTransform>
                                     <Grid>
-                                        <Border x:Name="MsgSectionGlow" Opacity="0.06" IsHitTestVisible="False">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                <ns2:OperatorSymbol Kind="clock" Width="25" Height="25" Foreground="{DynamicResource ControlCentre.AccentBrush}" Margin="0,0,8,0" />
+                                                <TextBlock Text="Timing stoppages" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="Control stoppage timing from the panel during count-up matches." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" FontWeight="Normal" TextWrapping="Wrap" LineHeight="17" />
+                                        </StackPanel>
+                                        <Grid Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                                            <CheckBox Content="" Width="56" IsChecked="{Binding IsChecked, ElementName=SetupControlPanelCountdown, Mode=TwoWay}" AutomationProperties.Name="Enable timing stoppages" Theme="{StaticResource SettingsToggle}" />
+                                            <Grid IsHitTestVisible="False" IsVisible="False">
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,0,0" HorizontalAlignment="Center">
+                                                    <Border x:Name="ControlPanelCountdownToggleTrack" Width="54" Height="28" CornerRadius="14" Background="#1F6FEB">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="0" Color="#58A6FF" Opacity="0" OffsetX="0" OffsetY="0" />
+                                                        </Border.Effect>
+                                                        <Canvas Width="54" Height="28" IsHitTestVisible="False" ClipToBounds="True">
+                                                            <Ellipse x:Name="ControlPanelCountdownToggleThumb" Width="22" Height="22" Canvas.Left="3" Canvas.Top="3" Fill="White">
+                                                                <Ellipse.RenderTransform>
+                                                                    <TranslateTransform X="26" port:ProductionNames.Id="ControlPanelCountdownThumbTranslate" />
+                                                                </Ellipse.RenderTransform>
+                                                            </Ellipse>
+                                                        </Canvas>
+                                                    </Border>
+                                                    <TextBlock x:Name="ControlPanelCountdownToggleLabel" Text="ON" HorizontalAlignment="Center" Margin="0,5,0,0" FontSize="10" FontWeight="SemiBold" Foreground="#58A6FF" />
+                                                    <TextBlock x:Name="ControlPanelCountdownHintText" Text="Quarter length editable" HorizontalAlignment="Center" Margin="0,2,0,0" FontSize="9" FontWeight="SemiBold" Foreground="#9CC9FF" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </ns4:OperatorGlassSurface>
+                                <ns4:OperatorGlassSurface x:Name="SetupDurationPanel" Material="Regular" CornerRadius="24" Margin="0,0,0,16" Padding="20">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Quarter length" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" />
+                                            <TextBlock Text="Set the scheduled playing time for each quarter." FontSize="14" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,5,0,16" />
+                                        </StackPanel>
+                                        <StackPanel x:Name="QuarterLengthControls" Grid.Row="1">
+                                            <Grid Margin="0,2,0,16">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="48" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="48" />
+                                                </Grid.ColumnDefinitions>
+                                                <Button Content="−" FontSize="28" Padding="0" Height="48" MinHeight="0" Click="MinutesMinus_Click" AutomationProperties.Name="Reduce quarter length" VerticalAlignment="Center" />
+                                                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Margin="10,0">
+                                                    <TextBlock x:Name="DurationMinutesDisplay" Text="20" FontSize="48" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" />
+                                                    <TextBlock Text="minutes" FontSize="14" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" HorizontalAlignment="Center" />
+                                                </StackPanel>
+                                                <Button Grid.Column="2" Content="+" FontSize="25" Padding="0" Height="48" MinHeight="0" Click="MinutesPlus_Click" AutomationProperties.Name="Increase quarter length" VerticalAlignment="Center" />
+                                            </Grid>
+                                            <UniformGrid Rows="1" Columns="4">
+                                                <Border x:Name="Preset10Tile" CornerRadius="20" Margin="3">
+                                                    <Button Content="10" FontSize="16" MinHeight="42" Padding="6,8" Click="SetupQuickDuration10_Click" AutomationProperties.Name="Ten minute quarters" />
+                                                </Border>
+                                                <Border x:Name="Preset15Tile" CornerRadius="20" Margin="3">
+                                                    <Button Content="15" FontSize="16" MinHeight="42" Padding="6,8" Click="SetupQuickDuration15_Click" AutomationProperties.Name="Fifteen minute quarters" />
+                                                </Border>
+                                                <Border x:Name="Preset20Tile" CornerRadius="20" Margin="3">
+                                                    <Button Content="20" FontSize="16" MinHeight="42" Padding="6,8" Click="SetupQuickDuration20_Click" AutomationProperties.Name="Twenty minute quarters" />
+                                                </Border>
+                                                <Border x:Name="Preset25Tile" CornerRadius="20" Margin="3">
+                                                    <Button Content="25" FontSize="16" MinHeight="42" Padding="6,8" Click="SetupQuickDuration25_Click" AutomationProperties.Name="Twenty five minute quarters" />
+                                                </Border>
+                                            </UniformGrid>
+                                        </StackPanel>
+                                        <Border x:Name="DurationDisabledOverlay" Grid.Row="2" Margin="0,12,0,0" Background="Transparent" IsVisible="False">
+                                            <TextBlock Text="Enable timing stoppages to set a quarter length for count-up matches." FontSize="14" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" />
+                                        </Border>
+                                        <Border x:Name="DurationGlowBg" IsHitTestVisible="False" IsVisible="False" />
+                                    </Grid>
+                                </ns4:OperatorGlassSurface>
+                            </StackPanel>
+                            <Grid IsHitTestVisible="False" IsVisible="False">
+                                <Grid>
+                                    <Border x:Name="ClockGlow" Opacity="0" IsHitTestVisible="False" IsVisible="False">
+                                        <Border.Background>
+                                            <RadialGradientBrush Center="50%,20%" RadiusX="50%" RadiusY="40%">
+                                                <GradientStop Color="#2558A6FF" Offset="0" />
+                                                <GradientStop Color="#0858A6FF" Offset="0.6" />
+                                                <GradientStop Color="#00000000" Offset="1" />
+                                            </RadialGradientBrush>
+                                        </Border.Background>
+                                    </Border>
+                                    <Border IsHitTestVisible="False">
+                                        <Border.Background>
+                                            <RadialGradientBrush>
+                                                <GradientStop Color="#00000000" Offset="0.3" />
+                                                <GradientStop Color="#30000000" Offset="1.0" />
+                                            </RadialGradientBrush>
+                                        </Border.Background>
+                                    </Border>
+                                    <RadioButton x:Name="SetupCountUp" GroupName="SetupClock" IsVisible="False" IsCheckedChanged="Native_SetupClockMode_Changed" />
+                                    <RadioButton x:Name="SetupCountdown" IsChecked="True" GroupName="SetupClock" IsVisible="False" IsCheckedChanged="Native_SetupClockMode_Changed" />
+                                    <CheckBox x:Name="SetupControlPanelCountdown" IsChecked="True" IsVisible="False" IsCheckedChanged="Native_SetupClockMode_Changed" />
+                                    <TextBox x:Name="SetupQuarterMinutes" Text="20" IsVisible="False" TextChanged="Native_SetupQuarterDuration_TextChanged" />
+                                    <TextBox x:Name="SetupQuarterSeconds" Text="00" IsVisible="False" TextChanged="Native_SetupQuarterDuration_TextChanged" />
+                                    <Grid Margin="24,10,24,10">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid Grid.Row="1" ns4:WizardPair.MinimumColumnWidth="330">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="16" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,8,0,8">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                            </Grid>
+                                            <Grid Grid.Column="2">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                    <Border x:Name="Step4Panel" ClipToBounds="False" Opacity="0" RenderTransformOrigin="50%,50%" Background="Transparent" BorderThickness="0" Margin="0" MinHeight="0" Padding="0" IsVisible="False">
+                        <Border.RenderTransform>
+                            <TranslateTransform X="80" port:ProductionNames.Id="Step4Translate" />
+                        </Border.RenderTransform>
+                        <Grid>
+                            <StackPanel>
+                                <StackPanel x:Name="MsgHeaderGroup" Opacity="1" HorizontalAlignment="Stretch" Margin="0,0,0,20">
+                                    <StackPanel.RenderTransform>
+                                        <TranslateTransform Y="15" port:ProductionNames.Id="MsgHeaderTranslate" />
+                                    </StackPanel.RenderTransform>
+                                    <TextBlock Text="Venue and options" FontSize="27" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
+                                    <TextBlock Text="Optional details. You can change these during the match." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                                </StackPanel>
+                                <ns4:OperatorGlassSurface x:Name="FinalsCard" Grid.Row="0" Cursor="Hand" Background="Transparent" BorderBrush="#2A2020" BorderThickness="0" Margin="0,0,0,16" MinHeight="0" Padding="22" ClipToBounds="False" Material="Regular" CornerRadius="26" native:NativeActivation.Enabled="True" PointerReleased="Native_FinalsCard_Click">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ns2:OperatorSymbol Kind="star" Width="30" Height="30" Foreground="#EAC779" />
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Finals mode" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Text="Use the gold match presentation accents." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border x:Name="FinalsSelectedBadge" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D4A017" Padding="8,4" Grid.Column="2" CornerRadius="10" IsVisible="False">
+                                            <TextBlock Text="✓" FontSize="12" FontWeight="SemiBold" Foreground="#1A1400" />
+                                        </Border>
+                                        <TextBlock x:Name="FinalsIcon" Text="★" FontSize="48" FontFamily="{DynamicResource ControlCentre.Font}" FontWeight="SemiBold" Foreground="#D8B84F" HorizontalAlignment="Center" Margin="0,0,0,8" IsVisible="False" />
+                                    </Grid>
+                                </ns4:OperatorGlassSurface>
+                                <ns4:OperatorGlassSurface x:Name="WeatherCard" Grid.Row="2" Background="Transparent" BorderBrush="#1A3060" BorderThickness="0" Margin="0,0,0,16" MinHeight="0" Padding="22" ClipToBounds="False" Material="Regular" CornerRadius="26">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ns2:OperatorSymbol Kind="weather" Width="32" Height="32" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Top" />
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Venue weather" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Text="Search the town, suburb or venue used for live conditions." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,5,0,14" />
+                                            <ComboBox x:Name="SetupWeatherLocation" IsEditable="True" IsTextSearchEnabled="False" MaxDropDownHeight="200" VerticalAlignment="Center" FontSize="16" Text="Melbourne, Australia" MinWidth="0" HorizontalAlignment="Stretch" Height="46" Theme="{StaticResource DarkCombo}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </ns4:OperatorGlassSurface>
+                                <ns4:OperatorGlassSurface Grid.Column="2" Background="Transparent" BorderBrush="#1A2A40" BorderThickness="0" ClipToBounds="False" Margin="0,0,0,16" MinHeight="0" Padding="4" Material="Regular" CornerRadius="26">
+                                    <Grid>
+                                        <Border x:Name="MsgSectionGlow" Opacity="0.06" IsHitTestVisible="False" IsVisible="False">
                                             <Border.Background>
                                                 <RadialGradientBrush Center="50%,15%" RadiusX="60%" RadiusY="50%">
                                                     <GradientStop Color="#3FB950" Offset="0" />
@@ -950,9 +683,9 @@
                                                 <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
                                             <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,10">
-                                                <TextBlock Text="▣" FontSize="28" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontWeight="Black" Foreground="#67D17B" HorizontalAlignment="Center" Margin="0,0,0,4" />
-                                                <TextBlock Text="TICKER MESSAGES" FontSize="16" FontWeight="Black" Foreground="#3FB950" HorizontalAlignment="Center" />
-                                                <TextBlock Text="Scroll across the bottom bar during the game" FontSize="10" FontWeight="SemiBold" Foreground="#75C985" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                                                <TextBlock Text="▣" FontSize="28" FontFamily="{DynamicResource ControlCentre.Font}" FontWeight="SemiBold" Foreground="#67D17B" HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                                <TextBlock Text="Ticker messages" FontSize="20" FontWeight="SemiBold" Foreground="#3FB950" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Scroll across the bottom bar during the game" FontSize="12" FontWeight="SemiBold" Foreground="#75C985" HorizontalAlignment="Center" Margin="0,4,0,0" />
                                             </StackPanel>
                                             <Border Grid.Row="1" Height="1" Margin="0,0,0,10">
                                                 <Border.Background>
@@ -963,12 +696,12 @@
                                                     </LinearGradientBrush>
                                                 </Border.Background>
                                             </Border>
-                                            <Border Grid.Row="2" Background="#060A10" BorderBrush="#1A2A3A" BorderThickness="1" Padding="8">
+                                            <Border Grid.Row="2" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Padding="8" CornerRadius="16">
                                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                                     <ItemsControl x:Name="SetupMessageList">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
-                                                                <Border Background="#0A1018" BorderBrush="#1E3050" BorderThickness="1" Padding="8,6" Margin="0,0,0,6" CornerRadius="3">
+                                                                <Border Background="#111113" BorderBrush="#3A3A40" BorderThickness="1" Padding="8,6" Margin="0,0,0,6" CornerRadius="3">
                                                                     <Grid>
                                                                         <Grid.ColumnDefinitions>
                                                                             <ColumnDefinition Width="*" />
@@ -983,16 +716,16 @@
                                                                         <Border Grid.Row="0" Grid.ColumnSpan="4" CornerRadius="2" Padding="6,3" Margin="0,0,0,4" Background="{Binding HighlightBrush}">
                                                                             <TextBlock Text="{Binding Text}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{Binding TextBrush}" />
                                                                         </Border>
-                                                                        <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Background="#060A10" Foreground="#E6EDF3" BorderBrush="#1E3050" CaretBrush="White" Padding="6,4" VerticalContentAlignment="Center" Margin="0,0,6,0" />
+                                                                        <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Background="#060A10" Foreground="#E6EDF3" BorderBrush="#3A3A40" CaretBrush="White" Padding="6,4" VerticalContentAlignment="Center" Margin="0,0,6,0" />
                                                                         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" Margin="0,0,4,0" VerticalAlignment="Center">
-                                                                            <TextBlock Text="TEXT" FontSize="8" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1" />
-                                                                            <Button Width="34" Height="22" Padding="0" BorderBrush="#1E3050" BorderThickness="1" Click="SetupPickItemTextColor_Click" Tag="{Binding}" Background="{Binding TextBrush}" ToolTip.Tip="Click to choose text colour" />
+                                                                            <TextBlock Text="TEXT" FontSize="12" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1" />
+                                                                            <Button Width="34" Height="22" Padding="0" BorderBrush="#3A3A40" BorderThickness="1" Click="SetupPickItemTextColor_Click" Tag="{Binding}" Background="{Binding TextBrush}" ToolTip.Tip="Click to choose text colour" />
                                                                         </StackPanel>
                                                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Vertical" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                                            <TextBlock Text="HIGHLIGHT" FontSize="8" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1" />
-                                                                            <Button Width="50" Height="22" Padding="0" BorderBrush="#1E3050" BorderThickness="1" Click="SetupPickItemHighlightColor_Click" Tag="{Binding}" Background="{Binding HighlightBrush}" ToolTip.Tip="Click to choose highlight colour. Right-click to clear." PointerReleased="Native_SetupClearItemHighlightColor_Click" />
+                                                                            <TextBlock Text="HIGHLIGHT" FontSize="12" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1" />
+                                                                            <Button Width="50" Height="22" Padding="0" BorderBrush="#3A3A40" BorderThickness="1" Click="SetupPickItemHighlightColor_Click" Tag="{Binding}" Background="{Binding HighlightBrush}" ToolTip.Tip="Click to choose highlight colour. Right-click to clear." PointerReleased="Native_SetupClearItemHighlightColor_Click" />
                                                                         </StackPanel>
-                                                                        <Button Grid.Row="1" Grid.Column="3" Content="✕" Width="30" Height="40" FontSize="12" FontWeight="Black" Click="SetupRemoveMessageItem_Click" Tag="{Binding}" Background="#3A1A1A" Foreground="#E6EDF3" BorderBrush="#3A1A1A" VerticalAlignment="Bottom" ToolTip.Tip="Remove this message" />
+                                                                        <Button Grid.Row="1" Grid.Column="3" Content="✕" Width="30" Height="40" FontSize="12" FontWeight="SemiBold" Click="SetupRemoveMessageItem_Click" Tag="{Binding}" Background="#3A1A1A" Foreground="#E6EDF3" BorderBrush="#3A1A1A" VerticalAlignment="Bottom" ToolTip.Tip="Remove this message" />
                                                                     </Grid>
                                                                 </Border>
                                                             </DataTemplate>
@@ -1009,65 +742,250 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBox x:Name="SetupNewMessageBox" Margin="0,0,6,0" KeyDown="SetupNewMessageBox_KeyDown" Theme="{StaticResource WizardField}" />
                                                 <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0,0,4,0" VerticalAlignment="Center">
-                                                    <TextBlock Text="TEXT" FontSize="8" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1" />
-                                                    <Button x:Name="SetupNewMessageTextColorBtn" Width="34" Height="22" Padding="0" BorderBrush="#1E3050" BorderThickness="1" Click="SetupPickNewTextColor_Click" Background="White" ToolTip.Tip="Choose text colour for new messages" />
+                                                    <TextBlock Text="TEXT" FontSize="12" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1" />
+                                                    <Button x:Name="SetupNewMessageTextColorBtn" Width="34" Height="22" Padding="0" BorderBrush="#3A3A40" BorderThickness="1" Click="SetupPickNewTextColor_Click" Background="White" ToolTip.Tip="Choose text colour for new messages" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="2" Orientation="Vertical" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                    <TextBlock Text="HIGHLIGHT" FontSize="8" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1" />
-                                                    <Button x:Name="SetupNewMessageHighlightColorBtn" Width="50" Height="22" Padding="0" BorderBrush="#1E3050" BorderThickness="1" Click="SetupPickNewHighlightColor_Click" Background="Transparent" PointerReleased="Native_SetupClearNewHighlightColor_Click" ToolTip.Tip="Choose highlight colour. Right-click to clear." />
+                                                    <TextBlock Text="HIGHLIGHT" FontSize="12" FontWeight="Bold" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,0,0,1" />
+                                                    <Button x:Name="SetupNewMessageHighlightColorBtn" Width="50" Height="22" Padding="0" BorderBrush="#3A3A40" BorderThickness="1" Click="SetupPickNewHighlightColor_Click" Background="Transparent" PointerReleased="Native_SetupClearNewHighlightColor_Click" ToolTip.Tip="Choose highlight colour. Right-click to clear." />
                                                 </StackPanel>
                                                 <Button Grid.Column="3" Content="Add" Height="30" Click="SetupAddMessage_Click" Theme="{StaticResource SmallBtn}" />
                                             </Grid>
                                         </Grid>
                                     </Grid>
-                                </Border>
+                                </ns4:OperatorGlassSurface>
+                            </StackPanel>
+                            <Grid IsHitTestVisible="False" IsVisible="False">
+                                <Grid>
+                                    <Border x:Name="MsgGlow" Opacity="0" IsHitTestVisible="False" IsVisible="False">
+                                        <Border.Background>
+                                            <RadialGradientBrush Center="50%,20%" RadiusX="50%" RadiusY="40%">
+                                                <GradientStop Color="#203FB950" Offset="0" />
+                                                <GradientStop Color="#083FB950" Offset="0.6" />
+                                                <GradientStop Color="#00000000" Offset="1" />
+                                            </RadialGradientBrush>
+                                        </Border.Background>
+                                    </Border>
+                                    <Border IsHitTestVisible="False">
+                                        <Border.Background>
+                                            <RadialGradientBrush>
+                                                <GradientStop Color="#00000000" Offset="0.3" />
+                                                <GradientStop Color="#30000000" Offset="1.0" />
+                                            </RadialGradientBrush>
+                                        </Border.Background>
+                                    </Border>
+                                    <CheckBox x:Name="SetupFinalsMode" IsVisible="False" />
+                                    <Grid Margin="24,10,24,10">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+                                        <Grid Grid.Row="1" ns4:WizardPair.MinimumColumnWidth="330">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="16" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid Grid.Column="0">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="12" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
                             </Grid>
                         </Grid>
-                    </Grid>
-                </Border>
+                    </Border>
+                </Grid>
+                <Grid IsHitTestVisible="False" IsVisible="False">
+                    <Border Opacity="0.006" IsHitTestVisible="False">
+                        <Border.Background>
+                            <VisualBrush TileMode="Tile" DestinationRect="0,0,40,40" SourceRect="0,0,40,40">
+                                <VisualBrush.Visual>
+                                    <Canvas Width="40" Height="40">
+                                        <Line Stroke="White" StrokeThickness="1" StartPoint="0,40" EndPoint="40,0" />
+                                    </Canvas>
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </Border.Background>
+                    </Border>
+                    <Border x:Name="BgGlow" Opacity="0" IsHitTestVisible="False" IsVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush Center="50%,30%" RadiusX="70%" RadiusY="70%">
+                                <GradientStop Color="#2058A6FF" Offset="0" />
+                                <GradientStop Color="#0858A6FF" Offset="0.5" />
+                                <GradientStop Color="#00000000" Offset="1" />
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Border ClipToBounds="True" IsHitTestVisible="False" Opacity="0.04">
+                        <Border Width="200" HorizontalAlignment="Left">
+                            <Border.RenderTransform>
+                                <TranslateTransform X="-300" port:ProductionNames.Id="BeamTranslate" />
+                            </Border.RenderTransform>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                    <GradientStop Color="#00FFFFFF" Offset="0" />
+                                    <GradientStop Color="#30FFFFFF" Offset="0.5" />
+                                    <GradientStop Color="#00FFFFFF" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                    </Border>
+                    <Canvas IsHitTestVisible="False">
+                        <Ellipse Width="6" Height="6" Fill="#1858A6FF" Canvas.Left="60" Canvas.Top="80">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="3" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="10" Height="10" Fill="#1258A6FF" Canvas.Left="180" Canvas.Top="200">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="4" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="4" Height="4" Fill="#2058A6FF" Canvas.Left="300" Canvas.Top="120">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="2" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="8" Height="8" Fill="#1558A6FF" Canvas.Left="420" Canvas.Top="350">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="3" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="5" Height="5" Fill="#1858A6FF" Canvas.Left="550" Canvas.Top="50">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="2" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="7" Height="7" Fill="#10FF6B6B" Canvas.Left="650" Canvas.Top="280">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="3" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="9" Height="9" Fill="#10FF6B6B" Canvas.Left="750" Canvas.Top="100">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="4" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                    </Canvas>
+                    <Border IsHitTestVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#00000000" Offset="0.3" />
+                                <GradientStop Color="#60000000" Offset="1.0" />
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Viewbox VerticalAlignment="Top" Margin="12,78,12,0" Stretch="Uniform" StretchDirection="DownOnly" Height="36" ZIndex="11">
+        </Viewbox>
+                    <Border x:Name="BottomAccent" VerticalAlignment="Bottom" Height="3" Opacity="0" IsHitTestVisible="False" ZIndex="11" IsVisible="False">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#58A6FF" Offset="0" />
+                                <GradientStop Color="#1AFFFFFF" Offset="0.5" />
+                                <GradientStop Color="#FF6B6B" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Border x:Name="FlashOverlay" Background="White" Opacity="0" IsHitTestVisible="False" ZIndex="20" IsVisible="False" />
+                </Grid>
+                <Grid IsHitTestVisible="False" IsVisible="False">
+                    <Border x:Name="FinalsGlowBg" Opacity="0" IsHitTestVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush Center="50%,50%" RadiusX="60%" RadiusY="60%">
+                                <GradientStop Color="#D4A017" Offset="0" />
+                                <GradientStop Color="#00000000" Offset="1" />
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Border x:Name="WeatherGlowBg" Opacity="0.08" IsHitTestVisible="False">
+                        <Border.Background>
+                            <RadialGradientBrush Center="50%,40%" RadiusX="50%" RadiusY="50%">
+                                <GradientStop Color="#58A6FF" Offset="0" />
+                                <GradientStop Color="#00000000" Offset="1" />
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
+                </Grid>
             </Grid>
-            <Grid x:Name="NavBar" VerticalAlignment="Bottom" Height="50" Opacity="0" Margin="30,0,30,0" ZIndex="10">
+        </ns4:WizardViewport>
+        <ns4:OperatorGlassSurface x:Name="HeaderPanel" Material="Regular" CornerRadius="28" Margin="16,12,16,8" Padding="14,10" Opacity="1" Grid.Row="0" MaxWidth="1440">
+            <Border.RenderTransform>
+                <TranslateTransform Y="-30" port:ProductionNames.Id="HeaderTranslate" />
+            </Border.RenderTransform>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ns2:OperatorSymbol Kind="match" Width="28" Height="28" Foreground="{DynamicResource ControlCentre.TextBrush}" Margin="0,0,12,0" />
+                    <TextBlock x:Name="HeaderTitle" Text="Set up AFL" FontSize="21" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Center" Grid.Column="1" />
+                    <TextBlock Text="1 of 3" FontSize="13" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" x:Name="WizardStepCounter" Grid.Column="2" VerticalAlignment="Center" />
+                </Grid>
+                <ns4:OperatorSegmentedPanel x:Name="StepIndicator" Rows="1" Grid.Row="1" Height="62" Margin="0,8,0,0" Opacity="1">
+                    <ns4:OperatorSegmentedPanel.RenderTransform>
+                        <TranslateTransform Y="-20" port:ProductionNames.Id="StepIndicatorTranslate" />
+                    </ns4:OperatorSegmentedPanel.RenderTransform>
+                    <RadioButton x:Name="Step1Navigation" Click="GoToStep1_Click" GroupName="WizardSteps" Padding="4,6" MinHeight="0" Height="60" Theme="{StaticResource SettingsSegment}" ToolTip.Tip="Go to teams">
+                        <StackPanel VerticalAlignment="Center">
+                            <ns2:OperatorSymbol Kind="team" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step1Symbol" Margin="0,0,0,3" />
+                            <TextBlock x:Name="Step1Label" Text="Teams" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <Border x:Name="Step1Dot" Width="36" Height="36" CornerRadius="18" Background="#58A6FF" BorderBrush="#58A6FF" BorderThickness="2" IsVisible="False">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#58A6FF" BlurRadius="0" Opacity="0" port:ProductionNames.Id="Step1Glow" OffsetX="0" OffsetY="0" />
+                                </Border.Effect>
+                                <TextBlock Text="1" Foreground="{DynamicResource ControlCentre.TextBrush}" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="Step2Navigation" Click="GoToStep2_Click" GroupName="WizardSteps" Padding="4,6" MinHeight="0" Height="60" Theme="{StaticResource SettingsSegment}" ToolTip.Tip="Go to clock">
+                        <StackPanel VerticalAlignment="Center">
+                            <ns2:OperatorSymbol Kind="clock" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step2Symbol" Margin="0,0,0,3" />
+                            <TextBlock x:Name="Step2Label" Text="Clock" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <Border x:Name="Step2Dot" Width="36" Height="36" CornerRadius="18" Background="#242427" BorderBrush="#3A3A40" BorderThickness="2" IsVisible="False">
+                                <TextBlock Text="2" Foreground="#8E8E98" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="Step3Navigation" Click="GoToStep3_Click" GroupName="WizardSteps" Padding="4,6" MinHeight="0" Height="60" Theme="{StaticResource SettingsSegment}" ToolTip.Tip="Go to options">
+                        <StackPanel VerticalAlignment="Center">
+                            <ns2:OperatorSymbol Kind="settings" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step3Symbol" Margin="0,0,0,3" />
+                            <TextBlock x:Name="Step3Label" Text="Options" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <Border x:Name="Step3Dot" Width="36" Height="36" CornerRadius="18" Background="#242427" BorderBrush="#3A3A40" BorderThickness="2" IsVisible="False">
+                                <TextBlock Text="3" Foreground="#8E8E98" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </StackPanel>
+                    </RadioButton>
+                </ns4:OperatorSegmentedPanel>
+            </Grid>
+        </ns4:OperatorGlassSurface>
+        <ns4:OperatorGlassSurface Material="Regular" CornerRadius="26" Padding="8,4" Margin="16,6,16,12" MaxWidth="680" Grid.Row="2">
+            <Grid x:Name="NavBar" Grid.Row="0" Height="52" Opacity="1" Margin="0" ZIndex="10">
                 <Grid.RenderTransform>
                     <TranslateTransform Y="30" port:ProductionNames.Id="NavBarTranslate" />
                 </Grid.RenderTransform>
-                <Grid.Background>
-                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                        <GradientStop Color="#00080C12" Offset="0" />
-                        <GradientStop Color="#DD080C12" Offset="0.3" />
-                        <GradientStop Color="#FF080C12" Offset="1" />
-                    </LinearGradientBrush>
-                </Grid.Background>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border x:Name="BackButton" Grid.Column="0" Cursor="Hand" RenderTransformOrigin="50%,50%" Padding="28,0" Height="42" VerticalAlignment="Center" Background="#1A2436" BorderBrush="#2A3A52" BorderThickness="1.5" IsVisible="False" PointerReleased="Native_Back_Click" PointerEntered="Native_NavBtn_MouseEnter" PointerExited="Native_NavBtn_MouseLeave">
-                    <Border.RenderTransform>
-                        <ScaleTransform port:ProductionNames.Id="BackBtnScale" />
-                    </Border.RenderTransform>
-                    <TextBlock Text="← BACK" Foreground="White" FontWeight="Black" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                </Border>
-                <Border x:Name="NextButton" Grid.Column="2" Cursor="Hand" RenderTransformOrigin="50%,50%" Padding="28,0" Height="42" VerticalAlignment="Center" Background="#1F6FEB" BorderBrush="#58A6FF" BorderThickness="1.5" PointerReleased="Native_Next_Click" PointerEntered="Native_NavBtn_MouseEnter" PointerExited="Native_NavBtn_MouseLeave">
-                    <Border.RenderTransform>
-                        <ScaleTransform port:ProductionNames.Id="NextBtnScale" />
-                    </Border.RenderTransform>
-                    <Border.Effect>
-                        <DropShadowEffect Color="#58A6FF" BlurRadius="15" Opacity="0.3" OffsetX="0" OffsetY="0" />
-                    </Border.Effect>
-                    <TextBlock x:Name="NextButtonText" Text="NEXT →" Foreground="White" FontWeight="Black" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                </Border>
+                <Button x:Name="BackButton" MinWidth="0" Grid.Column="0" Click="Back_Click" Padding="12,0" Height="44" VerticalAlignment="Center" Background="#242427" BorderBrush="#3A3A40" BorderThickness="1.5" MinHeight="0" IsVisible="False" Theme="{StaticResource ToolBtn}">
+                    <TextBlock Text="Back" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </Button>
+                <Button x:Name="NextButton" MinWidth="0" Grid.Column="2" Click="Next_Click" Padding="12,0" Height="44" VerticalAlignment="Center" MinHeight="0" Theme="{StaticResource PrimaryCommandButton}">
+                    <TextBlock x:Name="NextButtonText" Text="NEXT →" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </Button>
             </Grid>
-            <Border x:Name="BottomAccent" VerticalAlignment="Bottom" Height="3" Opacity="0" IsHitTestVisible="False" ZIndex="11">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-                        <GradientStop Color="#58A6FF" Offset="0" />
-                        <GradientStop Color="#1AFFFFFF" Offset="0.5" />
-                        <GradientStop Color="#FF6B6B" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
-            </Border>
-            <Border x:Name="FlashOverlay" Background="White" Opacity="0" IsHitTestVisible="False" ZIndex="20" />
-        </Grid>
-    </ScrollViewer>
+        </ns4:OperatorGlassSurface>
+    </Grid>
 </UserControl>

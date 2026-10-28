@@ -54,7 +54,7 @@ namespace Roche_Scoreboard.Views
 
         public ScorewormControl()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
 
             WormTimeText.Text = DateTime.Now.ToString("h:mm tt");
             _wallClockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -67,10 +67,10 @@ namespace Roche_Scoreboard.Views
             GraphCanvas.SizeChanged += OnGraphCanvasSizeChanged;
 
             SizeChanged += (_, _) => QueueResponsiveLayout();
-            PropertyChanged += (_, e) =>
+            NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, e) =>
             {
                 if (e.NewValue is true) QueueResponsiveLayout();
-            };
+            });
             Loaded += (_, _) =>
             {
                 _isDisposed = false;
@@ -115,7 +115,7 @@ namespace Roche_Scoreboard.Views
                 ApplyResponsiveScale();
                 if (_lastMatch is not null)
                     DrawGraphIfChanged(_lastMatch, _lastEndedQuarter, _lastHomeColor, _lastAwayColor);
-            }, DispatcherPriority.Render);
+            }, DispatcherPriority.Background);
         }
 
         private void UpdateMarginHeadline(MatchManager match)
@@ -330,9 +330,8 @@ namespace Roche_Scoreboard.Views
             {
                 Stroke = new SolidColorBrush(Colors.White),
                 StrokeThickness = ScoreboardScaleHelper.Scale(2.4, scale),
-                StrokeLineJoin = PenLineJoin.Miter,
-                StrokeStartLineCap = PenLineCap.Square,
-                StrokeEndLineCap = PenLineCap.Square,
+                StrokeJoin = PenLineJoin.Miter,
+                StrokeLineCap = PenLineCap.Square,
                 Effect = new Avalonia.Media.DropShadowEffect
                 {
                     Color = Colors.White,
@@ -480,7 +479,7 @@ namespace Roche_Scoreboard.Views
                 // same ordinal language as the quarter-by-quarter presentation.
                 int q = events[idx - 1].Quarter;
                 string qLabel = (q + 1) switch { 2 => "2ND", 3 => "3RD", 4 => "4TH", _ => $"Q{q + 1}" };
-                var label = new TextBlock
+                var label = new NativeTextBlock
                 {
                     Text = qLabel,
                     Foreground = new SolidColorBrush(Color.FromArgb(140, 255, 255, 255)),
@@ -541,7 +540,7 @@ namespace Roche_Scoreboard.Views
 
             void AddLabel(string text, double y, double fontSize, double yOffset, FontWeight weight, Brush brush)
             {
-                var tb = new TextBlock
+                var tb = new NativeTextBlock
                 {
                     Text = text,
                     Foreground = brush,
@@ -580,7 +579,7 @@ namespace Roche_Scoreboard.Views
 
         private void DrawEmptyMessage(double canvasW, double yCenter, double scale)
         {
-            var message = new TextBlock
+            var message = new NativeTextBlock
             {
                 Text = "MARGIN FLOW BEGINS WITH THE FIRST SCORE",
                 Foreground = new SolidColorBrush(Color.FromArgb(150, 255, 255, 255)),

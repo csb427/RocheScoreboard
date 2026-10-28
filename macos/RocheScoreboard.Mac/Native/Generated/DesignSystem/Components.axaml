@@ -1,5 +1,5 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:RocheScoreboard.Mac.Native" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:ns3="clr-namespace:RocheScoreboard.Mac.Native" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
     <ControlTheme x:Key="ScoreGrid.Button.Primary" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.BrandPrimary}" />
         <Setter Property="Foreground" Value="White" />

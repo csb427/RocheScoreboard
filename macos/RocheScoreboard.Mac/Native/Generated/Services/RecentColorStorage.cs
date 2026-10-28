@@ -1,15 +1,17 @@
 // Generated from Services/RecentColorStorage.cs; edit translator/adapters.
-// Source SHA-256: 2bbaae07a5ee64ecaf26da57dc63bd32767583aba58872119f4f8ea1bfc8223c
+// Source SHA-256: e64947fdf46858405793a3d8c83a18cb3edc8b012f4dc0654a8c814f7beb4b0c
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using Avalonia.Media;
 using Color = Avalonia.Media.Color;
 using ColorConverter = RocheScoreboard.Mac.Native.ColorConverter;
 
@@ -19,9 +21,7 @@ internal static class RecentColorStorage
 {
     private const int Capacity = 12;
     private static readonly object Sync = new();
-    private static string StoragePath => Path.Combine(
-        NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-        "Roche_Scoreboard", "recent_colours.json");
+    private static string StoragePath => Path.Combine(SelfTestStorage.DocumentsDirectory, "recent_colours.json");
 
     public static IReadOnlyList<string> Load()
     {

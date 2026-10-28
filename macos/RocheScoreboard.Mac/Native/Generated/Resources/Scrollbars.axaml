@@ -1,0 +1,65 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <ControlTheme TargetType="ScrollViewer" BasedOn="{StaticResource Native.Base.ScrollViewer}" x:Key="{x:Type ScrollViewer}">
+        <Setter Property="services:ScrollActivity.Enabled" Value="True" />
+    </ControlTheme>
+    <ControlTheme TargetType="ScrollBar" x:Key="{x:Type ScrollBar}">
+        <Setter Property="Width" Value="10" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Grid Background="Transparent" Margin="2">
+                        <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="{Binding Orientation,RelativeSource={RelativeSource TemplatedParent},Converter={x:Static native:NativeOrientation.VerticalReverse}}" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" ViewportSize="{TemplateBinding ViewportSize}" Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                            <Track.DecreaseButton>
+                                <RepeatButton x:Name="PART_DecreaseButton" Command="{x:Static native:NativeRangeCommands.PageUpCommand}" Opacity="0" Focusable="False" port:ProductionNames.TemplateId="PageBefore" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ScrollBar}}" />
+                            </Track.DecreaseButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="Handle" MinHeight="22" MinWidth="4">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Border Background="#8196AE" CornerRadius="3" />
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                            <Track.IncreaseButton>
+                                <RepeatButton x:Name="PART_IncreaseButton" Command="{x:Static native:NativeRangeCommands.PageDownCommand}" Opacity="0" Focusable="False" port:ProductionNames.TemplateId="PageAfter" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ScrollBar}}" />
+                            </Track.IncreaseButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^[Orientation=Horizontal] /template/ Track#PART_Track">
+            <Setter Property="IsDirectionReversed" Value="False" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal] /template/ Thumb#Handle">
+            <Setter Property="MinHeight" Value="4" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal] /template/ Thumb#Handle">
+            <Setter Property="MinWidth" Value="22" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal] /template/ RepeatButton#PART_DecreaseButton">
+            <Setter Property="Command" Value="{x:Static native:NativeRangeCommands.PageLeftCommand}" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal] /template/ RepeatButton#PART_IncreaseButton">
+            <Setter Property="Command" Value="{x:Static native:NativeRangeCommands.PageRightCommand}" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal]">
+            <Setter Property="Width" Value="NaN" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal]">
+            <Setter Property="Height" Value="10" />
+        </Style>
+        <Style Selector="^[(services|ScrollActivity.Active)=True]">
+            <Setter Property="Opacity" Value=".85" />
+        </Style>
+        <Style Selector="^[(services|ScrollActivity.Active)=False]">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

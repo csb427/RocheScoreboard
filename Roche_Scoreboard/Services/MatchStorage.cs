@@ -15,10 +15,7 @@ public static class MatchStorage
 
     private static string GetAutoSavePath()
     {
-        string dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard"
-        );
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "autosave.json");
     }

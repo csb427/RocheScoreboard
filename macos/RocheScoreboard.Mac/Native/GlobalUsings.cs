@@ -1,0 +1,17 @@
+global using Avalonia.Interactivity;
+global using Avalonia.Layout;
+global using Avalonia.Data.Converters;
+global using ContentPropertyAttribute = Avalonia.Metadata.ContentAttribute;
+global using DataTemplate = RocheScoreboard.Mac.Native.NativeDataTemplate;
+global using FrameworkElementFactory = RocheScoreboard.Mac.Native.NativeElementFactory;
+global using PropertyMetadata = RocheScoreboard.Mac.Native.NativePropertyMetadata;
+global using FrameworkPropertyMetadata = RocheScoreboard.Mac.Native.NativePropertyMetadata;
+global using FrameworkPropertyMetadataOptions = RocheScoreboard.Mac.Native.NativePropertyOptions;
+global using UIPropertyMetadata = RocheScoreboard.Mac.Native.NativePropertyMetadata;
+global using Adorner = RocheScoreboard.Mac.Native.NativeAdorner;
+global using AdornerLayer = RocheScoreboard.Mac.Native.NativeAdornerLayer;
+global using Avalonia.Media;
+global using Avalonia.Controls.Primitives;
+global using Style = Avalonia.Styling.ControlTheme;
+global using Avalonia.Controls.Presenters;
+global using Avalonia.Styling;

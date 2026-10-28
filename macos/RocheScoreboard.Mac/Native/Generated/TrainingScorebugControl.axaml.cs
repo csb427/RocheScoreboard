@@ -47,7 +47,7 @@ public partial class TrainingScorebugControl : UserControl
 
     public TrainingScorebugControl()
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
         _uiTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
         _uiTimer.Tick += (_, _) =>
         {

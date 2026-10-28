@@ -1,8 +1,11 @@
 // Generated from Services/QuarterLabelService.cs; edit translator/adapters.
-// Source SHA-256: a87003a49607446ba496efc8f0f798448d7d6b62a9eed8df46be72b00ca5cb5b
+// Source SHA-256: fe242e04ca37e082a7a5fb56622b63dacfa6ed155805c15188c21f09ce6b120a
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
@@ -82,9 +85,7 @@ internal static class QuarterLabelService
 
     private static string GetStoragePath()
     {
-        string dir = Path.Combine(
-            NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "quarter_labels.json");
     }

@@ -1,125 +1,10 @@
 {
   "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
-  "source_sha256": "81b254110912439fb848d717f3b7c6cbd67f589aa07b3764f320033eb1d432d3",
+  "source_sha256": "3091861d60ba581461402c755cc07b9e220a126588fe5befb2c77b100866889d",
   "names": [
     {
-      "name": "BdSc",
-      "type": "ScaleTransform",
-      "object": true
-    },
-    {
-      "name": "BdLift",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "RewardFlash",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Border",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "PART_EditableTextBox",
-      "type": "TextBox",
-      "object": false
-    },
-    {
-      "name": "PART_Popup",
-      "type": "Popup",
-      "object": false
-    },
-    {
-      "name": "BgGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "BeamTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "HeaderPanel",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "HeaderTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "HeaderTitle",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "StepIndicator",
-      "type": "StackPanel",
-      "object": false
-    },
-    {
-      "name": "StepIndicatorTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "Step1Dot",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Step1Glow",
-      "type": "DropShadowEffect",
-      "object": true
-    },
-    {
-      "name": "Step1Label",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "Step2Dot",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Step2Label",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "Step3Dot",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Step3Label",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "Step4Dot",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Step4Label",
-      "type": "TextBlock",
+      "name": "WizardBody",
+      "type": "Grid",
       "object": false
     },
     {
@@ -145,31 +30,6 @@
     {
       "name": "HomePresetPanel",
       "type": "WrapPanel",
-      "object": false
-    },
-    {
-      "name": "AwayPresetCard",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "AwayPresetTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "AwayPresetEmpty",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "AwayPresetPanel",
-      "type": "WrapPanel",
-      "object": false
-    },
-    {
-      "name": "Step2Panel",
-      "type": "Grid",
       "object": false
     },
     {
@@ -248,13 +108,23 @@
       "object": false
     },
     {
-      "name": "DividerScale",
-      "type": "ScaleTransform",
+      "name": "AwayPresetCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayPresetTranslate",
+      "type": "TranslateTransform",
       "object": true
     },
     {
-      "name": "DividerGlowLine",
-      "type": "Border",
+      "name": "AwayPresetEmpty",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayPresetPanel",
+      "type": "WrapPanel",
       "object": false
     },
     {
@@ -330,6 +200,21 @@
     {
       "name": "SetupAwayLogoImage",
       "type": "Image",
+      "object": false
+    },
+    {
+      "name": "Step2Panel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "DividerScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "DividerGlowLine",
+      "type": "Border",
       "object": false
     },
     {
@@ -428,11 +313,6 @@
       "object": true
     },
     {
-      "name": "FormatGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
       "name": "FormatHeaderGroup",
       "type": "StackPanel",
       "object": false
@@ -443,13 +323,28 @@
       "object": true
     },
     {
+      "name": "FormatCardsGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "LimitedOversCard",
       "type": "Border",
       "object": false
     },
     {
-      "name": "LimitedOversGlowBg",
+      "name": "LimitedFormatChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "MultiInningsCard",
       "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MultiFormatChoice",
+      "type": "RadioButton",
       "object": false
     },
     {
@@ -459,26 +354,61 @@
     },
     {
       "name": "OversDisplay",
-      "type": "TextBlock",
+      "type": "TextBox",
       "object": false
     },
     {
-      "name": "LimitedOversSelected",
-      "type": "Border",
+      "name": "PART_ContentHost",
+      "type": "ScrollViewer",
       "object": false
     },
     {
-      "name": "MultiInningsCard",
-      "type": "Border",
+      "name": "PART_TextPresenter",
+      "type": "TextPresenter",
       "object": false
     },
     {
-      "name": "MultiInningsGlowBg",
-      "type": "Border",
+      "name": "OversPreset20Button",
+      "type": "Button",
       "object": false
     },
     {
-      "name": "MultiInningsSelected",
+      "name": "OversPreset40Button",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OversPreset45Button",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OversPreset50Button",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OversPreset100Button",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ReplaceWideBallsToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "ReplaceNoBallsToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "FreeHitsToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "FormatGlow",
       "type": "Border",
       "object": false
     },
@@ -493,11 +423,6 @@
       "object": true
     },
     {
-      "name": "MsgGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
       "name": "MsgHeaderGroup",
       "type": "StackPanel",
       "object": false
@@ -506,11 +431,6 @@
       "name": "MsgHeaderTranslate",
       "type": "TranslateTransform",
       "object": true
-    },
-    {
-      "name": "WeatherGlowBg",
-      "type": "Border",
-      "object": false
     },
     {
       "name": "SetupWeatherLocation",
@@ -543,6 +463,161 @@
       "object": false
     },
     {
+      "name": "MsgGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WeatherGlowBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TossWinnerChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "TossDecisionChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "BgGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BeamTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "BottomAccent",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FlashOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HeaderPanel",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "HeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HeaderTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WizardStepCounter",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StepIndicator",
+      "type": "OperatorSegmentedPanel",
+      "object": false
+    },
+    {
+      "name": "StepIndicatorTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "Step1Navigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "Step1Symbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "Step1Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step1Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step1Glow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "Step2Navigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "Step2Symbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "Step2Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step2Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step3Navigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "Step3Symbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "Step3Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step3Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step4Navigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "Step4Symbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "Step4Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step4Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "NavBar",
       "type": "Grid",
       "object": false
@@ -554,7 +629,7 @@
     },
     {
       "name": "BackButton",
-      "type": "Border",
+      "type": "Button",
       "object": false
     },
     {
@@ -564,7 +639,7 @@
     },
     {
       "name": "NextButton",
-      "type": "Border",
+      "type": "Button",
       "object": false
     },
     {
@@ -576,44 +651,10 @@
       "name": "NextButtonText",
       "type": "TextBlock",
       "object": false
-    },
-    {
-      "name": "BottomAccent",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "FlashOverlay",
-      "type": "Border",
-      "object": false
     }
   ],
-  "code_source_sha256": "bed4dddd52307677cc7ee239609ff1cc044b72d731dfed3676a5bd814800397b",
+  "code_source_sha256": "df0d4709aadd4cf597b8bdf30bf352f073be6c2eff4fae0618a6f07b9e92350c",
   "native_events": [
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "GoToStep1_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "GoToStep2_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "GoToStep3_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "GoToStep4_Click"
-    },
     {
       "name": "SetupHomeColorBox",
       "source": "TextChanged",
@@ -687,88 +728,28 @@
       "handler": "DropperSetupAwaySecondary_Click"
     },
     {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "AddHomePlayer_Click"
+      "name": "LimitedFormatChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "FormatChoice_Click"
     },
     {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "ToggleHomeWicketkeeper_Click"
+      "name": "MultiFormatChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "FormatChoice_Click"
     },
     {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "RemoveHomePlayer_Click"
+      "name": "OversDisplay",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "OversDisplay_TextChanged"
     },
     {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "AddAwayPlayer_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "ToggleAwayWicketkeeper_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "RemoveAwayPlayer_Click"
-    },
-    {
-      "name": "LimitedOversCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "LimitedOversCard_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OversMinus_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OversPlus_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OversPreset20_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OversPreset40_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OversPreset50_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OversPreset100_Click"
-    },
-    {
-      "name": "MultiInningsCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "MultiInningsCard_Click"
+      "name": "OversDisplay",
+      "source": "LostKeyboardFocus",
+      "native": "LostFocus",
+      "handler": "OversDisplay_LostKeyboardFocus"
     },
     {
       "name": null,
@@ -781,61 +762,9 @@
       "source": "MouseRightButtonUp",
       "native": "PointerReleased",
       "handler": "SetupClearNewHighlightColor_Click"
-    },
-    {
-      "name": "BackButton",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "Back_Click"
-    },
-    {
-      "name": "BackButton",
-      "source": "MouseEnter",
-      "native": "PointerEntered",
-      "handler": "NavBtn_MouseEnter"
-    },
-    {
-      "name": "BackButton",
-      "source": "MouseLeave",
-      "native": "PointerExited",
-      "handler": "NavBtn_MouseLeave"
-    },
-    {
-      "name": "NextButton",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "Next_Click"
-    },
-    {
-      "name": "NextButton",
-      "source": "MouseEnter",
-      "native": "PointerEntered",
-      "handler": "NavBtn_MouseEnter"
-    },
-    {
-      "name": "NextButton",
-      "source": "MouseLeave",
-      "native": "PointerExited",
-      "handler": "NavBtn_MouseLeave"
     }
   ],
   "platform_translations": [
-    {
-      "name": "PART_Popup",
-      "property": "AllowsTransparency",
-      "source": "True",
-      "translation": "Native popup compositor and editable combo routing"
-    },
-    {
-      "name": null,
-      "property": "ViewportUnits",
-      "source": "Absolute"
-    },
-    {
-      "name": null,
-      "property": "ViewboxUnits",
-      "source": "Absolute"
-    },
     {
       "name": "SetupHomeColorBox",
       "property": "FontFamily",
@@ -861,30 +790,6 @@
       "native_fallback": "Inter"
     },
     {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "OversDisplay",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Segoe UI Symbol",
-      "native_fallback": "Inter"
-    },
-    {
       "name": "SetupWeatherLocation",
       "property": "StaysOpenOnEdit",
       "source": "True",
@@ -893,8 +798,18 @@
     {
       "name": null,
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Segoe UI Symbol",
       "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewboxUnits",
+      "source": "Absolute"
     }
   ],
   "visual_parity_verified": false,

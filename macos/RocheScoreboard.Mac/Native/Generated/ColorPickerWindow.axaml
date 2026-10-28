@@ -1,57 +1,73 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<Window xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ColorPickerWindow" Title="Choose colour" Width="500" Height="760" WindowStartupLocation="CenterOwner" Background="#08111D" Foreground="White" ShowInTaskbar="False" UseLayoutRounding="True" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" CanResize="False">
+<Window xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ColorPickerWindow" ns2:OperatorDesign.IsEnabled="True" Title="Choose colour" Width="500" Height="760" WindowStartupLocation="CenterOwner" Background="{DynamicResource ControlCentre.CanvasBrush}" Foreground="{DynamicResource ControlCentre.TextBrush}" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="15" ShowInTaskbar="False" UseLayoutRounding="True" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:design="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" CanResize="False" SystemDecorations="Full">
     <Window.Resources>
-        <ControlTheme TargetType="Button" BasedOn="{StaticResource Native.Base.Button}" x:Key="{x:Type Button}">
-            <Setter Property="Background" Value="#16263A" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderBrush" Value="#45627E" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="12,8" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Cursor" Value="Hand" />
-        </ControlTheme>
-        <ControlTheme x:Key="ColourSwatch" TargetType="Button" BasedOn="{StaticResource Native.Base.Button}">
-            <Setter Property="Width" Value="32" />
-            <Setter Property="Height" Value="32" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="0,0,7,7" />
-            <Setter Property="BorderBrush" Value="#AFC5DB" />
-            <Setter Property="BorderThickness" Value="1" />
-        </ControlTheme>
-        <ControlTheme TargetType="Slider" x:Key="{x:Type Slider}">
-            <Setter Property="Focusable" Value="True" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Height" Value="24" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Slider">
-                        <Grid Background="Transparent">
-                            <Border Height="8" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="#AABFD2" BorderThickness="1" VerticalAlignment="Center" />
-                            <Track x:Name="PART_Track" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}" Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
-                                <Track.DecreaseButton>
-                                    <RepeatButton Opacity="0" x:Name="PART_DecreaseButton" />
-                                </Track.DecreaseButton>
-                                <Track.Thumb>
-                                    <Thumb Width="18" Height="18">
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Ellipse Fill="White" Stroke="#07101B" StrokeThickness="3" />
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
-                                <Track.IncreaseButton>
-                                    <RepeatButton Opacity="0" x:Name="PART_IncreaseButton" />
-                                </Track.IncreaseButton>
-                            </Track>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </ControlTheme>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/OperatorControls.axaml" />
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/ControlCentre.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <ControlTheme TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}" x:Key="{x:Type Button}" />
+            <ControlTheme x:Key="ColourSwatch" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}">
+                <Setter Property="Width" Value="32" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0,0,7,7" />
+                <Setter Property="BorderBrush" Value="#AFC5DB" />
+                <Setter Property="BorderThickness" Value="2" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="FontSize" Value="17" />
+            </ControlTheme>
+            <ControlTheme TargetType="Slider" x:Key="{x:Type Slider}">
+                <Setter Property="design:OperatorSliderMotion.Enabled" Value="True" />
+                <Setter Property="Focusable" Value="True" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Height" Value="24" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Slider">
+                            <Grid Background="Transparent">
+                                <Border Height="8" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="#AABFD2" BorderThickness="1" VerticalAlignment="Center" />
+                                <Track x:Name="PART_Track" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}" Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                    <Track.DecreaseButton>
+                                        <RepeatButton Command="{x:Static native:NativeRangeCommands.DecreaseLarge}" Opacity="0" x:Name="PART_DecreaseButton" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Slider}}" />
+                                    </Track.DecreaseButton>
+                                    <Track.Thumb>
+                                        <Thumb Width="18" Height="18">
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+                                                    <Ellipse x:Name="Grip" Fill="White" Stroke="#111113" StrokeThickness="3" RenderTransformOrigin="50%,50%">
+                                                        <Ellipse.RenderTransform>
+                                                            <ScaleTransform port:ProductionNames.TemplateId="PART_GripScale" />
+                                                        </Ellipse.RenderTransform>
+                                                    </Ellipse>
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                            <Thumb.Styles>
+                                                <Style Selector="Thumb:pointerover /template/ Ellipse#Grip">
+                                                    <Setter Property="Stroke" Value="#58A6FF" />
+                                                </Style>
+                                                <Style Selector="Thumb:focus-within /template/ Ellipse#Grip">
+                                                    <Setter Property="Stroke" Value="#58A6FF" />
+                                                </Style>
+                                                <Style Selector="Thumb:pressed /template/ Ellipse#Grip">
+                                                    <Setter Property="Fill" Value="#A8D9FF" />
+                                                </Style>
+                                            </Thumb.Styles>
+                                        </Thumb>
+                                    </Track.Thumb>
+                                    <Track.IncreaseButton>
+                                        <RepeatButton Command="{x:Static native:NativeRangeCommands.IncreaseLarge}" Opacity="0" x:Name="PART_IncreaseButton" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Slider}}" />
+                                    </Track.IncreaseButton>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </ControlTheme>
+        </ResourceDictionary>
     </Window.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Border Margin="12" Padding="18" Background="#0E1A29" BorderBrush="#34516E" BorderThickness="1">
+        <ns4:OperatorGlassSurface x:Name="PickerSurface" Material="Regular" GlassSource="{Binding Owner.Content, RelativeSource={RelativeSource AncestorType=Window}}" Margin="10" Padding="20" CornerRadius="30" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="#68FFFFFF" BorderThickness="1">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -67,12 +83,14 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="76" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="34" />
                     </Grid.ColumnDefinitions>
                     <Border x:Name="CurrentPreview" Height="58" BorderBrush="#D5E4F2" BorderThickness="2" />
                     <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="COLOUR WHEEL" FontFamily="{fonts:ProductionFont 'Arial Black'}" FontSize="17" />
-                        <TextBlock Text="Choose directly from the wheel, then fine-tune saturation and brightness." Foreground="#A9BDD1" TextWrapping="Wrap" Margin="0,3,0,0" />
+                        <TextBlock Text="Colour wheel" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="17" />
+                        <TextBlock Text="Choose directly from the wheel, then fine-tune saturation and brightness." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,3,0,0" />
                     </StackPanel>
+                    <Button Grid.Column="2" Content="×" IsCancel="True" Width="32" Height="32" MinHeight="0" Padding="0" FontSize="22" VerticalAlignment="Top" ToolTip.Tip="Cancel colour selection" />
                 </Grid>
                 <Grid Grid.Row="1">
                     <Grid.RowDefinitions>
@@ -80,7 +98,7 @@
                         <RowDefinition Height="40" />
                         <RowDefinition Height="40" />
                     </Grid.RowDefinitions>
-                    <Canvas x:Name="ColourField" Width="260" Height="260" Background="Transparent" HorizontalAlignment="Center" Cursor="Cross" PointerPressed="Native_ColourField_MouseLeftButtonDown" PointerMoved="Native_ColourField_MouseMove" PointerReleased="Native_ColourField_MouseLeftButtonUp">
+                    <Canvas x:Name="ColourField" Width="260" Height="260" Background="Transparent" Focusable="True" KeyDown="ColourField_KeyDown" AutomationProperties.Name="Colour wheel" HorizontalAlignment="Center" Cursor="Cross" PointerCaptureLost="Native_ColourField_LostMouseCapture" ToolTip.Tip="Arrow keys adjust hue and saturation. Page Up/Down adjusts brightness. Hold Shift for larger steps." PointerPressed="Native_ColourField_MouseLeftButtonDown" PointerMoved="Native_ColourField_MouseMove" PointerReleased="Native_ColourField_MouseLeftButtonUp">
                         <Image x:Name="ColourWheelImage" Width="260" Height="260" IsHitTestVisible="False" />
                         <Ellipse x:Name="ColourMarker" Width="16" Height="16" Stroke="White" StrokeThickness="3" Fill="#44000000" IsHitTestVisible="False" />
                     </Canvas>
@@ -89,16 +107,16 @@
                             <ColumnDefinition Width="92" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="SATURATION" FontSize="10" FontWeight="Black" VerticalAlignment="Center" />
-                        <Slider Grid.Column="1" x:Name="SaturationSlider" Minimum="0" Maximum="1" ValueChanged="FineTuneSlider_ValueChanged" />
+                        <TextBlock Text="Saturation" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Slider Grid.Column="1" x:Name="SaturationSlider" AutomationProperties.Name="Saturation" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1" ValueChanged="FineTuneSlider_ValueChanged" />
                     </Grid>
                     <Grid Grid.Row="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="92" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="BRIGHTNESS" FontSize="10" FontWeight="Black" VerticalAlignment="Center" />
-                        <Slider Grid.Column="1" x:Name="BrightnessSlider" Minimum="0" Maximum="1" ValueChanged="FineTuneSlider_ValueChanged" />
+                        <TextBlock Text="Brightness" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Slider Grid.Column="1" x:Name="BrightnessSlider" AutomationProperties.Name="Brightness" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1" ValueChanged="FineTuneSlider_ValueChanged" />
                     </Grid>
                 </Grid>
                 <Grid Grid.Row="2" Margin="0,7,0,10">
@@ -106,13 +124,13 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="COLOUR CODE" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,12,0" />
-                    <TextBox Grid.Column="1" x:Name="HexBox" Height="38" Padding="10,6" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="17" FontWeight="Bold" MaxLength="7" Background="#07101B" Foreground="White" BorderBrush="#45627E" CaretBrush="White" TextChanged="Native_HexBox_TextChanged" />
+                    <TextBlock Text="Hex colour" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <TextBox Grid.Column="1" x:Name="HexBox" Height="38" Padding="10,6" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="17" FontWeight="Bold" MaxLength="7" Background="{DynamicResource ControlCentre.SurfaceBrush}" Foreground="{DynamicResource ControlCentre.TextBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" CaretBrush="{DynamicResource ControlCentre.TextBrush}" TextChanged="Native_HexBox_TextChanged" />
                 </Grid>
-                <TextBlock Grid.Row="3" Text="DEFAULT COLOURS" Foreground="#B9CADD" FontSize="10" FontWeight="Black" Margin="0,0,0,5" />
+                <TextBlock Grid.Row="3" Text="Default colours" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,5" />
                 <WrapPanel Grid.Row="4" x:Name="DefaultColoursPanel" />
                 <StackPanel Grid.Row="5" Margin="0,2,0,0">
-                    <TextBlock Text="RECENT COLOURS" Foreground="#B9CADD" FontSize="10" FontWeight="Black" Margin="0,0,0,5" />
+                    <TextBlock Text="Recent colours" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,5" />
                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Height="46">
                         <StackPanel x:Name="RecentColoursPanel" Orientation="Horizontal" />
                     </ScrollViewer>
@@ -124,9 +142,9 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Button Content="CANCEL" IsCancel="True" Margin="0,0,6,0" />
-                    <Button Grid.Column="1" Content="USE COLOUR" IsDefault="True" Margin="6,0,0,0" Click="Accept_Click" Background="#1E6A4A" BorderBrush="#55D697" />
+                    <Button Grid.Column="1" Content="USE COLOUR" IsDefault="True" Margin="6,0,0,0" Click="Accept_Click" Theme="{StaticResource ControlCentre.PrimaryButton}" />
                 </Grid>
             </Grid>
-        </Border>
+        </ns4:OperatorGlassSurface>
     </ScrollViewer>
 </Window>

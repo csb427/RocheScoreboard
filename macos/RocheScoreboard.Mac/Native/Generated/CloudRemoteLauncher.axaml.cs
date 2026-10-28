@@ -50,7 +50,7 @@ namespace Roche_Scoreboard.Views
 
         public CloudRemoteLauncher()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
         }
 
         /// <summary>True when the expanded controls are shown.</summary>

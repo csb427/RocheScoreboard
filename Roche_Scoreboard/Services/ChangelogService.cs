@@ -11,6 +11,17 @@ internal static class ChangelogService
 {
     private static readonly IReadOnlyList<ChangelogVersion> RawVersions =
     [
+        new("5.0.0", "2026-10-28",
+        [
+            "[New] Full cricket scoring for limited-overs and multi-innings matches, with toss, lineups, extras and wickets",
+            "[New] Editable cricket scorecards and delivery history, innings controls and revised overs or chase targets",
+            "[New] Cricket batting and bowling cards, scoreworm, Manhattan and automatic match overlays",
+            "[New] Four, six, wicket, half-century and century celebrations",
+            "[New] Redesigned control panel across sport selection, setup, live scoring, settings and match prompts",
+            "[New] Liquid-glass navigation, animated controls, team theming and layouts that adapt to smaller windows",
+            "[New] Cricket club search includes Victorian Premier and VSDCA teams, club logos and saved presets",
+            "[Fixed] Safer match recovery, more stable navigation and consistent shared output sizing"
+        ]),
         new("4.1.3", "2026-09-05",
         [
             "[Fixed] Goal-run text is centred and drought timers are larger with consistent scorebug typography",

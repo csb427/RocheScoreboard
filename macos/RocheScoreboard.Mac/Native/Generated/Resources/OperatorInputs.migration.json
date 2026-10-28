@@ -1,0 +1,78 @@
+{
+  "source": "Roche_Scoreboard/Resources/OperatorInputs.xaml",
+  "source_sha256": "7cf7880006ddfadbac42ed54688dd82c34c9e8dfbc61420cb8d727502a43a483",
+  "names": [
+    {
+      "name": "Rail",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_Track",
+      "type": "Track",
+      "object": false
+    },
+    {
+      "name": "PART_DecreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "SliderHandle",
+      "type": "Thumb",
+      "object": false
+    },
+    {
+      "name": "Grip",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_IncreaseButton",
+      "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "Header",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Body",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ItemSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Check",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Arrow",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "PART_Popup",
+      "type": "Popup",
+      "object": false
+    }
+  ],
+  "code_source_sha256": null,
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": "PART_Popup",
+      "property": "AllowsTransparency",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

@@ -17,6 +17,11 @@ public static class PresetStorage
 
     private static string GetPresetsDirectory()
     {
+        if (System.Windows.Application.Current is App { IsSelfTestMode: true })
+        {
+            string isolated = Path.Combine(Path.GetTempPath(), "RocheScoreboard-SelfTests", Environment.ProcessId.ToString(), "presets");
+            Directory.CreateDirectory(isolated); return isolated;
+        }
         string dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "Roche_Scoreboard"
@@ -25,10 +30,10 @@ public static class PresetStorage
         return dir;
     }
 
-    private static string GetPresetsPath() 
+    private static string GetPresetsPath()
         => Path.Combine(GetPresetsDirectory(), "team_presets.json");
 
-    private static string GetCricketPresetsPath() 
+    private static string GetCricketPresetsPath()
         => Path.Combine(GetPresetsDirectory(), "cricket_team_presets.json");
 
     private static List<TeamPreset> LoadFromFile(string path)
@@ -163,27 +168,41 @@ public static class PresetStorage
         return merged;
     }
 
-    public static List<TeamPreset> LoadAll() 
-        => LoadSharedPresetsWithLegacyCricketFallback();
+    public static List<TeamPreset> LoadAll()
+        => LoadFromFile(GetPresetsPath()).Where(p => !IsCricketLibraryPreset(p)).ToList();
 
-    public static Task<List<TeamPreset>> LoadAllAsync() 
-        => LoadSharedPresetsWithLegacyCricketFallbackAsync();
+    public static Task<List<TeamPreset>> LoadAllAsync()
+        => LoadFootballPresetsAsync();
 
-    public static void SaveAll(List<TeamPreset> presets) 
+    private static async Task<List<TeamPreset>> LoadFootballPresetsAsync()
+        => (await LoadFromFileAsync(GetPresetsPath()).ConfigureAwait(false)).Where(p => !IsCricketLibraryPreset(p)).ToList();
+
+    private static bool IsCricketLibraryPreset(TeamPreset preset)
+        => preset.LibraryTeamId?.StartsWith("cricket-", StringComparison.OrdinalIgnoreCase) == true;
+
+    private static bool IsLegacyCricketPreset(TeamPreset preset)
+        => IsCricketLibraryPreset(preset) || preset.CricketPlayers is { Count: > 0 };
+
+    public static void SaveAll(List<TeamPreset> presets)
         => SaveToFile(GetPresetsPath(), presets);
 
-    public static Task SaveAllAsync(List<TeamPreset> presets) 
+    public static Task SaveAllAsync(List<TeamPreset> presets)
         => SaveToFileAsync(GetPresetsPath(), presets);
 
-    public static List<TeamPreset> LoadAllCricket() 
-        => LoadSharedPresetsWithLegacyCricketFallback();
+    public static List<TeamPreset> LoadAllCricket()
+        => File.Exists(GetCricketPresetsPath()) ? LoadFromFile(GetCricketPresetsPath())
+            : LoadFromFile(GetPresetsPath()).Where(IsLegacyCricketPreset).ToList();
 
-    public static Task<List<TeamPreset>> LoadAllCricketAsync() 
-        => LoadSharedPresetsWithLegacyCricketFallbackAsync();
+    public static Task<List<TeamPreset>> LoadAllCricketAsync()
+        => LoadCricketPresetsAsync();
 
-    public static void SaveAllCricket(List<TeamPreset> presets) 
-        => SaveToFile(GetPresetsPath(), presets);
+    private static async Task<List<TeamPreset>> LoadCricketPresetsAsync()
+        => File.Exists(GetCricketPresetsPath()) ? await LoadFromFileAsync(GetCricketPresetsPath()).ConfigureAwait(false)
+            : (await LoadFromFileAsync(GetPresetsPath()).ConfigureAwait(false)).Where(IsLegacyCricketPreset).ToList();
 
-    public static Task SaveAllCricketAsync(List<TeamPreset> presets) 
-        => SaveToFileAsync(GetPresetsPath(), presets);
+    public static void SaveAllCricket(List<TeamPreset> presets)
+        => SaveToFile(GetCricketPresetsPath(), presets);
+
+    public static Task SaveAllCricketAsync(List<TeamPreset> presets)
+        => SaveToFileAsync(GetCricketPresetsPath(), presets);
 }

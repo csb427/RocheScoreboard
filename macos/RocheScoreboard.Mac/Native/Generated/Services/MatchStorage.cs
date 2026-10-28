@@ -1,8 +1,11 @@
 // Generated from Services/MatchStorage.cs; edit translator/adapters.
-// Source SHA-256: f76ed4e486798cba5d81a7da0138c83a5350b7012681303e22ab6b0c8d7c60fb
+// Source SHA-256: 2b8e9604013d846f021138ded5186f9c41fd10bebeb43687aea6ef205c91cd5b
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.IO;
@@ -21,10 +24,7 @@ public static class MatchStorage
 
     private static string GetAutoSavePath()
     {
-        string dir = Path.Combine(
-            NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard"
-        );
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "autosave.json");
     }

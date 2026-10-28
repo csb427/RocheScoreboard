@@ -1,0 +1,18 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:motion="clr-namespace:Roche_Scoreboard.Services">
+ <Style x:Key="CricketActionButton" TargetType="Button">
+  <Setter Property="motion:CricketActionMotion.Enabled" Value="True"/>
+  <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+  <Setter Property="MinHeight" Value="42"/><Setter Property="Padding" Value="12,8"/><Setter Property="FontSize" Value="14"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="#F0F6FC"/><Setter Property="Background" Value="#182638"/><Setter Property="BorderBrush" Value="#5F7E9E"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Cursor" Value="Hand"/><Setter Property="HorizontalContentAlignment" Value="Center"/>
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+   <Grid x:Name="ActionRoot" RenderTransformOrigin=".5,.5"><Grid.RenderTransform><TransformGroup><ScaleTransform x:Name="TbSc"/><TranslateTransform x:Name="TbLift"/></TransformGroup></Grid.RenderTransform>
+    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3"><Grid><Border x:Name="ActionGlow" Background="White" Opacity="0" IsHitTestVisible="False"/><ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/></Grid></Border>
+    <Border x:Name="FocusFrame" BorderBrush="#D1E8FF" BorderThickness="2" CornerRadius="3" Opacity="0" IsHitTestVisible="False"/>
+   </Grid>
+   <ControlTemplate.Triggers>
+    <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="Opacity" Value=".62"/></Trigger>
+    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="FocusFrame" Property="Opacity" Value="1"/></Trigger>
+    <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ActionRoot" Property="Opacity" Value=".22"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+   </ControlTemplate.Triggers>
+  </ControlTemplate></Setter.Value></Setter>
+ </Style>
+</ResourceDictionary>

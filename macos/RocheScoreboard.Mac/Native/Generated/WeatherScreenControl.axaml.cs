@@ -38,7 +38,7 @@ public partial class WeatherScreenControl : UserControl
 
     public WeatherScreenControl()
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
 
         WeatherTimeText.Text = DateTime.Now.ToString("h:mm tt");
         _wallClockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };

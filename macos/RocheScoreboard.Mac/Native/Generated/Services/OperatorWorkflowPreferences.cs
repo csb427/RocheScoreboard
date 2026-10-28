@@ -1,8 +1,11 @@
 // Generated from Services/OperatorWorkflowPreferences.cs; edit translator/adapters.
-// Source SHA-256: 7fae15e7ac2683c33efa133c4187a08480764394ee1970857287bd91926aaf9a
+// Source SHA-256: 89990623d79cf798575a4d64baac75b3d20a5aad0900c1f8e83a7ff04d0da111
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.IO;
@@ -27,8 +30,12 @@ internal sealed class OperatorWorkflowPreferencesData
     public string AflWeatherLocation { get; set; } = "Melbourne, Australia";
     public bool OutputScreensaverEnabled { get; set; } = true;
     public string? OutputScreensaverMediaPath { get; set; }
+    public bool OutputScreensaverShowClock { get; set; } = true;
     public bool AflBreakScreenEnabled { get; set; } = true;
     public bool AflAutoOverlaysEnabled { get; set; } = true;
+    public bool CricketEventAnimations { get; set; } = true;
+    public bool CricketRollingFigures { get; set; } = true;
+    public bool CricketBowlerDetails { get; set; } = true;
     public int OutputWindowWidth { get; set; } = 386;
     public int OutputWindowHeight { get; set; } = 193;
     public string? LastHomePresetKey { get; set; }
@@ -40,6 +47,10 @@ internal sealed class OperatorWorkflowPreferencesData
     public string TeamLibraryState { get; set; } = "All states";
     public string TeamLibrarySort { get; set; } = "A–Z";
     public bool TeamLibraryFavouritesOnly { get; set; }
+    public string CricketTeamLibraryLeague { get; set; } = "All leagues";
+    public string CricketTeamLibraryState { get; set; } = "All states";
+    public string CricketTeamLibrarySort { get; set; } = "A–Z";
+    public bool CricketTeamLibraryFavouritesOnly { get; set; }
 }
 
 internal static class OperatorWorkflowPreferences
@@ -122,13 +133,19 @@ internal static class OperatorWorkflowPreferences
             ["broadcast", "electric", "cinematic", "clean", "classic", "customVideo"], "broadcast");
         if (!string.IsNullOrWhiteSpace(data.OutputScreensaverMediaPath))
             data.OutputScreensaverMediaPath = data.OutputScreensaverMediaPath.Trim();
-        data.OutputWindowWidth = Math.Clamp(data.OutputWindowWidth, 200, 7680);
-        data.OutputWindowHeight = Math.Clamp(data.OutputWindowHeight, 100, 4320);
+        data.OutputWindowWidth = Math.Clamp(data.OutputWindowWidth, 50, 7680);
+        data.OutputWindowHeight = Math.Clamp(data.OutputWindowHeight, 50, 4320);
         data.TeamLibraryLeague = NormalizeChoice(data.TeamLibraryLeague,
             ["All leagues", "AFL", "VAFA", "APS", "AGSV"], "All leagues");
         data.TeamLibraryState = NormalizeChoice(data.TeamLibraryState,
             ["All states", "VIC", "NSW", "QLD", "SA", "WA"], "All states");
         data.TeamLibrarySort = NormalizeChoice(data.TeamLibrarySort,
+            ["A–Z", "Favourites", "League", "State"], "A–Z");
+        data.CricketTeamLibraryLeague = NormalizeChoice(data.CricketTeamLibraryLeague,
+            ["All leagues", "Victorian Premier", "VSDCA"], "All leagues");
+        data.CricketTeamLibraryState = NormalizeChoice(data.CricketTeamLibraryState,
+            ["All states", "VIC"], "All states");
+        data.CricketTeamLibrarySort = NormalizeChoice(data.CricketTeamLibrarySort,
             ["A–Z", "Favourites", "League", "State"], "A–Z");
         return data;
     }
@@ -145,7 +162,9 @@ internal static class OperatorWorkflowPreferences
 
     private static string GetStoragePath(bool createDirectory)
     {
-        string directory = Path.Combine(
+        string directory = Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }
+            ? Path.Combine(Path.GetTempPath(), "RocheScoreboard-SelfTests", Environment.ProcessId.ToString(), "workflow")
+            : Path.Combine(
             NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "Roche_Scoreboard");
         if (createDirectory)

@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/UpdatePromptWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 3237a9fba5800e3fa5037007996a208164061437bec1184b15d9644ac9e4a473
+// Source SHA-256: 48d02d26f7a96c36dc2f8804c697e815485007b7e6bcffd4a7ab96f8a06da9e4
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -40,7 +40,7 @@ public partial class UpdatePromptWindow : NativeWindow
     internal UpdatePromptWindow(AutoUpdateService updateService, GitHubRelease? releasePreview)
     {
         ArgumentNullException.ThrowIfNull(updateService);
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
         InteractionMotion.Enable(this);
         _updateService = updateService;
 
@@ -50,7 +50,7 @@ public partial class UpdatePromptWindow : NativeWindow
         ReleaseNotesText.Text = FormatReleaseNotes(release?.Body);
 
         GitHubReleaseAsset? previewAsset = release?.Assets?.FirstOrDefault(asset =>
-            asset.Name?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true && asset.Size > 0);
+            (asset.Name ?? string.Empty)?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true && asset.Size > 0);
         long packageSize = previewAsset?.Size ?? updateService.LatestPackageSizeBytes;
         PackageSizeText.Text = packageSize > 0
             ? $"Mac  ·  {FormatBytes(packageSize)}"
@@ -61,7 +61,7 @@ public partial class UpdatePromptWindow : NativeWindow
             ? "SHA-256 integrity check"
             : "Package validation enabled";
 
-        Loaded += (_, _) => AnimateEntrance();
+        SharedSurfaceMotion.Attach(DialogShell);
         Closing += (_, args) =>
         {
             if (!_isDownloading) return;
@@ -96,18 +96,6 @@ public partial class UpdatePromptWindow : NativeWindow
         if (bytes >= 1024L * 1024 * 1024) return $"{bytes / 1024d / 1024d / 1024d:0.0} GB";
         if (bytes >= 1024L * 1024) return $"{bytes / 1024d / 1024d:0} MB";
         return $"{Math.Max(0, bytes) / 1024d:0} KB";
-    }
-
-    private void AnimateEntrance()
-    {
-        if (!NativeSystemPreferences.ClientAreaAnimation) return;
-        DialogShell.Opacity = 0;
-        var translate = new TranslateTransform(0, 12);
-        DialogShell.RenderTransform = translate;
-        DialogShell.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
-        translate.BeginAnimation(TranslateTransform.YProperty,
-            new DoubleAnimation(12, 0, TimeSpan.FromMilliseconds(220))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
     }
 
     private void Close_Click(object? sender, RoutedEventArgs e) => SkipOrCancel();

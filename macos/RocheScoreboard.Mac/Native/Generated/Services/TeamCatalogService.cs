@@ -1,8 +1,11 @@
 // Generated from Services/TeamCatalogService.cs; edit translator/adapters.
-// Source SHA-256: 67833b6784eb12e0c021beca9d50dcf3827c7eac176c2cb9b168dd166098975f
+// Source SHA-256: f5b3283372dcd8884550bb9b0bf5bf500531cf4aeac9b20a048408b04de8e61f
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using Roche_Scoreboard.Models;
 
@@ -15,7 +18,8 @@ public static class TeamCatalogService
 
     private static readonly IReadOnlyList<TeamCatalogEntry> Teams = BuildTeams();
 
-    public static IReadOnlyList<TeamCatalogEntry> GetTeams() => Teams;
+    public static IReadOnlyList<TeamCatalogEntry> GetTeams(TeamLibrarySport sport = TeamLibrarySport.AustralianFootball)
+        => sport == TeamLibrarySport.Cricket ? CricketClubCatalog.Teams : Teams;
 
     private static IReadOnlyList<TeamCatalogEntry> BuildTeams()
     {

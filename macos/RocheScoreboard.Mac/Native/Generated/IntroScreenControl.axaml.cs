@@ -27,7 +27,7 @@ namespace Roche_Scoreboard.Views
 
         public IntroScreenControl()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
             Unloaded += (_, _) => Cleanup();
         }
 

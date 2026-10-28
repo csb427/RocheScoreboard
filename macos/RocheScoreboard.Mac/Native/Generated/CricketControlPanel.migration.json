@@ -1,25 +1,10 @@
 {
   "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-  "source_sha256": "30f0d1225483b9deaef923e5375fdd0f8a0fbaafc22124ba38a5a67f47ecf4a1",
+  "source_sha256": "ff2481d1422937d384394116f3bc206c5b216ccbcd2a994ec5e4706ab6da768b",
   "names": [
     {
-      "name": "Sc",
-      "type": "ScaleTransform",
-      "object": true
-    },
-    {
-      "name": "Lift",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "RewardFlash",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
+      "name": "PART_Surface",
+      "type": "Grid",
       "object": false
     },
     {
@@ -28,68 +13,68 @@
       "object": true
     },
     {
-      "name": "TbLift",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "RewardFlash",
+      "name": "Surface",
       "type": "Border",
       "object": false
     },
     {
-      "name": "Bd",
+      "name": "ActionGlow",
       "type": "Border",
       "object": false
     },
     {
-      "name": "MbSc",
+      "name": "PlayerSelected",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SelectionPop",
       "type": "ScaleTransform",
       "object": true
     },
     {
-      "name": "MbLift",
-      "type": "TranslateTransform",
-      "object": true
+      "name": "SelectionStroke",
+      "type": "Path",
+      "object": false
     },
     {
-      "name": "Flash",
+      "name": "PlayerFocus",
       "type": "Border",
       "object": false
     },
     {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "TabRoot",
+      "name": "CricketRoot",
       "type": "Grid",
       "object": false
     },
     {
-      "name": "Flash",
+      "name": "ConsoleViewport",
+      "type": "OperatorViewport",
+      "object": false
+    },
+    {
+      "name": "PersistentHeader",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "WorkflowBadge",
       "type": "Border",
       "object": false
     },
     {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Cp",
-      "type": "ContentPresenter",
-      "object": false
-    },
-    {
-      "name": "AccBar",
-      "type": "Border",
+      "name": "WorkflowStatus",
+      "type": "TextBlock",
       "object": false
     },
     {
       "name": "InningsLabel",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderOversBadge",
+      "type": "Border",
       "object": false
     },
     {
@@ -108,8 +93,43 @@
       "object": false
     },
     {
+      "name": "MatchTab",
+      "type": "TabItem",
+      "object": false
+    },
+    {
+      "name": "CricketMatchPageViewport",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "ScoringColumns",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "BattingZone",
       "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BattingZoneLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "BattingStartHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SelectOpeningBatters",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "BattingTeamHeading",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -134,6 +154,11 @@
     },
     {
       "name": "StrikerRuns",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StrikerBallsFaced",
       "type": "TextBlock",
       "object": false
     },
@@ -163,8 +188,33 @@
       "object": false
     },
     {
+      "name": "NonStrikerBallsFaced",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "BowlingZone",
       "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BowlingZoneLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "BowlingStartHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SelectOpeningBowler",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "BowlingTeamHeading",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -188,23 +238,73 @@
       "object": false
     },
     {
+      "name": "BowlerOverFigures",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "OverDisplay",
       "type": "TextBlock",
       "object": false
     },
     {
-      "name": "ExtrasPopup",
+      "name": "ScoringCommands",
       "type": "Border",
       "object": false
     },
     {
-      "name": "ExtrasPopupTitle",
+      "name": "OperatorFreeHitText",
       "type": "TextBlock",
       "object": false
     },
     {
-      "name": "ExtrasHintText",
+      "name": "ScoringLockBanner",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ScoringReadyHint",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScoringReadyDetail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StartTossButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ExtraCommands",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "MatchOptionsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "UndoDeliveryButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "EndInningsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "DeliveryOverChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "DeliveryLogScroller",
+      "type": "ScrollViewer",
       "object": false
     },
     {
@@ -213,13 +313,108 @@
       "object": false
     },
     {
-      "name": "MessageList",
-      "type": "ListBox",
+      "name": "ScorecardTab",
+      "type": "TabItem",
       "object": false
     },
     {
-      "name": "NewMessageBox",
+      "name": "ScorecardHost",
+      "type": "ContentControl",
+      "object": false
+    },
+    {
+      "name": "OutputTab",
+      "type": "TabItem",
+      "object": false
+    },
+    {
+      "name": "CricketOutputPageViewport",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "DisplayColumns",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "CricketOnAirText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketPresentationGrid",
+      "type": "UniformGrid",
+      "object": false
+    },
+    {
+      "name": "Presentationscorebug",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Presentationbatting",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Presentationbowling",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Presentationwindow",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Presentationsummary",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Presentationworm",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "Presentationmanhattan",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OverlayStatusText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketOverlayButtons",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "CricketWeatherTemperature",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketWeatherDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketWeatherLocation",
       "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "CricketSettingsTab",
+      "type": "TabItem",
+      "object": false
+    },
+    {
+      "name": "CricketSettingsColumns",
+      "type": "Grid",
       "object": false
     },
     {
@@ -243,8 +438,23 @@
       "object": false
     },
     {
-      "name": "BowlerList",
-      "type": "ListBox",
+      "name": "CricketEventAnimations",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "CricketRollingFigures",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "CricketBowlerDetails",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "CricketAutomaticOverlays",
+      "type": "CheckBox",
       "object": false
     },
     {
@@ -253,7 +463,22 @@
       "object": false
     },
     {
+      "name": "BatterSelectionCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BatterSelectionLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
       "name": "BatterSelectionTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BatterSelectionTeamText",
       "type": "TextBlock",
       "object": false
     },
@@ -263,18 +488,28 @@
       "object": false
     },
     {
-      "name": "Bd",
-      "type": "Border",
+      "name": "ConfirmBatterButton",
+      "type": "Button",
       "object": false
-    },
-    {
-      "name": "CfSc",
-      "type": "ScaleTransform",
-      "object": true
     },
     {
       "name": "BowlerSelectionOverlay",
       "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BowlerSelectionCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BowlerSelectionLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "BowlerSelectionTeamText",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -288,67 +523,67 @@
       "object": false
     },
     {
-      "name": "Bd",
+      "name": "ConfirmBowlerButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "DeliveryEntryOverlay",
       "type": "Border",
       "object": false
     },
     {
-      "name": "CfSc2",
-      "type": "ScaleTransform",
-      "object": true
+      "name": "DeliveryEntryContent",
+      "type": "ContentControl",
+      "object": false
     },
     {
-      "name": "WicketDetailsOverlay",
+      "name": "TossOverlay",
       "type": "Border",
       "object": false
     },
     {
-      "name": "WicketBatsmanLabel",
+      "name": "TossSheet",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "TossHomeChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "TossAwayChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "TossBatChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "TossBowlChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "TossSelectionSummary",
       "type": "TextBlock",
       "object": false
     },
     {
-      "name": "WicketFielderPanel",
-      "type": "StackPanel",
-      "object": false
-    },
-    {
-      "name": "WicketFielderList",
-      "type": "ListBox",
-      "object": false
-    },
-    {
-      "name": "WicketBowlerPanel",
-      "type": "StackPanel",
-      "object": false
-    },
-    {
-      "name": "WicketBowlerAutoLabel",
+      "name": "TossError",
       "type": "TextBlock",
       "object": false
     },
     {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "WkSc",
-      "type": "ScaleTransform",
-      "object": true
-    },
-    {
-      "name": "OverlayQueueBadge",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "OverlayQueueText",
-      "type": "TextBlock",
+      "name": "ConfirmTossButton",
+      "type": "Button",
       "object": false
     }
   ],
-  "code_source_sha256": "a3ec415222c5359b2e6cae78a5ee1d88c36df3cc3b50d3a9a0dfda65d2d09028",
+  "code_source_sha256": "ffdfb5d50652117fe5255e78694584e4264738a3ca0d5f811419b6c8c03f2704",
   "native_events": [
     {
       "name": "MainTabControl",
@@ -357,79 +592,91 @@
       "handler": "MainTabControl_SelectionChanged"
     },
     {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "ShowScorebug_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "ShowBattingSummary_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "ShowBowlingSummary_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "ShowMatchCentre_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "ShowWindow_Click"
-    },
-    {
-      "name": "BowlerList",
+      "name": "DeliveryOverChoice",
       "source": "SelectionChanged",
       "native": "SelectionChanged",
-      "handler": "BowlerList_SelectionChanged"
+      "handler": "DeliveryOverChoice_Changed"
+    },
+    {
+      "name": "CricketEventAnimations",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketPresentationPreference_Changed"
+    },
+    {
+      "name": "CricketEventAnimations",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketPresentationPreference_Changed"
+    },
+    {
+      "name": "CricketRollingFigures",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketPresentationPreference_Changed"
+    },
+    {
+      "name": "CricketRollingFigures",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketPresentationPreference_Changed"
+    },
+    {
+      "name": "CricketBowlerDetails",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketPresentationPreference_Changed"
+    },
+    {
+      "name": "CricketBowlerDetails",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketPresentationPreference_Changed"
+    },
+    {
+      "name": "CricketAutomaticOverlays",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AutoOverlays_Changed"
+    },
+    {
+      "name": "CricketAutomaticOverlays",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "AutoOverlays_Changed"
+    },
+    {
+      "name": "TossOverlay",
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "Toss_PreviewKeyDown"
+    },
+    {
+      "name": "TossHomeChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "TossChoice_Checked"
+    },
+    {
+      "name": "TossAwayChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "TossChoice_Checked"
+    },
+    {
+      "name": "TossBatChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "TossChoice_Checked"
+    },
+    {
+      "name": "TossBowlChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "TossChoice_Checked"
     }
   ],
-  "platform_translations": [
-    {
-      "name": "TabRoot",
-      "property": "SnapsToDevicePixels",
-      "source": "True"
-    },
-    {
-      "name": "InningsLabel",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "HeaderScore",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "StrikerRuns",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "NonStrikerRunsText",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "BowlerFigures",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    }
-  ],
+  "platform_translations": [],
   "visual_parity_verified": false,
   "behavior_parity_verified": false
 }

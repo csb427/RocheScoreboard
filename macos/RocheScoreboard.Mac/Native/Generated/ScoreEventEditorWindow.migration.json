@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml",
-  "source_sha256": "cf03c97b1aa4edc626b93c6d6012a811dcf13bbad17eaa2b1f2a7e1af71ff541",
+  "source_sha256": "2f7018bd51a373b0eeb8ea63a32b96ac0a3b78cfc6b820518136c764f6ff91ce",
   "names": [
     {
       "name": "DialogHeading",
@@ -141,15 +141,21 @@
   ],
   "platform_translations": [
     {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Variable, Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
       "name": "MinutesBox",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     },
     {
       "name": "SecondsBox",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     },
     {

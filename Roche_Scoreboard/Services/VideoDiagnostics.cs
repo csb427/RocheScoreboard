@@ -117,18 +117,24 @@ internal static class VideoDiagnostics
     {
         get
         {
-            if (_logFilePath is not null) return _logFilePath;
+            string? selfTestPath = SelfTestStorage.IsEnabled
+                ? SelfTestStorage.PathFor("diagnostics", "video.log")
+                : null;
+            if (_logFilePath is not null && (selfTestPath is null ||
+                string.Equals(_logFilePath, selfTestPath, StringComparison.OrdinalIgnoreCase)))
+                return _logFilePath;
             try
             {
-                string root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string dir = Path.Combine(root, "Roche_Scoreboard");
+                string dir = selfTestPath is not null
+                    ? Path.GetDirectoryName(selfTestPath)!
+                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Roche_Scoreboard");
                 Directory.CreateDirectory(dir);
                 _logFilePath = Path.Combine(dir, "video.log");
             }
             catch
             {
                 // If LocalAppData is unavailable, fall back to the temp folder.
-                _logFilePath = Path.Combine(Path.GetTempPath(), "Roche_Scoreboard_video.log");
+                _logFilePath = selfTestPath ?? Path.Combine(Path.GetTempPath(), "Roche_Scoreboard_video.log");
             }
             return _logFilePath;
         }

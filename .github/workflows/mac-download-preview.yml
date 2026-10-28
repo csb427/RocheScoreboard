@@ -28,10 +28,39 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
+      - name: Check the production translation
+        run: python3 macos/tools/audit_parity.py --check-translation
+      - name: Prepare the native video runtime for regression checks
+        run: python3 macos/tools/bundle_vlc.py '${{ matrix.rid }}' "$RUNNER_TEMP/roche-native.app"
+      - name: Run headless UI, rules, input and decoded-video regressions
+        env:
+          ROCHE_CAPTURE_DIR: ${{ runner.temp }}/roche-production-captures
+          ROCHE_NATIVE_MEDIA: '1'
+          ROCHE_VLC_HOME: ${{ runner.temp }}/roche-native.app/Contents/Frameworks/vlc/lib
+        run: dotnet test macos/RocheScoreboard.Mac.Tests -c Release -p:UseSharedCompilation=false --logger 'trx;LogFileName=mac-regression.trx' --results-directory artifacts/checks
+      - name: Save regression results and captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mac-regression-${{ matrix.label }}
+          path: |
+            artifacts/checks
+            ${{ runner.temp }}/roche-production-captures
+          if-no-files-found: warn
+          retention-days: 30
       - name: Build a self-contained preview with the native video runtime
         run: bash macos/scripts/package-mac.sh '${{ matrix.rid }}' artifacts/macos --preview
+      - name: Verify the archived preview and exact source commit
+        run: python3 macos/tools/verify_preview.py artifacts/macos --rid '${{ matrix.rid }}'
+      - name: Verify the archived app signature
+        run: |
+          mkdir -p "$RUNNER_TEMP/roche-packaged"
+          ditto -x -k 'artifacts/macos/Roche-Scoreboard-Mac-Preview-${{ matrix.rid }}.zip' "$RUNNER_TEMP/roche-packaged"
+          codesign --verify --deep --strict "$RUNNER_TEMP/roche-packaged/Roche Scoreboard.app"
       - name: Save the corresponding source
-        run: git archive --format=zip --output=artifacts/macos/Roche-Scoreboard-Mac-Preview-Source.zip HEAD
+        run: |
+          git archive --format=zip --output=artifacts/macos/Roche-Scoreboard-Mac-Preview-Source.zip HEAD
+          cp macos/PORT_VERIFICATION.md macos/PLATFORM_BEHAVIOR_AUDIT.md macos/build-provenance.json artifacts/macos/
       - uses: actions/upload-artifact@v4
         with:
           name: Roche-Scoreboard-Mac-${{ matrix.label }}
@@ -39,6 +68,10 @@ jobs:
             artifacts/macos/Roche-Scoreboard-Mac-Preview-${{ matrix.rid }}.zip
             artifacts/macos/Roche-Scoreboard-Mac-Preview-${{ matrix.rid }}.zip.sha256
             artifacts/macos/Roche-Scoreboard-Mac-Preview-Source.zip
+            artifacts/macos/artifact-manifest.json
+            artifacts/macos/build-provenance.json
+            artifacts/macos/PORT_VERIFICATION.md
+            artifacts/macos/PLATFORM_BEHAVIOR_AUDIT.md
           compression-level: 0
           retention-days: 30
           if-no-files-found: error

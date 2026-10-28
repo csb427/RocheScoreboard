@@ -1,14 +1,14 @@
 // Generated from MainWindow.RestoreMembers.cs; edit translator/adapters.
-// Source SHA-256: 8e9ffa4fe7c105bd241e36e1e389e3ebf77738448cd184bb206d05a3deed2122
+// Source SHA-256: e8d76de7850f7569cabbdce412688a3a2adc7e0537b8d95ff17343c3a99265cb
 using RocheScoreboard.Mac.Native;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia.Layout;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Controls.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -53,7 +53,7 @@ public partial class MainWindow
         // measured with unlimited height. Explicitly cap the log to the live
         // viewport so event cards scroll inside the log rather than increasing
         // the desired height of the entire control panel.
-        MatchLogPanel.MaxHeight = CalculateMatchLogPanelMaxHeight(windowSize.Height);
+        MatchLogPanel.MaxHeight = CalculateMatchLogPanelMaxHeight(Math.Max(windowSize.Height, MainContent.MinimumCanvasHeight));
     }
 
     internal static double CalculateMatchLogPanelMaxHeight(double windowHeight)
@@ -465,14 +465,14 @@ public partial class MainWindow
             : (MediaColor)MediaColorConverter.ConvertFromString("#2A2020"));
         SettingsFinalsCard.BorderThickness = new Thickness(2);
         SettingsFinalsCard.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#1A1408")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#0A0806"));
+            ? (MediaColor)MediaColorConverter.ConvertFromString("#70521D")
+            : (MediaColor)MediaColorConverter.ConvertFromString("#242428"));
 
-        SettingsFinalsGlow.Opacity = on ? 0.15 : 0;
+        SettingsFinalsGlow.Opacity = 0;
 
         SettingsFinalsTitle.Foreground = new SolidColorBrush(on
             ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#5A4A20"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#E1D2AF"));
 
         // Toggle track + thumb
         SettingsFinalsTrack.Background = new SolidColorBrush(on
@@ -483,7 +483,7 @@ public partial class MainWindow
             : (MediaColor)MediaColorConverter.ConvertFromString("#3A3018"));
         SettingsFinalsThumb.Background = new SolidColorBrush(on
             ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#5A4A20"));
+            : (MediaColor)MediaColorConverter.ConvertFromString("#E1D2AF"));
         SettingsFinalsThumb.HorizontalAlignment = on
             ? Avalonia.Layout.HorizontalAlignment.Right
             : Avalonia.Layout.HorizontalAlignment.Left;
@@ -2947,7 +2947,7 @@ public partial class MainWindow
 
             // Prep incoming with a subtle scale-up for a modern reveal
             var scale = new ScaleTransform(1.03, 1.03);
-            to.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            to.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             to.RenderTransform = scale;
             to.Opacity = 1;
             to.IsVisible = true;
@@ -3152,7 +3152,7 @@ public partial class MainWindow
             // Every panel uses the same centre hinge; the stagger supplies the
             // direction. Mixed top/bottom hinges made the sequence look as if
             // neighbouring panels belonged to different transitions.
-            panel.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            panel.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             panel.RenderTransform = new ScaleTransform(1, folded ? 0.025 : 1);
         }
     }
@@ -3346,7 +3346,7 @@ public partial class MainWindow
     {
         surface.BeginAnimation(Control.OpacityProperty, null);
         surface.Opacity = 1;
-        surface.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+        surface.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
         surface.RenderTransform = new TranslateTransform(0, 0);
         surface.IsVisible = visible ? true : false;
     }
@@ -3595,20 +3595,8 @@ public partial class MainWindow
             return;
         }
 
-        if (_displayWindow is { IsVisible: true })
-        {
-            PixelSizeHelper.SetWindowPixels(_displayWindow, w, h);
-            WindowDimensionsStatus.Text = $"Output set to {w} × {h} physical pixels";
-        }
-        else if (_cricketDisplayWindow is { IsVisible: true })
-        {
-            PixelSizeHelper.SetWindowPixels(_cricketDisplayWindow, w, h);
-            WindowDimensionsStatus.Text = $"Output set to {w} × {h} physical pixels";
-        }
-        else
-        {
-            WindowDimensionsStatus.Text = "No display window is open.";
-        }
+        ApplySharedOutputDimensions(w, h);
+        WindowDimensionsStatus.Text = $"All outputs set to {w} × {h} physical pixels";
     }
 
     private void ApplyTeamsAndStyling_Click(object? sender, RoutedEventArgs e) => ApplyTeamSettingsLive();
@@ -3644,7 +3632,7 @@ public partial class MainWindow
         MediaColor initial;
         try { initial = (MediaColor)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString((target.Text ?? string.Empty)); }
         catch { initial = Colors.White; }
-        if (!ColorPickerWindow.TryPick(NativeWindow.GetWindow(this), initial, out MediaColor picked,
+        if (!ColorPickerWindow.TryPick(RocheScoreboard.Mac.Native.NativeWindow.GetWindow(this), initial, out MediaColor picked,
                 previewColor => ApplyTeamColourPreview(target, preview, previewColor))) return;
 
         string hex = $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}";
@@ -3764,12 +3752,6 @@ public partial class MainWindow
         WindowWidthBox.Text = "386";
         WindowHeightBox.Text = "193";
         ApplyWindowDimensions_Click(sender, e);
-        OperatorWorkflowPreferences.Update(data =>
-        {
-            data.OutputWindowWidth = 386;
-            data.OutputWindowHeight = 193;
-        });
-        GlobalSettingsPanel.SetOutputDimensions(386, 193);
     }
 
     private void EnsureTickerSlots()
@@ -4411,7 +4393,7 @@ public partial class MainWindow
 
             _customVideoPath = saved;
             VideoTabFilePathText.Text = System.IO.Path.GetFileName(_customVideoPath);
-            VideoTabFilePathText.Foreground = (Avalonia.Media.IBrush)new Avalonia.Media.BrushConverter().ConvertFromString("#E6EDF3")!;
+            VideoTabFilePathText.Foreground = (Avalonia.Media.IBrush)new NativeBrushConverter().ConvertFromString("#E6EDF3")!;
 
             try
             {
@@ -4483,7 +4465,7 @@ public partial class MainWindow
             || pickedExtension.Equals(".webp", StringComparison.OrdinalIgnoreCase));
 
         VideoTabFilePathText.Text = System.IO.Path.GetFileName(_customVideoPath);
-        VideoTabFilePathText.Foreground = (Avalonia.Media.IBrush)new Avalonia.Media.BrushConverter().ConvertFromString("#E6EDF3")!;
+        VideoTabFilePathText.Foreground = (Avalonia.Media.IBrush)new NativeBrushConverter().ConvertFromString("#E6EDF3")!;
 
         // Persist so the VIDEO tab can restore this clip across app restarts.
         try { Services.DisplaySettings.LastVideoPath = _customVideoPath; } catch { /* best-effort */ }
@@ -4648,7 +4630,7 @@ public partial class MainWindow
         if (VideoTabFilePathText != null)
         {
             VideoTabFilePathText.Text = "No file selected";
-            VideoTabFilePathText.Foreground = (Avalonia.Media.IBrush)new Avalonia.Media.BrushConverter().ConvertFromString("#5080AA")!;
+            VideoTabFilePathText.Foreground = (Avalonia.Media.IBrush)new NativeBrushConverter().ConvertFromString("#5080AA")!;
         }
         if (VideoTabFileMetaText != null)
         {
@@ -4680,7 +4662,7 @@ public partial class MainWindow
         if (VideoTabPlayPauseButton is null) return;
 
         bool playing = _videoPlayer?.IsPlaying == true;
-        var conv = new Avalonia.Media.BrushConverter();
+        var conv = new NativeBrushConverter();
         if (playing)
         {
             VideoTabPlayPauseButton.Content = "⏸  Pause";
@@ -5239,7 +5221,7 @@ public partial class MainWindow
         foreach (string city in matches)
             combo.Items.Add(city);
 
-        var editBox = NativeTemplates.Find(combo, "PART_EditableTextBox") as Avalonia.Controls.TextBox;
+        var editBox = NativeTemplates.FindObject(combo,"PART_EditableTextBox") as Avalonia.Controls.TextBox;
         int caretPos = editBox?.CaretIndex ?? input.Length;
 
         combo.IsDropDownOpen = matches.Count > 0;
@@ -5285,7 +5267,12 @@ public partial class MainWindow
                 // live feed. Don't trigger the forecast overlay here — that
                 // belongs to the OverlayScheduler / manual buttons so it does
                 // not pop up unexpectedly (e.g. when continuing a quarter).
-                Dispatcher.UIThread.Invoke(() => _scorebug?.UpdateWeatherSnapshot(snap));
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    _scorebug?.UpdateWeatherSnapshot(snap);
+                    _cricketScorebug?.UpdateWeatherSnapshot(snap);
+                    CricketControlPanelView.UpdateWeatherSnapshot(snap);
+                });
             };
         }
 
@@ -5294,6 +5281,8 @@ public partial class MainWindow
             && _weatherService.LatestSnapshot is not null)
         {
             _scorebug?.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
+            _cricketScorebug?.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
+            CricketControlPanelView.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
             return;
         }
 
@@ -5855,6 +5844,14 @@ public partial class MainWindow
         SettingsCountdownGlow.Opacity = !countUp ? 0.12 : 0;
         SettingsCountdownCheck.IsVisible = !countUp ? true : false;
 
+        if(_aflSettingsWorkspace is not null)
+        {
+            SettingsCountUpCard.BorderThickness=SettingsCountdownCard.BorderThickness=new Thickness(0);
+            SettingsCountUpCard.Background=SettingsCountdownCard.Background=Avalonia.Media.Brushes.Transparent;
+            SettingsCountUpCheck.IsVisible=SettingsCountdownCheck.IsVisible=false;
+            SettingsCountUpGlow.Opacity=SettingsCountdownGlow.Opacity=0;
+        }
+
         UpdateSettingsControlPanelCountdownOptionVisuals();
     }
 
@@ -6361,35 +6358,24 @@ public partial class MainWindow
         {
             if (pill is null) continue;
             bool active = string.Equals(key, _settingsActiveCategory, System.StringComparison.OrdinalIgnoreCase);
-            var activeBorder = string.Equals(key, "controls", System.StringComparison.OrdinalIgnoreCase)
-                ? Avalonia.Media.Color.FromRgb(0xA7, 0x8B, 0xFA)
-                : Avalonia.Media.Color.FromRgb(0x58, 0xA6, 0xFF);
-            pill.Background = active
-                ? NativeBrush.Linear(
-                    Avalonia.Media.Color.FromRgb(0x20, 0x31, 0x49),
-                    Avalonia.Media.Color.FromRgb(0x12, 0x1C, 0x2A), 90)
-                : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0x0A, 0x10, 0x1A));
-            pill.BorderBrush = active
-                ? new Avalonia.Media.SolidColorBrush(activeBorder)
-                : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(0x2B, 0x3A, 0x4E));
-            pill.BorderThickness = new Thickness(2);
-            pill.Effect = active
-                ? new Avalonia.Media.DropShadowEffect
-                {
-                    BlurRadius = 14,
-                    OffsetX = 0, OffsetY = 0,
-                    Color = activeBorder,
-                    Opacity = 0.32
-                }
-                : null;
-            pill.BeginAnimation(OpacityProperty, new DoubleAnimation
+            pill.Background = this.TryFindResource(active ? "ControlCentre.GlassBrush" : "ControlCentre.SurfaceBrush") as Avalonia.Media.IBrush;
+            pill.BorderBrush = this.TryFindResource(active ? "ControlCentre.AccentBrush" : "ControlCentre.BorderBrush") as Avalonia.Media.IBrush;
+            pill.BorderThickness = new Thickness(1);
+            pill.CornerRadius = new CornerRadius(14);
+            pill.Effect = null;
+            pill.BeginAnimation(OpacityProperty, null);
+            pill.Opacity = 1;
+            var label = pill.Child as Avalonia.Controls.TextBlock ?? (pill.Child as Avalonia.Controls.Grid)?.Children.OfType<Avalonia.Controls.TextBlock>().FirstOrDefault();
+            if (label is not null)
             {
-                From = active ? 0.72 : pill.Opacity,
-                To = 1,
-                Duration = TimeSpan.FromMilliseconds(active ? 220 : 130),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            });
+                label.FontSize = 15;
+                label.FontWeight = FontWeight.SemiBold;
+                label.Foreground = this.TryFindResource(active ? "ControlCentre.TextBrush" : "ControlCentre.SecondaryTextBrush") as Avalonia.Media.IBrush;
+            }
         }
+        if (AflSettingsCompactCaption is not null)
+            AflSettingsCompactCaption.Text = _settingsActiveCategory switch { "controls" => "Interaction", "scoreboard" => "Scoreboard", "automation" => "Automation", "assets" => "Assets", "system" => "Application", _ => "Match" };
+        if (_aflSettingsCategoryMenu is not null) _aflSettingsCategoryMenu.IsOpen = false;
     }
 
     private void SettingsSearch_TextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
@@ -6413,6 +6399,7 @@ public partial class MainWindow
 
     private void ApplySettingsFilter()
     {
+        if(_aflSettingsWorkspace is not null){_aflSettingsWorkspace.NavigateCategory(_settingsActiveCategory);return;}
         string query = SettingsSearchBox?.Text?.Trim().ToLowerInvariant() ?? string.Empty;
         string category = string.IsNullOrWhiteSpace(_settingsActiveCategory) ? "match" : _settingsActiveCategory;
 

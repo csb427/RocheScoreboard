@@ -41,7 +41,7 @@ public partial class PresentationScoreBar : UserControl
 
     public PresentationScoreBar()
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
 
         _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _clockTimer.Tick += OnClockTick;
@@ -61,11 +61,11 @@ public partial class PresentationScoreBar : UserControl
             _breakCentreTimer.Stop();
         };
         SizeChanged += (_, _) => Dispatcher.UIThread.Post(UpdateResponsiveTypography, DispatcherPriority.Loaded);
-        PropertyChanged += (_, e) =>
+        NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, e) =>
         {
             if (e.NewValue is true)
                 Dispatcher.UIThread.Post(UpdateResponsiveTypography, DispatcherPriority.Loaded);
-        };
+        });
     }
 
     private void OnClockTick(object? sender, EventArgs e)

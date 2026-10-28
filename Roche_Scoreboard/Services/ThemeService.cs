@@ -98,6 +98,8 @@ public sealed class ThemeService
 
         if (density != _currentDensity)
             SetDensity(density);
+        OperatorDesign.UpdateTheme(_currentTheme);
+        OperatorDesign.UpdateDensity(_currentDensity);
     }
 
     /// <summary>
@@ -143,6 +145,7 @@ public sealed class ThemeService
 
             _activeThemeDictionary = newDict;
             _currentTheme = newTheme;
+            OperatorDesign.UpdateTheme(newTheme);
         }
         catch
         {
@@ -193,6 +196,7 @@ public sealed class ThemeService
 
             _activeDensityDictionary = newDict;
             _currentDensity = newDensity;
+            OperatorDesign.UpdateDensity(newDensity);
         }
         catch
         {

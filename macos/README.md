@@ -25,9 +25,9 @@ review without touching the normal user data.
 
 ## What is carried over
 
-- All 32 production views (including MainWindow), eight design resource
-  dictionaries, and the native equivalent of App initialization: 41 source
-  XAML surfaces. All source identifiers and declared event handlers are tracked.
+- All 34 production views (including MainWindow), 14 shared resource
+  dictionaries, and the native equivalent of App initialization: 49 source
+  XAML surfaces from Windows 5.0.0 at `636140761a9348b5030de731d3d91e5f741c1cbf`. All source identifiers and declared event handlers are tracked.
 - Complete source code behind the views and MainWindow partials: scoring,
   clock/quarters/finals, undo/corrections/recovery, all four console tabs,
   Essentials/Advanced, keybindings, settings, teams, crop/colour dialogs,
@@ -41,14 +41,20 @@ review without touching the normal user data.
 The original font declarations are preserved. The Windows repository includes
 no typeface files; unavailable fonts use embedded Inter. Mac ImageIO adds TIFF
 and other system image codecs. WDP/JPEG-XR is Windows-specific and must be
-converted to PNG for Mac import.
+converted to PNG for Mac import. The original glass controls use their source
+software fallback on Avalonia: gradient/material rendering and selection motion
+are retained, while the Windows DirectX refraction shader is unavailable. This
+requires a visual comparison on Mac before exact appearance can be signed off.
 
 ## Current verification status
 
-The full source migration compiles. A Linux headless run passed **36 checks**,
-including production AFL setup/console interactions, all six goal styles,
-overlay/ticker priority, training controls, and actual native video decoding.
-This is evidence of implementation, not verified Windows/Mac visual parity.
+The 5.0 source migration compiles for both native UI and shared engines. The
+current regression results and local preview artifacts are recorded in
+[PORT_VERIFICATION.md](PORT_VERIFICATION.md). Coverage includes current production
+AFL navigation/scoring, new cricket rules and screens, small-window action access,
+independent outputs, modal Escape/ownership, search, animation cleanup and a
+35-second mouse/keyboard stress check. Native video decoding is exercised with
+Linux LibVLC. These checks do not establish native Mac behavior or visual parity.
 
 **Native Mac acceptance is still outstanding.** Retina/multiple displays, Mac
 file/modal dialogs, screen sampling permissions, font comparison, cloud pairing
@@ -83,7 +89,7 @@ under System Settings → Privacy & Security.
 
 The Windows source under `Roche_Scoreboard/` is the authority and is unchanged.
 [production-source-contract.json](production-source-contract.json) records the
-source inventory (41 XAML surfaces, 104 C# files, 468 UI event bindings).
+source inventory (49 XAML surfaces, 246 C# files, 530 UI event bindings).
 
 ```bash
 python3 macos/tools/translate_production.py
@@ -105,7 +111,7 @@ existing suite and can create architecture-specific preview artifacts.
 
 ## Troubleshooting unresponsive input
 
-Animation updates, clock callbacks and decoded-video uploads yield to native
+Managed animations share one Background frame clock; animation updates, clock callbacks and decoded-video uploads yield to native
 mouse/keyboard input. A local `input-diagnostics.log` in the `Roche_Scoreboard`
 application-data directory records five-second UI heartbeats, input counts,
 visible-window enabled states and active panel states. It does not record keys,

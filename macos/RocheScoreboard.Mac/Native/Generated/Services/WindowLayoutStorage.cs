@@ -1,145 +1,47 @@
-// Generated from Services/WindowLayoutStorage.cs; edit translator/adapters.
-// Source SHA-256: 02f2b4c4ae14ab03311436307fe0834c079fa5ae9936260be6e50b68815172a9
-using RocheScoreboard.Mac.Native;
+// Generated from Services/WindowLayoutStorage.cs; native platform equivalent in macos/native-overrides.
+// Source SHA-256: 0b955c775c95b70ecfbd6f1a923cb8ab4550c6f2bee5b0a55306cc30513a8820
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-
+using RocheScoreboard.Mac.Native;
 namespace Roche_Scoreboard.Services;
 
-/// <summary>
-/// Persists and restores window positions and sizes between app launches
-/// so the operator's chosen layout is remembered. Stored as JSON in the
-/// same MyDocuments\Roche_Scoreboard folder as other user data.
-/// </summary>
+/// <summary>Native desktop positions are physical pixels; window sizes are logical units.</summary>
 internal static class WindowLayoutStorage
 {
-    /// <summary>Logical key for the operator console (the main window).</summary>
-    public const string ControlPanelKey = "controlPanel";
-
-    /// <summary>Logical key for the AFL display window (live scorebug + break screens).</summary>
-    public const string AflDisplayKey = "displayAfl";
-
-    /// <summary>Logical key for the Cricket display window.</summary>
-    public const string CricketDisplayKey = "displayCricket";
-
-    /// <summary>Logical key for the Training display window.</summary>
-    public const string TrainingDisplayKey = "displayTraining";
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    public const string ControlPanelKey="controlPanel", AflDisplayKey="displayAfl", CricketDisplayKey="displayCricket", TrainingDisplayKey="displayTraining";
+    private static readonly JsonSerializerOptions JsonOptions=new(){WriteIndented=true,PropertyNamingPolicy=JsonNamingPolicy.CamelCase};
+    // Optional pixel positions migrate the original four-field format without breaking old files.
+    public sealed record WindowLayout(double Left,double Top,double Width,double Height,int? PixelLeft=null,int? PixelTop=null);
+    private static string PathName
     {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
-    public sealed record WindowLayout(double Left, double Top, double Width, double Height);
-
-    private static string GetStorageDirectory()
-    {
-        string dir = Path.Combine(
-            NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
-        Directory.CreateDirectory(dir);
-        return dir;
+        get{Directory.CreateDirectory(SelfTestStorage.DocumentsDirectory);return Path.Combine(SelfTestStorage.DocumentsDirectory,"window_layout.json");}
     }
-
-    private static string GetStoragePath() => Path.Combine(GetStorageDirectory(), "window_layout.json");
-
-    private static Dictionary<string, WindowLayout> Load()
-    {
-        try
-        {
-            string path = GetStoragePath();
-            var data = AtomicFile.TryReadJson<Dictionary<string, WindowLayout>>(path, JsonOptions);
-            return data ?? new();
-        }
-        catch
-        {
-            return new();
-        }
-    }
-
-    private static void Save(Dictionary<string, WindowLayout> data)
-    {
-        try
-        {
-            string json = JsonSerializer.Serialize(data, JsonOptions);
-            AtomicFile.WriteAllText(GetStoragePath(), json);
-        }
-        catch
-        {
-            // Persisting layout is best-effort; never crash the app over it.
-        }
-    }
-
-    /// <summary>Returns the saved layout for <paramref name="key"/>, or null if none.</summary>
-    public static WindowLayout? Get(string key)
-    {
-        var data = Load();
-        return data.TryGetValue(key, out var layout) ? layout : null;
-    }
-
-    /// <summary>Stores the current layout for <paramref name="key"/>.</summary>
-    public static void Set(string key, WindowLayout layout)
-    {
-        var data = Load();
-        data[key] = layout;
-        Save(data);
-    }
-
-    /// <summary>
-    /// Reads a window's current Left/Top/Width/Height into a layout record.
-    /// Falls back to RestoreBounds when the window is currently maximised
-    /// or minimised so the saved layout reflects the user's chosen size.
-    /// </summary>
+    private static Dictionary<string,WindowLayout> Load()
+    {try{return AtomicFile.TryReadJson<Dictionary<string,WindowLayout>>(PathName,JsonOptions)??new();}catch{return new();}}
+    public static WindowLayout? Get(string key)=>Load().GetValueOrDefault(key);
+    public static void Set(string key,WindowLayout layout)
+    {try{var data=Load();data[key]=layout;AtomicFile.WriteAllText(PathName,JsonSerializer.Serialize(data,JsonOptions));}catch{/* Saving layout is best effort. */}}
     public static WindowLayout Capture(NativeWindow window)
     {
-        if (window.WindowState != WindowState.Normal && window.RestoreBounds is { } rb && rb.Width > 0 && rb.Height > 0)
-        {
-            return new WindowLayout(rb.Left, rb.Top, rb.Width, rb.Height);
-        }
-        return new WindowLayout(window.Left, window.Top, window.NativeWidth(), window.NativeHeight());
+        bool restored=window.WindowState!=WindowState.Normal;
+        var bounds=restored?window.RestoreBounds:new Rect(window.Left,window.Top,window.Bounds.Width,window.Bounds.Height);
+        var position=restored?window.RestorePixelPosition:window.Position;
+        return new(bounds.X,bounds.Y,bounds.Width,bounds.Height,position.X,position.Y);
     }
-
-    /// <summary>
-    /// Applies a saved layout to <paramref name="window"/>, clamping to the
-    /// current work area so a window saved on a now-disconnected monitor
-    /// can never spawn off-screen.
-    /// </summary>
-    public static void Apply(NativeWindow window, WindowLayout layout, double minWidth = 200, double minHeight = 120)
+    public static void Apply(NativeWindow window,WindowLayout layout,double minWidth=200,double minHeight=120)
     {
-        var workArea = NativeDesktop.WorkArea;
-
-        double width = Math.Max(minWidth, Math.Min(layout.Width, workArea.Width));
-        double height = Math.Max(minHeight, Math.Min(layout.Height, workArea.Height));
-
-        double left = layout.Left;
-        double top = layout.Top;
-
-        // If the saved position is fully off-screen (e.g. a disconnected
-        // monitor), pull the window back into the visible work area.
-        if (left + width <= workArea.Left + 20 || left >= workArea.Right - 20)
-            left = workArea.Right - width - 20;
-        if (top + height <= workArea.Top + 20 || top >= workArea.Bottom - 20)
-            top = workArea.Bottom - height - 20;
-
-        // Final clamp so we always land inside the work area.
-        left = Math.Max(workArea.Left, Math.Min(left, workArea.Right - width));
-        top = Math.Max(workArea.Top, Math.Min(top, workArea.Bottom - height));
-
-        window.Width = width;
-        window.Height = height;
-        window.Left = left;
-        window.Top = top;
+        var primary=window.Screens.Primary??window.Screens.All.FirstOrDefault();
+        double scale=primary?.Scaling??1;
+        static int Physical(double value,double scaling)=>double.IsFinite(value)?(int)Math.Clamp(Math.Round(value*scaling),int.MinValue,int.MaxValue):0;
+        var requested=new PixelPoint(layout.PixelLeft??Physical(layout.Left,scale),layout.PixelTop??Physical(layout.Top,scale));
+        var screen=window.Screens.ScreenFromPoint(requested)??primary;
+        if(screen is null){window.Width=double.IsFinite(layout.Width)?Math.Max(minWidth,layout.Width):900;window.Height=double.IsFinite(layout.Height)?Math.Max(minHeight,layout.Height):700;return;}
+        var size=new Size(double.IsFinite(layout.Width)?Math.Max(minWidth,layout.Width):900,double.IsFinite(layout.Height)?Math.Max(minHeight,layout.Height):700);
+        var fit=NativeWindowPlacement.Fit(requested,size,screen.WorkingArea,screen.Scaling,new Size(0,28));
+        // OnOpened repeats this with the platform's measured decoration dimensions.
+        window.MinWidth=Math.Min(window.MinWidth,fit.ClientSize.Width);window.MinHeight=Math.Min(window.MinHeight,fit.ClientSize.Height);
+        window.Width=fit.ClientSize.Width;window.Height=fit.ClientSize.Height;window.Position=fit.Position;
     }
-
-    /// <summary>Captures a window's current state and saves it under <paramref name="key"/>.</summary>
-    public static void Save(string key, NativeWindow window)
-    {
-        Set(key, Capture(window));
-    }
+    public static void Save(string key,NativeWindow window)=>Set(key,Capture(window));
 }

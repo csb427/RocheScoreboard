@@ -1,0 +1,1491 @@
+{
+  "windows_baseline": "636140761a9348b5030de731d3d91e5f741c1cbf",
+  "runtime_mapping_complete": true,
+  "counts": {
+    "direct-core-link": 30,
+    "direct-mac-link": 1,
+    "native-platform-equivalent": 10,
+    "scenario-factory-only": 1,
+    "translated-runtime": 162,
+    "windows-qa-reference": 42
+  },
+  "entries": [
+    {
+      "source": "Roche_Scoreboard/App.xaml.cs",
+      "source_sha256": "c247491a93e70131ccce4b34695d00a45962abb20313665c4315d94f6e8f0d64",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/App.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/AssemblyInfo.cs",
+      "source_sha256": "0ac596df13aac629a714fd9ecd7b49d53a2db8f788524db8783925bcdadf8817",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/RocheScoreboard.Mac.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Controls/MarqueeTextBlock.cs",
+      "source_sha256": "193d8d348ff00b955afc4ed10a94a25568ee38c2e8a7a340eb27d299b9b2abc5",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/Native/MarqueeTextBlock.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.AppleInteractionQa.cs",
+      "source_sha256": "1723cd0d7e5e53ccb4715664c0efc8ef55484bfc99e996294d33dde7b2754b2a",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.AppleReviewQa.cs",
+      "source_sha256": "ffe3d4b627ae54738157dd5fa049b7a963f285a32dfbb154a4482cd8ce06b48c",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CloudRemote.cs",
+      "source_sha256": "ffafb26376ea241b8cde813e55d1f728916aec6969d9e6ce369746db6e8946fa",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.CloudRemote.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CloudRemoteUi.cs",
+      "source_sha256": "10137b5203f027924f3273e342f4376c1934eb4e149b21b69090bc1b29d9b102",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.CloudRemoteUi.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.ControlCentre.cs",
+      "source_sha256": "1208c1cc0c8962b1433be90d61670cc7076a9b6406d7c8300391daf42b37458b",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.ControlCentre.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.ControlCentreQa.cs",
+      "source_sha256": "c8788d71166200cb14af68207f9965579672171722aa5a65154dcee199ae7b0f",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketBroadcastExpansionQa.cs",
+      "source_sha256": "070b7fac4ef7f61a5fb54addd8922d81a829701329bb6c59c1bccc783d034a75",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketDiagnostics.cs",
+      "source_sha256": "8eae8c428d897211135e1dfdca3f6559d8f41d378affa14939a5210af495a02a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.CricketDiagnostics.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketFreeHitQa.cs",
+      "source_sha256": "bb28c5048d3330128d4fe8451c08040b8ff5b13540e95ea3a2b76445da103d26",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketHierarchyQa.cs",
+      "source_sha256": "75f5794ab74a37373b0ed2d0319b926b9b70bdcde69d66003abdefcb21c40232",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketInteractionQa.cs",
+      "source_sha256": "56d5c42dde44c989631005a30d3fa415c76055cf8f79c28dc4fdf8ad59e5111e",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketLatestReviewQa.cs",
+      "source_sha256": "db2c6f1be272e6a986cc730f59c3f259f5a5c4a3bf35a5ab1f0d58bc0febd360",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketMotionQa.cs",
+      "source_sha256": "a98b838cf09c7be55602fb6290d09df84d3e02ce9e5d700243d190333df099ac",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketOutputHandoffQa.cs",
+      "source_sha256": "96ff02646b481e4e7478df8d2faf80b70efce969382b7eec1ca0ce94b5ea33fb",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketOverlayQa.cs",
+      "source_sha256": "a47fe88413d3a9d8bafd3c8ec1eaf17ef6ce10fdcd0da7ed45387c5ae981486e",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketPersistence.cs",
+      "source_sha256": "081e9a210b400a017fbd743db95a08831198bacbed015f4999fefc7dde47b093",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.CricketPersistence.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketPolishQa.cs",
+      "source_sha256": "bf5558d92f5cb4174b7c3b06d1dff1482c2b71541f75887bad627e19082177fb",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketPreviewScenarios.cs",
+      "source_sha256": "25cde753257236b07fdc07e648a844d556deb9b8335778a010ea2cabc3b88828",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.CricketPreviewScenarios.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketQa.cs",
+      "source_sha256": "8cff4172e6ad80be7cb4fef95849ee2e8f6378bd0d4a8a232effa41df9274899",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketRefinementQa.cs",
+      "source_sha256": "44ee8a9408a2e7da869226c292892e69f91f8882699841f1434f8362de5e254f",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketReviewQa.cs",
+      "source_sha256": "38098461abb06e974db9f5df7c0a86bfe4d3affca48340ae343165213b4b9e3b",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketRulesSetupQa.cs",
+      "source_sha256": "63171631be1b66853650aecda72c15f2a331585e94d1918ef1b73654e782a0a2",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketSetupQa.cs",
+      "source_sha256": "d6aee6e6082b0ebfdc09adff2fdd6a6ee579345a964278c9421bfb64b7ed29bb",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketTossQa.cs",
+      "source_sha256": "89e3e0a464b373603227deea26aeb7d7888a4d96650272e239e7e3854efcb66f",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.CricketWorkflowQa.cs",
+      "source_sha256": "257e8f6e0043e40f6c7a296b649e4596efbfe06e66370a2bc48066882f4c5bc9",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.GlassQa.cs",
+      "source_sha256": "7f1bbead60f9eb59006449c31b4741218c52f0b3a964f7be614d61bd7d620bdc",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.IllustratedOperatorQa.cs",
+      "source_sha256": "d6754ff67bd0ec1e003083fc7359989f62551572a3a247efe12b79f084fadaee",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.IphoneInteractionQa.cs",
+      "source_sha256": "25865fc6672543fc17f0bf227262e1f0841f5e41ed6a19ec6afd3b5fe4d68ecf",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.LiquidSelectionQa.cs",
+      "source_sha256": "9f9f07da334958866acd118db9a1b1cdd8259d6c64e2ff6ae81ff92470f9c719",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.OperatorFormRefresh.cs",
+      "source_sha256": "4bf5c31deacaf08ab229ded15ea41aa52f3018a79f6a5fad34d497a84827faad",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.OperatorFormRefresh.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.OperatorInteractionQa.cs",
+      "source_sha256": "8875ff1cf194bf777e18c017241b8ce26df7355287e6c1145c51dd90d29ef62e",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.OperatorResponseQa.cs",
+      "source_sha256": "9cb041c96c4b28da81c7ed61ce9308efc0549894bf6be1ebfda9c4079dc53a77",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.OperatorSetupTransition.cs",
+      "source_sha256": "e161417a0014c649b5957e0616571ac15054ce7e1ab5d865780bc3f957b4c28c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.OperatorSetupTransition.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.OperatorTileActions.cs",
+      "source_sha256": "bf86c95e4ebf01c5aa8132657f0d64b67e0c416f3b2288b680faab271e56008c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.OperatorTileActions.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.OutputWindows.cs",
+      "source_sha256": "674b7326c5a43465dfc524ec26f6ac1dcd5158b14a33ed6c532d92b1a929d3f7",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.OutputWindows.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.QuarterLabels.cs",
+      "source_sha256": "598538888a9380c74407efc601418bd9ce384d16621ada797daf236b968529e7",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.QuarterLabels.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.RestoreMembers.cs",
+      "source_sha256": "e8d76de7850f7569cabbdce412688a3a2adc7e0537b8d95ff17343c3a99265cb",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.RestoreMembers.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.SculptedGlassQa.cs",
+      "source_sha256": "6484e9e4aacb77126e0d47badffb0a06b1c8fe47c09277f515e389bd3df9968c",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.SportInteractionQa.cs",
+      "source_sha256": "23958f4a58b4e1d65fdebbe8fe393ac9d36fb62ee508d8a75c25afe176090427",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.TrainingCloudRemote.cs",
+      "source_sha256": "63e56768bf511459a7f0b1b28ad4fcd7a8a2e4e54465d7ae2992f89ecfedc1aa",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.TrainingCloudRemote.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.xaml.cs",
+      "source_sha256": "782b9f76632578fd65e836f1ad1f2c23159f63e1f60b2e8acbc17a4c1243252b",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketAnalytics.cs",
+      "source_sha256": "2ec883877eb2bb6c0118c7efe37687babdde6ea7f82fe5b3d4c06006b61f7543",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketChartData.cs",
+      "source_sha256": "d49b74406d1458ebdaa9c60eff5b96ba2e401faad779892b93136603b83cf770",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketDeliveryEditing.cs",
+      "source_sha256": "3efe439c5da2ff6e8490f6536d299dbc20ecf42d0e7fa5c538337547873053db",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketDeliveryRules.cs",
+      "source_sha256": "bb674772de4581c751d113b60eaf00c2ea322dd7e1a4350d9920eb24fd5976d4",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketMatchConditions.cs",
+      "source_sha256": "bfd470b55c0e0f416589edeee6252c19111da88cd7b61d94c063b6563a524058",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketMatchManager.cs",
+      "source_sha256": "dec9b9b41dccdf2690f792356cdc84360765b9e5445293aad662d01aa08cc399",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketMatchOperations.cs",
+      "source_sha256": "eac796b9e03d046ddffdc5c2de4fd205f20d42b44caacb6e823bfaf4e5ec6e63",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketMilestone.cs",
+      "source_sha256": "de32bdeb944f60be0173e9d404dbf9f79b0704ad8904c60fe66b475c77de6d4d",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketOverlayAnalysis.cs",
+      "source_sha256": "b31602db136af6c69db274d98bcd9fccc29cfec03a6bd3cc4aac75d3a3577f88",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketPersistenceSnapshot.cs",
+      "source_sha256": "8e80e76f4c66aa172a061d784903bbec59b2acbd1693e00a6a501421c95f847b",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketPlayer.cs",
+      "source_sha256": "4c0df236ba127fdea6cadc3ce90aa4e97db5c456bbbdec45397f26768cea3afd",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketPlayerOperations.cs",
+      "source_sha256": "5e81b9c0efe01748c2a5ad230a204df1b32223211be4f3af4bf9111fa2d2088a",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketPresentationOrder.cs",
+      "source_sha256": "3b99c56d95997f48f5e95ae4af4b3810ba2120701edc8fc24cc9db622036ce23",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketScorecardEditing.cs",
+      "source_sha256": "27f0e8be16afeafd5370e75d1c1b707e974aadde73ef56ea8d3a82415bc22b67",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/CricketSetupResult.cs",
+      "source_sha256": "a7ab72f698cef4461ed4dd9801a713f1723e8b36ae629ab961b796e3f71e0464",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/GoalAnimationStyle.cs",
+      "source_sha256": "a8419b1a26850891d3545f491b71d9f6ae52763ad8c2287a30cac3c721aa3695",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/MarqueeMessage.cs",
+      "source_sha256": "c1c9af8fe4f65e957dab5ec1e572ab90b3f60290da2697158a37e1c6036fd06d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Models/MarqueeMessage.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/MatchManager.cs",
+      "source_sha256": "e02afb80f24bd91e1eb23977eb588f5a679daa19adc94db16a4d7c0a9a3977ac",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/MatchStats.cs",
+      "source_sha256": "f95b58b8c1e15caffcac0f074bfd5217bedc74b542c17613891706573e6de411",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/ScoreEvent.cs",
+      "source_sha256": "ba517ba2aac62955eafff35dc5d745799f3f9ba3aa1584fc2b8be124c4af4826",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/ScorebugLayout.cs",
+      "source_sha256": "54aa6fa8670ed45f8efbfed97b4d4302841bd9309adcc81ebdc25d0b0e91b914",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/SetupResult.cs",
+      "source_sha256": "0cbc8f95ef9358adf1ac93067ca3ebe316e6b0ad76ddb1640fdbbb7e23d9750c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Models/SetupResult.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/SportMode.cs",
+      "source_sha256": "c3e1caa4afa4eead2284729af0562e730f417e1bb61afabd143f160106c44121",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TeamCatalogEntry.cs",
+      "source_sha256": "f7031e59bc75fed9b659e743defa45ad4859c205a9c5695e6dfe1f4130d6b7dc",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TeamNameDisplayMode.cs",
+      "source_sha256": "dd0cf9e80e2615820881f0883e76298b0ae1bbebb07895ab66268df01d657120",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TeamPreset.cs",
+      "source_sha256": "399425d6807458450de8a0775c6a9b5edfb9465941df065b2b91840f1f473608",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TrainingSession.cs",
+      "source_sha256": "a60aa61a0a5ea7b08519e73d8e99b4e33d40a2c4300acfe9f0278168c3143bd5",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/TrainingTimer.cs",
+      "source_sha256": "99b5c5045ccd7239e9d7b6372060b51c2a914ae468a1f0f56a2f7d4032969d28",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Models/WinProbabilityEngine.cs",
+      "source_sha256": "cb83670a7003f53c9204576381b02bf9ffa196408617876de4ceeafe3ef304a2",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AflDroughtCalculator.cs",
+      "source_sha256": "a591f650929107a9beaa88d21b13465bfdba11240db6e3f72e11b814bcd8d9b0",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AflGoalRunDetector.cs",
+      "source_sha256": "aacb88d6237d56c484d5384b18afe74c06c0838b6a0e9a19ad093bfc351c64c7",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AflKeybindSettings.cs",
+      "source_sha256": "be7687661a27e3aa4429dbc47f4de276df88899c8687134054abc55adc616bc5",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/AflKeybindSettings.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AflReliabilityStressSuite.cs",
+      "source_sha256": "a1101c25ba98e8607eaa766dd99a3c02d9ad1576756e83e6b9b5b004d063c3fd",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AtomicFile.cs",
+      "source_sha256": "307a469c0b4b445744f29191fe399441f84622a8010f6f89b3f1a113fe0c2194",
+      "mapping": "direct-core-link",
+      "destination": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/AutoUpdateService.cs",
+      "source_sha256": "f2c6db8e1c90e1d9f1720220961c9b000cce80c0c1f953a0b8dd3078a3bfbfcb",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/AutoUpdateService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/BroadcastClock.cs",
+      "source_sha256": "3a6f23186febb4a6857331894297dc814b7b59682ff94d4006e6fcc7f27b309a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/BroadcastClock.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/BroadcastLayout.cs",
+      "source_sha256": "bfc944f6d186c8b188a396755a65a5905f9ee4fadca9c8657c2f4081c5363994",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/BroadcastLayout.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/BroadcastMotion.cs",
+      "source_sha256": "18a4bed104a0c4e3badf62700b16ca80caab32a6b29e91ed5d818493ea30111c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/BroadcastMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/BroadcastTeamTheme.cs",
+      "source_sha256": "035aa4f727dc2da5a5c8d2b80a8652145d98e5cb9482efcf28020aa14ab62984",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/BroadcastTeamTheme.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ChangelogService.cs",
+      "source_sha256": "623ad6991ccf1b22433b989a091dbd83a9b7f0fcf0016411316c446f875d5da9",
+      "mapping": "direct-mac-link",
+      "destination": "macos/RocheScoreboard.Mac/RocheScoreboard.Mac.csproj"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/CloudGameSessionService.cs",
+      "source_sha256": "7a009dc2b2a6d2367f94b5d85be611e262deee3ad9dcf4dd96bcc8be57ae2767",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/CloudGameSessionService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/JoinCodeGenerator.cs",
+      "source_sha256": "7172aa7f22c18696389ad882d485b6a5cecf36004b0dbf08290e6347dc7bb71a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/JoinCodeGenerator.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/LiveStateSnapshot.cs",
+      "source_sha256": "339f4e39981f2e4691a422648931020971a651dbc290a293e906e95e788628fe",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/LiveStateSnapshot.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/RemoteCommandDispatcher.cs",
+      "source_sha256": "eec8864021d547c650db86d18ba7ab9e859bb16eeceb5dc03b3237a8733dd3ca",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/RemoteCommandDispatcher.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/RemoteControlService.cs",
+      "source_sha256": "33f482768f22b53ceec5aa3a8b5be20cda5a28bfde906e7d35aa0422d6c0a4cc",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/RemoteControlService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/RemoteEvent.cs",
+      "source_sha256": "73337096cfa62344c330b0677029bd51679ea8230291262bb8be455880e1355d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/RemoteEvent.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/SupabaseConfig.cs",
+      "source_sha256": "c507e587a850ac3cde30d2bfe7b22074077684e4787976a4888614fd7f216c78",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/SupabaseConfig.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/SupabaseRealtimeClient.cs",
+      "source_sha256": "24be856340a1a03acf6ea45005fa9971a7bf705125a7d417e1c4251c1dfba71d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/SupabaseRealtimeClient.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/Cloud/SupabaseRestClient.cs",
+      "source_sha256": "3c4534c14c8bcff3543153e75b3803b64b8e15f316ae3c637544085103191848",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/Cloud/SupabaseRestClient.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ContrastHelper.cs",
+      "source_sha256": "b71b13ac90550245d42cbe783ee8a48a2fe09f7ca38df5402d5a6a9a32d29dd0",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/ContrastHelper.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketActionMotion.cs",
+      "source_sha256": "3ab18be53d03b3266eb9ccc8f7fcbf77520bdc27fd90531a59fa2a253edeaa3d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/CricketActionMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketBroadcastStyle.cs",
+      "source_sha256": "e0d2f80e2062b5f3b0ca8f7d3f7a396888ac02df74155050277a550057ba7bac",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/CricketBroadcastStyle.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketClubCatalog.cs",
+      "source_sha256": "47775b36b29db487deabfc8338f8d533c1f44ccedf56c6b5a79c768ec8133334",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/CricketClubCatalog.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketClubChecks.cs",
+      "source_sha256": "a8e34bea66ddc071ff94baf13b62295387ed19dd87246350103fa68dda6600a6",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketConditionsChecks.cs",
+      "source_sha256": "ac2cec7bad1c16bfff4e81a43428c53c7a0f24410f8e8152dc9ad4124d8adc12",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketDeliveryLogChecks.cs",
+      "source_sha256": "63e9b2b02ee93397295a9fa798ec9c2373ae8fb44d76bce7f2d1948b676e073d",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketDeliveryRuleChecks.cs",
+      "source_sha256": "258ec4f1421345e5b2fb9aeaa9706e62cce1fef802d74d9ae50d5853d13ca3df",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketEditingChecks.cs",
+      "source_sha256": "375cb14e2a124c4f97f374ca159044364f3c495cfe708816e569ee76e7e8f7ab",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketOutputChecks.cs",
+      "source_sha256": "ec11c1550c4552d15bf8d6b30f8fad6689d97f4fa36b116ff162951e467cbf63",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketOverAndStrikeChecks.cs",
+      "source_sha256": "5d91f14f78405a836f97441be3e597c919c4825837b05a91152819fe50cead15",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketOverTracker.cs",
+      "source_sha256": "1e2668ffc423a9512556f9f13615612732c9734eaae9f5a093d16fbce7cd369c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/CricketOverTracker.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketOverlayChecks.cs",
+      "source_sha256": "27293f4b09a38c110522e0dcb694e6ed42b4304234d05af52158afbf984c9280",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketOverlayScheduler.cs",
+      "source_sha256": "f8c9e5412ae60c71935295c57892106fbe7d6b0ccb3e405d59ebe47794dec586",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/CricketOverlayScheduler.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketPersistenceChecks.cs",
+      "source_sha256": "4c0a2efddf25c1b5c04c40525ab72dd087a98799a92a30ec700ac339ecb59984",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketRecoveryWriter.cs",
+      "source_sha256": "100d0220862fce0d7aff77fe45d9ea1f953726abaf5dca1ee0e516fe4156700d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/CricketRecoveryWriter.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketReliabilityChecks.cs",
+      "source_sha256": "a78c6334f2a97aaa7267783b8f0a566c968669fa792e054fd61956a7228a00b0",
+      "mapping": "scenario-factory-only",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/CricketReliabilityChecks.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketTossChecks.cs",
+      "source_sha256": "5a4f30b29abe3d5eda15c1b76fe916611e6c6007f477170eefe703c4d94f4a54",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketWorkflowChecks.cs",
+      "source_sha256": "20002156ae2d68a15a42c691c0a3abf2eb5215b27622b906574727a6084da77e",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/CricketWorkflowUiChecks.cs",
+      "source_sha256": "52045b6243fbf97b2c3f2f29055960a0c36c17497e3b374181f4e87669bccfb3",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/DisclosureMotion.cs",
+      "source_sha256": "7f5aa9871d170266773e27a9d6ae820a6a7655114a23934de65157660c44c1ba",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/DisclosureMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/DisplaySettings.cs",
+      "source_sha256": "fcf79db846d74a2b0cd9a14963364504935897b130b91d24eacc94ff38e6c670",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/DisplaySettings.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/EyeDropper.cs",
+      "source_sha256": "83dbf6b5ee3cd1b09e3730a232f6f5882eca914b6e36fc25d585cbb4d86c6d7d",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/Native/EyeDropper.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/FinalsPalette.cs",
+      "source_sha256": "2a9a27dbc74e1afe1e36e7b7774556708f7311e03bba39aa3a5aebb155a4122a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/FinalsPalette.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/GameStateService.cs",
+      "source_sha256": "84367b283c908d109bc64f282e7c48a36d3b6a015ca8805bae4c7c93b0bc91a3",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/GameStateService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ImageLoadHelper.cs",
+      "source_sha256": "1478c45482978d53f20a966b1cd969ff88700d2b09805e5fba4b04ed870e6428",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/Native/ImageLoadHelper.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/InteractionMotion.cs",
+      "source_sha256": "cdf8c75a1f1d184699886cc90ba308927cf2b323b4c63c0c21776df99e73540d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/InteractionMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/MatchStorage.cs",
+      "source_sha256": "2b8e9604013d846f021138ded5186f9c41fd10bebeb43687aea6ef205c91cd5b",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/MatchStorage.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/NestedScrollRouting.cs",
+      "source_sha256": "f85481e7d705a847f140c0f2e3ea11ef2e269b83d13cc747e18a43ac1b921e86",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/Native/NestedScrollRouting.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorAppearance.cs",
+      "source_sha256": "a53d395f4bf2d37c72b0b6cdc4bfe1480b2c0528aca8ee78ab992276337f34fb",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorAppearance.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorChoiceMotion.cs",
+      "source_sha256": "3e8bca3f4f4f4441c549c138154431c8a03f8c5aec8f3d6144114e37a3f42738",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorChoiceMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorControlMotion.cs",
+      "source_sha256": "e7c20a0fb28fee1593d28f2e73cfd5486273cc90e0d062205fd8f0d393804662",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorControlMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorDensityTransition.cs",
+      "source_sha256": "2e0e5ea552a73127f0c3eb9281eb5ede250833a93e159c60a39030d419fafb69",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorDensityTransition.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorDesign.cs",
+      "source_sha256": "adc1987674680dd59a423faa27a9a0f725083fc1a2f1bd7b1bb573fefe7cca14",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorDesign.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorFeedback.cs",
+      "source_sha256": "b8adc289366351690a97074a513c87d32e1e585ac62b0476bc72aa22f21ca410",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorFeedback.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorGlassEffect.cs",
+      "source_sha256": "8ef4e785816201c8603d8a8a0e2510af1a20488f8d00379f1ba2d6d3a1d335c0",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorGlassEffect.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorGuidance.cs",
+      "source_sha256": "354404ad3e496f11e8ce286856b9ec0839d908e9df0d9fbc6901b827ba33279d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorGuidance.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorInputFocus.cs",
+      "source_sha256": "3678741bcb6a39445677531f609b675830e0230b24270fbe7f41ec9c4aa0f995",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorInputFocus.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorInsetConverter.cs",
+      "source_sha256": "9a857850602419abf2862f7ea8ffe1f0dad53615982a99a83a6636c718e66d16",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorInsetConverter.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorLiquidSelection.cs",
+      "source_sha256": "0b6f697a0a1c4da8b3206d462ae46a70b0dd938d219b699646c364e051cc0edf",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorLiquidSelection.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorMenuMotion.cs",
+      "source_sha256": "260e4be135b41ba7f697a933b751dd2581ce3533715eee4bdfa6752c8ae5e873",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorMenuMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorMotion.cs",
+      "source_sha256": "738936e0e1700c1eb61f84718855e6f5711b78a4e09ae2b5c9f11e2ad2ab808c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorRoundedClip.cs",
+      "source_sha256": "46a2e43faa8ac565a8bcca70f67250c1393c3b831043043b6b8f7eeb6e221f21",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorRoundedClip.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorSelectionLens.cs",
+      "source_sha256": "5de182df5001be3db208ace9365d30fc92f2b6e523bbfd650eba6e50a6bcc0af",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorSelectionLens.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorSetupTrainingChecks.cs",
+      "source_sha256": "f2f1962f4047161895327ce3811d806627777bd62ea0ba57e5795f4012d2c59a",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorSliderMotion.cs",
+      "source_sha256": "5212e58cea72f077080b83abf5e363dce33da7496981a3186103fda58511209a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorSliderMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorSymbol.cs",
+      "source_sha256": "6c7e5a92eddf188090eec3d57ad0c819fd36903aaae76ce8da94f577183f6061",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorSymbol.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorTabLabelConverter.cs",
+      "source_sha256": "5b55fbda19473de1c8b60669f20fe9fa87eb259eb000f4b337d4c7ee55ef0e68",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorTabLabelConverter.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorTabMotion.cs",
+      "source_sha256": "35a972d5945ca5e645810264cdc0b4516c4084f7d60267043d56d2f53a1845a9",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorTabMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorWindowChrome.cs",
+      "source_sha256": "e3c72abad942be7b1eebc0cb8e4480d38c7ed4c7d943abe758e4684bea1b754b",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorWindowChrome.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorWorkflowPreferences.cs",
+      "source_sha256": "89990623d79cf798575a4d64baac75b3d20a5aad0900c1f8e83a7ff04d0da111",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorWorkflowPreferences.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OverlayScheduler.cs",
+      "source_sha256": "418e9f219d0985724d554c4255ec17371379af340519f2266b8b280fc2f54419",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/OverlayScheduler.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/PixelSizeHelper.cs",
+      "source_sha256": "d3b953770731e5c39842af53417c884adb695c4fb614eaa18b2c7ecbb7e4e670",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/Native/PixelSizeHelper.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/PresetStorage.cs",
+      "source_sha256": "f2bc2e046bb56c9f09d4ef9e19f654e46ce13575d416637b6e194507ebda89c7",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/PresetStorage.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/QuarterLabelService.cs",
+      "source_sha256": "fe242e04ca37e082a7a5fb56622b63dacfa6ed155805c15188c21f09ce6b120a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/QuarterLabelService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/RecentColorStorage.cs",
+      "source_sha256": "e64947fdf46858405793a3d8c83a18cb3edc8b012f4dc0654a8c814f7beb4b0c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/RecentColorStorage.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/RecentTrainingTimerStorage.cs",
+      "source_sha256": "90b8c3a3f3944270dc9b254d9afad50b025174792a688993280bb0346a5a19d6",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/RecentTrainingTimerStorage.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ScrollActivity.cs",
+      "source_sha256": "2a349900638327548ed98eae138bd03fd5bdf96d5d6025092e41df52c168d07c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/ScrollActivity.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/SelectionCheckMotion.cs",
+      "source_sha256": "fa770b5e851acdaca7069fff886a36107932d59989e4bb3e42d35f13f2d4ff90",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/SelectionCheckMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/SelfTestStorage.cs",
+      "source_sha256": "74532f4a16e29b17e75afebf1b7341acc90c9f8655acd569e2f34627c7fe1c8a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/SelfTestStorage.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/SettingsControlMotion.cs",
+      "source_sha256": "cd91fd933dad2ff636e2d49ddddc44e32573190e1626e8276b7dceba467b1d06",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/SettingsControlMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/SmartContrast.cs",
+      "source_sha256": "396ec79534062870aae96ae508351c53a4a436e99a3eeeb953859c4142e905c0",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/SmartContrast.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/TeamCatalogService.cs",
+      "source_sha256": "f5b3283372dcd8884550bb9b0bf5bf500531cf4aeac9b20a048408b04de8e61f",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/TeamCatalogService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/TeamLogoService.Bundled.cs",
+      "source_sha256": "1005067c572c590b66fa1dfbba45749e672ac1ce60f67873a64fcfa71ca324ea",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/TeamLogoService.Bundled.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/TeamLogoService.cs",
+      "source_sha256": "5bb9e7cac50fc71757e174e8c3f9aaeeaa2027095eb95cada42498637baf843f",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/TeamLogoService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/TeamVisuals.cs",
+      "source_sha256": "c0868a2b5ee1beb80e2300f92077212925dc15dc643fb5977ef0d5ecd841d585",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/TeamVisuals.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ThemeService.cs",
+      "source_sha256": "9941e782a5e80e1121bee6df517be4f8f5ee4183788dc8c8db7bc564443b952f",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/Native/ThemeService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/UxPreferences.cs",
+      "source_sha256": "f65a703ec204c2a6f2d255ca9b1b337e300d8bdef7043527c5dd3c1309413be8",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/UxPreferences.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/VideoDiagnostics.cs",
+      "source_sha256": "cbdb075ba30172f65feb2e433467c34fd39dd85614a6113edb5171650ced0b64",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/VideoDiagnostics.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/VideoOptimizer.cs",
+      "source_sha256": "dff96e60c1a426b48409e55674c410f6066249f7d553f8ee012e013295c486cb",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/VideoOptimizer.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/VlcRuntime.cs",
+      "source_sha256": "adeb8b8a65927d0a93e48270478245a3a096daf9d8f63fdc5f8488fb927bd034",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/VlcRuntime.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/WeatherService.cs",
+      "source_sha256": "db2d03e67afd1ff63bb7c291c6a7ff6bc6662b8ee2793ffd99ddd981eb634b91",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/WeatherService.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/WindowChromeEnforcer.cs",
+      "source_sha256": "74f4174999738db99d1f727065e32614701d52f89944bdadd080465056ca6462",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/Native/Dialogs.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Services/WindowLayoutStorage.cs",
+      "source_sha256": "0b955c775c95b70ecfbd6f1a923cb8ab4550c6f2bee5b0a55306cc30513a8820",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Services/WindowLayoutStorage.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/AflPresentationGalleryWindow.xaml.cs",
+      "source_sha256": "3500da31571f2958f339f17d8a1de022917b62780e6bd8949a26b63457a6ce36",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/AflPresentationGalleryWindow.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/BreakScreenControl.xaml.cs",
+      "source_sha256": "fcb701ca601a9a35df7a71f38e4d03f52be981f99d10c42cdad661678858cfad",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/BreakScreenControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CalibrationOverlay.xaml.cs",
+      "source_sha256": "aa8d8ee168d63b6b29879a813677cf8881cd3dac7897884eb3a68b2776a99171",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/CalibrationOverlay.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml.cs",
+      "source_sha256": "e5248f647a6ab3c74427cc71cf5d4d80c07fd86a5808e559cf37ad8c2c8d8b4c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/CloudRemoteLauncher.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ColorPickerWindow.xaml.cs",
+      "source_sha256": "5e8ea45a6a4d2b6e51061bf60984ceb3a5ee9ffdd0d443127fd7259d9fce55bd",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/ColorPickerWindow.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ControlPanel.xaml.cs",
+      "source_sha256": "442c282b438b1d2edbe6bc8c80cfe4af9deeb7b7856e798a19f334500862ed29",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/ControlPanel.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketChartVisual.cs",
+      "source_sha256": "c4169d6846000da841613fa1039a2fc0b786ac5e27f5cec0cfcba3000915eff6",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketChartVisual.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.BreakPresentations.cs",
+      "source_sha256": "35c5c3d2f94464eee87114fb512f466ad616208cc30696c9fa3e22571069b297",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.BreakPresentations.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.Conditions.cs",
+      "source_sha256": "3c56ff4738a2c56f26b3b2af8641132058eda3cef21dc48cacb94fa47c8f3eba",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.Conditions.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.Guidance.cs",
+      "source_sha256": "9cfbeb2b07675ad6084571ea1f5598adb73939d092839d6eac6ba856c7010d57",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.Guidance.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.PlayerMenu.cs",
+      "source_sha256": "24c8bf27a3690b5edd13f0c1814e3d5e6bc940535e30effa00cbff79282734da",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.PlayerMenu.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.Scorecard.cs",
+      "source_sha256": "b96f92462662f1a6f34a0a348222563c2d1570965a433fd159cf6317dfc54d0b",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.Scorecard.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.ScorecardDetails.cs",
+      "source_sha256": "d9d0b5ff39df019a2fccac0a7f591ab6e4271f67f8a46dbf81a88dea37d2bf73",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.ScorecardDetails.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.ScorecardInline.cs",
+      "source_sha256": "35b14d341c83b8250b0fe8bb297b32e0b591c6563d046ea5397ac5d0a95d2d7b",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.ScorecardInline.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.ScorecardTransactions.cs",
+      "source_sha256": "b551d9547405653c374c4ca57b5cbb21a02b6ee659f1601e8d4d53836ac79958",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.ScorecardTransactions.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.Workflows.cs",
+      "source_sha256": "fcd4c276b450597395335fe8197a346c1f3252f404845f677473c0649e90e880",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketControlPanel.Workflows.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml.cs",
+      "source_sha256": "ffdfb5d50652117fe5255e78694584e4264738a3ca0d5f811419b6c8c03f2704",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/CricketControlPanel.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml.cs",
+      "source_sha256": "4f8958ba3181e5b7cc36119811bea5823b25b276e33068b7f7589603fef2a7c1",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/CricketDeliveryDialog.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketOverlayHost.FreeHit.cs",
+      "source_sha256": "d0fd5cb7d18c7398251b2403efc22ce13f1253143473a06a45ca28ab971fdb8f",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketOverlayHost.FreeHit.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketOverlayHost.cs",
+      "source_sha256": "1acbfd98cfb3a4cc50011367651b49e3f3c34f9cb101bcde8a595bd4f5ebe36f",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketOverlayHost.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketPrompt.cs",
+      "source_sha256": "dd67aa13f7fec733f0f4de318979beb47da3983cc81eb237dec57b1f7abd2902",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketPrompt.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.Broadcast.cs",
+      "source_sha256": "db7380378681c65dc937ae9d084e688fbac59ec6e67431d9e6b2ef1d23fbb6a8",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketScorebugControl.Broadcast.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.Context.cs",
+      "source_sha256": "089de74292660dfc7a88fbd13dd237b7463e15f59075b427f96aac19736be21e",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketScorebugControl.Context.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.Diagnostics.cs",
+      "source_sha256": "dfeecac9b51a587eed4f2b1d2f0e3b9c1af0cc9b0f18791d1060ae7e4a0bf9ae",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketScorebugControl.Diagnostics.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.Milestones.cs",
+      "source_sha256": "572d6fa8063385f5ba67ff42f64531f3c3862f68827ec589ab928a3b1c42360f",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketScorebugControl.Milestones.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.Moments.cs",
+      "source_sha256": "aa3abe327369f1e57d737f274fb1c97aa1084111f9add03428a0a94407ae0d57",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketScorebugControl.Moments.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.Presentation.cs",
+      "source_sha256": "7a6e1959809fac103b1ebcd2e1d257aa5af29bee9221daccfd3ed1f3bd6cc9ba",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketScorebugControl.Presentation.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml.cs",
+      "source_sha256": "b217f75a47d5322c8902867596800de8d4e664e050d81019aae5f93a8eeb7ff1",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/CricketScorebugControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSetupWizard.PlayerEntry.cs",
+      "source_sha256": "8f7d0c7f19e2da8600803881bb6b2444d81903e6fcd4381ef72f6bb30bb50dd9",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketSetupWizard.PlayerEntry.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSetupWizard.Roles.cs",
+      "source_sha256": "c6dc8cd6c394e661eb17aae5c0d856a5c9f75bdf1607f205cdc8a577dd5d9568",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketSetupWizard.Roles.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml.cs",
+      "source_sha256": "df0d4709aadd4cf597b8bdf30bf352f073be6c2eff4fae0618a6f07b9e92350c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/CricketSetupWizard.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSummaryControl.Charts.cs",
+      "source_sha256": "bf2d42c65604844decd4372a1d42ee79c98b63ff49ef99b4a6dd27040f3612c6",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketSummaryControl.Charts.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSummaryControl.MatchSummary.cs",
+      "source_sha256": "df951f7b639a0aecee2d96bd8782be6f595d4536d80de1e3e81404d7df941f6d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketSummaryControl.MatchSummary.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSummaryControl.xaml.cs",
+      "source_sha256": "6324c11c31d0fe743e999903fe557b208bee522b97dd51cacb0b02b30162c2a2",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/CricketSummaryControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/DesignSystemGalleryWindow.xaml.cs",
+      "source_sha256": "44dd64848d1ebfc786f65deb4c460233e92e92486dbbadb70bea9cb69f0f137a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/DesignSystemGalleryWindow.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/EmergencyVideoWindow.cs",
+      "source_sha256": "4b0b3291bb421ba3680d24e54ea7fa2e3fa303dc3e567db4be9693677a7aafea",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/EmergencyVideoWindow.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml.cs",
+      "source_sha256": "9faa915195ced9f0a0eedec6bac8859cdeb7b6212f11bf9872f71069b2108327",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/GlobalSettingsScreen.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/IntroScreenControl.xaml.cs",
+      "source_sha256": "75fb56828b46362fdce6739bdc69541a83580611fd9350a6eca0a8a2116240b0",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/IntroScreenControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/LogoCropWindow.xaml.cs",
+      "source_sha256": "cc97acc8b085c536ed471c88822394dd310b80322cdf29529227bbfdd21c03a2",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/LogoCropWindow.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/MatchLoadingScreen.xaml.cs",
+      "source_sha256": "d0e7b05df8b59d8a62b1d5397e2d8dbbbb6628b207b2a5139b443708c8ff2fbf",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/MatchLoadingScreen.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorActionBorder.cs",
+      "source_sha256": "00e3eee189225e7f6fb7d64f1b7665aa9c1fd40b6cd7cad3058d072b3631dcd3",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorActionBorder.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorClubPresetDesign.cs",
+      "source_sha256": "9aa16ca10d653a27d137fcb70c59375642e47afc135d16449cf0a8f748403e4c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorClubPresetDesign.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorGlassSurface.cs",
+      "source_sha256": "568ddb177283725212a67c54445ceec915dce2ee4978e90c372ad944abe7d501",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorGlassSurface.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorMaterialPreferences.cs",
+      "source_sha256": "c9dcc5be913247236c5d7e68574fe79fd8901dc83e7a3a6ed2e3db0a07125ed0",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorMaterialPreferences.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorSceneBackdrop.cs",
+      "source_sha256": "b3a35270ccb54cbf14a998493c0e4c95ba698b644ec5a6f4857724edd3b0b349",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorSceneBackdrop.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorSearchBox.cs",
+      "source_sha256": "d8da631e7d9710f0e4b8a75722de492ef5f21aa4732b87e17db2a4b28bcee838",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorSearchBox.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorSegmentedPanel.cs",
+      "source_sha256": "eb16380dce6660e9449a634c6aa28b166ab995557b01dc9036dd32871a9ce464",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorSegmentedPanel.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorSportArtwork.cs",
+      "source_sha256": "c3b50332040609140a32be4456a059df50993d1c818900e8fdb60a81490631bd",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorSportArtwork.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorViewport.cs",
+      "source_sha256": "bbcc62c2ccf01c5fb21af5633922e693e03d2978683fe08ad99d5bbe7acba816",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/OperatorViewport.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OutputScreensaverControl.xaml.cs",
+      "source_sha256": "378e2ae4349d012da66b0f82147486688c5ddc6b61980f3104345922a244763a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/OutputScreensaverControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/PresentationScoreBar.xaml.cs",
+      "source_sha256": "2c9ae555242f08a65521837db42fe706c7788443a9bc315e170fd429ddd80bcb",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/PresentationScoreBar.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/QuarterBreakScorebugControl.xaml.cs",
+      "source_sha256": "b96d585273cb3315025dbae27fb2d9e2a6626552fb67ce3b265e695195dbd6ba",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/QuarterBreakScorebugControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ResponsivePresentationTypography.cs",
+      "source_sha256": "fb3ce5c7d30ccb1d2f9856950e40bbc11dfdba0bb706c3b662e76209491bb5a1",
+      "mapping": "native-platform-equivalent",
+      "destination": "macos/RocheScoreboard.Mac/Native/ResponsivePresentationTypography.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ResumeGameDialog.xaml.cs",
+      "source_sha256": "15e6cff730f0daf4e04a43129ccec5f23f2d2fbb2dab7ed75ee5d3e6b3dceeb6",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/ResumeGameDialog.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ResumeMatchPrompt.xaml.cs",
+      "source_sha256": "eee699730172d4c1bd1654007adb73b511e9927843162757755c8c57c941d42a",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/ResumeMatchPrompt.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/RollingScoreVisual.cs",
+      "source_sha256": "068fd97b9bbc45d4379ff1d112405d868682c8de183f84febebc24032e05b319",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/RollingScoreVisual.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml.cs",
+      "source_sha256": "905009d604b53b3eb04cccaec52917d1f753c3bbbb70ef6c47cb5c3c1deb18f3",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/ScoreEventEditorWindow.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScoreboardScaleHelper.cs",
+      "source_sha256": "3b74c2a3072d356a29540aa2b71e5c3c29628344d893ab8eedb1e0acc33fd484",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/ScoreboardScaleHelper.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScorebugControl.xaml.cs",
+      "source_sha256": "4c418415313f01557dccb49f629633c718c36c2f3522503706ee2ff02423c325",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/ScorebugControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/ScorewormControl.xaml.cs",
+      "source_sha256": "85866d7451a213250dbaa616f3d5ff15b195742635631915944021dfd0c44da0",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/ScorewormControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SettingsWorkspace.cs",
+      "source_sha256": "c21fa21fc712cd48233c7180f13e618441cf3f7c6ce6094effe64e1d18acc965",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/SettingsWorkspace.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SetupWizard.xaml.cs",
+      "source_sha256": "0af6808dbcf7fcc8f1cd50372fba394722561e1b065b77f6357d596059bde04d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/SetupWizard.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SharedSurfaceMotion.cs",
+      "source_sha256": "b6811fab20a0ae7dfc2c7748cbe3c1161c133ca20da97d08ef74829bd10f162f",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/SharedSurfaceMotion.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SharedSurfaceMotionChecks.cs",
+      "source_sha256": "b00ce2c7a91cf7c80744f7a00894bbab8445037d4d6b9ae56c9f8019b1ba2ec2",
+      "mapping": "windows-qa-reference",
+      "destination": null
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SportSelectionScreen.Interactions.cs",
+      "source_sha256": "be5dbc3812a8b0bd3952188c6e70a9a63675608d60ef0eb4ec75ea869f6f989c",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/SportSelectionScreen.Interactions.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SportSelectionScreen.Landing.cs",
+      "source_sha256": "110fde529498e4801f8b3816dc03acc2734d7a3a55afa6cea23008c2b15657b6",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/SportSelectionScreen.Landing.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml.cs",
+      "source_sha256": "0e1373748244eb938fbfc82b677ac01690a0fcf41896868c3adc9e58e66959d7",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/SportSelectionScreen.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/StatsScreenControl.xaml.cs",
+      "source_sha256": "b1c54daadf6032cf2909de389a50dcd8e833b86463fdb48fb947685e09984234",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/StatsScreenControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml.cs",
+      "source_sha256": "25cdd4a1a725ae7696d28b4182f21e4baca71139d3cb1db845e1b06820456380",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/TeamLibraryWindow.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TrainingControlPanel.ControlCentre.cs",
+      "source_sha256": "3a7fe3e9c4468eb4a5df2fa64167fd99db05f2a5ad1c461649752dd812a79794",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/TrainingControlPanel.ControlCentre.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml.cs",
+      "source_sha256": "8db294f05c3fd2dab11718e5436d19e6154973e49e975d084cd38f40651a4817",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/TrainingControlPanel.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/TrainingScorebugControl.xaml.cs",
+      "source_sha256": "39d2f25f73532db6ce2c2b8d5e97994342d853947667dda9374fdd6e9bcd1e7b",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/TrainingScorebugControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml.cs",
+      "source_sha256": "48d02d26f7a96c36dc2f8804c697e815485007b7e6bcffd4a7ab96f8a06da9e4",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/UpdatePromptWindow.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/VideoPlayerControl.PresentationOverlay.cs",
+      "source_sha256": "82888aef08874201ead268e9ae9e88a7ef9a14efdaae012ec216d78f74a4ff87",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/VideoPlayerControl.PresentationOverlay.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/VideoPlayerControl.xaml.cs",
+      "source_sha256": "cd2746ab4426c7b6d7964d7201eb59ef93641b1abbd3cb83b2fa90515e493c2d",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/VideoPlayerControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/WeatherScreenControl.xaml.cs",
+      "source_sha256": "da5a0364d9f03a55c6a2c40485be0d9ce0597474f5b5818afe97412494c06efb",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/WeatherScreenControl.axaml.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/WizardFlowDesign.cs",
+      "source_sha256": "d3ac46c276c5a817c6efd5b2ef769d3a55be2bcd4d1a7ee41c2443453ee11799",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/WizardFlowDesign.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/WizardPair.cs",
+      "source_sha256": "8e30994fa183f81f86b38bd1cc08254e858e203af018cca57cb0cfad126c9de7",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/WizardPair.cs"
+    },
+    {
+      "source": "Roche_Scoreboard/Views/WizardTeamEditor.cs",
+      "source_sha256": "498e2606c6b4b0c4879b9fe3cd25b072bb37d3d41ae50a2074c80685377fa80e",
+      "mapping": "translated-runtime",
+      "destination": "macos/RocheScoreboard.Mac/Native/Generated/Views/WizardTeamEditor.cs"
+    }
+  ],
+  "native_mac_acceptance_verified": false
+}

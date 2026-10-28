@@ -90,9 +90,9 @@ namespace Roche_Scoreboard.Views
 
         public VideoPlayerControl()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
             Loaded += OnLoaded;
-            PropertyChanged += OnIsVisibleChanged;
+            NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,OnPropertyChanged);
             Unloaded += (_, _) => Cleanup();
         }
 
@@ -255,7 +255,7 @@ namespace Roche_Scoreboard.Views
         {
             if (_isDisposed) return;
             _isDisposed = true;
-            PropertyChanged -= OnIsVisibleChanged;
+            NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,false,OnPropertyChanged);
             VideoDiagnostics.Info(LogCategory, "Cleanup() invoked - tearing down MediaPlayer.");
             if (_watchdogTimer is not null)
             {
@@ -367,7 +367,7 @@ namespace Roche_Scoreboard.Views
         public void Play()
         {
             if (_sourcePath is null || _player is null) return;
-            // Visibility and presentation routing can legitimately ask an
+            // bool and presentation routing can legitimately ask an
             // already-playing surface to play again. Treat that as a no-op so
             // VLC is not restarted and the diagnostics writer is not flooded.
             if (_isPlaying) return;
@@ -692,7 +692,7 @@ namespace Roche_Scoreboard.Views
             }
         }
 
-        private void OnIsVisibleChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        private void OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_isDisposed || _sourcePath is null) return;
             if (IsVisible)

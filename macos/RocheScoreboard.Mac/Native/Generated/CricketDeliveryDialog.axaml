@@ -1,0 +1,138 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.CricketDeliveryDialog" ns2:OperatorDesign.IsEnabled="True" Background="Transparent" Foreground="#FAFAFC" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="15" KeyboardNavigation.TabNavigation="Cycle" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:design="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/OperatorControls.axaml" />
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/SettingsControls.axaml" />
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/CricketActions.axaml" />
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/ControlCentre.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="ScoreGrid.Brush.TextPrimary" Color="#E6EDF3" />
+            <SolidColorBrush x:Key="ScoreGrid.Brush.TextSecondary" Color="#B6B6C0" />
+            <SolidColorBrush x:Key="ScoreGrid.Brush.Surface" Color="#19191C" />
+            <SolidColorBrush x:Key="ScoreGrid.Brush.SurfaceSubtle" Color="#29292D" />
+            <SolidColorBrush x:Key="ScoreGrid.Brush.ControlBorder" Color="#53535C" />
+            <SolidColorBrush x:Key="ScoreGrid.Brush.AccentBackground" Color="#283D52" />
+            <SolidColorBrush x:Key="ScoreGrid.Brush.AccentForeground" Color="#A9D3FF" />
+            <ControlTheme TargetType="ComboBox" BasedOn="{StaticResource SettingsChoice}" x:Key="{x:Type ComboBox}">
+                <Setter Property="Margin" Value="0,5,0,14" />
+            </ControlTheme>
+            <ControlTheme TargetType="TextBox" BasedOn="{StaticResource SettingsInput}" x:Key="{x:Type TextBox}">
+                <Setter Property="FontSize" Value="24" />
+                <Setter Property="MinHeight" Value="46" />
+            </ControlTheme>
+            <ControlTheme x:Key="FieldTitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="Foreground" Value="#B6B6C0" />
+            </ControlTheme>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid x:Name="EntryLayout" Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ns4:OperatorGlassSurface x:Name="TeamHeader" Material="Opaque" Height="96" Margin="0,0,0,16" Padding="16,12" CornerRadius="22" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" ClipToBounds="True">
+            <Grid>
+                <Image x:Name="TeamLogo" Stretch="UniformToFill" Opacity=".09" IsHitTestVisible="False" />
+                <StackPanel>
+                    <TextBlock x:Name="Heading" Text="EDIT DELIVERY" FontSize="25" FontWeight="Bold" />
+                    <TextBlock x:Name="ContextText" Foreground="#B6B6C0" FontSize="14" Margin="0,5,0,0" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <Button Content="×" Click="Cancel_Click" Width="32" Height="32" MinHeight="0" Padding="0" FontSize="22" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#29292D" ToolTip.Tip="Cancel delivery" Theme="{StaticResource ToolBtn}" />
+            </Grid>
+        </ns4:OperatorGlassSurface>
+        <ScrollViewer x:Name="EntryScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="2,0,8,0">
+                <TextBlock x:Name="TypeLabel" Text="SCORE TYPE" Theme="{StaticResource FieldTitle}" />
+                <ComboBox x:Name="TypeChoice" SelectionChanged="Native_Details_Changed" />
+                <StackPanel x:Name="WicketOptions">
+                    <TextBlock x:Name="FreeHitEntryHint" Text="FREE HIT · Only run out, obstructing field or hit ball twice can be recorded." Foreground="#FFD980" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,12" IsVisible="False" />
+                    <TextBlock Text="HOW OUT" Theme="{StaticResource FieldTitle}" />
+                    <ComboBox x:Name="DismissalChoice" IsVisible="False" SelectionChanged="Native_Details_Changed" />
+                    <WrapPanel x:Name="DismissalTiles" Margin="0,6,0,14" />
+                    <TextBlock Text="DISMISSED BATTER" Theme="{StaticResource FieldTitle}" />
+                    <ComboBox x:Name="DismissedChoice" IsVisible="False" SelectionChanged="Native_Details_Changed" />
+                    <WrapPanel x:Name="DismissedTiles" Margin="0,6,0,4" />
+                    <TextBlock x:Name="DismissedBatterHint" Text="Only the striker can be dismissed this way." Foreground="#F0CB78" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,14" />
+                    <StackPanel x:Name="FielderOptions">
+                        <TextBlock Text="FIELDER (OPTIONAL)" Theme="{StaticResource FieldTitle}" />
+                        <ComboBox x:Name="FielderChoice" SelectionChanged="Native_Details_Changed" />
+                        <WrapPanel x:Name="FielderTiles" Margin="0,6,0,14" IsVisible="False" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel x:Name="RunOutOptions" IsVisible="False">
+                    <TextBlock Text="RUN OUT DELIVERY" Theme="{StaticResource FieldTitle}" />
+                    <ComboBox x:Name="RunOutChoice" IsVisible="False" SelectionChanged="Native_Details_Changed" />
+                    <UniformGrid x:Name="RunOutSourceTiles" Columns="3" Margin="0,6,0,12">
+                        <Button Content="OFF THE BAT" Tag="0" Click="RunOutSource_Click" MinHeight="44" Margin="0,0,4,4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="WIDE" Tag="1" Click="RunOutSource_Click" MinHeight="44" Margin="0,0,4,4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="NO-BALL" Tag="2" Click="RunOutSource_Click" MinHeight="44" Margin="0,0,4,4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="BYES" Tag="3" Click="RunOutSource_Click" MinHeight="44" Margin="0,0,4,4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="LEG-BYES" Tag="4" Click="RunOutSource_Click" MinHeight="44" Margin="0,0,4,4" Theme="{StaticResource ToolBtn}" />
+                    </UniformGrid>
+                    <UniformGrid IsVisible="False">
+                        <RadioButton x:Name="RunOutNotCrossed" IsChecked="True" GroupName="RunOutCrossing" IsCheckedChanged="Native_RunOutCrossing_Changed_Checked" />
+                        <RadioButton x:Name="RunOutCrossed" GroupName="RunOutCrossing" IsCheckedChanged="Native_RunOutCrossing_Changed_Checked" />
+                    </UniformGrid>
+                    <TextBlock Text="Check the strike after recording the wicket. Use Swap strike from the player menu if needed." TextWrapping="Wrap" Foreground="#B6B6C0" FontSize="13" Margin="0,4,0,12" />
+                </StackPanel>
+                <StackPanel x:Name="NoBallOptions">
+                    <TextBlock Text="NO-BALL RUNS CAME FROM" Theme="{StaticResource FieldTitle}" />
+                    <ComboBox x:Name="NoBallChoice" IsVisible="False" SelectionChanged="Native_Details_Changed" />
+                    <UniformGrid Columns="3" Margin="0,6,0,14">
+                        <Button x:Name="BatRunsTile" Content="RUNS" Tag="0" Click="Source_Click" Height="52" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button x:Name="ByesTile" Content="BYES" Tag="1" Click="Source_Click" Height="52" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button x:Name="LegByesTile" Content="LEG BYES" Tag="2" Click="Source_Click" Height="52" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                    </UniformGrid>
+                </StackPanel>
+                <StackPanel x:Name="RunOptions">
+                    <TextBlock x:Name="RunsLabel" Text="RUNS" Theme="{StaticResource FieldTitle}" />
+                    <UniformGrid x:Name="RunsTiles" Columns="4" Margin="0,6,0,8">
+                        <Button Content="0" Tag="0" Click="RunsTile_Click" Height="48" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="1" Tag="1" Click="RunsTile_Click" Height="48" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="2" Tag="2" Click="RunsTile_Click" Height="48" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="3" Tag="3" Click="RunsTile_Click" Height="48" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="4" Tag="4" Click="RunsTile_Click" Height="48" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="5" Tag="5" Click="RunsTile_Click" Height="48" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button Content="6" Tag="6" Click="RunsTile_Click" Height="48" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                        <Button x:Name="CustomRunsButton" Content="CUSTOM" Click="CustomRuns_Click" Height="48" MinHeight="0" Margin="4" Theme="{StaticResource ToolBtn}" />
+                    </UniformGrid>
+                    <TextBox x:Name="RunsBox" Text="0" MaxLength="3" Margin="0,5,0,5" IsVisible="False" TextChanged="Native_Runs_Changed" />
+                    <TextBlock x:Name="RunExplanation" Foreground="#B6B6C0" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,16" />
+                </StackPanel>
+                <StackPanel x:Name="ActorOptions">
+                    <TextBlock Text="BATTER ON STRIKE" Theme="{StaticResource FieldTitle}" />
+                    <ComboBox x:Name="BatterChoice" IsVisible="False" SelectionChanged="Native_Batter_Changed" />
+                    <WrapPanel x:Name="BatterTiles" Margin="0,6,0,14" />
+                    <TextBlock Text="BOWLER" Theme="{StaticResource FieldTitle}" />
+                    <ComboBox x:Name="BowlerChoice" SelectionChanged="Native_Details_Changed" />
+                    <WrapPanel x:Name="BowlerTiles" Margin="0,6,0,14" IsVisible="False" />
+                </StackPanel>
+                <StackPanel x:Name="CorrectionOptions" IsVisible="False">
+                    <TextBlock Text="UPDATE STRIKE FOR LATER BALLS?" Theme="{StaticResource FieldTitle}" />
+                    <ComboBox x:Name="ScopeChoice" SelectionChanged="Native_Details_Changed" />
+                    <CheckBox x:Name="RestOfOverBowler" Content="Apply bowler to the rest of this over" Margin="0,0,0,12" Theme="{StaticResource SettingsToggle}" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel x:Name="EntryFooter" Grid.Row="2">
+            <Border CornerRadius="18" x:Name="PreviewPanel" Background="#222226" BorderBrush="#44444B" BorderThickness="1" Padding="14,10" Margin="0,10,0,10">
+                <TextBlock x:Name="PreviewText" TextWrapping="Wrap" FontSize="18" FontWeight="Bold" />
+            </Border>
+            <TextBlock x:Name="ErrorText" Foreground="#FFB1B1" TextWrapping="Wrap" Margin="0,6" IsVisible="False" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="CancelButton" Content="CANCEL" Click="Cancel_Click" Height="48" MinHeight="0" Padding="12,0" IsVisible="False" Theme="{StaticResource ToolBtn}" />
+                <Button x:Name="ApplyButton" Foreground="White" Grid.ColumnSpan="3" Content="APPLY CORRECTION" Height="48" MinHeight="0" Padding="12,0" Click="Apply_Click" Theme="{StaticResource PrimaryCommandButton}" />
+            </Grid>
+        </StackPanel>
+    </Grid>
+</UserControl>

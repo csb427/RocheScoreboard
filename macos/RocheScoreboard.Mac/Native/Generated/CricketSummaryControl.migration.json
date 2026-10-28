@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketSummaryControl.xaml",
-  "source_sha256": "be9bdfa1cc16b4a546d703e3aea309bf9e90b4b94679d87552a7470e8beadb1d",
+  "source_sha256": "716f47f8214e8f564227b3873f81f84dedeedaddea55655b8ce35704da711267",
   "names": [
     {
       "name": "RootGrid",
@@ -13,13 +13,43 @@
       "object": true
     },
     {
+      "name": "SummaryHeaderPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "HeaderBg",
       "type": "SolidColorBrush",
       "object": true
     },
     {
+      "name": "SummaryHeaderLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HeaderSheen",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HeaderShimmer",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "HeaderText",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SummaryClock",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SummaryColumnPanel",
+      "type": "Border",
       "object": false
     },
     {
@@ -28,8 +58,13 @@
       "object": true
     },
     {
+      "name": "SummaryColumns",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "RowsPanel",
-      "type": "StackPanel",
+      "type": "UniformGrid",
       "object": false
     },
     {
@@ -73,37 +108,43 @@
       "object": false
     }
   ],
-  "code_source_sha256": "078ed722903fd0a44f69dc8be6baf41bb542604d507ec72eaaa44c1afe58a179",
+  "code_source_sha256": "6324c11c31d0fe743e999903fe557b208bee522b97dd51cacb0b02b30162c2a2",
   "native_events": [],
   "platform_translations": [
     {
       "name": "HeaderText",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Arial",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": "SummaryClock",
+      "property": "FontFamily",
+      "source": "Arial",
       "native_fallback": "Inter"
     },
     {
       "name": "FooterTeamScore",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Arial",
       "native_fallback": "Inter"
     },
     {
       "name": "FooterOvers",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Arial",
       "native_fallback": "Inter"
     },
     {
       "name": "FooterStatValue",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Arial",
       "native_fallback": "Inter"
     },
     {
       "name": "FooterStat2Value",
       "property": "FontFamily",
-      "source": "Bahnschrift",
+      "source": "Arial",
       "native_fallback": "Inter"
     }
   ],

@@ -1,0 +1,864 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:ns1="clr-namespace:Roche_Scoreboard.Services" xmlns:ns3="clr-namespace:RocheScoreboard.Mac.Native" xmlns:ns4="clr-namespace:System;assembly=System.Runtime" xmlns:ns6="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <ns1:OperatorInsetConverter x:Key="ControlCentre.Insets" />
+    <ns1:OperatorTabLabelConverter x:Key="ControlCentre.TabLabel" />
+    <ns3:ProductionFontExtension x:Key="ControlCentre.Font" Declaration="Segoe UI Variable, Segoe UI" />
+    <SolidColorBrush x:Key="ControlCentre.TabSelectedInkBrush" Color="#ACD7FF" />
+    <SolidColorBrush x:Key="ControlCentre.SelectedTextBrush" Color="#FAFAFC" />
+    <SolidColorBrush x:Key="ControlCentre.SegmentSelectedInkBrush" Color="#101318" />
+    <SolidColorBrush x:Key="ControlCentre.ActionTextBrush" Color="#FAFAFC" />
+    <SolidColorBrush x:Key="ControlCentre.CanvasBrush" Color="#09090B" />
+    <SolidColorBrush x:Key="ControlCentre.SurfaceBrush" Color="#19191C" />
+    <SolidColorBrush x:Key="ControlCentre.RaisedBrush" Color="#29292D" />
+    <SolidColorBrush x:Key="ControlCentre.TextBrush" Color="#FAFAFC" />
+    <SolidColorBrush x:Key="ControlCentre.SecondaryTextBrush" Color="#B6B6C0" />
+    <SolidColorBrush x:Key="ControlCentre.BorderBrush" Color="#44444B" />
+    <SolidColorBrush x:Key="ControlCentre.AccentBrush" Color="#7BB8FF" />
+    <SolidColorBrush x:Key="ControlCentre.SelectionBrush" Color="#253D55" />
+    <ns4:Double x:Key="ControlCentre.BodySize">15</ns4:Double>
+    <ns4:Double x:Key="ControlCentre.CaptionSize">13</ns4:Double>
+    <ns4:Double x:Key="ControlCentre.ControlHeight">42</ns4:Double>
+    <Thickness x:Key="ControlCentre.ControlPadding">16,10</Thickness>
+    <LinearGradientBrush x:Key="ControlCentre.SatinBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Color="#36363B" Offset="0" />
+        <GradientStop Color="#252529" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ControlCentre.NavigationGlassBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Color="#F03B3B40" Offset="0" />
+        <GradientStop Color="#F0212125" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ControlCentre.GlassBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Color="#F03B3B40" Offset="0" />
+        <GradientStop Color="#F0212125" Offset="1" />
+    </LinearGradientBrush>
+    <DataTemplate x:Key="ControlCentre.MoreGlyph">
+        <ns1:OperatorSymbol Kind="more" Width="20" Height="20" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+    </DataTemplate>
+    <ControlTheme x:Key="ControlCentre.Button" TargetType="Button">
+        <Setter Property="native:NativeToolTipPolicy.Enabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}" />
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="False" />
+        <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.GlassBrush}" />
+        <Setter Property="BorderBrush" Value="#4B4B51" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="{DynamicResource ControlCentre.ControlPadding}" />
+        <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <Grid x:Name="PART_Surface" RenderTransformOrigin="50%,50%">
+                            <Grid.RenderTransform>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                            </Grid.RenderTransform>
+                            <ns6:OperatorGlassSurface x:Name="Bd" CornerRadius="26" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
+                            <Border x:Name="ActionGlow" CornerRadius="26" Background="White" Opacity="0" IsHitTestVisible="False" Margin="1" />
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}">
+                                <ContentPresenter.Margin>
+                                    <MultiBinding Converter="{StaticResource ControlCentre.Insets}">
+                                        <Binding Path="Width" RelativeSource="{RelativeSource TemplatedParent}" />
+                                        <Binding Path="Height" RelativeSource="{RelativeSource TemplatedParent}" />
+                                        <Binding Path="Padding" RelativeSource="{RelativeSource TemplatedParent}" />
+                                        <Binding Path="FontSize" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    </MultiBinding>
+                                </ContentPresenter.Margin>
+                            </ContentPresenter>
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus:focus-visible /template/ glass|OperatorGlassSurface#Bd">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ glass|OperatorGlassSurface#Bd">
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <Style Selector="^:disabled /template/ Grid#PART_Surface">
+            <Setter Property="Opacity" Value=".38" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Cursor" Value="Arrow" />
+        </Style>
+        <Style Selector="^[Content=⋯]">
+            <Setter Property="ContentTemplate" Value="{StaticResource ControlCentre.MoreGlyph}" />
+        </Style>
+        <Style Selector="^[Content=⋯]">
+            <Setter Property="AutomationProperties.Name" Value="More actions" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="ControlCentre.PrimaryButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}">
+        <Setter Property="Background" Value="#F3F3F7" />
+        <Setter Property="Foreground" Value="#121216" />
+        <Setter Property="BorderBrush" Value="#FFFFFF" />
+    </ControlTheme>
+    <ControlTheme x:Key="ToolBtn" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}" />
+    <ControlTheme x:Key="PrimaryCommandButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.PrimaryButton}" />
+    <ControlTheme x:Key="CricketActionButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}" />
+    <ControlTheme x:Key="OperatorPresentationButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}" />
+    <ControlTheme TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}" x:Key="{x:Type Button}" />
+    <ControlTheme x:Key="SettingsInput" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="SelectionBrush" Value="#4374A4" />
+        <Setter Property="CaretBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Outline" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12">
+                        <ScrollViewer x:Name="PART_ContentHost">
+                            <ScrollViewer.Margin>
+                                <MultiBinding Converter="{StaticResource ControlCentre.Insets}">
+                                    <Binding Path="Width" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    <Binding Path="Height" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    <Binding Path="Padding" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    <Binding Path="FontSize" RelativeSource="{RelativeSource TemplatedParent}" />
+                                </MultiBinding>
+                            </ScrollViewer.Margin>
+                            <TextPresenter x:Name="PART_TextPresenter" Text="{TemplateBinding Text, Mode=TwoWay}" CaretIndex="{TemplateBinding CaretIndex}" SelectionStart="{TemplateBinding SelectionStart}" SelectionEnd="{TemplateBinding SelectionEnd}" TextAlignment="{TemplateBinding TextAlignment}" TextWrapping="{TemplateBinding TextWrapping}" LineHeight="{TemplateBinding LineHeight}" PasswordChar="{TemplateBinding PasswordChar}" SelectionBrush="{TemplateBinding SelectionBrush}" SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}" CaretBrush="{TemplateBinding CaretBrush}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus-within:focus-visible /template/ Border#Outline">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="TextBox" BasedOn="{StaticResource SettingsInput}" x:Key="{x:Type TextBox}" />
+    <ControlTheme TargetType="glass:OperatorSearchBox" BasedOn="{StaticResource SettingsInput}" x:Key="{x:Type glass:OperatorSearchBox}">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="glass:OperatorSearchBox">
+                    <ns6:OperatorGlassSurface x:Name="SearchSurface" Material="Regular" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="24">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="38" />
+                            </Grid.ColumnDefinitions>
+                            <ns1:OperatorSymbol x:Name="PART_SearchSymbol" Kind="search" Width="19" Height="19" VerticalAlignment="Center" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" />
+                            <ScrollViewer x:Name="PART_ContentHost" Grid.Column="1" Margin="0,9" VerticalAlignment="Center">
+                                <TextPresenter x:Name="PART_TextPresenter" Text="{TemplateBinding Text, Mode=TwoWay}" CaretIndex="{TemplateBinding CaretIndex}" SelectionStart="{TemplateBinding SelectionStart}" SelectionEnd="{TemplateBinding SelectionEnd}" TextAlignment="{TemplateBinding TextAlignment}" TextWrapping="{TemplateBinding TextWrapping}" LineHeight="{TemplateBinding LineHeight}" PasswordChar="{TemplateBinding PasswordChar}" SelectionBrush="{TemplateBinding SelectionBrush}" SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}" CaretBrush="{TemplateBinding CaretBrush}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </ScrollViewer>
+                            <TextBlock x:Name="PART_Placeholder" Grid.Column="1" Text="{TemplateBinding Placeholder}" FontSize="{TemplateBinding FontSize}" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" VerticalAlignment="Center" IsHitTestVisible="False" TextTrimming="CharacterEllipsis" />
+                            <Button x:Name="PART_Clear" Grid.Column="2" Width="28" Height="28" MinHeight="0" Padding="0" Margin="0,0,6,0" Focusable="False" IsTabStop="False" Background="Transparent" BorderBrush="Transparent" AutomationProperties.Name="Clear search" IsVisible="False" ToolTip.Tip="Clear search">
+                                <ns1:OperatorSymbol Kind="close" Width="16" Height="16" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" />
+                            </Button>
+                        </Grid>
+                    </ns6:OperatorGlassSurface>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^[HasQuery=True] /template/ TextBlock#PART_Placeholder">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[HasQuery=True] /template/ Button#PART_Clear">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:focus-within:focus-visible /template/ glass|OperatorGlassSurface#SearchSurface">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^[IsReadOnly=True] /template/ Button#PART_Clear">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^:disabled /template/ glass|OperatorGlassSurface#SearchSurface">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsToggle" TargetType="CheckBox">
+        <Setter Property="native:NativeToolTipPolicy.Enabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}" />
+        <Setter Property="motion:SettingsControlMotion.Enabled" Value="False" />
+        <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}" />
+        <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="56" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="Track" Width="50" Height="30" CornerRadius="15" Background="#48484D" BorderBrush="#66666C" BorderThickness="1" VerticalAlignment="Center">
+                            <Ellipse x:Name="ToggleKnob" Width="24" Height="24" Fill="White" HorizontalAlignment="Left" Margin="2,0,0,0" RenderTransformOrigin="50%,50%">
+                                <Ellipse.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                        <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
+                                    </TransformGroup>
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </Border>
+                        <ContentPresenter Grid.Column="1" VerticalAlignment="Center" Margin="8,2,0,2" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:checked /template/ Border#Track">
+            <Setter Property="Background" Value="#209A58" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#Track">
+            <Setter Property="BorderBrush" Value="#42C27B" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#Track">
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}" x:Key="{x:Type CheckBox}" />
+    <ControlTheme x:Key="SettingsTile" TargetType="RadioButton">
+        <Setter Property="native:NativeToolTipPolicy.Enabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}" />
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="False" />
+        <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="Transparent">
+                        <Grid RenderTransformOrigin="50%,50%">
+                            <Grid.RenderTransform>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                            </Grid.RenderTransform>
+                            <ns6:OperatorGlassSurface x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="20" />
+                            <Border x:Name="ActionGlow" Background="White" CornerRadius="20" Margin="1" Opacity="0" IsHitTestVisible="False" />
+                            <Grid Margin="{TemplateBinding Padding}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                <Border x:Name="SelectionMark" Grid.Column="1" Width="20" Height="20" CornerRadius="10" Background="#8DCDFF" Margin="10,0,0,0" IsVisible="False">
+                                    <Path x:Name="PART_CheckPath" StrokeDashArray="22,22" StrokeDashOffset="0" Data="M4,10 L8,14 16,6" Stroke="#0A1824" StrokeThickness="2" StrokeLineCap="Round" />
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:checked">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ glass|OperatorGlassSurface#Tile">
+            <Setter Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ glass|OperatorGlassSurface#Tile">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#SelectionMark">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ glass|OperatorGlassSurface#Tile">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ glass|OperatorGlassSurface#Tile">
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="RadioButton" BasedOn="{StaticResource SettingsTile}" x:Key="{x:Type RadioButton}" />
+    <ControlTheme x:Key="SettingsSectionSurface" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="#303035" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="22" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+        <Setter Property="Effect" Value="{x:Null}" />
+    </ControlTheme>
+    <ControlTheme x:Key="PanelTab" TargetType="TabItem">
+        <Setter Property="native:NativeToolTipPolicy.Enabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}" />
+        <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SecondaryTextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Grid x:Name="TabHitTarget" Background="Transparent" MinWidth="44" Height="64" Margin="1,0">
+                        <Grid x:Name="PART_Surface" RenderTransformOrigin="50%,50%">
+                            <Grid.RenderTransform>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                            </Grid.RenderTransform>
+                            <Border x:Name="ActionGlow" CornerRadius="28" Background="White" Opacity="0" IsHitTestVisible="False" />
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5,0">
+                                <ns1:OperatorSymbol Kind="{TemplateBinding Header}" IsActive="{Binding IsSelected, RelativeSource={RelativeSource TemplatedParent}}" Foreground="{TemplateBinding Foreground}" Width="24" Height="24" HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                <TextBlock Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource ControlCentre.TabLabel}}" Foreground="{TemplateBinding Foreground}" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Grid>
+                        <Border x:Name="FocusFrame" CornerRadius="28" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:selected">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TabSelectedInkBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#FocusFrame">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="OperatorTabs" TargetType="TabControl">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="ItemContainerTheme" Value="{StaticResource PanelTab}" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid KeyboardNavigation.TabNavigation="Local">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ContentPresenter x:Name="PART_SelectedContentHost" Margin="0,0,0,6" Content="{TemplateBinding SelectedContent}" ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+                        <ns6:OperatorGlassSurface x:Name="PART_OperatorDock" Grid.Row="1" CornerRadius="36" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="#486886A6" BorderThickness="1" Padding="5" Margin="12,4,12,12" HorizontalAlignment="Stretch" MinWidth="0" MaxWidth="600">
+                            <Grid>
+                                <ns1:OperatorSelectionLens x:Name="PART_OperatorLens" />
+                                <ItemsPresenter KeyboardNavigation.TabIndex="0" x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                            </Grid>
+                        </ns6:OperatorGlassSurface>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsChoiceItem" TargetType="ComboBoxItem">
+        <Setter Property="Padding" Value="12,9" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Item" Padding="{TemplateBinding Padding}" Background="Transparent" CornerRadius="10">
+                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:selected /template/ Border#Item">
+            <Setter Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#Item">
+            <Setter Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}" />
+        </Style>
+        <Style Selector="^:selected">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsChoice" TargetType="ComboBox">
+        <Setter Property="motion:SettingsControlMotion.Enabled" Value="False" />
+        <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}" />
+        <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="{DynamicResource ControlCentre.ControlPadding}" />
+        <Setter Property="ItemContainerTheme" Value="{StaticResource SettingsChoiceItem}" />
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton x:Name="Toggle" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <ns6:OperatorGlassSurface x:Name="Frame" Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderThickness="1" CornerRadius="12">
+                                        <TextBlock Text="⌄" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="21" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,4" />
+                                    </ns6:OperatorGlassSurface>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                            <ToggleButton.Styles>
+                                <Style Selector="ToggleButton:pointerover /template/ glass|OperatorGlassSurface#Frame">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+                                </Style>
+                                <Style Selector="ToggleButton:checked /template/ glass|OperatorGlassSurface#Frame">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+                                </Style>
+                            </ToggleButton.Styles>
+                        </ToggleButton>
+                        <ContentPresenter x:Name="SelectionLabel" Margin="12,5,36,5" VerticalAlignment="Center" IsHitTestVisible="False" ClipToBounds="True" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+                        <TextBox MinHeight="0" Padding="0" x:Name="PART_EditableTextBox" Margin="10,4,36,4" Background="Transparent" BorderThickness="0" Foreground="{TemplateBinding Foreground}" CaretBrush="{TemplateBinding Foreground}" VerticalContentAlignment="Center" IsReadOnly="False" IsVisible="False" />
+                        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" Focusable="False" ns3:PopupMotion.Kind="None">
+                            <ns6:OperatorGlassSurface GlassSource="{Binding RelativeSource={RelativeSource TemplatedParent}}" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="6" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="320">
+                                <ScrollViewer>
+                                    <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" KeyboardNavigation.TabNavigation="Contained" />
+                                </ScrollViewer>
+                            </ns6:OperatorGlassSurface>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^[IsEditable=True] /template/ TextBox#PART_EditableTextBox">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[IsEditable=True] /template/ ContentPresenter#SelectionLabel">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^:focus-within:focus-visible">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="ComboBox" BasedOn="{StaticResource SettingsChoice}" x:Key="{x:Type ComboBox}" />
+    <ControlTheme x:Key="ControlCentre.RangeTrack" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Grid Background="Transparent">
+                        <Border x:Name="Fill" Height="6" Background="{TemplateBinding Background}" CornerRadius="3" VerticalAlignment="Center" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^[Tag=vertical] /template/ Border#Fill">
+            <Setter Property="Height" Value="NaN" />
+        </Style>
+        <Style Selector="^[Tag=vertical] /template/ Border#Fill">
+            <Setter Property="Width" Value="6" />
+        </Style>
+        <Style Selector="^[Tag=vertical] /template/ Border#Fill">
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="^[Tag=vertical] /template/ Border#Fill">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="Slider" x:Key="{x:Type Slider}">
+        <Setter Property="motion:OperatorSliderMotion.Enabled" Value="True" />
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.AccentBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Background="Transparent" Margin="5,3">
+                        <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                            <Track.DecreaseButton>
+                                <RepeatButton Command="{x:Static native:NativeRangeCommands.DecreaseLarge}" Background="{TemplateBinding Foreground}" x:Name="PART_DecreaseButton" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Slider}}" Theme="{StaticResource ControlCentre.RangeTrack}" />
+                            </Track.DecreaseButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="SliderHandle" Width="28" Height="28">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Grid Background="Transparent">
+                                                <Border x:Name="Grip" Width="24" Height="24" CornerRadius="12" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" RenderTransformOrigin="50%,50%">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                                            <GradientStop Color="#FFFFFF" Offset="0" />
+                                                            <GradientStop Color="#D9E2EF" Offset="1" />
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Border.RenderTransform>
+                                                        <ScaleTransform port:ProductionNames.TemplateId="PART_GripScale" />
+                                                    </Border.RenderTransform>
+                                                </Border>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                    <Thumb.Styles>
+                                        <Style Selector="Thumb:focus-within /template/ Border#Grip">
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+                                        </Style>
+                                        <Style Selector="Thumb:focus-within /template/ Border#Grip">
+                                            <Setter Property="BorderThickness" Value="2" />
+                                        </Style>
+                                    </Thumb.Styles>
+                                </Thumb>
+                            </Track.Thumb>
+                            <Track.IncreaseButton>
+                                <RepeatButton Command="{x:Static native:NativeRangeCommands.IncreaseLarge}" Background="{TemplateBinding Background}" x:Name="PART_IncreaseButton" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Slider}}" Theme="{StaticResource ControlCentre.RangeTrack}" />
+                            </Track.IncreaseButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="ContextMenu" x:Key="{x:Type ContextMenu}">
+        <Setter Property="motion:OperatorMenuMotion.Enabled" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="MinWidth" Value="224" />
+        <Setter Property="MaxWidth" Value="380" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Decorator>
+                        <ns6:OperatorGlassSurface x:Name="PART_MenuSurface" GlassSource="{Binding PlacementTarget, RelativeSource={RelativeSource TemplatedParent}}" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Padding="7" CornerRadius="26">
+                            <ScrollViewer MaxHeight="480" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" KeyboardNavigation.TabNavigation="Cycle" />
+                            </ScrollViewer>
+                        </ns6:OperatorGlassSurface>
+                    </Decorator>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </ControlTheme>
+    <ControlTheme TargetType="MenuItem" x:Key="{x:Type MenuItem}">
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Grid>
+                        <Border CornerRadius="16" x:Name="ItemSurface" Background="Transparent" Padding="10,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="22" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ns1:OperatorSymbol x:Name="Check" Kind="check" Width="17" Height="17" VerticalAlignment="Center" IsActive="{TemplateBinding IsChecked}" Foreground="{TemplateBinding Foreground}" IsVisible="False" />
+                                <ContentPresenter Grid.Column="1" RecognizesAccessKey="True" VerticalAlignment="Center" ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" />
+                                <TextBlock Grid.Column="2" Text="{TemplateBinding InputGesture}" FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                <ContentPresenter x:Name="CommandIcon" Grid.Column="3" Content="{TemplateBinding Icon}" Width="21" Height="21" Margin="12,0,0,0" VerticalAlignment="Center" ContentTemplate="{TemplateBinding HeaderTemplate}" IsVisible="{Binding Icon, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                                <TextBlock x:Name="Arrow" Grid.Column="4" Text="›" FontSize="22" Margin="12,0,0,0" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" IsVisible="False" />
+                            </Grid>
+                        </Border>
+                        <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsSubMenuOpen}" Placement="Right" Focusable="False">
+                            <ns6:OperatorGlassSurface Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Padding="7" CornerRadius="24">
+                                <ScrollViewer MaxHeight="480" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" KeyboardNavigation.TabNavigation="Cycle" />
+                                </ScrollViewer>
+                            </ns6:OperatorGlassSurface>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:selected /template/ Border#ItemSurface">
+            <Setter Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ motion|OperatorSymbol#Check">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Setter Property="native:NativeMenuFlags.Enabled" Value="True" />
+        <Style Selector="^[(native|NativeMenuFlags.HasItems)=True] /template/ TextBlock#Arrow">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="Separator" x:Key="{x:Type Separator}">
+        <Setter Property="Margin" Value="12,5" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Background="{DynamicResource ControlCentre.BorderBrush}" Opacity=".6" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </ControlTheme>
+    <ControlTheme TargetType="ScrollBar" x:Key="{x:Type ScrollBar}">
+        <Setter Property="Width" Value="10" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Grid Background="Transparent" Margin="2">
+                        <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="{Binding Orientation,RelativeSource={RelativeSource TemplatedParent},Converter={x:Static native:NativeOrientation.VerticalReverse}}" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" ViewportSize="{TemplateBinding ViewportSize}" Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                            <Track.DecreaseButton>
+                                <RepeatButton x:Name="PART_DecreaseButton" Command="{x:Static native:NativeRangeCommands.PageUpCommand}" Opacity="0" Focusable="False" port:ProductionNames.TemplateId="PageBefore" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ScrollBar}}" />
+                            </Track.DecreaseButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="Handle" MinHeight="22" MinWidth="4">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Border Background="#A8A8AE" CornerRadius="3" />
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                            <Track.IncreaseButton>
+                                <RepeatButton x:Name="PART_IncreaseButton" Command="{x:Static native:NativeRangeCommands.PageDownCommand}" Opacity="0" Focusable="False" port:ProductionNames.TemplateId="PageAfter" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ScrollBar}}" />
+                            </Track.IncreaseButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^[Orientation=Horizontal] /template/ Track#PART_Track">
+            <Setter Property="IsDirectionReversed" Value="False" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal] /template/ Thumb#Handle">
+            <Setter Property="MinHeight" Value="4" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal] /template/ Thumb#Handle">
+            <Setter Property="MinWidth" Value="22" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal] /template/ RepeatButton#PART_DecreaseButton">
+            <Setter Property="Command" Value="{x:Static native:NativeRangeCommands.PageLeftCommand}" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal] /template/ RepeatButton#PART_IncreaseButton">
+            <Setter Property="Command" Value="{x:Static native:NativeRangeCommands.PageRightCommand}" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal]">
+            <Setter Property="Width" Value="NaN" />
+        </Style>
+        <Style Selector="^[Orientation=Horizontal]">
+            <Setter Property="Height" Value="10" />
+        </Style>
+        <Style Selector="^[(motion|ScrollActivity.Active)=True]">
+            <Setter Property="Opacity" Value=".85" />
+        </Style>
+        <Style Selector="^[(motion|ScrollActivity.Active)=False]">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="ToolTip" x:Key="{x:Type ToolTip}">
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.ActionTextBrush}" />
+        <Setter Property="Background" Value="#303035" />
+        <Setter Property="BorderBrush" Value="#65656B" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <ns6:OperatorGlassSurface GlassSource="{Binding PlacementTarget, RelativeSource={RelativeSource TemplatedParent}}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="14" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </ns6:OperatorGlassSurface>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </ControlTheme>
+    <ControlTheme TargetType="ListBox" BasedOn="{StaticResource Native.Base.ListBox}" x:Key="{x:Type ListBox}">
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}" />
+    </ControlTheme>
+    <ControlTheme TargetType="ListBoxItem" x:Key="{x:Type ListBoxItem}">
+        <Setter Property="Padding" Value="12,10" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="Row" Padding="{TemplateBinding Padding}" CornerRadius="12" Background="Transparent">
+                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#Row">
+            <Setter Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#Row">
+            <Setter Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#Row">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#Row">
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsSegment" TargetType="RadioButton">
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="False" />
+        <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="MinHeight" Value="42" />
+        <Setter Property="Padding" Value="12,9" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="Transparent">
+                        <Grid RenderTransformOrigin="50%,50%">
+                            <Grid.RenderTransform>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                            </Grid.RenderTransform>
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </Grid>
+                        <Border x:Name="FocusFrame" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" CornerRadius="22" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus:focus-visible /template/ Border#FocusFrame">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsPower" TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Border x:Name="PowerBody" Width="50" Height="42" CornerRadius="15" Background="{DynamicResource ControlCentre.RaisedBrush}" RenderTransformOrigin="50%,50%">
+                            <Border.RenderTransform>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                            </Border.RenderTransform>
+                            <ns1:OperatorSymbol Kind="power" Width="25" Height="25" Foreground="{DynamicResource ControlCentre.TextBrush}" />
+                        </Border>
+                        <Border x:Name="PowerFocus" Width="54" Height="46" CornerRadius="17" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:checked /template/ Border#PowerBody">
+            <Setter Property="Background" Value="#23784B" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#PowerFocus">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsCommand" TargetType="RadioButton" BasedOn="{StaticResource SettingsTile}">
+        <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="Transparent">
+                        <Grid RenderTransformOrigin="50%,50%">
+                            <Grid.RenderTransform>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                            </Grid.RenderTransform>
+                            <ns6:OperatorGlassSurface x:Name="ChoiceSurface" CornerRadius="23" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" />
+                            <Border CornerRadius="23" Background="#55FFFFFF" IsHitTestVisible="False" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            <Ellipse Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0" Fill="{DynamicResource ControlCentre.TextBrush}" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False" />
+                        </Grid>
+                        <Border x:Name="FocusFrame" CornerRadius="23" BorderThickness="2" BorderBrush="{DynamicResource ControlCentre.TextBrush}" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus:focus-visible /template/ Border#FocusFrame">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:checked /template/ glass|OperatorGlassSurface#ChoiceSurface">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsRole" TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}" />
+        <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Grid RenderTransformOrigin="50%,50%">
+                            <Grid.RenderTransform>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                            </Grid.RenderTransform>
+                            <ns6:OperatorGlassSurface x:Name="ChoiceSurface" CornerRadius="23" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" />
+                            <Border x:Name="RoleFill" CornerRadius="23" Background="{DynamicResource ControlCentre.SelectionBrush}" IsHitTestVisible="False" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            <Ellipse Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0" Fill="{DynamicResource ControlCentre.TextBrush}" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False" />
+                        </Grid>
+                        <Border x:Name="FocusFrame" CornerRadius="23" BorderThickness="2" BorderBrush="{DynamicResource ControlCentre.TextBrush}" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus:focus-visible /template/ Border#FocusFrame">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:checked">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ glass|OperatorGlassSurface#ChoiceSurface">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

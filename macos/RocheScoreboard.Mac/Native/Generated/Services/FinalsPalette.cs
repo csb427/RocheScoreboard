@@ -2,9 +2,11 @@
 // Source SHA-256: 2a9a27dbc74e1afe1e36e7b7774556708f7311e03bba39aa3a5aebb155a4122a
 using RocheScoreboard.Mac.Native;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using Avalonia.Media;
+using Avalonia.Layout;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using Color = Avalonia.Media.Color;
 
 namespace Roche_Scoreboard.Services;

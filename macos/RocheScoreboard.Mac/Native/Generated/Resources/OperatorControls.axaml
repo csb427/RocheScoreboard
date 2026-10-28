@@ -1,0 +1,257 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <SolidColorBrush x:Key="ShellBrush" Color="#0D1117" />
+    <SolidColorBrush x:Key="RegionBrush" Color="#161B22" />
+    <SolidColorBrush x:Key="RegionAltBrush" Color="#1C2128" />
+    <SolidColorBrush x:Key="RegionEdgeBrush" Color="#7A8693" />
+    <SolidColorBrush x:Key="SectionEdgeBrush" Color="#7A8693" />
+    <SolidColorBrush x:Key="TextStrongBrush" Color="#E6EDF3" />
+    <SolidColorBrush x:Key="TextMidBrush" Color="#8B949E" />
+    <SolidColorBrush x:Key="TextDimBrush" Color="#A8B0BA" />
+    <SolidColorBrush x:Key="HomeAccentBrush" Color="#58A6FF" />
+    <SolidColorBrush x:Key="AwayAccentBrush" Color="#F85149" />
+    <SolidColorBrush x:Key="LiveBrush" Color="#3FB950" />
+    <SolidColorBrush x:Key="WarnBrush" Color="#D29922" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#58A6FF" />
+    <ControlTheme x:Key="SectionHead" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Black" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </ControlTheme>
+    <ControlTheme x:Key="PrimaryCommandButton" TargetType="Button">
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="True" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="Black" />
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Padding" Value="0,14" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid RenderTransformOrigin="50%,50%">
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.TemplateId="TbSc" />
+                                <TranslateTransform Y="0" port:ProductionNames.TemplateId="TbLift" />
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <Border x:Name="ActionGlow" Background="#A858A6FF" CornerRadius="3" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus /template/ Border#Bd">
+            <Setter Property="BorderBrush" Value="#BCE2FF" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#Bd">
+            <Setter Property="Opacity" Value="0.82" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#ActionGlow">
+            <Setter Property="Opacity" Value="0.42" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="ToolBtn" TargetType="Button">
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="True" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}" />
+        <Setter Property="Background" Value="#21262D" />
+        <Setter Property="BorderBrush" Value="#7A8693" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="Margin" Value="2" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid RenderTransformOrigin="50%,50%">
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.TemplateId="TbSc" />
+                                <TranslateTransform Y="0" port:ProductionNames.TemplateId="TbLift" />
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <Border x:Name="ActionGlow" Background="#6C8FB5FF" CornerRadius="2" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus /template/ Border#Bd">
+            <Setter Property="BorderBrush" Value="#BCE2FF" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#Bd">
+            <Setter Property="Background" Value="#7A8693" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#Bd">
+            <Setter Property="BorderBrush" Value="#A8B0BA" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#Bd">
+            <Setter Property="Background" Value="#161B22" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#Bd">
+            <Setter Property="Opacity" Value="0.84" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="PanelTab" TargetType="TabItem">
+        <Setter Property="Foreground" Value="#B8C7D8" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Black" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="MinHeight" Value="62" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Grid>
+                        <Border x:Name="Bd" Background="#101722" Padding="8,7" CornerRadius="0" BorderThickness="0,0,1,1" BorderBrush="#2D3B4D">
+                            <Grid>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Name="PrimaryLabel" Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}" FontSize="{TemplateBinding FontSize}" FontWeight="Black" HorizontalAlignment="Center" />
+                                    <TextBlock x:Name="SecondaryLabel" Text="{TemplateBinding Tag}" Foreground="#71859A" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,2,0,0" IsVisible="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border x:Name="AccBar" VerticalAlignment="Bottom" Height="4" Opacity="0" Margin="0" CornerRadius="0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                    <GradientStop Color="#0058A6FF" Offset="0" />
+                                    <GradientStop Color="#FF58A6FF" Offset="0.5" />
+                                    <GradientStop Color="#0058A6FF" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:selected /template/ Border#Bd">
+            <Setter Property="Background" Value="#17263A" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#Bd">
+            <Setter Property="BorderBrush" Value="#7058A6FF" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#AccBar">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:selected /template/ TextBlock#PrimaryLabel">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="^:selected /template/ TextBlock#SecondaryLabel">
+            <Setter Property="Foreground" Value="#A9D3FF" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#Bd">
+            <Setter Property="Background" Value="#182230" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#Bd">
+            <Setter Property="BorderBrush" Value="#58708C" />
+        </Style>
+        <Style Selector="^:pointerover /template/ TextBlock#PrimaryLabel">
+            <Setter Property="Foreground" Value="#EAF5FF" />
+        </Style>
+        <Style Selector="^:selected:pointerover /template/ TextBlock#PrimaryLabel">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="^:selected:pointerover /template/ Border#Bd">
+            <Setter Property="Background" Value="#1B2B40" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsSectionSurface" TargetType="Border">
+        <Setter Property="Background" Value="#101824" />
+        <Setter Property="BorderBrush" Value="#2B3A4E" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="12" Color="#000000" Opacity="0.24" OffsetX="-5.51091059616e-16" OffsetY="3" />
+            </Setter.Value>
+        </Setter>
+    </ControlTheme>
+    <ControlTheme x:Key="OutputActionCard" TargetType="Border">
+        <Setter Property="MinHeight" Value="72" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Margin" Value="4" />
+        <Setter Property="Opacity" Value="0.9" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+        <Style Selector="^:pointerover">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:pointerover">
+            <Setter Property="Panel.ZIndex" Value="20" />
+        </Style>
+        <Style Selector="^:pointerover">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="18" Color="#58A6FF" Opacity="0.55" OffsetX="0" OffsetY="0" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="OperatorPresentationButton" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+        <Setter Property="MinHeight" Value="106" />
+        <Setter Property="Height" Value="NaN" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Background" Value="#101721" />
+        <Setter Property="BorderBrush" Value="#304055" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Margin" Value="4" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Surface" CornerRadius="12" Margin="0" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Theme="{StaticResource OutputActionCard}">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:pressed /template/ Border#Surface">
+            <Setter Property="Opacity" Value=".65" />
+        </Style>
+        <Style Selector="^:focus /template/ Border#Surface">
+            <Setter Property="BorderBrush" Value="#8CC8FF" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="OperatorTabs" TargetType="TabControl">
+        <Setter Property="Background" Value="#090D14" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1" HorizontalAlignment="Stretch" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid KeyboardNavigation.TabNavigation="Local">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Border Background="#0D131D" BorderBrush="#34465A" BorderThickness="0,0,0,1">
+                            <ItemsPresenter HorizontalAlignment="Stretch" x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                        </Border>
+                        <ContentPresenter x:Name="PART_SelectedContentHost" Grid.Row="1" Content="{TemplateBinding SelectedContent}" ContentTemplate="{TemplateBinding SelectedContentTemplate}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

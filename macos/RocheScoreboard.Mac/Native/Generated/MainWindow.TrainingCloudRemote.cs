@@ -2,13 +2,13 @@
 // Source SHA-256: 63e56768bf511459a7f0b1b28ad4fcd7a8a2e4e54465d7ae2992f89ecfedc1aa
 using RocheScoreboard.Mac.Native;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia.Layout;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Controls.Primitives;
 // ─────────────────────────────────────────────────────────────────────────────
 // MainWindow.TrainingCloudRemote.cs
 //

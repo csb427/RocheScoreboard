@@ -15,7 +15,7 @@ namespace RocheScoreboard.Mac.Native;
 /// live VisualBrush preview see the same video. Playback, audio, seeking, speed,
 /// looping and decoder recovery remain owned by the production player control.
 /// </summary>
-public sealed class NativeVideoSurface : Control
+public sealed class NativeVideoSurface : ContentControl
 {
     private readonly object _gate = new();
     private readonly MediaPlayer.LibVLCVideoLockCb _lock;
@@ -31,6 +31,7 @@ public sealed class NativeVideoSurface : Control
     private WriteableBitmap? _bitmap;
     internal int FramesPresented { get; private set; }
     private sealed record Frame(byte[] Bytes, int Width, int Height, int Pitch, int Generation);
+    protected override Type StyleKeyOverride=>typeof(ContentControl);
     public NativeVideoSurface()
     {
         Unloaded += (_, _) => MediaPlayer = null;

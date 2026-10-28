@@ -44,7 +44,7 @@ namespace Roche_Scoreboard.Views
 
         public MatchLoadingScreen()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
             SizeChanged += (_, _) => RebuildBackdrop();
@@ -528,7 +528,7 @@ namespace Roche_Scoreboard.Views
                     Margin = new Thickness(0, 0, 10, 0)
                 };
                 Grid.SetColumn(_dot, 0);
-                _text = new TextBlock
+                _text = new NativeTextBlock
                 {
                     Text = label,
                     FontFamily = NativeFonts.Family("Segoe UI"),

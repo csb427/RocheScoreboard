@@ -38,6 +38,57 @@ internal static class NativeAwait
 public class NativeWindow : Window
 {
     private Rect? _restoreBounds;
+    private PixelPoint? _restorePixelPosition;
+    public PixelPoint RestorePixelPosition=>_restorePixelPosition??Position;
+    private bool _fitting, _fitQueued, _focusRevealQueued;
+    private readonly DispatcherTimer _moveFit=new(){Interval=TimeSpan.FromMilliseconds(250)};
+    private double _preferredMinWidth, _preferredMinHeight, _preferredMaxWidth=double.PositiveInfinity, _preferredMaxHeight=double.PositiveInfinity;
+    public bool IsOutputWindow { get; set; }
+    public void FitToWorkArea()
+    {
+        if(_fitting || WindowState!=WindowState.Normal)return;
+        var screen=Screens.ScreenFromWindow(this)??Screens.ScreenFromPoint(Position)??Screens.Primary??Screens.All.FirstOrDefault();
+        if(screen is null)return;
+        _fitting=true;
+        try
+        {
+            double scale=screen.Scaling;
+            var frame=FrameSize;
+            var decoration=SystemDecorations==SystemDecorations.None?default:new Size(
+                frame is {} f&&Bounds.Width>0?Math.Max(0,f.Width-Bounds.Width):0,
+                frame is {} f2&&Bounds.Height>0?Math.Max(28,f2.Height-Bounds.Height):28);
+            var placement=NativeWindowPlacement.Fit(Position,new Size(double.IsFinite(Width)?Width:Bounds.Width,double.IsFinite(Height)?Height:Bounds.Height),screen.WorkingArea,scale,decoration);
+            double maxWidth=Math.Max(1,screen.WorkingArea.Width/scale-decoration.Width),maxHeight=Math.Max(1,screen.WorkingArea.Height/scale-decoration.Height);
+            MinWidth=Math.Min(_preferredMinWidth,maxWidth);MinHeight=Math.Min(_preferredMinHeight,maxHeight);
+            MaxWidth=Math.Max(MinWidth,Math.Min(_preferredMaxWidth,maxWidth));MaxHeight=Math.Max(MinHeight,Math.Min(_preferredMaxHeight,maxHeight));
+            Width=Math.Clamp(placement.ClientSize.Width,MinWidth,MaxWidth);Height=Math.Clamp(placement.ClientSize.Height,MinHeight,MaxHeight);
+            Position=placement.Position;
+        }
+        finally{_fitting=false;}
+    }
+    private void ScheduleFit()
+    {
+        if(_fitting||_fitQueued||!IsVisible)return;_fitQueued=true;
+        Dispatcher.UIThread.Post(()=>{_fitQueued=false;if(IsVisible)FitToWorkArea();},DispatcherPriority.Background);
+    }
+    protected override void OnOpened(EventArgs e)
+    {
+        IsOutputWindow|=Title?.Contains("Display",StringComparison.OrdinalIgnoreCase)==true;
+        _preferredMinWidth=MinWidth;_preferredMinHeight=MinHeight;_preferredMaxWidth=MaxWidth;_preferredMaxHeight=MaxHeight;
+        if(!IsOutputWindow && Content is Control body && body is not NativeAccessibleWindowContent)
+        {
+            Content=null;Content=new NativeAccessibleWindowContent(body,this is Roche_Scoreboard.MainWindow);
+        }
+        Screens.Changed+=ScreensChanged;
+        FitToWorkArea();
+        base.OnOpened(e);
+        ScheduleFit();
+    }
+    public new void Show()
+    {
+        if(Owner is {} owner&&owner.IsVisible)base.Show(owner);else base.Show();
+    }
+
     public Rect RestoreBounds => _restoreBounds ?? new Rect(Left, Top, Bounds.Width, Bounds.Height);
     public double Left { get => Position.X / RenderScaling; set => Position = new PixelPoint((int)Math.Round(value * RenderScaling), Position.Y); }
     public double Top { get => Position.Y / RenderScaling; set => Position = new PixelPoint(Position.X, (int)Math.Round(value * RenderScaling)); }
@@ -45,14 +96,37 @@ public class NativeWindow : Window
     public object? FindName(string name) => NativeLookup.Find(this, name);
     public NativeWindow()
     {
-        PositionChanged += (_, _) => Remember(); SizeChanged += (_, _) => Remember();
-        void Remember() { if (WindowState == WindowState.Normal) _restoreBounds = new Rect(Left, Top, Bounds.Width, Bounds.Height); }
+        PositionChanged += (_, _) => {Remember();if(!_fitting&&IsVisible){_moveFit.Stop();_moveFit.Start();}}; SizeChanged += (_, _) => {Remember();ScheduleFit();};
+        PropertyChanged+=(_,e)=>
+        {
+            if(e.Property!=WindowStateProperty)return;
+            if(WindowState is WindowState.FullScreen or WindowState.Maximized)
+            {MaxWidth=_preferredMaxWidth;MaxHeight=_preferredMaxHeight;}
+            else ScheduleFit();
+        };
+        _moveFit.Tick+=(_,_)=>{_moveFit.Stop();ScheduleFit();};
+        ScalingChanged+=(_,_)=>ScheduleFit();
+        AddHandler(Avalonia.Input.InputElement.GotFocusEvent,(_,args)=>
+        {
+            if(args.NavigationMethod is not (Avalonia.Input.NavigationMethod.Tab or Avalonia.Input.NavigationMethod.Directional)||_focusRevealQueued)return;
+            _focusRevealQueued=true;
+            Dispatcher.UIThread.Post(()=>
+            {
+                _focusRevealQueued=false;
+                if(IsVisible&&FocusManager?.GetFocusedElement() is Control focused)NativeFocusReveal.Reveal(focused);
+            },DispatcherPriority.Input);
+        },Avalonia.Interactivity.RoutingStrategies.Bubble,handledEventsToo:true);
+        Deactivated+=(_,_)=>NativeKeyboard.ClearPressed();
+        Closed+=(_,_)=>{_moveFit.Stop();Screens.Changed-=ScreensChanged;if(Owner is {} owner&&owner.IsVisible)owner.Activate();};
+        void Remember() { if (WindowState == WindowState.Normal && Bounds.Width>0 && Bounds.Height>0) {_restoreBounds = new Rect(Left, Top, Bounds.Width, Bounds.Height);_restorePixelPosition=Position;} }
     }
+    private void ScreensChanged(object? sender,EventArgs args)=>ScheduleFit();
     private Window? _dialogOwner;
     public new Window? Owner { get => _dialogOwner ?? base.Owner as Window; set => _dialogOwner = value; }
     private bool? _dialogResult;
     public bool? DialogResult { get => _dialogResult; set { _dialogResult = value; Close(value); } }
     public bool? ShowDialog() => NativeAwait.Run(base.ShowDialog<bool?>(Owner ?? NativeDesktop.MainWindow ?? throw new InvalidOperationException("A dialog requires an open operator window.")));
+    public static Window? GetWindow(AvaloniaObject target)=>target is Control control?GetWindow(control):null;
     public static Window? GetWindow(Control control) => TopLevel.GetTopLevel(control) as Window;
 }
 public class NativeOpenFileDialog
@@ -115,7 +189,7 @@ public static class NativeMessageBox
         => Show(NativeDesktop.MainWindow, text, caption, buttons, image);
     public static NativeMessageBoxResult Show(Window? owner, string text, string caption = "Roche Scoreboard", NativeMessageBoxButton buttons = NativeMessageBoxButton.OK, NativeMessageBoxImage image = NativeMessageBoxImage.None, NativeMessageBoxResult defaultResult = NativeMessageBoxResult.None)
     {
-        var dialog = new Window { Title = caption, Width = 480, SizeToContent = SizeToContent.Height, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner, Background = new SolidColorBrush(Color.Parse("#161B22")) };
+        var dialog = new NativeWindow { Title = caption, Width = 480, SizeToContent = SizeToContent.Height, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner, Background = new SolidColorBrush(Color.Parse("#161B22")) };
         var layout = new StackPanel { Margin = new Thickness(24), Spacing = 24 };
         layout.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Foreground = Brushes.White });
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, HorizontalAlignment = HorizontalAlignment.Right };

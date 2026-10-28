@@ -1,0 +1,65 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ResumeMatchPrompt" ns2:OperatorDesign.IsEnabled="True" MaxWidth="580" MaxHeight="430" SizeChanged="Prompt_SizeChanged" Focusable="True" KeyboardNavigation.TabNavigation="Cycle" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:design="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" KeyDown="Native_Window_PreviewKeyDown">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/OperatorControls.axaml" />
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/CricketActions.axaml" />
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/ControlCentre.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <ns4:OperatorGlassSurface x:Name="DialogShell" Material="Regular" GlassSource="{Binding Content, RelativeSource={RelativeSource AncestorType=Window}}" Padding="26" CornerRadius="30" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="#68FFFFFF" BorderThickness="1" TextElement.Foreground="{DynamicResource ControlCentre.TextBrush}" TextElement.FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel>
+                <TextBlock x:Name="PromptHeading" Text="CONTINUE YOUR MATCH?" FontSize="24" FontWeight="Bold" TextWrapping="Wrap" />
+                <TextBlock x:Name="PhaseText" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" Margin="0,8,0,12" />
+            </StackPanel>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Border x:Name="HomeTeamCard" Padding="12" Margin="0,0,0,8" Theme="{StaticResource SettingsSectionSurface}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="54" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image x:Name="HomeLogoImage" Height="38" Stretch="Uniform" />
+                            <TextBlock Foreground="White" x:Name="HomeNameText" Grid.Column="1" Margin="12,0,0,0" FontSize="21" FontWeight="Bold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <Border x:Name="AwayTeamCard" Padding="12" Margin="0,0,0,8" Theme="{StaticResource SettingsSectionSurface}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="54" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image x:Name="AwayLogoImage" Height="38" Stretch="Uniform" />
+                            <TextBlock Foreground="White" x:Name="AwayNameText" Grid.Column="1" Margin="12,0,0,0" FontSize="21" FontWeight="Bold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+            <StackPanel Grid.Row="2">
+                <UniformGrid Columns="2">
+                    <Button x:Name="LaterButton" Content="CONTINUE LATER" Click="KeepSaved_Click" FontSize="14" Padding="8,0" MinHeight="0" Height="46" Margin="0,0,6,0" Theme="{StaticResource ControlCentre.Button}" />
+                    <Button x:Name="ResumeButton" Content="CONTINUE MATCH  →" Click="Resume_Click" FontSize="14" Padding="8,0" MinHeight="0" Height="46" Margin="6,0,0,0" IsDefault="True" Theme="{StaticResource ControlCentre.PrimaryButton}" />
+                </UniformGrid>
+                <Button x:Name="DiscardButton" Content="DISCARD SAVE" Click="Discard_Click" MinHeight="0" FontSize="13" Padding="8,0" Height="38" Margin="0,12,0,0" Foreground="#FFA3AA" Background="#302024" BorderBrush="#66424A" Theme="{StaticResource ControlCentre.Button}" />
+                <ProgressBar x:Name="DiscardConfirmationProgress" Minimum="0" Maximum="1" Value="0" Height="2" Margin="14,5,14,0" Foreground="#FF9BA3" Background="Transparent" BorderThickness="0" IsHitTestVisible="False" IsVisible="False">
+                    <ProgressBar.Template>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Grid x:Name="PART_Track" Background="Transparent">
+                                <Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}" CornerRadius="1" />
+                            </Grid>
+                        </ControlTemplate>
+                    </ProgressBar.Template>
+                </ProgressBar>
+            </StackPanel>
+        </Grid>
+    </ns4:OperatorGlassSurface>
+</UserControl>

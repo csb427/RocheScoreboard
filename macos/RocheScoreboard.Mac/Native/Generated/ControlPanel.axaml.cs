@@ -28,7 +28,7 @@ namespace Roche_Scoreboard.Views
 
         public ControlPanel()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
             QuarterSelector.ItemsSource = new[] { "Q1", "Q2", "Q3", "Q4" };
             QuarterSelector.SelectedIndex = 0;
             Timer.Text = FormatTime(_timerValue);

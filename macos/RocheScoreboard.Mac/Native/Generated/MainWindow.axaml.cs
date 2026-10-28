@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from MainWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: ac0ec10c4e26a27541dffa36e669ff7d83544773fc07adf38e39fa7ae4c1cf61
+// Source SHA-256: 782b9f76632578fd65e836f1ad1f2c23159f63e1f60b2e8acbc17a4c1243252b
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -180,6 +180,7 @@ namespace Roche_Scoreboard
 
         private void TrySaveUxPreferences()
         {
+            if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }) return;
             try { UxPreferences.Save(_uxPreferences); }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"UX preference save skipped: {ex.Message}"); }
         }
@@ -194,8 +195,8 @@ namespace Roche_Scoreboard
 
         private void QueueOutputDimensionsSave(int width, int height)
         {
-            _pendingOutputWidth = Math.Clamp(width, 200, 7680);
-            _pendingOutputHeight = Math.Clamp(height, 100, 4320);
+            _pendingOutputWidth = Math.Clamp(width, 50, 7680);
+            _pendingOutputHeight = Math.Clamp(height, 50, 4320);
             _outputDimensionsSaveTimer?.Stop();
             _outputDimensionsSaveTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _outputDimensionsSaveTimer.Tick -= OutputDimensionsSaveTimer_Tick;
@@ -205,6 +206,11 @@ namespace Roche_Scoreboard
 
         private void OutputDimensionsSaveTimer_Tick(object? sender, EventArgs e)
         {
+            if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true })
+            {
+                _outputDimensionsSaveTimer?.Stop();
+                return;
+            }
             _outputDimensionsSaveTimer?.Stop();
             OperatorWorkflowPreferences.Update(data =>
             {
@@ -224,7 +230,9 @@ namespace Roche_Scoreboard
 
         public MainWindow()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
+            foreach(var page in new Avalonia.Controls.UserControl[]{SetupWizardPanel,CricketSetupWizardPanel,CricketControlPanelView,TrainingControlPanelView,GlobalSettingsPanel})
+                if(page.Content is Control stage)Views.SharedSurfaceMotion.Attach(stage);
             InteractionMotion.Enable(this);
             _styledMessages.CollectionChanged += (_, _) => UpdateTickerEditorState();
             EnsureTickerSlots();
@@ -232,7 +240,13 @@ namespace Roche_Scoreboard
             UpdateTickerEditorState();
 
             MainContent.PointerWheelChanged += MainContent_PreviewMouseWheel;
-            MainContent.AddHandler(Control.RequestBringIntoViewEvent, (_, e) => e.Handled = true, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+            NativeEvents.BringIntoView(MainContent,(_, e) =>
+            {
+                // The operator owns this viewport. Deferred focus requests can
+                // otherwise move another command underneath the pointer after
+                // a click. Nested editors/lists retain their own scrolling.
+                e.Handled = true;
+            });
             SizeChanged += (_, e) =>
             {
                 UpdateControlPanelViewportConstraints(e.NewSize);
@@ -373,9 +387,16 @@ namespace Roche_Scoreboard
 
             // Wire up the cricket control panel reset
             CricketControlPanelView.ResetRequested += OnCricketResetRequested;
+            CricketControlPanelView.WeatherLocationChanged += location =>
+            {
+                if (Avalonia.Application.Current is not RocheScoreboard.Mac.App { IsSelfTestMode: true })
+                    _ = StartOrUpdateWeatherServiceAsync(location);
+            };
 
             // Wire up sport selection
             SportSelectionPanel.SportSelected += OnSportSelected;
+            SportSelectionPanel.ResumeSavedMatchRequested += ResumeDeferredMatch;
+            CricketControlPanelView.ApplicationPreferencesRequested += OpenCricketApplicationPreferences;
             GlobalSettingsPanel.BackRequested += OnGlobalSettingsBackRequested;
             GlobalSettingsPanel.StartupModeChanged += OnGlobalSettingsStartupModeChanged;
             GlobalSettingsPanel.ThemeChanged += OnGlobalSettingsThemeChanged;
@@ -386,6 +407,13 @@ namespace Roche_Scoreboard
             GlobalSettingsPanel.BreakScreenEnabledChanged += OnGlobalBreakScreenEnabledChanged;
             GlobalSettingsPanel.AutoOverlaysEnabledChanged += OnGlobalAutoOverlaysEnabledChanged;
             GlobalSettingsPanel.ScreensaverEnabledChanged += OnGlobalScreensaverEnabledChanged;
+            GlobalSettingsPanel.ScreensaverMediaRequested += () => ChooseScreensaverMedia_Click(this,new RoutedEventArgs());
+            GlobalSettingsPanel.BuiltInScreensaverRequested += () => ResetScreensaverMedia_Click(this,new RoutedEventArgs());
+            GlobalSettingsPanel.ScreensaverClockChanged += visible =>
+            {
+                OperatorWorkflowPreferences.Update(data=>data.OutputScreensaverShowClock=visible);
+                _outputScreensaver?.SetClockVisible(visible);
+            };
 
             // Sport selection visible by default; everything else hidden
             MainContent.IsVisible = false;
@@ -398,6 +426,9 @@ namespace Roche_Scoreboard
             Closing += MainWindow_Closing;
             Loaded += MainWindow_Loaded;
             KeyDown += MainWindow_PreviewKeyDown;
+#if DEBUG
+            KeyDown += CricketDiagnostics_KeyDown;
+#endif
             PointerPressed += MainWindow_PreviewMouseLeftButtonDown;
             PointerReleased += MainWindow_PreviewMouseLeftButtonUp;
             PointerWheelChanged += MainWindow_PreviewMouseWheelGuard;
@@ -407,6 +438,7 @@ namespace Roche_Scoreboard
             RegisterScheduledOverlays();
             ApplyAflKeybindsToUi();
             _uxPreferences = UxPreferences.Load();
+            OperatorDesign.UpdateGuidance(_uxPreferences.EnableQuickStartupHints);
             ApplyRememberedScorebugLayout();
             ApplyGuidedOperatorMode();
             GlobalSettingsPanel.SetApplicationPreferences(
@@ -443,6 +475,7 @@ namespace Roche_Scoreboard
             // under the operator's next click.
             MainContent.ScrollToHome();
             MainContent.ScrollToLeftEnd();
+            if(MainTabControl.SelectedContent is Control tabContent)Views.SharedSurfaceMotion.Reveal(tabContent);
 
             // Keep match identity, clock and output state visible everywhere.
             // Operators should never have to leave Media, Display or Settings
@@ -647,6 +680,10 @@ namespace Roche_Scoreboard
 
         private async void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
+#if DEBUG
+            RestoreCricketPreview();
+            _cricketDiagnostics?.Close();
+#endif
             // Update prompt on close has been removed in favour of an in-app
             // update section in the Settings tab. Proceed straight to teardown.
 
@@ -657,6 +694,7 @@ namespace Roche_Scoreboard
             _deferredGameStateSaveTimer = null;
             StopAutoSaveTimer();
             SaveGameState();
+            FlushCricketGameStateSave();
             SaveAllWindowLayouts();
             _weatherService?.Dispose();
             _weatherService = null;
@@ -740,6 +778,7 @@ namespace Roche_Scoreboard
         /// </summary>
         private void SaveAllWindowLayouts()
         {
+            if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }) return;
             try
             {
                 WindowLayoutStorage.Save(WindowLayoutStorage.ControlPanelKey, this);
@@ -770,24 +809,22 @@ namespace Roche_Scoreboard
 
             displayWindow.SizeChanged += (_, e) =>
             {
-                if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0) return;
-                var pixels = PixelSizeHelper.GetWindowPixels(displayWindow, e.NewSize.Width, e.NewSize.Height);
-                UpdateDimensionBoxes(pixels.Width, pixels.Height);
-                if (ReferenceEquals(displayWindow, _displayWindow))
-                {
-                    int width = Convert.ToInt32(pixels.Width);
-                    int height = Convert.ToInt32(pixels.Height);
-                    GlobalSettingsPanel.SetOutputDimensions(width, height);
-                    QueueOutputDimensionsSave(width, height);
-                }
+                if (_synchronizingOutputSize || !displayWindow.IsLoaded
+                    || e.NewSize.Width <= 0 || e.NewSize.Height <= 0) return;
+                var pixels = PixelSizeHelper.GetWindowPixels(displayWindow, displayWindow.NativeWidth(), displayWindow.NativeHeight());
+                if (pixels != SharedOutputPixels)
+                    ApplySharedOutputDimensions(pixels.Width, pixels.Height);
             };
 
+            displayWindow.Opened += (_, _) =>
+            {
+                var size = SharedOutputPixels;
+                PixelSizeHelper.SetWindowPixels(displayWindow, size.Width, size.Height);
+            };
             displayWindow.Loaded += (_, __) =>
             {
-                var pixels = PixelSizeHelper.GetWindowPixels(displayWindow, displayWindow.NativeWidth(), displayWindow.NativeHeight());
-                UpdateDimensionBoxes(pixels.Width, pixels.Height);
-                if (ReferenceEquals(displayWindow, _displayWindow))
-                    GlobalSettingsPanel.SetOutputDimensions(Convert.ToInt32(pixels.Width), Convert.ToInt32(pixels.Height));
+                var size = SharedOutputPixels;
+                ApplySharedOutputDimensions(size.Width, size.Height, remember: false);
             };
         }
 
@@ -817,9 +854,51 @@ namespace Roche_Scoreboard
         }
 
         /// <summary>
-        /// Shows deferred alerts after the window is visible.
-        /// Update alert takes priority; if skipped, the game-restore alert follows.
+        /// Opens recovery either at startup or from the sport selection shortcut.
+        /// Deferring never removes the saved match or disables the resume shortcut.
         /// </summary>
+        private bool _recoveryPromptActive;
+        private bool _recoveryPromptShown;
+        private void ResumeDeferredMatch()
+        {
+            if (_recoveryPromptActive) return;
+            _recoveryPromptShown = true;
+            GameState? saved = GameStateService.Load();
+            if (saved?.MatchState is null && saved?.CricketMatchState is null)
+            {
+                SportSelectionPanel.PrepareForDisplay();
+                return;
+            }
+            ShowRecoveryPrompt(saved);
+        }
+
+        private void ShowRecoveryPrompt(GameState saved)
+        {
+            if (_recoveryPromptActive) return;
+            var dialog = new Views.ResumeMatchPrompt(saved) { Margin = new Thickness(16) };
+            SportSelectionPanel.SetDeferredResumeAvailable(false);
+            _recoveryPromptActive = true;
+            // Keep recovery in the application surface; no extra HWND or modal message loop.
+            var recoveryEnabledState = ApplicationSurface.Children.OfType<Control>()
+                .Where(child => !ReferenceEquals(child, RecoveryOverlay)).ToDictionary(child => child, child => child.IsEnabled);
+            foreach (var child in recoveryEnabledState.Keys) child.IsEnabled = false;
+            RecoveryOverlay.Children.Add(dialog);
+            RecoveryOverlay.IsVisible = true;
+            dialog.Completed += () =>
+            {
+                ArmNavigationPointerGuard();
+                RecoveryOverlay.IsVisible = false;
+                RecoveryOverlay.Children.Clear();
+                foreach (var (child, enabled) in recoveryEnabledState) child.IsEnabled = enabled;
+                _recoveryPromptActive = false;
+                SportSelectionPanel.SetDeferredResumeAvailable(dialog.DeferredChosen);
+                SportSelectionPanel.PrepareForDisplay();
+                if (dialog.ResumeChosen) RestoreFromSavedState(saved);
+                else if (dialog.DiscardChosen) GameStateService.Clear();
+            };
+            dialog.Loaded += (_, _) => dialog.Focus();
+        }
+
         private async Task ShowDeferredAlerts()
         {
             // Wait for the background update check kicked off in App.OnStartup
@@ -851,28 +930,8 @@ namespace Roche_Scoreboard
 
             // A valid live recovery takes precedence over a navigation
             // preference. StartupMode only decides where a fresh session opens.
-            if (GameStateService.HasSavedState())
-            {
-                GameState? saved = GameStateService.Load();
-                if (saved?.MatchState is not null || saved?.CricketMatchState is not null)
-                {
-                    var dialog = new Views.ResumeGameDialog(saved)
-                    {
-                        Owner = this
-                    };
-
-                    dialog.ShowDialog();
-
-                    if (dialog.ResumeChosen)
-                    {
-                        RestoreFromSavedState(saved);
-                    }
-                    else if (dialog.DiscardChosen)
-                    {
-                        GameStateService.Clear();
-                    }
-                }
-            }
+            if (!_recoveryPromptShown && !_aflMatchReady && _cricketMatch is null && GameStateService.HasSavedState())
+                ResumeDeferredMatch();
         }
 
         // ───────────────────────────────────────────────────────────────
@@ -931,7 +990,16 @@ namespace Roche_Scoreboard
 
         private void MainWindow_PreviewKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
         {
+            if (_recoveryPromptActive) return; // The integrated prompt owns keyboard navigation until dismissed.
             bool ctrlPressed = (NativeKeyboard.Modifiers & KeyModifiers.Control) != 0;
+            if (_sportMode == SportMode.Cricket && CricketControlPanelView.IsVisible)
+            {
+                if (CricketControlPanelView.TossOverlay.IsVisible || CricketControlPanelView.BatterSelectionOverlay.IsVisible
+                    || CricketControlPanelView.BowlerSelectionOverlay.IsVisible || CricketControlPanelView.DeliveryEntryOverlay.IsVisible) return;
+                int cricketTab = e.Key switch { Key.D1 or Key.NumPad1 => 0, Key.D2 or Key.NumPad2 => 1, Key.D3 or Key.NumPad3 => 2, Key.D4 or Key.NumPad4 => 3, _ => -1 };
+                if (ctrlPressed && cricketTab >= 0) { CricketControlPanelView.MainTabControl.SelectedIndex = cricketTab; e.Handled = true; }
+                return; // Never dispatch AFL shortcuts to its hidden control panel.
+            }
             bool settingsVisible = ReferenceEquals(MainTabControl?.SelectedItem, MatchSetupTab);
 
             if (ctrlPressed && (NativeKeyboard.Modifiers & KeyModifiers.Shift) != 0 && e.Key == Key.A)
@@ -995,6 +1063,10 @@ namespace Roche_Scoreboard
                 e.Handled = true;
                 return;
             }
+
+            // Native commands own activation/navigation while focused; do not also fire a match shortcut.
+            if (NativeKeyboard.FocusedElement is Avalonia.Controls.Slider or Avalonia.Controls.ComboBox or Avalonia.Controls.MenuItem) return;
+            if (e.Key is Key.Space or Key.Enter && NativeKeyboard.FocusedElement is Avalonia.Controls.Button or Views.OperatorActionBorder) return;
 
             bool ctrl = ctrlPressed;
             bool alt = (NativeKeyboard.Modifiers & KeyModifiers.Alt) != 0;
@@ -1642,6 +1714,7 @@ namespace Roche_Scoreboard
 
         private void OnSportSelected(SportMode mode)
         {
+            StopAflSetupTransition();
             _sportMode = mode;
             PersistLastMode(mode);
             SportSelectionPanel.IsVisible = false;
@@ -1662,6 +1735,8 @@ namespace Roche_Scoreboard
             }
             else if (mode == SportMode.Settings)
             {
+                _returnToCricketFromGlobalSettings = false;
+                GlobalSettingsPanel.SetBackCaption("←  Back to sports");
                 RefreshGlobalSettingsOutputPreferences();
                 MainContent.IsVisible = false;
                 SetupWizardPanel.IsVisible = false;
@@ -1677,8 +1752,29 @@ namespace Roche_Scoreboard
             }
         }
 
+        private bool _returnToCricketFromGlobalSettings;
+        private void OpenCricketApplicationPreferences()
+        {
+            if (_cricketMatch is null) return;
+            _returnToCricketFromGlobalSettings = true;
+            RefreshGlobalSettingsOutputPreferences();
+            CricketControlPanelView.IsVisible = false;
+            GlobalSettingsPanel.SetBackCaption("←  Back to cricket");
+            GlobalSettingsPanel.IsVisible = true;
+        }
+
         private void OnGlobalSettingsBackRequested()
         {
+            if (_returnToCricketFromGlobalSettings && _cricketMatch is not null)
+            {
+                _returnToCricketFromGlobalSettings = false;
+                GlobalSettingsPanel.IsVisible = false;
+                GlobalSettingsPanel.SetBackCaption("←  Back to sports");
+                CricketControlPanelView.IsVisible = true;
+                return;
+            }
+            _returnToCricketFromGlobalSettings = false;
+            GlobalSettingsPanel.SetBackCaption("←  Back to sports");
             PersistLastMode(SportMode.Settings);
             GlobalSettingsPanel.IsVisible = false;
             MainContent.IsVisible = false;
@@ -1727,6 +1823,7 @@ namespace Roche_Scoreboard
 
         private void OnGlobalSettingsQuickHintsChanged(bool enabled)
         {
+            OperatorDesign.UpdateGuidance(enabled);
             _uxPreferences.EnableQuickStartupHints = enabled;
             if (Avalonia.Application.Current is RocheScoreboard.Mac.App app)
                 app.UxPreferences.EnableQuickStartupHints = enabled;
@@ -1740,23 +1837,13 @@ namespace Roche_Scoreboard
 
         private void OnGlobalOutputDimensionsChanged(int width, int height)
         {
-            OperatorWorkflowPreferences.Update(data =>
-            {
-                data.OutputWindowWidth = width;
-                data.OutputWindowHeight = height;
-            });
-
-            if (_displayWindow is not null)
-            {
-                PixelSizeHelper.SetWindowPixels(_displayWindow, width, height);
-                WindowLayoutStorage.Save(WindowLayoutStorage.AflDisplayKey, _displayWindow);
-            }
-            UpdateDimensionBoxes(width, height);
+            ApplySharedOutputDimensions(width, height);
         }
 
         private void OnGlobalBreakScreenEnabledChanged(bool enabled)
         {
             SettingsBreakScreenToggle.IsChecked = enabled;
+            CricketControlPanelView.BreakPresentationRotationEnabled = enabled;
         }
 
         private void OnGlobalAutoOverlaysEnabledChanged(bool enabled)
@@ -1767,24 +1854,23 @@ namespace Roche_Scoreboard
         private void OnGlobalScreensaverEnabledChanged(bool enabled)
         {
             _screensaverEnabled = enabled;
-            OperatorWorkflowPreferences.Update(data => data.OutputScreensaverEnabled = enabled);
-            if (!enabled && _outputScreensaver?.IsVisible == true)
-                ShowScorebug();
-            else if (enabled && !_aflMatchReady)
+            if (Avalonia.Application.Current is not RocheScoreboard.Mac.App { IsSelfTestMode: true })
+                OperatorWorkflowPreferences.Update(data => data.OutputScreensaverEnabled = enabled);
+            bool idle = !_aflMatchReady && _cricketMatch is null && _trainingSession is null;
+            if (!enabled && idle)
+            {
+                foreach (var window in OutputWindows()) window.Hide();
+            }
+            else if (!enabled && _displayWindow?.IsVisible == true && _outputScreensaver?.IsVisible == true)
+                _displayWindow.Hide();
+            else if (enabled && idle)
                 ShowOutputScreensaver(manualSelection: false);
         }
 
         private void RefreshGlobalSettingsOutputPreferences(OperatorWorkflowPreferencesData? preferences = null)
         {
             preferences ??= OperatorWorkflowPreferences.Load();
-            int width = preferences.OutputWindowWidth;
-            int height = preferences.OutputWindowHeight;
-            if (_displayWindow is { IsLoaded: true })
-            {
-                var pixels = PixelSizeHelper.GetWindowPixels(_displayWindow, _displayWindow.NativeWidth(), _displayWindow.NativeHeight());
-                width = Convert.ToInt32(pixels.Width);
-                height = Convert.ToInt32(pixels.Height);
-            }
+            var (width, height) = SharedOutputPixels;
             GlobalSettingsPanel.SetOutputPreferences(
                 preferences.AflGoalAnimation,
                 width,
@@ -1792,6 +1878,7 @@ namespace Roche_Scoreboard
                 _breakScreenEnabled,
                 _autoOverlaysEnabled,
                 _screensaverEnabled);
+            GlobalSettingsPanel.SetScreensaverPreferences(_screensaverMediaPath,preferences.OutputScreensaverShowClock);
         }
 
         private void ApplyStartupPreferenceSelectionToUi()
@@ -1908,7 +1995,11 @@ namespace Roche_Scoreboard
 
         private void EnsureTrainingDisplayWindow()
         {
-            if (_trainingDisplayWindow != null && _trainingDisplayWindow.IsVisible) return;
+            if (_trainingDisplayWindow != null)
+            {
+                if (!_trainingDisplayWindow.IsVisible) _trainingDisplayWindow.Show();
+                return;
+            }
             if (_trainingScorebug == null) return;
 
             // Wrap the scorebug in a Viewbox so the content scales as the
@@ -1940,14 +2031,18 @@ namespace Roche_Scoreboard
             // Collapse the non-client frame entirely so the training scorebug
             // sits flush in the top-left with sharp corners and no border —
             // identical to the AFL / Cricket display window styling.
-            
+            ApplyOutputWindowChrome(_trainingDisplayWindow);
 
             // Restore the operator's last-saved Training display window layout if any.
             var savedTraining = WindowLayoutStorage.Get(WindowLayoutStorage.TrainingDisplayKey);
             if (savedTraining is not null)
                 WindowLayoutStorage.Apply(_trainingDisplayWindow, savedTraining);
 
-            _trainingDisplayWindow.Closed += (_, _) => _trainingDisplayWindow = null;
+            _trainingDisplayWindow.Closed += (_, _) =>
+            {
+                container.Children.Clear();
+                _trainingDisplayWindow = null;
+            };
 
             HookDimensionMirror(_trainingDisplayWindow);
 
@@ -2080,51 +2175,7 @@ namespace Roche_Scoreboard
             _aflMatchReady = true;
             ApplySetupResult(result);
 
-            MainContent.BeginAnimation(OpacityProperty, null);
-            SetupWizardPanel.BeginAnimation(OpacityProperty, null);
-
-            // Animate wizard out and main content in
-            MainContent.Opacity = 0;
-            MainContent.RenderTransform = new TranslateTransform(0, 20);
-            MainContent.IsVisible = true;
-
-            var sb = new Storyboard();
-
-            var wizardFade = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.25))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
-            Storyboard.SetTarget(wizardFade, SetupWizardPanel);
-            Storyboard.SetTargetProperty(wizardFade, new PropertyPath(OpacityProperty));
-            sb.Children.Add(wizardFade);
-
-            var contentFade = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.35))
-            {
-                BeginTime = TimeSpan.FromSeconds(0.05),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-            Storyboard.SetTarget(contentFade, MainContent);
-            Storyboard.SetTargetProperty(contentFade, new PropertyPath(OpacityProperty));
-            sb.Children.Add(contentFade);
-
-            var contentSlide = new DoubleAnimation(20, 0, TimeSpan.FromSeconds(0.35))
-            {
-                BeginTime = TimeSpan.FromSeconds(0.05),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-            Storyboard.SetTarget(contentSlide, MainContent);
-            Storyboard.SetTargetProperty(contentSlide, new PropertyPath("RenderTransform.(TranslateTransform.Y)"));
-            sb.Children.Add(contentSlide);
-
-            sb.Completed += (_, __) =>
-            {
-                SetupWizardPanel.IsVisible = false;
-                SetupWizardPanel.Opacity = 1;
-                MainContent.Opacity = 1;
-                MainContent.RenderTransform = null;
-                Activate();
-                Focus();
-                NativeKeyboard.Focus(this);
-            };
-            sb.Begin();
+            BeginAflSetupTransition();
 
             EnsureScoreboardWindow();
             if (_displayWindow is { IsVisible: false }) _displayWindow.Show();
@@ -2142,32 +2193,28 @@ namespace Roche_Scoreboard
         // ----------------------------
         private void OnCricketSetupCompleted(CricketSetupResult result)
         {
-            ShowMatchLoadingScreen(
-                homeName: result.TeamAName,
-                homeAbbr: result.TeamAAbbr,
-                homeLogo: result.TeamALogoPath,
-                homePrimaryColor: result.TeamAPrimaryColor,
-                awayName: result.TeamBName,
-                awayAbbr: result.TeamBAbbr,
-                awayLogo: result.TeamBLogoPath,
-                awayPrimaryColor: result.TeamBPrimaryColor,
-                subtitle: "PREPARING CRICKET BROADCAST",
-                steps: new[]
-                {
-                    "Calibrating match engine",
-                    "Loading squads and logos",
-                    "Configuring format and overs",
-                    "Mounting marquee feed",
-                    "Spinning up scorebug",
-                    "Linking cricket display",
-                    "Setting innings and toss"
-                },
-                fadeOutWizard: CricketSetupWizardPanel,
-                onReady: () => FinalizeCricketSetup(result));
+            if (_cricketMatch is not null) return;
+            result.FillEmptySquads();
+            FinalizeCricketSetup(result);
+        }
+
+        private Storyboard? _cricketSetupTransition;
+        private int _cricketSetupGeneration;
+
+        private void StopCricketSetupTransition()
+        {
+            _cricketSetupGeneration++;
+            _cricketSetupTransition?.Remove(CricketControlPanelView);
+            _cricketSetupTransition = null;
+            CricketControlPanelView.BeginAnimation(OpacityProperty, null);
+            CricketControlPanelView.Opacity = 1;
+            CricketControlPanelView.RenderTransform = null;
         }
 
         private void FinalizeCricketSetup(CricketSetupResult result, bool promptForInitialSelection = true)
         {
+            StopCricketSetupTransition();
+            int generation = _cricketSetupGeneration;
             // The shared idle output hands off to cricket's dedicated live
             // display rather than leaving two topmost windows stacked.
             _displayWindow?.Hide();
@@ -2176,8 +2223,15 @@ namespace Roche_Scoreboard
             {
                 Format = result.Format,
                 TotalOvers = result.TotalOvers,
+                ReplaceWideBalls=result.ReplaceWideBalls,
+                ReplaceNoBalls=result.ReplaceNoBalls,
+                FreeHitsEnabled=result.FreeHitsEnabled,
+                WeatherLocation = result.WeatherLocation,
                 TotalInnings = result.Format == CricketFormat.LimitedOvers ? 2 : 4,
                 TeamABatsFirst = result.TeamABatsFirst,
+                TossWinner = result.TossWinner,
+                TossWinnerElectedToBat = result.TossWinnerElectedToBat,
+                TossPending = promptForInitialSelection,
                 TeamAPrimaryColor = result.TeamAPrimaryColor,
                 TeamASecondaryColor = result.TeamASecondaryColor,
                 TeamBPrimaryColor = result.TeamBPrimaryColor,
@@ -2196,7 +2250,6 @@ namespace Roche_Scoreboard
             // Create the cricket scorebug
             _cricketScorebug = new CricketScorebugControl();
             _cricketScorebug.UpdateFromMatch(_cricketMatch);
-            _cricketScorebug.SetMarqueeMessages(result.Messages);
 
             // Create the summary control
             _cricketSummary = new CricketSummaryControl();
@@ -2207,6 +2260,7 @@ namespace Roche_Scoreboard
             CricketControlPanelView.SetScorebug(_cricketScorebug);
             CricketControlPanelView.SetSummaryControl(_cricketSummary);
             CricketControlPanelView.SetMessages(result.Messages);
+            CricketControlPanelView.PresentationChanged -= OnCricketPresentationChanged;
             CricketControlPanelView.PresentationChanged += OnCricketPresentationChanged;
 
             // Create the cricket display window
@@ -2234,22 +2288,35 @@ namespace Roche_Scoreboard
 
             sb.Completed += (_, __) =>
             {
+                if (generation != _cricketSetupGeneration || _cricketMatch is null) return;
+                sb.Remove(CricketControlPanelView);
+                _cricketSetupTransition = null;
+                CricketControlPanelView.Opacity = 1;
                 CricketControlPanelView.RenderTransform = null;
-                // Prompt for opening batters + bowler right after panel appears
-                if (promptForInitialSelection)
-                    CricketControlPanelView.TriggerInitialSelection();
             };
-            sb.Begin();
+            _cricketSetupTransition = sb;
+            sb.Begin(CricketControlPanelView, HandoffBehavior.SnapshotAndReplace, isControllable: true);
+            // Opening selections are functional immediately; rendering delays
+            // must never postpone the operator's ability to start the game.
+            // A fresh cricket match starts at its integrated toss action, not a forced player dialog.
+            if (Avalonia.Application.Current is not RocheScoreboard.Mac.App { IsSelfTestMode: true })
+                _ = StartOrUpdateWeatherServiceAsync(result.WeatherLocation);
 
             Title = $"Roche Scoreboard v{ProductionVersion.CurrentVersion.ToString(3)} | Cricket | {result.TeamAName} vs {result.TeamBName}";
         }
 
         private void EnsureCricketDisplayWindow()
         {
-            if (_cricketDisplayWindow != null && _cricketDisplayWindow.IsVisible) return;
+            if (_cricketDisplayWindow != null)
+            {
+                if (!_cricketDisplayWindow.IsVisible) _cricketDisplayWindow.Show();
+                return;
+            }
             if (_cricketScorebug == null) return;
 
-            var container = new Grid();
+            var overlays = new CricketOverlayHost(_cricketMatch!);
+            var container = overlays.Scene;
+            CricketControlPanelView.SetOverlayHost(overlays);
             container.Children.Add(_cricketScorebug);
             if (_cricketSummary != null)
                 container.Children.Add(_cricketSummary);
@@ -2270,7 +2337,7 @@ namespace Roche_Scoreboard
                 Height = 193,
                 Left = 0,
                 Top = 0,
-                Content = container
+                Content = overlays
             };
 
             // Restore the operator's last-saved Cricket display window layout if any.
@@ -2280,10 +2347,15 @@ namespace Roche_Scoreboard
 
             _cricketDisplayWindow.Closed += (_, __) =>
             {
+                // A closed NativeWindow still owns its children. Detach the reusable
+                // scorebug and summary before the operator reopens the display.
+                container.Children.Clear();
+                overlays.Dispose();
                 _cricketDisplayWindow = null;
                 UpdateWindowToggleVisual();
             };
 
+            ApplyOutputWindowChrome(_cricketDisplayWindow);
             HookDimensionMirror(_cricketDisplayWindow);
 
             _cricketDisplayWindow.Loaded += (_, __) =>
@@ -2313,19 +2385,26 @@ namespace Roche_Scoreboard
 
         private void OnCricketMatchChanged()
         {
-            SaveGameState();
+            QueueCricketGameStateSave();
             PublishCloudSnapshot();
         }
 
         private void OnCricketResetRequested()
         {
-            GameStateService.Clear();
+#if DEBUG
+            if (_cricketPreviewBackup is not null) { RestoreCricketPreview(); return; }
+            _cricketDiagnostics?.Close();
+#endif
+            StopCricketSetupTransition();
+            if (Avalonia.Application.Current is not RocheScoreboard.Mac.App { IsSelfTestMode: true })
+                ClearCricketGameStateSave();
+            CricketControlPanelView.ClearMatch();
             if (_cricketMatch != null)
             {
                 _cricketMatch.MatchChanged -= OnCricketMatchChanged;
-                _cricketMatch.ResetForNewGame();
             }
             CricketControlPanelView.PresentationChanged -= OnCricketPresentationChanged;
+            _cricketScorebug?.Dispose();
             _cricketDisplayWindow?.Close();
             _cricketDisplayWindow = null;
             _cricketScorebug = null;
@@ -2334,8 +2413,10 @@ namespace Roche_Scoreboard
 
             CricketControlPanelView.BeginAnimation(OpacityProperty, null);
             CricketControlPanelView.IsVisible = false;
+            SportSelectionPanel.PrepareForDisplay();
             SportSelectionPanel.Opacity = 1;
             SportSelectionPanel.IsVisible = true;
+            Title = $"Roche Scoreboard v{ProductionVersion.CurrentVersion.ToString(3)}";
             ShowOutputScreensaver(manualSelection: false);
         }
 
@@ -2461,32 +2542,10 @@ namespace Roche_Scoreboard
         // ----------------------------
         private void SaveGameState()
         {
+            if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }) return;
             if (_sportMode == SportMode.Cricket)
             {
-                if (_cricketMatch?.CurrentInnings is null) return;
-                bool hasStarted = _cricketMatch.AllInnings.Any(i => i.Deliveries.Count > 0)
-                    || _cricketMatch.CurrentInnings.StrikerIndex >= 0
-                    || _cricketMatch.CurrentInnings.CurrentBowlerIndex >= 0;
-                if (!hasStarted) return;
-
-                if (_cricketMatch.MatchResult is not null)
-                {
-                    GameStateService.Clear();
-                    return;
-                }
-
-                GameStateService.Save(new GameState
-                {
-                    Sport = "cricket",
-                    CricketMatchState = _cricketMatch.ToState(),
-                    HomePrimaryColor = _cricketMatch.TeamAPrimaryColor,
-                    HomeSecondaryColor = _cricketMatch.TeamASecondaryColor,
-                    AwayPrimaryColor = _cricketMatch.TeamBPrimaryColor,
-                    AwaySecondaryColor = _cricketMatch.TeamBSecondaryColor,
-                    HomeLogoPath = _cricketMatch.TeamALogoPath,
-                    AwayLogoPath = _cricketMatch.TeamBLogoPath,
-                    Messages = [.. _cricketMatch.Messages]
-                });
+                QueueCricketGameStateSave();
                 return;
             }
 
@@ -2548,6 +2607,7 @@ namespace Roche_Scoreboard
             try
             {
                 SaveGameState();
+                FlushCricketGameStateSave();
             }
             catch
             {
@@ -2559,7 +2619,11 @@ namespace Roche_Scoreboard
         {
             if (_autoSaveTimer is not null) return;
             _autoSaveTimer = new DispatcherTimer { Interval = AutoSaveInterval };
-            _autoSaveTimer.Tick += (_, _) => TrySaveGameStateForShutdown();
+            _autoSaveTimer.Tick += (_, _) =>
+            {
+                if(_sportMode==SportMode.Cricket) QueueCricketGameStateSave();
+                else TrySaveGameStateForShutdown();
+            };
             _autoSaveTimer.Start();
         }
 
@@ -2776,6 +2840,7 @@ namespace Roche_Scoreboard
                 IsVisible = _aflMatchReady || !_screensaverEnabled ? false : true
             };
             _outputScreensaver.Configure(_screensaverMediaPath);
+            _outputScreensaver.SetClockVisible(OperatorWorkflowPreferences.Load().OutputScreensaverShowClock);
             _quarterBreakScorebug = new QuarterBreakScorebugControl { IsVisible = false };
             _breakScreen = new BreakScreenControl { IsVisible = false };
             _breakScreen.SetFinalsMode(_finalsMode);
@@ -2830,7 +2895,7 @@ namespace Roche_Scoreboard
             _showingBreakScreen = false;
 
             // VLC's VideoView embeds a native HWND via HwndHost. Layered
-            // (AllowsTransparency=true) WPF windows cannot host child HWNDs,
+            // () WPF windows cannot host child HWNDs,
             // so libvlc falls back to creating its own top-level window for
             // the video — which is the "separate VLC window" the operator
             // was seeing on Play. Forcing the AFL display window opaque
@@ -2874,7 +2939,7 @@ namespace Roche_Scoreboard
             // so the scorebug sits flush in the top-left with no bars,
             // gaps or curves. The existing WM_NCHITTEST hook continues to
             // provide edge resizing.
-            
+            ApplyOutputWindowChrome(_displayWindow);
 
             // Restore the operator's last-saved AFL display window layout if any.
             // Falls back to the 386×193 capture-area default at (0,0) — top-left of the primary monitor.
@@ -2980,6 +3045,10 @@ namespace Roche_Scoreboard
                 TeamBPlayers = saved.TeamBPlayers.Select(p => p.Clone()).ToList(),
                 Format = saved.Format,
                 TotalOvers = saved.TotalOvers,
+                ReplaceWideBalls=saved.ReplaceWideBalls,
+                ReplaceNoBalls=saved.ReplaceNoBalls,
+                FreeHitsEnabled=saved.FreeHitsEnabled,
+                WeatherLocation = saved.WeatherLocation,
                 TeamABatsFirst = saved.TeamABatsFirst,
                 Messages = [.. saved.Messages]
             };
@@ -3243,7 +3312,7 @@ namespace Roche_Scoreboard
 
         private static void ApplyImageCropTransform(Avalonia.Controls.Image image, double zoom, double x, double y)
         {
-            image.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            image.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             TransformGroup group = new();
             group.Children.Add(new ScaleTransform(zoom, zoom));
             group.Children.Add(new TranslateTransform(x, y));
@@ -3336,7 +3405,11 @@ namespace Roche_Scoreboard
         private void ShowOutputScreensaver(bool manualSelection)
         {
             if (!manualSelection && !_screensaverEnabled)
+            {
+                if (!_aflMatchReady && _cricketMatch is null && _trainingSession is null)
+                    foreach (var window in OutputWindows()) window.Hide();
                 return;
+            }
 
             EnsureScoreboardWindow();
             if (_outputScreensaver is null) return;
@@ -3371,6 +3444,7 @@ namespace Roche_Scoreboard
             });
             _outputScreensaver?.Configure(_screensaverMediaPath);
             UpdateScreensaverSettingsStatus();
+            OnGlobalScreensaverEnabledChanged(true);
         }
 
         private void ResetScreensaverMedia_Click(object? sender, RoutedEventArgs e)
@@ -3384,10 +3458,12 @@ namespace Roche_Scoreboard
             });
             _outputScreensaver?.ShowDefault();
             UpdateScreensaverSettingsStatus();
+            OnGlobalScreensaverEnabledChanged(true);
         }
 
         private void UpdateScreensaverSettingsStatus()
         {
+            GlobalSettingsPanel?.SetScreensaverPreferences(_screensaverMediaPath,OperatorWorkflowPreferences.Load().OutputScreensaverShowClock,_screensaverEnabled);
             if (ScreensaverMediaStatus is null) return;
             if (string.IsNullOrWhiteSpace(_screensaverMediaPath))
             {
@@ -3454,7 +3530,7 @@ namespace Roche_Scoreboard
             // Status badge: quick scale pulse
             if (StatusBadge.RenderTransform is not ScaleTransform badgeSc)
             {
-                StatusBadge.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+                StatusBadge.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
                 StatusBadge.RenderTransform = badgeSc = new ScaleTransform(1, 1);
             }
 
@@ -3479,7 +3555,7 @@ namespace Roche_Scoreboard
         {
             if (element.RenderTransform is not ScaleTransform sc)
             {
-                element.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+                element.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
                 element.RenderTransform = sc = new ScaleTransform(1, 1);
             }
 
@@ -3493,94 +3569,89 @@ namespace Roche_Scoreboard
 }
 
 namespace Roche_Scoreboard { public partial class MainWindow {
-    private ScaleTransform Sc => (ScaleTransform)ProductionNames.RegistryFor(this)["Sc"];
-    private TranslateTransform Lift => (TranslateTransform)ProductionNames.RegistryFor(this)["Lift"];
-    private ScaleTransform TbSc => (ScaleTransform)ProductionNames.RegistryFor(this)["TbSc"];
-    private TranslateTransform TbLift => (TranslateTransform)ProductionNames.RegistryFor(this)["TbLift"];
-    private ScaleTransform RbSc => (ScaleTransform)ProductionNames.RegistryFor(this)["RbSc"];
     private ScaleTransform ControlPanelCountdownEditPopupScale => (ScaleTransform)ProductionNames.RegistryFor(this)["ControlPanelCountdownEditPopupScale"];
     private TranslateTransform WindowToggleThumbTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["WindowToggleThumbTranslate"];
     private TranslateTransform SettingsControlPanelCountdownCardTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["SettingsControlPanelCountdownCardTranslate"];
     private ScaleTransform SettingsControlPanelCountdownCardScale => (ScaleTransform)ProductionNames.RegistryFor(this)["SettingsControlPanelCountdownCardScale"];
     private TranslateTransform SettingsControlPanelCountdownThumbTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["SettingsControlPanelCountdownThumbTranslate"];
-    private void Native_AnimBroadcastCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; AnimBroadcastCard_Click(sender!, e); }
-    private void Native_AnimCinematicCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; AnimCinematicCard_Click(sender!, e); }
-    private void Native_AnimClassicCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; AnimClassicCard_Click(sender!, e); }
-    private void Native_AnimCleanCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; AnimCleanCard_Click(sender!, e); }
-    private void Native_AnimCustomVideoCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; AnimCustomVideoCard_Click(sender!, e); }
-    private void Native_AnimElectricCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; AnimElectricCard_Click(sender!, e); }
-    private void Native_AnimationRadio_Changed(object? sender, RoutedEventArgs e) { AnimationRadio_Changed(sender!, e); }
-    private void Native_AutoOverlaysCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; AutoOverlaysCard_Click(sender!, e); }
+    private void Native_AnimationRadio_Changed_Checked(object? sender, RoutedEventArgs e) { if (sender is Avalonia.Controls.Primitives.ToggleButton toggle && toggle.IsChecked != true) return; AnimationRadio_Changed(sender!, e); }
     private void Native_AutoOverlaysToggle_Changed(object? sender, RoutedEventArgs e) { AutoOverlaysToggle_Changed(sender!, e); }
-    private void Native_ClassicLayoutCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; ClassicLayoutCard_Click(sender!, e); }
     private void Native_ClearItemHighlightColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Right) return; ClearItemHighlightColor_Click(sender!, e); }
     private void Native_ClearNewHighlightColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Right) return; ClearNewHighlightColor_Click(sender!, e); }
-    private void Native_ClockMode_Changed(object? sender, RoutedEventArgs e) { ClockMode_Changed(sender!, e); }
-    private void Native_CopyCloudJoinCode_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; CopyCloudJoinCode_Click(sender!, e); }
-    private void Native_DropperAwayColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; DropperAwayColor_Click(sender!, e); }
-    private void Native_DropperAwaySecondaryColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; DropperAwaySecondaryColor_Click(sender!, e); }
-    private void Native_DropperHomeColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; DropperHomeColor_Click(sender!, e); }
-    private void Native_DropperHomeSecondaryColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; DropperHomeSecondaryColor_Click(sender!, e); }
-    private void Native_ExpandedLayoutCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; ExpandedLayoutCard_Click(sender!, e); }
-    private void Native_HeightMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; HeightMinus_Click(sender!, e); }
-    private void Native_HeightPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; HeightPlus_Click(sender!, e); }
-    private void Native_LayoutRadio_Changed(object? sender, RoutedEventArgs e) { LayoutRadio_Changed(sender!, e); }
+    private void Native_ClockMode_Changed_Checked(object? sender, RoutedEventArgs e) { if (sender is Avalonia.Controls.Primitives.ToggleButton toggle && toggle.IsChecked != true) return; ClockMode_Changed(sender!, e); }
+    private void Native_LayoutRadio_Changed_Checked(object? sender, RoutedEventArgs e) { if (sender is Avalonia.Controls.Primitives.ToggleButton toggle && toggle.IsChecked != true) return; LayoutRadio_Changed(sender!, e); }
     private void Native_MainTabControl_SelectionChanged(object? sender, SelectionChangedEventArgs e) { MainTabControl_SelectionChanged(sender!, e); }
     private void Native_MessageItem_TextChanged(object? sender, TextChangedEventArgs e) { MessageItem_TextChanged(sender!, e); }
     private void Native_NewMessageBox_TextChanged(object? sender, TextChangedEventArgs e) { NewMessageBox_TextChanged(sender!, e); }
-    private void Native_OverlayAwayDrought_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayAwayDrought_Click(sender!, e); }
-    private void Native_OverlayHomeDrought_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayHomeDrought_Click(sender!, e); }
-    private void Native_OverlayLeadChanges_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayLeadChanges_Click(sender!, e); }
-    private void Native_OverlayQtrScores_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayQtrScores_Click(sender!, e); }
-    private void Native_OverlayRainForecast_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayRainForecast_Click(sender!, e); }
-    private void Native_OverlayRecentScores_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayRecentScores_Click(sender!, e); }
-    private void Native_OverlayScoreless_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayScoreless_Click(sender!, e); }
-    private void Native_OverlayScoringRun_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayScoringRun_Click(sender!, e); }
-    private void Native_OverlayStatsBar_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayStatsBar_Click(sender!, e); }
-    private void Native_OverlayWarning_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayWarning_Click(sender!, e); }
-    private void Native_OverlayWeatherForecast_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayWeatherForecast_Click(sender!, e); }
-    private void Native_OverlayWeatherStats_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayWeatherStats_Click(sender!, e); }
-    private void Native_OverlayWinProb_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OverlayWinProb_Click(sender!, e); }
+    private void Native_OperatorTile_AnimBroadcastCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_AnimBroadcastCard_Click(sender!, e); }
+    private void Native_OperatorTile_AnimCinematicCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_AnimCinematicCard_Click(sender!, e); }
+    private void Native_OperatorTile_AnimClassicCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_AnimClassicCard_Click(sender!, e); }
+    private void Native_OperatorTile_AnimCleanCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_AnimCleanCard_Click(sender!, e); }
+    private void Native_OperatorTile_AnimCustomVideoCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_AnimCustomVideoCard_Click(sender!, e); }
+    private void Native_OperatorTile_AnimElectricCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_AnimElectricCard_Click(sender!, e); }
+    private void Native_OperatorTile_AutoOverlaysCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_AutoOverlaysCard_Click(sender!, e); }
+    private void Native_OperatorTile_ClassicLayoutCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_ClassicLayoutCard_Click(sender!, e); }
+    private void Native_OperatorTile_CopyCloudJoinCode_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_CopyCloudJoinCode_Click(sender!, e); }
+    private void Native_OperatorTile_DropperAwayColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_DropperAwayColor_Click(sender!, e); }
+    private void Native_OperatorTile_DropperAwaySecondaryColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_DropperAwaySecondaryColor_Click(sender!, e); }
+    private void Native_OperatorTile_DropperHomeColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_DropperHomeColor_Click(sender!, e); }
+    private void Native_OperatorTile_DropperHomeSecondaryColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_DropperHomeSecondaryColor_Click(sender!, e); }
+    private void Native_OperatorTile_ExpandedLayoutCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_ExpandedLayoutCard_Click(sender!, e); }
+    private void Native_OperatorTile_HeightMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_HeightMinus_Click(sender!, e); }
+    private void Native_OperatorTile_HeightPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_HeightPlus_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayAwayDrought_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayAwayDrought_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayHomeDrought_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayHomeDrought_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayLeadChanges_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayLeadChanges_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayQtrScores_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayQtrScores_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayRainForecast_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayRainForecast_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayRecentScores_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayRecentScores_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayScoreless_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayScoreless_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayScoringRun_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayScoringRun_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayStatsBar_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayStatsBar_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayWarning_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayWarning_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayWeatherForecast_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayWeatherForecast_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayWeatherStats_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayWeatherStats_Click(sender!, e); }
+    private void Native_OperatorTile_OverlayWinProb_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_OverlayWinProb_Click(sender!, e); }
+    private void Native_OperatorTile_PresCardQuarterBreak_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_PresCardQuarterBreak_Click(sender!, e); }
+    private void Native_OperatorTile_PresCardScorebug_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_PresCardScorebug_Click(sender!, e); }
+    private void Native_OperatorTile_PresCardScreensaver_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_PresCardScreensaver_Click(sender!, e); }
+    private void Native_OperatorTile_PresCardStats_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_PresCardStats_Click(sender!, e); }
+    private void Native_OperatorTile_PresCardSummary_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_PresCardSummary_Click(sender!, e); }
+    private void Native_OperatorTile_PresCardWeather_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_PresCardWeather_Click(sender!, e); }
+    private void Native_OperatorTile_PresCardWindow_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_PresCardWindow_Click(sender!, e); }
+    private void Native_OperatorTile_PresCardWorm_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_PresCardWorm_Click(sender!, e); }
+    private void Native_OperatorTile_ResetCardSettings_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_ResetCardSettings_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsBreakScreenCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsBreakScreenCard_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsControlPanelCountdownOptionCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsControlPanelCountdownOptionCard_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsCountUpCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsCountUpCard_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsCountdownCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsCountdownCard_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsFinalsCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsFinalsCard_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsHideTeamNamesCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsHideTeamNamesCard_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsMinutesMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsMinutesMinus_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsMinutesPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsMinutesPlus_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsNav_Advanced_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsNav_Advanced_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsNav_Display_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsNav_Display_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsNav_Keybinds_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsNav_Keybinds_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsNav_Media_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsNav_Media_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsNav_Overlays_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsNav_Overlays_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsNav_Teams_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsNav_Teams_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsSearchClear_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsSearchClear_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsSecondsMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsSecondsMinus_Click(sender!, e); }
+    private void Native_OperatorTile_SettingsSecondsPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_SettingsSecondsPlus_Click(sender!, e); }
+    private void Native_OperatorTile_WidthMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_WidthMinus_Click(sender!, e); }
+    private void Native_OperatorTile_WidthPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; OperatorTile_WidthPlus_Click(sender!, e); }
     private void Native_PickAwayColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PickAwayColor_Click(sender!, e); }
     private void Native_PickAwaySecondaryColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PickAwaySecondaryColor_Click(sender!, e); }
     private void Native_PickHomeColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PickHomeColor_Click(sender!, e); }
     private void Native_PickHomeSecondaryColor_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PickHomeSecondaryColor_Click(sender!, e); }
-    private void Native_PresCardQuarterBreak_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PresCardQuarterBreak_Click(sender!, e); }
-    private void Native_PresCardScorebug_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PresCardScorebug_Click(sender!, e); }
-    private void Native_PresCardScreensaver_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PresCardScreensaver_Click(sender!, e); }
-    private void Native_PresCardStats_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PresCardStats_Click(sender!, e); }
-    private void Native_PresCardSummary_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PresCardSummary_Click(sender!, e); }
-    private void Native_PresCardWeather_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PresCardWeather_Click(sender!, e); }
-    private void Native_PresCardWindow_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PresCardWindow_Click(sender!, e); }
-    private void Native_PresCardWorm_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; PresCardWorm_Click(sender!, e); }
     private void Native_QuarterLabelCurrentBox_TextChanged(object? sender, TextChangedEventArgs e) { QuarterLabelCurrentBox_TextChanged(sender!, e); }
-    private void Native_ResetCardSettings_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; ResetCardSettings_Click(sender!, e); }
     private void Native_ResizeGrip_MouseDown(object? sender, PointerPressedEventArgs e) { ResizeGrip_MouseDown(sender!, e); }
-    private void Native_SettingsBreakScreenCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsBreakScreenCard_Click(sender!, e); }
     private void Native_SettingsBreakScreenToggle_Changed(object? sender, RoutedEventArgs e) { SettingsBreakScreenToggle_Changed(sender!, e); }
-    private void Native_SettingsControlPanelCountdownOptionCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsControlPanelCountdownOptionCard_Click(sender!, e); }
-    private void Native_SettingsCountUpCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsCountUpCard_Click(sender!, e); }
-    private void Native_SettingsCountdownCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsCountdownCard_Click(sender!, e); }
-    private void Native_SettingsFinalsCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsFinalsCard_Click(sender!, e); }
     private void Native_SettingsFinalsToggle_Changed(object? sender, RoutedEventArgs e) { SettingsFinalsToggle_Changed(sender!, e); }
-    private void Native_SettingsHideTeamNamesCard_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsHideTeamNamesCard_Click(sender!, e); }
     private void Native_SettingsHideTeamNamesToggle_Changed(object? sender, RoutedEventArgs e) { SettingsHideTeamNamesToggle_Changed(sender!, e); }
-    private void Native_SettingsMinutesMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsMinutesMinus_Click(sender!, e); }
-    private void Native_SettingsMinutesPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsMinutesPlus_Click(sender!, e); }
-    private void Native_SettingsNav_Advanced_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsNav_Advanced_Click(sender!, e); }
-    private void Native_SettingsNav_Display_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsNav_Display_Click(sender!, e); }
-    private void Native_SettingsNav_Keybinds_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsNav_Keybinds_Click(sender!, e); }
-    private void Native_SettingsNav_Media_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsNav_Media_Click(sender!, e); }
-    private void Native_SettingsNav_Overlays_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsNav_Overlays_Click(sender!, e); }
-    private void Native_SettingsNav_Teams_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsNav_Teams_Click(sender!, e); }
-    private void Native_SettingsSearchClear_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsSearchClear_Click(sender!, e); }
     private void Native_SettingsSearch_TextChanged(object? sender, TextChangedEventArgs e) { SettingsSearch_TextChanged(sender!, e); }
-    private void Native_SettingsSecondsMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsSecondsMinus_Click(sender!, e); }
-    private void Native_SettingsSecondsPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; SettingsSecondsPlus_Click(sender!, e); }
     private void Native_TeamSettings_TextChanged(object? sender, TextChangedEventArgs e) { TeamSettings_TextChanged(sender!, e); }
     private void Native_TickerSlotEnabled_Changed(object? sender, RoutedEventArgs e) { TickerSlotEnabled_Changed(sender!, e); }
     private void Native_VideoTabSeek_PreviewMouseLeftButtonUp(object? sender, PointerReleasedEventArgs e) { VideoTabSeek_PreviewMouseLeftButtonUp(sender!, e); }
     private void Native_VideoTabSpeed_Changed(object? sender, SelectionChangedEventArgs e) { VideoTabSpeed_Changed(sender!, e); }
-    private void Native_WidthMinus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; WidthMinus_Click(sender!, e); }
-    private void Native_WidthPlus_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; WidthPlus_Click(sender!, e); }
 } }

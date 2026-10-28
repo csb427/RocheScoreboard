@@ -54,7 +54,7 @@ public partial class UpdatePromptWindow : Window
             ? "SHA-256 integrity check"
             : "Package validation enabled";
 
-        Loaded += (_, _) => AnimateEntrance();
+        SharedSurfaceMotion.Attach(DialogShell);
         Closing += (_, args) =>
         {
             if (!_isDownloading) return;
@@ -89,18 +89,6 @@ public partial class UpdatePromptWindow : Window
         if (bytes >= 1024L * 1024 * 1024) return $"{bytes / 1024d / 1024d / 1024d:0.0} GB";
         if (bytes >= 1024L * 1024) return $"{bytes / 1024d / 1024d:0} MB";
         return $"{Math.Max(0, bytes) / 1024d:0} KB";
-    }
-
-    private void AnimateEntrance()
-    {
-        if (!SystemParameters.ClientAreaAnimation) return;
-        DialogShell.Opacity = 0;
-        var translate = new TranslateTransform(0, 12);
-        DialogShell.RenderTransform = translate;
-        DialogShell.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
-        translate.BeginAnimation(TranslateTransform.YProperty,
-            new DoubleAnimation(12, 0, TimeSpan.FromMilliseconds(220))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => SkipOrCancel();

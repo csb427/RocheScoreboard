@@ -1,5 +1,5 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
     <Geometry x:Key="ScoreGrid.IconGeometry.Check">M 3,10 L 8,15 L 17,5</Geometry>
     <Geometry x:Key="ScoreGrid.IconGeometry.Close">M 4,4 L 16,16 M 16,4 L 4,16</Geometry>
     <Geometry x:Key="ScoreGrid.IconGeometry.ChevronDown">M 4,7 L 10,13 L 16,7</Geometry>

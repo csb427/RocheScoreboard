@@ -1,8 +1,11 @@
 // Generated from Services/VideoDiagnostics.cs; edit translator/adapters.
-// Source SHA-256: 04ba4cde9356bddf4a81f92a3b43c704374dfab0ad65da25e275c274ad0df03a
+// Source SHA-256: cbdb075ba30172f65feb2e433467c34fd39dd85614a6113edb5171650ced0b64
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.Collections.Concurrent;
@@ -123,18 +126,24 @@ internal static class VideoDiagnostics
     {
         get
         {
-            if (_logFilePath is not null) return _logFilePath;
+            string? selfTestPath = SelfTestStorage.IsEnabled
+                ? SelfTestStorage.PathFor("diagnostics", "video.log")
+                : null;
+            if (_logFilePath is not null && (selfTestPath is null ||
+                string.Equals(_logFilePath, selfTestPath, StringComparison.OrdinalIgnoreCase)))
+                return _logFilePath;
             try
             {
-                string root = NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string dir = Path.Combine(root, "Roche_Scoreboard");
+                string dir = selfTestPath is not null
+                    ? Path.GetDirectoryName(selfTestPath)!
+                    : Path.Combine(NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Roche_Scoreboard");
                 Directory.CreateDirectory(dir);
                 _logFilePath = Path.Combine(dir, "video.log");
             }
             catch
             {
                 // If LocalAppData is unavailable, fall back to the temp folder.
-                _logFilePath = Path.Combine(Path.GetTempPath(), "Roche_Scoreboard_video.log");
+                _logFilePath = selfTestPath ?? Path.Combine(Path.GetTempPath(), "Roche_Scoreboard_video.log");
             }
             return _logFilePath;
         }

@@ -2,10 +2,12 @@
 // Source SHA-256: 396ec79534062870aae96ae508351c53a4a436e99a3eeeb953859c4142e905c0
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
-using Avalonia.Media;
 using Color = Avalonia.Media.Color;
 using Brush = Avalonia.Media.IBrush;
 using Brushes = Avalonia.Media.Brushes;

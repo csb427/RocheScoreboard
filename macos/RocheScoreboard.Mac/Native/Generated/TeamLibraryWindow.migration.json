@@ -1,10 +1,15 @@
 {
   "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml",
-  "source_sha256": "755323b4924cead378a57456de0f985af869874d6aa79dabeed76a208d9f6011",
+  "source_sha256": "4d925a11f5a58047407315b55299bc6bc8c8aae195f9c85c870d6eab5c701f77",
   "names": [
     {
-      "name": "Surface",
-      "type": "Border",
+      "name": "LibrarySurface",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "LibraryToolbar",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -13,8 +18,13 @@
       "object": false
     },
     {
+      "name": "CatalogueDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "SearchBox",
-      "type": "TextBox",
+      "type": "OperatorSearchBox",
       "object": false
     },
     {
@@ -38,6 +48,26 @@
       "object": false
     },
     {
+      "name": "ClubContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ListColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "DetailColumn",
+      "type": "ColumnDefinition",
+      "object": true
+    },
+    {
+      "name": "ListSurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
       "name": "TeamList",
       "type": "ListBox",
       "object": false
@@ -48,8 +78,28 @@
       "object": false
     },
     {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
       "name": "SavedStar",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "SelectedMark",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "EmptyResults",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "DetailSurface",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -98,12 +148,12 @@
       "object": false
     },
     {
-      "name": "FavouriteButton",
+      "name": "UseButton",
       "type": "Button",
       "object": false
     },
     {
-      "name": "UseButton",
+      "name": "FavouriteButton",
       "type": "Button",
       "object": false
     },
@@ -113,13 +163,13 @@
       "object": false
     }
   ],
-  "code_source_sha256": "f94e9078b88c85ec56142ee7c5998cc017572aa8d3cddcb1851ce356cca24c45",
+  "code_source_sha256": "25cdd4a1a725ae7696d28b4182f21e4baca71139d3cb1db845e1b06820456380",
   "native_events": [
     {
       "name": "SearchBox",
       "source": "TextChanged",
       "native": "TextChanged",
-      "handler": "Filter_Changed"
+      "handler": "Search_Changed"
     },
     {
       "name": "LeagueFilter",
@@ -162,7 +212,7 @@
     {
       "name": null,
       "property": "FontFamily",
-      "source": "Segoe UI",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     },
     {

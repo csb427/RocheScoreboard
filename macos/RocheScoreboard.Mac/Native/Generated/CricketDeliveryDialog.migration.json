@@ -1,0 +1,331 @@
+{
+  "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
+  "source_sha256": "daec7e9dba71e2a4563c5cf2cd57ca36c1435227cb9c8215fbd2dd7245ad8d2e",
+  "names": [
+    {
+      "name": "EntryLayout",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TeamHeader",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "TeamLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "Heading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ContextText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "EntryScroll",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "TypeLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TypeChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "WicketOptions",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "FreeHitEntryHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "DismissalChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "DismissalTiles",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "DismissedChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "DismissedTiles",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "DismissedBatterHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "FielderOptions",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "FielderChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "FielderTiles",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "RunOutOptions",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "RunOutChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "RunOutSourceTiles",
+      "type": "UniformGrid",
+      "object": false
+    },
+    {
+      "name": "RunOutNotCrossed",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "RunOutCrossed",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "NoBallOptions",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "NoBallChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "BatRunsTile",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ByesTile",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "LegByesTile",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "RunOptions",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "RunsLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "RunsTiles",
+      "type": "UniformGrid",
+      "object": false
+    },
+    {
+      "name": "CustomRunsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "RunsBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "RunExplanation",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ActorOptions",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "BatterChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "BatterTiles",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "BowlerChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "BowlerTiles",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "CorrectionOptions",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "ScopeChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "RestOfOverBowler",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "EntryFooter",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "PreviewPanel",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PreviewText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ErrorText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CancelButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ApplyButton",
+      "type": "Button",
+      "object": false
+    }
+  ],
+  "code_source_sha256": "4f8958ba3181e5b7cc36119811bea5823b25b276e33068b7f7589603fef2a7c1",
+  "native_events": [
+    {
+      "name": "TypeChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Details_Changed"
+    },
+    {
+      "name": "DismissalChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Details_Changed"
+    },
+    {
+      "name": "DismissedChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Details_Changed"
+    },
+    {
+      "name": "FielderChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Details_Changed"
+    },
+    {
+      "name": "RunOutChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Details_Changed"
+    },
+    {
+      "name": "RunOutNotCrossed",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "RunOutCrossing_Changed"
+    },
+    {
+      "name": "RunOutCrossed",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "RunOutCrossing_Changed"
+    },
+    {
+      "name": "NoBallChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Details_Changed"
+    },
+    {
+      "name": "RunsBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "Runs_Changed"
+    },
+    {
+      "name": "BatterChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Batter_Changed"
+    },
+    {
+      "name": "BowlerChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Details_Changed"
+    },
+    {
+      "name": "ScopeChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "Details_Changed"
+    }
+  ],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Variable, Segoe UI",
+      "native_fallback": "Inter"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

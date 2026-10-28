@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/LogoCropWindow.xaml",
-  "source_sha256": "a77070d46b53c01ce89319b03b3ae892f996f69cc6340e3538109c55da233dbd",
+  "source_sha256": "a847e980ffe91b3ce28c6e05f64fbba65c4f66acd1c657f2ed753f4bedbca4de",
   "names": [
     {
       "name": "HomeWideArea",
@@ -134,7 +134,14 @@
       "handler": "Preview_MouseLeave"
     }
   ],
-  "platform_translations": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Variable, Segoe UI",
+      "native_fallback": "Inter"
+    }
+  ],
   "visual_parity_verified": false,
   "behavior_parity_verified": false
 }

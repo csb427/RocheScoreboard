@@ -1,25 +1,65 @@
 {
   "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
-  "source_sha256": "0324bbf4f8e3bcbbe9f1ba998158b187dd2eaab1b69fa7a01e0403f586d20749",
+  "source_sha256": "03acd7d12767f2d4a4924c9297a11dec2b245567a19cf6351d541610cd8454a2",
   "names": [
+    {
+      "name": "PART_Surface",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "PressWash",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "DisclosureHeader",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Body",
+      "type": "ContentPresenter",
+      "object": false
+    },
     {
       "name": "ResponsiveScrollHost",
       "type": "ScrollViewer",
       "object": false
     },
     {
-      "name": "HeaderPanel",
-      "type": "Border",
+      "name": "SportViewport",
+      "type": "Grid",
       "object": false
     },
     {
-      "name": "HeaderTranslate",
-      "type": "TranslateTransform",
-      "object": true
+      "name": "HomeBackdrop",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeLayout",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeToolbar",
+      "type": "Grid",
+      "object": false
     },
     {
       "name": "SettingsTile",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -38,8 +78,78 @@
       "object": true
     },
     {
-      "name": "AflCard",
+      "name": "SettingsActionCaption",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsSubtitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ResumeUtilitySurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "ResumeSavedMatchButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ChangelogToggle",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "UpdatesActionIcon",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "VersionLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderPanel",
       "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HomeHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeSubtitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SportCardsGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HomeInteractionLens",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "HomeLensTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "AflCard",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -61,6 +171,16 @@
       "name": "AflBeamTranslate",
       "type": "TranslateTransform",
       "object": true
+    },
+    {
+      "name": "AflTileBody",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AflContentFit",
+      "type": "Viewbox",
+      "object": false
     },
     {
       "name": "AflIconGroup",
@@ -93,6 +213,11 @@
       "object": true
     },
     {
+      "name": "AflDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "AflHover",
       "type": "Border",
       "object": false
@@ -103,18 +228,8 @@
       "object": false
     },
     {
-      "name": "DividerScale",
-      "type": "ScaleTransform",
-      "object": true
-    },
-    {
-      "name": "DividerGlowLine",
-      "type": "Border",
-      "object": false
-    },
-    {
       "name": "CricketCard",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -136,6 +251,16 @@
       "name": "CricketBeamTranslate",
       "type": "TranslateTransform",
       "object": true
+    },
+    {
+      "name": "CricketTileBody",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "CricketContentFit",
+      "type": "Viewbox",
+      "object": false
     },
     {
       "name": "CricketIconGroup",
@@ -168,6 +293,11 @@
       "object": true
     },
     {
+      "name": "CricketDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "CricketHover",
       "type": "Border",
       "object": false
@@ -179,7 +309,7 @@
     },
     {
       "name": "TrainingCard",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -198,23 +328,68 @@
       "object": true
     },
     {
+      "name": "TrainingContentRoot",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TrainingContentScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TrainingGlassEdge",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TrainingTileBody",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TrainingContentFit",
+      "type": "Viewbox",
+      "object": false
+    },
+    {
+      "name": "TrainingIconMotionScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TrainingIconMotionShift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "TrainingTextPanel",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "TrainingDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TrainingHover",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "TrainingFlash",
       "type": "Border",
       "object": false
     },
     {
-      "name": "ChangelogToggle",
-      "type": "Button",
-      "object": false
+      "name": "DividerScale",
+      "type": "ScaleTransform",
+      "object": true
     },
     {
-      "name": "Shell",
+      "name": "DividerGlowLine",
       "type": "Border",
-      "object": false
-    },
-    {
-      "name": "VersionLabel",
-      "type": "TextBlock",
       "object": false
     },
     {
@@ -229,7 +404,7 @@
     },
     {
       "name": "ChangelogPanel",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -243,8 +418,98 @@
       "object": true
     },
     {
+      "name": "ReleaseSheetBody",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ReleaseHeader",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ReleaseSheetHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ReleaseSheetSubtitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ReleaseVersionChoice",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "ReleaseSearchHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "ChangelogSearchBox",
-      "type": "TextBox",
+      "type": "OperatorSearchBox",
+      "object": false
+    },
+    {
+      "name": "ReleaseFilterHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ReleaseFilters",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "AllReleaseFilter",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "NewReleaseFilter",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "FixedReleaseFilter",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ReleaseResultCount",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ReleaseLayout",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ReleaseVersionRail",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "ReleaseHistoryHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ReleaseHistoryScroller",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "ReleaseVersionButtons",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "ReleaseScroller",
+      "type": "ScrollViewer",
       "object": false
     },
     {
@@ -253,7 +518,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "42d8aa165a6176ae7d3f31fa9c9adf29b65f1d915580013b854f91742cb4b4bc",
+  "code_source_sha256": "0e1373748244eb938fbfc82b677ac01690a0fcf41896868c3adc9e58e66959d7",
   "native_events": [
     {
       "name": "ResponsiveScrollHost",
@@ -281,18 +546,30 @@
     },
     {
       "name": "AflCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "AFL_Click"
-    },
-    {
-      "name": "AflCard",
       "source": "MouseEnter",
       "native": "PointerEntered",
       "handler": "Card_MouseEnter"
     },
     {
       "name": "AflCard",
+      "source": "MouseLeave",
+      "native": "PointerExited",
+      "handler": "Card_MouseLeave"
+    },
+    {
+      "name": "AflCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "AFL_Click"
+    },
+    {
+      "name": "CricketCard",
+      "source": "MouseEnter",
+      "native": "PointerEntered",
+      "handler": "Card_MouseEnter"
+    },
+    {
+      "name": "CricketCard",
       "source": "MouseLeave",
       "native": "PointerExited",
       "handler": "Card_MouseLeave"
@@ -302,24 +579,6 @@
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
       "handler": "Cricket_Click"
-    },
-    {
-      "name": "CricketCard",
-      "source": "MouseEnter",
-      "native": "PointerEntered",
-      "handler": "Card_MouseEnter"
-    },
-    {
-      "name": "CricketCard",
-      "source": "MouseLeave",
-      "native": "PointerExited",
-      "handler": "Card_MouseLeave"
-    },
-    {
-      "name": "TrainingCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "Training_Click"
     },
     {
       "name": "TrainingCard",
@@ -334,6 +593,12 @@
       "handler": "TrainingTile_MouseLeave"
     },
     {
+      "name": "TrainingCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "Training_Click"
+    },
+    {
       "name": "ChangelogOverlay",
       "source": "PreviewKeyDown",
       "native": "KeyDown",
@@ -344,6 +609,12 @@
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
       "handler": "ChangelogBackdrop_Click"
+    },
+    {
+      "name": "ReleaseVersionChoice",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "ReleaseVersionChoice_SelectionChanged"
     },
     {
       "name": "ChangelogSearchBox",
@@ -362,92 +633,6 @@
       "name": "ResponsiveScrollHost",
       "property": "CanContentScroll",
       "source": "False"
-    },
-    {
-      "name": "SettingsTileScale",
-      "property": "CenterX",
-      "source": "0.5"
-    },
-    {
-      "name": "SettingsTileScale",
-      "property": "CenterY",
-      "source": "0.5"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "ViewportUnits",
-      "source": "Absolute"
-    },
-    {
-      "name": null,
-      "property": "ViewboxUnits",
-      "source": "Absolute"
-    },
-    {
-      "name": null,
-      "property": "ViewportUnits",
-      "source": "Absolute"
-    },
-    {
-      "name": null,
-      "property": "ViewboxUnits",
-      "source": "Absolute"
-    },
-    {
-      "name": "TrainingTileScale",
-      "property": "CenterX",
-      "source": "0.5"
-    },
-    {
-      "name": "TrainingTileScale",
-      "property": "CenterY",
-      "source": "0.5"
-    },
-    {
-      "name": null,
-      "property": "ViewportUnits",
-      "source": "Absolute"
-    },
-    {
-      "name": null,
-      "property": "ViewboxUnits",
-      "source": "Absolute"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "VersionLabel",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
     }
   ],
   "visual_parity_verified": false,

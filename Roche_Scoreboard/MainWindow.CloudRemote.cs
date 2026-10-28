@@ -87,6 +87,9 @@ public partial class MainWindow : IRemoteCommandTarget
     /// </summary>
     private void PublishCloudSnapshot()
     {
+#if DEBUG
+        if (_cricketPreviewBackup is not null) return;
+#endif
         if (_cloudRemote is null || !_cloudRemote.IsActive) return;
         try
         {
@@ -296,9 +299,9 @@ public partial class MainWindow : IRemoteCommandTarget
             ActiveScreen = "scorebug",
             EventCount = innings.Deliveries.Count,
             LastEvent = innings.Deliveries.LastOrDefault()?.Description ?? "",
-            MatchResult = match.MatchResult ?? "",
+            MatchResult = match.IsMatchFinalized ? match.MatchResult ?? "" : "",
             Messages = match.Messages,
-            SessionStatus = match.MatchResult is not null ? "fullTime" : innings.Deliveries.Count > 0 ? "live" : "lobby",
+            SessionStatus = match.IsMatchFinalized ? "fullTime" : innings.Deliveries.Count > 0 ? "live" : "lobby",
             UpdatedAt = DateTimeOffset.UtcNow,
             Cricket = new CricketSnapshotDto
             {

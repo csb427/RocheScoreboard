@@ -17,7 +17,7 @@ public partial class CalibrationOverlay : Avalonia.Controls.UserControl
 {
     public CalibrationOverlay()
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
         SizeChanged += (_, _) => UpdateReadout();
     }
 

@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/OutputScreensaverControl.xaml",
-  "source_sha256": "0c694101e26b5b90ea1b654cfb10d3d171e5820daaf8c4d952c373118196a565",
+  "source_sha256": "4f7243a34bb28cc9e7cba027899b9ff4ae55a746653f4dd366a7fd8160929882",
   "names": [
     {
       "name": "Root",
@@ -78,7 +78,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "c5c6fed612ce92ea3d696c9ca00ab647bc321fdf54538b327ec23a7800a5fb3e",
+  "code_source_sha256": "378e2ae4349d012da66b0f82147486688c5ddc6b61980f3104345922a244763a",
   "native_events": [],
   "platform_translations": [
     {

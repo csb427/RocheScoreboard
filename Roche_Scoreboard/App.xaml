@@ -19,6 +19,8 @@
                 <ResourceDictionary Source="DesignSystem/Typography.xaml" />
                 <ResourceDictionary Source="DesignSystem/Icons.xaml" />
                 <ResourceDictionary Source="DesignSystem/Components.xaml" />
+                <ResourceDictionary Source="Resources/Scrollbars.xaml" />
+                <ResourceDictionary Source="Resources/OperatorInputs.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

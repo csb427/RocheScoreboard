@@ -33,7 +33,7 @@
     "mac_update_and_restart_workflow",
     "fonts_assets_and_rendering_comparison"
   ],
-  "implementation_status": "All production views/resources and controller logic translated; native platform adapters implemented. Native acceptance pending.",
+  "implementation_status": "Windows 5.0 source integrated and native translation compiled; runtime regression and native acceptance evidence are recorded separately.",
   "implemented_screens": [
     "Roche_Scoreboard/App.xaml",
     "Roche_Scoreboard/DesignSystem/ComfortableDensity.xaml",
@@ -45,6 +45,12 @@
     "Roche_Scoreboard/DesignSystem/Tokens.xaml",
     "Roche_Scoreboard/DesignSystem/Typography.xaml",
     "Roche_Scoreboard/MainWindow.xaml",
+    "Roche_Scoreboard/Resources/ControlCentre.xaml",
+    "Roche_Scoreboard/Resources/CricketActions.xaml",
+    "Roche_Scoreboard/Resources/OperatorControls.xaml",
+    "Roche_Scoreboard/Resources/OperatorInputs.xaml",
+    "Roche_Scoreboard/Resources/Scrollbars.xaml",
+    "Roche_Scoreboard/Resources/SettingsControls.xaml",
     "Roche_Scoreboard/Views/AflPresentationGalleryWindow.xaml",
     "Roche_Scoreboard/Views/BreakScreenControl.xaml",
     "Roche_Scoreboard/Views/CalibrationOverlay.xaml",
@@ -52,6 +58,7 @@
     "Roche_Scoreboard/Views/ColorPickerWindow.xaml",
     "Roche_Scoreboard/Views/ControlPanel.xaml",
     "Roche_Scoreboard/Views/CricketControlPanel.xaml",
+    "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
     "Roche_Scoreboard/Views/CricketScorebugControl.xaml",
     "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
     "Roche_Scoreboard/Views/CricketSummaryControl.xaml",
@@ -64,6 +71,7 @@
     "Roche_Scoreboard/Views/PresentationScoreBar.xaml",
     "Roche_Scoreboard/Views/QuarterBreakScorebugControl.xaml",
     "Roche_Scoreboard/Views/ResumeGameDialog.xaml",
+    "Roche_Scoreboard/Views/ResumeMatchPrompt.xaml",
     "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml",
     "Roche_Scoreboard/Views/ScorebugControl.xaml",
     "Roche_Scoreboard/Views/ScorewormControl.xaml",
@@ -104,9 +112,11 @@
     "fonts_assets_and_rendering_comparison"
   ],
   "verification": {
-    "environment": "Linux headless Avalonia with native LibVLC 3.0.24",
-    "passed_checks": 36,
+    "environment": "Linux headless Avalonia with local LibVLC",
+    "passed_checks": 71,
     "failed_checks": 0,
+    "skipped_checks": 0,
+    "final_combined_run": "2026-10-28; 71/71 passed; 2.0432 minutes",
     "mac_runtime_exercised": false,
     "visual_reference_comparison": false,
     "acceptance_guide": "macos/MAC_ACCEPTANCE.md"
@@ -114,9 +124,12 @@
   "known_differences": [
     "Native borders/title bars on output windows are allowed.",
     "Unavailable original typefaces fall back to embedded Inter; the repository contains no font files.",
-    "WDP/JPEG-XR images require conversion to PNG on Mac."
+    "WDP/JPEG-XR images require conversion to PNG on Mac.",
+    "Windows DirectX glass refraction uses the original source software fallback on Avalonia; native visual comparison remains outstanding."
   ],
   "native_acceptance_pending": [
+    "AFL input freeze reproduction: at least 10 minutes on native Mac with mouse/keyboard, motion and video",
+    "Native Mac small/scaled display window bounds, fullscreen/maximize/restore, modal focus and edge popup matrix",
     "Mac startup/signing and native dialog interactions",
     "Retina/multiple-monitor positioning, dimensions and calibration",
     "Screen capture permission and eyedropper",
@@ -124,5 +137,11 @@
     "Cloud pairing/reconnect with configured deployment",
     "Mac application update/restart and rollback",
     "Full native interaction checklist in MAC_ACCEPTANCE.md"
-  ]
+  ],
+  "source_baseline": {
+    "remote": "origin",
+    "branch": "master",
+    "commit": "636140761a9348b5030de731d3d91e5f741c1cbf",
+    "version": "5.0.0"
+  }
 }

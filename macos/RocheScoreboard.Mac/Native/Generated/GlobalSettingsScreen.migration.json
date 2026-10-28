@@ -1,15 +1,55 @@
 {
   "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml",
-  "source_sha256": "7d068d246fe59deb178e7c587532ef262089fb92c7817906aaa6d7da46fde29f",
+  "source_sha256": "f2dc09c6082aff23d17508c65b2f3f421822e0b3d0969e9403af62ed2342c9b4",
   "names": [
     {
-      "name": "Card",
+      "name": "SettingsWorkspace",
+      "type": "SettingsWorkspace",
+      "object": false
+    },
+    {
+      "name": "AppearanceSection",
       "type": "Border",
       "object": false
     },
     {
-      "name": "Flash",
-      "type": "Border",
+      "name": "AppearanceFieldsGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ThemeChoicePanel",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "LightThemeTile",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "DarkThemeTile",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "DensityFieldPanel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "DensityChoicePanel",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "ComfortableTile",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "CompactTile",
+      "type": "RadioButton",
       "object": false
     },
     {
@@ -23,13 +63,43 @@
       "object": false
     },
     {
+      "name": "GlassMaterialToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "ReducedMotionToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
       "name": "QuickHintsToggle",
       "type": "CheckBox",
       "object": false
     },
     {
+      "name": "OutputDefaultsSection",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "GoalAnimationRow",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "GoalAnimationCombo",
       "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "OutputFieldsGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "OutputDimensionsFieldPanel",
+      "type": "StackPanel",
       "object": false
     },
     {
@@ -40,6 +110,11 @@
     {
       "name": "OutputHeightBox",
       "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "AutomationSection",
+      "type": "Border",
       "object": false
     },
     {
@@ -58,13 +133,92 @@
       "object": false
     },
     {
+      "name": "BuiltinScreensaverButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "BuiltinScreensaverSelected",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CustomScreensaverButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CustomScreensaverSelected",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "GlobalScreensaverStatus",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ScreensaverClockToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "StartupSection",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ResumeStartupTile",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "LastModeStartupTile",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "SelectionStartupTile",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
       "name": "StartupModeCombo",
       "type": "ComboBox",
       "object": false
+    },
+    {
+      "name": "BackButton",
+      "type": "Button",
+      "object": false
     }
   ],
-  "code_source_sha256": "ddb8e650e9dd478b7a6f0fb6aa7cae7b7975d4b115a319ec27866c8b47243c77",
+  "code_source_sha256": "9faa915195ced9f0a0eedec6bac8859cdeb7b6212f11bf9872f71069b2108327",
   "native_events": [
+    {
+      "name": "LightThemeTile",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "PreferenceTile_Checked"
+    },
+    {
+      "name": "DarkThemeTile",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "PreferenceTile_Checked"
+    },
+    {
+      "name": "ComfortableTile",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "PreferenceTile_Checked"
+    },
+    {
+      "name": "CompactTile",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "PreferenceTile_Checked"
+    },
     {
       "name": "ThemeCombo",
       "source": "SelectionChanged",
@@ -76,6 +230,30 @@
       "source": "SelectionChanged",
       "native": "SelectionChanged",
       "handler": "DensityCombo_SelectionChanged"
+    },
+    {
+      "name": "GlassMaterialToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "InteractionPreference_Changed"
+    },
+    {
+      "name": "GlassMaterialToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "InteractionPreference_Changed"
+    },
+    {
+      "name": "ReducedMotionToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "InteractionPreference_Changed"
+    },
+    {
+      "name": "ReducedMotionToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "InteractionPreference_Changed"
     },
     {
       "name": "QuickHintsToggle",
@@ -130,6 +308,36 @@
       "source": "Unchecked",
       "native": "IsCheckedChanged",
       "handler": "ScreensaverToggle_Changed"
+    },
+    {
+      "name": "ScreensaverClockToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "ScreensaverClock_Changed"
+    },
+    {
+      "name": "ScreensaverClockToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "ScreensaverClock_Changed"
+    },
+    {
+      "name": "ResumeStartupTile",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "PreferenceTile_Checked"
+    },
+    {
+      "name": "LastModeStartupTile",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "PreferenceTile_Checked"
+    },
+    {
+      "name": "SelectionStartupTile",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "PreferenceTile_Checked"
     },
     {
       "name": "StartupModeCombo",

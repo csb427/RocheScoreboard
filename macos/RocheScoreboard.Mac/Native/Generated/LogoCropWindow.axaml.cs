@@ -44,7 +44,7 @@ namespace Roche_Scoreboard.Views
             double awayOffsetX,
             double awayOffsetY)
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
 
             HomeLogoPath = homeLogoPath;
             AwayLogoPath = awayLogoPath;
@@ -88,7 +88,7 @@ namespace Roche_Scoreboard.Views
 
         private static void ApplyTransform(Avalonia.Controls.Image image, double zoom, double x, double y)
         {
-            image.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            image.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             TransformGroup group = new();
             group.Children.Add(new ScaleTransform(zoom, zoom));
             group.Children.Add(new TranslateTransform(x, y));

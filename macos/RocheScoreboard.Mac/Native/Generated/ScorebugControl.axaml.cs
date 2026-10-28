@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/ScorebugControl.xaml.cs; edit translator/adapters.
-// Source SHA-256: a3c343e0589519b7ec727b6c2de4d96308efe78092e18041dfab020810f9da51
+// Source SHA-256: 4c418415313f01557dccb49f629633c718c36c2f3522503706ee2ff02423c325
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -73,7 +73,7 @@ namespace Roche_Scoreboard.Views
         private DateTime _teamNamePanelAnimationStarted;
         private double _teamNamePanelAnimationFrom;
         private double _teamNamePanelAnimationTo = 1;
-        private static readonly TimeSpan OverlayTransitionDuration = TimeSpan.FromMilliseconds(560);
+        private static readonly TimeSpan OverlayTransitionDuration = BroadcastMotion.OverlayDuration;
         private static readonly TimeSpan TeamStoryTransitionDuration = TimeSpan.FromMilliseconds(860);
         private static readonly TimeSpan TeamNamePanelAnimationDuration = OverlayTransitionDuration;
         private bool _overlayLayoutMotionActive;
@@ -163,10 +163,10 @@ namespace Roche_Scoreboard.Views
 
         public ScorebugControl()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
             ApplyGradient();
 
-            var now = DateTime.Now.ToString("h:mm tt");
+            var now = BroadcastClock.WallTime();
             TopTimeText.Text = now;
             ExpTopTimeText.Text = now;
             ExpTopClockText.Text = now;
@@ -178,7 +178,7 @@ namespace Roche_Scoreboard.Views
             _wallClockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _wallClockTimer.Tick += (_, __) =>
             {
-                var t = DateTime.Now.ToString("h:mm tt");
+                var t = BroadcastClock.WallTime();
                 TopTimeText.Text = t;
                 ExpTopTimeText.Text = t;
                 ExpTopClockText.Text = t;
@@ -193,14 +193,14 @@ namespace Roche_Scoreboard.Views
             ExpHomeScoreGrid.SizeChanged += (_, __) => QueueExpandedResponsiveLayout();
             ExpAwayScoreGrid.SizeChanged += (_, __) => QueueExpandedResponsiveLayout();
             ExpandedLayout.SizeChanged += (_, __) => QueueExpandedResponsiveLayout();
-            PropertyChanged += (_, __) =>
+            NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, __) =>
             {
                 if (IsVisible)
                 {
                     QueueExpandedResponsiveLayout();
                     RestartMarqueeIfNeeded();
                 }
-            };
+            });
             Loaded += (_, __) =>
             {
                 _wallClockTimer.Start();
@@ -337,7 +337,7 @@ namespace Roche_Scoreboard.Views
                 UpdateExpOverlayBleed();
                 UpdateExpandedScoreTypography();
                 UpdateExpandedTeamNamePanning();
-            }), DispatcherPriority.Render);
+            }), DispatcherPriority.Background);
         }
 
         private void ApplyExpandedResponsiveProportions()
@@ -528,7 +528,7 @@ namespace Roche_Scoreboard.Views
                     // Measure ticker typography only after the row reaches its
                     // final height. Measuring halfway through the entrance was
                     // pinning small text to the temporary top edge.
-                    Dispatcher.UIThread.Post(new Action(StartActiveMarquee), DispatcherPriority.Render);
+                    Dispatcher.UIThread.Post(new Action(StartActiveMarquee), DispatcherPriority.Background);
                 }
             });
         }
@@ -677,12 +677,12 @@ namespace Roche_Scoreboard.Views
 
             SyncClassicNameScales();
             Dispatcher.UIThread.Post(new Action(UpdateExpandedTeamNamePanning), DispatcherPriority.Loaded);
-            Dispatcher.UIThread.Post(new Action(UpdateExpandedTeamNamePanning), DispatcherPriority.Render);
+            Dispatcher.UIThread.Post(new Action(UpdateExpandedTeamNamePanning), DispatcherPriority.Background);
         }
 
         private void ExpandedTeamNameHost_SizeChanged(object? sender, SizeChangedEventArgs e)
         {
-            Dispatcher.UIThread.Post(new Action(UpdateExpandedTeamNamePanning), DispatcherPriority.Render);
+            Dispatcher.UIThread.Post(new Action(UpdateExpandedTeamNamePanning), DispatcherPriority.Background);
         }
 
         private void UpdateExpandedTeamNamePanning()
@@ -1058,7 +1058,7 @@ namespace Roche_Scoreboard.Views
             // Ensure a ScaleTransform is available for the vertical flip
             if (textBlock.RenderTransform is not ScaleTransform)
             {
-                textBlock.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+                textBlock.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
                 textBlock.RenderTransform = new ScaleTransform(1, 1);
             }
 
@@ -1265,7 +1265,7 @@ namespace Roche_Scoreboard.Views
 
         private static void ApplyLogoTransform(Avalonia.Controls.Image image, double zoom, double offsetX, double offsetY)
         {
-            image.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            image.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             var group = new TransformGroup();
             group.Children.Add(new ScaleTransform(zoom, zoom));
             group.Children.Add(new TranslateTransform(offsetX, offsetY));
@@ -1763,7 +1763,7 @@ namespace Roche_Scoreboard.Views
             // leak a leftover TranslateTransform or stale opacity into the next
             // animation. Each style configures its own entry transform.
             overlay.RenderTransform = new TranslateTransform(0, 0);
-            overlay.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            overlay.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             overlay.Opacity = 0;
             overlayText.Opacity = 1;
 
@@ -1774,7 +1774,7 @@ namespace Roche_Scoreboard.Views
             }
             else
             {
-                overlayText.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+                overlayText.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
                 overlayText.RenderTransform = new ScaleTransform(0, 0);
             }
 
@@ -2102,7 +2102,7 @@ namespace Roche_Scoreboard.Views
             if (expanded)
             { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1; sc.ScaleY = 1; }
             else
-            { overlayText.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative); overlayText.RenderTransform = new ScaleTransform(1, 1); }
+            { overlayText.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative); overlayText.RenderTransform = new ScaleTransform(1, 1); }
 
             // No gradient sweep in cinematic
             gradBar.Opacity = 0;
@@ -2197,7 +2197,7 @@ namespace Roche_Scoreboard.Views
             if (expanded)
             { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1.34; sc.ScaleY = 1.34; }
             else
-            { overlayText.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative); overlayText.RenderTransform = new ScaleTransform(1.34, 1.34); }
+            { overlayText.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative); overlayText.RenderTransform = new ScaleTransform(1.34, 1.34); }
             overlayText.Opacity = 0;
 
             // Restrained glow — soft, slow, no pulsing.
@@ -2234,7 +2234,7 @@ namespace Roche_Scoreboard.Views
             var totalText = expanded
                 ? (isHome ? ExpHomeTotalText : ExpAwayTotalText)
                 : (isHome ? HomeTotalText : AwayTotalText);
-            totalText.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            totalText.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             var swell = new ScaleTransform(1, 1);
             var swellGroup = new TransformGroup();
             if (totalText.RenderTransform is TransformGroup existing)
@@ -2303,7 +2303,7 @@ namespace Roche_Scoreboard.Views
             if (expanded)
             { var sc = isHome ? ExpHomeOverlayScale : ExpAwayOverlayScale; sc.ScaleX = 1; sc.ScaleY = 1; }
             else
-            { overlayText.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative); overlayText.RenderTransform = new ScaleTransform(1, 1); }
+            { overlayText.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative); overlayText.RenderTransform = new ScaleTransform(1, 1); }
 
             // Warm bulb-glow on the text
             if (overlayText.Effect is Avalonia.Media.DropShadowEffect g)
@@ -2394,7 +2394,7 @@ namespace Roche_Scoreboard.Views
             // fractional positions; otherwise ClearType can briefly shimmer.
             TextBlock[] animatedDigits = [goalsText, behindsText, totalText];
             foreach (TextBlock digit in animatedDigits)
-                { /* Native renderer owns intermediate surface caching. */ }
+                NativeCache.Set(digit, new NativeBitmapCache(VisualTreeHelper.GetDpi(digit).PixelsPerDip));
 
             // Detect which components actually changed for blink highlighting
             bool goalsChanged = (goalsText.Text ?? string.Empty) != newGoals.ToString();
@@ -2572,10 +2572,10 @@ namespace Roche_Scoreboard.Views
 
             // Reset any prior render transform / opacity animation.
             overlay.RenderTransform = translate;
-            overlay.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            overlay.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             overlay.BeginAnimation(OpacityProperty, null);
             overlay.Opacity = revealStyle is GoalAnimationStyle.Cinematic or GoalAnimationStyle.Clean ? 0 : 1;
-            swipeText.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            swipeText.RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative);
             swipeText.RenderTransform = new ScaleTransform(1, 1);
             translate.BeginAnimation(TranslateTransform.YProperty, null);
             translate.BeginAnimation(TranslateTransform.XProperty, null);
@@ -2730,9 +2730,9 @@ namespace Roche_Scoreboard.Views
             goalsText.BeginAnimation(OpacityProperty, null); goalsText.Opacity = 1;
             behindsText.BeginAnimation(OpacityProperty, null); behindsText.Opacity = 1;
             totalText.BeginAnimation(OpacityProperty, null); totalText.Opacity = 1;
-            { /* Native renderer owns intermediate surface caching. */ }
-            { /* Native renderer owns intermediate surface caching. */ }
-            { /* Native renderer owns intermediate surface caching. */ }
+            NativeCache.Set(goalsText, null);
+            NativeCache.Set(behindsText, null);
+            NativeCache.Set(totalText, null);
             // Restore transforms if highlight/Clean replaced them with TransformGroup
             if (goalsText.RenderTransform is not TranslateTransform)
                 goalsText.RenderTransform = gf;
@@ -2825,7 +2825,7 @@ namespace Roche_Scoreboard.Views
         }
 
         private static IEasingFunction CreateOverlayTransitionEase()
-            => new CubicEase { EasingMode = EasingMode.EaseInOut };
+            => BroadcastMotion.CreateOverlayEase();
 
         private static IEasingFunction CreateTeamStoryTransitionEase()
             => new SineEase { EasingMode = EasingMode.EaseInOut };
@@ -2858,7 +2858,7 @@ namespace Roche_Scoreboard.Views
             int motionGeneration = BeginOverlayLayoutMotion();
             bar.BeginAnimation(HeightProperty, null);
             bar.BeginAnimation(OpacityProperty, null);
-            { /* Native renderer owns intermediate surface caching. */ }
+            NativeCache.Set(bar, new NativeBitmapCache(1.0));
             bar.UseLayoutRounding = false;
             bar.UseLayoutRounding = false;
             bar.Height = target;
@@ -2874,7 +2874,7 @@ namespace Roche_Scoreboard.Views
             };
             heightAnimation.Completed += (_, _) =>
             {
-                { /* Native renderer owns intermediate surface caching. */ }
+                NativeCache.Set(bar, null);
                 bar.UseLayoutRounding = true;
                 bar.UseLayoutRounding = true;
                 EndOverlayLayoutMotion(motionGeneration);
@@ -2933,7 +2933,7 @@ namespace Roche_Scoreboard.Views
             int motionGeneration = BeginOverlayLayoutMotion();
             bar.BeginAnimation(HeightProperty, null);
             bar.BeginAnimation(OpacityProperty, null);
-            { /* Native renderer owns intermediate surface caching. */ }
+            NativeCache.Set(bar, new NativeBitmapCache(1.0));
             bar.UseLayoutRounding = false;
             bar.UseLayoutRounding = false;
             bar.Height = 0;
@@ -2951,7 +2951,7 @@ namespace Roche_Scoreboard.Views
             {
                 translate.BeginAnimation(TranslateTransform.YProperty, null);
                 translate.Y = 0;
-                { /* Native renderer owns intermediate surface caching. */ }
+                NativeCache.Set(bar, null);
                 bar.UseLayoutRounding = true;
                 bar.UseLayoutRounding = true;
                 EndOverlayLayoutMotion(motionGeneration);
@@ -3020,7 +3020,7 @@ namespace Roche_Scoreboard.Views
         private bool _teamStoryIsHome;
         private int _teamStoryAnimationGeneration;
         private readonly Queue<Action> _scoreSurfaceReadyCallbacks = new();
-        private static readonly TimeSpan OverlayHandoffGap = TimeSpan.FromMilliseconds(110);
+        private static readonly TimeSpan OverlayHandoffGap = BroadcastMotion.OverlayHandoffGap;
 
         private DispatcherTimer StartOverlayAutoHide(TimeSpan delay, Action callback)
         {
@@ -3614,7 +3614,7 @@ namespace Roche_Scoreboard.Views
                         _marqueeLayoutRetryQueued = false;
                         if (!_bottomBarAnimating && IsVisible && ExpMarqueeCanvas.NativeWidth() > 0 && _marqueeMessages.Count > 0)
                             StartActiveMarquee();
-                    }), DispatcherPriority.Render);
+                    }), DispatcherPriority.Background);
                 }
                 return;
             }
@@ -3802,7 +3802,7 @@ namespace Roche_Scoreboard.Views
 
                 foreach (var ch in line)
                 {
-                    var tb = new TextBlock
+                    var tb = new NativeTextBlock
                     {
                         Text = ch == ' ' ? "\u00A0\u00A0" : ch.ToString(),
                         Foreground = new SolidColorBrush(lineColor),
@@ -3810,7 +3810,7 @@ namespace Roche_Scoreboard.Views
                         FontWeight = FontWeight.Black,
                         FontSize = size,
                         Margin = new Thickness(letterPad, 0, letterPad, 0),
-                        RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
+                        RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative),
                         Effect = new DropShadowEffect
                         {
                             BlurRadius = isPrimary ? 34 : 18,
@@ -3834,7 +3834,7 @@ namespace Roche_Scoreboard.Views
 
         private static TextBlock MakeWarningGlyph(double size, Color color, double leftMargin, double rightMargin)
         {
-            var tb = new TextBlock
+            var tb = new NativeTextBlock
             {
                 Text = "\u26A0", // ⚠
                 Foreground = new SolidColorBrush(color),
@@ -3842,7 +3842,7 @@ namespace Roche_Scoreboard.Views
                 FontWeight = FontWeight.Black,
                 FontSize = size * 1.15,
                 Margin = new Thickness(leftMargin, 0, rightMargin, 0),
-                RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
+                RenderTransformOrigin = new RelativePoint(0.5, 0.5,RelativeUnit.Relative),
                 Effect = new DropShadowEffect
                 {
                     BlurRadius = 18,
@@ -4367,12 +4367,12 @@ namespace Roche_Scoreboard.Views
             ExpTeamStoryTakeover.VerticalAlignment = isHome
                 ? VerticalAlignment.Bottom
                 : VerticalAlignment.Top;
-            ExpTeamStoryTakeover.RenderTransformOrigin = new RelativePoint(0.5, isHome ? 0 : 1, RelativeUnit.Relative);
+            ExpTeamStoryTakeover.RenderTransformOrigin = new RelativePoint(0.5, isHome ? 0 : 1,RelativeUnit.Relative);
             ExpTeamStoryPushEdge.VerticalAlignment = isHome
                 ? VerticalAlignment.Bottom
                 : VerticalAlignment.Top;
             ConfigureTeamStoryDirection(isHome);
-            { /* Native renderer owns intermediate surface caching. */ }
+            NativeCache.Set(ExpTeamStoryTakeover, new NativeBitmapCache(1.0));
 
             ExpTeamStoryReveal.BeginAnimation(ScaleTransform.ScaleYProperty, null);
             ExpTeamStoryReveal.ScaleY = 1;
@@ -4384,7 +4384,7 @@ namespace Roche_Scoreboard.Views
             reveal.Completed += (_, _) =>
             {
                 if (generation == _teamStoryAnimationGeneration)
-                    { /* Native renderer owns intermediate surface caching. */ }
+                    NativeCache.Set(ExpTeamStoryTakeover, null);
             };
             ExpTeamStoryReveal.BeginAnimation(ScaleTransform.ScaleYProperty, reveal,
                 HandoffBehavior.SnapshotAndReplace);
@@ -4427,7 +4427,7 @@ namespace Roche_Scoreboard.Views
             double currentContentOpacity = ExpTeamStoryContent.Opacity;
             ExpTeamStoryReveal.BeginAnimation(ScaleTransform.ScaleYProperty, null);
             ExpTeamStoryContent.BeginAnimation(OpacityProperty, null);
-            { /* Native renderer owns intermediate surface caching. */ }
+            NativeCache.Set(ExpTeamStoryTakeover, new NativeBitmapCache(1.0));
 
             ExpTeamStoryReveal.ScaleY = 0;
             ExpTeamStoryContent.Opacity = 0;
@@ -4440,7 +4440,7 @@ namespace Roche_Scoreboard.Views
             {
                 if (generation != _teamStoryAnimationGeneration) return;
                 ExpTeamStoryTakeover.IsVisible = false;
-                { /* Native renderer owns intermediate surface caching. */ }
+                NativeCache.Set(ExpTeamStoryTakeover, null);
                 ExpTeamStoryReveal.ScaleY = 0;
                 ExpTeamStoryContentTranslate.Y = 0;
                 StopTeamStoryDirection();
@@ -5092,7 +5092,7 @@ namespace Roche_Scoreboard.Views
             bool firstRow = true;
             if (lastN.Count == 0)
             {
-                var emptyState = new TextBlock
+                var emptyState = new NativeTextBlock
                 {
                     Text = "NO SCORES RECORDED",
                     Foreground = new SolidColorBrush(Color.FromRgb(0xA8, 0xB6, 0xC6)),
@@ -5157,7 +5157,7 @@ namespace Roche_Scoreboard.Views
             _recentScoresDrawerAnimationFrom = _recentScoresDrawerProgress;
             _recentScoresDrawerAnimationTo = target;
             _recentScoresDrawerAnimationStarted = DateTime.UtcNow;
-            _recentScoresDrawerAnimationTimer = new DispatcherTimer(DispatcherPriority.Render)
+            _recentScoresDrawerAnimationTimer = new DispatcherTimer()
             {
                 Interval = TimeSpan.FromMilliseconds(16)
             };
@@ -5301,7 +5301,7 @@ namespace Roche_Scoreboard.Views
             Grid.SetColumn(accent, 0);
             grid.Children.Add(accent);
 
-            var scoreType = new TextBlock
+            var scoreType = new NativeTextBlock
             {
                 Text = label,
                 Foreground = new SolidColorBrush(cardInk),
@@ -5445,7 +5445,7 @@ namespace Roche_Scoreboard.Views
             _teamNamePanelAnimationFrom = _teamNameRevealProgress;
             _teamNamePanelAnimationTo = target;
             _teamNamePanelAnimationStarted = DateTime.UtcNow;
-            _teamNamePanelAnimationTimer = new DispatcherTimer(DispatcherPriority.Render)
+            _teamNamePanelAnimationTimer = new DispatcherTimer()
             {
                 Interval = TimeSpan.FromMilliseconds(16)
             };
@@ -5653,7 +5653,7 @@ namespace Roche_Scoreboard.Views
                     Padding = new Thickness(2, 0, 2, 0)
                 };
                 var sp = new StackPanel { HorizontalAlignment = HAlign.Center, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
-                sp.Children.Add(new TextBlock
+                sp.Children.Add(new NativeTextBlock
                 {
                     Text = h.Time.ToString("h tt", System.Globalization.CultureInfo.InvariantCulture).ToUpperInvariant(),
                     Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
@@ -5666,7 +5666,7 @@ namespace Roche_Scoreboard.Views
                 });
                 // Icon removed for clarity; keep tile content to time + temp only.
                 // Icon line removed for clarity; keep tile content to time + temp only.
-                sp.Children.Add(new TextBlock
+                sp.Children.Add(new NativeTextBlock
                 {
                     Text = $"{Math.Round(h.Temperature)}\u00B0",
                     Foreground = Brushes.White,
@@ -5753,7 +5753,7 @@ namespace Roche_Scoreboard.Views
                 col.Children.Add(trackContainer);
 
                 var stack = new StackPanel { HorizontalAlignment = HAlign.Center, Margin = new Thickness(0, 1, 0, 0) };
-                stack.Children.Add(new TextBlock
+                stack.Children.Add(new NativeTextBlock
                 {
                     Text = $"{h.PrecipitationProbability}%",
                     Foreground = Brushes.White,
@@ -5762,7 +5762,7 @@ namespace Roche_Scoreboard.Views
                     FontWeight = FontWeight.Black,
                     HorizontalAlignment = HAlign.Center
                 });
-                stack.Children.Add(new TextBlock
+                stack.Children.Add(new NativeTextBlock
                 {
                     Text = h.Time.ToString("htt", System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant(),
                     Foreground = new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
@@ -5879,7 +5879,7 @@ namespace Roche_Scoreboard.Views
             ExpTeamStoryContent.BeginAnimation(OpacityProperty, null);
             ExpTeamStoryContent.Opacity = 0;
             ExpTeamStoryTakeover.IsVisible = false;
-            { /* Native renderer owns intermediate surface caching. */ }
+            NativeCache.Set(ExpTeamStoryTakeover, null);
             StopTeamStoryDirection();
             foreach (TranslateTransform translate in new[]
                      {
@@ -5941,7 +5941,7 @@ namespace Roche_Scoreboard.Views
             b.BeginAnimation(OpacityProperty, null);
             b.Height = 0;
             b.Opacity = 0;
-            { /* Native renderer owns intermediate surface caching. */ }
+            NativeCache.Set(b, null);
             if (b.RenderTransform is TranslateTransform translate)
             {
                 translate.BeginAnimation(TranslateTransform.YProperty, null);

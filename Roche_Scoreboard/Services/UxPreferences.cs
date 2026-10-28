@@ -75,13 +75,13 @@ internal sealed class UxPreferencesData
     public PersistedMode LastMode { get; set; } = PersistedMode.SportSelection;
     public string LastSettingsCategory { get; set; } = "teams";
     public int LastMainTabIndex { get; set; } = 0;
-    public bool EnableQuickStartupHints { get; set; } = true;
+    public bool EnableQuickStartupHints { get; set; }
     public bool HideTeamNames { get; set; }
     public string ScorebugLayout { get; set; } = "classic";
     public bool GuidedOperatorMode { get; set; } = true;
 
     [JsonConverter(typeof(TolerantEnumConverter<AppTheme>))]
-    public AppTheme Theme { get; set; } = AppTheme.Light;
+    public AppTheme Theme { get; set; } = AppTheme.Dark;
 
     [JsonConverter(typeof(TolerantEnumConverter<UiDensity>))]
     public UiDensity Density { get; set; } = UiDensity.Comfortable;
@@ -96,11 +96,9 @@ internal static class UxPreferences
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
-    private static string GetStoragePath()
+    internal static string GetStoragePath()
     {
-        string dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "ux_preferences.json");
     }

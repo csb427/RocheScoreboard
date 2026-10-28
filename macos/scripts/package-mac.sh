@@ -13,6 +13,7 @@ case "$channel" in
   --preview) python3 "$repo_dir/macos/tools/audit_parity.py" --check-translation; archive_name="Roche-Scoreboard-Mac-Preview-$rid.zip" ;;
   *) echo 'The third argument must be --preview, or omitted for a verified release.' >&2; exit 2 ;;
 esac
+python3 "$repo_dir/macos/tools/write_build_provenance.py"
 output_dir="${2:-$repo_dir/artifacts/macos}"
 mkdir -p -- "$output_dir"
 output_dir="$(cd -- "$output_dir" && pwd)"
@@ -57,6 +58,9 @@ open './Roche Scoreboard.app'
 COMMAND
 chmod +x "$payload/Prepare Roche Scoreboard.command" "$payload/sign-mac.sh"
 cp -- "$repo_dir/macos/MAC_ACCEPTANCE.md" "$payload/Mac acceptance.md"
+cp -- "$repo_dir/macos/PORT_VERIFICATION.md" "$payload/PORT_VERIFICATION.md"
+cp -- "$repo_dir/macos/PLATFORM_BEHAVIOR_AUDIT.md" "$payload/PLATFORM_BEHAVIOR_AUDIT.md"
+cp -- "$repo_dir/macos/build-provenance.json" "$app_dir/Contents/Resources/BuildProvenance.json"
 cat > "$payload/Read me.txt" <<'NOTICE'
 Roche Scoreboard for macOS 15 or later
 

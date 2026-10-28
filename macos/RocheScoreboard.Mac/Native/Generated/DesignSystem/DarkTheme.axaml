@@ -1,16 +1,16 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
     <Color x:Key="ScoreGrid.Color.BrandPrimary">#0A57FF</Color>
     <Color x:Key="ScoreGrid.Color.BrandHover">#0849D8</Color>
     <Color x:Key="ScoreGrid.Color.BrandPressed">#073CB1</Color>
-    <Color x:Key="ScoreGrid.Color.Background">#081629</Color>
-    <Color x:Key="ScoreGrid.Color.Surface">#0B1D3A</Color>
-    <Color x:Key="ScoreGrid.Color.SurfaceSubtle">#10294D</Color>
-    <Color x:Key="ScoreGrid.Color.Border">#263C58</Color>
-    <Color x:Key="ScoreGrid.Color.DecorativeBorder">#263C58</Color>
+    <Color x:Key="ScoreGrid.Color.Background">#0D1117</Color>
+    <Color x:Key="ScoreGrid.Color.Surface">#161B22</Color>
+    <Color x:Key="ScoreGrid.Color.SurfaceSubtle">#1C2128</Color>
+    <Color x:Key="ScoreGrid.Color.Border">#30363D</Color>
+    <Color x:Key="ScoreGrid.Color.DecorativeBorder">#30363D</Color>
     <Color x:Key="ScoreGrid.Color.ControlBorder">#70839A</Color>
-    <Color x:Key="ScoreGrid.Color.TextPrimary">#F7F9FC</Color>
-    <Color x:Key="ScoreGrid.Color.TextSecondary">#A8B6C8</Color>
+    <Color x:Key="ScoreGrid.Color.TextPrimary">#E6EDF3</Color>
+    <Color x:Key="ScoreGrid.Color.TextSecondary">#A8B0BA</Color>
     <Color x:Key="ScoreGrid.Color.Success">#22C88A</Color>
     <Color x:Key="ScoreGrid.Color.Warning">#FFB020</Color>
     <Color x:Key="ScoreGrid.Color.Danger">#E53935</Color>

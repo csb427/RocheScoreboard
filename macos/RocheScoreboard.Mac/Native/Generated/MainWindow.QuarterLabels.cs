@@ -2,13 +2,13 @@
 // Source SHA-256: 598538888a9380c74407efc601418bd9ce384d16621ada797daf236b968529e7
 using RocheScoreboard.Mac.Native;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia.Layout;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Controls.Primitives;
 using Roche_Scoreboard.Services;
 using TextBox = Avalonia.Controls.TextBox;
 using Button = Avalonia.Controls.Button;

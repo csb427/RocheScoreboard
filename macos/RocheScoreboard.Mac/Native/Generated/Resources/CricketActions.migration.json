@@ -1,0 +1,41 @@
+{
+  "source": "Roche_Scoreboard/Resources/CricketActions.xaml",
+  "source_sha256": "9162e88895e1365a8f6fbe2ce5bff00f342f994caf3a75f26bdd487125fa7ec6",
+  "names": [
+    {
+      "name": "ActionRoot",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TbLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false
+    }
+  ],
+  "code_source_sha256": null,
+  "native_events": [],
+  "platform_translations": [],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

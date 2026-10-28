@@ -1,0 +1,205 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/SettingsControls.axaml" />
+        <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/CricketActions.axaml" />
+        <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/OperatorControls.axaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <ControlTheme TargetType="Button" BasedOn="{StaticResource CricketActionButton}" x:Key="{x:Type Button}">
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="8,4" />
+    </ControlTheme>
+    <ControlTheme TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}" x:Key="{x:Type CheckBox}">
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Foreground" Value="#F0F6FC" />
+    </ControlTheme>
+    <ControlTheme TargetType="RadioButton" BasedOn="{StaticResource SettingsTile}" x:Key="{x:Type RadioButton}">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Padding" Value="6,4" />
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="Background" Value="#182638" />
+        <Style Selector="^:checked">
+            <Setter Property="Background" Value="#234A6A" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="TextBox" BasedOn="{StaticResource SettingsInput}" x:Key="{x:Type TextBox}">
+        <Setter Property="Padding" Value="4,2" />
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="Background" Value="#0E1722" />
+        <Setter Property="BorderBrush" Value="#617B95" />
+    </ControlTheme>
+    <ControlTheme TargetType="ComboBox" BasedOn="{StaticResource SettingsChoice}" x:Key="{x:Type ComboBox}">
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="Background" Value="#152231" />
+    </ControlTheme>
+    <ControlTheme TargetType="ToolTip" x:Key="{x:Type ToolTip}">
+        <Setter Property="Background" Value="#152231" />
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="BorderBrush" Value="#6D8BAA" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,7" />
+        <Setter Property="FontSize" Value="13" />
+    </ControlTheme>
+    <ControlTheme TargetType="Slider" x:Key="{x:Type Slider}">
+        <Setter Property="MinHeight" Value="24" />
+        <Setter Property="Foreground" Value="#82C9FF" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Background="Transparent" Margin="5,3">
+                        <Border x:Name="Rail" Height="4" Background="#33465B" VerticalAlignment="Center" CornerRadius="2" />
+                        <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                            <Track.DecreaseButton>
+                                <RepeatButton Command="{x:Static native:NativeRangeCommands.DecreaseLarge}" Focusable="False" Opacity="0" x:Name="PART_DecreaseButton" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Slider}}" />
+                            </Track.DecreaseButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="SliderHandle" Width="14" Height="18">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Border x:Name="Grip" Background="#82C9FF" BorderBrush="#DAF0FF" BorderThickness="1" CornerRadius="4" />
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                    <Thumb.Styles>
+                                        <Style Selector="Thumb:pointerover /template/ Border#Grip">
+                                            <Setter Property="Background" Value="#C7E8FF" />
+                                        </Style>
+                                        <Style Selector="Thumb:pressed /template/ Border#Grip">
+                                            <Setter Property="Background" Value="White" />
+                                        </Style>
+                                    </Thumb.Styles>
+                                </Thumb>
+                            </Track.Thumb>
+                            <Track.IncreaseButton>
+                                <RepeatButton Command="{x:Static native:NativeRangeCommands.IncreaseLarge}" Focusable="False" Opacity="0" x:Name="PART_IncreaseButton" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Slider}}" />
+                            </Track.IncreaseButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^[Orientation=Vertical] /template/ Border#Rail">
+            <Setter Property="Height" Value="NaN" />
+        </Style>
+        <Style Selector="^[Orientation=Vertical] /template/ Border#Rail">
+            <Setter Property="Width" Value="4" />
+        </Style>
+        <Style Selector="^[Orientation=Vertical] /template/ Thumb#SliderHandle">
+            <Setter Property="Width" Value="18" />
+        </Style>
+        <Style Selector="^[Orientation=Vertical] /template/ Thumb#SliderHandle">
+            <Setter Property="Height" Value="14" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="TabControl" BasedOn="{StaticResource OperatorTabs}" x:Key="{x:Type TabControl}">
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="ItemContainerTheme" Value="{StaticResource PanelTab}" />
+    </ControlTheme>
+    <ControlTheme TargetType="TabItem" BasedOn="{StaticResource PanelTab}" x:Key="{x:Type TabItem}" />
+    <ControlTheme TargetType="ListBox" BasedOn="{StaticResource Native.Base.ListBox}" x:Key="{x:Type ListBox}">
+        <Setter Property="Background" Value="#0E1722" />
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="BorderBrush" Value="#617B95" />
+    </ControlTheme>
+    <ControlTheme TargetType="Expander" x:Key="{x:Type Expander}">
+        <Setter Property="motion:DisclosureMotion.Enabled" Value="True" />
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="Background" Value="#132031" />
+        <Setter Property="BorderBrush" Value="#33465B" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Background="{TemplateBinding Background}">
+                        <StackPanel>
+                            <ToggleButton IsChecked="{Binding IsExpanded,RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}" Content="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}" Background="Transparent" MinHeight="36" HorizontalContentAlignment="Stretch">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Header" Padding="10,7" Background="{TemplateBinding Background}">
+                                            <DockPanel>
+                                                <TextBlock DockPanel.Dock="Right" Text="⌄" Foreground="{TemplateBinding Foreground}" Margin="12,0,0,0" />
+                                                <ContentPresenter Content="{TemplateBinding Content}" RecognizesAccessKey="True" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                            </DockPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                                <ToggleButton.Styles>
+                                    <Style Selector="ToggleButton:pointerover /template/ Border#Header">
+                                        <Setter Property="Background" Value="#22384E" />
+                                    </Style>
+                                    <Style Selector="ToggleButton:focus /template/ Border#Header">
+                                        <Setter Property="BorderBrush" Value="#BCE2FF" />
+                                    </Style>
+                                    <Style Selector="ToggleButton:focus /template/ Border#Header">
+                                        <Setter Property="BorderThickness" Value="1" />
+                                    </Style>
+                                </ToggleButton.Styles>
+                            </ToggleButton>
+                            <Border x:Name="Body" Padding="10" IsVisible="False">
+                                <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:expanded /template/ Border#Body">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme TargetType="ContextMenu" x:Key="{x:Type ContextMenu}">
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Decorator>
+                        <Border Background="#152231" BorderBrush="#617B95" BorderThickness="1" Padding="4" CornerRadius="5">
+                            <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" KeyboardNavigation.TabNavigation="Cycle" />
+                        </Border>
+                    </Decorator>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </ControlTheme>
+    <ControlTheme TargetType="MenuItem" x:Key="{x:Type MenuItem}">
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Grid>
+                        <Border x:Name="ItemSurface" Background="Transparent" Padding="9,7">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="Check" Text="✓" Foreground="{TemplateBinding Foreground}" IsVisible="False" />
+                                <ContentPresenter Grid.Column="1" RecognizesAccessKey="True" ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" />
+                                <TextBlock x:Name="Arrow" Grid.Column="2" Text="›" Margin="14,0,0,0" Foreground="{TemplateBinding Foreground}" IsVisible="False" />
+                            </Grid>
+                        </Border>
+                        <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsSubMenuOpen}" Placement="Right" Focusable="False">
+                            <Border Background="#152231" BorderBrush="#617B95" BorderThickness="1" Padding="4">
+                                <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:selected /template/ Border#ItemSurface">
+            <Setter Property="Background" Value="#29445F" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#Check">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Setter Property="native:NativeMenuFlags.Enabled" Value="True" />
+        <Style Selector="^[(native|NativeMenuFlags.HasItems)=True] /template/ TextBlock#Arrow">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

@@ -68,7 +68,7 @@ namespace Roche_Scoreboard.Views
         private DateTime _teamNamePanelAnimationStarted;
         private double _teamNamePanelAnimationFrom;
         private double _teamNamePanelAnimationTo = 1;
-        private static readonly TimeSpan OverlayTransitionDuration = TimeSpan.FromMilliseconds(560);
+        private static readonly TimeSpan OverlayTransitionDuration = BroadcastMotion.OverlayDuration;
         private static readonly TimeSpan TeamStoryTransitionDuration = TimeSpan.FromMilliseconds(860);
         private static readonly TimeSpan TeamNamePanelAnimationDuration = OverlayTransitionDuration;
         private bool _overlayLayoutMotionActive;
@@ -161,7 +161,7 @@ namespace Roche_Scoreboard.Views
             InitializeComponent();
             ApplyGradient();
 
-            var now = DateTime.Now.ToString("h:mm tt");
+            var now = BroadcastClock.WallTime();
             TopTimeText.Text = now;
             ExpTopTimeText.Text = now;
             ExpTopClockText.Text = now;
@@ -173,7 +173,7 @@ namespace Roche_Scoreboard.Views
             _wallClockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _wallClockTimer.Tick += (_, __) =>
             {
-                var t = DateTime.Now.ToString("h:mm tt");
+                var t = BroadcastClock.WallTime();
                 TopTimeText.Text = t;
                 ExpTopTimeText.Text = t;
                 ExpTopClockText.Text = t;
@@ -2820,7 +2820,7 @@ namespace Roche_Scoreboard.Views
         }
 
         private static IEasingFunction CreateOverlayTransitionEase()
-            => new CubicEase { EasingMode = EasingMode.EaseInOut };
+            => BroadcastMotion.CreateOverlayEase();
 
         private static IEasingFunction CreateTeamStoryTransitionEase()
             => new SineEase { EasingMode = EasingMode.EaseInOut };
@@ -3015,7 +3015,7 @@ namespace Roche_Scoreboard.Views
         private bool _teamStoryIsHome;
         private int _teamStoryAnimationGeneration;
         private readonly Queue<Action> _scoreSurfaceReadyCallbacks = new();
-        private static readonly TimeSpan OverlayHandoffGap = TimeSpan.FromMilliseconds(110);
+        private static readonly TimeSpan OverlayHandoffGap = BroadcastMotion.OverlayHandoffGap;
 
         private DispatcherTimer StartOverlayAutoHide(TimeSpan delay, Action callback)
         {

@@ -115,6 +115,7 @@ public static class NativePointer
     }
     public static void EnsureInitialized() => NativeKeyboard.EnsureInitialized();
     public static void Capture(Control target) => (_pointer ?? throw new InvalidOperationException("No active pointer to capture.")).Capture(target);
+    public static bool IsCaptureWithin(Control root)=>_pointer?.Captured is Avalonia.Visual visual&&(ReferenceEquals(visual,root)||Avalonia.VisualTree.VisualExtensions.GetVisualAncestors(visual).Contains(root));
     public static bool IsCaptured(Control? target) => target is not null && ReferenceEquals(_pointer?.Captured, target);
     public static void Release(Control? target) { if (target is not null && _pointer is not null && ReferenceEquals(_pointer.Captured, target)) _pointer.Capture(null); }
 }

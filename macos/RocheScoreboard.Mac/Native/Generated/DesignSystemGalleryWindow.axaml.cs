@@ -48,7 +48,7 @@ public partial class DesignSystemGalleryWindow : NativeWindow
 
     public DesignSystemGalleryWindow()
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
         Loaded += DesignSystemGalleryWindow_Loaded;
     }
 
@@ -245,10 +245,8 @@ public partial class DesignSystemGalleryWindow : NativeWindow
     private bool VerifyRadioKeyboard(StringBuilder notes)
     {
         RadioOptionA.Focus();
-        RadioOptionA.RaiseEvent(new WpfKeyEventArgs
-        {
-            Key = Avalonia.Input.Key.Right,
-            RoutedEvent = Avalonia.Input.InputElement.KeyDownEvent
+        RadioOptionA.RaiseEvent(new WpfKeyEventArgs { Key=Avalonia.Input.Key.Right,
+            RoutedEvent = InputElement.KeyDownEvent
         });
         UpdateLayout();
 
@@ -331,7 +329,7 @@ public partial class DesignSystemGalleryWindow : NativeWindow
         ThemeStateText.Text = $"Theme: {app.ThemeService.CurrentTheme}";
         DensityStateText.Text = $"Density: {app.ThemeService.CurrentDensity}";
         FocusBrushText.Text = $"Focus Brush: {GetBrushHex("ScoreGrid.Brush.Focus")}";
-        ControlBorderBrushText.Text = $"Control Border Brush: {GetBrushHex("ScoreGrid.Brush.ControlBorder")}";
+        ControlBorderBrushText.Text = $"TemplatedControl Border Brush: {GetBrushHex("ScoreGrid.Brush.ControlBorder")}";
         WindowBackgroundText.Text = $"Window Background: {GetBrushHex("ScoreGrid.Brush.Background")}";
         TextPrimaryText.Text = $"Primary Text Brush: {GetBrushHex("ScoreGrid.Brush.TextPrimary")}";
         ControlMetricsText.Text = $"Metrics — Button Height: {PrimaryButtonSample.NativeHeight():N0}, TextBox Height: {TextBoxSample.NativeHeight():N0}, ComboBox Height: {ComboBoxSample.NativeHeight():N0}, Padding Token: {this.FindResource("ScoreGrid.Padding.Control")}";

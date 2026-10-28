@@ -1,0 +1,50 @@
+<!-- Generated from production WPF source; edit the translator. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <ControlTheme x:Key="CricketActionButton" TargetType="Button">
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="True" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="MinHeight" Value="42" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="#F0F6FC" />
+        <Setter Property="Background" Value="#182638" />
+        <Setter Property="BorderBrush" Value="#5F7E9E" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid x:Name="ActionRoot" RenderTransformOrigin="50%,50%">
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                <TranslateTransform port:ProductionNames.TemplateId="TbLift" />
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                            <Grid>
+                                <Border x:Name="ActionGlow" Background="White" Opacity="0" IsHitTestVisible="False" />
+                                <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Grid>
+                        </Border>
+                        <Border x:Name="FocusFrame" BorderBrush="#D1E8FF" BorderThickness="2" CornerRadius="3" Opacity="0" IsHitTestVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:pressed /template/ Border#Bd">
+            <Setter Property="Opacity" Value=".62" />
+        </Style>
+        <Style Selector="^:focus /template/ Border#FocusFrame">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:disabled /template/ Grid#ActionRoot">
+            <Setter Property="Opacity" Value=".22" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Cursor" Value="Arrow" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

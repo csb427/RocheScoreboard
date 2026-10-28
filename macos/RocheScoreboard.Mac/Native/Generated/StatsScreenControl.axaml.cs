@@ -42,7 +42,7 @@ namespace Roche_Scoreboard.Views
 
         public StatsScreenControl()
         {
-            NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+            NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
 
             StatsTimeText.Text = DateTime.Now.ToString("h:mm tt");
             _wallClockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -50,10 +50,10 @@ namespace Roche_Scoreboard.Views
             _wallClockTimer.Start();
 
             SizeChanged += (_, _) => QueueResponsiveLayout();
-            PropertyChanged += (_, e) =>
+            NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, e) =>
             {
                 if (e.NewValue is true) QueueResponsiveLayout();
-            };
+            });
             Loaded += (_, _) =>
             {
                 _isDisposed = false;
@@ -134,7 +134,7 @@ namespace Roche_Scoreboard.Views
             {
                 _responsiveLayoutQueued = false;
                 ApplyResponsiveScale();
-            }, DispatcherPriority.Render);
+            }, DispatcherPriority.Background);
         }
 
         private void OnWallClockTick(object? sender, EventArgs e)

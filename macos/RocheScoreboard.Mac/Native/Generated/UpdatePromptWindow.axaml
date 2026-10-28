@@ -1,77 +1,46 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<Window xmlns="https://github.com/avaloniaui" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.UpdatePromptWindow" Title="Roche Scoreboard update" Width="680" Height="560" MinWidth="620" MinHeight="520" WindowStartupLocation="CenterOwner" Background="#08111D" ShowInTaskbar="False" UseLayoutRounding="True" port:ProductionNames.Root="True" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" CanResize="True" SystemDecorations="None" KeyDown="Native_Window_PreviewKeyDown">
+<Window xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.UpdatePromptWindow" ns2:OperatorDesign.IsEnabled="True" Title="Roche Scoreboard update" Width="680" Height="560" MinWidth="620" MinHeight="520" WindowStartupLocation="CenterOwner" Background="#09090B" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="15" ShowInTaskbar="False" UseLayoutRounding="True" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:design="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" CanResize="True" SystemDecorations="Full" KeyDown="Native_Window_PreviewKeyDown">
     <Window.Resources>
-        <SolidColorBrush x:Key="PanelBrush" Color="#101C2B" />
-        <SolidColorBrush x:Key="PanelHoverBrush" Color="#15263A" />
-        <SolidColorBrush x:Key="BorderBrush" Color="#2B4057" />
-        <SolidColorBrush x:Key="MutedBrush" Color="#9AAABD" />
-        <ControlTheme x:Key="DialogButton" TargetType="Button">
-            <Setter Property="Height" Value="46" />
-            <Setter Property="Padding" Value="18,0" />
-            <Setter Property="Background" Value="{StaticResource PanelBrush}" />
-            <Setter Property="Foreground" Value="#F7FAFC" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="FontFamily" Value="{fonts:ProductionFont 'Bahnschrift'}" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FocusAdorner" Value="{x:Null}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
-                            <Grid>
-                                <Border x:Name="FocusRing" Margin="3" BorderBrush="#9CCBFF" BorderThickness="2" CornerRadius="2" Opacity="0" />
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                            </Grid>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style Selector="^:pointerover /template/ Border#Surface">
-                <Setter Property="Background" Value="{StaticResource PanelHoverBrush}" />
-            </Style>
-            <Style Selector="^:pointerover /template/ Border#Surface">
-                <Setter Property="BorderBrush" Value="#6B88A6" />
-            </Style>
-            <Style Selector="^:pressed /template/ Border#Surface">
-                <Setter Property="Background" Value="#091421" />
-            </Style>
-            <Style Selector="^:pressed /template/ Border#Surface">
-                <Setter Property="BorderBrush" Value="#9CCBFF" />
-            </Style>
-            <Style Selector="^:focus /template/ Border#FocusRing">
-                <Setter Property="Opacity" Value="1" />
-            </Style>
-            <Style Selector="^:disabled /template/ Border#Surface">
-                <Setter Property="Opacity" Value="0.45" />
-            </Style>
-        </ControlTheme>
-        <ControlTheme x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource DialogButton}">
-            <Setter Property="Background" Value="#1673CE" />
-            <Setter Property="BorderBrush" Value="#69B7FF" />
-            <Setter Property="FontWeight" Value="Bold" />
-        </ControlTheme>
-        <ControlTheme x:Key="UpdateProgressStyle" TargetType="ProgressBar">
-            <Setter Property="Height" Value="10" />
-            <Setter Property="Foreground" Value="#4EA3FF" />
-            <Setter Property="Background" Value="#0A1420" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ProgressBar">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5" ClipToBounds="True">
-                            <Grid x:Name="PART_Track">
-                                <Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}" CornerRadius="5" />
-                            </Grid>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </ControlTheme>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://RocheScoreboard.Mac/Native/Generated/Resources/ControlCentre.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <SolidColorBrush x:Key="PanelBrush" Color="#19191C" />
+            <SolidColorBrush x:Key="PanelHoverBrush" Color="#29292D" />
+            <SolidColorBrush x:Key="BorderBrush" Color="#44444B" />
+            <SolidColorBrush x:Key="MutedBrush" Color="#B6B6C0" />
+            <ControlTheme x:Key="DialogButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}">
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="Height" Value="46" />
+                <Setter Property="Padding" Value="14,0" />
+                <Setter Property="FontSize" Value="14" />
+            </ControlTheme>
+            <ControlTheme x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.PrimaryButton}">
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="Height" Value="46" />
+                <Setter Property="Padding" Value="14,0" />
+                <Setter Property="FontSize" Value="14" />
+            </ControlTheme>
+            <ControlTheme x:Key="UpdateProgressStyle" TargetType="ProgressBar">
+                <Setter Property="Height" Value="10" />
+                <Setter Property="Foreground" Value="#4EA3FF" />
+                <Setter Property="Background" Value="#111113" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="5" ClipToBounds="True">
+                                <Grid x:Name="PART_Track">
+                                    <Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}" CornerRadius="5" />
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </ControlTheme>
+        </ResourceDictionary>
     </Window.Resources>
-    <Border x:Name="DialogShell" Background="#08111D" BorderBrush="#3C5875" BorderThickness="1">
+    <ns4:OperatorGlassSurface x:Name="DialogShell" Material="Regular" GlassSource="{Binding Owner.Content, RelativeSource={RelativeSource AncestorType=Window}}" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="#68FFFFFF" BorderThickness="1" CornerRadius="30">
         <Grid Margin="24,20,24,22">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -87,9 +56,9 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="SOFTWARE UPDATE" Foreground="#69B7FF" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="12" FontWeight="Bold" />
-                    <TextBlock Text="A newer scoreboard is ready" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="28" FontWeight="SemiBold" Margin="0,3,0,0" />
-                    <TextBlock Text="Download, verify and restart without changing your saved matches or preferences." Foreground="{StaticResource MutedBrush}" FontSize="13" Margin="0,5,0,0" />
+                    <TextBlock Text="SOFTWARE UPDATE" Foreground="#69B7FF" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="12" FontWeight="Bold" />
+                    <TextBlock Text="A newer scoreboard is ready" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="28" FontWeight="SemiBold" Margin="0,3,0,0" TextWrapping="Wrap" />
+                    <TextBlock Text="Download, verify and restart without changing your saved matches or preferences." Foreground="{StaticResource MutedBrush}" FontSize="14" Margin="0,5,0,0" TextWrapping="Wrap" />
                 </StackPanel>
                 <Button x:Name="CloseButton" Grid.Column="1" Width="42" Height="42" Padding="0" Content="×" FontSize="23" Click="Close_Click" Theme="{StaticResource DialogButton}" ToolTip.Tip="Remind me later" />
             </Grid>
@@ -99,17 +68,17 @@
                     <ColumnDefinition Width="38" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Background="#0C1724" BorderBrush="#2B4057" BorderThickness="1" CornerRadius="4" Padding="14,10">
+                <Border Background="#19191C" BorderBrush="#44444B" BorderThickness="1" CornerRadius="16" Padding="14,10">
                     <StackPanel>
-                        <TextBlock Text="INSTALLED" Foreground="{StaticResource MutedBrush}" FontSize="9" FontWeight="Bold" />
-                        <TextBlock x:Name="CurrentVersionText" Text="4.1.2" Foreground="#C8D5E3" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="24" FontWeight="SemiBold" />
+                        <TextBlock Text="INSTALLED" Foreground="{StaticResource MutedBrush}" FontSize="12" FontWeight="Bold" />
+                        <TextBlock x:Name="CurrentVersionText" Text="4.1.2" Foreground="#C8D5E3" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="24" FontWeight="SemiBold" />
                     </StackPanel>
                 </Border>
                 <TextBlock Grid.Column="1" Text="→" Foreground="#69B7FF" FontSize="25" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                <Border Grid.Column="2" Background="#11243A" BorderBrush="#4EA3FF" BorderThickness="1" CornerRadius="4" Padding="14,10">
+                <Border Grid.Column="2" Background="#29292D" BorderBrush="#4EA3FF" BorderThickness="1" CornerRadius="16" Padding="14,10">
                     <StackPanel>
-                        <TextBlock Text="AVAILABLE" Foreground="#9CCBFF" FontSize="9" FontWeight="Bold" />
-                        <TextBlock x:Name="NewVersionText" Text="4.1.3" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontSize="24" FontWeight="Bold" />
+                        <TextBlock Text="AVAILABLE" Foreground="#9CCBFF" FontSize="12" FontWeight="Bold" />
+                        <TextBlock x:Name="NewVersionText" Text="4.1.3" Foreground="#F7FAFC" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="24" FontWeight="Bold" />
                     </StackPanel>
                 </Border>
             </Grid>
@@ -120,28 +89,28 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Background="#10261F" BorderBrush="#2A6A50" BorderThickness="1" CornerRadius="3" Padding="9,5">
-                    <TextBlock x:Name="IntegrityText" Text="SHA-256 verified" Foreground="#83E0AE" FontSize="11" FontWeight="SemiBold" />
+                <Border Background="#10261F" BorderBrush="#2A6A50" BorderThickness="1" CornerRadius="12" Padding="9,5">
+                    <TextBlock x:Name="IntegrityText" Text="SHA-256 verified" Foreground="#83E0AE" FontSize="13" FontWeight="SemiBold" />
                 </Border>
-                <Border Grid.Column="2" Background="#0C1724" BorderBrush="#2B4057" BorderThickness="1" CornerRadius="3" Padding="9,5">
-                    <TextBlock x:Name="PackageSizeText" Text="Windows x64 package" Foreground="#C8D5E3" FontSize="11" FontWeight="SemiBold" />
+                <Border Grid.Column="2" Background="#19191C" BorderBrush="#44444B" BorderThickness="1" CornerRadius="12" Padding="9,5">
+                    <TextBlock x:Name="PackageSizeText" Text="Windows x64 package" Foreground="#C8D5E3" FontSize="13" FontWeight="SemiBold" />
                 </Border>
             </Grid>
-            <Border Grid.Row="3" Margin="0,14,0,0" Background="#0C1724" BorderBrush="#24384C" BorderThickness="1" CornerRadius="4">
+            <Border Grid.Row="3" Margin="0,14,0,0" Background="#19191C" BorderBrush="#3D3D44" BorderThickness="1" CornerRadius="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Grid Background="#101C2B">
-                        <TextBlock Text="RELEASE NOTES" Foreground="#9CCBFF" FontSize="10" FontWeight="Bold" Margin="14,9" />
+                    <Grid Background="#242428">
+                        <TextBlock Text="RELEASE NOTES" Foreground="#9CCBFF" FontSize="12" FontWeight="Bold" Margin="14,9" />
                     </Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="14,10">
-                        <TextBlock x:Name="ReleaseNotesText" Foreground="#D5E0EB" FontSize="12.5" LineHeight="19" TextWrapping="Wrap" Text="Stability and usability improvements." />
+                        <TextBlock x:Name="ReleaseNotesText" Foreground="#D5E0EB" FontSize="15" LineHeight="19" TextWrapping="Wrap" Text="Stability and usability improvements." />
                     </ScrollViewer>
                 </Grid>
             </Border>
-            <Border x:Name="ProgressPanel" Grid.Row="4" Margin="0,14,0,0" Background="#0C1724" BorderBrush="#2B4057" BorderThickness="1" CornerRadius="4" Padding="14,11" IsVisible="False">
+            <Border x:Name="ProgressPanel" Grid.Row="4" Margin="0,14,0,0" Background="#19191C" BorderBrush="#44444B" BorderThickness="1" CornerRadius="16" Padding="14,11" IsVisible="False">
                 <StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -149,10 +118,10 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Name="ProgressText" Text="Preparing update…" Foreground="#F7FAFC" FontSize="13" FontWeight="SemiBold" />
-                        <TextBlock x:Name="ProgressPercentText" Grid.Column="1" Text="0%" Foreground="#9CCBFF" FontFamily="{fonts:ProductionFont 'Bahnschrift'}" FontWeight="Bold" />
+                        <TextBlock x:Name="ProgressPercentText" Grid.Column="1" Text="0%" Foreground="#9CCBFF" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontWeight="Bold" />
                     </Grid>
                     <ProgressBar x:Name="UpdateProgressBar" Minimum="0" Maximum="100" Value="0" Margin="0,8,0,0" Theme="{StaticResource UpdateProgressStyle}" />
-                    <TextBlock x:Name="ProgressDetailText" Text="Nothing has been installed yet." Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,7,0,0" TextWrapping="Wrap" />
+                    <TextBlock x:Name="ProgressDetailText" Text="Nothing has been installed yet." Foreground="{StaticResource MutedBrush}" FontSize="13" Margin="0,7,0,0" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
             <Grid Grid.Row="5" Margin="0,16,0,0">
@@ -168,5 +137,5 @@
                 <Button x:Name="UpdateButton" Grid.Column="4" Content="Download and restart  →" MinWidth="205" Click="Update_Click" IsDefault="True" Theme="{StaticResource PrimaryButton}" />
             </Grid>
         </Grid>
-    </Border>
+    </ns4:OperatorGlassSurface>
 </Window>

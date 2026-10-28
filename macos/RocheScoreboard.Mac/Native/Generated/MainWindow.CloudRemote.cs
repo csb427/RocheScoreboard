@@ -1,14 +1,14 @@
 // Generated from MainWindow.CloudRemote.cs; edit translator/adapters.
-// Source SHA-256: 5ab5702071e4130395994a5b19eff258c9427ad5e859180cb5fa84721fc2fc53
+// Source SHA-256: ffafb26376ea241b8cde813e55d1f728916aec6969d9e6ce369746db6e8946fa
 using RocheScoreboard.Mac.Native;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia.Layout;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Controls.Primitives;
 // ─────────────────────────────────────────────────────────────────────────────
 // MainWindow.CloudRemote.cs
 //
@@ -97,6 +97,9 @@ public partial class MainWindow : IRemoteCommandTarget
     /// </summary>
     private void PublishCloudSnapshot()
     {
+#if DEBUG
+        if (_cricketPreviewBackup is not null) return;
+#endif
         if (_cloudRemote is null || !_cloudRemote.IsActive) return;
         try
         {
@@ -306,9 +309,9 @@ public partial class MainWindow : IRemoteCommandTarget
             ActiveScreen = "scorebug",
             EventCount = innings.Deliveries.Count,
             LastEvent = innings.Deliveries.LastOrDefault()?.Description ?? "",
-            MatchResult = match.MatchResult ?? "",
+            MatchResult = match.IsMatchFinalized ? match.MatchResult ?? "" : "",
             Messages = match.Messages,
-            SessionStatus = match.MatchResult is not null ? "fullTime" : innings.Deliveries.Count > 0 ? "live" : "lobby",
+            SessionStatus = match.IsMatchFinalized ? "fullTime" : innings.Deliveries.Count > 0 ? "live" : "lobby",
             UpdatedAt = DateTimeOffset.UtcNow,
             Cricket = new CricketSnapshotDto
             {

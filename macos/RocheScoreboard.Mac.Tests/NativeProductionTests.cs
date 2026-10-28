@@ -32,14 +32,14 @@ public sealed class NativeProductionTests
         var launcher = new SportSelectionScreen();
         var window = new Window { Width = 1280, Height = 800, Content = launcher };
         var selections = new List<SportMode>();
-        launcher.SportSelected += selections.Add;
+        launcher.SportSelected += mode=>{selections.Add(mode);launcher.IsVisible=false;};
         try
         {
             window.Show();
             await Settle(1700);
             var card = launcher.FindControl<Border>("AflCard")!;
             Assert.True(card.Opacity > .99);
-            var label = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(launcher).OfType<TextBlock>().First(t => t.Text == "SETTINGS");
+            var label = launcher.FindControl<TextBlock>("SettingsActionCaption")!;
             Assert.True(label.Bounds.Height > 0, "Launcher settings text must retain a readable native font.");
             Capture(window, "production-launcher");
             var changelog = launcher.FindControl<Button>("ChangelogToggle")!;
@@ -55,7 +55,7 @@ public sealed class NativeProductionTests
             window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left);
             await Settle(650);
             Assert.Equal(new[] { SportMode.AFL }, selections);
-            launcher.PrepareForDisplay();
+            launcher.IsVisible=true;launcher.PrepareForDisplay();
             Assert.True(launcher.IsHitTestVisible);
         }
         finally { window.Close(); }
@@ -217,7 +217,7 @@ public sealed class NativeProductionTests
     }
 
     [AvaloniaFact]
-    public async Task NativeTimelinesKeepSequentialSegmentsAndClearBackToLocalValue()
+    public void NativeTimelinesKeepSequentialSegmentsAndClearBackToLocalValue()
     {
         var transform = new Avalonia.Media.TranslateTransform { X = 12 };
         var board = new Storyboard();
@@ -232,9 +232,9 @@ public sealed class NativeProductionTests
         try
         {
             board.Begin();
-            await Settle(125);
+            Motion.SampleAt(transform,TimeSpan.FromMilliseconds(125));
             Assert.InRange(transform.X, 99.9, 100.1);
-            await Settle(175);
+            Motion.SampleAt(transform,TimeSpan.FromMilliseconds(300));
             Assert.InRange(transform.X, 199.9, 200.1);
         }
         finally { board.Stop(); }

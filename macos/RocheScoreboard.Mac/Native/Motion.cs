@@ -72,6 +72,7 @@ public class DoubleAnimation
 public static class Motion
 {
     private static readonly ConditionalWeakTable<AvaloniaObject, Dictionary<AvaloniaProperty, Running>> Active = new();
+    public static bool IsAnimating(AvaloniaObject target)=>Active.TryGetValue(target,out var values)&&values.Values.Any(value=>!value.Finished);
     private sealed class Running : IDisposable
     {
         public required AvaloniaObject Target;
@@ -81,10 +82,10 @@ public static class Motion
         public required object From;
         public required object To;
         public readonly Stopwatch Watch = Stopwatch.StartNew();
-        public DispatcherTimer? Timer;
+        public EventHandler? Frame;
         public IDisposable? Value;
         public bool Finished;
-        public void Dispose() { Finished = true; Timer?.Stop(); Value?.Dispose(); Value = null; }
+        public void Dispose() { Finished = true; if(Frame is not null){NativeRendering.Rendering-=Frame;Frame=null;} Value?.Dispose(); Value = null; }
         public void Set(object value)
         {
             // Replace the animation-priority value without modifying the local base.
@@ -92,12 +93,12 @@ public static class Motion
             Value = Target.SetValue(Property, value, BindingPriority.Animation);
             previous?.Dispose();
         }
-        public void Tick()
+        public void Tick(double? elapsedMilliseconds=null)
         {
             if (Finished) return;
             if (Animations.All(a => double.IsPositiveInfinity(a.RepeatBehavior.Count)) && NativeLifecycle.Hidden(Target)) return;
             var completions = new List<DoubleAnimation>();
-            double elapsed = Watch.Elapsed.TotalMilliseconds;
+            double elapsed = elapsedMilliseconds??Watch.Elapsed.TotalMilliseconds;
             bool allComplete = true;
             object? value = null;
             foreach (var animation in Animations.OrderBy(x => x.BeginTime))
@@ -119,10 +120,17 @@ public static class Motion
             }
             if (value is not null) Set(value);
             else { Value?.Dispose(); Value = null; }
-            if (allComplete) { Finished = true; Timer?.Stop(); }
+            if (allComplete) { Finished = true; if(Frame is not null){NativeRendering.Rendering-=Frame;Frame=null;} }
             foreach (var animation in completions) animation.Complete();
 
         }
+    }
+    // Deterministic regression sampling keeps segment/fill tests independent
+    // of CI scheduling load. Production frames always use elapsed wall time.
+    internal static void SampleAt(AvaloniaObject target,TimeSpan elapsed)
+    {
+        if(Active.TryGetValue(target,out var entries))
+            foreach(var running in entries.Values.ToArray())running.Tick(elapsed.TotalMilliseconds);
     }
     internal static void StopAll(AvaloniaObject target)
     {
@@ -156,9 +164,14 @@ public static class Motion
         // work on the UI thread. Render-priority jobs can continuously drain
         // ahead of native mouse/key events on macOS. Background work yields
         // to input; elapsed wall time still determines animation progress.
-        running.Timer = new DispatcherTimer(TimeSpan.FromMilliseconds(16), DispatcherPriority.Background, (_, _) => running.Tick());
         running.Tick();
-        if (!running.Finished) running.Timer.Start();
+        if (!running.Finished)
+        {
+            // One shared Background frame clock avoids hundreds of queued timer
+            // jobs when a complete control panel enters or several digits roll.
+            running.Frame=(_,_)=>running.Tick();
+            NativeRendering.Rendering+=running.Frame;
+        }
     }
 }
 public sealed class ElasticEase : EasingFunction
@@ -191,4 +204,14 @@ public sealed class PowerEase : EasingFunction
 {
     public double Power { get; set; } = 2;
     protected override double EaseIn(double value) => Math.Pow(value, Power);
+}
+public sealed class RectAnimation : DoubleAnimation
+{
+    private readonly Rect _start,_end;
+    public RectAnimation(Rect from,Rect to,TimeSpan duration){_start=from;_end=to;Duration=duration;}
+    internal override object InterpolateValue(double progress,object baseValue)
+    {
+        double t=EasingFunction?.Ease(progress)??progress;
+        return new Rect(_start.X+(_end.X-_start.X)*t,_start.Y+(_end.Y-_start.Y)*t,Math.Max(0,_start.Width+(_end.Width-_start.Width)*t),Math.Max(0,_start.Height+(_end.Height-_start.Height)*t));
+    }
 }

@@ -48,6 +48,7 @@ public sealed class PropertyPath
 {
     public object Value { get; }
     public PropertyPath(object value) => Value = value;
+    public static implicit operator string(PropertyPath path)=>path.Value is AvaloniaProperty property?property.Name:path.Value.ToString()??string.Empty;
     internal (AvaloniaObject Target, AvaloniaProperty Property) Resolve(AvaloniaObject root)
     {
         if (Value is AvaloniaProperty property) return (root, property);

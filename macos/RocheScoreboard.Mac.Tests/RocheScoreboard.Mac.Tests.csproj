@@ -15,5 +15,11 @@
     <PackageReference Include="Avalonia.Headless.XUnit" Version="11.3.22" />
     <Content Include="Fixtures/test-pattern.mp4" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../Roche_Scoreboard/Views/ScorebugControl.xaml" Link="ProductionReferences/ScorebugControl.xaml" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="../../Roche_Scoreboard/Services/CricketConditionsChecks.cs" Link="ProductionChecks/CricketConditionsChecks.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/CricketDeliveryRuleChecks.cs" Link="ProductionChecks/CricketDeliveryRuleChecks.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/CricketOverAndStrikeChecks.cs" Link="ProductionChecks/CricketOverAndStrikeChecks.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/CricketWorkflowChecks.cs" Link="ProductionChecks/CricketWorkflowChecks.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/CricketDeliveryLogChecks.cs" Link="ProductionChecks/CricketDeliveryLogChecks.cs" />
+    <Compile Include="../../Roche_Scoreboard/Services/CricketTossChecks.cs" Link="ProductionChecks/CricketTossChecks.cs" />
   </ItemGroup>
 </Project>

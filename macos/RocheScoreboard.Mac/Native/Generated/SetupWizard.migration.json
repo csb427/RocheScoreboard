@@ -1,120 +1,15 @@
 {
   "source": "Roche_Scoreboard/Views/SetupWizard.xaml",
-  "source_sha256": "af3e42e974c89a754e198079a837f4f981f37a51fee60b09429e9dcbe28f9ffc",
+  "source_sha256": "10610789550af8352158fc9f0a8ceb3bef3bad8829f916d96c73be2d64825833",
   "names": [
     {
-      "name": "BdSc",
-      "type": "ScaleTransform",
-      "object": true
-    },
-    {
-      "name": "BdLift",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "RewardFlash",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Border",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "PART_EditableTextBox",
-      "type": "TextBox",
-      "object": false
-    },
-    {
-      "name": "PART_Popup",
-      "type": "Popup",
-      "object": false
-    },
-    {
       "name": "ResponsiveScrollHost",
-      "type": "ScrollViewer",
+      "type": "WizardViewport",
       "object": false
     },
     {
-      "name": "BgGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "BeamTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "HeaderPanel",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "HeaderTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "HeaderTitle",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "StepIndicator",
-      "type": "StackPanel",
-      "object": false
-    },
-    {
-      "name": "StepIndicatorTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "Step1Dot",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Step1Glow",
-      "type": "DropShadowEffect",
-      "object": true
-    },
-    {
-      "name": "Step1Label",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "Step2Dot",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Step2Label",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "Step3Dot",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Step3Label",
-      "type": "TextBlock",
+      "name": "WizardBody",
+      "type": "Grid",
       "object": false
     },
     {
@@ -140,31 +35,6 @@
     {
       "name": "HomePresetPanel",
       "type": "WrapPanel",
-      "object": false
-    },
-    {
-      "name": "AwayPresetCard",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "AwayPresetTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "AwayPresetEmpty",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "AwayPresetPanel",
-      "type": "WrapPanel",
-      "object": false
-    },
-    {
-      "name": "Step2Panel",
-      "type": "Grid",
       "object": false
     },
     {
@@ -248,13 +118,23 @@
       "object": false
     },
     {
-      "name": "DividerScale",
-      "type": "ScaleTransform",
+      "name": "AwayPresetCard",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "AwayPresetTranslate",
+      "type": "TranslateTransform",
       "object": true
     },
     {
-      "name": "DividerGlowLine",
-      "type": "Border",
+      "name": "AwayPresetEmpty",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayPresetPanel",
+      "type": "WrapPanel",
       "object": false
     },
     {
@@ -338,6 +218,21 @@
       "object": false
     },
     {
+      "name": "Step2Panel",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "DividerScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "DividerGlowLine",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "Step3Panel",
       "type": "Border",
       "object": false
@@ -346,36 +241,6 @@
       "name": "Step3Translate",
       "type": "TranslateTransform",
       "object": true
-    },
-    {
-      "name": "ClockGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "SetupCountUp",
-      "type": "RadioButton",
-      "object": false
-    },
-    {
-      "name": "SetupCountdown",
-      "type": "RadioButton",
-      "object": false
-    },
-    {
-      "name": "SetupControlPanelCountdown",
-      "type": "CheckBox",
-      "object": false
-    },
-    {
-      "name": "SetupQuarterMinutes",
-      "type": "TextBox",
-      "object": false
-    },
-    {
-      "name": "SetupQuarterSeconds",
-      "type": "TextBox",
-      "object": false
     },
     {
       "name": "ClockHeaderGroup",
@@ -389,6 +254,11 @@
     },
     {
       "name": "CountUpCard",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "CountUpSelected",
       "type": "Border",
       "object": false
     },
@@ -403,13 +273,28 @@
       "object": false
     },
     {
-      "name": "CountUpSelected",
+      "name": "CountdownCard",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "CountdownSelected",
       "type": "Border",
       "object": false
     },
     {
-      "name": "ControlPanelCountdownOptionCard",
+      "name": "CountdownGlowBg",
       "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CountdownIcon",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownOptionCard",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -448,33 +333,13 @@
       "object": false
     },
     {
-      "name": "CountdownCard",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "CountdownGlowBg",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "CountdownIcon",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "CountdownSelected",
-      "type": "Border",
-      "object": false
-    },
-    {
       "name": "SetupDurationPanel",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
-      "name": "DurationGlowBg",
-      "type": "Border",
+      "name": "QuarterLengthControls",
+      "type": "StackPanel",
       "object": false
     },
     {
@@ -508,6 +373,41 @@
       "object": false
     },
     {
+      "name": "DurationGlowBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ClockGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupCountUp",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "SetupCountdown",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "SetupControlPanelCountdown",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "SetupQuarterMinutes",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "SetupQuarterSeconds",
+      "type": "TextBox",
+      "object": false
+    },
+    {
       "name": "Step4Panel",
       "type": "Border",
       "object": false
@@ -516,16 +416,6 @@
       "name": "Step4Translate",
       "type": "TranslateTransform",
       "object": true
-    },
-    {
-      "name": "MsgGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "SetupFinalsMode",
-      "type": "CheckBox",
-      "object": false
     },
     {
       "name": "MsgHeaderGroup",
@@ -539,11 +429,11 @@
     },
     {
       "name": "FinalsCard",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
-      "name": "FinalsGlowBg",
+      "name": "FinalsSelectedBadge",
       "type": "Border",
       "object": false
     },
@@ -553,18 +443,8 @@
       "object": false
     },
     {
-      "name": "FinalsSelectedBadge",
-      "type": "Border",
-      "object": false
-    },
-    {
       "name": "WeatherCard",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "WeatherGlowBg",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -598,6 +478,141 @@
       "object": false
     },
     {
+      "name": "MsgGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SetupFinalsMode",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "BgGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BeamTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "BottomAccent",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FlashOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "FinalsGlowBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "WeatherGlowBg",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HeaderPanel",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "HeaderTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HeaderTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "WizardStepCounter",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StepIndicator",
+      "type": "OperatorSegmentedPanel",
+      "object": false
+    },
+    {
+      "name": "StepIndicatorTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "Step1Navigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "Step1Symbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "Step1Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step1Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step1Glow",
+      "type": "DropShadowEffect",
+      "object": true
+    },
+    {
+      "name": "Step2Navigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "Step2Symbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "Step2Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step2Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Step3Navigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "Step3Symbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "Step3Label",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "Step3Dot",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "NavBar",
       "type": "Grid",
       "object": false
@@ -609,65 +624,27 @@
     },
     {
       "name": "BackButton",
-      "type": "Border",
+      "type": "Button",
       "object": false
-    },
-    {
-      "name": "BackBtnScale",
-      "type": "ScaleTransform",
-      "object": true
     },
     {
       "name": "NextButton",
-      "type": "Border",
+      "type": "Button",
       "object": false
-    },
-    {
-      "name": "NextBtnScale",
-      "type": "ScaleTransform",
-      "object": true
     },
     {
       "name": "NextButtonText",
       "type": "TextBlock",
       "object": false
-    },
-    {
-      "name": "BottomAccent",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "FlashOverlay",
-      "type": "Border",
-      "object": false
     }
   ],
-  "code_source_sha256": "f8dce8cd7440c04476ff7fd345f54b98272a5b29933c541b7d25b4e2f32c1798",
+  "code_source_sha256": "0af6808dbcf7fcc8f1cd50372fba394722561e1b065b77f6357d596059bde04d",
   "native_events": [
     {
       "name": "ResponsiveScrollHost",
       "source": "PreviewMouseWheel",
       "native": "PointerWheelChanged",
       "handler": "ResponsiveScrollHost_PreviewMouseWheel"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "GoToStep1_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "GoToStep2_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "GoToStep3_Click"
     },
     {
       "name": "SetupHomeColorBox",
@@ -742,6 +719,24 @@
       "handler": "DropperSetupAwaySecondary_Click"
     },
     {
+      "name": "CountUpCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "CountUpCard_Click"
+    },
+    {
+      "name": "CountdownCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "CountdownCard_Click"
+    },
+    {
+      "name": "ControlPanelCountdownOptionCard",
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "ControlPanelCountdownOptionCard_Click"
+    },
+    {
       "name": "SetupCountUp",
       "source": "Checked",
       "native": "IsCheckedChanged",
@@ -761,6 +756,18 @@
     },
     {
       "name": "SetupCountdown",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SetupClockMode_Changed"
+    },
+    {
+      "name": "SetupControlPanelCountdown",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SetupClockMode_Changed"
+    },
+    {
+      "name": "SetupControlPanelCountdown",
       "source": "Unchecked",
       "native": "IsCheckedChanged",
       "handler": "SetupClockMode_Changed"
@@ -776,60 +783,6 @@
       "source": "TextChanged",
       "native": "TextChanged",
       "handler": "SetupQuarterDuration_TextChanged"
-    },
-    {
-      "name": "CountUpCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "CountUpCard_Click"
-    },
-    {
-      "name": "ControlPanelCountdownOptionCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "ControlPanelCountdownOptionCard_Click"
-    },
-    {
-      "name": "CountdownCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "CountdownCard_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "MinutesMinus_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "MinutesPlus_Click"
-    },
-    {
-      "name": "Preset10Tile",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "SetupQuickDuration10_Click"
-    },
-    {
-      "name": "Preset15Tile",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "SetupQuickDuration15_Click"
-    },
-    {
-      "name": "Preset20Tile",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "SetupQuickDuration20_Click"
-    },
-    {
-      "name": "Preset25Tile",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "SetupQuickDuration25_Click"
     },
     {
       "name": "FinalsCard",
@@ -848,51 +801,9 @@
       "source": "MouseRightButtonUp",
       "native": "PointerReleased",
       "handler": "SetupClearNewHighlightColor_Click"
-    },
-    {
-      "name": "BackButton",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "Back_Click"
-    },
-    {
-      "name": "BackButton",
-      "source": "MouseEnter",
-      "native": "PointerEntered",
-      "handler": "NavBtn_MouseEnter"
-    },
-    {
-      "name": "BackButton",
-      "source": "MouseLeave",
-      "native": "PointerExited",
-      "handler": "NavBtn_MouseLeave"
-    },
-    {
-      "name": "NextButton",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "Next_Click"
-    },
-    {
-      "name": "NextButton",
-      "source": "MouseEnter",
-      "native": "PointerEntered",
-      "handler": "NavBtn_MouseEnter"
-    },
-    {
-      "name": "NextButton",
-      "source": "MouseLeave",
-      "native": "PointerExited",
-      "handler": "NavBtn_MouseLeave"
     }
   ],
   "platform_translations": [
-    {
-      "name": "PART_Popup",
-      "property": "AllowsTransparency",
-      "source": "True",
-      "translation": "Native popup compositor and editable combo routing"
-    },
     {
       "name": "ResponsiveScrollHost",
       "property": "PanningMode",
@@ -902,16 +813,6 @@
       "name": "ResponsiveScrollHost",
       "property": "CanContentScroll",
       "source": "False"
-    },
-    {
-      "name": null,
-      "property": "ViewportUnits",
-      "source": "Absolute"
-    },
-    {
-      "name": null,
-      "property": "ViewboxUnits",
-      "source": "Absolute"
     },
     {
       "name": "SetupHomeColorBox",
@@ -938,24 +839,6 @@
       "native_fallback": "Inter"
     },
     {
-      "name": "DurationMinutesDisplay",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "FinalsIcon",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Segoe UI Symbol",
-      "native_fallback": "Inter"
-    },
-    {
       "name": "SetupWeatherLocation",
       "property": "StaysOpenOnEdit",
       "source": "True",
@@ -963,9 +846,13 @@
     },
     {
       "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
+      "property": "ViewportUnits",
+      "source": "Absolute"
+    },
+    {
+      "name": null,
+      "property": "ViewboxUnits",
+      "source": "Absolute"
     }
   ],
   "visual_parity_verified": false,

@@ -1,77 +1,7 @@
 {
   "source": "Roche_Scoreboard/MainWindow.xaml",
-  "source_sha256": "f7a177b8c794b70af72af66b3c5dc0fca47ff5cacb900104e9ab74ac9d97ff67",
+  "source_sha256": "d25e0b56c0677a65641868d2b7a9e257b188845125614548b35b80e4b35d3264",
   "names": [
-    {
-      "name": "Sc",
-      "type": "ScaleTransform",
-      "object": true
-    },
-    {
-      "name": "Lift",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "Glow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "TbSc",
-      "type": "ScaleTransform",
-      "object": true
-    },
-    {
-      "name": "TbLift",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "Glow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "PrimaryLabel",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "SecondaryLabel",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "AccBar",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "Bd",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "RbSc",
-      "type": "ScaleTransform",
-      "object": true
-    },
     {
       "name": "HeaderToggle",
       "type": "ToggleButton",
@@ -108,13 +38,28 @@
       "object": false
     },
     {
+      "name": "ApplicationSurface",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "MainContent",
-      "type": "ScrollViewer",
+      "type": "OperatorViewport",
+      "object": false
+    },
+    {
+      "name": "AflOperatorCanvas",
+      "type": "Grid",
       "object": false
     },
     {
       "name": "MatchStripBorder",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "AflHeaderLayout",
+      "type": "Grid",
       "object": false
     },
     {
@@ -133,17 +78,42 @@
       "object": false
     },
     {
+      "name": "HeaderQuarterClock",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderHomeAbbr",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderScore",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HeaderAwayAbbr",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AflHeaderMarginSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "HeaderMarginText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "HeaderOutputBadge",
       "type": "Border",
       "object": false
     },
     {
       "name": "HeaderOutputText",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "HeaderQuarterClock",
       "type": "TextBlock",
       "object": false
     },
@@ -173,38 +143,28 @@
       "object": false
     },
     {
-      "name": "HeaderHomeAbbr",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "HeaderScore",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "HeaderAwayAbbr",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "HeaderMarginText",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
       "name": "MainTabControl",
       "type": "TabControl",
       "object": false
     },
     {
-      "name": "PART_SelectedContentHost",
-      "type": "ContentPresenter",
+      "name": "MatchControlTab",
+      "type": "TabItem",
       "object": false
     },
     {
-      "name": "MatchControlTab",
-      "type": "TabItem",
+      "name": "AflMatchPageViewport",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "AflScoringColumns",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AflScoringDeck",
+      "type": "Grid",
       "object": false
     },
     {
@@ -219,7 +179,7 @@
     },
     {
       "name": "ControlPanelCountdownPanel",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -249,7 +209,7 @@
     },
     {
       "name": "ControlPanelCountdownEditPopup",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -288,6 +248,21 @@
       "object": false
     },
     {
+      "name": "HomeOperatorLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "HomeOperatorDetails",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeOperatorTotal",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "HomeScoreDisplay",
       "type": "TextBlock",
       "object": false
@@ -319,6 +294,21 @@
     },
     {
       "name": "AwayScoringLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayOperatorLogo",
+      "type": "Image",
+      "object": false
+    },
+    {
+      "name": "AwayOperatorDetails",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AwayOperatorTotal",
       "type": "TextBlock",
       "object": false
     },
@@ -379,7 +369,7 @@
     },
     {
       "name": "MatchLogPanel",
-      "type": "Border",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -408,13 +398,28 @@
       "object": false
     },
     {
+      "name": "AflOutputPageViewport",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "AflOutputColumns",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "CurrentDisplayText",
       "type": "TextBlock",
       "object": false
     },
     {
+      "name": "AflPresentationGrid",
+      "type": "UniformGrid",
+      "object": false
+    },
+    {
       "name": "PresCardScorebug",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -429,7 +434,7 @@
     },
     {
       "name": "PresCardSummary",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -439,7 +444,7 @@
     },
     {
       "name": "PresCardWorm",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -449,7 +454,7 @@
     },
     {
       "name": "PresCardStats",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -459,7 +464,7 @@
     },
     {
       "name": "PresCardWeather",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -469,7 +474,7 @@
     },
     {
       "name": "PresCardWindow",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -504,7 +509,7 @@
     },
     {
       "name": "PresCardQuarterBreak",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -514,7 +519,7 @@
     },
     {
       "name": "PresCardScreensaver",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -583,6 +588,21 @@
       "object": false
     },
     {
+      "name": "AflMediaPageViewport",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "AflMediaColumns",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AflMediaControlsCard",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "VideoTabFilePathText",
       "type": "TextBlock",
       "object": false
@@ -620,6 +640,11 @@
     {
       "name": "VideoTabApplyButton",
       "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AflMediaPreviewCard",
+      "type": "Border",
       "object": false
     },
     {
@@ -680,6 +705,11 @@
     {
       "name": "MatchSetupTab",
       "type": "TabItem",
+      "object": false
+    },
+    {
+      "name": "AflSettingsPageViewport",
+      "type": "ScrollViewer",
       "object": false
     },
     {
@@ -758,6 +788,36 @@
       "object": false
     },
     {
+      "name": "AflSettingsColumns",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AflSettingsCompactBar",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AflSettingsCompactChoice",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AflSettingsCompactCaption",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AflSettingsCompactSearch",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "AflSettingsRail",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
       "name": "SettingsHeaderTitle",
       "type": "TextBlock",
       "object": false
@@ -768,33 +828,38 @@
       "object": false
     },
     {
+      "name": "AflSettingsCategoryList",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
       "name": "SettingsNavBtn_Teams",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
       "name": "SettingsNavBtn_Keybinds",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
       "name": "SettingsNavBtn_Display",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
       "name": "SettingsNavBtn_Overlays",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
       "name": "SettingsNavBtn_Media",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
       "name": "SettingsNavBtn_Advanced",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -814,7 +879,7 @@
     },
     {
       "name": "SettingsSearchClear",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -919,7 +984,7 @@
     },
     {
       "name": "SettingsCountUpCard",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -934,7 +999,7 @@
     },
     {
       "name": "SettingsCountdownCard",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -949,7 +1014,7 @@
     },
     {
       "name": "SettingsControlPanelCountdownOptionCard",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1019,7 +1084,7 @@
     },
     {
       "name": "SettingsFinalsCard",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1049,7 +1114,7 @@
     },
     {
       "name": "SettingsHideTeamNamesCard",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1139,7 +1204,7 @@
     },
     {
       "name": "LayoutCardClassic",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1154,7 +1219,7 @@
     },
     {
       "name": "LayoutCardExpanded",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1184,7 +1249,7 @@
     },
     {
       "name": "AnimCardBroadcast",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1194,7 +1259,7 @@
     },
     {
       "name": "AnimCardElectric",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1204,7 +1269,7 @@
     },
     {
       "name": "AnimCardCinematic",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1214,7 +1279,7 @@
     },
     {
       "name": "AnimCardClean",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1224,7 +1289,7 @@
     },
     {
       "name": "AnimCardClassic",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1234,7 +1299,7 @@
     },
     {
       "name": "AnimCardCustomVideo",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1279,7 +1344,7 @@
     },
     {
       "name": "AutoOverlaysCard",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1299,7 +1364,7 @@
     },
     {
       "name": "SettingsBreakScreenCard",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -1551,9 +1616,14 @@
       "name": "MatchLoadingPanel",
       "type": "MatchLoadingScreen",
       "object": false
+    },
+    {
+      "name": "RecoveryOverlay",
+      "type": "Grid",
+      "object": false
     }
   ],
-  "code_source_sha256": "ac0ec10c4e26a27541dffa36e669ff7d83544773fc07adf38e39fa7ae4c1cf61",
+  "code_source_sha256": "782b9f76632578fd65e836f1ad1f2c23159f63e1f60b2e8acbc17a4c1243252b",
   "native_events": [
     {
       "name": "MainTabControl",
@@ -1565,127 +1635,127 @@
       "name": "PresCardScorebug",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "PresCardScorebug_Click"
+      "handler": "OperatorTile_PresCardScorebug_Click"
     },
     {
       "name": "PresCardSummary",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "PresCardSummary_Click"
+      "handler": "OperatorTile_PresCardSummary_Click"
     },
     {
       "name": "PresCardWorm",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "PresCardWorm_Click"
+      "handler": "OperatorTile_PresCardWorm_Click"
     },
     {
       "name": "PresCardStats",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "PresCardStats_Click"
+      "handler": "OperatorTile_PresCardStats_Click"
     },
     {
       "name": "PresCardWeather",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "PresCardWeather_Click"
+      "handler": "OperatorTile_PresCardWeather_Click"
     },
     {
       "name": "PresCardWindow",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "PresCardWindow_Click"
+      "handler": "OperatorTile_PresCardWindow_Click"
     },
     {
       "name": "PresCardQuarterBreak",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "PresCardQuarterBreak_Click"
+      "handler": "OperatorTile_PresCardQuarterBreak_Click"
     },
     {
       "name": "PresCardScreensaver",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "PresCardScreensaver_Click"
+      "handler": "OperatorTile_PresCardScreensaver_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayStatsBar_Click"
+      "handler": "OperatorTile_OverlayStatsBar_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayWinProb_Click"
+      "handler": "OperatorTile_OverlayWinProb_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayLeadChanges_Click"
+      "handler": "OperatorTile_OverlayLeadChanges_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayQtrScores_Click"
+      "handler": "OperatorTile_OverlayQtrScores_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayRecentScores_Click"
+      "handler": "OperatorTile_OverlayRecentScores_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayScoringRun_Click"
+      "handler": "OperatorTile_OverlayScoringRun_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayScoreless_Click"
+      "handler": "OperatorTile_OverlayScoreless_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayHomeDrought_Click"
+      "handler": "OperatorTile_OverlayHomeDrought_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayAwayDrought_Click"
+      "handler": "OperatorTile_OverlayAwayDrought_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayWarning_Click"
+      "handler": "OperatorTile_OverlayWarning_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayWeatherForecast_Click"
+      "handler": "OperatorTile_OverlayWeatherForecast_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayWeatherStats_Click"
+      "handler": "OperatorTile_OverlayWeatherStats_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "OverlayRainForecast_Click"
+      "handler": "OperatorTile_OverlayRainForecast_Click"
     },
     {
       "name": null,
@@ -1811,37 +1881,37 @@
       "name": "SettingsNavBtn_Teams",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsNav_Teams_Click"
+      "handler": "OperatorTile_SettingsNav_Teams_Click"
     },
     {
       "name": "SettingsNavBtn_Keybinds",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsNav_Keybinds_Click"
+      "handler": "OperatorTile_SettingsNav_Keybinds_Click"
     },
     {
       "name": "SettingsNavBtn_Display",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsNav_Display_Click"
+      "handler": "OperatorTile_SettingsNav_Display_Click"
     },
     {
       "name": "SettingsNavBtn_Overlays",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsNav_Overlays_Click"
+      "handler": "OperatorTile_SettingsNav_Overlays_Click"
     },
     {
       "name": "SettingsNavBtn_Media",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsNav_Media_Click"
+      "handler": "OperatorTile_SettingsNav_Media_Click"
     },
     {
       "name": "SettingsNavBtn_Advanced",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsNav_Advanced_Click"
+      "handler": "OperatorTile_SettingsNav_Advanced_Click"
     },
     {
       "name": "SettingsSearchBox",
@@ -1853,7 +1923,7 @@
       "name": "SettingsSearchClear",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsSearchClear_Click"
+      "handler": "OperatorTile_SettingsSearchClear_Click"
     },
     {
       "name": "HomeNameBox",
@@ -1877,7 +1947,7 @@
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "DropperHomeColor_Click"
+      "handler": "OperatorTile_DropperHomeColor_Click"
     },
     {
       "name": "HomeSecondaryColorPreview",
@@ -1889,7 +1959,7 @@
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "DropperHomeSecondaryColor_Click"
+      "handler": "OperatorTile_DropperHomeSecondaryColor_Click"
     },
     {
       "name": "AwayNameBox",
@@ -1913,7 +1983,7 @@
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "DropperAwayColor_Click"
+      "handler": "OperatorTile_DropperAwayColor_Click"
     },
     {
       "name": "AwaySecondaryColorPreview",
@@ -1925,49 +1995,49 @@
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "DropperAwaySecondaryColor_Click"
+      "handler": "OperatorTile_DropperAwaySecondaryColor_Click"
     },
     {
       "name": "SettingsCountUpCard",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsCountUpCard_Click"
+      "handler": "OperatorTile_SettingsCountUpCard_Click"
     },
     {
       "name": "SettingsCountdownCard",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsCountdownCard_Click"
+      "handler": "OperatorTile_SettingsCountdownCard_Click"
     },
     {
       "name": "SettingsControlPanelCountdownOptionCard",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsControlPanelCountdownOptionCard_Click"
+      "handler": "OperatorTile_SettingsControlPanelCountdownOptionCard_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsMinutesMinus_Click"
+      "handler": "OperatorTile_SettingsMinutesMinus_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsMinutesPlus_Click"
+      "handler": "OperatorTile_SettingsMinutesPlus_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsSecondsMinus_Click"
+      "handler": "OperatorTile_SettingsSecondsMinus_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsSecondsPlus_Click"
+      "handler": "OperatorTile_SettingsSecondsPlus_Click"
     },
     {
       "name": "SettingsFinalsToggle",
@@ -1985,7 +2055,7 @@
       "name": "SettingsFinalsCard",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsFinalsCard_Click"
+      "handler": "OperatorTile_SettingsFinalsCard_Click"
     },
     {
       "name": "SettingsHideTeamNamesToggle",
@@ -2003,7 +2073,7 @@
       "name": "SettingsHideTeamNamesCard",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsHideTeamNamesCard_Click"
+      "handler": "OperatorTile_SettingsHideTeamNamesCard_Click"
     },
     {
       "name": "QuarterLabelCurrentBox",
@@ -2015,49 +2085,49 @@
       "name": "LayoutCardClassic",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "ClassicLayoutCard_Click"
+      "handler": "OperatorTile_ClassicLayoutCard_Click"
     },
     {
       "name": "LayoutCardExpanded",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "ExpandedLayoutCard_Click"
+      "handler": "OperatorTile_ExpandedLayoutCard_Click"
     },
     {
       "name": "AnimCardBroadcast",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "AnimBroadcastCard_Click"
+      "handler": "OperatorTile_AnimBroadcastCard_Click"
     },
     {
       "name": "AnimCardElectric",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "AnimElectricCard_Click"
+      "handler": "OperatorTile_AnimElectricCard_Click"
     },
     {
       "name": "AnimCardCinematic",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "AnimCinematicCard_Click"
+      "handler": "OperatorTile_AnimCinematicCard_Click"
     },
     {
       "name": "AnimCardClean",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "AnimCleanCard_Click"
+      "handler": "OperatorTile_AnimCleanCard_Click"
     },
     {
       "name": "AnimCardClassic",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "AnimClassicCard_Click"
+      "handler": "OperatorTile_AnimClassicCard_Click"
     },
     {
       "name": "AnimCardCustomVideo",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "AnimCustomVideoCard_Click"
+      "handler": "OperatorTile_AnimCustomVideoCard_Click"
     },
     {
       "name": "AutoOverlaysToggle",
@@ -2075,7 +2145,7 @@
       "name": "AutoOverlaysCard",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "AutoOverlaysCard_Click"
+      "handler": "OperatorTile_AutoOverlaysCard_Click"
     },
     {
       "name": "SettingsBreakScreenToggle",
@@ -2093,43 +2163,43 @@
       "name": "SettingsBreakScreenCard",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "SettingsBreakScreenCard_Click"
+      "handler": "OperatorTile_SettingsBreakScreenCard_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "WidthMinus_Click"
+      "handler": "OperatorTile_WidthMinus_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "WidthPlus_Click"
+      "handler": "OperatorTile_WidthPlus_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "HeightMinus_Click"
+      "handler": "OperatorTile_HeightMinus_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "HeightPlus_Click"
+      "handler": "OperatorTile_HeightPlus_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "CopyCloudJoinCode_Click"
+      "handler": "OperatorTile_CopyCloudJoinCode_Click"
     },
     {
       "name": null,
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
-      "handler": "ResetCardSettings_Click"
+      "handler": "OperatorTile_ResetCardSettings_Click"
     },
     {
       "name": "ResizeGripVisual",
@@ -2139,11 +2209,6 @@
     }
   ],
   "platform_translations": [
-    {
-      "name": null,
-      "property": "SnapsToDevicePixels",
-      "source": "True"
-    },
     {
       "name": "MainContent",
       "property": "PanningMode",
@@ -2155,67 +2220,10 @@
       "source": "False"
     },
     {
-      "name": "HeaderQuarterClock",
-      "property": "FontFamily",
-      "source": "Arial",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "HeaderScore",
-      "property": "FontFamily",
-      "source": "Arial",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "SnapsToDevicePixels",
-      "source": "True"
-    },
-    {
-      "name": "PART_SelectedContentHost",
-      "property": "ContentTemplateSelector",
-      "translation": "Native ItemTemplate supplies the selected item data template"
-    },
-    {
-      "name": "PART_SelectedContentHost",
-      "property": "SnapsToDevicePixels",
-      "source": "{TemplateBinding SnapsToDevicePixels}"
-    },
-    {
-      "name": "ControlPanelCountdownText",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
       "name": "ControlPanelCountdownEditPopupHost",
       "property": "AllowsTransparency",
       "source": "True",
       "translation": "Native popup compositor and editable combo routing"
-    },
-    {
-      "name": "ControlPanelCountdownEditMinutesBox",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "ControlPanelCountdownEditSecondsBox",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "HomeScoreDisplay",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "AwayScoreDisplay",
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
     },
     {
       "name": null,
@@ -2239,100 +2247,10 @@
       "translation": "Native slider track pointer routing"
     },
     {
-      "name": "QuarterMinutesBox",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "QuarterSecondsBox",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "ClockSetMinutesBox",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "ClockSetSecondsBox",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Bahnschrift",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Arial",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Arial",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Arial",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Arial",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Arial",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Segoe UI Symbol",
-      "native_fallback": "Inter"
-    },
-    {
       "name": "SettingsWeatherLocation",
       "property": "StaysOpenOnEdit",
       "source": "True",
       "translation": "Native popup compositor and editable combo routing"
-    },
-    {
-      "name": "WindowWidthBox",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "WindowHeightBox",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": "CloudJoinCodeText",
-      "property": "FontFamily",
-      "source": "Consolas",
-      "native_fallback": "Inter"
     },
     {
       "name": "CloudQrImage",

@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/ColorPickerWindow.xaml",
-  "source_sha256": "c36a6bfdd2984398f3da5b42e6628470affb7393975fe52ee783e3dd44d122b5",
+  "source_sha256": "a13b8cb2a81d556f358a541bf3005544d8433bce4c93c65bf827fb57a0e4b99b",
   "names": [
     {
       "name": "PART_Track",
@@ -13,8 +13,23 @@
       "object": false
     },
     {
+      "name": "Grip",
+      "type": "Ellipse",
+      "object": false
+    },
+    {
+      "name": "PART_GripScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
       "name": "PART_IncreaseButton",
       "type": "RepeatButton",
+      "object": false
+    },
+    {
+      "name": "PickerSurface",
+      "type": "OperatorGlassSurface",
       "object": false
     },
     {
@@ -68,8 +83,14 @@
       "object": false
     }
   ],
-  "code_source_sha256": "720b1228c3f15f20bbaeb1dffbb6c130b8d53ff8acbc9829cc79f0e2328bf66f",
+  "code_source_sha256": "5e8ea45a6a4d2b6e51061bf60984ceb3a5ee9ffdd0d443127fd7259d9fce55bd",
   "native_events": [
+    {
+      "name": "ColourField",
+      "source": "LostMouseCapture",
+      "native": "PointerCaptureLost",
+      "handler": "ColourField_LostMouseCapture"
+    },
     {
       "name": "ColourField",
       "source": "MouseLeftButtonDown",
@@ -98,6 +119,12 @@
   "platform_translations": [
     {
       "name": null,
+      "property": "FontFamily",
+      "source": "Segoe UI Variable, Segoe UI",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
       "property": "SnapsToDevicePixels",
       "source": "True"
     },
@@ -109,7 +136,7 @@
     {
       "name": null,
       "property": "FontFamily",
-      "source": "Arial Black",
+      "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
     },
     {

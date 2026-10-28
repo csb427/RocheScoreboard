@@ -32,13 +32,15 @@ public sealed class ProductionNames : AvaloniaObject
     public static bool GetRoot(AvaloniaObject target) => Registries.TryGetValue(target, out _);
     public static void SetRoot(AvaloniaObject target, bool value)
     {
-        if (!value) return;
+        if (target is not Avalonia.Controls.Control || !value || ReferenceEquals(_loading, RegistryFor(target))) return;
         (_parents ??= new()).Push(_loading);
         _loading = RegistryFor(target);
     }
 
     public static Dictionary<string, AvaloniaObject> RegistryFor(AvaloniaObject target) =>
         Registries.GetValue(target, _ => new Dictionary<string, AvaloniaObject>());
+
+    public static void BeginLoad(AvaloniaObject target)=>SetRoot(target,true);
 
     public static void CompleteLoad(AvaloniaObject target)
     {

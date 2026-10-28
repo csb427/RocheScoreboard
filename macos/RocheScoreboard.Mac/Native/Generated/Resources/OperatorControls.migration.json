@@ -1,0 +1,102 @@
+{
+  "source": "Roche_Scoreboard/Resources/OperatorControls.xaml",
+  "source_sha256": "3c5e821854ab3636618a346f33cbcaf928dc7b8a3e69969acb9454da25bcfc41",
+  "names": [
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TbLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "TbLift",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Bd",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PrimaryLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SecondaryLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AccBar",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "Surface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "PART_SelectedContentHost",
+      "type": "ContentPresenter",
+      "object": false
+    }
+  ],
+  "code_source_sha256": null,
+  "native_events": [],
+  "platform_translations": [
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": null,
+      "property": "SnapsToDevicePixels",
+      "source": "True"
+    },
+    {
+      "name": "PART_SelectedContentHost",
+      "property": "ContentTemplateSelector",
+      "translation": "Native ItemTemplate supplies the selected item data template"
+    },
+    {
+      "name": "PART_SelectedContentHost",
+      "property": "SnapsToDevicePixels",
+      "source": "{TemplateBinding SnapsToDevicePixels}"
+    }
+  ],
+  "visual_parity_verified": false,
+  "behavior_parity_verified": false
+}

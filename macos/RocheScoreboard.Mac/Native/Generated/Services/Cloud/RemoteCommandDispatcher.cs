@@ -2,7 +2,10 @@
 // Source SHA-256: eec8864021d547c650db86d18ba7ab9e859bb16eeceb5dc03b3237a8733dd3ca
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.Text.Json;

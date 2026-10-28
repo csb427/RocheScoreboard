@@ -2,7 +2,10 @@
 // Source SHA-256: 4b0b3291bb421ba3680d24e54ea7fa2e3fa303dc3e567db4be9693677a7aafea
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 
@@ -40,7 +43,7 @@ internal sealed class EmergencyVideoWindow : NativeWindow
         // output surface so the operator cannot visually distinguish modes.
         SystemDecorations = SystemDecorations.Full;
         CanResize = false;
-        
+        ;
         Background = Brushes.Black;
         ShowInTaskbar = false;
         Topmost = true;

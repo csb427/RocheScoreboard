@@ -1,8 +1,11 @@
 // Generated from Services/RecentTrainingTimerStorage.cs; edit translator/adapters.
-// Source SHA-256: bc4cdaf16f131d18441d1045ce4813ca8d8e35613e56dee3135fea2b940a2757
+// Source SHA-256: 90b8c3a3f3944270dc9b254d9afad50b025174792a688993280bb0346a5a19d6
 using RocheScoreboard.Mac.Native;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Layout;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
@@ -33,9 +36,7 @@ public static class RecentTrainingTimerStorage
 
     private static string GetPath()
     {
-        string dir = Path.Combine(
-            NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Roche_Scoreboard");
+        string dir = SelfTestStorage.DocumentsDirectory;
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "training_recent_timers.json");
     }

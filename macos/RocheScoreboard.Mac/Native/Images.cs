@@ -13,6 +13,7 @@ public class NativeBitmap : IImage, IDisposable
 {
     private Bitmap? _native;
     internal SKBitmap? Pixels;
+    internal IImageBrushSource? NativeImage=>_native;
     public Uri? UriSource { get; set; }
     public Stream? StreamSource { get; set; }
     public BitmapCacheOption CacheOption { get; set; }
@@ -49,7 +50,7 @@ public class NativeBitmap : IImage, IDisposable
     public void BeginInit() { }
     public void EndInit()
     {
-        using Stream? file = StreamSource is null && UriSource is { IsFile: true } ? File.OpenRead(UriSource.LocalPath) : null;
+        using Stream? file = StreamSource is null && UriSource is {} uri ? (uri.IsFile ? File.OpenRead(uri.LocalPath) : NativeAssets.Open(uri)) : null;
         Stream input = StreamSource ?? file ?? throw new InvalidOperationException("A local image path or input stream is required.");
         using var encoded = new MemoryStream(); input.CopyTo(encoded);
         byte[] bytes = encoded.ToArray();
@@ -104,4 +105,29 @@ public static class NativeRaster
         for (int row = 0; row < height; row++) Marshal.Copy(bitmap.GetPixels() + row * bitmap.RowBytes, bytes, row * width * 4, width * 4);
         return bytes;
     }
+}
+public static class NativeImageBrush
+{
+    private static IImageBrushSource Rasterize(IImage image)
+    {
+        if(!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            return Avalonia.Threading.Dispatcher.UIThread.Invoke(()=>Rasterize(image));
+        double width=Math.Max(1,image.Size.Width),height=Math.Max(1,image.Size.Height);
+        double scale=Math.Min(1,2048/Math.Max(width,height));
+        int pixelsWide=Math.Max(1,(int)Math.Ceiling(width*scale)),pixelsHigh=Math.Max(1,(int)Math.Ceiling(height*scale));
+        var visual=new Avalonia.Controls.Image{Source=image,Width=pixelsWide,Height=pixelsHigh,Stretch=Stretch.Fill};
+        visual.Measure(new Size(pixelsWide,pixelsHigh));visual.Arrange(new Rect(0,0,pixelsWide,pixelsHigh));
+        var raster=new RenderTargetBitmap(new PixelSize(pixelsWide,pixelsHigh));
+        raster.Render(visual);return raster;
+    }
+    public static ImageBrush Create(IImage? image,Action<ImageBrush>? configure=null)
+    {
+        var brush=new ImageBrush(image switch{NativeBitmap b=>b.NativeImage,NativeRenderTargetBitmap b=>b.NativeImage,IImageBrushSource source=>source,null=>null,_=>Rasterize(image)});
+        configure?.Invoke(brush);return brush;
+    }
+}
+public static class NativeImmutability
+{
+    public static bool IsFrozen(object value)=>NativeFreezing.IsFrozen(value)||value is Avalonia.Media.IImmutableSolidColorBrush;
+    public static SolidColorBrush Clone(this SolidColorBrush brush)=>new(brush.Color,brush.Opacity);
 }

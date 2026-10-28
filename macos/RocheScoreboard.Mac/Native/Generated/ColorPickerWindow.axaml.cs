@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/ColorPickerWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 720b1228c3f15f20bbaeb1dffbb6c130b8d53ff8acbc9829cc79f0e2328bf66f
+// Source SHA-256: 5e8ea45a6a4d2b6e51061bf60984ceb3a5ee9ffdd0d443127fd7259d9fce55bd
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Input;
 using RocheScoreboard.Mac.Native;
+using KeyEventArgs=Avalonia.Input.KeyEventArgs;
 using System;
 using System.Globalization;
 using Avalonia.Media.Imaging;
@@ -19,6 +20,7 @@ using Button = Avalonia.Controls.Button;
 using MouseEventArgs = Avalonia.Input.PointerEventArgs;
 using Point = Avalonia.Point;
 using ColorConverter = RocheScoreboard.Mac.Native.ColorConverter;
+using Brushes = Avalonia.Media.Brushes;
 
 namespace Roche_Scoreboard.Views;
 
@@ -36,7 +38,11 @@ public partial class ColorPickerWindow : NativeWindow
 
     private ColorPickerWindow(Color initial)
     {
-        NativePointer.EnsureInitialized(); InitializeComponent(); ProductionNames.CompleteLoad(this);
+        NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
+        SharedSurfaceMotion.Attach(PickerSurface);
+        ColourField.GotFocus += (_, _) => { ColourMarker.Stroke = new SolidColorBrush(Color.FromRgb(0x58, 0xA6, 0xFF)); ColourMarker.StrokeThickness = 4; };
+        ColourField.LostFocus += (_, _) => { ColourMarker.Stroke = Brushes.White; ColourMarker.StrokeThickness = 3; };
+        Closed += (_, _) => { _dragging = false; if (NativePointer.IsCaptured(ColourField)) NativePointer.Release(ColourField); };
         MaxHeight = Math.Max(560, NativeDesktop.WorkArea.Height - 24);
         Height = Math.Min(760, MaxHeight);
         SelectedColor = initial;
@@ -61,6 +67,7 @@ public partial class ColorPickerWindow : NativeWindow
 
     private void ColourField_MouseLeftButtonDown(object? sender, PointerEventArgs e)
     {
+        ColourField.Focus();
         _dragging = true;
         NativePointer.Capture(ColourField);
         UpdateFromPoint(e.GetPosition(ColourField));
@@ -77,6 +84,25 @@ public partial class ColorPickerWindow : NativeWindow
         UpdateFromPoint(e.GetPosition(ColourField));
         _dragging = false;
         NativePointer.Release(ColourField);
+    }
+
+    private void ColourField_PointerCaptureLost(object? sender, RoutedEventArgs e) => _dragging = false;
+
+    private void ColourField_KeyDown(object? sender, KeyEventArgs e)
+    {
+        double step = (NativeKeyboard.Modifiers & KeyModifiers.Shift) != 0 ? 10 : 1;
+        switch (e.Key)
+        {
+            case Key.Left: _hue = (_hue - step + 360) % 360; break;
+            case Key.Right: _hue = (_hue + step) % 360; break;
+            case Key.Up: _saturation = Math.Clamp(_saturation + step / 100, 0, 1); break;
+            case Key.Down: _saturation = Math.Clamp(_saturation - step / 100, 0, 1); break;
+            case Key.PageUp: _value = Math.Clamp(_value + step / 100, 0, 1); break;
+            case Key.PageDown: _value = Math.Clamp(_value - step / 100, 0, 1); break;
+            default: return;
+        }
+        e.Handled = true;
+        RefreshFieldAndSelection();
     }
 
     private void UpdateFromPoint(Point point)
@@ -136,13 +162,14 @@ public partial class ColorPickerWindow : NativeWindow
         foreach (string colour in defaults) DefaultColoursPanel.Children.Add(CreateSwatch(colour));
         foreach (string colour in RecentColorStorage.Load()) RecentColoursPanel.Children.Add(CreateSwatch(colour));
         if (RecentColoursPanel.Children.Count == 0)
-            RecentColoursPanel.Children.Add(new TextBlock { Text = "Colours you use will appear here.", Foreground = new SolidColorBrush(Color.FromRgb(0x7F, 0x93, 0xA8)), FontSize = 11 });
+            RecentColoursPanel.Children.Add(new NativeTextBlock { Text = "Colours you use will appear here.", Foreground = new SolidColorBrush(Color.FromRgb(0x7F, 0x93, 0xA8)), FontSize = 11 });
     }
 
     private Button CreateSwatch(string hex)
     {
         var colour = (Color)ColorConverter.ConvertFromString(hex);
         var button = new NativeButton { Tag = hex, Background = new SolidColorBrush(colour), ToolTip = hex };
+        Avalonia.Automation.AutomationProperties.SetName(button, $"Use colour {hex}");
         button.SetResourceReference(ThemeProperty, "ColourSwatch");
         button.Click += Swatch_Click;
         return button;
@@ -233,6 +260,8 @@ public partial class ColorPickerWindow : NativeWindow
 
 public partial class ColorPickerWindow
 {
+    private ScaleTransform PART_GripScale => (ScaleTransform)ProductionNames.RegistryFor(this)["PART_GripScale"];
+    private void Native_ColourField_LostMouseCapture(object? sender, PointerCaptureLostEventArgs e) { ColourField_PointerCaptureLost(sender!, e); }
     private void Native_ColourField_MouseLeftButtonDown(object? sender, PointerPressedEventArgs e) { ColourField_MouseLeftButtonDown(sender!, e); }
     private void Native_ColourField_MouseLeftButtonUp(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; ColourField_MouseLeftButtonUp(sender!, e); }
     private void Native_ColourField_MouseMove(object? sender, PointerEventArgs e) { ColourField_MouseMove(sender!, e); }

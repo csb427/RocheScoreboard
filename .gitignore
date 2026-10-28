@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Reproducible local release packages (GitHub Actions creates the public assets)
 /artifacts/
+
+# Regenerated for each local/CI preview; embedded in the packaged app.
+/macos/build-provenance.json
