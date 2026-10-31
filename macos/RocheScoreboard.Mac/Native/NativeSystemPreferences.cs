@@ -26,5 +26,9 @@ public static class NativeSystemPreferences
         remove{_changed-=value;if(_changed is null){_poll?.Stop();_poll=null;}}
     }
     public static bool HighContrast => OperatingSystem.IsMacOS() && SendBool(Send(objc_getClass("NSWorkspace"), sel_registerName("sharedWorkspace")), sel_registerName("accessibilityDisplayShouldIncreaseContrast"));
-    public static bool ClientAreaAnimation => !OperatingSystem.IsMacOS() || !SendBool(Send(objc_getClass("NSWorkspace"), sel_registerName("sharedWorkspace")), sel_registerName("accessibilityDisplayShouldReduceMotion"));
+    // The friend headless test assembly supplies an explicit system preference.
+    // Application code never assigns this; null preserves the real OS setting.
+    internal static bool? ClientAreaAnimationForTests { get; set; }
+    public static bool ClientAreaAnimation => ClientAreaAnimationForTests
+        ?? (!OperatingSystem.IsMacOS() || !SendBool(Send(objc_getClass("NSWorkspace"), sel_registerName("sharedWorkspace")), sel_registerName("accessibilityDisplayShouldReduceMotion")));
 }

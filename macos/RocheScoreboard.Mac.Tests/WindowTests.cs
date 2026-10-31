@@ -11,6 +11,9 @@ using Roche_Scoreboard.Models;
 using Xunit;
 
 [assembly: AvaloniaTestApplication(typeof(RocheScoreboard.Mac.Tests.TestApp))]
+// The production application has one dispatcher/font manager for its lifetime.
+// Its process-wide preference listeners must not outlive a per-test dispatcher.
+[assembly: AvaloniaTestIsolation(AvaloniaTestIsolationLevel.PerAssembly)]
 
 namespace RocheScoreboard.Mac.Tests;
 
@@ -19,6 +22,11 @@ public static class TestApp
     public static AppBuilder BuildAvaloniaApp()
     {
         Environment.SetEnvironmentVariable("ROCHE_DATA_HOME", Path.Combine(Path.GetTempPath(), "roche-production-tests-" + Environment.ProcessId));
+        // Hosted macOS images enable system Reduce Motion. Keep headless motion
+        // fixtures deterministic without modifying that setting or overriding
+        // OperatorMotion itself: app-level Reduce Motion must still take effect.
+        Console.WriteLine($"Headless system animation baseline: {RocheScoreboard.Mac.Native.NativeSystemPreferences.ClientAreaAnimation}; in-process test preference: True");
+        RocheScoreboard.Mac.Native.NativeSystemPreferences.ClientAreaAnimationForTests = true;
         return AppBuilder.Configure<App>()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
         .UseSkia().WithInterFont();
