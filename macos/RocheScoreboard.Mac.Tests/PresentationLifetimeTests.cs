@@ -136,14 +136,37 @@ public sealed partial class PresentationLifetimeTests
         int shown=0,canceled=0;DispatcherTimer? timer=null;
         var bug=Field<ScorebugControl>(f.Window,"_scorebug");if(phase!="initial")bug.LockScoreUpdate(true);
         var schedule=f.Window.GetType().GetMethods(Private).Single(m=>m.Name=="ScheduleAutoOverlay"&&m.GetParameters().Length==6);
-        schedule.Invoke(f.Window,[new Action(()=>shown++),TimeSpan.FromMilliseconds(30),new Func<DispatcherTimer?>(()=>timer),new Action<DispatcherTimer?>(value=>timer=value),true,new Action(()=>canceled++)]);
-        if(phase=="initial")await Settle(5);
-        else
+        var retired=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        double expectedInterval=phase=="initial"?30:phase=="poll"?200:360;
+        bool retiring=false,unlocked=false;
+        void ObserveTimer(DispatcherTimer? value)
         {
-            await Settle(70);Assert.NotNull(timer);Assert.Equal(TimeSpan.FromMilliseconds(200),timer.Interval);
-            if(phase=="settle"){bug.CancelScoreAnimations();await Settle(230);Assert.NotNull(timer);Assert.Equal(TimeSpan.FromMilliseconds(360),timer.Interval);}
+            timer=value;
+            if(value is null)return;
+            if(phase=="settle" && !unlocked && value.Interval==TimeSpan.FromMilliseconds(200))
+            {
+                unlocked=true;
+                Dispatcher.UIThread.Post(()=>bug.CancelScoreAnimations(),DispatcherPriority.Send);
+            }
+            if(retiring || value.Interval!=TimeSpan.FromMilliseconds(expectedInterval))return;
+            retiring=true;
+            // Observe the real assigned phase, then act after Start finishes
+            // registering it. Fixed sleeps can miss a 30 ms phase on a busy CI.
+            Dispatcher.UIThread.Post(()=>
+            {
+                try
+                {
+                    Assert.Same(value,timer);Assert.True(value.IsEnabled);
+                    Assert.Equal(TimeSpan.FromMilliseconds(expectedInterval),value.Interval);
+                    Assert.Equal(0,shown);
+                    Invoke(f.Window,"GoHome");Assert.Null(timer);
+                    retired.SetResult(true);
+                }
+                catch(Exception error){retired.SetException(error);}
+            },DispatcherPriority.Send);
         }
-        Invoke(f.Window,"GoHome");Assert.Null(timer);await Settle(650);
+        schedule.Invoke(f.Window,[new Action(()=>shown++),TimeSpan.FromMilliseconds(30),new Func<DispatcherTimer?>(()=>timer),new Action<DispatcherTimer?>(ObserveTimer),true,new Action(()=>canceled++)]);
+        Assert.True(await retired.Task.WaitAsync(TimeSpan.FromSeconds(5)));await Settle(650);
         Assert.Equal(0,shown);Assert.Equal(1,canceled);
         Assert.Empty((System.Collections.IDictionary)Field<object>(f.Window,"_scheduledOverlayCancellations"));
     }

@@ -37,7 +37,9 @@ jobs:
           ROCHE_CAPTURE_DIR: ${{ runner.temp }}/roche-production-captures
           ROCHE_NATIVE_MEDIA: '1'
           ROCHE_VLC_HOME: ${{ runner.temp }}/roche-native.app/Contents/Frameworks/vlc/lib
-        run: dotnet test macos/RocheScoreboard.Mac.Tests -c Release -p:UseSharedCompilation=false --logger 'trx;LogFileName=mac-regression.trx' --results-directory artifacts/checks
+        run: |
+          python3 -m unittest discover -s macos/tools -p test_run_ci_regressions.py
+          python3 macos/tools/run_ci_regressions.py --expected-cases 1513
       - name: Save regression results and captures
         if: always()
         uses: actions/upload-artifact@v4

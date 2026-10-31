@@ -46,7 +46,9 @@ public sealed class WindowTests
 
     private static void Capture(Window window, string name)
     {
+        window.UpdateLayout();
         Dispatcher.UIThread.RunJobs();
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick(2);
         string dir = Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR") ?? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "roche-mac-captures");
         Directory.CreateDirectory(dir);
         using var bitmap = window.CaptureRenderedFrame();

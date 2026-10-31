@@ -155,7 +155,10 @@ public sealed partial class PresentationLifetimeTests
             if (reveal is not null && t.Opacity < .6 && !capturedDip)
             { capturedDip = true; SBReadFrame(f.Output(), directory, "02-first-observed-opacity-dip"); }
             if (reveal is not null && !SBReadBug(f).IsScoreAnimating) stopped ??= now;
-            if (stopped is not null && now - stopped >= 450) break;
+            // Retain BOTH the observation window and the sample minimum. A
+            // slower renderer must not end the witness before enough samples.
+            if (stopped is not null && now - stopped >= 450
+                && reveal is not null && poses.Count(p => p.Milliseconds >= reveal.Value) >= 20) break;
         }
         SBReadFrame(f.Output(), directory, "03-final-readable-pose");
         List<SBReadPose> afterReveal = reveal is null ? [] : poses.Where(p => p.Milliseconds >= reveal.Value).ToList();

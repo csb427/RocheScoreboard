@@ -190,12 +190,14 @@ public sealed class SharedPreferenceMotionTests
         var hit = window.InputHitTest(point);
         Assert.True(ReferenceEquals(hit, target) ||
             hit is Visual visual && visual.GetVisualAncestors().Contains(target),
-            "The original physical probe must still hit this control or its template child.");
+            $"The original physical probe {point} must hit {target.GetType().Name} {target.Name} "
+            + $"or its template child; hit {hit?.GetType().Name ?? "null"}; bounds {target.Bounds}.");
     }
 
     private static Geometry GeometryOf(Window window, Control control)
     {
         window.UpdateLayout();
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick(2);
         var probes = new[] { new Point(.5, .5), new Point(.25, .5), new Point(.75, .5),
             new Point(.5, .25), new Point(.5, .75) }.Select(fraction =>
         {
@@ -218,6 +220,9 @@ public sealed class SharedPreferenceMotionTests
             PointEqual(expected.BottomRight, actual.BottomRight); PointEqual(expected.BottomLeft, actual.BottomLeft);
         }
         window.UpdateLayout();
+        // Hit testing uses the rendered scene, which must include a reattached
+        // control; layout completion alone does not commit that scene.
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick(2);
         Assert.Equal(before.LayoutBounds, control.Bounds);
         QuadEqual(before.Target, Rendered(control, window));
         QuadEqual(before.Label, Rendered(ReadableLabel(control), window));
