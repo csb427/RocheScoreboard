@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:layout="clr-namespace:Roche_Scoreboard.Views" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.CricketSetupWizard" Background="Transparent" motion:OperatorDesign.IsEnabled="True">
+﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:layout="clr-namespace:Roche_Scoreboard.Views" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.CricketSetupWizard" Background="Transparent" motion:OperatorDesign.IsEnabled="True" PreviewKeyDown="UnifiedSetup_KeyDown">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -169,20 +169,20 @@
                                                             <TextBlock Text="Primary Colour" Style="{StaticResource FieldLabel}" />
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="SetupHomeColorBox" Width="80" Text="#0A2A6A" FontSize="11" FontFamily="Consolas" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="SetupHomeColorBox_TextChanged" />
-                                                                <Border x:Name="SetupHomeColorPreview" Width="28" Height="26" Background="#0A2A6A" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickSetupHomeColor_Click" Margin="4,0,0,0" />
-                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperSetupHomeColor_Click" Margin="3,0,0,0">
+                                                                <layout:OperatorActionBorder x:Name="SetupHomeColorPreview" Background="#0A2A6A" Style="{StaticResource WizardColourAction}" AutomationProperties.Name="Choose home primary colour" ToolTip="Choose home primary colour" MouseLeftButtonUp="PickSetupHomeColor_Click" Margin="4,0,0,0" />
+                                                                <layout:OperatorActionBorder Background="#1C1C1F" Style="{StaticResource WizardColourAction}" AutomationProperties.Name="Pick home primary colour from screen" ToolTip="Pick home primary colour from screen" MouseLeftButtonUp="DropperSetupHomeColor_Click" Margin="3,0,0,0">
                                                                     <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                </Border>
+                                                                </layout:OperatorActionBorder>
                                                             </StackPanel>
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="2">
                                                             <TextBlock Text="Text Colour" Style="{StaticResource FieldLabel}" />
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="SetupHomeSecondaryBox" Width="80" Text="#FFFFFF" FontSize="11" FontFamily="Consolas" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="SetupHomeSecondaryBox_TextChanged" />
-                                                                <Border x:Name="SetupHomeSecondaryPreview" Width="28" Height="26" Background="#FFFFFF" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickSetupHomeSecondary_Click" Margin="4,0,0,0" />
-                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperSetupHomeSecondary_Click" Margin="3,0,0,0">
+                                                                <layout:OperatorActionBorder x:Name="SetupHomeSecondaryPreview" Background="#FFFFFF" Style="{StaticResource WizardColourAction}" AutomationProperties.Name="Choose home secondary colour" ToolTip="Choose home secondary colour" MouseLeftButtonUp="PickSetupHomeSecondary_Click" Margin="4,0,0,0" />
+                                                                <layout:OperatorActionBorder Background="#1C1C1F" Style="{StaticResource WizardColourAction}" AutomationProperties.Name="Pick home secondary colour from screen" ToolTip="Pick home secondary colour from screen" MouseLeftButtonUp="DropperSetupHomeSecondary_Click" Margin="3,0,0,0">
                                                                     <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                </Border>
+                                                                </layout:OperatorActionBorder>
                                                             </StackPanel>
                                                         </StackPanel>
                                                     </Grid>
@@ -291,20 +291,20 @@
                                                             <TextBlock Text="Primary Colour" Style="{StaticResource FieldLabel}" />
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="SetupAwayColorBox" Width="80" Text="#7A1A1A" FontSize="11" FontFamily="Consolas" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="SetupAwayColorBox_TextChanged" />
-                                                                <Border x:Name="SetupAwayColorPreview" Width="28" Height="26" Background="#7A1A1A" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickSetupAwayColor_Click" Margin="4,0,0,0" />
-                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperSetupAwayColor_Click" Margin="3,0,0,0">
+                                                                <layout:OperatorActionBorder x:Name="SetupAwayColorPreview" Background="#7A1A1A" Style="{StaticResource WizardColourAction}" AutomationProperties.Name="Choose away primary colour" ToolTip="Choose away primary colour" MouseLeftButtonUp="PickSetupAwayColor_Click" Margin="4,0,0,0" />
+                                                                <layout:OperatorActionBorder Background="#1C1C1F" Style="{StaticResource WizardColourAction}" AutomationProperties.Name="Pick away primary colour from screen" ToolTip="Pick away primary colour from screen" MouseLeftButtonUp="DropperSetupAwayColor_Click" Margin="3,0,0,0">
                                                                     <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                </Border>
+                                                                </layout:OperatorActionBorder>
                                                             </StackPanel>
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="2">
                                                             <TextBlock Text="Text Colour" Style="{StaticResource FieldLabel}" />
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="SetupAwaySecondaryBox" Width="80" Text="#FFFFFF" FontSize="11" FontFamily="Consolas" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="SetupAwaySecondaryBox_TextChanged" />
-                                                                <Border x:Name="SetupAwaySecondaryPreview" Width="28" Height="26" Background="#FFFFFF" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickSetupAwaySecondary_Click" Margin="4,0,0,0" />
-                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="DropperSetupAwaySecondary_Click" Margin="3,0,0,0">
+                                                                <layout:OperatorActionBorder x:Name="SetupAwaySecondaryPreview" Background="#FFFFFF" Style="{StaticResource WizardColourAction}" AutomationProperties.Name="Choose away secondary colour" ToolTip="Choose away secondary colour" MouseLeftButtonUp="PickSetupAwaySecondary_Click" Margin="4,0,0,0" />
+                                                                <layout:OperatorActionBorder Background="#1C1C1F" Style="{StaticResource WizardColourAction}" AutomationProperties.Name="Pick away secondary colour from screen" ToolTip="Pick away secondary colour from screen" MouseLeftButtonUp="DropperSetupAwaySecondary_Click" Margin="3,0,0,0">
                                                                     <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                </Border>
+                                                                </layout:OperatorActionBorder>
                                                             </StackPanel>
                                                         </StackPanel>
                                                     </Grid>
@@ -627,6 +627,7 @@
                                         <TextBlock Text="Over limit" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
                                         <StackPanel x:Name="OversInputPanel" Margin="0,14,0,0" HorizontalAlignment="Stretch">
                                             <TextBlock Text="Overs per innings" FontSize="14" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" HorizontalAlignment="Center" Margin="0,0,0,10" />
+                                            <StackPanel x:Name="OversValidationTarget">
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                 <Button Content="−" Width="48" Height="48" MinHeight="0" Padding="0" FontSize="24" Style="{StaticResource CricketActionButton}" AutomationProperties.Name="Reduce overs" Click="OversMinus_Click" />
                                                 <Border Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="16" Height="76" Padding="8,0" Margin="8,0">
@@ -641,6 +642,8 @@
                                                     </TextBox>
                                                 </Border>
                                                 <Button Content="+" Width="48" Height="48" MinHeight="0" Padding="0" FontSize="24" Style="{StaticResource CricketActionButton}" AutomationProperties.Name="Increase overs" Click="OversPlus_Click" />
+                                            </StackPanel>
+                                            <TextBlock x:Name="OversValidationMessage" Text="Enter a whole number from 1 to 100." Visibility="Collapsed" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="14" TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0" AutomationProperties.LiveSetting="Polite" />
                                             </StackPanel>
                                             <TextBlock Text="OVERS" Visibility="Collapsed" FontSize="9" FontWeight="SemiBold" Foreground="#6B5A00" HorizontalAlignment="Center" Margin="0,4,0,12" />
                                             <TextBlock Text="Quick lengths" FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" HorizontalAlignment="Center" Margin="0,8,0,6" />
@@ -998,6 +1001,7 @@
                     <layout:OperatorSegmentedPanel.RenderTransform>
                         <TranslateTransform x:Name="StepIndicatorTranslate" Y="-20" />
                     </layout:OperatorSegmentedPanel.RenderTransform>
+                    <RadioButton x:Name="SportStepNavigation" Visibility="Collapsed" Click="GoToSportStep_Click" GroupName="UnifiedSetupStepsCricketSetupWizard" Style="{StaticResource SettingsSegment}" Padding="4,6" MinHeight="0" Height="60" ToolTip="Choose AFL (footy) or cricket"><StackPanel VerticalAlignment="Center"><motion:OperatorSymbol Kind="sport" Width="23" Height="23" Margin="0,0,0,3" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/><TextBlock Text="Sport" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"/></StackPanel></RadioButton>
                     <RadioButton x:Name="Step1Navigation" Click="GoToStep1_Click" GroupName="WizardSteps" Style="{StaticResource SettingsSegment}" Padding="4,6" MinHeight="0" Height="60" ToolTip="Go to teams">
                         <StackPanel VerticalAlignment="Center">
                             <motion:OperatorSymbol Kind="team" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step1Symbol" Margin="0,0,0,3" />
@@ -1021,7 +1025,7 @@
                     </RadioButton>
                     <RadioButton x:Name="Step3Navigation" Click="GoToStep3_Click" GroupName="WizardSteps" Style="{StaticResource SettingsSegment}" Padding="4,6" MinHeight="0" Height="60" ToolTip="Go to format">
                         <StackPanel VerticalAlignment="Center">
-                            <motion:OperatorSymbol Kind="clock" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step3Symbol" Margin="0,0,0,3" />
+                            <motion:OperatorSymbol Kind="format" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step3Symbol" Margin="0,0,0,3" />
                             <TextBlock x:Name="Step3Label" Text="Format" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
                             <Border x:Name="Step3Dot" Width="36" Height="36" CornerRadius="18" Background="#242427" BorderBrush="#3A3A40" BorderThickness="2" Visibility="Collapsed">
                                 <TextBlock Text="3" Foreground="#8E8E98" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -1047,7 +1051,7 @@
                 </Grid.RenderTransform>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="BackButton" Grid.Column="0" Cursor="Hand" Visibility="Collapsed" Click="Back_Click" RenderTransformOrigin="0.5,0.5" Padding="12,0" MinWidth="0" Height="44" VerticalAlignment="Center" Style="{StaticResource ToolBtn}" MinHeight="0">
@@ -1056,6 +1060,7 @@
                     </Button.RenderTransform>
                     <TextBlock Text="Back" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Button>
+                <Button x:Name="CancelSetupButton" Grid.Column="1" Visibility="Collapsed" Content="Cancel" Click="CancelSetup_Click" Style="{StaticResource ToolBtn}" Height="44" MinWidth="0" MinHeight="0" Padding="8,0" Margin="6,0" AutomationProperties.Name="Cancel setup and return to Home"/>
                 <Button x:Name="NextButton" Grid.Column="2" Cursor="Hand" Click="Next_Click" RenderTransformOrigin="0.5,0.5" Padding="12,0" MinWidth="0" Height="44" VerticalAlignment="Center" Style="{StaticResource PrimaryCommandButton}" MinHeight="0">
                     <Button.RenderTransform>
                         <ScaleTransform x:Name="NextBtnScale" />

@@ -1,5 +1,23 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:RocheScoreboard.Mac.Native" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:RocheScoreboard.Mac.Native" xmlns:ns3="clr-namespace:Roche_Scoreboard.Services" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:layout="clr-namespace:Roche_Scoreboard.Views" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+    <ControlTheme x:Key="WizardColourAction" TargetType="layout:OperatorActionBorder">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Padding" Value="5" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Style Selector="^:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:focus">
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+    </ControlTheme>
     <ControlTheme x:Key="SettingsInput" TargetType="TextBox">
         <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
         <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.Surface}" />
@@ -69,10 +87,10 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Grid>
-                        <ToggleButton x:Name="Toggle" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
+                        <ToggleButton x:Name="Toggle" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType="ToggleButton">
-                                    <Border x:Name="Frame" Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderThickness="1" CornerRadius="6">
+                                    <Border x:Name="Frame" Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=ComboBox}}" Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderThickness="1" CornerRadius="6">
                                         <TextBlock Text="⌄" Foreground="{DynamicResource ScoreGrid.Brush.TextPrimary}" FontSize="21" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,4" />
                                     </Border>
                                 </ControlTemplate>
@@ -88,8 +106,8 @@
                         </ToggleButton>
                         <ContentPresenter x:Name="SelectionLabel" Margin="12,5,36,5" VerticalAlignment="Center" IsHitTestVisible="False" ClipToBounds="True" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
                         <TextBox x:Name="PART_EditableTextBox" Margin="10,4,36,4" Background="Transparent" BorderThickness="0" Foreground="{TemplateBinding Foreground}" CaretBrush="{TemplateBinding Foreground}" VerticalContentAlignment="Center" IsReadOnly="False" IsVisible="False" />
-                        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" Focusable="False" ns2:PopupMotion.Kind="None">
-                            <Border Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.ControlBorder}" BorderThickness="1" CornerRadius="6" Padding="4" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="320">
+                        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}" Focusable="False" ns2:PopupMotion.Kind="None">
+                            <Border Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.ControlBorder}" BorderThickness="1" CornerRadius="6" Padding="4" MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="320">
                                 <ScrollViewer>
                                     <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" KeyboardNavigation.TabNavigation="Contained" />
                                 </ScrollViewer>
@@ -113,6 +131,7 @@
         </Style>
     </ControlTheme>
     <ControlTheme x:Key="SettingsToggle" TargetType="CheckBox">
+        <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
         <Setter Property="motion:SettingsControlMotion.Enabled" Value="True" />
         <Setter Property="FocusAdorner" Value="{x:Null}" />
         <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
@@ -128,11 +147,14 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Border x:Name="Track" Width="42" Height="24" Background="{DynamicResource ScoreGrid.Brush.DisabledSurface}" BorderBrush="{DynamicResource ScoreGrid.Brush.ControlBorder}" BorderThickness="1" CornerRadius="12" VerticalAlignment="Center">
-                            <Ellipse x:Name="ToggleKnob" Width="16" Height="16" Fill="{DynamicResource ScoreGrid.Brush.TextSecondary}" HorizontalAlignment="Left" Margin="3,0,0,0">
-                                <Ellipse.RenderTransform>
-                                    <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
-                                </Ellipse.RenderTransform>
-                            </Ellipse>
+                            <Grid>
+                                <ns3:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <Ellipse x:Name="ToggleKnob" Width="16" Height="16" Fill="{DynamicResource ScoreGrid.Brush.TextSecondary}" HorizontalAlignment="Left" Margin="3,0,0,0">
+                                    <Ellipse.RenderTransform>
+                                        <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                            </Grid>
                         </Border>
                         <ContentPresenter Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                     </Grid>
@@ -159,6 +181,7 @@
         </Style>
     </ControlTheme>
     <ControlTheme x:Key="SettingsTile" TargetType="RadioButton">
+        <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
         <Setter Property="motion:CricketActionMotion.Enabled" Value="True" />
         <Setter Property="Foreground" Value="{DynamicResource ScoreGrid.Brush.TextPrimary}" />
         <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.Surface}" />
@@ -180,6 +203,7 @@
                             </TransformGroup>
                         </Grid.RenderTransform>
                         <Border x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="6" />
+                        <ns3:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                         <Border x:Name="ActionGlow" Background="White" CornerRadius="6" Opacity="0" IsHitTestVisible="False" Margin="2" />
                         <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                     </Grid>
@@ -203,6 +227,26 @@
         </Style>
         <Style Selector="^:checked">
             <Setter Property="Background" Value="{DynamicResource ScoreGrid.Brush.AccentBackground}" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="WizardClockChoice" TargetType="RadioButton" BasedOn="{StaticResource SettingsTile}">
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="False" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="Transparent">
+                        <ns3:OperatorChoiceSurface OriginX=".12" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" Opacity=".4" />
+                        <Border x:Name="ClockFocus" BorderBrush="Transparent" BorderThickness="2" CornerRadius="22" IsHitTestVisible="False" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus /template/ Border#ClockFocus">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
         </Style>
     </ControlTheme>
 </ResourceDictionary>

@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml",
-  "source_sha256": "4d925a11f5a58047407315b55299bc6bc8c8aae195f9c85c870d6eab5c701f77",
+  "source_sha256": "900e6bcabc2b5568b4159e8a7b5b2cd152d47fa014d85736ba58919e7def3a61",
   "names": [
     {
       "name": "LibrarySurface",
@@ -152,6 +152,11 @@
       "object": false
     },
     {
+      "name": "PresetStatus",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "UseButton",
       "type": "Button",
       "object": false
@@ -167,7 +172,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "25cdd4a1a725ae7696d28b4182f21e4baca71139d3cb1db845e1b06820456380",
+  "code_source_sha256": "fd433d05c3b1de3724ae0ad8500eae44ecbf28640a9b4d269d374d33a7488684",
   "native_events": [
     {
       "name": "SearchBox",

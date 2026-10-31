@@ -23,6 +23,22 @@ public sealed class SettingsWorkspace : UserControl
 {
     internal event Action<string>? CategoryChanged;
     internal void NavigateCategory(string category) => SelectCategory(category.ToUpperInvariant());
+    internal bool FocusSearch()
+    {
+        if (!IsVisible || !IsEnabled || !_search.Focus()) return false;
+        _search.SelectAll();
+        return true;
+    }
+    private string? _scope;
+    public void SelectScope(string scope)
+    {
+        if (_scope == scope) return;
+        _scope = scope; _category = "ALL"; _search.Clear(); _compactMenu.IsOpen = false;
+        ++_navigationGeneration; BuildNavigation(); Scroller.ScrollToVerticalOffset(0);
+        SharedSurfaceMotion.Reveal(Scroller);
+    }
+    private bool InScope(FrameworkElement section)
+        => _scope is null || ((section.Tag as string)?.Split('|').FirstOrDefault(part => part.StartsWith("scope:")) ?? "scope:general") == "scope:" + _scope;
     private readonly Grid _layout = new();
     private readonly OperatorGlassSurface _navigation = new() { Material = GlassMaterial.Regular, CornerRadius = new CornerRadius(28), Padding = new Thickness(12), Margin = new Thickness(14,14,8,14) };
     private readonly StackPanel _categories = new();
@@ -43,7 +59,9 @@ public sealed class SettingsWorkspace : UserControl
     private readonly StackPanel _compactItems = new();
     private readonly Dictionary<string, Button> _compactButtons = new();
     private bool? _compact;
-    private int _navigationGeneration;
+    private int _navigationGeneration, _compactFocusGeneration;
+    private readonly List<FrameworkElement> _compactAvailabilityOwners = new();
+    private Window? _compactMenuOwner;
     private bool _materialSectionAdded;
     private string _category = "ALL";
     public ScrollViewer Scroller { get; } = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new Thickness(8,0,18,18) };
@@ -75,11 +93,20 @@ public sealed class SettingsWorkspace : UserControl
         _compactChoice.SetResourceReference(StyleProperty,"ToolBtn"); _compactChoice.HorizontalContentAlignment = HorizontalAlignment.Left; _compactChoice.Height = 44; _compactChoice.MinHeight = 0; _compactChoice.Padding = new Thickness(12,8,12,8);
         var compactContent = new DockPanel(); var chevron = new TextBlock { Text = "⌄", FontSize = 18, Margin = new Thickness(12,0,0,0), VerticalAlignment = VerticalAlignment.Center }; DockPanel.SetDock(chevron,Dock.Right); compactContent.Children.Add(chevron); _compactLabel.FontSize = 15; _compactLabel.FontWeight = FontWeights.SemiBold; compactContent.Children.Add(_compactLabel); _compactChoice.Content = compactContent; _header.Children.Add(_compactChoice);
         _layout.Children.Add(_compactMenu); _compactMenu.PlacementTarget = _compactChoice; _compactMenu.Child = new OperatorGlassSurface { Material = GlassMaterial.Regular, CornerRadius = new CornerRadius(22), Padding = new Thickness(8), Width = 270, Child = new ScrollViewer { Content = _compactItems, MaxHeight = 360, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
-        _compactChoice.Click += (_,_) => { _compactMenu.IsOpen = !_compactMenu.IsOpen; if (_compactMenu.IsOpen) SharedSurfaceMotion.Reveal((FrameworkElement)_compactMenu.Child); };
-        _compactMenu.Opened += (_,_) => Dispatcher.BeginInvoke(DispatcherPriority.Input,new Action(() => { if (_compactMenu.IsOpen && _compactButtons.TryGetValue(_category,out var selected)) selected.Focus(); }));
+        _compactChoice.Click += (_,_) => { if (!CanUseCompactMenu()) return; _compactMenu.IsOpen = !_compactMenu.IsOpen; if (_compactMenu.IsOpen) SharedSurfaceMotion.Reveal((FrameworkElement)_compactMenu.Child); };
+        _compactMenu.Opened += (_,_) =>
+        {
+            int generation = ++_compactFocusGeneration;
+            Dispatcher.BeginInvoke(DispatcherPriority.Input,new Action(() =>
+            {
+                if (generation != _compactFocusGeneration || !_compactMenu.IsOpen || !CanUseCompactMenu()) return;
+                if (_compactButtons.TryGetValue(_category,out var selected)) selected.Focus();
+            }));
+        };
+        _compactMenu.Closed += (_,_) => ++_compactFocusGeneration;
         _compactItems.PreviewKeyDown += (_,e) =>
         {
-            if (e.Key == Key.Escape) { _compactMenu.IsOpen = false; _compactChoice.Focus(); e.Handled = true; return; }
+            if (e.Key == Key.Escape) { _compactMenu.IsOpen = false; if (CanUseCompactMenu()) _compactChoice.Focus(); e.Handled = true; return; }
             if (e.Key is not (Key.Up or Key.Down or Key.Home or Key.End)) return;
             var choices = _compactButtons.Values.ToArray(); if (choices.Length == 0) return;
             int current = Array.IndexOf(choices,Keyboard.FocusedElement as Button);
@@ -89,17 +116,70 @@ public sealed class SettingsWorkspace : UserControl
         System.Windows.Automation.AutomationProperties.SetName(_compactChoice,"Settings categories");
         content.Children.Add(_header); var body = new StackPanel(); body.Children.Add(_sections); body.Children.Add(_empty); Scroller.Content = body; Grid.SetRow(Scroller,1); content.Children.Add(Scroller); Content = _layout;
         _search.TextChanged += (_,_) => Filter();
-        PreviewKeyDown += (_,e) => { if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { _search.Focus(); _search.SelectAll(); e.Handled = true; } };
+        PreviewKeyDown += (_,e) => { if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && FocusSearch()) e.Handled = true; };
         SharedSurfaceMotion.Attach(Scroller);
-        Loaded += (_,_) => { EnsureMaterialPreferences(); BuildNavigation(); Reflow(); if(railHeading.Children[0] is Border { Child: Roche_Scoreboard.Services.OperatorSymbol symbol })symbol.Activate(); };
-        Unloaded += (_,_) => { _compactMenu.IsOpen = false; ++_navigationGeneration; };
+        Loaded += (_,_) => { EnsureMaterialPreferences(); BuildNavigation(); Reflow(); ObserveCompactMenuOwners(); if(railHeading.Children[0] is Border { Child: Roche_Scoreboard.Services.OperatorSymbol symbol })symbol.Activate(); };
+        Unloaded += (_,_) => { RetireCompactMenu(); ++_navigationGeneration; DetachCompactMenuOwners(); };
         SizeChanged += (_,_) => Reflow();
+    }
+
+    // A retained workspace can be hidden/disabled without Unloaded. Observe
+    // only this menu's current visual ownership; do not poll or change values.
+    private void ObserveCompactMenuOwners()
+    {
+        DetachCompactMenuOwners();
+        for (DependencyObject? current = this; current is not null; current = VisualTreeHelper.GetParent(current))
+        {
+            if (current is not FrameworkElement owner) continue;
+            _compactAvailabilityOwners.Add(owner);
+            owner.IsVisibleChanged += CompactMenuAvailabilityChanged;
+            owner.IsEnabledChanged += CompactMenuAvailabilityChanged;
+        }
+        _compactMenuOwner = Window.GetWindow(this);
+        if (_compactMenuOwner is not null) _compactMenuOwner.Closed += CompactMenuOwnerClosed;
+        if (!CanUseCompactMenu()) RetireCompactMenu();
+    }
+    private void DetachCompactMenuOwners()
+    {
+        foreach (var owner in _compactAvailabilityOwners)
+        {
+            owner.IsVisibleChanged -= CompactMenuAvailabilityChanged;
+            owner.IsEnabledChanged -= CompactMenuAvailabilityChanged;
+        }
+        _compactAvailabilityOwners.Clear();
+        if (_compactMenuOwner is not null) _compactMenuOwner.Closed -= CompactMenuOwnerClosed;
+        _compactMenuOwner = null;
+    }
+    private bool CanUseCompactMenu()
+    {
+        if (!IsLoaded) return false;
+        for (DependencyObject? current = this; current is not null; current = VisualTreeHelper.GetParent(current))
+            if (current is FrameworkElement owner && (!owner.IsVisible || !owner.IsEnabled)) return false;
+        return Window.GetWindow(this) is { IsVisible: true, IsEnabled: true } window
+            && ReferenceEquals(window,_compactMenuOwner);
+    }
+    private void CompactMenuAvailabilityChanged(object sender, DependencyPropertyChangedEventArgs args)
+    {
+        if (args.Property.Name is not (nameof(IsVisible) or nameof(IsEnabled))
+            || sender is not FrameworkElement owner || !_compactAvailabilityOwners.Contains(owner)) return;
+        if (!CanUseCompactMenu()) RetireCompactMenu();
+    }
+    private void CompactMenuOwnerClosed(object? sender, EventArgs args)
+    {
+        if (!ReferenceEquals(sender,_compactMenuOwner)) return;
+        RetireCompactMenu(); DetachCompactMenuOwners();
+    }
+    private void RetireCompactMenu()
+    {
+        ++_compactFocusGeneration;
+        _compactMenu.IsOpen = false;
+        // Hidden/disabled retirement deliberately does not restore focus.
     }
 
     private void EnsureMaterialPreferences()
     {
         if(_materialSectionAdded)return;_materialSectionAdded=true;
-        var section=new Border{Tag="APPEARANCE|glass intensity soft balanced vivid backdrop black colour neutral",Child=new OperatorMaterialPreferences()};
+        var section=new Border{Tag="APPEARANCE|glass intensity soft balanced vivid backdrop black colour neutral interface feel motion calm expressive preview",Child=new OperatorMaterialPreferences()};
         section.SetResourceReference(StyleProperty,"SettingsSectionSurface");
         int index=0;for(int i=0;i<Sections.Count;i++)if(Sections[i] is FrameworkElement item && Category(item)=="APPEARANCE")index=i+1;
         Sections.Insert(index,section);
@@ -114,7 +194,7 @@ public sealed class SettingsWorkspace : UserControl
     private void BuildNavigation()
     {
         _categories.Children.Clear(); _compactItems.Children.Clear(); _buttons.Clear(); _compactButtons.Clear();
-        var categories = new[] { "ALL" }.Concat(Sections.OfType<FrameworkElement>().Select(Category).Distinct().OrderBy(c => c switch { "APPEARANCE" => 0, "MATCH" => 1, "CONTROLS" => 2, "SCOREBOARD" => 3, "AUTOMATION" => 4, _ => 5 })).ToArray();
+        var categories = new[] { "ALL" }.Concat(Sections.OfType<FrameworkElement>().Where(InScope).Select(Category).Distinct().OrderBy(c => c switch { "APPEARANCE" => 0, "MATCH" => 1, "CONTROLS" => 2, "SCOREBOARD" => 3, "AUTOMATION" => 4, _ => 5 })).ToArray();
         if (!categories.Contains(_category)) _category = "ALL";
         foreach (string category in categories)
         {
@@ -132,7 +212,7 @@ public sealed class SettingsWorkspace : UserControl
     private void SelectCategory(string category)
     {
         _compactMenu.IsOpen = false;
-        if (_compact == true) _compactChoice.Focus();
+        if (_compact == true && CanUseCompactMenu()) _compactChoice.Focus();
         if (_category == category && _search.Text.Length == 0) return;
         _scrollPositions[_category] = Scroller.VerticalOffset; _category = category;
         CategoryChanged?.Invoke(category);
@@ -145,7 +225,7 @@ public sealed class SettingsWorkspace : UserControl
     private void Filter()
     {
         string query = _search.Text.Trim(); int visible = 0;
-        foreach (var section in Sections.OfType<FrameworkElement>()) { bool show = query.Length > 0 ? Matches(section,query) : _category == "ALL" || Category(section) == _category; section.Visibility = show ? Visibility.Visible : Visibility.Collapsed; if (show) visible++; }
+        foreach (var section in Sections.OfType<FrameworkElement>()) { bool show = InScope(section) && (query.Length > 0 ? Matches(section,query) : _category == "ALL" || Category(section) == _category); section.Visibility = show ? Visibility.Visible : Visibility.Collapsed; if (show) visible++; }
         _empty.Visibility = visible == 0 ? Visibility.Visible : Visibility.Collapsed;
         _contextHeading.Text = query.Length > 0 ? "Search results" : CategoryLabel(_category); _compactLabel.Text = query.Length > 0 ? "Search results" : CategoryLabel(_category);
         foreach (var pair in _buttons.Concat(_compactButtons))
@@ -158,6 +238,13 @@ public sealed class SettingsWorkspace : UserControl
     }
     private static bool Matches(DependencyObject root,string query)
     {
+        // Template text is not a logical child. Authored accessibility labels
+        // keep the same control discoverable before or after template mounting.
+        if (root is FrameworkElement element)
+        {
+            if (System.Windows.Automation.AutomationProperties.GetName(element)?.Contains(query,StringComparison.OrdinalIgnoreCase) == true) return true;
+            if (System.Windows.Automation.AutomationProperties.GetHelpText(element)?.Contains(query,StringComparison.OrdinalIgnoreCase) == true) return true;
+        }
         if (root is FrameworkElement { Tag: string tag } && tag.Contains(query,StringComparison.OrdinalIgnoreCase)) return true;
         if (root is TextBlock text && text.Text.Contains(query,StringComparison.OrdinalIgnoreCase)) return true;
         if (root is ContentControl { Content: string caption } && caption.Contains(query,StringComparison.OrdinalIgnoreCase)) return true;

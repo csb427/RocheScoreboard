@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/ColorPickerWindow.xaml",
-  "source_sha256": "a13b8cb2a81d556f358a541bf3005544d8433bce4c93c65bf827fb57a0e4b99b",
+  "source_sha256": "87ca3ab836298e272e523ef72c010a85e3f2cb0a523c60e3483d91f954137b2c",
   "names": [
     {
       "name": "PART_Track",
@@ -68,8 +68,18 @@
       "object": false
     },
     {
+      "name": "HexEntryRegion",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "HexBox",
       "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "ValidationText",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -83,12 +93,12 @@
       "object": false
     },
     {
-      "name": "ValidationText",
-      "type": "TextBlock",
+      "name": "UseColourButton",
+      "type": "Button",
       "object": false
     }
   ],
-  "code_source_sha256": "5e8ea45a6a4d2b6e51061bf60984ceb3a5ee9ffdd0d443127fd7259d9fce55bd",
+  "code_source_sha256": "f3dd451934b91ee974592b6695324a3b6f125f54086e39dabcdcfc41ca369318",
   "native_events": [
     {
       "name": "ColourField",

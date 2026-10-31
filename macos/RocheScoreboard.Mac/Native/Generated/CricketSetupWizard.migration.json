@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
-  "source_sha256": "9539a7a091074054dd624661cc69064bbe491952a738dd486060e4b82a4c7e9c",
+  "source_sha256": "958353241a93e36ddbe3c360b059ec8bf8c0f31f3c9ac0dcce7a50477cd93518",
   "names": [
     {
       "name": "WizardBody",
@@ -79,7 +79,7 @@
     },
     {
       "name": "SetupHomeColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -89,7 +89,7 @@
     },
     {
       "name": "SetupHomeSecondaryPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -174,7 +174,7 @@
     },
     {
       "name": "SetupAwayColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -184,7 +184,7 @@
     },
     {
       "name": "SetupAwaySecondaryPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -353,6 +353,11 @@
       "object": false
     },
     {
+      "name": "OversValidationTarget",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
       "name": "OversDisplay",
       "type": "TextBox",
       "object": false
@@ -366,6 +371,11 @@
     {
       "name": "PART_TextPresenter",
       "type": "TextPresenter",
+      "object": false
+    },
+    {
+      "name": "OversValidationMessage",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -534,6 +544,11 @@
       "object": true
     },
     {
+      "name": "SportStepNavigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
       "name": "Step1Navigation",
       "type": "RadioButton",
       "object": false
@@ -639,6 +654,11 @@
       "object": true
     },
     {
+      "name": "CancelSetupButton",
+      "type": "Button",
+      "object": false
+    },
+    {
       "name": "NextButton",
       "type": "Button",
       "object": false
@@ -654,8 +674,14 @@
       "object": false
     }
   ],
-  "code_source_sha256": "df0d4709aadd4cf597b8bdf30bf352f073be6c2eff4fae0618a6f07b9e92350c",
+  "code_source_sha256": "d9d0cb65f845d839f19c7c96c92a2aff14d9cbed494ee3bdac313751a7620ac4",
   "native_events": [
+    {
+      "name": null,
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "UnifiedSetup_KeyDown"
+    },
     {
       "name": "SetupHomeColorBox",
       "source": "TextChanged",

@@ -8,7 +8,7 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="0" />
             </Grid.RowDefinitions>
-            <Grid x:Name="MainScoreboard" Grid.Row="2" Background="#020304" ClipToBounds="True" TextElement.Foreground="White" TextElement.FontFamily="{fonts:ProductionFont 'Arial'}" TextElement.FontWeight="Bold">
+            <Grid x:Name="MainScoreboard" Grid.Row="2" Background="#020304" ClipToBounds="True" TextElement.Foreground="White" TextElement.FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" TextElement.FontWeight="Bold">
                 <Grid.Resources>
                     <ControlTheme TargetType="TextBlock" x:Key="{x:Type TextBlock}">
                         <Setter Property="VerticalAlignment" Value="Center" />
@@ -55,17 +55,17 @@
                             <Grid x:Name="WicketRow">
                                 <StackPanel x:Name="WicketGroup" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Grid>
-                                        <TextBlock x:Name="ScoreWickets" Text="0" FontSize="104" FontFamily="{fonts:ProductionFont 'Arial'}" HorizontalAlignment="Center">
+                                        <TextBlock x:Name="ScoreWickets" Text="0" FontSize="104" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                             <TextBlock.RenderTransform>
                                                 <TranslateTransform port:ProductionNames.Id="ScoreWicketsTranslate" />
                                             </TextBlock.RenderTransform>
                                         </TextBlock>
                                     </Grid>
-                                    <TextBlock x:Name="ScoreSlash" Text="FOR" FontSize="62" FontFamily="{fonts:ProductionFont 'Arial'}" Margin="14,0,0,0" HorizontalAlignment="Left" />
+                                    <TextBlock x:Name="ScoreSlash" Text="FOR" FontSize="62" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" Margin="14,0,0,0" HorizontalAlignment="Left" />
                                 </StackPanel>
                             </Grid>
                             <Grid x:Name="RunsRow" Grid.Row="1" ClipToBounds="True">
-                                <TextBlock x:Name="ScoreRuns" Text="0" FontSize="104" FontFamily="{fonts:ProductionFont 'Arial'}" HorizontalAlignment="Center">
+                                <TextBlock x:Name="ScoreRuns" Text="0" FontSize="104" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                     <TextBlock.RenderTransform>
                                         <TranslateTransform port:ProductionNames.Id="ScoreRunsTranslate" />
                                     </TextBlock.RenderTransform>
@@ -77,7 +77,7 @@
                             <TextBlock Text="OVERS" FontSize="29" HorizontalAlignment="Center" Foreground="White" />
                         </Border>
                         <Grid x:Name="OversValuePanel" Grid.Row="3" ClipToBounds="True">
-                            <TextBlock x:Name="OversText" Text="0.0" FontSize="72" HorizontalAlignment="Center">
+                            <TextBlock x:Name="OversText" Text="0.0" FontSize="72" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                 <TextBlock.RenderTransform>
                                     <TranslateTransform port:ProductionNames.Id="OversTranslate" />
                                 </TextBlock.RenderTransform>
@@ -87,13 +87,13 @@
                             <TextBlock x:Name="InfoLabel" Text="RUN RATE" FontSize="29" HorizontalAlignment="Center" Foreground="White" />
                         </Border>
                         <Grid x:Name="InfoValuePanel" Grid.Row="5" ClipToBounds="True">
-                            <TextBlock x:Name="InfoValue" Text="0.00" FontSize="72" HorizontalAlignment="Center" />
+                            <TextBlock x:Name="InfoValue" Text="0.00" FontSize="72" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                         </Grid>
                         <Border x:Name="ExtrasLabelPanel" Grid.Row="6" Background="#080B10">
                             <TextBlock Text="EXTRAS" FontSize="29" HorizontalAlignment="Center" Foreground="White" />
                         </Border>
                         <Grid x:Name="ExtrasValuePanel" Grid.Row="7" ClipToBounds="True">
-                            <TextBlock x:Name="ExtrasValue" Text="0" FontSize="72" HorizontalAlignment="Center" />
+                            <TextBlock x:Name="ExtrasValue" Text="0" FontSize="72" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                         </Grid>
                     </Grid>
                 </Border>
@@ -106,7 +106,7 @@
                         <Border Background="#080B10">
                             <TextBlock Text="OVERS" FontSize="29" HorizontalAlignment="Center" />
                         </Border>
-                        <TextBlock x:Name="CompactOversText" Grid.Row="1" Text="{Binding Text, ElementName=OversText}" FontSize="{Binding FontSize, ElementName=OversText}" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="CompactOversText" Grid.Row="1" Text="{Binding Text, ElementName=OversText}" FontSize="{Binding FontSize, ElementName=OversText}" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                     </Grid>
                 </Border>
                 <Grid x:Name="PlayerBands" Grid.Column="1">
@@ -141,7 +141,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock x:Name="BattingHeaderText" Text="TEAM A" FontSize="38" TextTrimming="CharacterEllipsis" />
                                 <TextBlock x:Name="TopWeatherText" Text="" FontSize="36" Grid.Column="1" Margin="22,0,20,0" />
-                                <TextBlock x:Name="TopTimeText" Text="1:32 PM" FontSize="34" Grid.Column="2" />
+                                <TextBlock x:Name="TopTimeText" Text="1:32 PM" FontSize="34" Grid.Column="2" FontFeatures="tnum,lnum,-kern" />
                             </Grid>
                         </Grid>
                     </Border>
@@ -163,14 +163,14 @@
                             </TextBlock>
                             <TextBlock x:Name="StrikerName" Text="PLAYER" FontSize="43" Grid.Column="1" TextTrimming="CharacterEllipsis" />
                             <Grid Grid.Column="2" ClipToBounds="True">
-                                <TextBlock x:Name="StrikerRuns" Text="0" FontSize="65" HorizontalAlignment="Center">
+                                <TextBlock x:Name="StrikerRuns" Text="0" FontSize="65" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                     <TextBlock.RenderTransform>
                                         <TranslateTransform port:ProductionNames.Id="StrikerRunsTranslate" />
                                     </TextBlock.RenderTransform>
                                 </TextBlock>
                             </Grid>
                             <Grid Grid.Column="3" ClipToBounds="True">
-                                <TextBlock x:Name="StrikerBalls" Text="0" FontSize="40" HorizontalAlignment="Center">
+                                <TextBlock x:Name="StrikerBalls" Text="0" FontSize="40" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                     <TextBlock.RenderTransform>
                                         <TranslateTransform port:ProductionNames.Id="StrikerBallsTranslate" />
                                     </TextBlock.RenderTransform>
@@ -196,14 +196,14 @@
                             </TextBlock>
                             <TextBlock x:Name="NonStrikerName" Text="PLAYER" FontSize="43" Grid.Column="1" TextTrimming="CharacterEllipsis" />
                             <Grid Grid.Column="2" ClipToBounds="True">
-                                <TextBlock x:Name="NonStrikerRuns" Text="0" FontSize="65" HorizontalAlignment="Center">
+                                <TextBlock x:Name="NonStrikerRuns" Text="0" FontSize="65" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                     <TextBlock.RenderTransform>
                                         <TranslateTransform port:ProductionNames.Id="NonStrikerRunsTranslate" />
                                     </TextBlock.RenderTransform>
                                 </TextBlock>
                             </Grid>
                             <Grid Grid.Column="3" ClipToBounds="True">
-                                <TextBlock x:Name="NonStrikerBalls" Text="0" FontSize="40" HorizontalAlignment="Center">
+                                <TextBlock x:Name="NonStrikerBalls" Text="0" FontSize="40" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                     <TextBlock.RenderTransform>
                                         <TranslateTransform port:ProductionNames.Id="NonStrikerBallsTranslate" />
                                     </TextBlock.RenderTransform>
@@ -241,14 +241,14 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock x:Name="BowlerName" Text="BOWLER" FontSize="43" TextTrimming="CharacterEllipsis" />
                             <Grid Grid.Column="1" ClipToBounds="True">
-                                <TextBlock x:Name="BowlerFigures" Text="0/0" FontSize="56" HorizontalAlignment="Center">
+                                <TextBlock x:Name="BowlerFigures" Text="0/0" FontSize="56" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                     <TextBlock.RenderTransform>
                                         <TranslateTransform port:ProductionNames.Id="BowlerFiguresTranslate" />
                                     </TextBlock.RenderTransform>
                                 </TextBlock>
                             </Grid>
                             <Grid Grid.Column="2" ClipToBounds="True">
-                                <TextBlock x:Name="BowlerOvers" Text="0.0" FontSize="38" HorizontalAlignment="Center">
+                                <TextBlock x:Name="BowlerOvers" Text="0.0" FontSize="38" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                     <TextBlock.RenderTransform>
                                         <TranslateTransform port:ProductionNames.Id="BowlerOversTranslate" />
                                     </TextBlock.RenderTransform>
@@ -295,10 +295,10 @@
                                 <RowDefinition Height="3*" />
                                 <RowDefinition Height="1.2*" />
                             </Grid.RowDefinitions>
-                            <TextBlock x:Name="PregameHomeFallback" Text="A" FontSize="180" FontFamily="{fonts:ProductionFont 'Arial'}" FontWeight="Bold" Foreground="White" Opacity=".5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock x:Name="PregameHomeFallback" Text="A" FontSize="180" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontWeight="Bold" Foreground="White" Opacity=".5" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             <Image x:Name="PregameHomeLogo" Stretch="Uniform" Margin="24" RenderOptions.BitmapInterpolationMode="HighQuality" />
                             <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly">
-                                <TextBlock x:Name="PregameHomeName" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="58" FontWeight="Bold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="450" />
+                                <TextBlock x:Name="PregameHomeName" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontSize="58" FontWeight="Bold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="450" />
                             </Viewbox>
                         </Grid>
                     </Grid>
@@ -311,10 +311,10 @@
                                 <RowDefinition Height="3*" />
                                 <RowDefinition Height="1.2*" />
                             </Grid.RowDefinitions>
-                            <TextBlock x:Name="PregameAwayFallback" Text="B" FontSize="180" FontFamily="{fonts:ProductionFont 'Arial'}" FontWeight="Bold" Foreground="White" Opacity=".5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock x:Name="PregameAwayFallback" Text="B" FontSize="180" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontWeight="Bold" Foreground="White" Opacity=".5" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             <Image x:Name="PregameAwayLogo" Stretch="Uniform" Margin="24" RenderOptions.BitmapInterpolationMode="HighQuality" />
                             <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly">
-                                <TextBlock x:Name="PregameAwayName" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="58" FontWeight="Bold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="450" />
+                                <TextBlock x:Name="PregameAwayName" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontSize="58" FontWeight="Bold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="450" />
                             </Viewbox>
                         </Grid>
                     </Grid>
@@ -325,7 +325,7 @@
                     <Image x:Name="EventLogo" Stretch="UniformToFill" Opacity=".16" />
                     <Grid x:Name="EventAccents" IsHitTestVisible="False" ClipToBounds="True" />
                     <Viewbox x:Name="EventWordBox" Margin="24" Stretch="Uniform" StretchDirection="DownOnly">
-                        <TextBlock x:Name="EventWord" Text="FOUR" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontWeight="Bold" FontSize="240" RenderTransformOrigin="50%,50%" />
+                        <TextBlock x:Name="EventWord" Text="FOUR" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontWeight="Bold" FontSize="240" RenderTransformOrigin="50%,50%" />
                     </Viewbox>
                 </Grid>
             </Border>

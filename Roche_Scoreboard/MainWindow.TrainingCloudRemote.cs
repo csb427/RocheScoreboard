@@ -25,36 +25,42 @@ namespace Roche_Scoreboard;
 
 public partial class MainWindow
 {
-    /// <summary>
-    /// Subscribes the cloud publisher to a freshly-created
-    /// <see cref="TrainingSession"/>. Safe to call multiple times — only
-    /// the first attach for a given instance wires the handlers.
-    /// </summary>
+    private TrainingCloudBridgeReceipt? _trainingCloudBridge;
+    private sealed class TrainingCloudBridgeReceipt(TrainingSession session)
+    {
+        internal readonly TrainingSession Session = session;
+        internal Action Publish = null!;
+    }
+
+    /// <summary>Owns exactly one current Training model's structural publisher.</summary>
     internal void AttachTrainingCloudBridge(TrainingSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-
-        // Use a tagged-private-handler so a second attach call against the
-        // same session does not double-subscribe.
-        session.StructuralChanged -= OnTrainingStructuralChangedPublish;
-        session.StructuralChanged += OnTrainingStructuralChangedPublish;
-
-        // Push an immediate snapshot so the phone sees the empty queue /
-        // initial state without waiting for the first user action.
-        PublishCloudSnapshot();
+        if (!OwnsTrainingRemoteCommand(session)) return;
+        if (_trainingCloudBridge is { } previous)
+        {
+            if (ReferenceEquals(previous.Session, session)) { PublishTrainingRemoteSnapshot(session); return; }
+            DetachTrainingCloudBridge(previous.Session);
+        }
+        var receipt = new TrainingCloudBridgeReceipt(session);
+        receipt.Publish = () =>
+        {
+            // Unsubscribe cannot remove a delegate from an event invocation
+            // already copied by the old model. Its receipt must still be current.
+            if (ReferenceEquals(_trainingCloudBridge, receipt)) PublishTrainingRemoteSnapshot(session);
+        };
+        _trainingCloudBridge = receipt;
+        session.StructuralChanged += receipt.Publish;
+        PublishTrainingRemoteSnapshot(session);
     }
 
-    /// <summary>
-    /// Detaches the cloud publisher from a session being torn down so it
-    /// can be garbage collected.
-    /// </summary>
+    /// <summary>Retire before unsubscribe; copied old invocations then become no-ops.</summary>
     internal void DetachTrainingCloudBridge(TrainingSession session)
     {
-        if (session is null) return;
-        session.StructuralChanged -= OnTrainingStructuralChangedPublish;
+        if (_trainingCloudBridge is not { } receipt || !ReferenceEquals(receipt.Session, session)) return;
+        _trainingCloudBridge = null;
+        session.StructuralChanged -= receipt.Publish;
     }
-
-    private void OnTrainingStructuralChangedPublish() => PublishCloudSnapshot();
 
     /// <summary>
     /// Builds the Training payload for `live_state`. Only called from
@@ -110,91 +116,106 @@ public partial class MainWindow
 
     // ── IRemoteCommandTarget — training command surface ────────────────────
 
+    // UI-thread authority only. Receive-thread code captures the reference,
+    // then evaluates this predicate inside the existing dispatcher closure.
+    // Queue edits are not a session replacement: preserve ordered remote input.
+    private bool OwnsTrainingRemoteCommand(TrainingSession expectedSession) =>
+        ReferenceEquals(_trainingSession, expectedSession) && _sportMode == SportMode.Training && !_remoteCommandOwnerClosed;
+
+    private void PublishTrainingRemoteSnapshot(TrainingSession expectedSession)
+    {
+        // Model observers may have replaced/exited this owner synchronously.
+        // Obsolete command continuations never publish a newer owner's state.
+        if (OwnsTrainingRemoteCommand(expectedSession)) PublishCloudSnapshot();
+    }
+
     void IRemoteCommandTarget.TrainingStartPause()
     {
-        if (_trainingSession is null) return;
-        if (_trainingSession.IsRunning) _trainingSession.Pause();
-        else _trainingSession.Start();
-        PublishCloudSnapshot();
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
+        if (session.IsRunning) session.Pause();
+        else session.Start();
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingSkip()
     {
-        if (_trainingSession is null) return;
-        _trainingSession.Skip();
-        PublishCloudSnapshot();
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
+        session.Skip();
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingResetActive()
     {
-        if (_trainingSession is null) return;
-        _trainingSession.ResetActive();
-        PublishCloudSnapshot();
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
+        session.ResetActive();
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingClearQueue()
     {
-        if (_trainingSession is null) return;
-        _trainingSession.Clear();
-        PublishCloudSnapshot();
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
+        session.Clear();
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingSetAutoAdvance(bool enabled)
     {
-        if (_trainingSession is null) return;
-        _trainingSession.AutoAdvance = enabled;
-        PublishCloudSnapshot();
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
+        session.AutoAdvance = enabled;
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingAddTimer(string title, int seconds, TrainingIntervalSpec? interval)
     {
-        if (_trainingSession is null) return;
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
 
         if (interval is { Rounds: > 0, WorkSeconds: > 0 } spec)
         {
             string prefix = string.IsNullOrWhiteSpace(spec.TitlePrefix) ? "Set" : spec.TitlePrefix.Trim();
             for (int i = 1; i <= spec.Rounds; i++)
             {
-                _trainingSession.AddTimer(new TrainingTimer($"{prefix} {i}", TimeSpan.FromSeconds(spec.WorkSeconds)));
+                if (!OwnsTrainingRemoteCommand(session)) return;
+                session.AddTimer(new TrainingTimer($"{prefix} {i}", TimeSpan.FromSeconds(spec.WorkSeconds)));
                 if (spec.RestSeconds > 0 && i < spec.Rounds)
                 {
-                    _trainingSession.AddTimer(new TrainingTimer($"{prefix} {i} rest", TimeSpan.FromSeconds(spec.RestSeconds)));
+                    if (!OwnsTrainingRemoteCommand(session)) return;
+                    session.AddTimer(new TrainingTimer($"{prefix} {i} rest", TimeSpan.FromSeconds(spec.RestSeconds)));
                 }
             }
         }
         else if (seconds > 0)
         {
             string label = string.IsNullOrWhiteSpace(title) ? "Timer" : title.Trim();
-            _trainingSession.AddTimer(new TrainingTimer(label, TimeSpan.FromSeconds(seconds)));
+            session.AddTimer(new TrainingTimer(label, TimeSpan.FromSeconds(seconds)));
         }
 
-        PublishCloudSnapshot();
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingRemoveTimer(Guid id)
     {
-        if (_trainingSession is null) return;
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
         if (id == Guid.Empty) return;
 
         TrainingTimer? target = null;
-        foreach (TrainingTimer t in _trainingSession.Timers)
+        foreach (TrainingTimer t in session.Timers)
         {
             if (t.Id == id) { target = t; break; }
         }
         if (target is not null)
         {
-            _trainingSession.RemoveTimer(target);
-            PublishCloudSnapshot();
+            session.RemoveTimer(target);
+            PublishTrainingRemoteSnapshot(session);
         }
     }
 
     void IRemoteCommandTarget.TrainingUpdateTimer(Guid id, string title, int seconds)
     {
-        if (_trainingSession is null) return;
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
         if (id == Guid.Empty) return;
 
         TrainingTimer? target = null;
-        foreach (TrainingTimer t in _trainingSession.Timers)
+        foreach (TrainingTimer t in session.Timers)
         {
             if (t.Id == id) { target = t; break; }
         }
@@ -202,31 +223,31 @@ public partial class MainWindow
 
         string label = string.IsNullOrWhiteSpace(title) ? "Timer" : title.Trim();
         int total = Math.Max(1, seconds);
-        _trainingSession.UpdateTimer(target, label, TimeSpan.FromSeconds(total));
-        PublishCloudSnapshot();
+        session.UpdateTimer(target, label, TimeSpan.FromSeconds(total));
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingAdjustActive(int seconds)
     {
-        if (_trainingSession is null) return;
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
         if (seconds == 0) return;
-        _trainingSession.AddTimeToActive(TimeSpan.FromSeconds(seconds));
-        PublishCloudSnapshot();
+        session.AddTimeToActive(TimeSpan.FromSeconds(seconds));
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingReorder(Guid id, string direction)
     {
-        if (_trainingSession is null) return;
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
         if (id == Guid.Empty) return;
 
         int currentIndex = -1;
         TrainingTimer? target = null;
-        for (int i = 0; i < _trainingSession.Timers.Count; i++)
+        for (int i = 0; i < session.Timers.Count; i++)
         {
-            if (_trainingSession.Timers[i].Id == id)
+            if (session.Timers[i].Id == id)
             {
                 currentIndex = i;
-                target = _trainingSession.Timers[i];
+                target = session.Timers[i];
                 break;
             }
         }
@@ -234,17 +255,17 @@ public partial class MainWindow
 
         int delta = string.Equals(direction, "up", StringComparison.OrdinalIgnoreCase) ? -1 : 1;
         int newIndex = currentIndex + delta;
-        if (newIndex < 0 || newIndex >= _trainingSession.Timers.Count) return;
+        if (newIndex < 0 || newIndex >= session.Timers.Count) return;
 
-        _trainingSession.MoveTimer(target, newIndex);
-        PublishCloudSnapshot();
+        session.MoveTimer(target, newIndex);
+        PublishTrainingRemoteSnapshot(session);
     }
 
     void IRemoteCommandTarget.TrainingExit()
     {
-        // Mirrors the local "exit training mode" button on the desktop
-        // panel. Fires the same path so animations, window teardown, and
-        // sport-selection return all run identically.
+        if (_trainingSession is not { } session || !OwnsTrainingRemoteCommand(session)) return;
+        // The phone already confirms Exit. Keep the expected-session commit
+        // bypass immediate; do not open the new local desktop review again.
         TrainingControlPanelView?.RequestExit();
     }
 }

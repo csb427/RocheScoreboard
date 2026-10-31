@@ -64,7 +64,9 @@ public sealed class CricketOverlayScheduler
         if(fact.Kind==CricketOverlayKind.Boundaries && (now-_lastBoundaryAt<8 || now-_lastBoundaryAt>40))return false;
         if (_groups.TryGetValue(fact.Group,out double time) && now-time < 100) return false;
         if (!_shown.TryGetValue(fact.Kind,out var previous)) return true;
-        if (fact.Kind is CricketOverlayKind.LastWicket or CricketOverlayKind.LastOver or CricketOverlayKind.Boundaries && fact.Fingerprint == previous.Fingerprint) return false;
+        if (fact.Kind is CricketOverlayKind.LastWicket or CricketOverlayKind.LastOver or CricketOverlayKind.Boundaries
+            or CricketOverlayKind.Partnership or CricketOverlayKind.MatchState or CricketOverlayKind.InningsRecap
+            && fact.Fingerprint == previous.Fingerprint) return false;
         double cooldown = fact.Kind switch { CricketOverlayKind.Toss => fact.Priority >= 70 ? 180 : fact.Priority >= 40 ? 300 : 480,
             CricketOverlayKind.ScoringWindow => 360, CricketOverlayKind.LastWicket => 180, CricketOverlayKind.LastOver => 240, _ => 240 };
         return now-previous.Time >= cooldown;

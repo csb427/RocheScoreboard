@@ -107,11 +107,11 @@
 
                 <!-- Over count -->
                 <Border x:Name="HeaderOversBadge" CornerRadius="10" Grid.Column="4" BorderBrush="#3A3A40" BorderThickness="1" Background="#202024" Padding="10,4">
-                    <TextBlock x:Name="HeaderOvers" Text="" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold"/>
+                    <TextBlock MinWidth="52" TextAlignment="Right" x:Name="HeaderOvers" Text="" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
                 </Border>
 
                 <!-- Score readout -->
-                <TextBlock Grid.Column="6" x:Name="HeaderScore" Text="0/0" Foreground="White" FontSize="28" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="6" MinWidth="96" TextAlignment="Right" x:Name="HeaderScore" Text="0/0" Foreground="White" FontSize="28" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
             </Grid>
         </Border>
 
@@ -167,8 +167,8 @@
                                         <TextBlock x:Name="StrikerName" Text="Striker" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold"/>
                                         <TextBlock x:Name="StrikerStats" Text="0 (0)  SR 0.0" Foreground="{StaticResource TextMidBrush}" FontSize="11"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock x:Name="StrikerRuns" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock x:Name="StrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/></StackPanel>
-                                    <Button Grid.Column="3" Content="⋯" Click="StrikerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock x:Name="StrikerRuns" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/><TextBlock x:Name="StrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/></StackPanel>
+                                    <Button Grid.Column="3" x:Name="StrikerMenuButton" AutomationProperties.Name="Batter options" Content="⋯" Click="StrikerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
                                     </Button>
                                 </Grid>
                             </Border>
@@ -186,8 +186,8 @@
                                         <TextBlock x:Name="NonStrikerName" Text="Non-Striker" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold"/>
                                         <TextBlock x:Name="NonStrikerStats" Text="0 (0)  SR 0.0" Foreground="{StaticResource TextMidBrush}" FontSize="11"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock x:Name="NonStrikerRunsText" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock x:Name="NonStrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/></StackPanel>
-                                    <Button Grid.Column="3" Content="⋯" Click="NonStrikerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock x:Name="NonStrikerRunsText" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock x:Name="NonStrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/></StackPanel>
+                                    <Button Grid.Column="3" x:Name="NonStrikerMenuButton" AutomationProperties.Name="Batter options" Content="⋯" Click="NonStrikerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
                                     </Button>
                                 </Grid>
                             </Border>
@@ -209,10 +209,10 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock x:Name="BowlerName" Text="Bowler" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold"/>
-                                        <TextBlock x:Name="BowlerStats" Text="0-0 (0)  Econ 0.00" Foreground="{StaticResource TextMidBrush}" FontSize="11"/>
+                                        <TextBlock x:Name="BowlerStats" Text="0-0 (0)  Econ 0.00" Foreground="{StaticResource TextMidBrush}" FontSize="11" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal"><TextBlock x:Name="BowlerFigures" Text="0-0" Foreground="White" FontSize="20" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock x:Name="BowlerOverFigures" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/></StackPanel>
-                                    <Button Grid.Column="2" Content="⋯" Click="BowlerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
+                                    <Button Grid.Column="2" x:Name="BowlerMenuButton" AutomationProperties.Name="Bowler options" Content="⋯" Click="BowlerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
                                     </Button>
                                 </Grid>
                             </Border>
@@ -315,7 +315,7 @@
             <!-- ══════════════════════════════════════════ -->
             <!-- TAB 2: DISPLAY &amp; MESSAGES — cinematic  -->
             <!-- ══════════════════════════════════════════ -->
-            <TabItem x:Name="ScorecardTab" Header="2  SCORECARD" Tag="BATTING &amp; BOWLING"><ContentControl x:Name="ScorecardHost"/></TabItem>
+            <TabItem x:Name="ScorecardTab" Header="2  SCORECARD" Tag="BATTING &amp; BOWLING"><ContentControl x:Name="ScorecardHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" ClipToBounds="True"/></TabItem>
             <TabItem x:Name="OutputTab" Header="3  OUTPUT" Tag="PRESENTATIONS">
 <ScrollViewer x:Name="CricketOutputPageViewport" SizeChanged="Console_SizeChanged" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Border Background="#09090B" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="20,16">
 <Grid x:Name="DisplayColumns"><Grid.ColumnDefinitions><ColumnDefinition Width="1.65*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -323,6 +323,10 @@
 <StackPanel Margin="0,0,0,12"><TextBlock Text="LIVE OUTPUT ROUTER" FontSize="16" FontWeight="SemiBold" Foreground="White"/>
 <TextBlock Text="One click changes the public screen · active output is highlighted" FontSize="12" Foreground="#9BB0C6" TextWrapping="Wrap"/></StackPanel>
 <Border Background="#142236" BorderBrush="#3D5F85" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,0,10"><TextBlock x:Name="CricketOnAirText" Text="ON AIR · LIVE SCOREBUG" Foreground="#9CCBFF" FontSize="11" FontWeight="SemiBold"/></Border>
+<UniformGrid Columns="2" Margin="0,0,0,10">
+ <Button x:Name="CricketExtrasOverlayButton" Content="EXTRAS" Click="ExtrasOverlay_Click" IsEnabled="False" Style="{StaticResource ToolBtn}" MinHeight="48" Margin="4" ToolTip="Show wides, no-balls, byes and leg-byes"/>
+ <Button x:Name="CricketBoundariesOverlayButton" Content="INNINGS BOUNDARIES" Click="BoundariesOverlay_Click" IsEnabled="False" Style="{StaticResource ToolBtn}" MinHeight="48" Margin="4" ToolTip="Show this innings' fours and sixes"/>
+</UniformGrid>
 <UniformGrid x:Name="CricketPresentationGrid" Columns="2" Margin="0,0,0,18">
 <Button x:Name="Presentationscorebug" Tag="scorebug" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="LIVE" FontSize="11" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,7"/><TextBlock Text="SCOREBUG" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Live scoring" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Button>
 <Button x:Name="Presentationbatting" Tag="batting" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="BAT" FontSize="11" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,7"/><TextBlock Text="BATTING" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Batting scorecard" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Button>
@@ -405,7 +409,7 @@
 <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Image x:Name="BatterSelectionLogo" Grid.RowSpan="4" Stretch="UniformToFill" Opacity=".08" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality"/>
 <TextBlock x:Name="BatterSelectionTitle" Text="SELECT BATTER" FontSize="25" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap"/>
 <TextBlock x:Name="BatterSelectionTeamText" Grid.Row="1" Foreground="#DCE8F5" FontSize="16" FontWeight="Bold" Margin="0,7,0,16" TextWrapping="Wrap"/>
-<ListBox Grid.Row="2" x:Name="BatterSelectionList" FocusVisualStyle="{x:Null}" Background="Transparent" Foreground="White" BorderThickness="0" MinHeight="0" MaxHeight="440" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemContainerStyle="{StaticResource PlayerChoice}" ItemTemplate="{StaticResource PlayerChoiceContent}"/>
+<ListBox Grid.Row="2" x:Name="BatterSelectionList" Focusable="True" FocusVisualStyle="{x:Null}" Background="Transparent" Foreground="White" BorderThickness="0" MinHeight="0" MaxHeight="440" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemContainerStyle="{StaticResource PlayerChoice}" ItemTemplate="{StaticResource PlayerChoiceContent}"/>
 <StackPanel Grid.Row="3"><Button MinHeight="0" Content="SKIP FOR NOW" Click="SkipPlayerSelection_Click" Style="{StaticResource ToolBtn}" Height="36" Margin="0,8,0,0"/><Button x:Name="ConfirmBatterButton" Grid.Row="3" Content="CONFIRM BATTER" Height="48" FontSize="16" FontWeight="Bold" Margin="0,16,0,0" Click="ConfirmBatterSelection_Click" Style="{StaticResource ToolBtn}" Background="#173655" BorderBrush="#79B9FF"/></StackPanel>
 </Grid></Border></Border>
 <Border x:Name="BowlerSelectionOverlay" KeyboardNavigation.TabNavigation="Cycle" Visibility="Collapsed" Panel.ZIndex="50" Background="#B8000000" Grid.RowSpan="2" Padding="24">
@@ -413,7 +417,7 @@
 <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Image x:Name="BowlerSelectionLogo" Grid.RowSpan="4" Stretch="UniformToFill" Opacity=".08" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality"/>
 <TextBlock  Text="SELECT BOWLER" FontSize="25" FontWeight="SemiBold" Foreground="White"/>
 <StackPanel Grid.Row="1"><TextBlock x:Name="BowlerSelectionTeamText" Foreground="#DCE8F5" FontSize="16" FontWeight="Bold" Margin="0,7,0,0"/><TextBlock x:Name="BowlerSelectionHint" Text="Choose the bowler for this over." Foreground="#BBCADC" FontSize="14" Margin="0,4,0,16" TextWrapping="Wrap"/></StackPanel>
-<ListBox Grid.Row="2" x:Name="BowlerSelectionList" FocusVisualStyle="{x:Null}" Background="Transparent" Foreground="White" BorderThickness="0" MinHeight="0" MaxHeight="440" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemContainerStyle="{StaticResource PlayerChoice}" ItemTemplate="{StaticResource PlayerChoiceContent}"/>
+<ListBox Grid.Row="2" x:Name="BowlerSelectionList" Focusable="True" FocusVisualStyle="{x:Null}" Background="Transparent" Foreground="White" BorderThickness="0" MinHeight="0" MaxHeight="440" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemContainerStyle="{StaticResource PlayerChoice}" ItemTemplate="{StaticResource PlayerChoiceContent}"/>
 <StackPanel Grid.Row="3"><Button MinHeight="0" Content="SKIP FOR NOW" Click="SkipPlayerSelection_Click" Style="{StaticResource ToolBtn}" Height="36" Margin="0,8,0,0"/><Button x:Name="ConfirmBowlerButton" Grid.Row="3" Content="CONFIRM BOWLER" Height="48" FontSize="16" FontWeight="Bold" Margin="0,16,0,0" Click="ConfirmBowlerSelection_Click" Style="{StaticResource ToolBtn}" Background="#173655" BorderBrush="#79B9FF"/></StackPanel>
 </Grid></Border></Border>
 

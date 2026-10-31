@@ -1,5 +1,5 @@
 // Generated from Views/CricketOverlayHost.cs; edit translator/adapters.
-// Source SHA-256: afd5659e70b09e7741b9ce0f602bf0803e1c15e2c24fcde9a0d12d5523b823cd
+// Source SHA-256: 10528e8de1385dd935e73992c15d6f67a33e8e318944694e529bd703ec56cf4e
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -43,6 +43,19 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
     private IReadOnlyList<CricketOverlayFact> _facts = [];
     private CricketOverlayFact? _active;
     private CricketOverlayKind? _pending;
+    private sealed record OverlayContext(CricketMatchManager Match,int Innings,long Revision,CricketFormat Format,int Entitlement,
+        int Overs,int Limit,int? Target,int? RevisedTarget,bool IgnoreTarget,bool IgnoreLimit,bool Complete,bool Finalized,
+        CricketMatchResultKind Result,CricketBreakKind Break,string BreakNote,string TeamA,string TeamB,string Batting,string Bowling);
+    private OverlayContext? _observedContext,_pendingContext;
+    private (int,int)? _pendingPair;
+    private OverlayContext? CaptureContext()=>_match is not { } match || match.CurrentInnings is not { } innings?null:
+        new(match,match.CurrentInningsNumber,match.DeliveryRevision,match.Format,match.TotalInnings,match.TotalOvers,match.CurrentOverLimit,
+            match.Target,innings.TargetOverride,innings.IgnoreTarget,innings.IgnoreOverLimit,innings.IsComplete,match.IsMatchFinalized,
+            match.ResultKind,match.BreakKind,match.BreakNote,match.TeamAName,match.TeamBName,innings.BattingTeamName,innings.BowlingTeamName);
+    private (int,int)? CapturePair(CricketOverlayKind kind)=>kind==CricketOverlayKind.Partnership && _match?.CurrentInnings is { } innings
+        ? (Math.Min(innings.StrikerIndex,innings.NonStrikerIndex),Math.Max(innings.StrikerIndex,innings.NonStrikerIndex)):null;
+    private void Queue(CricketOverlayKind kind){_pending=kind;_pendingContext=CaptureContext();_pendingPair=CapturePair(kind);}
+    private void ClearPending(){_pending=null;_pendingContext=null;_pendingPair=null;}
     private bool _manual, _exiting, _disposed;
     private double _hideAt;
     internal string? ThemedTeam { get; private set; }
@@ -63,26 +76,42 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         AllowsOverlays = allowed;
         if (!allowed)
         {
-            // Presentation changes are a hard boundary. Do not replay an old
-            // manual request, free-hit alarm or exit callback on another screen.
-            ++_motionGeneration; _handoff.Stop();
-            _pending = null; _pendingFreeHitAlarm = false; _active = null;
-            _freeHitAlarm = false; _exiting = false; _manual = false;
-            StopFreeHitMotion(); _freeHitBackdrop.IsVisible = false;
-            _shellMotion.BeginAnimation(TranslateTransform.YProperty, null);
-            _shell.IsVisible = false; _shell.Height = 0;
-            CompactScorebug(false);
-            var ready = _momentReady; _momentReady = null; ready?.Invoke();
+            ClearPresentationWork();
         }
         _scheduler.Cancel(_clock.Elapsed.TotalSeconds);
         _resumeQuietUntil = _clock.Elapsed.TotalSeconds + 24;
         StateChanged?.Invoke();
     }
+    public bool OutputActive { get; private set; } = true;
+    public void SetOutputActive(bool active)
+    {
+        if (_disposed || OutputActive == active) return;
+        OutputActive = active;
+        if (!active) ClearPresentationWork(releaseMoment: false);
+        _scheduler.Cancel(_clock.Elapsed.TotalSeconds);
+        _resumeQuietUntil = _clock.Elapsed.TotalSeconds + 24;
+        StateChanged?.Invoke();
+    }
+    private void ClearPresentationWork(bool releaseMoment = true)
+    {
+        // Presentation changes are a hard boundary. Do not replay an old
+        // manual request, free-hit alarm or exit callback on another screen.
+        ++_motionGeneration; _handoff.Stop();
+        ClearPending(); _pendingFreeHitAlarm = false; _active = null;
+        _freeHitAlarm = false; _exiting = false; _manual = false;
+        StopFreeHitMotion(); _freeHitBackdrop.IsVisible = false;
+        _shellMotion.BeginAnimation(TranslateTransform.YProperty, null);
+        _shell.IsVisible = false; _shell.Height = 0;
+        CompactScorebug(false);
+        var ready = _momentReady; _momentReady = null;
+        if (releaseMoment) ready?.Invoke();
+        else foreach (var bug in _guardedScorebugs) bug.CancelMomentHandoff();
+    }
     private bool _motionEnabled=true;
     public bool MotionEnabled {get=>_motionEnabled;set {_motionEnabled=value;if(!value)StopFreeHitMotion();}}
-    public bool AutomaticEnabled { get => _scheduler.AutomaticEnabled; set { _scheduler.AutomaticEnabled = value; if (!value && !_manual && !_freeHitAlarm && !_pendingFreeHitAlarm) Cancel(); } }
+    public bool AutomaticEnabled { get => _scheduler.AutomaticEnabled; set { _scheduler.AutomaticEnabled = value; if (!value && !_manual && _pending is null && !_freeHitAlarm && !_pendingFreeHitAlarm) Cancel(); } }
     public event Action? StateChanged;
-    public string Status => _exiting ? "CHANGING OVERLAY" : _freeHitAlarm ? "ON AIR · FREE HIT" : (_pending is not null || _pendingFreeHitAlarm) && MomentInProgress ? "WAITING FOR SCORE ANIMATION" : _active is null ? "NO OVERLAY ON AIR" : $"ON AIR · {_active.Title}";
+    public string Status => !OutputActive ? "OUTPUT OFF · OVERLAYS PAUSED" : _exiting ? "CHANGING OVERLAY" : _freeHitAlarm ? "ON AIR · FREE HIT" : (_pending is not null || _pendingFreeHitAlarm) && (MomentInProgress || _momentReady is not null) ? "WAITING FOR SCORE ANIMATION" : _active is null ? "NO OVERLAY ON AIR" : $"ON AIR · {_active.Title}";
     public IReadOnlyList<CricketOverlayFact> Facts => _facts;
     internal bool UsesBothTeamBackgrounds => _backgroundB.IsVisible == true;
     internal static double DisplaySeconds(CricketOverlayKind kind) => kind switch
@@ -146,6 +175,14 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
     private void Refresh()
     {
         if (_match is null || _disposed) return;
+        var context=CaptureContext();bool changed=_observedContext is not null && _observedContext!=context;_observedContext=context;
+        if(changed)
+        {
+            // Retire the old context without releasing a waiting score moment
+            // before its existing scorebug restoration/handoff has completed.
+            Cancel();_shell.IsVisible=false;StopFreeHitMotion();_freeHitBackdrop.IsVisible=false;
+            _resumeQuietUntil=_clock.Elapsed.TotalSeconds+24;
+        }
         if(_lastBreak!=_match.BreakKind)
         {
             _lastBreak=_match.BreakKind;
@@ -155,21 +192,25 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         if (_displayInnings >= 0 && _displayInnings != _match.CurrentInningsNumber) Cancel();
         _displayInnings = _match.CurrentInningsNumber;
         _scheduler.Observe(_match, _clock.Elapsed.TotalSeconds); _facts = CricketOverlayAnalysis.Build(_match);
+        if(_pending is { } pending && (_pendingContext!=context || _pendingPair!=CapturePair(pending) || !_facts.Any(f=>f.Kind==pending && f.Available)))ClearPending();
         if (_logoA != _match.TeamALogoPath) { _logoA = _match.TeamALogoPath; _teamALogo = TeamVisuals.LoadLogo(_logoA); }
         if (_logoB != _match.TeamBLogoPath) { _logoB = _match.TeamBLogoPath; _teamBLogo = TeamVisuals.LoadLogo(_logoB); }
         ObserveFreeHit();
         if (_active != null && !_exiting)
         {
             var current = _facts.FirstOrDefault(f => f.Kind == _active.Kind);
-            if (current is null || !current.Available || (!_manual && !current.Automatic)) Cancel();
+            if (current is null || !current.Available || (!_manual && !current.Automatic))
+            {Cancel();if(current is null || !current.Available)_shell.IsVisible=false;}
             else { _active = current; Render(current); }
         }
         StateChanged?.Invoke();
     }
     public bool Request(CricketOverlayKind kind)
     {
-        if (_disposed || !AllowsOverlays || !_facts.Any(f => f.Kind == kind && f.Available)) return false;
-        if(MomentInProgress || _momentReady is not null) { _pending=kind; StateChanged?.Invoke(); return true; }
+        if (_disposed || _match is null || !OutputActive || !AllowsOverlays) return false;
+        Refresh();
+        if(!_facts.Any(f=>f.Kind==kind && f.Available))return false;
+        if(MomentInProgress || _momentReady is not null) { Queue(kind); StateChanged?.Invoke(); return true; }
         if (!_exiting && _active?.Kind == kind)
         {
             // A repeated click keeps the current, already readable card on air.
@@ -177,14 +218,14 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
             _manual = true; _hideAt = _clock.Elapsed.TotalSeconds + DisplaySeconds(kind);
             _scheduler.Cancel(_clock.Elapsed.TotalSeconds); StateChanged?.Invoke(); return true;
         }
-        _pending = kind;
+        Queue(kind);
         if (_exiting) CompactScorebug(true);
         if (_active != null || _freeHitAlarm || _exiting) Exit(); else ShowPending();
         return true;
     }
     public void Cancel()
     {
-        _pending = null; _pendingFreeHitAlarm=false; _scheduler.Cancel(_clock.Elapsed.TotalSeconds); CompactScorebug(false); Exit();
+        ClearPending(); _pendingFreeHitAlarm=false; _scheduler.Cancel(_clock.Elapsed.TotalSeconds); CompactScorebug(false); Exit();
     }
     private void Exit()
     {
@@ -198,7 +239,7 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         => EvaluateAt(_clock.Elapsed.TotalSeconds);
     internal void EvaluateAt(double now)
     {
-        if (_disposed || !AllowsOverlays) return;
+        if (_disposed || !OutputActive || !AllowsOverlays) return;
         if (_exiting || MomentInProgress || _momentReady is not null) return;
         if (_active != null || _freeHitAlarm)
         {
@@ -208,23 +249,38 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         if(_pending is not null || _pendingFreeHitAlarm) { ShowPending(); return; }
         if(_match?.BreakKind!=CricketBreakKind.None || now<_resumeQuietUntil) return;
         var next = _scheduler.Select(_facts, now);
-        if (next != null) Show(next, false);
+        if (next != null) ShowAt(next, false, now);
     }
     private void ShowPending()
     {
-        if (!AllowsOverlays) { _pending = null; _pendingFreeHitAlarm = false; return; }
+        if (_disposed || _match is null || !OutputActive || !AllowsOverlays) { ClearPending(); _pendingFreeHitAlarm = false; return; }
+        if(MomentInProgress || _momentReady is not null)return;
+        Refresh();
         if(_pendingFreeHitAlarm)
         {
             _pendingFreeHitAlarm=false;
             if(_match?.FreeHitPending==true && _match.FreeHitsEnabled && _match.BreakKind==CricketBreakKind.None) { ShowFreeHitAlarm(); return; }
         }
-        var kind = _pending; _pending = null;
+        var kind = _pending;
+        bool valid=kind is not null && _pendingContext==CaptureContext() && _pendingPair==CapturePair(kind.Value);
+        ClearPending();if(!valid)return;
         var fact = _facts.FirstOrDefault(f => f.Kind == kind && f.Available);
         if (fact != null) Show(fact, true);
     }
-    private void Show(CricketOverlayFact fact, bool manual)
+    private void Show(CricketOverlayFact fact, bool manual)=>ShowAt(fact,manual,_clock.Elapsed.TotalSeconds);
+    private void ShowAt(CricketOverlayFact fact, bool manual,double now)
     {
-        if (!AllowsOverlays) return;
+        if (_disposed || _match is null || !OutputActive || !AllowsOverlays) return;
+        if(_observedContext!=CaptureContext()){Refresh();return;}
+        _facts=CricketOverlayAnalysis.Build(_match);
+        var current=_facts.FirstOrDefault(f=>f.Kind==fact.Kind && f.Available && (manual || f.Automatic));
+        if(current is null)return;
+        if(!manual)
+        {
+            _scheduler.Observe(_match,now);
+            if(_scheduler.Select(_facts,now)?.Kind!=current.Kind)return;
+        }
+        fact=current;
         // Construct and measure the incoming card before the scorebug begins
         // moving, so the first compositor frame contains the complete shell.
         _active = fact; _freeHitAlarm=false; _manual = manual; SizeOverlay(); Render(fact);
@@ -232,8 +288,8 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         // scorebug layout work starts the panel clocks. Otherwise the panels
         // can expose the black stage while the shell still has zero height.
         AnimateShell(true); CompactScorebug(true);
-        _hideAt = _clock.Elapsed.TotalSeconds + DisplaySeconds(fact.Kind);
-        _scheduler.MarkShown(fact, _clock.Elapsed.TotalSeconds, !manual);
+        _hideAt = now + DisplaySeconds(fact.Kind);
+        _scheduler.MarkShown(fact, now, !manual);
         StateChanged?.Invoke();
     }
     private void AnimateShell(bool enter, Action? finished = null)
@@ -280,7 +336,7 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         StopFreeHitMotion(); _freeHitBackdrop.IsVisible=false;
         if (_match != null)
         {
-            bool both = false;
+            bool both = fact.Kind is CricketOverlayKind.MatchState or CricketOverlayKind.InningsRecap;
             bool teamA = fact.Kind == CricketOverlayKind.Toss ? _match.TossWinner == _match.TeamAName
                 : fact.Kind==CricketOverlayKind.Comparison ? fact.Detail==_match.TeamAName
                 : fact.Kind is CricketOverlayKind.SinceWicket or CricketOverlayKind.Extras ? _match.BowlingTeamName == _match.TeamAName : _match.BattingTeamName == _match.TeamAName;
@@ -296,6 +352,7 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         _accent.Background = new SolidColorBrush(fact.Group switch { CricketOverlayGroup.Review => Colors.DodgerBlue, CricketOverlayGroup.Pressure => Colors.Orange, CricketOverlayGroup.Context => Colors.Turquoise, _ => Colors.MediumPurple });
         var emphasis = EmphasisInk();
         _foreground.Children.Clear(); _foreground.ColumnDefinitions.Clear();
+        if (RenderSituation(fact, emphasis)) return;
         _foreground.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
         _foreground.ColumnDefinitions.Add(new() { Width = new GridLength(2.2, GridUnitType.Star) });
         var heading = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 18, 0) };
@@ -392,6 +449,6 @@ public sealed partial class CricketOverlayHost : Grid, IDisposable
         _guardedScorebugs.Clear();
         ++_motionGeneration; _shellMotion.BeginAnimation(TranslateTransform.YProperty, null); _shell.IsVisible = false;
         if (_match != null) _match.MatchChanged -= Refresh;
-        CompactScorebug(false); _match = null; _pending = null; _active = null; StateChanged = null;
+        CompactScorebug(false); _match = null; ClearPending(); _observedContext=null; _active = null; StateChanged = null;
     }
 }

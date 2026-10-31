@@ -8,6 +8,11 @@ namespace Roche_Scoreboard.Models
     public sealed class MatchManager
     {
         private static readonly TimeSpan MaxSupportedQuarterTime = TimeSpan.FromHours(24);
+        // In-memory authority for delayed work, not part of saved score data.
+        // Ordinary scores, clock ticks and Undo remain in the same lifetime.
+        private long _lifecycleVersion;
+        internal long LifecycleVersion => System.Threading.Interlocked.Read(ref _lifecycleVersion);
+        internal void RetireLifecycle() => System.Threading.Interlocked.Increment(ref _lifecycleVersion);
 
         // Teams
         public string HomeName { get; private set; } = "HOME";
@@ -192,6 +197,7 @@ namespace Roche_Scoreboard.Models
 
         public void ResetForNewGame()
         {
+            RetireLifecycle();
             HomeGoals = HomeBehinds = AwayGoals = AwayBehinds = 0;
             Quarter = 1;
             ClockRunning = false;
@@ -614,11 +620,13 @@ namespace Roche_Scoreboard.Models
             EndedQuarterNumber = _endedQuarterNumber,
             EndedQuarterElapsedTicks = _endedQuarterElapsed.Ticks,
             QuarterSnapshots = _quarterSnapshots.ToArray(),
-            Events = _events.ToList()
+            Events = _events.Select(score => score.Clone()).ToList()
         };
 
         public void LoadState(SerializableState state)
         {
+            ArgumentNullException.ThrowIfNull(state);
+            RetireLifecycle();
             HomeName = state.HomeName ?? "HOME";
             HomeAbbr = state.HomeAbbr ?? "HOM";
             AwayName = state.AwayName ?? "AWAY";
@@ -679,9 +687,10 @@ namespace Roche_Scoreboard.Models
                     if (ev is null || !Enum.IsDefined(ev.Team) || !Enum.IsDefined(ev.Type))
                         continue;
 
-                    ev.Quarter = Math.Clamp(ev.Quarter, 1, Quarter);
-                    ev.GameTime = ClampQuarterTime(ev.GameTime);
-                    _events.Add(ev);
+                    var restored = ev.Clone();
+                    restored.Quarter = Math.Clamp(restored.Quarter, 1, Quarter);
+                    restored.GameTime = ClampQuarterTime(restored.GameTime);
+                    _events.Add(restored);
                 }
             }
 

@@ -13,6 +13,11 @@ public sealed class CricketScorecardDraft
     public int Byes { get; set; }
     public int LegByes { get; set; }
     public int LegalBallsBowled { get; set; }
+    // Wide/no-ball values already include their one-run penalty. They are not
+    // delivery counts and must not have another penalty added during editing.
+    public long BattingRuns => Batters.Sum(player => (long)player.Runs);
+    public long ExtrasRuns => (long)Wides + NoBalls + Byes + LegByes;
+    public long CalculatedTotal => BattingRuns + ExtrasRuns;
     public List<CricketPlayer> Batters { get; set; } = [];
     public List<CricketPlayer> Bowlers { get; set; } = [];
     public List<string> FallOfWickets { get; set; } = [];
@@ -82,7 +87,7 @@ public sealed partial class CricketMatchManager
     {
         if (draft is null || draft.InningsNumber < 1 || draft.InningsNumber > AllInnings.Count || draft.Batters is null || draft.Bowlers is null || draft.Batters.Any(p => p is null) || draft.Bowlers.Any(p => p is null)) return [];
         var warnings = new List<string>(); var innings = AllInnings[draft.InningsNumber - 1];
-        long extras = (long)draft.Wides + draft.NoBalls + draft.Byes + draft.LegByes, batting = draft.Batters.Sum(p => (long)p.Runs);
+        long extras = draft.ExtrasRuns, batting = draft.BattingRuns;
         if (batting + extras != draft.TotalRuns) warnings.Add($"Batters ({batting}) + extras ({extras}) do not equal the team total ({draft.TotalRuns}).");
         if (draft.Batters.Any(p => (long)p.Fours * 4 + (long)p.Sixes * 6 > p.Runs)) warnings.Add("A batter's boundary runs exceed their entered runs.");
         if (draft.Bowlers.Sum(p => (long)p.RunsConceded) != draft.TotalRuns - (long)draft.Byes - draft.LegByes) warnings.Add("Bowler runs do not equal the team total excluding byes and leg-byes.");

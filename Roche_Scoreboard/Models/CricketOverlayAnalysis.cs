@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Roche_Scoreboard.Models;
 
-public enum CricketOverlayKind { LastOver, SinceScore, SinceWicket, SinceBoundary, Extras, LastWicket, ScoringWindow, Toss, Comparison, Projection, Boundaries }
+public enum CricketOverlayKind { LastOver, SinceScore, SinceWicket, SinceBoundary, Extras, LastWicket, ScoringWindow, Toss, Comparison, Projection, Boundaries, Partnership, MatchState, InningsRecap }
 public enum CricketOverlayGroup { Review, Pressure, Context, Trajectory }
 public sealed record CricketOverlayMetric(string Label, string Value);
 public sealed record CricketOverlayFact(CricketOverlayKind Kind, CricketOverlayGroup Group, string Title,
@@ -22,6 +22,9 @@ public static class CricketOverlayAnalysis
         var balls = innings.Deliveries; int legal = innings.LegalBallsBowled;
         string identity = $"{match.CurrentInningsNumber}:{match.DeliveryRevision}";
         var result = new List<CricketOverlayFact>();
+        result.Add(CricketPartnershipAnalysis.Build(match));
+        result.Add(CricketMatchEquation.Build(match));
+        result.Add(CricketInningsRecap.Build(match));
         CricketOverlayFact Fact(CricketOverlayKind kind, CricketOverlayGroup group, string title, string detail,
             CricketOverlayMetric[] metrics, bool available = true, bool auto = false, int priority = 30, string? fingerprint = null, string? reason = null)
             => new(kind, group, title, detail, metrics, available, auto && !innings.IsComplete, priority, $"{identity}:{kind}:{fingerprint ?? legal.ToString(CultureInfo.InvariantCulture)}", reason);

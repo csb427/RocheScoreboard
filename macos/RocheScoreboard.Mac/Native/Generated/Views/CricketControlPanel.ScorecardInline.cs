@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.ScorecardInline.cs; edit translator/adapters.
-// Source SHA-256: 35b14d341c83b8250b0fe8bb297b32e0b591c6563d046ea5397ac5d0a95d2d7b
+// Source SHA-256: a6007e8b1bb6c774cf03f6c9233c765dd35d7ad908ea4a7bc2ed33fb9ccb8a20
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -133,6 +133,7 @@ public partial class CricketControlPanel
         Avalonia.Controls.ToolTip.SetTip(extras, "View extras breakdown");
         summary.Children.Add(ScorecardSummaryCard(extras, "Extras", (draft.Wides + draft.NoBalls + draft.Byes + draft.LegByes).ToString()));
         _scorecardRows.Children.Add(summary);
+        _scorecardRows.Children.Add(WorkflowButton("Edit runs & extras together", async () => await EditScorecardTotalsAsync(), "scorecard-edit-totals"));
     }
 
     private void AddInlineFallOfWickets(CricketScorecardDraft draft)
@@ -168,10 +169,16 @@ public partial class CricketControlPanel
             entry.LostFocus += (_, _) => { _scorecardFowEditing = false; if (ReferenceEquals(draft, _scorecardDraft)) UpdateScorecardStatus(); };
             entry.TextChanged += (_, _) =>
             {
-                if (!ReferenceEquals(draft, _scorecardDraft)) return;
-                draft.FallOfWickets[i] = (entry.Text ?? string.Empty).Trim();
+                if (!ReferenceEquals(draft, _scorecardDraft) || i >= draft.FallOfWickets.Count || !_scorecardRows.IsAncestorOf(entry)) return;
+                string normalized = (entry.Text ?? string.Empty).Trim();
+                // Keep empty-entry feedback even when the current draft is
+                // already pending; a semantic no-op must not clear that state.
                 if (string.IsNullOrWhiteSpace((entry.Text ?? string.Empty))) entry.BorderBrush = ScorecardAlertBrush(true);
                 else entry.SetResourceReference(Avalonia.Controls.Primitives.TemplatedControl.BorderBrushProperty, "ControlCentre.BorderBrush");
+                // Avalonia can deliver the initial TextChanged after the row is
+                // rebuilt. Re-loading identical text is not a pending edit.
+                if (string.Equals(draft.FallOfWickets[i], normalized, StringComparison.Ordinal)) return;
+                draft.FallOfWickets[i] = normalized;
                 _scorecardDirty = true; UpdateScorecardStatus();
             };
             Grid.SetColumn(entry, 1); row.Children.Add(entry);

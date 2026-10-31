@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -26,6 +27,10 @@ namespace Roche_Scoreboard.Views
             => NestedScrollRouting.RoutePreviewMouseWheel(ResponsiveScrollHost, e);
 
         private List<TeamPreset> _presets;
+        private int _presetOwnerGeneration, _presetReadVersion, _librarySessionVersion;
+        private long _presetRevision;
+        private bool _presetOperationPending, _presetLoading, _presetLoadingMessage, _libraryOpen, _presetRefreshAfterDrag;
+        private TeamLibrarySport PresetSport => TeamLibrarySport.AustralianFootball;
         private string? _homeLogoPath;
         private string? _awayLogoPath;
         private string? _homeVideoPath;
@@ -159,9 +164,15 @@ namespace Roche_Scoreboard.Views
         public SetupWizard()
         {
             InitializeComponent();
-            WizardFlowDesign.Enable(this);
+            WizardFlowDesign.Enable(this, () => ShowStep(_currentStep, false));
             SetupMessageList.ItemsSource = _setupMessages;
-            _presets = PresetStorage.LoadAll();
+            PresetReadResult initialPresets = PresetStorage.ReadSnapshot(PresetSport);
+            _presets = initialPresets.Presets.Select(PresetStorage.Clone).ToList();
+            _presetRevision = initialPresets.Revision;
+            _presetLoading = _presetLoadingMessage = initialPresets.Pending;
+            if (initialPresets.Pending) WizardTeamEditor.SetPresetStatus(this, "Home", "Loading saved clubs…");
+            if (!initialPresets.Succeeded) WizardTeamEditor.SetPresetStatus(this, "Home", initialPresets.Error);
+            WizardTeamEditor.SetPresetActionsPending(this, _presetLoading);
             RefreshPresetPanels();
 
             SetupWeatherLocation.AddHandler(
@@ -172,7 +183,11 @@ namespace Roche_Scoreboard.Views
 
             Loaded += OnLoaded;
             Unloaded += OnWizardUnloaded;
-            IsVisibleChanged += (_, args) => { if (args.NewValue is false) OnWizardUnloaded(this, new RoutedEventArgs()); };
+            IsVisibleChanged += (_, args) =>
+            {
+                if (args.NewValue is false) OnWizardUnloaded(this, new RoutedEventArgs());
+                else if (IsLoaded) RefreshSavedPresets();
+            };
         }
 
         // ═══════════════════════════════════════════════════════
@@ -181,9 +196,12 @@ namespace Roche_Scoreboard.Views
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            RefreshSavedPresets();
+            InstallClockChoices();
+            InstallDurationEditor();
             UpdateClockModeVisuals();
             UpdateControlPanelCountdownOptionVisuals();
-            ShowStep(1, animate: false);
+            ShowStep(_currentStep, animate: false);
             PlayEntryAnimation();
         }
 
@@ -218,6 +236,7 @@ namespace Roche_Scoreboard.Views
         }
         private void OnWizardUnloaded(object sender, RoutedEventArgs args)
         {
+            InvalidatePresetOwner();
             _stepTransitionVersion++;
             _ambientRestartTimer?.Stop(); _ambientRestartTimer = null;
             _countdownOptionHideTimer?.Stop(); _countdownOptionHideTimer = null;
@@ -272,13 +291,13 @@ namespace Roche_Scoreboard.Views
         private void ShowStep(int step, bool animate = true)
         {
             int previous = _currentStep;
-            _currentStep = Math.Clamp(step, 1, TotalSteps);
+            _currentStep = Math.Clamp(step, UnifiedSetupEnabled ? 0 : 1, TotalSteps);
             int version = ++_stepTransitionVersion;
             _ambientRestartTimer?.Stop(); _ambientRestartTimer = null;
             if (_stepTransitionStoryboard is not null) { _stepTransitionStoryboard.Remove(this); _stepTransitionStoryboard = null; }
             FlashOverlay.BeginAnimation(OpacityProperty, null); FlashOverlay.Opacity = 0;
-            FrameworkElement[] panels = [TeamsStepContainer, Step3Panel, Step4Panel];
-            var active = panels[_currentStep - 1];
+            FrameworkElement[] panels = [SportStepContainer, TeamsStepContainer, Step3Panel, Step4Panel];
+            var active = panels[_currentStep];
             foreach (var panel in panels)
             {
                 panel.BeginAnimation(OpacityProperty, null); panel.Opacity = 1;
@@ -293,7 +312,7 @@ namespace Roche_Scoreboard.Views
                 var storyboard = new Storyboard();
                 var fade = new DoubleAnimation(.82, 1, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut };
                 Storyboard.SetTarget(fade, active); Storyboard.SetTargetProperty(fade, new PropertyPath(OpacityProperty)); storyboard.Children.Add(fade);
-                var slide = new DoubleAnimation(_currentStep > previous ? 8 : -8, 0, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut };
+                var slide = new DoubleAnimation((_currentStep > previous ? 8 : -8) * OperatorMotion.TravelScale, 0, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut };
                 Storyboard.SetTarget(slide, shift); Storyboard.SetTargetProperty(slide, new PropertyPath(TranslateTransform.XProperty)); storyboard.Children.Add(slide);
                 storyboard.Completed += (_, _) =>
                 {
@@ -302,9 +321,12 @@ namespace Roche_Scoreboard.Views
                 };
                 _stepTransitionStoryboard = storyboard; storyboard.Begin(this, HandoffBehavior.SnapshotAndReplace, true);
             }
-            BackButton.Visibility = Visibility.Visible;
+            HeaderTitle.Text = _currentStep == 0 ? "Start a game" : "Set up AFL (footy)";
+            foreach (var navigation in new[] { Step1Navigation, Step2Navigation, Step3Navigation }) navigation.IsEnabled = _currentStep > 0;
+            BackButton.Visibility = _currentStep == 0 ? Visibility.Collapsed : Visibility.Visible;
             NextButtonText.Text = _currentStep == TotalSteps ? "Start match" : "Continue";
             WizardFlowDesign.SelectStep(this, _currentStep, TotalSteps);
+            RefreshSportChoiceChrome();
             UpdateStepDot(Step1Dot, Step1Label, true, _currentStep == 1);
             UpdateStepDot(Step2Dot, Step2Label, _currentStep >= 2, _currentStep == 2);
             UpdateStepDot(Step3Dot, Step3Label, _currentStep >= 3, _currentStep == 3);
@@ -325,6 +347,9 @@ namespace Roche_Scoreboard.Views
 
         private void Next_Click(object sender, RoutedEventArgs e)
         {
+            if (_completionPending || Result is not null) return;
+            if (_currentStep == 0) { SportChosen?.Invoke(CricketSportChoice.IsChecked == true ? SportMode.Cricket : SportMode.AFL); return; }
+            if (_currentStep == 2 && !ValidateQuarterEntry()) return;
             if (_currentStep < TotalSteps)
                 ShowStep(_currentStep + 1);
             else
@@ -349,8 +374,11 @@ namespace Roche_Scoreboard.Views
 
         public void Reset()
         {
+            InvalidatePresetOwner();
             OperatorWorkflowPreferencesData remembered = OperatorWorkflowPreferences.Load();
             Result = null;
+            _completionPending = false;
+            SetupValidationMessage.Visibility = Visibility.Collapsed;
             _homeLogoPath = null;
             _awayLogoPath = null;
             _homeVideoPath = null;
@@ -402,7 +430,13 @@ namespace Roche_Scoreboard.Views
             SetupWeatherLocation.Text = remembered.AflWeatherLocation;
             _suppressWeatherFilter = false;
 
-            _presets = PresetStorage.LoadAll();
+            PresetReadResult initialPresets = PresetStorage.ReadSnapshot(PresetSport);
+            _presets = initialPresets.Presets.Select(PresetStorage.Clone).ToList();
+            _presetRevision = initialPresets.Revision;
+            _presetLoading = _presetLoadingMessage = initialPresets.Pending;
+            if (initialPresets.Pending) WizardTeamEditor.SetPresetStatus(this, "Home", "Loading saved clubs…");
+            if (!initialPresets.Succeeded) WizardTeamEditor.SetPresetStatus(this, "Home", initialPresets.Error);
+            WizardTeamEditor.SetPresetActionsPending(this, _presetLoading);
             RefreshPresetPanels();
             // The snapshot reflects what was actually used, including any
             // colour/name adjustments made after selecting a preset.
@@ -414,14 +448,16 @@ namespace Roche_Scoreboard.Views
 
             // Replay the cinematic entry
             PlayEntryAnimation();
+            RefreshSavedPresets();
         }
 
         // ═══════════════════════════════════════════════════════
         //  FINISH WIZARD
         // ═══════════════════════════════════════════════════════
 
-        private void FinishWizard()
+        private void FinishWizardCore()
         {
+            if (!ValidateQuarterEntry()) return;
             int.TryParse(SetupQuarterMinutes.Text, out int mins);
             int.TryParse(SetupQuarterSeconds.Text, out int secs);
 
@@ -437,6 +473,7 @@ namespace Roche_Scoreboard.Views
             string awayName = SetupAwayNameBox.Text.Trim();
             string awayAbbr = SetupAwayAbbrBox.Text.Trim();
 
+            if (ConfirmCompletion?.Invoke() == false) return;
             Result = new SetupResult
             {
                 HomeName = string.IsNullOrWhiteSpace(homeName) ? "Home Team" : homeName,
@@ -692,13 +729,13 @@ namespace Roche_Scoreboard.Views
         private void MinutesMinus_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(SetupQuarterMinutes.Text, out int mins) && mins > 1)
-                SetQuickDuration(mins - 1, 0);
+                SetupQuarterMinutes.Text = (mins - 1).ToString();
         }
 
         private void MinutesPlus_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(SetupQuarterMinutes.Text, out int mins) && mins < 60)
-                SetQuickDuration(mins + 1, 0);
+                SetupQuarterMinutes.Text = (mins + 1).ToString();
         }
 
         private void SetupQuarterDuration_TextChanged(object sender, TextChangedEventArgs e)
@@ -723,7 +760,7 @@ namespace Roche_Scoreboard.Views
             foreach(var (tile,value) in new[]{(Preset10Tile,10),(Preset15Tile,15),(Preset20Tile,20),(Preset25Tile,25)})
             {
                 if(tile?.Child is not System.Windows.Controls.Button button)continue;
-                bool selected=value==minutes;
+                bool selected=value==minutes && int.TryParse(SetupQuarterSeconds.Text,out int seconds) && seconds==0;
                 button.SetResourceReference(StyleProperty,selected?"ControlCentre.PrimaryButton":"ControlCentre.Button");
                 System.Windows.Automation.AutomationProperties.SetItemStatus(button,selected?"Selected quarter length":"Not selected");
             }
@@ -749,7 +786,9 @@ namespace Roche_Scoreboard.Views
 
         private void UpdateSetupClockSummary()
         {
-            // No-op: summary panel removed for simplicity
+            if(!IsInitialized || SetupQuarterMinutes is null || SetupQuarterSeconds is null || DurationMinutesDisplay is null)return;
+            DurationMinutesDisplay.Text=SetupQuarterMinutes.Text;
+            HighlightActivePresetTile(int.TryParse(SetupQuarterMinutes.Text,out int minutes)?minutes:-1);
         }
 
         // ═══════════════════════════════════════════════════════
@@ -1011,37 +1050,157 @@ namespace Roche_Scoreboard.Views
         private void BrowseAwayTeam_Click(object sender, RoutedEventArgs e)
             => BrowseTeamLibrary(isHome: false);
 
-        private void BrowseTeamLibrary(bool isHome)
+        private async void BrowseTeamLibrary(bool isHome)
         {
-            TeamLibraryWindow browser = new(isHome ? "Home" : "Away")
+            if (_libraryOpen || !IsLoaded || !IsVisible) return;
+            int generation = _presetOwnerGeneration, session = ++_librarySessionVersion;
+            _libraryOpen = true;
+            TeamLibraryWindow browser = new(isHome ? "Home" : "Away") { Owner = Window.GetWindow(this) };
+            bool? accepted;
+            try { accepted = browser.ShowDialog(); }
+            finally { _libraryOpen = false; }
+            Task<PresetCommitResult[]> changes = browser.AcceptedPresetChanges;
+            // Use applies its frozen choice once, before waiting for unrelated
+            // favourite persistence. Close/Escape apply no team.
+            if (generation == _presetOwnerGeneration && session == _librarySessionVersion && IsLoaded && IsVisible
+                && accepted == true && browser.Selection is { } selection)
             {
-                Owner = Window.GetWindow(this)
-            };
+                TeamPreset preset = new()
+                {
+                    PresetName = selection.Team.TeamName, TeamName = selection.Team.TeamName,
+                    Abbreviation = selection.Team.Abbreviation, PrimaryColor = selection.Team.PrimaryColor,
+                    SecondaryColor = selection.Team.SecondaryColor, LogoPath = selection.TransparentLogoPath,
+                    LibraryTeamId = selection.Team.Id
+                };
+                if (isHome) ApplyPresetToHome(preset); else ApplyPresetToAway(preset);
+            }
+            PresetCommitResult[] completed = await changes;
+            if (generation != _presetOwnerGeneration || session != _librarySessionVersion || !IsLoaded || !IsVisible) return;
+            int read = ++_presetReadVersion;
+            // Every modal return reads through accepted transactions, including
+            // an earlier closed session superseded by this newer session.
+            PresetReadResult latest = await PresetStorage.ReadAsync(PresetSport);
+            if (generation != _presetOwnerGeneration || session != _librarySessionVersion
+                || read != _presetReadVersion || !IsLoaded || !IsVisible) return;
+            _presetLoading = false;
+            if (latest.Succeeded)
+            {
+                PublishPresetSnapshot(latest);
+                if (_presetLoadingMessage) WizardTeamEditor.SetPresetStatus(this, "Home", "");
+            }
+            _presetLoadingMessage = false;
+            WizardTeamEditor.SetPresetActionsPending(this, _presetOperationPending);
+            string? error = completed.LastOrDefault(result => !result.Succeeded)?.Error;
+            if (!latest.Succeeded) error = latest.Error;
+            if (!string.IsNullOrWhiteSpace(error)) WizardTeamEditor.SetPresetStatus(this, isHome ? "Home" : "Away", error);
+            WizardTeamEditor.SetPresetActionsPending(this, _presetOperationPending);
+        }
 
-            bool? accepted = browser.ShowDialog();
-            if (browser.PresetsChanged)
+        private void InvalidatePresetOwner()
+        {
+            ++_presetOwnerGeneration; ++_presetReadVersion; ++_librarySessionVersion;
+            _presetOperationPending = _presetLoading = _presetLoadingMessage = _presetRefreshAfterDrag = false;
+            WizardTeamEditor.SetPresetStatus(this, "Home", "");
+            WizardTeamEditor.SetPresetStatus(this, "Away", "");
+            WizardTeamEditor.SetPresetActionsPending(this, false);
+        }
+
+        private void PublishPresetSnapshot(PresetReadResult result)
+        {
+            if (!result.Succeeded || result.Revision < _presetRevision) return;
+            if (_dragTile is not null) { _presetRefreshAfterDrag = true; return; }
+            Border? focused = HomePresetPanel.Children.OfType<Border>().Concat(AwayPresetPanel.Children.OfType<Border>())
+                .FirstOrDefault(tile => tile.IsKeyboardFocusWithin);
+            bool focusedHome = focused is not null && HomePresetPanel.Children.Contains(focused);
+            TeamPreset? focusedPreset = focused?.Tag as TeamPreset;
+            _presetRevision = result.Revision;
+            bool homeWasSaved = _selectedHomePreset is not null && _presets.Contains(_selectedHomePreset);
+            bool awayWasSaved = _selectedAwayPreset is not null && _presets.Contains(_selectedAwayPreset);
+            string? homeKey = _selectedHomePreset?.PresetName, awayKey = _selectedAwayPreset?.PresetName;
+            // Keep unchanged tile instances and their focus/motion state. Changed
+            // records are detached copies; no committed object is edited in place.
+            List<TeamPreset> remaining = _presets.ToList();
+            _presets = result.Presets.Select(preset =>
             {
-                _presets = PresetStorage.LoadAll();
+                TeamPreset? retained = remaining.FirstOrDefault(old =>
+                    string.Equals(old.PresetName, preset.PresetName, StringComparison.OrdinalIgnoreCase)
+                    && PresetStorage.SameContents(new[] { old }, new[] { preset }));
+                if (retained is not null) remaining.Remove(retained);
+                return retained ?? PresetStorage.Clone(preset);
+            }).ToList();
+            if (homeWasSaved && !_presets.Contains(_selectedHomePreset!))
+                _selectedHomePreset = _presets.Count(p => string.Equals(p.PresetName, homeKey, StringComparison.OrdinalIgnoreCase)) == 1
+                    ? _presets.First(p => string.Equals(p.PresetName, homeKey, StringComparison.OrdinalIgnoreCase)) : null;
+            if (awayWasSaved && !_presets.Contains(_selectedAwayPreset!))
+                _selectedAwayPreset = _presets.Count(p => string.Equals(p.PresetName, awayKey, StringComparison.OrdinalIgnoreCase)) == 1
+                    ? _presets.First(p => string.Equals(p.PresetName, awayKey, StringComparison.OrdinalIgnoreCase)) : null;
+            RefreshPresetPanels();
+            if (focusedPreset is not null && _presets.Contains(focusedPreset))
+                (focusedHome ? HomePresetPanel : AwayPresetPanel).Children.OfType<Border>()
+                    .FirstOrDefault(tile => ReferenceEquals(tile.Tag, focusedPreset))?.Focus();
+        }
+
+        private async void RefreshSavedPresets()
+        {
+            if (!IsLoaded || !IsVisible) return;
+            int generation = _presetOwnerGeneration, read = ++_presetReadVersion;
+            _presetLoading = true;
+            WizardTeamEditor.SetPresetActionsPending(this, true);
+            PresetReadResult result = await PresetStorage.ReadAsync(PresetSport);
+            if (generation != _presetOwnerGeneration || read != _presetReadVersion || !IsLoaded || !IsVisible) return;
+            _presetLoading = false;
+            if (result.Succeeded)
+            {
+                PublishPresetSnapshot(result);
+                if (_presetLoadingMessage) WizardTeamEditor.SetPresetStatus(this, "Home", "");
+            }
+            else WizardTeamEditor.SetPresetStatus(this, "Home", result.Error);
+            _presetLoadingMessage = false;
+            WizardTeamEditor.SetPresetActionsPending(this, _presetOperationPending);
+        }
+
+        private async Task PersistPresetChange(Task<PresetCommitResult> accepted, bool isHome, string pending,
+            string success, string? selectName = null, TeamPreset? selectedAtStart = null, TeamPreset? deletedPreset = null)
+        {
+            int generation = _presetOwnerGeneration;
+            string side = isHome ? "Home" : "Away";
+            _presetOperationPending = true;
+            WizardTeamEditor.SetPresetStatus(this, side, pending, true);
+            WizardTeamEditor.SetPresetActionsPending(this, true);
+            PresetCommitResult result = await accepted;
+            if (generation != _presetOwnerGeneration || !IsLoaded || !IsVisible) return;
+            _presetOperationPending = false;
+            WizardTeamEditor.SetPresetActionsPending(this, _presetLoading);
+            if (!result.Succeeded)
+            {
+                // A conflict contains a fresh confirmed basis. Reconcile only
+                // saved tiles so the retry targets current records/order;
+                // editable team fields and the failure explanation stay intact.
+                if (result.Status == PresetCommitStatus.Conflict) PublishPresetSnapshot(result.Snapshot);
+                WizardTeamEditor.SetPresetStatus(this, side, result.Error);
+                WizardTeamEditor.SetPresetActionsPending(this, _presetLoading);
+                return;
+            }
+            bool selectSubmitted = _dragTile is null && selectName is not null
+                && ReferenceEquals(isHome ? _selectedHomePreset : _selectedAwayPreset, selectedAtStart)
+                && string.Equals(((isHome ? SetupHomeNameBox : SetupAwayNameBox).Text ?? string.Empty).Trim(), selectName, StringComparison.OrdinalIgnoreCase);
+            if (deletedPreset is not null && result.Snapshot.Revision >= _presetRevision)
+            {
+                if (ReferenceEquals(_selectedHomePreset, deletedPreset)) _selectedHomePreset = null;
+                if (ReferenceEquals(_selectedAwayPreset, deletedPreset)) _selectedAwayPreset = null;
+                // Remove the confirmed deleted identity from the reuse pool so
+                // an identical legacy duplicate retains its own tile identity.
+                _presets.Remove(deletedPreset);
+            }
+            PublishPresetSnapshot(result.Snapshot);
+            if (selectSubmitted)
+            {
+                TeamPreset? selected = _presets.FirstOrDefault(p => string.Equals(p.PresetName, selectName, StringComparison.OrdinalIgnoreCase));
+                if (isHome) _selectedHomePreset = selected; else _selectedAwayPreset = selected;
                 RefreshPresetPanels();
             }
-
-            if (accepted != true || browser.Selection is null) return;
-            TeamLibrarySelection selection = browser.Selection;
-            TeamPreset preset = new()
-            {
-                PresetName = selection.Team.TeamName,
-                TeamName = selection.Team.TeamName,
-                Abbreviation = selection.Team.Abbreviation,
-                PrimaryColor = selection.Team.PrimaryColor,
-                SecondaryColor = selection.Team.SecondaryColor,
-                LogoPath = selection.TransparentLogoPath,
-                LibraryTeamId = selection.Team.Id
-            };
-
-            if (isHome)
-                ApplyPresetToHome(preset);
-            else
-                ApplyPresetToAway(preset);
+            WizardTeamEditor.SetPresetStatus(this, side, success);
+            WizardTeamEditor.SetPresetActionsPending(this, _presetLoading);
         }
 
         private void RefreshPresetPanels()
@@ -1055,7 +1214,10 @@ namespace Roche_Scoreboard.Views
             if(panel.Children.Count==_presets.Count && panel.Children.OfType<Border>().Select(tile=>tile.Tag).SequenceEqual(_presets.Cast<object>()))
             {
                 foreach(var existing in panel.Children.OfType<Border>())if(existing.Tag is TeamPreset preset)
+                {
+                    if(existing is OperatorActionBorder action) ConfigurePresetAction(action,panel,isHome,preset);
                     OperatorClubPresetDesign.Update(existing,preset,string.Equals((isHome?_selectedHomePreset:_selectedAwayPreset)?.PresetName,preset.PresetName,StringComparison.OrdinalIgnoreCase));
+                }
                 emptyLabel.Visibility=_presets.Count==0?Visibility.Visible:Visibility.Collapsed;return;
             }
             panel.Children.Clear();
@@ -1155,7 +1317,7 @@ namespace Roche_Scoreboard.Views
                 tileTransformGroup.Children.Add(tileScaleTransform);
                 tileTransformGroup.Children.Add(tileTranslateTransform);
 
-                Border tile = new()
+                OperatorActionBorder tile = new()
                 {
                     Width = 110,
                     Height = 70,
@@ -1163,7 +1325,6 @@ namespace Roche_Scoreboard.Views
                     Margin = new Thickness(0, 0, 8, 8),
                     Cursor = System.Windows.Input.Cursors.Hand,
                     Focusable = true,
-                    ToolTip = $"{preset.TeamName}\n{abbr}\n{(HasValidFile(preset.LogoPath) ? "Logo set" : "No logo")} · {(HasValidFile(preset.GoalVideoPath) ? "Video set" : "No video")}",
                     Child = tileContent,
                     Tag = preset,
                     BorderBrush = isSelected
@@ -1179,6 +1340,8 @@ namespace Roche_Scoreboard.Views
                         new System.Windows.Point(1, 1))
                 };
 
+                tile.ToolTip = $"{preset.TeamName}\n{abbr}\n{(HasValidFile(preset.LogoPath) ? "Logo set" : "No logo")} · {(HasValidFile(preset.GoalVideoPath) ? "Video set" : "No video")}";
+                ConfigurePresetAction(tile,panel,isHome,preset);
                 OperatorClubPresetDesign.Update(tile,preset,isSelected);
                 tile.MouseLeftButtonDown += (_, me) =>
                 {
@@ -1260,7 +1423,7 @@ namespace Roche_Scoreboard.Views
                 tile.LostMouseCapture += (_, _) =>
                 {
                     if (_dragTile != tile) return;
-                    CompleteDrag(panel, isHome, preset);
+                    CancelPresetDrag(panel);
                 };
 
                 var restEdge = tile.BorderBrush;
@@ -1270,7 +1433,53 @@ namespace Roche_Scoreboard.Views
             }
         }
 
-        private void CompleteDrag(System.Windows.Controls.WrapPanel panel, bool isHome, TeamPreset clickedPreset)
+        private void ConfigurePresetAction(OperatorActionBorder tile, System.Windows.Controls.WrapPanel panel, bool isHome, TeamPreset preset)
+        {
+            System.Windows.Automation.AutomationProperties.SetName(tile, $"{preset.TeamName} · {(isHome ? "Home" : "Away")} preset");
+            int generation = _presetOwnerGeneration;
+            tile.ActivationAction = () =>
+            {
+                // A retained/queued provider must still belong to this live side.
+                // Keyboard selection never manufactures the pointer capture gesture.
+                if (generation != _presetOwnerGeneration || !IsLoaded || _dragTile is not null || _isDragging
+                    || panel != (isHome ? HomePresetPanel : AwayPresetPanel) || !panel.Children.Contains(tile)
+                    || !ReferenceEquals(tile.Tag, preset) || !_presets.Contains(preset)) return;
+                bool owned = false;
+                for (DependencyObject? ancestor = tile; ancestor is not null; ancestor = VisualTreeHelper.GetParent(ancestor))
+                {
+                    if (ancestor is UIElement element && (!element.IsVisible || !element.IsEnabled)) return;
+                    if (ReferenceEquals(ancestor, this)) owned = true;
+                }
+                if (!owned) return;
+
+                if (isHome) ApplyPresetToHome(preset);
+                else ApplyPresetToAway(preset);
+                panel.Children.OfType<Border>().FirstOrDefault(current => ReferenceEquals(current.Tag, preset))?.Focus();
+            };
+        }
+
+        private void CancelPresetDrag(System.Windows.Controls.WrapPanel panel)
+        {
+            Border? tile = _dragTile;
+            if (tile is null) return;
+
+            // Capture can move to another control without an accepted release.
+            // Retire this gesture before releasing any capture that it still owns;
+            // normal MouseUp already retires it in CompleteDrag before Release.
+            _dragTile = null;
+            _isDragging = false;
+            if (tile.IsMouseCaptured)
+                tile.ReleaseMouseCapture();
+            ResetAllTileTransforms(panel);
+
+            if (_presetRefreshAfterDrag)
+            {
+                _presetRefreshAfterDrag = false;
+                RefreshSavedPresets();
+            }
+        }
+
+        private async void CompleteDrag(System.Windows.Controls.WrapPanel panel, bool isHome, TeamPreset clickedPreset)
         {
             Border? tile = _dragTile;
             bool wasDragging = _isDragging;
@@ -1285,16 +1494,12 @@ namespace Roche_Scoreboard.Views
 
             if (wasDragging)
             {
-                if (origIndex != currentIndex)
-                {
-                    TeamPreset moved = _presets[origIndex];
-                    _presets.RemoveAt(origIndex);
-                    _presets.Insert(currentIndex, moved);
-                    PresetStorage.SaveAll(_presets);
-                }
-
+                string[] order = _presets.Select(p => p.PresetName).ToArray();
                 ResetAllTileTransforms(panel);
                 RefreshPresetPanels();
+                if (origIndex != currentIndex && !_presetOperationPending && !_presetLoading)
+                    await PersistPresetChange(PresetStorage.ReorderAsync(PresetSport, order, origIndex, currentIndex), isHome,
+                        "Saving club order…", "Saved club order updated.");
             }
             else
             {
@@ -1303,6 +1508,9 @@ namespace Roche_Scoreboard.Views
                 else
                     ApplyPresetToAway(clickedPreset);
             }
+            if (_presetRefreshAfterDrag)
+            { _presetRefreshAfterDrag = false; RefreshSavedPresets(); }
+
         }
 
         private static void ResetAllTileTransforms(System.Windows.Controls.WrapPanel panel)
@@ -1441,20 +1649,14 @@ namespace Roche_Scoreboard.Views
             BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
         }
 
-        private void DeletePreset(TeamPreset? preset)
+        private async void DeletePreset(TeamPreset? preset, bool isHome)
         {
-            if (preset == null) return;
-
-            _presets.Remove(preset);
-
-            if (string.Equals(_selectedHomePreset?.PresetName, preset.PresetName, StringComparison.OrdinalIgnoreCase))
-                _selectedHomePreset = null;
-
-            if (string.Equals(_selectedAwayPreset?.PresetName, preset.PresetName, StringComparison.OrdinalIgnoreCase))
-                _selectedAwayPreset = null;
-
-            PresetStorage.SaveAll(_presets);
-            RefreshPresetPanels();
+            if (preset is null || _presetOperationPending || _presetLoading) return;
+            int selectedIndex = _presets.IndexOf(preset);
+            if (selectedIndex < 0)
+            { WizardTeamEditor.SetPresetStatus(this, isHome ? "Home" : "Away", "Select a saved club before deleting it."); return; }
+            await PersistPresetChange(PresetStorage.DeletePresetAsync(PresetSport, _presets, selectedIndex, _presetRevision), isHome,
+                $"Removing {preset.PresetName}…", $"{preset.PresetName} removed from saved clubs.", deletedPreset: preset);
         }
 
         private static Color SafeParseColor(string hex, string fallback)
@@ -1503,49 +1705,29 @@ namespace Roche_Scoreboard.Views
             => SavePreset(SetupHomeNameBox, SetupHomeAbbrBox, SetupHomeColorBox, SetupHomeSecondaryBox, _homeLogoPath, _homeVideoPath, true);
 
         private void DeleteHomePreset_Click(object sender, RoutedEventArgs e)
-            => DeletePreset(_selectedHomePreset);
+            => DeletePreset(_selectedHomePreset, true);
 
         private void SaveAwayPreset_Click(object sender, RoutedEventArgs e)
             => SavePreset(SetupAwayNameBox, SetupAwayAbbrBox, SetupAwayColorBox, SetupAwaySecondaryBox, _awayLogoPath, _awayVideoPath, false);
 
         private void DeleteAwayPreset_Click(object sender, RoutedEventArgs e)
-            => DeletePreset(_selectedAwayPreset);
+            => DeletePreset(_selectedAwayPreset, false);
 
-        private void SavePreset(TextBox nameBox, TextBox abbrBox, TextBox colorBox, TextBox secBox, string? logoPath, string? videoPath, bool isHome)
+        private async void SavePreset(TextBox nameBox, TextBox abbrBox, TextBox colorBox, TextBox secBox, string? logoPath, string? videoPath, bool isHome)
         {
+            if (_presetOperationPending || _presetLoading) return;
             string name = nameBox.Text.Trim();
-            if (string.IsNullOrWhiteSpace(name)) return;
-
-            string abbreviation = NormalizeAbbreviation(abbrBox.Text);
-
-            TeamPreset? existing = _presets.FirstOrDefault(p => string.Equals(p.PresetName, name, StringComparison.OrdinalIgnoreCase));
-            TeamPreset target;
-
-            if (existing != null)
+            if (string.IsNullOrWhiteSpace(name))
+            { WizardTeamEditor.SetPresetStatus(this, isHome ? "Home" : "Away", "Enter a team name before saving this club."); return; }
+            TeamPreset? selectedAtStart = isHome ? _selectedHomePreset : _selectedAwayPreset;
+            var draft = new TeamPreset
             {
-                target = existing;
-                target.PresetName = name;
-            }
-            else
-            {
-                target = new TeamPreset { PresetName = name };
-                _presets.Add(target);
-            }
-
-            target.TeamName = name;
-            target.Abbreviation = abbreviation;
-            target.PrimaryColor = colorBox.Text.Trim();
-            target.SecondaryColor = secBox.Text.Trim();
-            target.LogoPath = logoPath;
-            target.GoalVideoPath = videoPath;
-
-            if (isHome)
-                _selectedHomePreset = target;
-            else
-                _selectedAwayPreset = target;
-
-            PresetStorage.SaveAll(_presets);
-            RefreshPresetPanels();
+                PresetName = name, TeamName = name, Abbreviation = NormalizeAbbreviation(abbrBox.Text),
+                PrimaryColor = colorBox.Text.Trim(), SecondaryColor = secBox.Text.Trim(), LogoPath = logoPath,
+                GoalVideoPath = videoPath,
+            };
+            await PersistPresetChange(PresetStorage.SavePresetAsync(PresetSport, draft, includeGoalVideo: true), isHome,
+                $"Saving {name}…", $"{name} saved as a preset.", name, selectedAtStart);
         }
 
         private static Color BlendColor(Color a, Color b, double t)

@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml",
-  "source_sha256": "82b52e57190eb81b92edee946889d70dbcd99f31863608bd4cdcc0a97841c337",
+  "source_sha256": "78db5c45236c2f4069a36c1ce56f48c564a8f104a0e0c359f3340d9eb5adc88a",
   "names": [
     {
       "name": "CricketDesignRoot",
@@ -493,61 +493,61 @@
       "object": false
     }
   ],
-  "code_source_sha256": "d9867b9f899378b46a3d226a7519f01a4d0c710e9a3823e5e356adc17302740b",
+  "code_source_sha256": "adb9e8a3ae21106905b3fa90b787d8dfcc96f853e379b763c488a7c5d80c9d3b",
   "native_events": [],
   "platform_translations": [
     {
       "name": "MainScoreboard",
       "property": "TextElement.FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "ScoreWickets",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "ScoreSlash",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "ScoreRuns",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "PregameHomeFallback",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "PregameHomeName",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "PregameAwayFallback",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "PregameAwayName",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "EventWord",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     }
   ],

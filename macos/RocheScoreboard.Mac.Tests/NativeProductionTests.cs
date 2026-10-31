@@ -125,6 +125,8 @@ public sealed class NativeProductionTests
         var window = new Roche_Scoreboard.MainWindow();
         async Task Tap(Control target, int wait = 400)
         {
+            target.BringIntoView(); await Settle(100);
+            Assert.True(target.IsEffectivelyVisible, target.Name + " must be visible before pointer activation");
             var point = target.TranslatePoint(new Point(target.Bounds.Width / 2, target.Bounds.Height / 2), window)!.Value;
             window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left); await Settle(wait);
         }
@@ -135,6 +137,7 @@ public sealed class NativeProductionTests
             var launcher = window.FindControl<SportSelectionScreen>("SportSelectionPanel")!;
             await Tap(launcher.FindControl<Border>("AflCard")!, 1000);
             var wizard = window.FindControl<SetupWizard>("SetupWizardPanel")!;
+            await Tap(wizard.FindControl<Control>("NextButton")!, 300); // Sport is step one of the unified wizard.
             wizard.FindControl<TextBox>("SetupHomeNameBox")!.Text = "Old Xaverians";
             wizard.FindControl<TextBox>("SetupAwayNameBox")!.Text = "Old Caulfield";
             await Tap(wizard.FindControl<Control>("NextButton")!, 700);

@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketDeliveryDialog.xaml.cs; edit translator/adapters.
-// Source SHA-256: 9247270c1a9c69694ad91e4beb215facaa28b3b5baa0acbc8e91052970b04238
+// Source SHA-256: d17f9796dd73b53c0a3d10dcb75362785a96fd72f51beab1e6b4f9a7b98eeb48
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -176,6 +176,13 @@ public partial class CricketDeliveryDialog : UserControl
         }
         UpdateFields();
     }
+    private void UpdateRunsAccessibility(string? problem)
+    {
+        Avalonia.Automation.AutomationProperties.SetName(RunsBox, (RunsLabel.Text ?? string.Empty));
+        Avalonia.Automation.AutomationProperties.SetName(CustomRunsButton, "Enter custom " + (RunsLabel.Text ?? string.Empty).ToLowerInvariant());
+        Avalonia.Automation.AutomationProperties.SetHelpText(RunsBox, problem ?? (RunExplanation.Text ?? string.Empty));
+    }
+
     private void UpdateFields()
     {
         if (TypeChoice.SelectedIndex < 0) return;
@@ -255,7 +262,19 @@ public partial class CricketDeliveryDialog : UserControl
         bool penalty = scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall;
         RunExplanation.Text = penalty ? "Enter only additional runs. The one-run penalty is added once. A no-ball cannot also be a wide."
             : type == CricketDeliveryType.Wicket ? "Only completed runs count on a run out. Choose which batter was dismissed." : "Enter the runs completed. Byes and leg-byes have no automatic penalty.";
-        int.TryParse((RunsBox.Text ?? string.Empty), out int additional);
+        bool parsedRuns = int.TryParse((RunsBox.Text ?? string.Empty), out int additional);
+        string? runsProblem = RunOptions.IsVisible != true ? null
+            : !parsedRuns || additional < 0 || additional > 998 ? "Enter a whole number from 0 to 998."
+            : type is CricketDeliveryType.Bye or CricketDeliveryType.LegBye && additional == 0
+                ? "Choose at least one bye/leg-bye, or use a dot ball." : null;
+        RunsValidationText.Text = runsProblem ?? "";
+        RunsValidationText.IsVisible = runsProblem is null ? false : true;
+        UpdateRunsAccessibility(runsProblem);
+        if (runsProblem is not null)
+        {
+            PreviewText.Text = "Check runs before applying.";
+            return;
+        }
         int total = type switch
         {
             CricketDeliveryType.Dot => 0,
@@ -291,6 +310,20 @@ public partial class CricketDeliveryDialog : UserControl
             PreviewText.Text += $"\nNext on strike: {nextName}";
         }
     }
+    private void RejectRunsDraft(string message)
+    {
+        ErrorText.Text = message; ErrorText.IsVisible = true;
+        RunsValidationText.Text = message; RunsValidationText.IsVisible = true;
+        UpdateRunsAccessibility(message);
+        RunsBox.IsVisible = true;
+        if (_completed || !EntryContextIsCurrent || !RunsBox.IsLoaded || !RunsBox.IsVisible) return;
+        OperatorViewport.RevealValidationError(RunsValidationText);
+        if (_completed || !EntryContextIsCurrent || !RunsBox.IsLoaded || !RunsBox.IsVisible) return;
+        RunsBox.Focus(); NativeKeyboard.Focus(RunsBox);
+        if (_completed || !RunsBox.IsKeyboardFocusWithin) return;
+        OperatorViewport.RevealValidationError(RunsBox);
+    }
+
     private async void Apply_Click(object? sender, RoutedEventArgs args)
     {
         if (_completed || _applying) return;
@@ -309,7 +342,7 @@ public partial class CricketDeliveryDialog : UserControl
             var scoringType = type == CricketDeliveryType.Wicket ? CricketDelivery.WicketScoringType(wicketRuns) : type;
             bool requiresRuns = RunOptions.IsVisible == true;
             if (requiresRuns && (!int.TryParse((RunsBox.Text ?? string.Empty), out int value) || value < 0 || value > 998))
-            { ErrorText.Text = "Enter a whole number from 0 to 998."; return; }
+            { RejectRunsDraft("Enter a whole number from 0 to 998."); return; }
             if (_delivery is not null && SelectedBatterIndex != _originalStriker)
             {
                 string? scope = await CricketPrompt.ChooseAsync(EntryLayout, "Update strike for later balls?", "Choose how far this correction should carry. Score figures are recalculated from the delivery history.", new("ball", "This delivery only"), new("over", "This and the rest of the over", true), new("innings", "This and all following deliveries"), new("cancel", "Cancel correction"));
@@ -339,7 +372,7 @@ public partial class CricketDeliveryDialog : UserControl
                 CricketDeliveryType.Wicket when scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall => entered + 1,
                 _ => entered
             };
-            if (type is CricketDeliveryType.Bye or CricketDeliveryType.LegBye && runs == 0) { ErrorText.Text = "Choose at least one bye/leg-bye, or use a dot ball."; return; }
+            if (type is CricketDeliveryType.Bye or CricketDeliveryType.LegBye && runs == 0) { RejectRunsDraft("Choose at least one bye/leg-bye, or use a dot ball."); return; }
             string? fielder = FielderOptions.IsVisible == true && FielderChoice.SelectedIndex > 0 ? _innings.BowlingAttack[FielderChoice.SelectedIndex - 1].DisplayName : null;
             int victim = DismissedChoice.SelectedIndex >= 0 ? _dismissedIndices[DismissedChoice.SelectedIndex] : SelectedBatterIndex;
             var edit = new CricketDeliveryEdit

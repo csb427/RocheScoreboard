@@ -1038,6 +1038,9 @@ namespace Roche_Scoreboard.Models
             bool ignoreTarget = inn.IgnoreTarget, ignoreLimit = inn.IgnoreOverLimit;
             RestoreState(inn, delivery.StateBefore);
             inn.IgnoreTarget = ignoreTarget; inn.IgnoreOverLimit = ignoreLimit;
+            // Counts alone cannot distinguish an old ball from a replacement
+            // after Undo followed by re-scoring at the same ledger length.
+            DeliveryRevision++;
             _conditionsVersion++;
             CheckInningsComplete(inn);
             MatchChanged?.Invoke();

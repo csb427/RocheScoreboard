@@ -21,7 +21,10 @@ public partial class CricketControlPanel
             bool allowDifference = false;
             if (warnings.Count > 0)
             {
-                string? answer = await ChooseAsync("Figures do not add up", string.Join("\n\n", warnings) + "\n\nGo back to correct the entry, or continue with exactly these figures. No other scores will be changed to balance them.",
+                bool totalBalances = draft.CalculatedTotal == draft.TotalRuns;
+                string? answer = await ChooseAsync(totalBalances ? "Review related scorecard figures" : "Team total does not balance",
+                    (totalBalances ? $"Batters ({draft.BattingRuns}) + extras ({draft.ExtrasRuns}) = team total ({draft.TotalRuns}). This total balances.\n\n" : "")
+                    + string.Join("\n\n", warnings) + "\n\nGo back to correct the entry, or continue with exactly these figures. No other scores will be changed to balance them.",
                     new("go-back", "Go back", true), new("continue-anyway", "Continue anyway"), new("close", "Close"));
                 if (answer != "continue-anyway") return false;
                 allowDifference = true;

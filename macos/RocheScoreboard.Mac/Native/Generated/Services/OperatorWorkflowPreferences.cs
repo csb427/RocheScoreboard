@@ -1,5 +1,5 @@
 // Generated from Services/OperatorWorkflowPreferences.cs; edit translator/adapters.
-// Source SHA-256: 89990623d79cf798575a4d64baac75b3d20a5aad0900c1f8e83a7ff04d0da111
+// Source SHA-256: 58b22760efaa349b45dca037bdb7ba4bbeeaed181363a80c3e486e3b76436aa8
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -33,6 +33,8 @@ internal sealed class OperatorWorkflowPreferencesData
     public bool OutputScreensaverShowClock { get; set; } = true;
     public bool AflBreakScreenEnabled { get; set; } = true;
     public bool AflAutoOverlaysEnabled { get; set; } = true;
+    public bool? CricketAutomaticOverlays { get; set; }
+    public bool? CricketBreakPresentationRotation { get; set; }
     public bool CricketEventAnimations { get; set; } = true;
     public bool CricketRollingFigures { get; set; } = true;
     public bool CricketBowlerDetails { get; set; } = true;
@@ -96,7 +98,7 @@ internal static class OperatorWorkflowPreferences
         }
         catch
         {
-            return new OperatorWorkflowPreferencesData();
+            return Normalize(new OperatorWorkflowPreferencesData());
         }
     }
 
@@ -115,6 +117,12 @@ internal static class OperatorWorkflowPreferences
 
     private static OperatorWorkflowPreferencesData Normalize(OperatorWorkflowPreferencesData data)
     {
+        // Capture the legacy effective cricket choice before any Update caller
+        // changes AFL automation. Explicit cricket true/false stays independent.
+        data.CricketBreakPresentationRotation ??= data.AflBreakScreenEnabled;
+        // Older versions seeded cricket's automatic overlays from the AFL
+        // preference. Preserve that effective choice once, then keep them separate.
+        data.CricketAutomaticOverlays ??= data.AflAutoOverlaysEnabled;
         data.AflQuarterMinutes = Math.Clamp(data.AflQuarterMinutes, 1, 60);
         data.AflQuarterSeconds = Math.Clamp(data.AflQuarterSeconds, 0, 59);
         data.AflWeatherLocation = string.IsNullOrWhiteSpace(data.AflWeatherLocation)

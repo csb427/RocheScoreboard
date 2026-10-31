@@ -18,7 +18,9 @@ public partial class MainWindow
     internal async Task<Dictionary<string,bool>> RunOperatorInteractionChecksAsync(string directory)
     {
         var checks=new Dictionary<string,bool>();bool? old=OperatorMotion.AnimationOverride;
+        VerifyEyeDropperColorRefDecoder(checks);
         foreach(var check in await OperatorSetupTrainingChecks.RunAsync())checks[check.Key]=check.Value;
+        foreach(var check in await OperatorFallbackMotionChecks.RunAsync())checks[check.Key]=check.Value;
         foreach(var check in await SharedSurfaceMotionChecks.RunAsync())checks[check.Key]=check.Value;
         foreach(var check in await RunSportInteractionChecksAsync(directory))checks[check.Key]=check.Value;
         var stack=new StackPanel();var window=new Window {Width=620,Height=600,Content=new System.Windows.Documents.AdornerDecorator {Child=stack},ShowInTaskbar=false};

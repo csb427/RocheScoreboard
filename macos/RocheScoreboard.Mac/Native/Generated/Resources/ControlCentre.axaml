@@ -6,6 +6,10 @@
     <SolidColorBrush x:Key="ControlCentre.TabSelectedInkBrush" Color="#ACD7FF" />
     <SolidColorBrush x:Key="ControlCentre.SelectedTextBrush" Color="#FAFAFC" />
     <SolidColorBrush x:Key="ControlCentre.SegmentSelectedInkBrush" Color="#101318" />
+    <SolidColorBrush x:Key="ControlCentre.FinalsInkBrush" Color="#E9BF5C" />
+    <SolidColorBrush x:Key="ControlCentre.FinalsSelectedInkBrush" Color="#FFE6A3" />
+    <SolidColorBrush x:Key="ControlCentre.HeaderHomeInkBrush" Color="#CEE8FF" />
+    <SolidColorBrush x:Key="ControlCentre.HeaderAwayInkBrush" Color="#FFD9D2" />
     <SolidColorBrush x:Key="ControlCentre.ActionTextBrush" Color="#FAFAFC" />
     <SolidColorBrush x:Key="ControlCentre.CanvasBrush" Color="#09090B" />
     <SolidColorBrush x:Key="ControlCentre.SurfaceBrush" Color="#19191C" />
@@ -60,6 +64,7 @@
                                 <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                             </Grid.RenderTransform>
                             <ns6:OperatorGlassSurface x:Name="Bd" CornerRadius="26" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
+                            <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                             <Border x:Name="ActionGlow" CornerRadius="26" Background="White" Opacity="0" IsHitTestVisible="False" Margin="1" />
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}">
                                 <ContentPresenter.Margin>
@@ -87,6 +92,9 @@
         </Style>
         <Style Selector="^:disabled">
             <Setter Property="Cursor" Value="Arrow" />
+        </Style>
+        <Style Selector="^[Content=⋯]">
+            <Setter Property="motion:OperatorControlMotion.InflateOnPress" Value="True" />
         </Style>
         <Style Selector="^[Content=⋯]">
             <Setter Property="ContentTemplate" Value="{StaticResource ControlCentre.MoreGlyph}" />
@@ -189,6 +197,7 @@
         </Style>
     </ControlTheme>
     <ControlTheme x:Key="SettingsToggle" TargetType="CheckBox">
+        <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
         <Setter Property="native:NativeToolTipPolicy.Enabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}" />
         <Setter Property="motion:SettingsControlMotion.Enabled" Value="False" />
         <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
@@ -207,14 +216,17 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Border x:Name="Track" Width="50" Height="30" CornerRadius="15" Background="#48484D" BorderBrush="#66666C" BorderThickness="1" VerticalAlignment="Center">
-                            <Ellipse x:Name="ToggleKnob" Width="24" Height="24" Fill="White" HorizontalAlignment="Left" Margin="2,0,0,0" RenderTransformOrigin="50%,50%">
-                                <Ellipse.RenderTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
-                                        <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
-                                    </TransformGroup>
-                                </Ellipse.RenderTransform>
-                            </Ellipse>
+                            <Grid>
+                                <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <Ellipse x:Name="ToggleKnob" Width="24" Height="24" Fill="White" HorizontalAlignment="Left" Margin="2,0,0,0" RenderTransformOrigin="50%,50%">
+                                    <Ellipse.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                            <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
+                                        </TransformGroup>
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                            </Grid>
                         </Border>
                         <ContentPresenter Grid.Column="1" VerticalAlignment="Center" Margin="8,2,0,2" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                     </Grid>
@@ -237,8 +249,299 @@
             <Setter Property="Opacity" Value=".4" />
         </Style>
     </ControlTheme>
+    <ControlTheme x:Key="ControlCentre.FinalsToggle" TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+        <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
+        <Setter Property="motion:SettingsControlMotion.Enabled" Value="False" />
+        <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="MinHeight" Value="96" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Border x:Name="FinalsBase" CornerRadius="22" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
+                        <ns1:OperatorChoiceSurface x:Name="FinalsSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}">
+                            <ns1:OperatorChoiceSurface.FillBrush>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                    <GradientStop Color="#8A76551A" Offset="0" />
+                                    <GradientStop Color="#B09B7528" Offset="1" />
+                                </LinearGradientBrush>
+                            </ns1:OperatorChoiceSurface.FillBrush>
+                        </ns1:OperatorChoiceSurface>
+                        <Grid Margin="{TemplateBinding Padding}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="76" />
+                            </Grid.ColumnDefinitions>
+                            <ns1:OperatorSymbol x:Name="FinalsSymbol" Kind="finals" Width="32" Height="32" Foreground="{DynamicResource ControlCentre.FinalsInkBrush}" Margin="0,0,12,0" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0" IsHitTestVisible="False">
+                                <TextBlock x:Name="FinalsTitle" Text="FINALS MODE" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
+                                <TextBlock x:Name="FinalsDescription" Text="Golden bar styling and time-on after siren in final quarter" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <Grid x:Name="FinalsSwitchWell" Grid.Column="2" Width="64" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="FinalsStateText" Text="OFF" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" Margin="0,0,0,5" />
+                                <Border x:Name="FinalsTrack" Grid.Row="1" Width="50" Height="30" CornerRadius="15" Background="#302B20" BorderBrush="#756441" BorderThickness="1" HorizontalAlignment="Center">
+                                    <Grid>
+                                        <Border x:Name="FinalsThumb" Width="24" Height="24" CornerRadius="12" Background="#DCCFAF" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" RenderTransformOrigin="50%,50%">
+                                            <Border.RenderTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                                    <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
+                                                </TransformGroup>
+                                            </Border.RenderTransform>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                        <Border x:Name="FocusFrame" CornerRadius="22" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:checked /template/ TextBlock#FinalsStateText">
+            <Setter Property="Text" Value="ON" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#FinalsTrack">
+            <Setter Property="Background" Value="#634C13" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#FinalsTrack">
+            <Setter Property="BorderBrush" Value="#E2BB54" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#FinalsThumb">
+            <Setter Property="Background" Value="#FFE3A0" />
+        </Style>
+        <Style Selector="^:checked /template/ motion|OperatorSymbol#FinalsSymbol">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.FinalsSelectedInkBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#FinalsTitle">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#FinalsDescription">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#FinalsStateText">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#FinalsBase">
+            <Setter Property="BorderBrush" Value="#D4A017" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#FocusFrame">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="ControlCentre.StoppageToggle" TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="MinHeight" Value="104" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Border x:Name="StoppageBase" CornerRadius="16" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
+                        <ns1:OperatorChoiceSurface x:Name="StoppageSelection" OriginX="0" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <Grid Margin="{TemplateBinding Padding}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="64" />
+                            </Grid.ColumnDefinitions>
+                            <ns1:OperatorSymbol x:Name="StoppageSymbol" Kind="clock-up" IsActive="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}" Width="26" Height="26" Foreground="{TemplateBinding Foreground}" Margin="0,0,12,0" VerticalAlignment="Top" />
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                                <TextBlock x:Name="StoppageTitle" Text="Stoppage clock" FontSize="15" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}" TextWrapping="Wrap" />
+                                <TextBlock x:Name="StoppageDescription" Text="Show the local countdown in Match. At zero, it pauses the match clock." FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" IsHitTestVisible="False">
+                                <TextBlock x:Name="StoppageStateText" Text="OFF" Foreground="{TemplateBinding Foreground}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,5" />
+                                <Border x:Name="StoppageTrack" Width="50" Height="30" CornerRadius="15" Background="#343D48" BorderBrush="#708094" BorderThickness="1">
+                                    <Ellipse x:Name="StoppageThumb" Width="24" Height="24" Fill="White" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" RenderTransformOrigin="50%,50%">
+                                        <Ellipse.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                                <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
+                                            </TransformGroup>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                        <Border x:Name="FocusFrame" CornerRadius="16" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:checked">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#StoppageDescription">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#StoppageStateText">
+            <Setter Property="Text" Value="ON" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#StoppageTrack">
+            <Setter Property="Background" Value="#145AA7" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#StoppageTrack">
+            <Setter Property="BorderBrush" Value="#7EC7FF" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#StoppageBase">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#FocusFrame">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="ControlCentre.NamesToggle" TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+        <Setter Property="motion:CricketActionMotion.Enabled" Value="False" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="MinHeight" Value="104" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Border x:Name="NamesBase" CornerRadius="18" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
+                        <ns1:OperatorChoiceSurface x:Name="NamesSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <Grid Margin="{TemplateBinding Padding}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="74" />
+                            </Grid.ColumnDefinitions>
+                            <ns1:OperatorSymbol x:Name="NamesSymbol" Kind="hide-team-names" IsActive="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}" Width="28" Height="28" Foreground="{TemplateBinding Foreground}" Margin="0,0,12,0" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                                <TextBlock x:Name="NamesTitle" Text="Hide team names" FontSize="15" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}" TextWrapping="Wrap" />
+                                <TextBlock x:Name="NamesDescription" Text="Removes name panels while keeping professional, digit-safe score sizing" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" IsHitTestVisible="False">
+                                <TextBlock x:Name="NamesStateText" Text="ALLOWED" Foreground="{TemplateBinding Foreground}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,5" />
+                                <Border x:Name="NamesTrack" Width="50" Height="30" CornerRadius="15" Background="#343D48" BorderBrush="#708094" BorderThickness="1" HorizontalAlignment="Center">
+                                    <Border x:Name="NamesThumb" Width="24" Height="24" CornerRadius="12" Background="White" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" RenderTransformOrigin="50%,50%">
+                                        <Border.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                                <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
+                                            </TransformGroup>
+                                        </Border.RenderTransform>
+                                    </Border>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                        <Border x:Name="FocusFrame" CornerRadius="18" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:checked">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#NamesDescription">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#NamesStateText">
+            <Setter Property="Text" Value="HIDDEN" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#NamesTrack">
+            <Setter Property="Background" Value="#145AA7" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#NamesTrack">
+            <Setter Property="BorderBrush" Value="#7EC7FF" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#NamesBase">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#FocusFrame">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="ControlCentre.QuarterBreakToggle" TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="MinHeight" Value="112" />
+        <Setter Property="Background" Value="{DynamicResource ControlCentre.RaisedBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Border x:Name="QuarterBreakBase" CornerRadius="20" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
+                        <ns1:OperatorChoiceSurface x:Name="QuarterBreakSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <Grid Margin="{TemplateBinding Padding}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="64" />
+                            </Grid.ColumnDefinitions>
+                            <ns1:OperatorSymbol x:Name="QuarterBreakSymbol" Kind="quarter-break" IsActive="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}" Width="30" Height="30" Foreground="{TemplateBinding Foreground}" Margin="0,1,12,0" VerticalAlignment="Top" />
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                                <TextBlock x:Name="QuarterBreakTitle" Text="Quarter-break screens" FontSize="15" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}" TextWrapping="Wrap" />
+                                <TextBlock x:Name="QuarterBreakDescription" Text="At quarter end, show the score first, then cycle match analysis." FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" IsHitTestVisible="False">
+                                <TextBlock x:Name="QuarterBreakStateText" Text="OFF" Foreground="{TemplateBinding Foreground}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,5" />
+                                <Border x:Name="QuarterBreakTrack" Width="50" Height="30" CornerRadius="15" Background="#343D48" BorderBrush="#708094" BorderThickness="1">
+                                    <Ellipse x:Name="QuarterBreakThumb" Width="24" Height="24" Fill="White" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" RenderTransformOrigin="50%,50%">
+                                        <Ellipse.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                                <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
+                                            </TransformGroup>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                        <Border x:Name="FocusFrame" CornerRadius="20" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:checked">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#QuarterBreakDescription">
+            <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SelectedTextBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ TextBlock#QuarterBreakStateText">
+            <Setter Property="Text" Value="ON" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#QuarterBreakTrack">
+            <Setter Property="Background" Value="#145AA7" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#QuarterBreakTrack">
+            <Setter Property="BorderBrush" Value="#7EC7FF" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#QuarterBreakBase">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#FocusFrame">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
     <ControlTheme TargetType="CheckBox" BasedOn="{StaticResource SettingsToggle}" x:Key="{x:Type CheckBox}" />
     <ControlTheme x:Key="SettingsTile" TargetType="RadioButton">
+        <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
         <Setter Property="native:NativeToolTipPolicy.Enabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}" />
         <Setter Property="motion:CricketActionMotion.Enabled" Value="False" />
         <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
@@ -263,6 +566,7 @@
                                 <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                             </Grid.RenderTransform>
                             <ns6:OperatorGlassSurface x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="20" />
+                            <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                             <Border x:Name="ActionGlow" Background="White" CornerRadius="20" Margin="1" Opacity="0" IsHitTestVisible="False" />
                             <Grid Margin="{TemplateBinding Padding}">
                                 <Grid.ColumnDefinitions>
@@ -270,7 +574,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                                <Border x:Name="SelectionMark" Grid.Column="1" Width="20" Height="20" CornerRadius="10" Background="#8DCDFF" Margin="10,0,0,0" IsVisible="False">
+                                <Border x:Name="SelectionMark" Grid.Column="1" Width="20" Height="20" CornerRadius="10" Background="#8DCDFF" Margin="10,0,0,0" Opacity="0" IsHitTestVisible="False">
                                     <Path x:Name="PART_CheckPath" StrokeDashArray="22,22" StrokeDashOffset="0" Data="M4,10 L8,14 16,6" Stroke="#0A1824" StrokeThickness="2" StrokeLineCap="Round" />
                                 </Border>
                             </Grid>
@@ -289,7 +593,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
         </Style>
         <Style Selector="^:checked /template/ Border#SelectionMark">
-            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^:focus:focus-visible /template/ glass|OperatorGlassSurface#Tile">
             <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
@@ -427,10 +731,10 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Grid>
-                        <ToggleButton x:Name="Toggle" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
+                        <ToggleButton x:Name="Toggle" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press">
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType="ToggleButton">
-                                    <ns6:OperatorGlassSurface x:Name="Frame" Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderThickness="1" CornerRadius="12">
+                                    <ns6:OperatorGlassSurface x:Name="Frame" Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=ComboBox}}" Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}" BorderThickness="1" CornerRadius="12">
                                         <TextBlock Text="⌄" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="21" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,4" />
                                     </ns6:OperatorGlassSurface>
                                 </ControlTemplate>
@@ -446,8 +750,8 @@
                         </ToggleButton>
                         <ContentPresenter x:Name="SelectionLabel" Margin="12,5,36,5" VerticalAlignment="Center" IsHitTestVisible="False" ClipToBounds="True" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
                         <TextBox MinHeight="0" Padding="0" x:Name="PART_EditableTextBox" Margin="10,4,36,4" Background="Transparent" BorderThickness="0" Foreground="{TemplateBinding Foreground}" CaretBrush="{TemplateBinding Foreground}" VerticalContentAlignment="Center" IsReadOnly="False" IsVisible="False" />
-                        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" Focusable="False" ns3:PopupMotion.Kind="None">
-                            <ns6:OperatorGlassSurface GlassSource="{Binding RelativeSource={RelativeSource TemplatedParent}}" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="6" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="320">
+                        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}" Focusable="False" ns3:PopupMotion.Kind="None">
+                            <ns6:OperatorGlassSurface GlassSource="{Binding RelativeSource={RelativeSource TemplatedParent}}" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="6" MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="320">
                                 <ScrollViewer>
                                     <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" KeyboardNavigation.TabNavigation="Contained" />
                                 </ScrollViewer>
@@ -633,6 +937,7 @@
         </Setter>
     </ControlTheme>
     <ControlTheme TargetType="ScrollBar" x:Key="{x:Type ScrollBar}">
+        <Setter Property="motion:ScrollActivity.FadeEnabled" Value="True" />
         <Setter Property="Width" Value="10" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Opacity" Value="0" />
@@ -687,9 +992,6 @@
         <Style Selector="^[(motion|ScrollActivity.Active)=True]">
             <Setter Property="Opacity" Value=".85" />
         </Style>
-        <Style Selector="^[(motion|ScrollActivity.Active)=False]">
-            <Setter Property="Opacity" Value="0" />
-        </Style>
     </ControlTheme>
     <ControlTheme TargetType="ToolTip" x:Key="{x:Type ToolTip}">
         <Setter Property="Foreground" Value="{DynamicResource ControlCentre.ActionTextBrush}" />
@@ -739,6 +1041,7 @@
         </Style>
     </ControlTheme>
     <ControlTheme x:Key="SettingsSegment" TargetType="RadioButton">
+        <Setter Property="motion:OperatorControlMotion.InflateOnPress" Value="True" />
         <Setter Property="motion:CricketActionMotion.Enabled" Value="False" />
         <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
         <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
@@ -780,7 +1083,10 @@
                             <Border.RenderTransform>
                                 <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                             </Border.RenderTransform>
-                            <ns1:OperatorSymbol Kind="power" Width="25" Height="25" Foreground="{DynamicResource ControlCentre.TextBrush}" />
+                            <Grid>
+                                <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ns1:OperatorSymbol Kind="power" Width="25" Height="25" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
                         </Border>
                         <Border x:Name="PowerFocus" Width="54" Height="46" CornerRadius="17" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
                     </Grid>
@@ -798,6 +1104,7 @@
         </Style>
     </ControlTheme>
     <ControlTheme x:Key="SettingsCommand" TargetType="RadioButton" BasedOn="{StaticResource SettingsTile}">
+        <Setter Property="motion:OperatorControlMotion.InflateOnPress" Value="True" />
         <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
@@ -859,6 +1166,62 @@
         </Style>
         <Style Selector="^:disabled">
             <Setter Property="Opacity" Value=".4" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="SettingsSavedAction" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}">
+        <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <ns6:OperatorGlassSurface CornerRadius="20" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" />
+                        <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        <Border x:Name="SavedFocus" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" CornerRadius="20" IsHitTestVisible="False" IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:focus:focus-visible /template/ Border#SavedFocus">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value=".45" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="ScorecardCorrectionGroup" TargetType="Expander">
+        <Setter Property="motion:DisclosureMotion.Enabled" Value="True" />
+        <Setter Property="Margin" Value="0,8,0,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <Border CornerRadius="18" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1">
+                        <StackPanel>
+                            <ToggleButton IsChecked="{Binding IsExpanded,RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}" Content="{TemplateBinding Header}" MinHeight="52" HorizontalContentAlignment="Stretch" Background="Transparent" BorderThickness="0">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="CorrectionSectionHeader" Padding="12,10" CornerRadius="17" Background="{TemplateBinding Background}" BorderThickness="2" BorderBrush="Transparent">
+                                            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Stretch" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                                <ToggleButton.Styles>
+                                    <Style Selector="ToggleButton:pointerover /template/ Border#CorrectionSectionHeader">
+                                        <Setter Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}" />
+                                    </Style>
+                                    <Style Selector="ToggleButton:focus:focus-visible /template/ Border#CorrectionSectionHeader">
+                                        <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+                                    </Style>
+                                </ToggleButton.Styles>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="Body" Content="{TemplateBinding Content}" Margin="12,0,12,12" ContentTemplate="{TemplateBinding ContentTemplate}" IsVisible="False" />
+                        </StackPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style Selector="^:expanded /template/ ContentPresenter#Body">
+            <Setter Property="IsVisible" Value="True" />
         </Style>
     </ControlTheme>
 </ResourceDictionary>

@@ -19,7 +19,7 @@ public static class OperatorDesign
             if(args.PropertyName != nameof(SystemParameters.HighContrast))return;
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             if(dispatcher is null || dispatcher.HasShutdownStarted)return;
-            dispatcher.BeginInvoke(new Action(() => UpdateTheme(_theme)));
+            dispatcher.BeginInvoke(new Action(() => UpdateTheme(_theme, force: true)));
         };
     }
     public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
@@ -80,6 +80,7 @@ public static class OperatorDesign
     }
     internal static void UpdateDensity(UiDensity density)
     {
+        if (_density == density) return;
         if (_density != density)
         {
             // Capture once per visible operator window, never once per descendant.
@@ -93,8 +94,12 @@ public static class OperatorDesign
             if (Registered[i].TryGetTarget(out var root)) SetDensity(root, density);
             else Registered.RemoveAt(i);
     }
-    internal static void UpdateTheme(AppTheme theme)
+    internal static void UpdateTheme(AppTheme theme, bool force = false)
     {
+        // Apply/Loaded initialize each root directly. Repeating an accepted
+        // global policy must not rebuild resources throughout every view.
+        // System High Contrast changes explicitly force the palette refresh.
+        if (!force && _theme == theme) return;
         _theme = theme;
         for (int i = Registered.Count - 1; i >= 0; --i)
             if (Registered[i].TryGetTarget(out var root)) SetTheme(root, theme);
@@ -108,7 +113,9 @@ public static class OperatorDesign
             ("Canvas", dark ? "#09090B" : "#EFEFF3"), ("Surface", dark ? "#19191C" : "#FAFAFC"),
             ("Raised", dark ? "#29292D" : "#E1E1E8"), ("Text", dark ? "#FAFAFC" : "#19191E"),
             ("SecondaryText", dark ? "#B6B6C0" : "#545461"), ("Border", dark ? "#44444B" : "#858590"),
-            ("Selection", dark ? "#253D55" : "#D0E5FF"), ("Accent", dark ? "#7BB8FF" : "#145699")
+            ("Selection", dark ? "#253D55" : "#D0E5FF"), ("Accent", dark ? "#7BB8FF" : "#145699"),
+            ("FinalsInk", dark ? "#E9BF5C" : "#523B0C"), ("FinalsSelectedInk", dark ? "#FFE6A3" : "#30210A"),
+            ("HeaderHomeInk", dark ? "#CEE8FF" : "#145699"), ("HeaderAwayInk", dark ? "#FFD9D2" : "#A12620")
         }) root.Resources["ControlCentre." + key + "Brush"] = (SolidColorBrush)new BrushConverter().ConvertFromString(hex)!;
         root.Resources["ControlCentre.SelectedTextBrush"] = root.Resources["ControlCentre.TextBrush"];
         root.Resources["ControlCentre.SegmentSelectedInkBrush"] = System.Windows.Media.Brushes.Black;
@@ -140,5 +147,9 @@ public static class OperatorDesign
         root.Resources["ControlCentre.SelectedTextBrush"] = SystemColors.HighlightTextBrush;
         root.Resources["ControlCentre.SegmentSelectedInkBrush"] = SystemColors.HighlightTextBrush;
         root.Resources["ControlCentre.TabSelectedInkBrush"] = SystemColors.HighlightTextBrush;
+        root.Resources["ControlCentre.FinalsInkBrush"] = SystemColors.WindowTextBrush;
+        root.Resources["ControlCentre.FinalsSelectedInkBrush"] = SystemColors.HighlightTextBrush;
+        root.Resources["ControlCentre.HeaderHomeInkBrush"] = SystemColors.WindowTextBrush;
+        root.Resources["ControlCentre.HeaderAwayInkBrush"] = SystemColors.WindowTextBrush;
     }
 }

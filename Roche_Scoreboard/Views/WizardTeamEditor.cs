@@ -41,8 +41,8 @@ internal static class WizardTeamEditor
             {
                 var input=i==0?primary:secondary;var row=(FrameworkElement)input.Parent;Detach(row);
                 input.SetResourceReference(Control.StyleProperty,"SettingsInput");input.Background=Brushes.Transparent;input.SetResourceReference(Control.ForegroundProperty,"ControlCentre.TextBrush");input.MinHeight=36;input.FontSize=13;
-                foreach(var old in Descendants(row).OfType<Border>().Where(b=>b.Cursor==System.Windows.Input.Cursors.Hand))
-                {old.CornerRadius=new CornerRadius(10);old.Height=30;old.Width=30;if(old.Child is TextBlock)old.Child=new OperatorSymbol{Kind="eyedropper",Width=16,Height=16,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};}
+                foreach(var old in Descendants(row).OfType<Border>().Where(b=>b is OperatorActionBorder || b.Cursor==System.Windows.Input.Cursors.Hand))
+                {old.CornerRadius=new CornerRadius(10);old.Height=40;old.Width=40;if(old.Child is TextBlock)old.Child=new OperatorSymbol{Kind="eyedropper",Width=16,Height=16,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};}
                 var field=Field(i==0?"Primary colour":"Secondary colour",row);Grid.SetColumn(field,i*2);colours.Children.Add(field);
             }
             var preset=(WrapPanel)wizard.FindName($"{side}PresetPanel");Detach(preset);
@@ -75,11 +75,30 @@ internal static class WizardTeamEditor
             var actions=new WrapPanel{Margin=new Thickness(0,18,0,0)};
             foreach(var button in ownButtons.Where(b=>b.Content is string caption && (caption=="Save Current" || caption=="Delete")))
             {Detach(button);button.Content=(string)button.Content=="Delete"?"Delete preset":"Save as preset";button.Height=double.NaN;button.MinHeight=38;button.Margin=new Thickness(0,0,8,6);actions.Children.Add(button);}
-            form.Children.Add(actions);oldCard.Child=form;body.Children.Add(oldCard);
+            form.Children.Add(actions);
+            var presetStatus=new TextBlock{Tag="team-preset-status:"+side,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,2,0,6),Visibility=Visibility.Collapsed};
+            presetStatus.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");
+            System.Windows.Automation.AutomationProperties.SetLiveSetting(presetStatus,System.Windows.Automation.AutomationLiveSetting.Polite);
+            form.Children.Add(presetStatus);oldCard.Child=form;body.Children.Add(oldCard);
             var surface=new OperatorGlassSurface{Material=GlassMaterial.Regular,CornerRadius=new CornerRadius(30),Padding=new Thickness(24),BorderThickness=new Thickness(1),VerticalAlignment=VerticalAlignment.Top,Child=body};surface.SetResourceReference(Border.BackgroundProperty,"ControlCentre.GlassBrush");surface.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");Grid.SetColumn(surface,home?0:2);pair.Children.Add(surface);
         }
         stage.Children.Clear();stage.Children.Add(pair);
         RestyleWeather(wizard);
+    }
+    internal static void SetPresetStatus(UserControl wizard,string side,string message,bool pending=false)
+    {
+        if(wizard.FindName(side+"TeamCard") is not Border card)return;
+        var status=Descendants(card).OfType<TextBlock>().FirstOrDefault(text=>Equals(text.Tag,"team-preset-status:"+side));
+        if(status is not null){status.Text=message;status.Visibility=string.IsNullOrWhiteSpace(message)?Visibility.Collapsed:Visibility.Visible;}
+        foreach(var action in Descendants(card).OfType<Button>().Where(button=>button.Content is string text && (text=="Save as preset"||text=="Delete preset")))
+            action.IsEnabled=!pending;
+    }
+    internal static void SetPresetActionsPending(UserControl wizard,bool pending)
+    {
+        foreach(string side in new[]{"Home","Away"})
+            if(wizard.FindName(side+"TeamCard") is Border card)
+                foreach(var action in Descendants(card).OfType<Button>().Where(button=>button.Content is string text && (text=="Save as preset"||text=="Delete preset")))
+                    action.IsEnabled=!pending;
     }
     private static bool IsWithinSide(FrameworkElement element,string side)
     {

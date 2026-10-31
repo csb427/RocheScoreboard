@@ -1,5 +1,5 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<Window xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ScoreEventEditorWindow" ns2:OperatorDesign.IsEnabled="True" Title="Edit Score Event" WindowStartupLocation="CenterOwner" SizeToContent="Height" Width="430" MaxHeight="{Binding Height, Source={x:Static native:NativeDesktop.WorkArea}}" Background="#19191C" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="15" Foreground="#FAFAFC" ShowInTaskbar="False" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:design="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" CanResize="False" SystemDecorations="Full">
+<Window xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.ScoreEventEditorWindow" ns2:OperatorDesign.IsEnabled="True" Title="Edit Score Event" WindowStartupLocation="CenterOwner" SizeToContent="Height" Width="430" MaxHeight="{Binding Height, Source={x:Static native:NativeDesktop.WorkArea}}" Background="{DynamicResource ControlCentre.CanvasBrush}" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="15" Foreground="{DynamicResource ControlCentre.TextBrush}" ShowInTaskbar="False" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:design="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" CanResize="False" SystemDecorations="Full">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -14,6 +14,40 @@
                     </Setter.Value>
                 </Setter>
             </ControlTheme>
+            <ControlTheme x:Key="ScoreChoice" TargetType="RadioButton" BasedOn="{StaticResource SettingsTile}">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Padding" Value="10" />
+                <Setter Property="design:OperatorChoiceMotion.Enabled" Value="True" />
+                <Setter Property="design:OperatorControlMotion.Enabled" Value="False" />
+                <Setter Property="design:CricketActionMotion.Enabled" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Grid Background="Transparent">
+                                <ns4:OperatorGlassSurface x:Name="ScoreChoiceMaterial" CornerRadius="16" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
+                                <ns2:OperatorChoiceSurface x:Name="ScoreChoiceLens" OriginX="0.5" Progress="{Binding Path=(design:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                <Border x:Name="ScoreSelectionMark" Width="18" Height="18" CornerRadius="9" Margin="6" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{DynamicResource ControlCentre.AccentBrush}" IsHitTestVisible="False" IsVisible="False">
+                                    <Path Data="M4,9 L7,12 14,5" Stroke="{DynamicResource ControlCentre.CanvasBrush}" StrokeThickness="2" StrokeLineCap="Round" />
+                                </Border>
+                                <Border x:Name="ScoreChoiceFocus" CornerRadius="16" BorderThickness="2" BorderBrush="{DynamicResource ControlCentre.TextBrush}" IsHitTestVisible="False" IsVisible="False" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style Selector="^:checked /template/ Border#ScoreSelectionMark">
+                    <Setter Property="IsVisible" Value="True" />
+                </Style>
+                <Style Selector="^:checked /template/ glass|OperatorGlassSurface#ScoreChoiceMaterial">
+                    <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+                </Style>
+                <Style Selector="^:focus /template/ Border#ScoreChoiceFocus">
+                    <Setter Property="IsVisible" Value="True" />
+                </Style>
+                <Style Selector="^:disabled">
+                    <Setter Property="Opacity" Value=".4" />
+                </Style>
+            </ControlTheme>
         </ResourceDictionary>
     </Window.Resources>
     <ns4:OperatorGlassSurface Material="Regular" GlassSource="{Binding Owner.Content, RelativeSource={RelativeSource AncestorType=Window}}" CornerRadius="30" BorderBrush="#68FFFFFF" BorderThickness="1" Background="{DynamicResource ControlCentre.GlassBrush}">
@@ -21,16 +55,18 @@
             <StackPanel Margin="22,20,22,22">
                 <Grid Margin="0,0,0,14">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="28" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="34" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="DialogHeading" Text="EDIT SCORE EVENT" Foreground="#58A6FF" FontSize="13" FontWeight="Black" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Content="×" Click="Cancel_Click" Width="32" Height="32" MinHeight="0" Padding="0" FontSize="22" ToolTip.Tip="Cancel score changes" />
+                    <ns2:OperatorSymbol Kind="edit" Width="20" Height="20" Foreground="{DynamicResource ControlCentre.AccentBrush}" VerticalAlignment="Center" />
+                    <TextBlock x:Name="DialogHeading" Grid.Column="1" Text="EDIT SCORE EVENT" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="13" FontWeight="Black" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Content="×" AutomationProperties.Name="Cancel score changes" Click="Cancel_Click" Width="32" Height="32" MinHeight="0" Padding="0" FontSize="22" ToolTip.Tip="Cancel score changes" />
                 </Grid>
-                <Border x:Name="EventSummaryBorder" Background="#111113" BorderBrush="#3D3D44" BorderThickness="1" CornerRadius="16" Padding="12,10" Margin="0,0,0,16">
+                <Border x:Name="EventSummaryBorder" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="12,10" Margin="0,0,0,16">
                     <StackPanel>
-                        <TextBlock x:Name="EventInfoText" Text="Q1 02:15" Foreground="#B6B6C0" FontSize="13" FontWeight="SemiBold" />
-                        <TextBlock x:Name="EventScoreText" Text="After: 2.3.15 – 1.2.8" Foreground="#AAAAB8" FontSize="13" Margin="0,3,0,0" />
+                        <TextBlock x:Name="EventInfoText" Text="Q1 02:15" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" FontWeight="SemiBold" />
+                        <TextBlock x:Name="EventScoreText" Text="After: 2.3.15 – 1.2.8" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" Margin="0,3,0,0" />
                     </StackPanel>
                 </Border>
                 <Grid Margin="0,0,0,16">
@@ -40,71 +76,78 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <StackPanel>
-                        <TextBlock Text="QUARTER" Foreground="#B6B6C0" FontSize="12" FontWeight="Black" Margin="0,0,0,8" />
-                        <ComboBox x:Name="QuarterBox" Height="38" SelectedIndex="0" Background="#111113" Foreground="#E6EDF3" BorderBrush="#3D3D44">
+                        <TextBlock Text="QUARTER" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="Black" Margin="0,0,0,8" />
+                        <ComboBox x:Name="QuarterBox" AutomationProperties.Name="Quarter" Height="38" SelectedIndex="0" Background="{DynamicResource ControlCentre.SurfaceBrush}" Foreground="{DynamicResource ControlCentre.TextBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}">
                             <ComboBoxItem Content="Q1" />
                             <ComboBoxItem Content="Q2" />
                             <ComboBoxItem Content="Q3" />
                             <ComboBoxItem Content="Q4" />
                         </ComboBox>
                     </StackPanel>
-                    <CheckBox x:Name="UseCurrentQuarterBox" Grid.Column="2" Content="USE CURRENT QUARTER" IsChecked="True" Foreground="#C7D2DF" FontSize="12" FontWeight="Bold" VerticalAlignment="Bottom" Margin="0,0,0,10" IsCheckedChanged="Native_OptionalTiming_Changed" />
+                    <CheckBox x:Name="UseCurrentQuarterBox" Grid.Column="2" Content="USE CURRENT QUARTER" IsChecked="True" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="12" FontWeight="Bold" VerticalAlignment="Bottom" Margin="0,0,0,10" IsCheckedChanged="Native_OptionalTiming_Changed" />
                 </Grid>
-                <TextBlock Text="TIME IN QUARTER" Foreground="#B6B6C0" FontSize="12" FontWeight="Black" Margin="0,0,0,8" />
+                <TextBlock Text="TIME IN QUARTER" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="Black" Margin="0,0,0,8" />
                 <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="MinutesBox" Grid.Column="0" Text="00" MaxLength="2" Background="#111113" Foreground="#E6EDF3" BorderBrush="#3D3D44" BorderThickness="1" FontSize="20" FontWeight="Bold" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" TextAlignment="Center" VerticalContentAlignment="Center" Padding="4,6" CaretBrush="#58A6FF" />
-                    <TextBlock Grid.Column="1" Text=":" Foreground="#AAAAB8" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0" />
-                    <TextBox x:Name="SecondsBox" Grid.Column="2" Text="00" MaxLength="2" Background="#111113" Foreground="#E6EDF3" BorderBrush="#3D3D44" BorderThickness="1" FontSize="20" FontWeight="Bold" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" TextAlignment="Center" VerticalContentAlignment="Center" Padding="4,6" CaretBrush="#58A6FF" />
+                    <TextBox x:Name="MinutesBox" AutomationProperties.Name="Minutes in quarter" Grid.Column="0" Text="00" MaxLength="2" Background="{DynamicResource ControlCentre.SurfaceBrush}" Foreground="{DynamicResource ControlCentre.TextBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" FontSize="20" FontWeight="Bold" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" TextAlignment="Center" VerticalContentAlignment="Center" Padding="4,6" CaretBrush="{DynamicResource ControlCentre.AccentBrush}" />
+                    <TextBlock Grid.Column="1" Text=":" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0" />
+                    <TextBox x:Name="SecondsBox" AutomationProperties.Name="Seconds in quarter" Grid.Column="2" Text="00" MaxLength="2" Background="{DynamicResource ControlCentre.SurfaceBrush}" Foreground="{DynamicResource ControlCentre.TextBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" FontSize="20" FontWeight="Bold" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" TextAlignment="Center" VerticalContentAlignment="Center" Padding="4,6" CaretBrush="{DynamicResource ControlCentre.AccentBrush}" />
                 </Grid>
-                <CheckBox x:Name="UseCurrentTimeBox" Content="USE CURRENT MATCH TIME" IsChecked="True" Foreground="#C7D2DF" FontSize="12" FontWeight="Bold" Margin="0,-8,0,16" IsCheckedChanged="Native_OptionalTiming_Changed" />
-                <TextBlock Text="TEAM" Foreground="#B6B6C0" FontSize="12" FontWeight="Black" Margin="0,0,0,8" />
+                <CheckBox x:Name="UseCurrentTimeBox" Content="USE CURRENT MATCH TIME" IsChecked="True" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="12" FontWeight="Bold" Margin="0,-8,0,16" IsCheckedChanged="Native_OptionalTiming_Changed" />
+                <TextBlock x:Name="ValidationText" TextWrapping="Wrap" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="13" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" Margin="0,0,0,12" IsVisible="False" />
+                <TextBlock Text="TEAM" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="Black" Margin="0,0,0,8" />
                 <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="8" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border x:Name="HomeTeamBtn" Grid.Column="0" CornerRadius="16" Padding="12,10" Cursor="Hand" Background="#111113" BorderBrush="#3D3D44" BorderThickness="2" native:NativeActivation.Enabled="True" PointerReleased="Native_HomeTeam_Click">
+                    <RadioButton x:Name="HomeTeamBtn" Grid.Column="0" GroupName="ScoreTeam" AutomationProperties.Name="Home team" Cursor="Hand" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="2" Theme="{StaticResource ScoreChoice}" IsCheckedChanged="Native_HomeTeam_Click_Checked">
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="" FontFamily="{fonts:ProductionFont 'Segoe MDL2 Assets'}" FontSize="22" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,6" />
-                            <TextBlock Text="HOME" Foreground="#AAAAB8" FontSize="12" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2" />
-                            <TextBlock x:Name="HomeTeamLabel" Text="Home" Foreground="#E6EDF3" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="130" />
+                            <ns2:OperatorSymbol x:Name="HomeTeamSymbol" Kind="teams" IsActive="{Binding IsChecked, ElementName=HomeTeamBtn}" Width="22" Height="22" HorizontalAlignment="Center" Margin="0,0,0,6" />
+                            <TextBlock Text="HOME" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2" />
+                            <TextBlock x:Name="HomeTeamLabel" Text="Home" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxWidth="130" MaxHeight="36" />
                         </StackPanel>
-                    </Border>
-                    <Border x:Name="AwayTeamBtn" Grid.Column="2" CornerRadius="16" Padding="12,10" Cursor="Hand" Background="#111113" BorderBrush="#3D3D44" BorderThickness="2" native:NativeActivation.Enabled="True" PointerReleased="Native_AwayTeam_Click">
+                    </RadioButton>
+                    <RadioButton x:Name="AwayTeamBtn" Grid.Column="2" GroupName="ScoreTeam" AutomationProperties.Name="Away team" Cursor="Hand" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="2" Theme="{StaticResource ScoreChoice}" IsCheckedChanged="Native_AwayTeam_Click_Checked">
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="" FontFamily="{fonts:ProductionFont 'Segoe MDL2 Assets'}" FontSize="22" Foreground="#FF7755" HorizontalAlignment="Center" Margin="0,0,0,6" />
-                            <TextBlock Text="AWAY" Foreground="#AAAAB8" FontSize="12" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2" />
-                            <TextBlock x:Name="AwayTeamLabel" Text="Away" Foreground="#E6EDF3" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="130" />
+                            <ns2:OperatorSymbol x:Name="AwayTeamSymbol" Kind="teams" IsActive="{Binding IsChecked, ElementName=AwayTeamBtn}" Width="22" Height="22" HorizontalAlignment="Center" Margin="0,0,0,6" />
+                            <TextBlock Text="AWAY" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="Black" HorizontalAlignment="Center" Margin="0,0,0,2" />
+                            <TextBlock x:Name="AwayTeamLabel" Text="Away" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxWidth="130" MaxHeight="36" />
                         </StackPanel>
-                    </Border>
+                    </RadioButton>
                 </Grid>
-                <TextBlock Text="TYPE" Foreground="#B6B6C0" FontSize="12" FontWeight="Black" Margin="0,0,0,8" />
+                <TextBlock Text="TYPE" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="Black" Margin="0,0,0,8" />
                 <Grid Margin="0,0,0,20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="8" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border x:Name="GoalBtn" Grid.Column="0" CornerRadius="16" Padding="12,10" Cursor="Hand" Background="#111113" BorderBrush="#3D3D44" BorderThickness="2" native:NativeActivation.Enabled="True" PointerReleased="Native_Goal_Click">
+                    <RadioButton x:Name="GoalBtn" Grid.Column="0" GroupName="ScoreType" AutomationProperties.Name="Goal, 6 points" Cursor="Hand" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="2" Theme="{StaticResource ScoreChoice}" IsCheckedChanged="Native_Goal_Click_Checked">
                         <StackPanel HorizontalAlignment="Center">
-                            <Ellipse Width="20" Height="20" Fill="#3FB950" HorizontalAlignment="Center" Margin="0,2,0,6" />
-                            <TextBlock Text="GOAL" Foreground="#E6EDF3" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" />
-                            <TextBlock Text="6 PTS" Foreground="#AAAAB8" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <Grid x:Name="GoalIconFrame" Width="32" Height="26" Margin="0,0,0,6">
+                                <Path Data="M3,1 L3,25 M29,1 L29,25" Stroke="{DynamicResource ControlCentre.TextBrush}" StrokeThickness="1.5" />
+                                <ns2:OperatorSymbol x:Name="GoalScoreSymbol" Kind="sport-afl" IsActive="{Binding IsChecked, ElementName=GoalBtn}" Width="18" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource ControlCentre.TextBrush}" />
+                            </Grid>
+                            <TextBlock Text="GOAL" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" />
+                            <TextBlock Text="6 PTS" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
                         </StackPanel>
-                    </Border>
-                    <Border x:Name="BehindBtn" Grid.Column="2" CornerRadius="16" Padding="12,10" Cursor="Hand" Background="#111113" BorderBrush="#3D3D44" BorderThickness="2" native:NativeActivation.Enabled="True" PointerReleased="Native_Behind_Click">
+                    </RadioButton>
+                    <RadioButton x:Name="BehindBtn" Grid.Column="2" GroupName="ScoreType" AutomationProperties.Name="Behind, 1 point" Cursor="Hand" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="2" Theme="{StaticResource ScoreChoice}" IsCheckedChanged="Native_Behind_Click_Checked">
                         <StackPanel HorizontalAlignment="Center">
-                            <Ellipse Width="20" Height="20" Stroke="#D29922" StrokeThickness="2.5" Fill="Transparent" HorizontalAlignment="Center" Margin="0,2,0,6" />
-                            <TextBlock Text="BEHIND" Foreground="#E6EDF3" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" />
-                            <TextBlock Text="1 PT" Foreground="#AAAAB8" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <Grid x:Name="BehindIconFrame" Width="32" Height="26" Margin="0,0,0,6">
+                                <Path Data="M3,1 L3,25 M29,10 L29,25" Stroke="{DynamicResource ControlCentre.TextBrush}" StrokeThickness="1.5" />
+                                <ns2:OperatorSymbol x:Name="BehindScoreSymbol" Kind="sport-afl" IsActive="{Binding IsChecked, ElementName=BehindBtn}" Width="18" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource ControlCentre.TextBrush}" />
+                            </Grid>
+                            <TextBlock Text="BEHIND" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" />
+                            <TextBlock Text="1 PT" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
                         </StackPanel>
-                    </Border>
+                    </RadioButton>
                 </Grid>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -116,7 +159,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="DeleteButton" Grid.Column="0" Content="DELETE" Click="Delete_Click" Background="#2A1416" Foreground="#F85149" BorderBrush="#6B3A3E" BorderThickness="1" FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand" />
                     <Button x:Name="SaveButton" Grid.Column="2" Content="SAVE" Click="Save_Click" FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand" IsDefault="True" Theme="{StaticResource ControlCentre.PrimaryButton}" />
-                    <Button Grid.Column="4" Content="CANCEL" Click="Cancel_Click" Background="#21262D" Foreground="#B6B6C0" BorderBrush="#3D3D44" BorderThickness="1" FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand" IsCancel="True" />
+                    <Button Grid.Column="4" Content="CANCEL" Click="Cancel_Click" Background="{DynamicResource ControlCentre.SurfaceBrush}" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" FontSize="12" FontWeight="Bold" Padding="14,8" Cursor="Hand" IsCancel="True" />
                 </Grid>
             </StackPanel>
         </ScrollViewer>

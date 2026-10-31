@@ -1,7 +1,12 @@
 {
   "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml",
-  "source_sha256": "6f35748007e28b2e38c611bafad7993aa87b5ae5c2ec3a72f1c9bfc77b048ce8",
+  "source_sha256": "ecf6c7493a1399d9e982897e7e1faed6474774a50d63d3614933135295877ded",
   "names": [
+    {
+      "name": "TrainingClearDecisionHost",
+      "type": "Grid",
+      "object": false
+    },
     {
       "name": "TrainingViewport",
       "type": "OperatorViewport",
@@ -10,6 +15,11 @@
     {
       "name": "TrainingHeaderGrid",
       "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TrainingEntrySymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -88,6 +98,16 @@
       "object": false
     },
     {
+      "name": "TrainingTransportSymbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "TrainingTransportLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "ResetActiveButton",
       "type": "Button",
       "object": false
@@ -135,6 +155,11 @@
     {
       "name": "ClearAllButton",
       "type": "Button",
+      "object": false
+    },
+    {
+      "name": "TrainingCorrectionNotice",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -213,12 +238,92 @@
       "object": false
     },
     {
+      "name": "TrainingIntervalError",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "BuildIntervalButton",
       "type": "Button",
       "object": false
+    },
+    {
+      "name": "TrainingClearReviewOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TrainingClearReviewShell",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "TrainingClearReviewContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TrainingClearReviewHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TrainingClearReviewScroll",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "TrainingClearReviewContext",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TrainingClearReviewActions",
+      "type": "WrapPanel",
+      "object": false
+    },
+    {
+      "name": "TrainingExitReviewOverlay",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "TrainingExitReviewShell",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "TrainingExitReviewContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TrainingExitReviewHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TrainingExitReviewStatus",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TrainingExitReviewScroll",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "TrainingExitReviewContext",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TrainingExitReviewActions",
+      "type": "WrapPanel",
+      "object": false
     }
   ],
-  "code_source_sha256": "885d2e5186bad869951c386d08d67e6bc4146678a4af972df2de784e85149a87",
+  "code_source_sha256": "5b00158eec8dbcaafc1cd29f03a5158294382cf4a0d67fac552c2bd1a205eec2",
   "native_events": [
     {
       "name": "AutoAdvanceToggle",
@@ -231,12 +336,6 @@
       "source": "Unchecked",
       "native": "IsCheckedChanged",
       "handler": "OnAutoAdvanceChanged"
-    },
-    {
-      "name": "NewTitleBox",
-      "source": "PreviewMouseLeftButtonDown",
-      "native": "PointerPressed",
-      "handler": "OnNewTitleBoxPreviewMouseLeftButtonDown"
     },
     {
       "name": "NewMinutesBox",

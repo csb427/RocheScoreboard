@@ -29,6 +29,7 @@ public partial class PresentationScoreBar : UserControl
     private bool _breakCentreActive;
     private bool _showingBreakClock;
     private bool _breakCentreTransitioning;
+    private int _breakCentreTransitionVersion;
     private string _breakLabel = "QT";
     private Color _homeSecondary = Colors.White;
     private Color _awaySecondary = Colors.White;
@@ -53,6 +54,7 @@ public partial class PresentationScoreBar : UserControl
         {
             _clockTimer.Stop();
             _breakCentreTimer.Stop();
+            RetireBreakCentreTransition(resetPhase: true);
         };
         SizeChanged += (_, _) => Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
         IsVisibleChanged += (_, e) =>
@@ -80,6 +82,11 @@ public partial class PresentationScoreBar : UserControl
         bool showTimer = true)
     {
         ArgumentNullException.ThrowIfNull(match);
+        bool sourceChanged = !ReferenceEquals(_match, match);
+        if (sourceChanged) _breakCentreTimer.Stop();
+        // Populate is an explicit binding boundary. Keep a same-source cadence
+        // and current phase, but no earlier fade may finish over this refresh.
+        RetireBreakCentreTransition(resetPhase: sourceChanged);
         _match = match;
 
         Color homeColor = SafeColor(homeColorHex, "#C9483B");
@@ -133,6 +140,8 @@ public partial class PresentationScoreBar : UserControl
         // during the same window the break screen suppresses it.
         _timerAllowed = showTimer;
         ApplyLiveMatchState();
+        if (sourceChanged && _breakCentreActive && IsLoaded)
+            _breakCentreTimer.Start();
 
         // Each side falls back independently to its abbreviation. One missing
         // logo must never erase both team identities from the persistent bar.
@@ -247,16 +256,14 @@ public partial class PresentationScoreBar : UserControl
     {
         if (_breakCentreActive == active) return;
         _breakCentreActive = active;
-        _breakCentreTransitioning = false;
-        BreakCenterText.BeginAnimation(OpacityProperty, null);
-        BreakCenterText.Opacity = 1;
+        RetireBreakCentreTransition(resetPhase: true);
 
         if (active)
         {
             _showingBreakClock = false;
             BreakCenterText.Text = _breakLabel;
             _breakCentreTimer.Stop();
-            _breakCentreTimer.Start();
+            if (IsLoaded) _breakCentreTimer.Start();
         }
         else
         {
@@ -267,10 +274,29 @@ public partial class PresentationScoreBar : UserControl
         Dispatcher.BeginInvoke(UpdateResponsiveTypography, DispatcherPriority.Loaded);
     }
 
+    private void RetireBreakCentreTransition(bool resetPhase)
+    {
+        ++_breakCentreTransitionVersion;
+        _breakCentreTransitioning = false;
+        BreakCenterText.BeginAnimation(OpacityProperty, null);
+        BreakCenterText.Opacity = 1;
+        if (resetPhase)
+        {
+            _showingBreakClock = false;
+            BreakCenterText.Text = _breakLabel;
+        }
+    }
+
+    private bool OwnsBreakCentreTransition(int version, MatchManager? source)
+        => version == _breakCentreTransitionVersion && IsLoaded
+           && _breakCentreActive && ReferenceEquals(_match, source);
+
     private void TransitionBreakCentre()
     {
-        if (!_breakCentreActive || _breakCentreTransitioning) return;
+        if (!IsLoaded || !_breakCentreActive || _breakCentreTransitioning) return;
         _breakCentreTransitioning = true;
+        int version = ++_breakCentreTransitionVersion;
+        MatchManager? source = _match;
 
         var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(300))
         {
@@ -278,13 +304,20 @@ public partial class PresentationScoreBar : UserControl
         };
         fadeOut.Completed += (_, _) =>
         {
+            if (!OwnsBreakCentreTransition(version, source)) return;
             _showingBreakClock = !_showingBreakClock;
             BreakCenterText.Text = _showingBreakClock ? DateTime.Now.ToString("h:mm tt") : _breakLabel;
+            // A text notification can synchronously unload or rebind this bar.
+            if (!OwnsBreakCentreTransition(version, source)) return;
             var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(380))
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
-            fadeIn.Completed += (_, _) => _breakCentreTransitioning = false;
+            fadeIn.Completed += (_, _) =>
+            {
+                if (OwnsBreakCentreTransition(version, source))
+                    _breakCentreTransitioning = false;
+            };
             BreakCenterText.BeginAnimation(OpacityProperty, fadeIn, HandoffBehavior.SnapshotAndReplace);
         };
         BreakCenterText.BeginAnimation(OpacityProperty, fadeOut, HandoffBehavior.SnapshotAndReplace);

@@ -120,9 +120,20 @@
     },
     {
       "name": "popup",
+      "property": "IsOpen",
+      "translation": "Native ComboBox popup closure synchronizes dropdown state"
+    },
+    {
+      "name": "popup",
       "property": "AllowsTransparency",
       "source": "True",
       "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": null,
+      "property": "MinWidth",
+      "source": "{Binding ActualWidth, ElementName=toggleButton}",
+      "translation": "Arranged control Bounds dimension binding"
     }
   ],
   "visual_parity_verified": false,

@@ -1,5 +1,5 @@
 // Generated from Views/OperatorActionBorder.cs; native platform equivalent in macos/native-overrides.
-// Source SHA-256: 00e3eee189225e7f6fb7d64f1b7665aa9c1fd40b6cd7cad3058d072b3631dcd3
+// Source SHA-256: 7e237a314286f59aa1a99ba36a7f0abc611576754a3a126ca0a5cfaa9f8cdb8f
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -11,6 +11,7 @@ using Avalonia.Threading;
 namespace Roche_Scoreboard.Views;
 public class OperatorActionBorder:Border
 {
+    public Action? ActivationAction { get; set; }
     public static readonly RoutedEvent<RoutedEventArgs> ActivatedEvent=RoutedEvent.Register<OperatorActionBorder,RoutedEventArgs>(nameof(Activated),RoutingStrategies.Bubble);
     public event EventHandler<RoutedEventArgs> Activated {add=>AddHandler(ActivatedEvent,value);remove=>RemoveHandler(ActivatedEvent,value);}
     public OperatorActionBorder(){Focusable=true;this.Bind(RocheScoreboard.Mac.Native.NativeToolTipPolicy.EnabledProperty,new Avalonia.Data.Binding{Source=this,Path=new RocheScoreboard.Mac.Native.PropertyPath(Roche_Scoreboard.Services.OperatorGuidance.ShowHintsProperty)});}
@@ -18,7 +19,7 @@ public class OperatorActionBorder:Border
     {if(e.Key is Key.Enter or Key.Space){e.Handled=true;Activate();return;}base.OnKeyDown(e);}
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {base.OnPointerReleased(e);}
-    internal void Activate(){if(IsEffectivelyEnabled&&IsEffectivelyVisible){RaiseEvent(RocheScoreboard.Mac.Native.NativeActivation.Release(this));RaiseEvent(new RoutedEventArgs(ActivatedEvent,this));}}
+    internal void Activate(){if(IsEffectivelyEnabled&&IsEffectivelyVisible){if(ActivationAction is { } action){action();return;}RaiseEvent(RocheScoreboard.Mac.Native.NativeActivation.Release(this));RaiseEvent(new RoutedEventArgs(ActivatedEvent,this));}}
     protected override AutomationPeer OnCreateAutomationPeer()=>new ActionPeer(this);
     private sealed class ActionPeer(OperatorActionBorder owner):ControlAutomationPeer(owner),IInvokeProvider
     {
@@ -30,6 +31,11 @@ public class OperatorActionBorder:Border
             string label=string.Join(" ",Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(owner).OfType<TextBlock>().Where(text=>text.IsEffectivelyVisible&&!string.IsNullOrWhiteSpace(text.Text)).Select(text=>text.Text));
             return label.Length>0?label:ToolTip.GetTip(owner)?.ToString()??"Action";
         }
-        public void Invoke(){if(owner.IsEffectivelyEnabled)Dispatcher.UIThread.Post(owner.Activate);}
+        public void Invoke()
+        {
+            if(!owner.IsEffectivelyEnabled)return;
+            Action? callback=owner.ActivationAction;
+            Dispatcher.UIThread.Post(()=>{if(ReferenceEquals(callback,owner.ActivationAction))owner.Activate();});
+        }
     }
 }

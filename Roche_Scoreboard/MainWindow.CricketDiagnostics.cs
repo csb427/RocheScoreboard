@@ -18,6 +18,7 @@ public partial class MainWindow
     private Window? _cricketDiagnostics;
     private void CricketDiagnostics_KeyDown(object sender, KeyEventArgs e)
     {
+        if (e.Handled || CommandOverlay.Visibility == Visibility.Visible || _recoveryPromptActive) return;
         if (e.Key != Key.D || Keyboard.Modifiers != (ModifierKeys.Control | ModifierKeys.Alt) || _cricketScorebug is null || _cricketMatch is null) return;
         e.Handled = true;
         OpenCricketDiagnostics();

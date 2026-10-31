@@ -40,12 +40,9 @@ public partial class MainWindow
     private void OperatorTile_PresCardWindow_Click(object sender,MouseButtonEventArgs args)=>PresCardWindow_Click(sender,args);
     private void OperatorTile_PresCardWorm_Click(object sender,MouseButtonEventArgs args)=>PresCardWorm_Click(sender,args);
     private void OperatorTile_ResetCardSettings_Click(object sender,MouseButtonEventArgs args)=>ResetCardSettings_Click(sender,args);
-    private void OperatorTile_SettingsBreakScreenCard_Click(object sender,MouseButtonEventArgs args)=>SettingsBreakScreenCard_Click(sender,args);
-    private void OperatorTile_SettingsControlPanelCountdownOptionCard_Click(object sender,MouseButtonEventArgs args)=>SettingsControlPanelCountdownOptionCard_Click(sender,args);
     private void OperatorTile_SettingsCountUpCard_Click(object sender,MouseButtonEventArgs args)=>SettingsCountUpCard_Click(sender,args);
     private void OperatorTile_SettingsCountdownCard_Click(object sender,MouseButtonEventArgs args)=>SettingsCountdownCard_Click(sender,args);
     private void OperatorTile_SettingsFinalsCard_Click(object sender,MouseButtonEventArgs args)=>SettingsFinalsCard_Click(sender,args);
-    private void OperatorTile_SettingsHideTeamNamesCard_Click(object sender,MouseButtonEventArgs args)=>SettingsHideTeamNamesCard_Click(sender,args);
     private void OperatorTile_SettingsMinutesMinus_Click(object sender,MouseButtonEventArgs args)=>SettingsMinutesMinus_Click(sender,args);
     private void OperatorTile_SettingsMinutesPlus_Click(object sender,MouseButtonEventArgs args)=>SettingsMinutesPlus_Click(sender,args);
     private void OperatorTile_SettingsNav_Advanced_Click(object sender,MouseButtonEventArgs args)=>SettingsNav_Advanced_Click(sender,args);

@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
-  "source_sha256": "8d064accbd5bc0ec76711908cf24d27087d22bec3f3b115ce6e3c190003102ae",
+  "source_sha256": "6cf0059982ac85b661e7c5db89ad207a5fa857d38bbd5c2874a1820663ce4de9",
   "names": [
     {
       "name": "EntryLayout",
@@ -178,6 +178,11 @@
       "object": false
     },
     {
+      "name": "RunsValidationText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "RunExplanation",
       "type": "TextBlock",
       "object": false
@@ -253,7 +258,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "9247270c1a9c69694ad91e4beb215facaa28b3b5baa0acbc8e91052970b04238",
+  "code_source_sha256": "d17f9796dd73b53c0a3d10dcb75362785a96fd72f51beab1e6b4f9a7b98eeb48",
   "native_events": [
     {
       "name": "TypeChoice",

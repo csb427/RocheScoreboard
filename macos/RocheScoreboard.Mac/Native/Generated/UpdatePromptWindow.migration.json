@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml",
-  "source_sha256": "e029f88be2c1b9c96ab7ba5b5a1144e44db7491dc9dfcd193bdfa88202f7d2b7",
+  "source_sha256": "7b329e5d6061ee40930617c8e85987e8c1b872d53637a46bc5b0de43f93675c0",
   "names": [
     {
       "name": "PART_Track",
@@ -90,7 +90,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "48d02d26f7a96c36dc2f8804c697e815485007b7e6bcffd4a7ab96f8a06da9e4",
+  "code_source_sha256": "38f6c6b31440ac211e8614ae0e8fd516a2257851caf1e5ad0684631e47c930a0",
   "native_events": [
     {
       "name": null,

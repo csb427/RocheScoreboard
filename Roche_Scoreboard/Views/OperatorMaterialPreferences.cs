@@ -13,13 +13,15 @@ internal sealed class OperatorMaterialPreferences : UserControl
 {
     private readonly Dictionary<OperatorGlassIntensity,RadioButton> _strength=new();
     private readonly Dictionary<OperatorBackdropStyle,RadioButton> _backdrops=new();
+    private readonly Dictionary<OperatorMotionStyle,RadioButton> _motion=new();
     private readonly TextBlock _strengthDetail=new(){FontSize=13,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,0)};
     private readonly TextBlock _backdropDetail=new(){FontSize=13,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,0)};
+    private readonly TextBlock _motionDetail=new(){FontSize=13,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,0)};
     private bool _syncing;
     internal OperatorMaterialPreferences()
     {
         var body=new StackPanel();
-        body.Children.Add(Label("Glass & backdrop",21,true));
+        body.Children.Add(Label("Appearance & motion",21,true));
         body.Children.Add(Label("Tune the look of your operator workspace.",13));
         body.Children.Add(Label("Glass intensity",14,true,20));
         var strength=Segments();
@@ -38,7 +40,21 @@ internal sealed class OperatorMaterialPreferences : UserControl
             choice.Checked+=(_,_)=>{if(!_syncing)OperatorAppearance.ConfigureMaterial(OperatorAppearance.GlassIntensity,value);};
         }
         body.Children.Add(Surface(backdrops));_backdropDetail.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");body.Children.Add(_backdropDetail);
-        var reset=new Button{Content="Restore defaults",ToolTip="Use Vivid glass with the Colour backdrop.",HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,18,0,0),FontSize=13};reset.SetResourceReference(StyleProperty,"ToolBtn");
+        body.Children.Add(Label("Interface feel",14,true,20));
+        var motion=Segments();string motionGroup="motion-"+Guid.NewGuid().ToString("N");
+        var preview=Label("Ready when you are",14,true);preview.HorizontalAlignment=HorizontalAlignment.Center;
+        var previewSurface=new Border{Name="OperatorMotionPreview",Child=preview,CornerRadius=new CornerRadius(16),Padding=new Thickness(12),Margin=new Thickness(0,10,0,0)};
+        previewSurface.SetResourceReference(BackgroundProperty,"ControlCentre.SurfaceBrush");
+        foreach(var value in Enum.GetValues<OperatorMotionStyle>())
+        {
+            var choice=Choice(value.ToString(),motionGroup);_motion[value]=choice;motion.Children.Add(choice);
+            choice.Checked+=(_,_)=>{if(!_syncing){OperatorAppearance.ConfigureMotionStyle(value);SharedSurfaceMotion.Reveal(previewSurface);}};
+        }
+        body.Children.Add(Surface(motion));_motionDetail.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");body.Children.Add(_motionDetail);
+        var tryMotion=new Button{Content="Preview motion",HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,10,0,0)};
+        tryMotion.SetResourceReference(StyleProperty,"ToolBtn");tryMotion.Click+=(_,_)=>SharedSurfaceMotion.Reveal(previewSurface);
+        body.Children.Add(tryMotion);body.Children.Add(previewSurface);
+        var reset=new Button{Content="Reset glass & backdrop",ToolTip="Use Vivid glass with the Colour backdrop. Keeps your interface feel.",HorizontalAlignment=HorizontalAlignment.Left,Margin=new Thickness(0,18,0,0),FontSize=13};reset.SetResourceReference(StyleProperty,"ToolBtn");
         System.Windows.Automation.AutomationProperties.SetName(reset,"Restore material defaults");
         reset.Click+=(_,_)=>OperatorAppearance.ConfigureMaterial(OperatorGlassIntensity.Vivid,OperatorBackdropStyle.Colour);body.Children.Add(reset);
         Content=body;
@@ -50,7 +66,7 @@ internal sealed class OperatorMaterialPreferences : UserControl
         var label=new TextBlock{Text=text,FontSize=size,FontWeight=strong?FontWeights.SemiBold:FontWeights.Normal,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,top,0,6)};
         label.SetResourceReference(TextBlock.ForegroundProperty,strong?"ControlCentre.TextBrush":"ControlCentre.SecondaryTextBrush");return label;
     }
-    private static OperatorSegmentedPanel Segments()=>new(){Rows=1};
+    private static OperatorSegmentedPanel Segments()=>new(){Rows=1,AllowScrubbing=true};
     private static OperatorGlassSurface Surface(OperatorSegmentedPanel content)
     {
         var surface=new OperatorGlassSurface{Material=GlassMaterial.Regular,CornerRadius=new CornerRadius(24),Padding=new Thickness(4),Child=content};
@@ -68,8 +84,12 @@ internal sealed class OperatorMaterialPreferences : UserControl
         {
             foreach(var (value,button) in _strength)button.IsChecked=value==OperatorAppearance.GlassIntensity;
             foreach(var (value,button) in _backdrops)button.IsChecked=value==OperatorAppearance.Backdrop;
+            foreach(var (value,button) in _motion)button.IsChecked=value==OperatorAppearance.MotionStyle;
             _strengthDetail.Text=OperatorAppearance.GlassIntensity switch{OperatorGlassIntensity.Soft=>"Gentle lensing and quieter reflections.",OperatorGlassIntensity.Balanced=>"Clear edges with moderate lensing.",_=>"Pronounced lensing, clear rims and deeper reflections."};
             _backdropDetail.Text=OperatorAppearance.Backdrop switch{OperatorBackdropStyle.Black=>"Sculpted monochrome light.",OperatorBackdropStyle.Neutral=>"A quiet, neutral workspace.",_=>"Colourful light ribbons behind the glass."};
+            _motionDetail.Text=OperatorAppearance.ReduceMotion?"Reduce motion is on. Selections stay clear without movement."
+                : OperatorAppearance.MotionStyle==OperatorMotionStyle.Calm?"Smaller movements and faster settling. Scoring stays immediate."
+                : "Full liquid selections and expressive openings. Scoring stays immediate.";
         }
         finally{_syncing=false;}
     }

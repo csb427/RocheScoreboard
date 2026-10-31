@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Resources/ControlCentre.xaml",
-  "source_sha256": "b32b558beb5568410c0b721a366950f9d701d086e7f9ba9ac64a8094c28dbd05",
+  "source_sha256": "becfd6d388e74d91b0344c92b850368070c940a315fd223fb363c0f69e6acfd2",
   "names": [
     {
       "name": "PART_Surface",
@@ -100,6 +100,276 @@
       "name": "Thumb",
       "type": "TranslateTransform",
       "object": true,
+      "template": true
+    },
+    {
+      "name": "FinalsBase",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "FinalsSelection",
+      "type": "OperatorChoiceSurface",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "FinalsSymbol",
+      "type": "OperatorSymbol",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "FinalsTitle",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "FinalsDescription",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "FinalsSwitchWell",
+      "type": "Grid",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "FinalsStateText",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "FinalsTrack",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "FinalsThumb",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "Thumb",
+      "type": "TranslateTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "StoppageBase",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "StoppageSelection",
+      "type": "OperatorChoiceSurface",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "StoppageSymbol",
+      "type": "OperatorSymbol",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "StoppageTitle",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "StoppageDescription",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "StoppageStateText",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "StoppageTrack",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "StoppageThumb",
+      "type": "Ellipse",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "Thumb",
+      "type": "TranslateTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "NamesBase",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "NamesSelection",
+      "type": "OperatorChoiceSurface",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "NamesSymbol",
+      "type": "OperatorSymbol",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "NamesTitle",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "NamesDescription",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "NamesStateText",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "NamesTrack",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "NamesThumb",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "Thumb",
+      "type": "TranslateTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "QuarterBreakBase",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "QuarterBreakSelection",
+      "type": "OperatorChoiceSurface",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "QuarterBreakSymbol",
+      "type": "OperatorSymbol",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "QuarterBreakTitle",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "QuarterBreakDescription",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "QuarterBreakStateText",
+      "type": "TextBlock",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "QuarterBreakTrack",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "QuarterBreakThumb",
+      "type": "Ellipse",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "Thumb",
+      "type": "TranslateTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "FocusFrame",
+      "type": "Border",
+      "object": false,
       "template": true
     },
     {
@@ -407,6 +677,24 @@
       "type": "Border",
       "object": false,
       "template": true
+    },
+    {
+      "name": "SavedFocus",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "CorrectionSectionHeader",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "Body",
+      "type": "ContentPresenter",
+      "object": false,
+      "template": true
     }
   ],
   "code_source_sha256": null,
@@ -414,6 +702,11 @@
   "platform_translations": [
     {
       "name": "PART_Popup",
+      "property": "IsOpen",
+      "translation": "Native ComboBox popup closure synchronizes dropdown state"
+    },
+    {
+      "name": "PART_Popup",
       "property": "AllowsTransparency",
       "source": "True",
       "translation": "Native popup compositor and editable combo routing"
@@ -433,6 +726,18 @@
       "property": "AllowsTransparency",
       "source": "True",
       "translation": "Native popup compositor and editable combo routing"
+    },
+    {
+      "name": "Frame",
+      "property": "Width",
+      "source": "{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ComboBox}}",
+      "translation": "Arranged control Bounds dimension binding"
+    },
+    {
+      "name": null,
+      "property": "MinWidth",
+      "source": "{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}",
+      "translation": "Arranged control Bounds dimension binding"
     }
   ],
   "visual_parity_verified": false,

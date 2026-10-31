@@ -14,6 +14,9 @@ public static class OperatorControlMotion
     public static readonly DependencyProperty EnabledProperty = DependencyProperty.RegisterAttached("Enabled", typeof(bool), typeof(OperatorControlMotion), new PropertyMetadata(false, Changed));
     public static bool GetEnabled(DependencyObject target) => (bool)target.GetValue(EnabledProperty);
     public static void SetEnabled(DependencyObject target, bool value) => target.SetValue(EnabledProperty, value);
+    public static readonly DependencyProperty InflateOnPressProperty=DependencyProperty.RegisterAttached("InflateOnPress",typeof(bool),typeof(OperatorControlMotion),new PropertyMetadata(false));
+    public static bool GetInflateOnPress(DependencyObject target)=>(bool)target.GetValue(InflateOnPressProperty);
+    public static void SetInflateOnPress(DependencyObject target,bool value)=>target.SetValue(InflateOnPressProperty,value);
     private static readonly ConditionalWeakTable<Control, State> States = new();
     private static void Changed(DependencyObject target, DependencyPropertyChangedEventArgs args)
     {
@@ -119,9 +122,31 @@ public static class OperatorControlMotion
         private void Update()
         {
             if (!_control.IsEnabled || !_control.IsVisible) { Reset(); return; }
-            _target = _pressed ? .945 : _control.IsMouseOver ? (_thumb is not null ? 1.075 : 1 + Math.Min(.018, 4 / Math.Max(1, _control.ActualWidth))) : 1;
+            _target = _pressed ? (GetInflateOnPress(_control) && _thumb is null?1+.035*OperatorMotion.TravelScale:.945) : _control.IsMouseOver ? (_thumb is not null ? 1.075 : 1 + Math.Min(.018, 4 / Math.Max(1, _control.ActualWidth))) : 1;
             _stretchTarget = _thumb is not null && _pressed ? 1.18 : 1;
             double highlight=_pressed?.075:_control.IsMouseOver?.035:0;
+            if (!OperatorMotion.Enabled)
+            {
+                // Settle every owned timeline, including parts whose target
+                // has not changed. Native checked/open/value state is untouched.
+                Stop();
+                CloseChoice(null, EventArgs.Empty);
+                _scale = _target = _stretch = _stretchTarget = 1;
+                _velocity = _thumbVelocity = _stretchVelocity = 0;
+                _thumbX = _thumbTarget;
+                if (_check is not null)
+                {
+                    _check.BeginAnimation(System.Windows.Shapes.Shape.StrokeDashOffsetProperty, null);
+                    _check.StrokeDashOffset = _thumbTarget > 0 ? 0 : 22;
+                }
+                if (_highlight is not null)
+                {
+                    _highlight.BeginAnimation(UIElement.OpacityProperty, null);
+                    _highlight.Opacity = _highlightTarget = highlight;
+                }
+                Paint();
+                return;
+            }
             if(_highlight is not null && Math.Abs(highlight-_highlightTarget)>.001)
             {
                 _highlightTarget=highlight;
@@ -129,7 +154,6 @@ public static class OperatorControlMotion
                 else _highlight.BeginAnimation(UIElement.OpacityProperty,new System.Windows.Media.Animation.DoubleAnimation(highlight,TimeSpan.FromMilliseconds(110)){EasingFunction=OperatorMotion.SmoothOut});
             }
             if (_transform is null && _thumb is null) return;
-            if (!OperatorMotion.Enabled) { _scale = _target = _stretch = _stretchTarget = 1; _velocity = _stretchVelocity = 0; _thumbX = _thumbTarget; Paint(); Stop(); return; }
             if (_running) return;
             // A loaded or re-entered idle control does not need a rendering loop.
             if(Math.Abs(_target-_scale)<.0002 && Math.Abs(_velocity)<.002 && Math.Abs(_thumbTarget-_thumbX)<.02 && Math.Abs(_thumbVelocity)<.05 && Math.Abs(_stretchTarget-_stretch)<.0002 && Math.Abs(_stretchVelocity)<.002)

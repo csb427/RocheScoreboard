@@ -15,7 +15,7 @@
             </Grid.RowDefinitions>
 
             <!-- Mockup-based broadcast layout. Header clock/weather belong to the batting bar. -->
-<Grid x:Name="MainScoreboard" Grid.Row="2" Background="#020304" ClipToBounds="True" TextElement.Foreground="White" TextElement.FontFamily="Arial" TextElement.FontWeight="Bold">
+<Grid x:Name="MainScoreboard" Grid.Row="2" Background="#020304" ClipToBounds="True" TextElement.Foreground="White" TextElement.FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" TextElement.FontWeight="Bold">
 <Grid.Resources>
 <Style TargetType="TextBlock"><Setter Property="VerticalAlignment" Value="Center"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="FontFamily" Value="Arial"/></Style>
 </Grid.Resources>
@@ -27,39 +27,39 @@
 </Grid>
 <Grid x:Name="ScoreStack" Grid.Row="0" Grid.RowSpan="2" Margin="4,0" ClipToBounds="True"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
 <Grid x:Name="WicketRow"><StackPanel x:Name="WicketGroup" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-<Grid><TextBlock x:Name="ScoreWickets" Text="0" FontSize="104" FontFamily="Arial" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="ScoreWicketsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
-<TextBlock x:Name="ScoreSlash" Text="FOR" FontSize="62" FontFamily="Arial" Margin="14,0,0,0" HorizontalAlignment="Left"></TextBlock>
-</StackPanel></Grid><Grid x:Name="RunsRow" Grid.Row="1" ClipToBounds="True"><TextBlock x:Name="ScoreRuns" Text="0" FontSize="104" FontFamily="Arial" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="ScoreRunsTranslate"/></TextBlock.RenderTransform></TextBlock><local:RollingScoreVisual x:Name="ScoreRollVisual"/></Grid>
+<Grid><TextBlock x:Name="ScoreWickets" Text="0" FontSize="104" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="ScoreWicketsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<TextBlock x:Name="ScoreSlash" Text="FOR" FontSize="62" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" Margin="14,0,0,0" HorizontalAlignment="Left"></TextBlock>
+</StackPanel></Grid><Grid x:Name="RunsRow" Grid.Row="1" ClipToBounds="True"><TextBlock x:Name="ScoreRuns" Text="0" FontSize="104" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="ScoreRunsTranslate"/></TextBlock.RenderTransform></TextBlock><local:RollingScoreVisual x:Name="ScoreRollVisual"/></Grid>
 </Grid>
 <Border x:Name="OversLabelPanel" Grid.Row="2" Background="#080B10"><TextBlock Text="OVERS" FontSize="29" HorizontalAlignment="Center" Foreground="White"/></Border>
-<Grid x:Name="OversValuePanel" Grid.Row="3" ClipToBounds="True"><TextBlock x:Name="OversText" Text="0.0" FontSize="72" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="OversTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<Grid x:Name="OversValuePanel" Grid.Row="3" ClipToBounds="True"><TextBlock x:Name="OversText" Text="0.0" FontSize="72" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="OversTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
 <Border x:Name="InfoLabelPanel" Grid.Row="4" Background="#080B10"><TextBlock x:Name="InfoLabel" Text="RUN RATE" FontSize="29" HorizontalAlignment="Center" Foreground="White"/></Border>
-<Grid x:Name="InfoValuePanel" Grid.Row="5" ClipToBounds="True"><TextBlock x:Name="InfoValue" Text="0.00" FontSize="72" HorizontalAlignment="Center"/></Grid>
+<Grid x:Name="InfoValuePanel" Grid.Row="5" ClipToBounds="True"><TextBlock x:Name="InfoValue" Text="0.00" FontSize="72" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/></Grid>
 <Border x:Name="ExtrasLabelPanel" Grid.Row="6" Background="#080B10"><TextBlock Text="EXTRAS" FontSize="29" HorizontalAlignment="Center" Foreground="White"/></Border>
-<Grid x:Name="ExtrasValuePanel" Grid.Row="7" ClipToBounds="True"><TextBlock x:Name="ExtrasValue" Text="0" FontSize="72" HorizontalAlignment="Center"/></Grid>
+<Grid x:Name="ExtrasValuePanel" Grid.Row="7" ClipToBounds="True"><TextBlock x:Name="ExtrasValue" Text="0" FontSize="72" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/></Grid>
 </Grid></Border>
 <!-- The compact overs cell occupies the remaining rail height without shrinking score type. -->
-<Border x:Name="CompactOversPanel" VerticalAlignment="Bottom" Height="180" Opacity="0" IsHitTestVisible="False" BorderBrush="Black" BorderThickness="0,0,3,0"><Grid><Grid.RowDefinitions><RowDefinition Height="36"/><RowDefinition Height="*"/></Grid.RowDefinitions><Border Background="#080B10"><TextBlock Text="OVERS" FontSize="29" HorizontalAlignment="Center"/></Border><TextBlock x:Name="CompactOversText" Grid.Row="1" Text="{Binding Text, ElementName=OversText}" FontSize="{Binding FontSize, ElementName=OversText}" HorizontalAlignment="Center"/></Grid></Border>
+<Border x:Name="CompactOversPanel" VerticalAlignment="Bottom" Height="180" Opacity="0" IsHitTestVisible="False" BorderBrush="Black" BorderThickness="0,0,3,0"><Grid><Grid.RowDefinitions><RowDefinition Height="36"/><RowDefinition Height="*"/></Grid.RowDefinitions><Border Background="#080B10"><TextBlock Text="OVERS" FontSize="29" HorizontalAlignment="Center"/></Border><TextBlock x:Name="CompactOversText" Grid.Row="1" Text="{Binding Text, ElementName=OversText}" FontSize="{Binding FontSize, ElementName=OversText}" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/></Grid></Border>
 <Grid x:Name="PlayerBands" Grid.Column="1"><Grid.RowDefinitions><RowDefinition Height=".65*"/><RowDefinition Height="1.1*"/><RowDefinition Height="1.1*"/><RowDefinition Height=".65*"/><RowDefinition Height="1.1*"/><RowDefinition Height="1.05*"/></Grid.RowDefinitions>
 <Border x:Name="BattingHeaderPanel" ClipToBounds="True"><Border.Background><SolidColorBrush x:Name="BattingHeaderBg" Color="#CC0000"/></Border.Background><Grid>
 <Image x:Name="BattingHeaderLogo" Stretch="UniformToFill" Opacity=".22" IsHitTestVisible="False"/><Border x:Name="BattingHeaderSheen" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#38FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset=".55"/><GradientStop Color="#25000000" Offset="1"/></LinearGradientBrush></Border.Background></Border>
 <Grid Margin="10,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
 <TextBlock x:Name="BattingHeaderText" Text="TEAM A" FontSize="38" TextTrimming="CharacterEllipsis"/>
 <TextBlock x:Name="TopWeatherText" Text="" FontSize="36" Grid.Column="1" Margin="22,0,20,0"/>
-<TextBlock x:Name="TopTimeText" Text="1:32 PM" FontSize="34" Grid.Column="2"/>
+<TextBlock x:Name="TopTimeText" Text="1:32 PM" FontSize="34" Grid.Column="2" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
 </Grid></Grid></Border>
 <Border x:Name="StrikerBand" Grid.Row="1" Margin="9,7" BorderThickness="2" Background="#06080B"><Border.BorderBrush><SolidColorBrush x:Name="StrikerBorder" Color="#CC0000"/></Border.BorderBrush><Grid x:Name="StrikerContents" Margin="7,0">
 <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/><ColumnDefinition Width="145"/><ColumnDefinition Width="98"/></Grid.ColumnDefinitions>
 <TextBlock x:Name="StrikerIndicator" Text="▶" FontSize="38"><TextBlock.Foreground><SolidColorBrush x:Name="BattingIndicatorBrush" Color="#CC0000"/></TextBlock.Foreground></TextBlock>
 <TextBlock x:Name="StrikerName" Text="PLAYER" FontSize="43" Grid.Column="1" TextTrimming="CharacterEllipsis"/>
-<Grid Grid.Column="2" ClipToBounds="True"><TextBlock x:Name="StrikerRuns" Text="0" FontSize="65" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="StrikerRunsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
-<Grid Grid.Column="3" ClipToBounds="True"><TextBlock x:Name="StrikerBalls" Text="0" FontSize="40" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="StrikerBallsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<Grid Grid.Column="2" ClipToBounds="True"><TextBlock Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False" x:Name="StrikerRuns" Text="0" FontSize="65" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="StrikerRunsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<Grid Grid.Column="3" ClipToBounds="True"><TextBlock x:Name="StrikerBalls" Text="0" FontSize="40" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="StrikerBallsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
 </Grid></Border><Border x:Name="NonStrikerBand" Grid.Row="2" Margin="9,7" BorderThickness="2" Background="#06080B"><Border.BorderBrush><SolidColorBrush x:Name="NonStrikerBorder" Color="#CC0000"/></Border.BorderBrush><Grid x:Name="NonStrikerContents" Margin="7,0">
 <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/><ColumnDefinition Width="145"/><ColumnDefinition Width="98"/></Grid.ColumnDefinitions>
 <TextBlock x:Name="NonStrikerIndicator" Text="" FontSize="38"><TextBlock.Foreground><SolidColorBrush x:Name="NonStrikerIndicatorBrush" Color="#CC0000"/></TextBlock.Foreground></TextBlock>
 <TextBlock x:Name="NonStrikerName" Text="PLAYER" FontSize="43" Grid.Column="1" TextTrimming="CharacterEllipsis"/>
-<Grid Grid.Column="2" ClipToBounds="True"><TextBlock x:Name="NonStrikerRuns" Text="0" FontSize="65" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="NonStrikerRunsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
-<Grid Grid.Column="3" ClipToBounds="True"><TextBlock x:Name="NonStrikerBalls" Text="0" FontSize="40" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="NonStrikerBallsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<Grid Grid.Column="2" ClipToBounds="True"><TextBlock Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False" x:Name="NonStrikerRuns" Text="0" FontSize="65" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="NonStrikerRunsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<Grid Grid.Column="3" ClipToBounds="True"><TextBlock x:Name="NonStrikerBalls" Text="0" FontSize="40" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="NonStrikerBallsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
 </Grid></Border>
 <Border x:Name="BowlingHeaderPanel" Grid.Row="3" ClipToBounds="True"><Border.Background><SolidColorBrush x:Name="BowlingHeaderBg" Color="#000080"/></Border.Background><Grid>
 <Image x:Name="BowlingHeaderLogo" Stretch="UniformToFill" Opacity=".22" IsHitTestVisible="False"/><Border x:Name="BowlingHeaderSheen" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#38FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset=".55"/><GradientStop Color="#25000000" Offset="1"/></LinearGradientBrush></Border.Background></Border>
@@ -68,8 +68,8 @@
 <Border x:Name="BowlerBand" Grid.Row="4" Margin="9,7" BorderThickness="2" Background="#06080B"><Border.BorderBrush><SolidColorBrush x:Name="BowlerBorder" Color="#000080"/></Border.BorderBrush><Grid x:Name="BowlerContents" Margin="8,0">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="225"/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
 <TextBlock x:Name="BowlerName" Text="BOWLER" FontSize="43" TextTrimming="CharacterEllipsis"/>
-<Grid Grid.Column="1" ClipToBounds="True"><TextBlock x:Name="BowlerFigures" Text="0/0" FontSize="56" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="BowlerFiguresTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
-<Grid Grid.Column="2" ClipToBounds="True"><TextBlock x:Name="BowlerOvers" Text="0.0" FontSize="38" HorizontalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform x:Name="BowlerOversTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<Grid Grid.Column="1" ClipToBounds="True"><TextBlock x:Name="BowlerFigures" Text="0/0" FontSize="56" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="BowlerFiguresTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<Grid Grid.Column="2" ClipToBounds="True"><TextBlock x:Name="BowlerOvers" Text="0.0" FontSize="38" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="BowlerOversTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
 </Grid></Border>
 <Grid x:Name="OverBallLane" Grid.Row="5" Margin="4,2"><Viewbox x:Name="OverBallsView" Stretch="Uniform" StretchDirection="DownOnly"><StackPanel x:Name="CurrentOverBallsPanel" Orientation="Horizontal" HorizontalAlignment="Center"/></Viewbox><Grid x:Name="BowlerDetailLane" Visibility="Hidden" Opacity="0"><Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="8"><TextBlock x:Name="BowlerDetailText" TextAlignment="Center" FontSize="42" Text="ECONOMY 0.00" HorizontalAlignment="Center"/></Viewbox></Grid></Grid>
 <!-- Retained state endpoints for older restored matches; never consume broadcast space. -->
@@ -80,19 +80,19 @@
 <Border x:Name="PregameHome" ClipToBounds="True" Margin="0,0,3,0"><Grid>
 <Image x:Name="PregameHomeLogoWash" Stretch="UniformToFill" Opacity=".12"/>
 <Grid Margin="24"><Grid.RowDefinitions><RowDefinition Height="3*"/><RowDefinition Height="1.2*"/></Grid.RowDefinitions>
-<TextBlock x:Name="PregameHomeFallback" Text="A" FontSize="180" FontFamily="Arial" FontWeight="Bold" Foreground="White" Opacity=".5" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="PregameHomeLogo" Stretch="Uniform" Margin="24" RenderOptions.BitmapScalingMode="HighQuality"/>
-<Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly"><TextBlock x:Name="PregameHomeName" FontFamily="Arial" FontSize="58" FontWeight="Bold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="450"/></Viewbox>
+<TextBlock x:Name="PregameHomeFallback" Text="A" FontSize="180" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" FontWeight="Bold" Foreground="White" Opacity=".5" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="PregameHomeLogo" Stretch="Uniform" Margin="24" RenderOptions.BitmapScalingMode="HighQuality"/>
+<Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly"><TextBlock x:Name="PregameHomeName" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" FontSize="58" FontWeight="Bold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="450"/></Viewbox>
 </Grid></Grid></Border>
 <Border x:Name="PregameAway" Grid.Column="1" ClipToBounds="True" Margin="3,0,0,0"><Grid>
 <Image x:Name="PregameAwayLogoWash" Stretch="UniformToFill" Opacity=".12"/>
 <Grid Margin="24"><Grid.RowDefinitions><RowDefinition Height="3*"/><RowDefinition Height="1.2*"/></Grid.RowDefinitions>
-<TextBlock x:Name="PregameAwayFallback" Text="B" FontSize="180" FontFamily="Arial" FontWeight="Bold" Foreground="White" Opacity=".5" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="PregameAwayLogo" Stretch="Uniform" Margin="24" RenderOptions.BitmapScalingMode="HighQuality"/>
-<Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly"><TextBlock x:Name="PregameAwayName" FontFamily="Arial" FontSize="58" FontWeight="Bold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="450"/></Viewbox>
+<TextBlock x:Name="PregameAwayFallback" Text="B" FontSize="180" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" FontWeight="Bold" Foreground="White" Opacity=".5" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="PregameAwayLogo" Stretch="Uniform" Margin="24" RenderOptions.BitmapScalingMode="HighQuality"/>
+<Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly"><TextBlock x:Name="PregameAwayName" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" FontSize="58" FontWeight="Bold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="450"/></Viewbox>
 </Grid></Grid></Border>
 </Grid>
 <Border x:Name="EventPresentation" Grid.RowSpan="4" Visibility="Collapsed" ClipToBounds="True" IsHitTestVisible="False" Panel.ZIndex="100">
 <Grid><Image x:Name="EventLogo" Stretch="UniformToFill" Opacity=".16"/>
-<Grid x:Name="EventAccents" IsHitTestVisible="False" ClipToBounds="True"/><Viewbox x:Name="EventWordBox" Margin="24" Stretch="Uniform" StretchDirection="DownOnly"><TextBlock x:Name="EventWord" Text="FOUR" Foreground="White" FontFamily="Arial" FontWeight="Bold" FontSize="240" RenderTransformOrigin=".5,.5"/></Viewbox>
+<Grid x:Name="EventAccents" IsHitTestVisible="False" ClipToBounds="True"/><Viewbox x:Name="EventWordBox" Margin="24" Stretch="Uniform" StretchDirection="DownOnly"><TextBlock x:Name="EventWord" Text="FOUR" Foreground="White" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" FontWeight="Bold" FontSize="240" RenderTransformOrigin=".5,.5"/></Viewbox>
 </Grid></Border>
         </Grid>
     </Viewbox>

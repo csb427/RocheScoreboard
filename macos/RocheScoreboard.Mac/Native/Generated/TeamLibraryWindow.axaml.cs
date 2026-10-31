@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/TeamLibraryWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 25cdd4a1a725ae7696d28b4182f21e4baca71139d3cb1db845e1b06820456380
+// Source SHA-256: fd433d05c3b1de3724ae0ad8500eae44ecbf28640a9b4d269d374d33a7488684
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -9,6 +9,9 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Input;
 using RocheScoreboard.Mac.Native;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Roche_Scoreboard.Models;
 using Roche_Scoreboard.Services;
 using MediaBrush = Avalonia.Media.IBrush;
@@ -28,10 +31,18 @@ public partial class TeamLibraryWindow : NativeWindow
     private readonly HashSet<string> _favouriteIds;
     private bool _restoringFilters = true;
     private CancellationTokenSource? _logoCancellation;
-    private bool _savingFavourite;
+    private bool _savingFavourite, _closed, _refreshingResults, _membershipLoading;
+    private int _presetReadVersion, _operationSelectionVersion;
+    private long _presetRevision;
+    private string? _operationTeamId;
+    private string _operationMessage = "";
+    private readonly List<Task<PresetCommitResult>> _acceptedPresetChanges = new();
 
     public TeamLibrarySelection? Selection { get; private set; }
     public bool PresetsChanged { get; private set; }
+    // Snapshot of accepted work; callers capture this at modal return. Storage
+    // owns completion and has no dependency on this Window or its dispatcher.
+    public Task<PresetCommitResult[]> AcceptedPresetChanges => Task.WhenAll(_acceptedPresetChanges.ToArray());
 
     public TeamLibraryWindow(string targetLabel, TeamLibrarySport sport = TeamLibrarySport.AustralianFootball)
     {
@@ -39,10 +50,13 @@ public partial class TeamLibraryWindow : NativeWindow
         SharedSurfaceMotion.Attach(LibrarySurface);
         _sport = sport;
         _targetLabel = targetLabel;
-        _favouriteIds = (sport == TeamLibrarySport.Cricket ? PresetStorage.LoadAllCricket() : PresetStorage.LoadAll())
-            .Where(p => !string.IsNullOrWhiteSpace(p.LibraryTeamId))
-            .Select(p => p.LibraryTeamId!)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        PresetReadResult initial = PresetStorage.ReadSnapshot(sport);
+        _presetRevision = initial.Revision;
+        _membershipLoading = initial.Pending;
+        _favouriteIds = initial.Presets.Where(p => !string.IsNullOrWhiteSpace(p.LibraryTeamId))
+            .Select(p => p.LibraryTeamId!).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (initial.Pending) { PresetStatus.Text = "Loading saved clubs…"; PresetStatus.IsVisible = true; }
+        if (!initial.Succeeded) { PresetStatus.Text = initial.Error; PresetStatus.IsVisible = true; }
         TargetHeading.Text = $"Choose the {targetLabel.ToLowerInvariant()} team";
         Title = sport == TeamLibrarySport.Cricket ? "Cricket Club Library" : "Australian Football Club Library";
         CatalogueDescription.Text = sport == TeamLibrarySport.Cricket ? "Victorian Premier · VSDCA · official crests available offline" : "AFL · VAFA · APS · AGSV · transparent club crests";
@@ -55,8 +69,26 @@ public partial class TeamLibraryWindow : NativeWindow
         RefreshResults();
         SearchBox.Focus();
         SizeChanged += (_, _) => ArrangeLibrary();
-        Loaded += (_, _) => ArrangeLibrary();
-        Closed += (_, _) => { ++_selectionVersion; _logoCancellation?.Cancel(); _logoCancellation?.Dispose(); };
+        Loaded += (_, _) => { ArrangeLibrary(); RefreshSavedMembership(); };
+        NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, args) =>
+        {
+            if (_closed) return;
+            if (args.NewValue is false)
+            {
+                ++_selectionVersion; ++_presetReadVersion;
+                _logoCancellation?.Cancel();
+            }
+            else if (IsLoaded && !_closed)
+            {
+                RefreshSavedMembership();
+                if (_selectedTeam is not null)
+                {
+                    if (string.IsNullOrWhiteSpace(_logoPath)) LoadSelectedTeam();
+                    else { StatusText.Text = "Ready to select"; RenderOperationStatus(); }
+                }
+            }
+        });
+        Closed += (_, _) => { _closed = true; ++_selectionVersion; ++_presetReadVersion; _logoCancellation?.Cancel(); _logoCancellation?.Dispose(); };
     }
 
     private void Window_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
@@ -133,6 +165,10 @@ public partial class TeamLibraryWindow : NativeWindow
 
     private void RefreshResults()
     {
+        string? selectedId = _selectedTeam?.Id;
+        bool restoreListFocus = TeamList.IsKeyboardFocusWithin;
+        ScrollViewer? scroll = EnumerateDescendantVisuals(TeamList).OfType<ScrollViewer>().FirstOrDefault();
+        double offset = scroll?.Offset.Y ?? 0;
         string query = (SearchBox?.Text ?? string.Empty).Trim() ?? string.Empty;
         string league = (LeagueFilter?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "All leagues";
         string state = (StateFilter?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "All states";
@@ -143,9 +179,11 @@ public partial class TeamLibraryWindow : NativeWindow
             (state == "All states" || team.State == state) &&
             (!favouritesOnly || _favouriteIds.Contains(team.Id)) &&
             (query.Length == 0 || team.TeamName.Contains(query, StringComparison.OrdinalIgnoreCase)
-                               || team.Abbreviation.Contains(query, StringComparison.OrdinalIgnoreCase)));
-        foreach (TeamCatalogEntry team in filtered)
-            team.IsFavourite = _favouriteIds.Contains(team.Id);
+                               || team.Abbreviation.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            // IsFavourite is not notifying. Detached presentation records let
+            // recycled templates observe the new value without mutating the
+            // shared catalogue or restarting the selected club's logo loader.
+            .Select(team => team with { IsFavourite = _favouriteIds.Contains(team.Id) });
         filtered = sort switch
         {
             "League" => filtered.OrderBy(team => team.League).ThenBy(team => team.TeamName),
@@ -154,12 +192,70 @@ public partial class TeamLibraryWindow : NativeWindow
             _ => filtered.OrderBy(team => team.TeamName)
         };
         List<TeamCatalogEntry> teams = filtered.ToList();
-        TeamList.ItemsSource = teams;
+        TeamCatalogEntry? selected = teams.FirstOrDefault(team => team.Id == selectedId);
+        _refreshingResults = true;
+        try { TeamList.ItemsSource = teams; TeamList.SelectedItem = selected; }
+        finally { _refreshingResults = false; }
+        if (selected is null && _selectedTeam is not null) LoadSelectedTeam();
+        else if (selected is not null) _selectedTeam = selected;
         EmptyResults.IsVisible = teams.Count == 0 ? true : false;
         ResultCount.Text = $"{teams.Count} club{(teams.Count == 1 ? string.Empty : "s")}  ·  {_favouriteIds.Count} saved";
+        RefreshFavouriteButton();
+        RenderOperationStatus();
+        if (scroll is not null) scroll.ScrollToVerticalOffset(offset);
+        if (restoreListFocus && selected is not null && IsLoaded && IsVisible && !_closed)
+        {
+            TeamList.UpdateLayout();
+            EnumerateDescendantVisuals(TeamList).OfType<ListBoxItem>().FirstOrDefault(row =>
+                row.DataContext is TeamCatalogEntry team && team.Id == selected.Id)?.Focus();
+            if (scroll is not null) scroll.ScrollToVerticalOffset(offset);
+        }
     }
 
-    private async void TeamList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private static IEnumerable<AvaloniaObject> EnumerateDescendantVisuals(AvaloniaObject root)
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            AvaloniaObject child = VisualTreeHelper.GetChild(root, i);
+            yield return child;
+            foreach (AvaloniaObject descendant in EnumerateDescendantVisuals(child)) yield return descendant;
+        }
+    }
+
+    private async void RefreshSavedMembership()
+    {
+        if (_closed || !IsLoaded || !IsVisible) return;
+        int read = ++_presetReadVersion;
+        _membershipLoading = true;
+        RefreshFavouriteButton();
+        PresetReadResult result = await PresetStorage.ReadAsync(_sport);
+        if (_closed || read != _presetReadVersion || !IsLoaded || !IsVisible) return;
+        _membershipLoading = false;
+        if (result.Succeeded)
+        {
+            if (string.IsNullOrWhiteSpace(_operationMessage)) { PresetStatus.Text = ""; PresetStatus.IsVisible = false; }
+            PublishMembership(result);
+        }
+        else { PresetStatus.Text = result.Error; PresetStatus.IsVisible = true; }
+        RefreshFavouriteButton();
+    }
+
+    private void PublishMembership(PresetReadResult result)
+    {
+        if (!result.Succeeded || result.Revision < _presetRevision) return;
+        _presetRevision = result.Revision;
+        _favouriteIds.Clear();
+        foreach (TeamPreset preset in result.Presets)
+            if (!string.IsNullOrWhiteSpace(preset.LibraryTeamId)) _favouriteIds.Add(preset.LibraryTeamId!);
+        RefreshResults();
+    }
+
+    private void TeamList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (!_refreshingResults && !_closed) LoadSelectedTeam();
+    }
+
+    private async void LoadSelectedTeam()
     {
         int version = ++_selectionVersion;
         _logoCancellation?.Cancel(); _logoCancellation?.Dispose(); _logoCancellation = new();
@@ -168,6 +264,7 @@ public partial class TeamLibraryWindow : NativeWindow
         UseButton.IsEnabled = FavouriteButton.IsEnabled = false;
         LogoPreview.Source = null;
         LogoPlaceholder.IsVisible = true;
+        RenderOperationStatus();
         if (_selectedTeam is null)
         {
             SelectedName.Text = "Choose a club from the list"; SelectedMeta.Text = ""; StatusText.Text = "";
@@ -185,62 +282,68 @@ public partial class TeamLibraryWindow : NativeWindow
         try
         {
             string path = await TeamLogoService.GetTransparentLogoAsync(_selectedTeam, _logoCancellation.Token);
-            if (version != _selectionVersion) return;
+            if (_closed || version != _selectionVersion) return;
             _logoPath = path;
             LogoPreview.Source = ImageLoadHelper.LoadTrimmed(path, 512);
             LogoPlaceholder.IsVisible = false;
             StatusText.Text = "Ready to select";
-            UseButton.IsEnabled = FavouriteButton.IsEnabled = true;
+            UseButton.IsEnabled = true;
             RefreshFavouriteButton();
+            RenderOperationStatus();
         }
         catch (Exception ex)
         {
-            if (version != _selectionVersion) return;
+            if (_closed || version != _selectionVersion) return;
             StatusText.Text = "Logo could not be prepared. Check the internet connection and try again.\n" + ex.Message;
         }
     }
 
     private async void Favourite_Click(object? sender, RoutedEventArgs e)
     {
-        if (_savingFavourite || _selectedTeam is null || string.IsNullOrWhiteSpace(_logoPath)) return;
+        if (_closed || _savingFavourite || _membershipLoading || _selectedTeam is null || string.IsNullOrWhiteSpace(_logoPath)) return;
+        TeamCatalogEntry team = _selectedTeam;
+        string path = _logoPath;
+        bool save = !_favouriteIds.Contains(team.Id);
         _savingFavourite = true;
-        try
-        {
-            var team = _selectedTeam; string path = _logoPath; FavouriteButton.IsEnabled = false;
-            List<TeamPreset> presets = _sport == TeamLibrarySport.Cricket ? await PresetStorage.LoadAllCricketAsync() : await PresetStorage.LoadAllAsync();
-            TeamPreset? existing = presets.FirstOrDefault(p => p.LibraryTeamId == team.Id);
-            if (existing is null)
-            {
-                presets.Add(CreatePreset(team, path));
-                _favouriteIds.Add(team.Id);
-                StatusText.Text = "Added to saved team presets.";
-            }
-            else
-            {
-                presets.Remove(existing);
-                _favouriteIds.Remove(team.Id);
-                StatusText.Text = "Removed from saved team presets.";
-            }
-            if (_sport == TeamLibrarySport.Cricket) await PresetStorage.SaveAllCricketAsync(presets); else await PresetStorage.SaveAllAsync(presets);
-            var persisted = _sport == TeamLibrarySport.Cricket ? await PresetStorage.LoadAllCricketAsync() : await PresetStorage.LoadAllAsync();
-            if (persisted.Any(preset => preset.LibraryTeamId == team.Id) != (existing is null))
-            {
-                _favouriteIds.Clear(); foreach (var preset in persisted) if (preset.LibraryTeamId is { } id) _favouriteIds.Add(id);
-                throw new System.IO.IOException("The preset file could not be updated.");
-            }
-            PresetsChanged = true;
-            RefreshFavouriteButton();
-            RefreshResults();
-            TeamList.SelectedItem = TeamList.Items.Cast<TeamCatalogEntry>().FirstOrDefault(item => item.Id == team.Id);
-        }
-        catch (Exception error) { StatusText.Text = "Could not save this club. Please try again. " + error.Message; }
-        finally { _savingFavourite = false; FavouriteButton.IsEnabled = _selectedTeam is not null && !string.IsNullOrWhiteSpace(_logoPath); }
+        _operationTeamId = team.Id; _operationSelectionVersion = _selectionVersion;
+        _operationMessage = save ? $"Saving {team.TeamName}…" : $"Removing {team.TeamName}…";
+        RefreshFavouriteButton(); RenderOperationStatus();
+        // Register the actual storage Task before yielding. Close/Use only
+        // cancels UI observation; neither can cancel or undo accepted IO.
+        Task<PresetCommitResult> accepted = PresetStorage.SetLibraryMembershipAsync(_sport, CreatePreset(team, path), save);
+        _acceptedPresetChanges.Add(accepted);
+        PresetCommitResult result = await accepted;
+        if (result.Changed) PresetsChanged = true;
+        _savingFavourite = false;
+        // The operation outcome outlives visibility. Remember its text without
+        // touching hidden controls; a later Show renders the completed result.
+        if (!result.Succeeded)
+            _operationMessage = result.Error.StartsWith("Could not save", StringComparison.OrdinalIgnoreCase)
+                ? result.Error : "Could not save this club. " + result.Error;
+        else if (!result.Changed) _operationMessage = "Saved clubs are up to date.";
+        else _operationMessage = save ? $"{team.TeamName} added to saved team presets." : $"{team.TeamName} removed from saved team presets.";
+        if (_closed || !IsLoaded || !IsVisible) return;
+        PublishMembership(result.Snapshot);
+        RefreshFavouriteButton(); RenderOperationStatus();
+    }
+
+    private void RenderOperationStatus()
+    {
+        if (_closed || string.IsNullOrWhiteSpace(_operationMessage)) return;
+        bool ownsSelection = _selectedTeam?.Id == _operationTeamId && _selectionVersion == _operationSelectionVersion
+            && !string.IsNullOrWhiteSpace(_logoPath);
+        PresetStatus.Text = _operationMessage;
+        PresetStatus.IsVisible = ownsSelection ? false : true;
+        if (ownsSelection) StatusText.Text = _operationMessage;
     }
 
     private void RefreshFavouriteButton()
     {
         bool favourite = _selectedTeam is not null && _favouriteIds.Contains(_selectedTeam.Id);
+        FavouriteButton.IsEnabled = !_closed && !_savingFavourite && !_membershipLoading
+            && _selectedTeam is not null && !string.IsNullOrWhiteSpace(_logoPath);
         FavouriteButton.Tag = favourite;
+        OperatorChoiceMotion.SetSelected(FavouriteButton, favourite);
         FavouriteButton.Content = favourite ? "Remove from presets" : "Save to presets";
         Avalonia.Automation.AutomationProperties.SetItemStatus(FavouriteButton, favourite ? "Saved in presets" : "Not saved");
     }
@@ -252,7 +355,7 @@ public partial class TeamLibraryWindow : NativeWindow
 
     private void Use_Click(object? sender, RoutedEventArgs e)
     {
-        if (_selectedTeam is null || string.IsNullOrWhiteSpace(_logoPath)) return;
+        if (_closed || _selectedTeam is null || string.IsNullOrWhiteSpace(_logoPath)) return;
         Selection = new TeamLibrarySelection(_selectedTeam, _logoPath);
         DialogResult = true;
     }

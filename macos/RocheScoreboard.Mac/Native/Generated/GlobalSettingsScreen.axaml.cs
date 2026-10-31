@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/GlobalSettingsScreen.xaml.cs; edit translator/adapters.
-// Source SHA-256: 9faa915195ced9f0a0eedec6bac8859cdeb7b6212f11bf9872f71069b2108327
+// Source SHA-256: 23df2c5d850c49f82a540c53ec504ede39a49c7c6a85245fa36f678962fbb82e
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -17,6 +17,53 @@ namespace Roche_Scoreboard.Views;
 public partial class GlobalSettingsScreen : global::Avalonia.Controls.UserControl
 {
     public event Action? BackRequested;
+    public event Action? CricketOutputPreferencesChanged;
+    private void SettingsScope_Checked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs args)
+    {
+        if (SettingsWorkspace is null || sender is not global::Avalonia.Controls.RadioButton { Tag: string scope }) return;
+        SettingsWorkspace.SelectScope(scope);
+    }
+    private void CricketBreakRotation_FocusContext(object? sender, global::Avalonia.Interactivity.RoutedEventArgs args)
+    {
+        if (sender is not global::Avalonia.Controls.Control toggle
+            || toggle.Parent is not global::Avalonia.Controls.Control row) return;
+        // Reveal the paired label after the switch's own focus scroll. This
+        // request is visual only and must never move a retired/hidden scope.
+        Dispatcher.UIThread.Post(new Action(() =>
+        {
+            if (!toggle.IsLoaded || !toggle.IsKeyboardFocusWithin || !ReferenceEquals(toggle.Parent, row)) return;
+            for (global::Avalonia.AvaloniaObject? current = toggle; current is not null;
+                current = VisualTreeHelper.GetParent(current))
+                if (current is global::Avalonia.Controls.Control element && !element.IsVisible) return;
+            row.BringIntoView();
+        }), global::Avalonia.Threading.DispatcherPriority.Loaded);
+    }
+    private void CricketDefault_Changed(object? sender, global::Avalonia.Interactivity.RoutedEventArgs args)
+    {
+        if (_initializing) return;
+        OperatorWorkflowPreferences.Update(p => {
+            p.CricketEventAnimations = CricketEventsDefaultToggle.IsChecked == true;
+            p.CricketRollingFigures = CricketRollingDefaultToggle.IsChecked == true;
+            p.CricketBowlerDetails = CricketBowlerDefaultToggle.IsChecked == true;
+            p.CricketAutomaticOverlays = CricketAutomaticDefaultToggle.IsChecked == true;
+            p.CricketBreakPresentationRotation = CricketBreakRotationDefaultToggle.IsChecked == true;
+        });
+        CricketOutputPreferencesChanged?.Invoke();
+    }
+    public void RefreshCricketPreferences()
+    {
+        bool previous = _initializing; _initializing = true;
+        try
+        {
+            var preferences = OperatorWorkflowPreferences.Load();
+            CricketEventsDefaultToggle.IsChecked = preferences.CricketEventAnimations;
+            CricketRollingDefaultToggle.IsChecked = preferences.CricketRollingFigures;
+            CricketBowlerDefaultToggle.IsChecked = preferences.CricketBowlerDetails;
+            CricketAutomaticDefaultToggle.IsChecked = preferences.CricketAutomaticOverlays;
+            CricketBreakRotationDefaultToggle.IsChecked = preferences.CricketBreakPresentationRotation ?? preferences.AflBreakScreenEnabled;
+        }
+        finally { _initializing = previous; }
+    }
     public event Action<string>? StartupModeChanged;
     public event Action<AppTheme>? ThemeChanged;
     public event Action<UiDensity>? DensityChanged;
@@ -75,6 +122,11 @@ public partial class GlobalSettingsScreen : global::Avalonia.Controls.UserContro
 
     private void Settings_SizeChanged(object? sender, global::Avalonia.Controls.SizeChangedEventArgs e)
     {
+        // On very short windows the read-only identifier scrolls internally;
+        // its entire focusable field must still fit the settings viewport.
+        double viewportHeight = SettingsWorkspace?.Scroller.NativeHeight() ?? 0;
+        if (BuildInfoBox is not null && viewportHeight > 0)
+            BuildInfoBox.MaxHeight = Math.Max(36, viewportHeight - 4);
         double contentWidth = SettingsWorkspace?.Scroller.Viewport.Width ?? 0;
         bool narrow = (contentWidth > 0 ? contentWidth : e.NewSize.Width) < 660;
         ReflowFields(AppearanceFieldsGrid, ThemeChoicePanel, narrow);
@@ -96,6 +148,8 @@ public partial class GlobalSettingsScreen : global::Avalonia.Controls.UserContro
     public GlobalSettingsScreen()
     {
         NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
+        CricketBreakRotationDefaultToggle.GotFocus += CricketBreakRotation_FocusContext;
+        BuildInfoBox.Text = BuildIdentity.Description;
         SettingsWorkspace.Scroller.SizeChanged += Settings_SizeChanged;
         StartupModeCombo.Items.Add("Resume in-progress session first");
         StartupModeCombo.Items.Add("Open last used mode");
@@ -122,7 +176,9 @@ public partial class GlobalSettingsScreen : global::Avalonia.Controls.UserContro
         SyncPreferenceTiles();
         UpdateScreensaverSourceSelection(false);
         SyncInteractionPreferences();
-        Loaded += (_,_) => { OperatorAppearance.Changed-=SyncInteractionPreferences;OperatorAppearance.Changed+=SyncInteractionPreferences;SyncInteractionPreferences(); };
+        SettingsWorkspace.SelectScope("general");
+        RefreshCricketPreferences();
+        Loaded += (_,_) => { OperatorAppearance.Changed-=SyncInteractionPreferences;OperatorAppearance.Changed+=SyncInteractionPreferences;SyncInteractionPreferences(); RefreshCricketPreferences(); };
         Unloaded += (_,_) => OperatorAppearance.Changed-=SyncInteractionPreferences;
     }
     private void SyncInteractionPreferences()
@@ -239,22 +295,49 @@ public partial class GlobalSettingsScreen : global::Avalonia.Controls.UserContro
 
     private void ApplyOutputDimensions_Click(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (!int.TryParse((OutputWidthBox.Text ?? string.Empty), out int width)
-            || !int.TryParse((OutputHeightBox.Text ?? string.Empty), out int height)) return;
-        width = Math.Clamp(width, 50, 7680);
-        height = Math.Clamp(height, 50, 4320);
+        // Keep both values as a draft until the whole pair is valid. The
+        // parent event also queues persistence, so rejection must emit nothing.
+        if (!int.TryParse((OutputWidthBox.Text ?? string.Empty), out int width) || width is < 50 or > 7680)
+        {
+            ShowOutputDimensionsError(OutputWidthBox, "Width must be a whole number from 50 to 7680 pixels.");
+            return;
+        }
+        if (!int.TryParse((OutputHeightBox.Text ?? string.Empty), out int height) || height is < 50 or > 4320)
+        {
+            ShowOutputDimensionsError(OutputHeightBox, "Height must be a whole number from 50 to 4320 pixels.");
+            return;
+        }
+
+        ClearOutputDimensionsError();
         OutputWidthBox.Text = width.ToString();
         OutputHeightBox.Text = height.ToString();
         OutputDimensionsChanged?.Invoke(width, height);
     }
 
+    private void ShowOutputDimensionsError(global::Avalonia.Controls.TextBox field, string message)
+    {
+        OutputDimensionsValidationText.Text = message;
+        OutputDimensionsValidationText.IsVisible = true;
+        field.Focus();
+        field.SelectAll();
+        OperatorViewport.RevealValidationError(OutputDimensionsValidationText);
+    }
+
+    private void ClearOutputDimensionsError()
+    {
+        OutputDimensionsValidationText.IsVisible = false;
+        OutputDimensionsValidationText.Text = string.Empty;
+    }
+
     private void DoubleOutputDimensions_Click(object? sender,global::Avalonia.Interactivity.RoutedEventArgs e)
     {
+        ClearOutputDimensionsError();
         OutputWidthBox.Text="772"; OutputHeightBox.Text="386";
         OutputDimensionsChanged?.Invoke(772,386);
     }
     private void ResetOutputDimensions_Click(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
+        ClearOutputDimensionsError();
         OutputWidthBox.Text = "386";
         OutputHeightBox.Text = "193";
         OutputDimensionsChanged?.Invoke(386, 193);
@@ -285,6 +368,7 @@ public partial class GlobalSettingsScreen
 {
     private void Native_AutoOverlaysToggle_Changed(object? sender, RoutedEventArgs e) { AutoOverlaysToggle_Changed(sender!, e); }
     private void Native_BreakScreenToggle_Changed(object? sender, RoutedEventArgs e) { BreakScreenToggle_Changed(sender!, e); }
+    private void Native_CricketDefault_Changed(object? sender, RoutedEventArgs e) { CricketDefault_Changed(sender!, e); }
     private void Native_DensityCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e) { DensityCombo_SelectionChanged(sender!, e); }
     private void Native_GoalAnimationCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e) { GoalAnimationCombo_SelectionChanged(sender!, e); }
     private void Native_InteractionPreference_Changed(object? sender, RoutedEventArgs e) { InteractionPreference_Changed(sender!, e); }
@@ -292,6 +376,7 @@ public partial class GlobalSettingsScreen
     private void Native_QuickHintsToggle_Changed(object? sender, RoutedEventArgs e) { QuickHintsToggle_Changed(sender!, e); }
     private void Native_ScreensaverClock_Changed(object? sender, RoutedEventArgs e) { ScreensaverClock_Changed(sender!, e); }
     private void Native_ScreensaverToggle_Changed(object? sender, RoutedEventArgs e) { ScreensaverToggle_Changed(sender!, e); }
+    private void Native_SettingsScope_Checked_Checked(object? sender, RoutedEventArgs e) { if (sender is Avalonia.Controls.Primitives.ToggleButton toggle && toggle.IsChecked != true) return; SettingsScope_Checked(sender!, e); }
     private void Native_StartupModeCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e) { StartupModeCombo_SelectionChanged(sender!, e); }
     private void Native_ThemeCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e) { ThemeCombo_SelectionChanged(sender!, e); }
 }

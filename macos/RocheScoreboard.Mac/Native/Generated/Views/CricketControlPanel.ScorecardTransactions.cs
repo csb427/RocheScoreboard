@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.ScorecardTransactions.cs; edit translator/adapters.
-// Source SHA-256: c526d77764cc7ffeaf7c510301e34b4ec8314c990362fec2ab0b1d8e88ebaa44
+// Source SHA-256: 2d6f5ee7cd8db2d1a7d4e6b0e7c48680d7f64ce4431f1f08285a935fcce58f0e
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -29,7 +29,10 @@ public partial class CricketControlPanel
             bool allowDifference = false;
             if (warnings.Count > 0)
             {
-                string? answer = await ChooseAsync("Figures do not add up", string.Join("\n\n", warnings) + "\n\nGo back to correct the entry, or continue with exactly these figures. No other scores will be changed to balance them.",
+                bool totalBalances = draft.CalculatedTotal == draft.TotalRuns;
+                string? answer = await ChooseAsync(totalBalances ? "Review related scorecard figures" : "Team total does not balance",
+                    (totalBalances ? $"Batters ({draft.BattingRuns}) + extras ({draft.ExtrasRuns}) = team total ({draft.TotalRuns}). This total balances.\n\n" : "")
+                    + string.Join("\n\n", warnings) + "\n\nGo back to correct the entry, or continue with exactly these figures. No other scores will be changed to balance them.",
                     new("go-back", "Go back", true), new("continue-anyway", "Continue anyway"), new("close", "Close"));
                 if (answer != "continue-anyway") return false;
                 allowDifference = true;

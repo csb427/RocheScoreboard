@@ -76,6 +76,7 @@
     <!-- Master Viewbox: at the natural design size (1280×820) the layout is
          identical to before. If the host window is smaller, everything
          inside scales DOWN proportionally so the panel always fits. -->
+    <Grid x:Name="TrainingClearDecisionHost">
     <views:OperatorViewport x:Name="TrainingViewport" MinimumCanvasWidth="380" MinimumCanvasHeight="0">
         <Grid>
             <Grid.RowDefinitions>
@@ -92,6 +93,7 @@
                 <Border Grid.Column="0" Background="#09090B" CornerRadius="14" BorderBrush="#3A3A40" BorderThickness="1" Padding="12,8">
 
                     <StackPanel Orientation="Horizontal">
+                        <motion:OperatorSymbol x:Name="TrainingEntrySymbol" Kind="training-entry" Width="28" Height="28" Margin="0,0,10,0" Foreground="#73B9FF" VerticalAlignment="Center"/>
                         <TextBlock Text="TRAINING MODE" Foreground="White"
                                    FontFamily="{DynamicResource ControlCentre.Font}" FontWeight="SemiBold" FontSize="22"/>
                         <Border x:Name="TrainingTitleDivider" Width="1" Background="#3A3A40" Margin="14,2,14,2"/>
@@ -167,13 +169,17 @@
                     <WrapPanel>
 
 
-                            <Button x:Name="StartPauseButton" Height="46" Click="OnStartPauseClicked"
-                                    Content="▶  START"
+                            <Button x:Name="StartPauseButton" Width="152" Height="46" Click="OnStartPauseClicked"
                                     Style="{StaticResource ActionButton}"
                                     Background="#166534" Foreground="#DCFCE7" BorderBrush="#22C55E"
-                                    Padding="16,12" Margin="0,0,8,8"
+                                    Padding="16,8" Margin="0,0,8,8"
                                     FontWeight="SemiBold" FontSize="18"
-                                    ToolTip="Start or pause the active timer (Spacebar)"/>
+                                    ToolTip="Start or pause the active timer (Spacebar)" AutomationProperties.Name="Start active timer">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <motion:OperatorSymbol x:Name="TrainingTransportSymbol" Kind="training-transport" Width="24" Height="24" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                    <TextBlock x:Name="TrainingTransportLabel" Text="START" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                             <Button x:Name="ResetActiveButton" Height="46" Click="OnResetActiveClicked"
                                     Content="↺  Reset"
                                     Style="{StaticResource ActionButton}"
@@ -235,13 +241,16 @@
                                               ToolTip="When on, the next timer starts automatically. When off, the session pauses at the end of each timer and waits for Start."/>
                                 </Border>
                                 <Button Content="Clear All"
-                                        x:Name="ClearAllButton" Click="OnClearAllClicked"
+                                        x:Name="ClearAllButton" Click="OnClearAllClicked" IsEnabled="False"
                                         Style="{StaticResource ActionButton}"
                                         Background="#3F1212" Foreground="#FECACA" BorderBrush="#B91C1C"
                                         Padding="12,5" FontSize="11"
                                         ToolTip="Remove every timer from the queue"/>
                             </StackPanel>
                         </Grid>
+                        <TextBlock x:Name="TrainingCorrectionNotice" DockPanel.Dock="Top"
+                                   Visibility="Collapsed" Foreground="{StaticResource Training.ErrorBrush}"
+                                   FontSize="14" TextWrapping="Wrap" Margin="16,8,16,8"/>
                         <Grid x:Name="QueueArea">
                             <ScrollViewer x:Name="QueueScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <ItemsControl x:Name="QueueItems">
@@ -283,10 +292,10 @@
 
                                 <TextBlock Text="Title" Style="{StaticResource FieldLabel}"/>
                                 <TextBox x:Name="NewTitleBox" Text="WARM-UP"
+                                         AutomationProperties.Name="New timer title"
                                          Style="{StaticResource InputBox}" FontSize="15"
                                          MaxLength="40"
                                          KeyDown="OnNewTitleBoxKeyDown"
-                                         PreviewMouseLeftButtonDown="OnNewTitleBoxPreviewMouseLeftButtonDown"
                                          ToolTip="Press Enter to add this timer to the queue"/>
 
                                 <Grid Margin="0,12,0,0">
@@ -297,6 +306,7 @@
                                     <StackPanel Grid.Column="0" Margin="0,0,5,0">
                                         <TextBlock Text="Minutes" Style="{StaticResource FieldLabel}"/>
                                         <TextBox x:Name="NewMinutesBox" Text="5"
+                                                 AutomationProperties.Name="New timer minutes"
                                                  Style="{StaticResource InputBox}" FontSize="22"
                                                  TextAlignment="Center" Padding="8,8"
                                                  PreviewTextInput="OnNumericPreviewTextInput"
@@ -305,6 +315,7 @@
                                     <StackPanel Grid.Column="1" Margin="5,0,0,0">
                                         <TextBlock Text="Seconds" Style="{StaticResource FieldLabel}"/>
                                         <TextBox x:Name="NewSecondsBox" Text="0"
+                                                 AutomationProperties.Name="New timer seconds"
                                                  Style="{StaticResource InputBox}" FontSize="22"
                                                  TextAlignment="Center" Padding="8,8"
                                                  PreviewTextInput="OnNumericPreviewTextInput"
@@ -348,7 +359,7 @@
                                     <TextBlock Text="INTERVAL BUILDER" Foreground="#FBBF24" Style="{StaticResource SectionCaption}"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <TextBlock Text="Tabata-style work / rest rounds. Each round adds two timers."
+                                <TextBlock Text="Adds work timers with optional rest between rounds."
                                            Style="{StaticResource HelperText}" Margin="0,6,0,12"/>
 
                                 <Grid>
@@ -359,7 +370,7 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Margin="0,0,4,0">
                                         <TextBlock Text="Rounds" Style="{StaticResource FieldLabel}"/>
-                                        <TextBox x:Name="IntervalRoundsBox" Text="8"
+                                        <TextBox x:Name="IntervalRoundsBox" Text="8" AutomationProperties.Name="Interval rounds" ToolTip="1 to 100 whole rounds"
                                                  Style="{StaticResource InputBox}" FontSize="18"
                                                  TextAlignment="Center" Padding="6,6"
                                                  PreviewTextInput="OnNumericPreviewTextInput"
@@ -367,7 +378,7 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="4,0,4,0">
                                         <TextBlock Text="Work (s)" Style="{StaticResource FieldLabel}"/>
-                                        <TextBox x:Name="IntervalWorkBox" Text="20"
+                                        <TextBox x:Name="IntervalWorkBox" Text="20" AutomationProperties.Name="Work seconds" ToolTip="At least 1 whole second of work"
                                                  Style="{StaticResource InputBox}" FontSize="18"
                                                  TextAlignment="Center" Padding="6,6"
                                                  PreviewTextInput="OnNumericPreviewTextInput"
@@ -375,7 +386,7 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Margin="4,0,0,0">
                                         <TextBlock Text="Rest (s)" Style="{StaticResource FieldLabel}"/>
-                                        <TextBox x:Name="IntervalRestBox" Text="10"
+                                        <TextBox x:Name="IntervalRestBox" Text="10" AutomationProperties.Name="Rest seconds" ToolTip="Whole seconds of rest; use 0 for no rest"
                                                  Style="{StaticResource InputBox}" FontSize="18"
                                                  TextAlignment="Center" Padding="6,6"
                                                  PreviewTextInput="OnNumericPreviewTextInput"
@@ -383,6 +394,7 @@
                                     </StackPanel>
                                 </Grid>
 
+                                <TextBlock x:Name="TrainingIntervalError" Visibility="Collapsed" Foreground="{StaticResource Training.ErrorBrush}" TextWrapping="Wrap" FontSize="14" Margin="0,10,0,0"/>
                                 <Button x:Name="BuildIntervalButton" Click="OnBuildIntervalClicked"
                                         Content="＋  BUILD INTERVAL SESSION"
                                         Style="{StaticResource ActionButton}"
@@ -445,4 +457,59 @@
         </Grid></ScrollViewer>
         </Grid>
     </views:OperatorViewport>
+        <!-- Local queue review is outside the scrolling/minimum-width canvas.
+             Only its decorative shell expands; labels and input bounds stay fixed. -->
+        <Border x:Name="TrainingClearReviewOverlay" Tag="training-clear-review" Visibility="Collapsed"
+                Background="#99080A12" Padding="16" Panel.ZIndex="200" Focusable="True"
+                KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
+            <Grid MaxWidth="600" MaxHeight="480" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <views:OperatorGlassSurface x:Name="TrainingClearReviewShell" Visibility="Collapsed"
+                    Material="Regular" GlassSource="{Binding ElementName=TrainingClearDecisionHost}"
+                    Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}"
+                    BorderThickness="1" CornerRadius="26" IsHitTestVisible="False"/>
+                <!-- Keep the decision and both actions stationary and reachable;
+                     only potentially long drill context scrolls inside the sheet. -->
+                <Grid x:Name="TrainingClearReviewContent" Margin="22">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <TextBlock x:Name="TrainingClearReviewHeading" Text="Clear all timers?" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                    <ScrollViewer x:Name="TrainingClearReviewScroll" Grid.Row="1" Margin="0,12,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent" Focusable="False">
+                        <TextBlock x:Name="TrainingClearReviewContext" FontSize="15" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                    </ScrollViewer>
+                    <StackPanel Grid.Row="2">
+                        <TextBlock Text="This cannot be undone. Opening this review does not pause the session." Margin="0,10,0,18" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap"/>
+                        <WrapPanel x:Name="TrainingClearReviewActions" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+        <!-- Leaving a session has its own source and consequence; only this
+             decorative shell travels. Heading and actions remain pinned. -->
+        <Border x:Name="TrainingExitReviewOverlay" Tag="training-exit-review" Visibility="Collapsed"
+                Background="#A0080A12" Padding="16" Panel.ZIndex="201" Focusable="True"
+                KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
+            <Grid MaxWidth="560" MaxHeight="440" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <views:OperatorGlassSurface x:Name="TrainingExitReviewShell" Visibility="Collapsed"
+                    Material="Regular" GlassSource="{Binding ElementName=TrainingClearDecisionHost}"
+                    Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}"
+                    BorderThickness="1" CornerRadius="30" IsHitTestVisible="False"/>
+                <Grid x:Name="TrainingExitReviewContent" Margin="16">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <StackPanel>
+                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <motion:OperatorSymbol Kind="back" Width="24" Height="24" Margin="0,0,10,0" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TrainingExitReviewHeading" Grid.Column="1" Text="Exit Training?" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                        </Grid>
+                        <TextBlock x:Name="TrainingExitReviewStatus" Margin="0,8,0,0" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <ScrollViewer x:Name="TrainingExitReviewScroll" Grid.Row="1" Margin="0,12,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent" Focusable="False">
+                        <TextBlock x:Name="TrainingExitReviewContext" FontSize="15" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                    </ScrollViewer>
+                    <StackPanel Grid.Row="2">
+                        <TextBlock Text="This Training session cannot be resumed after exit. Your saved matches are kept." Margin="0,10,0,18" FontSize="13" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                        <WrapPanel x:Name="TrainingExitReviewActions" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>

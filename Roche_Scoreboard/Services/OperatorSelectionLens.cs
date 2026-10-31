@@ -69,6 +69,7 @@ public sealed class OperatorSelectionLens : FrameworkElement
     }
     private static void Step(ref double value, ref double velocity, double target, double omega, double dt)
     {
+        omega *= OperatorMotion.SpringResponse;
         double offset = value - target, coefficient = velocity + omega * offset, decay = Math.Exp(-omega * dt);
         value = target + (offset + coefficient * dt) * decay;
         velocity = (velocity - omega * coefficient * dt) * decay;

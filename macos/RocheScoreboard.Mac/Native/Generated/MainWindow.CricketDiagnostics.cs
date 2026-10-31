@@ -1,5 +1,5 @@
 // Generated from MainWindow.CricketDiagnostics.cs; edit translator/adapters.
-// Source SHA-256: 8eae8c428d897211135e1dfdca3f6559d8f41d378affa14939a5210af495a02a
+// Source SHA-256: 54caf3e7540863488cbc3ef5dfc2561c2cf981d12f0d57d138847e5f58be8fb2
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -25,6 +25,7 @@ public partial class MainWindow
     private NativeWindow? _cricketDiagnostics;
     private void CricketDiagnostics_KeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.Handled || CommandOverlay.IsVisible == true || _recoveryPromptActive) return;
         if (e.Key != Key.D || NativeKeyboard.Modifiers != (KeyModifiers.Control | KeyModifiers.Alt) || _cricketScorebug is null || _cricketMatch is null) return;
         e.Handled = true;
         OpenCricketDiagnostics();

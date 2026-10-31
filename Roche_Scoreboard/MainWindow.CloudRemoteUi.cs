@@ -46,8 +46,16 @@ public partial class MainWindow
 
         launcher.StartRequested        += async (_, _) => await LauncherStartRequestedAsync(launcher).ConfigureAwait(true);
         launcher.EndRequested          += async (_, _) => await LauncherEndRequestedAsync(launcher).ConfigureAwait(true);
-        launcher.CopyJoinCodeRequested += (_, _) => LauncherCopyJoinCode();
-        launcher.CopyJoinUrlRequested  += (_, _) => LauncherCopyJoinUrl();
+        launcher.CopyJoinCodeRequested += (_, args) =>
+        {
+            if (args is CloudRemoteLauncher.CopyRequestEventArgs request)
+                request.Succeeded = TryCopyLauncherValue(request.Value);
+        };
+        launcher.CopyJoinUrlRequested += (_, args) =>
+        {
+            if (args is CloudRemoteLauncher.CopyRequestEventArgs request)
+                request.Succeeded = TryCopyLauncherValue(request.Value);
+        };
 
         _cloudLaunchers.Add(launcher);
 
@@ -92,19 +100,11 @@ public partial class MainWindow
         }
     }
 
-    private void LauncherCopyJoinCode()
+    private static bool TryCopyLauncherValue(string value)
     {
-        if (string.IsNullOrWhiteSpace(CloudJoinCode)) return;
-        try { System.Windows.Clipboard.SetText(CloudJoinCode!); }
-        catch (System.Runtime.InteropServices.ExternalException) { /* clipboard locked */ }
-    }
-
-    private void LauncherCopyJoinUrl()
-    {
-        string? url = CloudJoinUrl;
-        if (string.IsNullOrWhiteSpace(url)) return;
-        try { System.Windows.Clipboard.SetText(url!); }
-        catch (System.Runtime.InteropServices.ExternalException) { /* clipboard locked */ }
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        try { System.Windows.Clipboard.SetText(value); return true; }
+        catch (System.Runtime.InteropServices.ExternalException) { return false; }
     }
 
     private void PushStateToLauncher(CloudRemoteLauncher launcher)

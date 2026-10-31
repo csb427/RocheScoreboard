@@ -73,6 +73,10 @@ public static class Motion
 {
     private static readonly ConditionalWeakTable<AvaloniaObject, Dictionary<AvaloniaProperty, Running>> Active = new();
     public static bool IsAnimating(AvaloniaObject target)=>Active.TryGetValue(target,out var values)&&values.Values.Any(value=>!value.Finished);
+    // A finished HoldEnd clock can still supply an animation-priority value.
+    // Query the requested property rather than another active clock on target.
+    internal static bool HasAnimationValue(AvaloniaObject target, AvaloniaProperty property)
+        => Active.TryGetValue(target, out var values) && values.TryGetValue(property, out var running) && running.Value is not null;
     private sealed class Running : IDisposable
     {
         public required AvaloniaObject Target;
@@ -86,12 +90,18 @@ public static class Motion
         public IDisposable? Value;
         public bool Finished;
         public void Dispose() { Finished = true; if(Frame is not null){NativeRendering.Rendering-=Frame;Frame=null;} Value?.Dispose(); Value = null; }
-        public void Set(object value)
+        public bool Set(object value)
         {
             // Replace the animation-priority value without modifying the local base.
             var previous = Value;
-            Value = Target.SetValue(Property, value, BindingPriority.Animation);
+            var next = Target.SetValue(Property, value, BindingPriority.Animation);
+            // SetValue notifies synchronously. Cancellation/replacement inside
+            // that notification cannot see this new lease until it returns.
+            // Retire it here rather than leaving a detached clock over new UI.
+            if (Finished) { next?.Dispose(); return false; }
+            Value = next;
             previous?.Dispose();
+            return !Finished;
         }
         public void Tick(double? elapsedMilliseconds=null)
         {
@@ -118,8 +128,14 @@ public static class Motion
                     value = animation.InterpolateValue(Math.Clamp(fraction, 0, 1), From);
                 if (complete && Completed.Add(animation)) completions.Add(animation);
             }
-            if (value is not null) Set(value);
-            else { Value?.Dispose(); Value = null; }
+            if (value is not null) { if (!Set(value)) return; }
+            else
+            {
+                var previous = Value;
+                Value = null;
+                previous?.Dispose();
+                if (Finished) return;
+            }
             if (allComplete) { Finished = true; if(Frame is not null){NativeRendering.Rendering-=Frame;Frame=null;} }
             foreach (var animation in completions) animation.Complete();
 

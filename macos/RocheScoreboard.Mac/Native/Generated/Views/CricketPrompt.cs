@@ -1,5 +1,5 @@
 // Generated from Views/CricketPrompt.cs; edit translator/adapters.
-// Source SHA-256: dd67aa13f7fec733f0f4de318979beb47da3983cc81eb237dec57b1f7abd2902
+// Source SHA-256: 1221a6db60105e70dc300f1cdbe55ba1e756af08095ecb6362b110be692579a6
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -36,15 +36,24 @@ internal static class CricketPrompt
     internal static Task<string?> ChooseAsync(Panel host, string title, string message, params Choice[] choices)
         => ShowAsync(host, title, message, null, choices);
     internal static Task<string?> ShowAsync(Panel host, string title, string message, Control? body, params Choice[] choices)
+        =>ShowCoreAsync(host,title,message,body,null,null,null,choices);
+    internal static Task<string?> ShowValidatedAsync(Panel host,string title,string message,Control body,Func<bool> validate,params Choice[] choices)
+        =>ShowCoreAsync(host,title,message,body,null,null,validate,choices);
+    internal static Task<string?> ShowCorrectionAsync(Panel host,string title,string message,Control body,Control summary,Control? source,Func<bool> validate,params Choice[] choices)
+        =>ShowCoreAsync(host,title,message,body,summary,source,validate,choices);
+    private static Task<string?> ShowCoreAsync(Panel host,string title,string message,Control? body,Control? summary,Control? source,Func<bool>? validate,Choice[] choices)
     {
         var completion = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var previousFocus = NativeKeyboard.FocusedElement;
         var veil = new NativeBorder { Tag = "cricket-decision-sheet", Background = new SolidColorBrush(Color.FromArgb(150, 0, 0, 0)), Padding = new Thickness(16), Focusable = true };
         OperatorDesign.SetIsEnabled(veil, true);
-        var surface = new OperatorGlassSurface { Material = GlassMaterial.Regular, GlassSource = host, MaxWidth = 720, CornerRadius = new CornerRadius(30), VerticalAlignment = VerticalAlignment.Center, BorderThickness = new Thickness(1), BorderBrush = new SolidColorBrush(Color.FromArgb(104, 255, 255, 255)), Background = new SolidColorBrush(Color.FromArgb(140, 33, 35, 43)), RenderTransformOrigin = new RelativePoint(.5, .5,RelativeUnit.Relative) };
+        var surface = new OperatorGlassSurface { Material = GlassMaterial.Regular, GlassSource = host, MaxWidth = 720, CornerRadius = new CornerRadius(30), VerticalAlignment = VerticalAlignment.Center, BorderThickness = new Thickness(1), BorderBrush = new SolidColorBrush(Color.FromArgb(104, 255, 255, 255)), Background = new SolidColorBrush(Color.FromArgb(140, 33, 35, 43)), RenderTransformOrigin = new RelativePoint(.5, .08,RelativeUnit.Relative) };
         surface.SetResourceReference(Border.BackgroundProperty, "ControlCentre.GlassBrush");
         var scale = new ScaleTransform(1, 1); var shift = new TranslateTransform();
         var transform = new TransformGroup(); transform.Children.Add(scale); transform.Children.Add(shift); surface.RenderTransform = transform;
+        ExpansionOrigin correctionOrigin=ExpansionOrigin.Default;
+        bool correctionStarted=false;
+        if(summary is not null){surface.Tag="scorecard-correction-surface";surface.RenderTransformOrigin=new RelativePoint(.5,.5,RelativeUnit.Relative);}
         veil.ZIndex = 200; Grid.SetRowSpan(veil, 20); Grid.SetColumnSpan(veil, 20);
         var stack = new StackPanel { Margin = new Thickness(26) };
         ScrollViewer? formScroll = null;
@@ -53,15 +62,29 @@ internal static class CricketPrompt
         var titleText = new NativeTextBlock { Text = title, FontSize = 25, FontWeight = FontWeight.Bold, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 12, 0), ToolTip = message };
         titleText.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.TextBrush");
         heading.Children.Add(titleText); stack.Children.Add(heading);
+        if(summary is not null)
+        {
+            heading.ColumnDefinitions.Insert(0,new ColumnDefinition{Width=GridLength.Auto});Grid.SetColumn(titleText,1);
+            var symbol=new OperatorSymbol{Kind="scorecard",Width=25,Height=25,Margin=new Thickness(0,0,10,0),VerticalAlignment=VerticalAlignment.Center};
+            symbol.SetResourceReference(OperatorSymbol.ForegroundProperty,"ControlCentre.TextBrush");heading.Children.Add(symbol);
+            symbol.Loaded+=(_,_)=>symbol.Activate();
+        }
         TextBlock? messageText = null;
         if (!string.IsNullOrWhiteSpace(message)) { messageText = new NativeTextBlock { Text = message, Foreground = new SolidColorBrush(Color.FromRgb(190, 190, 201)), FontSize = 15, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 18) }; messageText.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush"); stack.Children.Add(messageText); }
+        if(summary is not null){summary.Margin=new Thickness(0,10,0,8);stack.Children.Add(summary);}
         if (body is not null) stack.Children.Add(body);
         var actions = new StackPanel { Margin = new Thickness(0, 14, 0, 0) }; stack.Children.Add(actions);
+        Control actionsSurface=actions;
         bool finished = false, closing = false;
+        string? closingResult=null;
         void Complete(string? key)
         {
             if (finished) return; finished = true; host.SizeChanged -= Resize; host.Unloaded -= HostUnloaded;
-            veil.BeginAnimation(Control.OpacityProperty, null); surface.BeginAnimation(Control.OpacityProperty, null); scale.BeginAnimation(ScaleTransform.ScaleXProperty, null); scale.BeginAnimation(ScaleTransform.ScaleYProperty, null); shift.BeginAnimation(TranslateTransform.YProperty, null);
+            OperatorAppearance.Changed-=PreferencesChanged;
+            veil.BeginAnimation(Control.OpacityProperty, null); surface.BeginAnimation(Control.OpacityProperty, null); scale.BeginAnimation(ScaleTransform.ScaleXProperty, null); scale.BeginAnimation(ScaleTransform.ScaleYProperty, null); shift.BeginAnimation(TranslateTransform.YProperty, null);shift.BeginAnimation(TranslateTransform.XProperty,null);
+            stack.BeginAnimation(Control.OpacityProperty,null);stack.Opacity=1;
+            if(formScroll is not null){formScroll.BeginAnimation(Control.OpacityProperty,null);formScroll.Opacity=1;}
+            if(summary is not null){summary.SizeChanged-=Resize;stack.Children.Remove(summary);}
             if (body is not null) { stack.Children.Remove(body); if (formScroll is not null) formScroll.Content = null; }
             host.Children.Remove(veil); if (Active.TryGetValue(host, out var active)) { active.Remove(Cancel); if (active.Count == 0) Active.Remove(host); }
             completion.TrySetResult(key);
@@ -78,18 +101,37 @@ internal static class CricketPrompt
         void Finish(string? key)
         {
             if (finished || closing) return;
+            // Invalid input stays in the same owned sheet, so the
+            // repaired field keeps focus instead of a close/reopen resetting it.
+            if(key=="apply" && validate is not null && !validate())return;
             if (!OperatorMotion.Enabled || !host.IsLoaded || !veil.IsLoaded) { Complete(key); return; }
-            closing = true; surface.IsEnabled = false;
+            closing = true;closingResult=key; surface.IsEnabled = false;
             double currentY = shift.Y; shift.BeginAnimation(TranslateTransform.YProperty, null); shift.Y = currentY;
             double currentOpacity = surface.Opacity; surface.BeginAnimation(Control.OpacityProperty, null); surface.Opacity = currentOpacity;
-            scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(scale.ScaleX, .94, OperatorMotion.SurfaceClose) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.HoldEnd });
-            scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(scale.ScaleY, .94, OperatorMotion.SurfaceClose) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.HoldEnd });
-            shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(currentY, 12, OperatorMotion.SurfaceClose) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.HoldEnd });
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(scale.ScaleX, summary is null ? .94 : correctionOrigin.ScaleX, OperatorMotion.SurfaceClose) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.HoldEnd });
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(scale.ScaleY, summary is null ? .94 : correctionOrigin.ScaleY, OperatorMotion.SurfaceClose) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.HoldEnd });
+            shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(currentY, summary is null ? 12 : correctionOrigin.OffsetY, OperatorMotion.SurfaceClose) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.HoldEnd });
+            if(summary is not null)
+            {
+                shift.BeginAnimation(TranslateTransform.XProperty,new DoubleAnimation(shift.X,correctionOrigin.OffsetX,OperatorMotion.SurfaceClose){EasingFunction=OperatorMotion.SmoothOut});
+                formScroll?.BeginAnimation(Control.OpacityProperty,new DoubleAnimation(0,OperatorMotion.Press));
+            }
             var fade = new DoubleAnimation(0, OperatorMotion.SurfaceClose) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.HoldEnd };
             fade.Completed += (_, _) => Complete(key);
             veil.BeginAnimation(Control.OpacityProperty, fade);
         }
         void Cancel() => Complete(null);
+        void PreferencesChanged()
+        {
+            if(finished || OperatorMotion.Enabled)return;
+            if(closing){Complete(closingResult);return;}
+            foreach(var property in new[]{ScaleTransform.ScaleXProperty,ScaleTransform.ScaleYProperty})scale.BeginAnimation(property,null);
+            shift.BeginAnimation(TranslateTransform.XProperty,null);shift.BeginAnimation(TranslateTransform.YProperty,null);shift.X=shift.Y=0;
+            stack.BeginAnimation(Control.OpacityProperty,null);stack.Opacity=1;
+            formScroll?.BeginAnimation(Control.OpacityProperty,null);if(formScroll is not null)formScroll.Opacity=1;
+            surface.BeginAnimation(Control.OpacityProperty,null);surface.Opacity=1;
+            veil.BeginAnimation(Control.OpacityProperty,null);veil.Opacity=1;
+        }
         if (!Active.TryGetValue(host, out var registered)) Active[host] = registered = new(); registered.Add(Cancel);
         var explicitClose = choices.FirstOrDefault(c => c.Key == "close");
         var back = explicitClose is not null ? choices.FirstOrDefault(c => c.Key == "back") : null;
@@ -105,7 +147,8 @@ internal static class CricketPrompt
         }
         var close = new NativeButton { Tag = dismiss?.Key ?? "dismiss-sheet", Content = "×", ToolTip = dismiss?.Label ?? "Close", Width = 36, Height = 36, MinHeight = 0, FontSize = 24, Foreground = Brushes.White, Background = new SolidColorBrush(Color.FromRgb(51, 51, 57)), BorderBrush = new SolidColorBrush(Color.FromRgb(74, 74, 82)), Padding = new Thickness(0) };
         if (veil.TryFindResource("ControlCentre.Button") is Style closeStyle) close.Theme = closeStyle;
-        Grid.SetColumn(close, back is null ? 1 : 2); heading.Children.Add(close); close.Click += (_, _) => Finish(dismiss?.Key);
+        Avalonia.Automation.AutomationProperties.SetName(close,dismiss?.Label??"Close");
+        Grid.SetColumn(close, heading.ColumnDefinitions.Count-1); heading.Children.Add(close); close.Click += (_, _) => Finish(dismiss?.Key);
         foreach (var choice in choices.Where(c => !ReferenceEquals(c, dismiss) && !ReferenceEquals(c, back)).OrderByDescending(c => c.Primary))
         {
             var button = new NativeButton
@@ -134,6 +177,15 @@ internal static class CricketPrompt
             // Keep the title, close control and commit action visible while a
             // long roster or editor scrolls independently between them.
             stack.Children.Remove(body); stack.Children.Remove(actions); scroll.Content = null;
+            if(summary is not null && dismiss is not null)
+            {
+                var footer=new Grid();footer.ColumnDefinitions.Add(new(){Width=new GridLength(100)});footer.ColumnDefinitions.Add(new(){Width=new GridLength(8)});footer.ColumnDefinitions.Add(new());
+                var cancelButton=new NativeButton{Content=dismiss.Label,Tag="scorecard-correction-cancel",MinHeight=48,Padding=new Thickness(10,8,10,8),ContentTemplate=ButtonContent};
+                cancelButton.SetResourceReference(Control.ThemeProperty,"ControlCentre.Button");Avalonia.Automation.AutomationProperties.SetName(cancelButton,dismiss.Label);
+                cancelButton.Click+=(_,_)=>Finish(dismiss.Key);footer.Children.Add(cancelButton);
+                foreach(var action in actions.Children.OfType<Button>())action.Margin=new Thickness(0);
+                actions.Margin=new Thickness(0);Grid.SetColumn(actions,2);footer.Children.Add(actions);actionsSurface=footer;
+            }
             formLayout = new Grid { Margin = new Thickness(18) }; stack.Margin = new Thickness(0);
             formLayout.RowDefinitions.Add(new() { Height = GridLength.Auto });
             // An Auto row contributes the editor's real desired height. A star
@@ -143,7 +195,7 @@ internal static class CricketPrompt
             formLayout.Children.Add(stack);
             formScroll = new ScrollViewer { Tag = "cricket-prompt-body", Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
             Grid.SetRow(formScroll,1); formLayout.Children.Add(formScroll);
-            Grid.SetRow(actions,2); formLayout.Children.Add(actions);
+            Grid.SetRow(actionsSurface,2); formLayout.Children.Add(actionsSurface);
             // Normally the body alone scrolls. At exceptionally short heights,
             // this outer viewport keeps the title and actions reachable as well.
             scroll.Content = formLayout; surface.Child = scroll;
@@ -157,25 +209,46 @@ internal static class CricketPrompt
             bool compact = host.NativeHeight() < 480;
             formLayout.Margin = new Thickness(compact ? 12 : 18);
             titleText.FontSize = compact ? 21 : 25;
-            if (messageText is not null) messageText.IsVisible = compact ? false : true;
-            actions.Margin = new Thickness(0, compact ? 8 : 14, 0, 0);
+            if (messageText is not null) messageText.IsVisible = compact || summary is not null ? false : true;
+            actionsSurface.Margin = new Thickness(0, compact ? 8 : 14, 0, 0);
             if (formScroll is not null)
             {
                 double width = Math.Max(1, surface.MaxWidth - formLayout.Margin.Left - formLayout.Margin.Right);
                 stack.Measure(new Avalonia.Size(width, double.PositiveInfinity));
-                actions.Measure(new Avalonia.Size(width, double.PositiveInfinity));
-                double bodySpace = surface.MaxHeight - formLayout.Margin.Top - formLayout.Margin.Bottom - stack.DesiredSize.Height - actions.DesiredSize.Height;
-                bool scrollWholeForm = bodySpace < 72;
+                actionsSurface.Measure(new Avalonia.Size(width, double.PositiveInfinity));
+                double bodySpace = surface.MaxHeight - formLayout.Margin.Top - formLayout.Margin.Bottom - stack.DesiredSize.Height - actionsSurface.DesiredSize.Height;
+                bool scrollWholeForm = bodySpace < (summary is null?72:48);
                 formScroll.MaxHeight = scrollWholeForm ? double.PositiveInfinity : bodySpace;
+                if(summary is not null)formScroll.Height=scrollWholeForm?double.NaN:bodySpace;
                 formScroll.VerticalScrollBarVisibility = scrollWholeForm ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto;
             }
         }
         void HostUnloaded(object? sender, RoutedEventArgs args) => Complete(null);
-        host.SizeChanged += Resize; host.Unloaded += HostUnloaded; Resize(null, null!);
+        host.SizeChanged += Resize; host.Unloaded += HostUnloaded;if(summary is not null)summary.SizeChanged+=Resize; Resize(null, null!);
         veil.KeyDown += (_, e) => { if (e.Key == Key.Escape) { e.Handled = true; Finish(null); } };
         KeyboardNavigation.SetTabNavigation(veil, KeyboardNavigationMode.Cycle);
+        void StartCorrectionEntry()
+        {
+            if(correctionStarted || finished || closing)return;
+            surface.UpdateLayout();if(surface.NativeWidth()<1 || surface.NativeHeight()<1)return;
+            correctionStarted=true;
+            correctionOrigin=ExpansionOrigin.From(surface,source??previousFocus as Control).WithTravel(OperatorMotion.TravelScale);
+            if(!OperatorMotion.Enabled)return;
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty,new DoubleAnimation(correctionOrigin.ScaleX,1,OperatorMotion.PanelOpen){EasingFunction=OperatorMotion.SmoothOut,FillBehavior=FillBehavior.Stop});
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty,new DoubleAnimation(correctionOrigin.ScaleY,1,OperatorMotion.PanelOpen){EasingFunction=OperatorMotion.SmoothOut,FillBehavior=FillBehavior.Stop});
+            shift.BeginAnimation(TranslateTransform.XProperty,new DoubleAnimation(correctionOrigin.OffsetX,0,OperatorMotion.PanelOpen){EasingFunction=OperatorMotion.SmoothOut,FillBehavior=FillBehavior.Stop});
+            shift.BeginAnimation(TranslateTransform.YProperty,new DoubleAnimation(correctionOrigin.OffsetY,0,OperatorMotion.PanelOpen){EasingFunction=OperatorMotion.SmoothOut,FillBehavior=FillBehavior.Stop});
+            stack.BeginAnimation(Control.OpacityProperty,new DoubleAnimation(0,1,OperatorMotion.SurfaceOpen){BeginTime=OperatorMotion.Stagger,FillBehavior=FillBehavior.Stop});
+            formScroll?.BeginAnimation(Control.OpacityProperty,new DoubleAnimation(0,1,OperatorMotion.SurfaceOpen){BeginTime=TimeSpan.FromTicks(OperatorMotion.Stagger.Ticks*2),FillBehavior=FillBehavior.Stop});
+            veil.BeginAnimation(Control.OpacityProperty,new DoubleAnimation(0,1,OperatorMotion.SurfaceOpen){FillBehavior=FillBehavior.Stop});
+        }
+        // Keep the current sheet subscribed through its closing flight. Complete
+        // balances this for every result, host unload and explicit cancellation.
+        OperatorAppearance.Changed+=PreferencesChanged;
+        if(summary is not null)surface.Loaded+=(_,_)=>StartCorrectionEntry();
         host.Children.Add(veil);
-        if(previousFocus is Control trigger && host.IsAncestorOf(trigger))
+        if(summary is not null && surface.IsLoaded)StartCorrectionEntry();
+        if(summary is null && previousFocus is Control trigger && host.IsAncestorOf(trigger))
         {
             surface.Loaded+=(_,_)=>
             {
@@ -184,11 +257,11 @@ internal static class CricketPrompt
                 surface.RenderTransformOrigin=new RelativePoint(Math.Clamp(origin.X/surface.NativeWidth(),.12,.88),Math.Clamp(origin.Y/surface.NativeHeight(),.08,.92),RelativeUnit.Relative);
             };
         }
-        if (OperatorMotion.Enabled)
+        if (summary is null && OperatorMotion.Enabled)
         {
-            shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(12, 0, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.94, 1, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.90, 1, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(24, 0, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.94, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.82, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
             surface.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(.65, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
             veil.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(160)) { FillBehavior = FillBehavior.Stop });
         }

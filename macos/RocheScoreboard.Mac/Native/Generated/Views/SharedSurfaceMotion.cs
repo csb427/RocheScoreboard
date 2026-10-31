@@ -1,5 +1,5 @@
 // Generated from Views/SharedSurfaceMotion.cs; edit translator/adapters.
-// Source SHA-256: 32ba9aca6e98750639ec63106f349d5e81b266c0c851c6581d7bf2f33452e741
+// Source SHA-256: eb5457efc594fff1884f55e5b69929a8828ea40159a6e2c98f17c7cd7858b102
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -18,10 +18,21 @@ internal static class SharedSurfaceMotion
     private static readonly ConditionalWeakTable<Control, Surface> Surfaces = new();
 
     internal static void Attach(Control element) => Surfaces.GetValue(element, target => new Surface(target));
+    internal static void AttachFrom(Control element,Control? source)
+        =>Surfaces.GetValue(element,target=>new Surface(target)).Source=source;
     internal static void Reveal(Control element)
     {
         Attach(element);
         Surfaces.GetValue(element, target => new Surface(target)).Reveal();
+    }
+    internal static void RevealSequence(IEnumerable<Control> elements)
+    {
+        int index=0;
+        foreach(var element in elements.Where(item=>item.IsLoaded && item.IsVisible && item.NativeWidth()>0).Take(4))
+        {
+            var surface=Surfaces.GetValue(element,target=>new Surface(target));surface.Sequence=true;
+            surface.SequenceDelay=TimeSpan.FromTicks(OperatorMotion.Stagger.Ticks*index++);surface.Reveal();
+        }
     }
 
     private sealed class Surface
@@ -35,6 +46,11 @@ internal static class SharedSurfaceMotion
         private bool _revealing;
         private NativeCacheMode? _originalCache;
         private int _generation;
+        internal Control? Source {get;set;}
+        internal bool Sequence {get;set;}
+        internal TimeSpan SequenceDelay {get;set;}
+        private Control? _content;
+        private double _contentOpacity;
 
         internal Surface(Control target)
         {
@@ -57,10 +73,12 @@ internal static class SharedSurfaceMotion
             ++_generation;
             _target.BeginAnimation(Control.OpacityProperty, null);
             _travel.BeginAnimation(TranslateTransform.YProperty, null);
+            _travel.BeginAnimation(TranslateTransform.XProperty, null);
             _target.Opacity = 1;
-            _travel.Y = 0;
+            _travel.X=_travel.Y = 0;
             _morph.BeginAnimation(ScaleTransform.ScaleXProperty,null);_morph.BeginAnimation(ScaleTransform.ScaleYProperty,null);_morph.ScaleX=_morph.ScaleY=1;_target.RenderTransformOrigin=_originalOrigin;
             _target.RenderTransform = _original;
+            if(_content is not null){_content.BeginAnimation(Control.OpacityProperty,null);_content.Opacity=_contentOpacity;_content=null;}
             if(_revealing)NativeCache.Set(_target, _originalCache);
             _revealing = false;
         }
@@ -69,18 +87,33 @@ internal static class SharedSurfaceMotion
         {
             if (!OperatorMotion.Enabled) { Reset(); return; }
             if (!_target.IsLoaded || !_target.IsVisible) return;
-            if (!_revealing) { _originalCache=NativeCache.Get(_target);NativeCache.Set(_target, new NativeBitmapCache());_target.Opacity = .72; _travel.Y = 24;_morph.ScaleX=.94;_morph.ScaleY=.82;_target.RenderTransformOrigin=new RelativePoint(.5,.08,RelativeUnit.Relative); }
+            if (!_revealing)
+            {
+                _target.UpdateLayout();
+                var origin=(Sequence?new ExpansionOrigin(1,1,0,8):ExpansionOrigin.From(_target,Source)).WithTravel(OperatorMotion.TravelScale);
+                _originalCache=NativeCache.Get(_target);NativeCache.Set(_target, new NativeBitmapCache());_target.Opacity=.72;
+                _travel.X=origin.OffsetX;_travel.Y=origin.OffsetY;_morph.ScaleX=origin.ScaleX;_morph.ScaleY=origin.ScaleY;
+                _target.RenderTransformOrigin=new RelativePoint(.5,.5,RelativeUnit.Relative);
+                if(Source is {IsVisible:true} && _target is Avalonia.Controls.Border {Child:Control content})
+                {
+                    _content=content;_contentOpacity=content.Opacity;content.Opacity=0;
+                    content.BeginAnimation(Control.OpacityProperty,new DoubleAnimation(_contentOpacity,OperatorMotion.SurfaceOpen)
+                        {BeginTime=TimeSpan.FromTicks(OperatorMotion.Stagger.Ticks*2),EasingFunction=OperatorMotion.SmoothOut});
+                }
+            }
             _revealing = true;
             int generation=++_generation;
+            var duration=Sequence?OperatorMotion.SurfaceOpen:OperatorMotion.MaterialArrival;
             _target.RenderTransform = _transforms;
-            _morph.BeginAnimation(ScaleTransform.ScaleXProperty,new DoubleAnimation(1,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut});
-            _morph.BeginAnimation(ScaleTransform.ScaleYProperty,new DoubleAnimation(1,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut});
+            _morph.BeginAnimation(ScaleTransform.ScaleXProperty,new DoubleAnimation(1,duration){BeginTime=SequenceDelay,EasingFunction=OperatorMotion.SmoothOut});
+            _morph.BeginAnimation(ScaleTransform.ScaleYProperty,new DoubleAnimation(1,duration){BeginTime=SequenceDelay,EasingFunction=OperatorMotion.SmoothOut});
             // No reset on re-entry: WPF continues from the current presentation value.
-            _target.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(1, OperatorMotion.MaterialArrival)
-                { EasingFunction = OperatorMotion.SmoothOut });
-            var travel=new DoubleAnimation(0,OperatorMotion.MaterialArrival){EasingFunction=OperatorMotion.SmoothOut};
+            _target.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(1, duration)
+                { BeginTime=SequenceDelay,EasingFunction = OperatorMotion.SmoothOut });
+            var travel=new DoubleAnimation(0,duration){BeginTime=SequenceDelay,EasingFunction=OperatorMotion.SmoothOut};
             travel.Completed+=(_,_)=>{if(generation==_generation)Reset();};
             _travel.BeginAnimation(TranslateTransform.YProperty,travel);
+            _travel.BeginAnimation(TranslateTransform.XProperty,new DoubleAnimation(0,duration){BeginTime=SequenceDelay,EasingFunction=OperatorMotion.SmoothOut});
         }
     }
 }

@@ -1,5 +1,5 @@
 <!-- Generated from production WPF source; edit the translator. -->
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.SetupWizard" Background="Transparent" ns2:OperatorDesign.IsEnabled="True" xmlns:layout="clr-namespace:Roche_Scoreboard.Views" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:ns2="clr-namespace:Roche_Scoreboard.Services" xmlns:ns4="clr-namespace:Roche_Scoreboard.Views" xmlns:port="clr-namespace:RocheScoreboard.Mac.Production" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.SetupWizard" Background="Transparent" ns2:OperatorDesign.IsEnabled="True" xmlns:layout="clr-namespace:Roche_Scoreboard.Views" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" port:ProductionNames.Root="True" xmlns:native="clr-namespace:RocheScoreboard.Mac.Native" xmlns:services="clr-namespace:Roche_Scoreboard.Services" xmlns:glass="clr-namespace:Roche_Scoreboard.Views" xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base" xmlns:fonts="clr-namespace:RocheScoreboard.Mac.Native" KeyDown="Native_UnifiedSetup_KeyDown">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -57,6 +57,30 @@
         <ns4:WizardViewport x:Name="ResponsiveScrollHost" MinimumCanvasWidth="320" MinimumCanvasHeight="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Grid.Row="1" PointerWheelChanged="Native_ResponsiveScrollHost_PreviewMouseWheel">
             <Grid>
                 <Grid Margin="18,8,18,22" MaxWidth="1440" HorizontalAlignment="Stretch" x:Name="WizardBody">
+                    <StackPanel x:Name="SportStepContainer" MaxWidth="880" Margin="0,12,0,20" IsVisible="False">
+                        <TextBlock x:Name="SportQuestion" Text="Choose a sport" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="28" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,8" />
+                        <TextBlock x:Name="SportDescription" Text="Your current match stays intact until you finish setup." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="15" TextWrapping="Wrap" Margin="0,0,0,24" />
+                        <Grid ns4:WizardPair.MinimumColumnWidth="180">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <RadioButton x:Name="AflSportChoice" GroupName="MatchSportChoice" IsChecked="True" Padding="22" Margin="0,0,8,12" HorizontalContentAlignment="Stretch" AutomationProperties.Name="AFL, Australian football, footy" Theme="{StaticResource SettingsTile}" IsCheckedChanged="Native_SportChoice_Changed">
+                                <StackPanel>
+                                    <ns2:OperatorSymbol x:Name="AflSportSymbol" Kind="sport-afl" Width="52" Height="52" HorizontalAlignment="Left" Foreground="{DynamicResource ControlCentre.TextBrush}" Margin="0,0,0,20" />
+                                    <TextBlock x:Name="AflSportLabel" Text="AFL (footy)" FontSize="24" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="AflSportDescription" Text="Teams, quarter clock and match options" FontSize="14" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="CricketSportChoice" Grid.Column="1" GroupName="MatchSportChoice" Padding="22" Margin="8,0,0,12" HorizontalContentAlignment="Stretch" AutomationProperties.Name="Cricket" Theme="{StaticResource SettingsTile}" IsCheckedChanged="Native_SportChoice_Changed">
+                                <StackPanel>
+                                    <ns2:OperatorSymbol x:Name="CricketSportSymbol" Kind="sport-cricket" Width="52" Height="52" HorizontalAlignment="Left" Foreground="{DynamicResource ControlCentre.TextBrush}" Margin="0,0,0,20" />
+                                    <TextBlock x:Name="CricketSportLabel" Text="Cricket" FontSize="24" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="CricketSportDescription" Text="Teams, players, format and match options" FontSize="14" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                </StackPanel>
+                            </RadioButton>
+                        </Grid>
+                    </StackPanel>
                     <Grid x:Name="TeamsStepContainer" IsVisible="False">
                         <Grid ns4:WizardPair.MinimumColumnWidth="360">
                             <Grid.ColumnDefinitions>
@@ -142,20 +166,20 @@
                                                             <TextBlock Text="Primary Colour" Theme="{StaticResource FieldLabel}" />
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="SetupHomeColorBox" Width="80" Text="#0A2A6A" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupHomeColorBox_TextChanged" />
-                                                                <Border x:Name="SetupHomeColorPreview" Width="28" Height="26" Background="#0A2A6A" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" native:NativeActivation.Enabled="True" PointerReleased="Native_PickSetupHomeColor_Click" />
-                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupHomeColor_Click">
+                                                                <ns4:OperatorActionBorder x:Name="SetupHomeColorPreview" Background="#0A2A6A" AutomationProperties.Name="Choose home primary colour" Margin="4,0,0,0" Theme="{StaticResource WizardColourAction}" ToolTip.Tip="Choose home primary colour" PointerReleased="Native_PickSetupHomeColor_Click" />
+                                                                <ns4:OperatorActionBorder Background="#1C1C1F" AutomationProperties.Name="Pick home primary colour from screen" Margin="3,0,0,0" Theme="{StaticResource WizardColourAction}" ToolTip.Tip="Pick home primary colour from screen" PointerReleased="Native_DropperSetupHomeColor_Click">
                                                                     <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                </Border>
+                                                                </ns4:OperatorActionBorder>
                                                             </StackPanel>
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="2">
                                                             <TextBlock Text="Text Colour" Theme="{StaticResource FieldLabel}" />
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="SetupHomeSecondaryBox" Width="80" Text="#FFFFFF" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupHomeSecondaryBox_TextChanged" />
-                                                                <Border x:Name="SetupHomeSecondaryPreview" Width="28" Height="26" Background="#FFFFFF" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" native:NativeActivation.Enabled="True" PointerReleased="Native_PickSetupHomeSecondary_Click" />
-                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupHomeSecondary_Click">
+                                                                <ns4:OperatorActionBorder x:Name="SetupHomeSecondaryPreview" Background="#FFFFFF" AutomationProperties.Name="Choose home secondary colour" Margin="4,0,0,0" Theme="{StaticResource WizardColourAction}" ToolTip.Tip="Choose home secondary colour" PointerReleased="Native_PickSetupHomeSecondary_Click" />
+                                                                <ns4:OperatorActionBorder Background="#1C1C1F" AutomationProperties.Name="Pick home secondary colour from screen" Margin="3,0,0,0" Theme="{StaticResource WizardColourAction}" ToolTip.Tip="Pick home secondary colour from screen" PointerReleased="Native_DropperSetupHomeSecondary_Click">
                                                                     <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                </Border>
+                                                                </ns4:OperatorActionBorder>
                                                             </StackPanel>
                                                         </StackPanel>
                                                     </Grid>
@@ -274,20 +298,20 @@
                                                             <TextBlock Text="Primary Colour" Theme="{StaticResource FieldLabel}" />
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="SetupAwayColorBox" Width="80" Text="#7A1A1A" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupAwayColorBox_TextChanged" />
-                                                                <Border x:Name="SetupAwayColorPreview" Width="28" Height="26" Background="#7A1A1A" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" native:NativeActivation.Enabled="True" PointerReleased="Native_PickSetupAwayColor_Click" />
-                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupAwayColor_Click">
+                                                                <ns4:OperatorActionBorder x:Name="SetupAwayColorPreview" Background="#7A1A1A" AutomationProperties.Name="Choose away primary colour" Margin="4,0,0,0" Theme="{StaticResource WizardColourAction}" ToolTip.Tip="Choose away primary colour" PointerReleased="Native_PickSetupAwayColor_Click" />
+                                                                <ns4:OperatorActionBorder Background="#1C1C1F" AutomationProperties.Name="Pick away primary colour from screen" Margin="3,0,0,0" Theme="{StaticResource WizardColourAction}" ToolTip.Tip="Pick away primary colour from screen" PointerReleased="Native_DropperSetupAwayColor_Click">
                                                                     <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                </Border>
+                                                                </ns4:OperatorActionBorder>
                                                             </StackPanel>
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="2">
                                                             <TextBlock Text="Text Colour" Theme="{StaticResource FieldLabel}" />
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="SetupAwaySecondaryBox" Width="80" Text="#FFFFFF" FontSize="11" FontFamily="{fonts:ProductionFont 'Consolas'}" Background="#111113" Foreground="{StaticResource TextBrightBrush}" BorderBrush="#3A3A40" BorderThickness="1" Padding="6,4" CaretBrush="White" VerticalContentAlignment="Center" TextChanged="Native_SetupAwaySecondaryBox_TextChanged" />
-                                                                <Border x:Name="SetupAwaySecondaryPreview" Width="28" Height="26" Background="#FFFFFF" BorderBrush="#5B5B66" BorderThickness="1" Cursor="Hand" Margin="4,0,0,0" native:NativeActivation.Enabled="True" PointerReleased="Native_PickSetupAwaySecondary_Click" />
-                                                                <Border Width="26" Height="26" Background="#1C1C1F" BorderBrush="#3A3A40" BorderThickness="1" Cursor="Hand" Margin="3,0,0,0" PointerReleased="Native_DropperSetupAwaySecondary_Click">
+                                                                <ns4:OperatorActionBorder x:Name="SetupAwaySecondaryPreview" Background="#FFFFFF" AutomationProperties.Name="Choose away secondary colour" Margin="4,0,0,0" Theme="{StaticResource WizardColourAction}" ToolTip.Tip="Choose away secondary colour" PointerReleased="Native_PickSetupAwaySecondary_Click" />
+                                                                <ns4:OperatorActionBorder Background="#1C1C1F" AutomationProperties.Name="Pick away secondary colour from screen" Margin="3,0,0,0" Theme="{StaticResource WizardColourAction}" ToolTip.Tip="Pick away secondary colour from screen" PointerReleased="Native_DropperSetupAwaySecondary_Click">
                                                                     <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                </Border>
+                                                                </ns4:OperatorActionBorder>
                                                             </StackPanel>
                                                         </StackPanel>
                                                     </Grid>
@@ -383,6 +407,7 @@
                         </Border.RenderTransform>
                         <Grid>
                             <StackPanel>
+                                <TextBlock x:Name="SetupValidationMessage" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,16" AutomationProperties.LiveSetting="Polite" IsVisible="False" />
                                 <StackPanel x:Name="ClockHeaderGroup" Opacity="1" HorizontalAlignment="Stretch" Margin="0,0,0,20">
                                     <StackPanel.RenderTransform>
                                         <TranslateTransform Y="15" port:ProductionNames.Id="ClockHeaderTranslate" />
@@ -404,7 +429,7 @@
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <ns2:OperatorSymbol Kind="clock" Width="30" Height="30" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Top" />
+                                                <ns2:OperatorSymbol x:Name="CountUpActionSymbol" Kind="clock-up" Width="30" Height="30" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Top" />
                                                 <StackPanel Grid.Column="1">
                                                     <TextBlock Text="Count up" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
                                                     <TextBlock Text="Start at zero and show elapsed playing time." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
@@ -444,7 +469,7 @@
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <ns2:OperatorSymbol Kind="clock" Width="30" Height="30" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Top" />
+                                                <ns2:OperatorSymbol x:Name="CountdownActionSymbol" Kind="clock-down" Width="30" Height="30" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Top" />
                                                 <StackPanel Grid.Column="1">
                                                     <TextBlock Text="Count down" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
                                                     <TextBlock Text="Start at the quarter limit and count back to zero." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
@@ -928,7 +953,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <ns2:OperatorSymbol Kind="match" Width="28" Height="28" Foreground="{DynamicResource ControlCentre.TextBrush}" Margin="0,0,12,0" />
+                    <ns2:OperatorSymbol Kind="launch" Width="28" Height="28" Foreground="{DynamicResource ControlCentre.TextBrush}" Margin="0,0,12,0" />
                     <TextBlock x:Name="HeaderTitle" Text="Set up AFL" FontSize="21" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Center" Grid.Column="1" />
                     <TextBlock Text="1 of 3" FontSize="13" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" x:Name="WizardStepCounter" Grid.Column="2" VerticalAlignment="Center" />
                 </Grid>
@@ -936,6 +961,12 @@
                     <ns4:OperatorSegmentedPanel.RenderTransform>
                         <TranslateTransform Y="-20" port:ProductionNames.Id="StepIndicatorTranslate" />
                     </ns4:OperatorSegmentedPanel.RenderTransform>
+                    <RadioButton x:Name="SportStepNavigation" Click="GoToSportStep_Click" GroupName="UnifiedSetupStepsSetupWizard" Padding="4,6" MinHeight="0" Height="60" IsVisible="False" Theme="{StaticResource SettingsSegment}" ToolTip.Tip="Choose AFL (footy) or cricket">
+                        <StackPanel VerticalAlignment="Center">
+                            <ns2:OperatorSymbol Kind="sport" Width="23" Height="23" Margin="0,0,0,3" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                            <TextBlock Text="Sport" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
                     <RadioButton x:Name="Step1Navigation" Click="GoToStep1_Click" GroupName="WizardSteps" Padding="4,6" MinHeight="0" Height="60" Theme="{StaticResource SettingsSegment}" ToolTip.Tip="Go to teams">
                         <StackPanel VerticalAlignment="Center">
                             <ns2:OperatorSymbol Kind="team" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step1Symbol" Margin="0,0,0,3" />
@@ -966,6 +997,12 @@
                             </Border>
                         </StackPanel>
                     </RadioButton>
+                    <RadioButton x:Name="SportOptionsPreview" IsEnabled="False" Padding="4,6" MinHeight="0" Height="60" IsVisible="False" Theme="{StaticResource SettingsSegment}">
+                        <StackPanel VerticalAlignment="Center">
+                            <ns2:OperatorSymbol Kind="settings" Width="23" Height="23" Margin="0,0,0,3" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                            <TextBlock Text="Options" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
                 </ns4:OperatorSegmentedPanel>
             </Grid>
         </ns4:OperatorGlassSurface>
@@ -976,12 +1013,13 @@
                 </Grid.RenderTransform>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="BackButton" MinWidth="0" Grid.Column="0" Click="Back_Click" Padding="12,0" Height="44" VerticalAlignment="Center" Background="#242427" BorderBrush="#3A3A40" BorderThickness="1.5" MinHeight="0" IsVisible="False" Theme="{StaticResource ToolBtn}">
                     <TextBlock Text="Back" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Button>
+                <Button x:Name="CancelSetupButton" Grid.Column="1" Content="Cancel" Click="CancelSetup_Click" Height="44" MinWidth="0" MinHeight="0" Padding="8,0" Margin="6,0" AutomationProperties.Name="Cancel setup and return to Home" IsVisible="False" Theme="{StaticResource ToolBtn}" />
                 <Button x:Name="NextButton" MinWidth="0" Grid.Column="2" Click="Next_Click" Padding="12,0" Height="44" VerticalAlignment="Center" MinHeight="0" Theme="{StaticResource PrimaryCommandButton}">
                     <TextBlock x:Name="NextButtonText" Text="NEXT →" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Button>

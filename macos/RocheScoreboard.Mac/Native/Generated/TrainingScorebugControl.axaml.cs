@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/TrainingScorebugControl.xaml.cs; edit translator/adapters.
-// Source SHA-256: 3c114a4bfa8029ed72e275087fb625d0f6700cbe2dad6c9e57aef553adc72e26
+// Source SHA-256: 07b17e23494ac21e11299a7b99b394ad121ac4cb1788cef3e8ea307dd45e9772
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -19,8 +19,8 @@ namespace Roche_Scoreboard.Views;
 
 /// <summary>
 /// Display-window content for Training mode. Renders the active timer huge,
-/// the title above and an "UP NEXT" strip below; flashes red/black when an
-/// interval finishes and runs a smooth slide/scale transition to the next
+/// the title above and an "UP NEXT" strip below; acknowledges completion with
+/// a steady success cue and a smooth slide/scale transition to the next
 /// timer once the post-finish hold elapses.
 /// </summary>
 public partial class TrainingScorebugControl : UserControl
@@ -34,13 +34,9 @@ public partial class TrainingScorebugControl : UserControl
     /// <summary>How long the finished timer stays on screen after hitting zero.</summary>
     private static readonly TimeSpan FinishHold = TimeSpan.FromMilliseconds(7500);
 
-    /// <summary>Total length of the final session-complete strobe.</summary>
-    private static readonly TimeSpan SessionCompleteFlash = TimeSpan.FromSeconds(10);
+    /// <summary>Total length of the final session-complete presentation.</summary>
+    private static readonly TimeSpan SessionCompleteHold = TimeSpan.FromSeconds(10);
 
-    /// <summary>Strobe period (red on / off) during finish flashes.</summary>
-    private static readonly TimeSpan StrobePeriod = TimeSpan.FromMilliseconds(420);
-
-    private DispatcherTimer? _strobeTimer;
     private DispatcherTimer? _holdTimer;
     private DispatcherTimer? _sessionCompleteTimer;
     private DispatcherTimer? _promotionTimer;
@@ -63,8 +59,8 @@ public partial class TrainingScorebugControl : UserControl
             }
             UpdateLive();
         };
-        Loaded += (_, _) => { AttachSessionEvents(); UpdateLive(); UpdateUpNext(); _uiTimer.Start(); };
-        Unloaded += (_, _) => { _uiTimer.Stop(); DetachSessionEvents(); ResetVisuals(); };
+        Loaded += (_, _) => { AttachSessionEvents(); UpdateLive(); UpdateTitleScroll(); UpdateUpNext(); _uiTimer.Start(); };
+        Unloaded += (_, _) => { _uiTimer.Stop(); DetachSessionEvents(); ResetVisuals(); StopTitleScroll(); };
     }
 
     public void Bind(TrainingSession session)
@@ -140,7 +136,7 @@ public partial class TrainingScorebugControl : UserControl
         if (active is null)
         {
             SetTitleText("NO TIMERS");
-            TimerText.Text = "00:00";
+            SetActiveDurationReadout(TimeSpan.Zero, TimeSpan.Zero);
             UpdateProgressSegments(0);
             return;
         }
@@ -148,7 +144,7 @@ public partial class TrainingScorebugControl : UserControl
         SetTitleText(active.Title.ToUpperInvariant());
 
         TimeSpan rem = _session.ActiveRemaining;
-        TimerText.Text = FormatTime(rem);
+        SetActiveDurationReadout(rem, active.Duration);
 
         // Progress fills FROM zero TO full as time elapses
         double frac = active.Duration.TotalSeconds <= 0
@@ -242,14 +238,24 @@ public partial class TrainingScorebugControl : UserControl
     private void AnimateUpNext(double targetHeight) => ShowUpNext(targetHeight > 0);
 
     private string _lastTitleText = string.Empty;
+    private bool _titleScrollNeedsRefresh;
     private void SetTitleText(string text)
     {
         if (string.Equals(_lastTitleText, text, StringComparison.Ordinal))
+        {
+            // Hide does not necessarily unload the output. An owned finish
+            // retirement may have stopped this same title while it was hidden.
+            // Retry only that invalidated layout, never measure every UI tick.
+            if (_titleScrollNeedsRefresh && CanPresentTitle()) UpdateTitleScroll();
             return;
+        }
         _lastTitleText = text;
         TitleText.Text = text;
         UpdateTitleScroll();
     }
+
+    private bool CanPresentTitle() => IsLoaded && IsVisible
+        && NativeWindow.GetWindow(this) is { IsVisible: true };
 
     /// <summary>
     /// Measures the title against the visible clip width. If it overflows,
@@ -258,12 +264,18 @@ public partial class TrainingScorebugControl : UserControl
     /// </summary>
     private void UpdateTitleScroll()
     {
+        int generation = _visualGeneration;
+        string cachedTitle = _lastTitleText, displayedTitle = (TitleText.Text ?? string.Empty);
+        bool Current() => generation == _visualGeneration
+            && string.Equals(cachedTitle, _lastTitleText, StringComparison.Ordinal)
+            && string.Equals(displayedTitle, (TitleText.Text ?? string.Empty), StringComparison.Ordinal);
         // Stop any previous scroll animation.
-        TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, null);
-        TitleScrollTransform.X = 0;
+        StopTitleScroll();
+        if (!Current() || !CanPresentTitle()) return;
 
         // Force the TextBlock to measure now so DesiredSize is current.
         TitleText.Measure(new Avalonia.Size(double.PositiveInfinity, double.PositiveInfinity));
+        if (!Current() || !CanPresentTitle()) return;
         double textWidth = TitleText.DesiredSize.Width;
         double clipWidth = TitleClip.Width;
 
@@ -271,11 +283,13 @@ public partial class TrainingScorebugControl : UserControl
         {
             // Fits — centre it within the clip canvas.
             Canvas.SetLeft(TitleText, (clipWidth - textWidth) / 2);
+            if (Current() && CanPresentTitle()) _titleScrollNeedsRefresh = false;
             return;
         }
 
         // Overflows — anchor to left edge of clip, then animate back and forth.
         Canvas.SetLeft(TitleText, 0);
+        if (!Current() || !CanPresentTitle()) return;
         double travel = textWidth - clipWidth + 24; // padding so last char clears edge
         // Speed: ~140 px/sec
         double seconds = Math.Max(2.5, travel / 140.0);
@@ -286,6 +300,14 @@ public partial class TrainingScorebugControl : UserControl
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
         };
         TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, anim);
+        if (Current() && CanPresentTitle()) _titleScrollNeedsRefresh = false;
+    }
+
+    private void StopTitleScroll()
+    {
+        _titleScrollNeedsRefresh = true;
+        TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, null);
+        TitleScrollTransform.X = 0;
     }
 
     private void UpdateProgressSegments(double fraction)
@@ -337,6 +359,33 @@ public partial class TrainingScorebugControl : UserControl
         }
     }
 
+    /// <summary>
+    /// The primary clock always uses the same MM:SS glyph size. Large total
+    /// hours have their own fixed-size, labelled lane; configured hour-sized
+    /// intervals keep that lane while counting below one hour. These are real
+    /// visible components, not an abbreviated or hidden full-duration readout.
+    /// </summary>
+    private void SetActiveDurationReadout(TimeSpan remaining, TimeSpan configuredDuration)
+    {
+        if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+        bool showHours = configuredDuration >= TimeSpan.FromHours(1) || remaining >= TimeSpan.FromHours(1);
+        long hours = remaining.Ticks / TimeSpan.TicksPerHour;
+        string hoursText = hours.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string minuteSeconds = $"{remaining.Minutes:D2}:{remaining.Seconds:D2}";
+        var hoursVisibility = showHours ? true : false;
+        bool changed = (TimerText.Text ?? string.Empty) != minuteSeconds || (TimerHoursText.Text ?? string.Empty) != hoursText
+            || TimerHoursLane.IsVisible != hoursVisibility
+            || string.IsNullOrEmpty(Avalonia.Automation.AutomationProperties.GetName(TimerReadout));
+        TimerText.Text = minuteSeconds;
+        TimerHoursText.Text = hoursText;
+        TimerHoursLane.IsVisible = hoursVisibility;
+        TimerHoursSpacer.IsVisible = hoursVisibility;
+        if (changed)
+            Avalonia.Automation.AutomationProperties.SetName(TimerReadout, showHours
+                ? $"Time remaining: {hoursText} hours, {remaining.Minutes} minutes, {remaining.Seconds} seconds"
+                : $"Time remaining: {remaining.Minutes} minutes, {remaining.Seconds} seconds");
+    }
+
     private static string FormatTime(TimeSpan t)
     {
         if (t < TimeSpan.Zero) t = TimeSpan.Zero;
@@ -349,18 +398,25 @@ public partial class TrainingScorebugControl : UserControl
     // ─────────── Finish flow ───────────
 
     private string? _lockedFinishedTitle;
-    private static readonly Color FlashOnColor = (Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#B30000")!;
-    private static readonly Color FlashOffColor = (Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#080C12")!;
+    private static readonly Color CompletionBaseColor = (Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#102A21")!;
+    private static readonly Color NeutralBaseColor = (Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#080C12")!;
 
     private void OnIntervalFinished(TrainingTimer finished)
     {
-        if (_session is null || !ReferenceEquals(_session.Active, finished) || !finished.HasFinished) return;
+        // Show() makes the output visible before Loaded is dispatched. It must
+        // already consume a finish then; detached/hidden views leave progression
+        // to the operator controller's existing off-screen fallback.
+        if (!IsVisible || NativeWindow.GetWindow(this) is not { IsVisible: true }
+            || _session is null || !ReferenceEquals(_session.Active, finished) || !finished.HasFinished) return;
         ResetVisuals();
+        var session = _session;
+        var expectedNext = session.UpNext;
+        int advanceGeneration = _visualGeneration;
 
         // 1) Lock the visible scorebug on the just-finished timer.
         _lockedFinishedTitle = finished.Title.ToUpperInvariant();
         SetTitleText(_lockedFinishedTitle);
-        TimerText.Text = "00:00";
+        SetActiveDurationReadout(TimeSpan.Zero, finished.Duration);
         UpdateProgressSegments(1);
         _flashing = true;
 
@@ -372,19 +428,44 @@ public partial class TrainingScorebugControl : UserControl
         //    running immediately in the background, unless the operator has
         //    disabled auto-advance (in which case the next timer is staged
         //    paused and waits for a manual Start press).
-        bool sessionFinishing = _session.UpNext is null;
-        bool autoStart = !sessionFinishing && _session.AutoAdvance;
+        bool sessionFinishing = expectedNext is null;
+        bool autoStart = !sessionFinishing && session.AutoAdvance;
         _advancingAfterFinish = true;
-        try { _session.AdvanceAfterFinish(autoStart: autoStart); }
-        finally { _flashActiveId = _session.Active?.Id; _advancingAfterFinish = false; }
+        try { session.AdvanceAfterFinish(autoStart: autoStart); }
+        finally { _advancingAfterFinish = false; }
 
-        // 4) Start the strobe (background colour change, no overlay).
-        StartStrobe();
+        // Advance notifies synchronously. A subscriber may rebind/close this
+        // output or change the queue while that notification is on the stack.
+        // Never let the obsolete continuation rearm work over its replacement.
+        if (advanceGeneration != _visualGeneration || !ReferenceEquals(_session, session)) return;
+        if (!IsVisible || NativeWindow.GetWindow(this) is not { IsVisible: true })
+        {
+            ResetVisuals();
+            StopTitleScroll();
+            return;
+        }
+        if (!ReferenceEquals(session.Active, expectedNext))
+        {
+            ResetVisuals();
+            return;
+        }
+        _flashActiveId = session.Active?.Id;
+
+        // 4) Acknowledge completion once without flashing the public display.
+        // The next stopwatch already runs independently of this decoration.
+        bool CurrentCueOwner() => advanceGeneration == _visualGeneration && ReferenceEquals(_session, session)
+            && ReferenceEquals(session.Active, expectedNext) && IsVisible
+            && NativeWindow.GetWindow(this) is { IsVisible: true };
+        if (!StartCompletionCue(showMark: !sessionFinishing, isCurrent: CurrentCueOwner))
+        {
+            RetireCompletionVisualsIfOwned(advanceGeneration, session);
+            return;
+        }
 
         if (sessionFinishing)
         {
             // No next timer — show the session-complete banner for the full
-            // 10-second strobe window then fall back to ready state.
+            // 10-second completion window then fall back to ready state.
             ShowSessionComplete();
             return;
         }
@@ -394,7 +475,7 @@ public partial class TrainingScorebugControl : UserControl
         //    StagedTimerText every frame while _flashing is true.
         ShowStagedNowStarting();
 
-        // 6) After FinishHold, end the strobe and animate the swap: the
+        // 6) After FinishHold, return the accent and animate the swap: the
         //    finished panel slides up & out, the staged bar grows up to
         //    centre as the new active timer.
         _holdTimer?.Stop();
@@ -440,35 +521,56 @@ public partial class TrainingScorebugControl : UserControl
     /// with the live next timer's values. No big translates across the
     /// canvas — feels like a clean cut, not a janky slide.
     /// </summary>
+    private bool OwnsCompletionVisuals(int generation, TrainingSession? session, TrainingTimer? active) =>
+        generation == _visualGeneration && ReferenceEquals(_session, session)
+        && ReferenceEquals(session?.Active, active) && IsVisible
+        && NativeWindow.GetWindow(this) is { IsVisible: true };
+
+    private void RetireCompletionVisualsIfOwned(int generation, TrainingSession? session)
+    {
+        // A hidden host can still own this phase. Retire it without touching
+        // a replacement which may have rebound during an observable write.
+        if (generation != _visualGeneration || !ReferenceEquals(_session, session)) return;
+        int resetGeneration = unchecked(_visualGeneration + 1);
+        ResetVisuals();
+        if (resetGeneration == _visualGeneration && ReferenceEquals(_session, session)) StopTitleScroll();
+    }
+
     private void EndFlashAndPromoteStaged()
     {
-        StopStrobe();
+        int generation = _visualGeneration;
+        var session = _session;
+        var active = session?.Active;
+        bool IsCurrent() => OwnsCompletionVisuals(generation, session, active);
+        if (!StopCompletionCue(IsCurrent)) { RetireCompletionVisualsIfOwned(generation, session); return; }
 
         const int crossMs = 450;
 
-        // Finished panel: fade out + tiny scale-down so it doesn't feel jumpy.
+        // These setters may synchronously replace the output's owner. Every
+        // later write and the delayed promotion still belong to this phase.
         ActiveTimerHost.BeginAnimation(OpacityProperty,
             new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(crossMs)) { EasingFunction = EaseOut });
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty,
             new DoubleAnimation(1, 0.95, TimeSpan.FromMilliseconds(crossMs)) { EasingFunction = EaseOut });
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         TimerScale.BeginAnimation(ScaleTransform.ScaleYProperty,
             new DoubleAnimation(1, 0.95, TimeSpan.FromMilliseconds(crossMs)) { EasingFunction = EaseOut });
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
 
-        // Staged "NOW STARTING" bar: fade out where it sits — its job
-        // (showing the next clock during the flash) is done.
         StagedTimerHost.BeginAnimation(OpacityProperty,
             new DoubleAnimation(StagedTimerHost.Opacity, 0, TimeSpan.FromMilliseconds(crossMs))
             { EasingFunction = EaseOut });
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
 
-        // Hand off after the fade completes.
         _promotionTimer?.Stop();
         var settle = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(crossMs + 20) };
         _promotionTimer = settle;
-        int generation = _visualGeneration;
         settle.Tick += (_, _) =>
         {
             settle.Stop();
-            if (generation != _visualGeneration || !ReferenceEquals(_promotionTimer, settle)) return;
+            if (!ReferenceEquals(_promotionTimer, settle)) return;
+            if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
             _promotionTimer = null;
             FinalizeSwap();
         };
@@ -477,87 +579,108 @@ public partial class TrainingScorebugControl : UserControl
 
     private void FinalizeSwap()
     {
-        if (_session is null) return;
+        var session = _session;
+        if (session is null) return;
+        var active = session.Active;
+        int generation = _visualGeneration;
+        bool IsCurrent() => OwnsCompletionVisuals(generation, session, active);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
 
-        // Clear active host transforms; we're about to fade it back in
-        // populated with the new timer's data.
+        // Settle the old presentation only while it still owns this output.
         ActiveTimerHost.BeginAnimation(OpacityProperty, null);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         TimerScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         TimerTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-        ActiveTimerHost.Opacity = 0; // start invisible — we just faded out
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
+        ActiveTimerHost.Opacity = 0;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         TimerScale.ScaleX = 1;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         TimerScale.ScaleY = 1;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         TimerTranslate.Y = 0;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
 
         StagedTimerHost.BeginAnimation(OpacityProperty, null);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         StagedScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         StagedScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         StagedTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         StagedScale.ScaleX = 1;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         StagedScale.ScaleY = 1;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         StagedTranslate.Y = 0;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         StagedTimerHost.IsVisible = false;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         StagedTimerHost.Opacity = 1;
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
 
         _flashing = false;
         _lockedFinishedTitle = null;
-
-        // Populate the active panel with the new running timer's values, then
-        // smoothly fade it in. The up-next bar grows in the same animation
-        // window so the operator sees both arrive together.
         UpdateLive();
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         UpdateUpNext();
-
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         ActiveTimerHost.BeginAnimation(OpacityProperty,
             new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(420)) { EasingFunction = EaseOut });
-
-        // Brief title-pop animation when the new timer takes over.
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         AnimateTitlePop();
     }
 
-    private void StartStrobe()
+    private bool StartCompletionCue(bool showMark, Func<bool> isCurrent)
     {
-        StopStrobe();
-        bool on = false;
-        _strobeTimer = new DispatcherTimer { Interval = StrobePeriod };
-        int generation = _visualGeneration;
-        _strobeTimer.Tick += (_, _) =>
-        {
-            if (generation != _visualGeneration) return;
-            on = !on;
-            // Animate the ROOT background colour (no overlay layer). On the
-            // "on" frame the gradient layer fades down so the red dominates;
-            // on the "off" frame the gradient fades back in.
-            var bgAnim = new ColorAnimation(on ? FlashOnColor : FlashOffColor, TimeSpan.FromMilliseconds(180))
-            {
-                EasingFunction = EaseInOut
-            };
-            RootBg.BeginAnimation(SolidColorBrush.ColorProperty, bgAnim);
+        // Setting a visual property may synchronously notify another owner.
+        // Revalidate between writes so an interrupted cue cannot repaint it.
+        if (!isCurrent()) return false;
+        RootBg.BeginAnimation(SolidColorBrush.ColorProperty, null);
+        if (!isCurrent()) return false;
+        RootBg.Color = CompletionBaseColor;
+        if (!isCurrent()) return false;
+        GradientBg.BeginAnimation(OpacityProperty, null);
+        if (!isCurrent()) return false;
+        GradientBg.Opacity = .35;
+        if (!isCurrent()) return false;
 
-            var gradAnim = new DoubleAnimation(on ? 0.0 : 1.0, TimeSpan.FromMilliseconds(180))
-            {
-                EasingFunction = EaseInOut
-            };
-            GradientBg.BeginAnimation(OpacityProperty, gradAnim);
-        };
-        // Kick off immediately so the first frame strobes red.
-        RootBg.BeginAnimation(SolidColorBrush.ColorProperty,
-            new ColorAnimation(FlashOnColor, TimeSpan.FromMilliseconds(120)));
-        GradientBg.BeginAnimation(OpacityProperty,
-            new DoubleAnimation(0.0, TimeSpan.FromMilliseconds(120)));
-        _strobeTimer.Start();
+        CompletionMark.BeginAnimation(OpacityProperty, null);
+        if (!isCurrent()) return false;
+        CompletionMark.BeginAnimation(Avalonia.Controls.Shapes.Shape.StrokeDashOffsetProperty, null);
+        if (!isCurrent()) return false;
+        CompletionMark.Opacity = showMark ? 1 : 0;
+        if (!isCurrent()) return false;
+        CompletionMark.StrokeDashOffset = 0;
+        if (!isCurrent()) return false;
+        if (!showMark) return true; // The final phase has its own completion banner.
+        CompletionMark.BeginAnimation(Avalonia.Controls.Shapes.Shape.StrokeDashOffsetProperty,
+            new DoubleAnimation(6, 0, TimeSpan.FromMilliseconds(260))
+            { EasingFunction = EaseOut, FillBehavior = FillBehavior.Stop });
+        return isCurrent();
     }
 
-    private void StopStrobe()
+    private bool StopCompletionCue(Func<bool> isCurrent)
     {
-        _strobeTimer?.Stop();
-        _strobeTimer = null;
-        // Restore the dark base colour and the gradient overlay smoothly.
+        if (!isCurrent()) return false;
+        CompletionMark.BeginAnimation(Avalonia.Controls.Shapes.Shape.StrokeDashOffsetProperty, null);
+        if (!isCurrent()) return false;
+        CompletionMark.StrokeDashOffset = 0;
+        if (!isCurrent()) return false;
+        CompletionMark.BeginAnimation(OpacityProperty,
+            new DoubleAnimation(0, TimeSpan.FromMilliseconds(180)) { EasingFunction = EaseOut });
+        if (!isCurrent()) return false;
+        // The one finite return belongs to the existing phase handoff.
         RootBg.BeginAnimation(SolidColorBrush.ColorProperty,
-            new ColorAnimation(FlashOffColor, TimeSpan.FromMilliseconds(260)) { EasingFunction = EaseOut });
+            new ColorAnimation(NeutralBaseColor, TimeSpan.FromMilliseconds(260)) { EasingFunction = EaseOut });
+        if (!isCurrent()) return false;
         GradientBg.BeginAnimation(OpacityProperty,
             new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(260)) { EasingFunction = EaseOut });
+        return isCurrent();
     }
 
     private void AnimateTitlePop()
@@ -574,41 +697,49 @@ public partial class TrainingScorebugControl : UserControl
 
     private void ShowSessionComplete()
     {
+        int generation = _visualGeneration;
+        var session = _session;
+        var active = session?.Active;
+        bool IsCurrent() => OwnsCompletionVisuals(generation, session, active);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
         SetTitleText("SESSION COMPLETE");
-        TimerText.Text = "00:00";
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
+        SetActiveDurationReadout(TimeSpan.Zero, TimeSpan.Zero);
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
 
         SessionCompleteOverlay.BeginAnimation(OpacityProperty,
             new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(450)) { EasingFunction = EaseOut });
+        if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
 
         _sessionCompleteTimer?.Stop();
-        var complete = new DispatcherTimer { Interval = SessionCompleteFlash };
+        var complete = new DispatcherTimer { Interval = SessionCompleteHold };
         _sessionCompleteTimer = complete;
-        int generation = _visualGeneration;
         complete.Tick += (_, _) =>
         {
             complete.Stop();
-            if (generation != _visualGeneration || !ReferenceEquals(_sessionCompleteTimer, complete)) return;
+            if (!ReferenceEquals(_sessionCompleteTimer, complete)) return;
+            if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
             _sessionCompleteTimer = null;
-            StopStrobe();
+            if (!StopCompletionCue(IsCurrent)) { RetireCompletionVisualsIfOwned(generation, session); return; }
             SessionCompleteOverlay.BeginAnimation(OpacityProperty,
                 new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(600)) { EasingFunction = EaseOut });
+            if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
             _flashing = false;
             _lockedFinishedTitle = null;
             UpdateLive();
+            if (!IsCurrent()) { RetireCompletionVisualsIfOwned(generation, session); return; }
             UpdateUpNext();
         };
-        _sessionCompleteTimer.Start();
+        complete.Start();
     }
 
     /// <summary>
-    /// Cancel any pending strobe / hold timers (e.g. when the operator
+    /// Cancel any pending cue animations and hold timers (e.g. when the operator
     /// resets or exits the session).
     /// </summary>
     public void ResetVisuals()
     {
-        _visualGeneration++;
-        _strobeTimer?.Stop();
-        _strobeTimer = null;
+        int generation = ++_visualGeneration;
         _holdTimer?.Stop();
         _holdTimer = null;
         _sessionCompleteTimer?.Stop();
@@ -616,35 +747,72 @@ public partial class TrainingScorebugControl : UserControl
         _promotionTimer?.Stop();
         _promotionTimer = null;
         RootBg.BeginAnimation(SolidColorBrush.ColorProperty, null);
-        RootBg.Color = FlashOffColor;
+        if (generation != _visualGeneration) return;
+        RootBg.Color = NeutralBaseColor;
+        if (generation != _visualGeneration) return;
         GradientBg.BeginAnimation(OpacityProperty, null);
+        if (generation != _visualGeneration) return;
         GradientBg.Opacity = 1;
+        if (generation != _visualGeneration) return;
+        CompletionMark.BeginAnimation(OpacityProperty, null);
+        if (generation != _visualGeneration) return;
+        CompletionMark.BeginAnimation(Avalonia.Controls.Shapes.Shape.StrokeDashOffsetProperty, null);
+        if (generation != _visualGeneration) return;
+        CompletionMark.Opacity = 0;
+        if (generation != _visualGeneration) return;
+        CompletionMark.StrokeDashOffset = 6;
+        if (generation != _visualGeneration) return;
         SessionCompleteOverlay.BeginAnimation(OpacityProperty, null);
+        if (generation != _visualGeneration) return;
         SessionCompleteOverlay.Opacity = 0;
+        if (generation != _visualGeneration) return;
         StagedTimerHost.BeginAnimation(OpacityProperty, null);
+        if (generation != _visualGeneration) return;
         StagedScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        if (generation != _visualGeneration) return;
         StagedScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        if (generation != _visualGeneration) return;
         StagedTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        if (generation != _visualGeneration) return;
         StagedTimerHost.IsVisible = false;
+        if (generation != _visualGeneration) return;
         StagedTimerHost.Opacity = 1;
+        if (generation != _visualGeneration) return;
         StagedScale.ScaleX = 1;
+        if (generation != _visualGeneration) return;
         StagedScale.ScaleY = 1;
+        if (generation != _visualGeneration) return;
         StagedTranslate.Y = 0;
+        if (generation != _visualGeneration) return;
         ActiveTimerHost.BeginAnimation(OpacityProperty, null);
+        if (generation != _visualGeneration) return;
         ActiveTimerHost.Opacity = 1;
+        if (generation != _visualGeneration) return;
         TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        if (generation != _visualGeneration) return;
         TimerScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        if (generation != _visualGeneration) return;
         TimerTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        if (generation != _visualGeneration) return;
         TitleScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        if (generation != _visualGeneration) return;
         TitleScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-        TitleScale.ScaleX = TitleScale.ScaleY = 1;
+        if (generation != _visualGeneration) return;
+        TitleScale.ScaleX = 1;
+        if (generation != _visualGeneration) return;
+        TitleScale.ScaleY = 1;
+        if (generation != _visualGeneration) return;
         TimerScale.ScaleX = 1;
+        if (generation != _visualGeneration) return;
         TimerScale.ScaleY = 1;
+        if (generation != _visualGeneration) return;
         TimerTranslate.Y = 0;
+        if (generation != _visualGeneration) return;
         _flashing = false;
         _lockedFinishedTitle = null;
         _flashActiveId = null;
         UpdateLive();
+        if (generation != _visualGeneration) return;
         UpdateUpNext();
     }
 }

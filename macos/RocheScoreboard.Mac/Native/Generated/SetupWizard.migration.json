@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SetupWizard.xaml",
-  "source_sha256": "10610789550af8352158fc9f0a8ceb3bef3bad8829f916d96c73be2d64825833",
+  "source_sha256": "1c82d438ddf10c48498bfe670b7329899472b219c6a5f2c96c9ec1e8b1af57f1",
   "names": [
     {
       "name": "ResponsiveScrollHost",
@@ -10,6 +10,61 @@
     {
       "name": "WizardBody",
       "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "SportStepContainer",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "SportQuestion",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SportDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AflSportChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AflSportSymbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "AflSportLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AflSportDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketSportChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "CricketSportSymbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "CricketSportLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketSportDescription",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -84,7 +139,7 @@
     },
     {
       "name": "SetupHomeColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -94,7 +149,7 @@
     },
     {
       "name": "SetupHomeSecondaryPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -184,7 +239,7 @@
     },
     {
       "name": "SetupAwayColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -194,7 +249,7 @@
     },
     {
       "name": "SetupAwaySecondaryPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -243,6 +298,11 @@
       "object": true
     },
     {
+      "name": "SetupValidationMessage",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "ClockHeaderGroup",
       "type": "StackPanel",
       "object": false
@@ -255,6 +315,11 @@
     {
       "name": "CountUpCard",
       "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "CountUpActionSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -275,6 +340,11 @@
     {
       "name": "CountdownCard",
       "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "CountdownActionSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -548,6 +618,11 @@
       "object": true
     },
     {
+      "name": "SportStepNavigation",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
       "name": "Step1Navigation",
       "type": "RadioButton",
       "object": false
@@ -613,6 +688,11 @@
       "object": false
     },
     {
+      "name": "SportOptionsPreview",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
       "name": "NavBar",
       "type": "Grid",
       "object": false
@@ -628,6 +708,11 @@
       "object": false
     },
     {
+      "name": "CancelSetupButton",
+      "type": "Button",
+      "object": false
+    },
+    {
       "name": "NextButton",
       "type": "Button",
       "object": false
@@ -638,13 +723,43 @@
       "object": false
     }
   ],
-  "code_source_sha256": "0af6808dbcf7fcc8f1cd50372fba394722561e1b065b77f6357d596059bde04d",
+  "code_source_sha256": "3ffc79420e7f005f00b2cc0772b1f0e88fa1376b8c9b1cfaece3f61c693f4acb",
   "native_events": [
+    {
+      "name": null,
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "UnifiedSetup_KeyDown"
+    },
     {
       "name": "ResponsiveScrollHost",
       "source": "PreviewMouseWheel",
       "native": "PointerWheelChanged",
       "handler": "ResponsiveScrollHost_PreviewMouseWheel"
+    },
+    {
+      "name": "AflSportChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SportChoice_Changed"
+    },
+    {
+      "name": "AflSportChoice",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SportChoice_Changed"
+    },
+    {
+      "name": "CricketSportChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SportChoice_Changed"
+    },
+    {
+      "name": "CricketSportChoice",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SportChoice_Changed"
     },
     {
       "name": "SetupHomeColorBox",

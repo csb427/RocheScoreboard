@@ -54,8 +54,8 @@ public sealed class OperatorGlassSurface : NativePaintBorder
     private bool _down;
     private double _activityTarget;
     private int _activityGeneration;
-    private bool HasMaterial => !(Background is SolidColorBrush { Color.A: 0 } &&
-        (BorderThickness.Left == 0 || BorderBrush is SolidColorBrush { Color.A: 0 }));
+    private bool HasMaterial => !(Background is ISolidColorBrush { Color.A: 0 } &&
+        (BorderThickness.Left == 0 || BorderBrush is ISolidColorBrush { Color.A: 0 }));
     internal Point OpticalSettings=>_lens?.Optics ?? default;
     internal bool IsMaterialAnimating=>_lens?.HasAnimatedProperties==true;
     internal bool UsesShader => false;
@@ -102,12 +102,12 @@ public sealed class OperatorGlassSurface : NativePaintBorder
     {
         get
         {
-            bool light=this.TryFindResource("ControlCentre.SurfaceBrush") is SolidColorBrush surface && surface.Color.R>180;
-            var colour = Background switch { SolidColorBrush solid => solid.Color, GradientBrush gradient when gradient.GradientStops.Count > 0 => gradient.GradientStops[0].Color, _ => light ? Color.FromArgb(165,242,246,252) : Color.FromArgb(110,20,22,28) };
+            bool light=this.TryFindResource("ControlCentre.SurfaceBrush") is ISolidColorBrush surface && surface.Color.R>180;
+            var colour = Background switch { ISolidColorBrush solid => solid.Color, IGradientBrush gradient when gradient.GradientStops.Count > 0 => gradient.GradientStops[0].Color, _ => light ? Color.FromArgb(165,242,246,252) : Color.FromArgb(110,20,22,28) };
             if(colour.A == 0)colour = light ? Color.FromArgb(120,242,246,252) : Color.FromArgb(100,20,22,28);
             if(Material == GlassMaterial.Opaque || !OperatorAppearance.GlassEnabled)
             {
-                if(colour.A<90 && colour.R>200 && colour.G>200 && colour.B>200 && this.TryFindResource("ControlCentre.SurfaceBrush") is SolidColorBrush opaque)colour=opaque.Color;
+                if(colour.A<90 && colour.R>200 && colour.G>200 && colour.B>200 && this.TryFindResource("ControlCentre.SurfaceBrush") is ISolidColorBrush opaque)colour=opaque.Color;
                 return Color.FromArgb(255, colour.R, colour.G, colour.B);
             }
             int strength=(int)OperatorAppearance.GlassIntensity;
@@ -174,7 +174,7 @@ public sealed class OperatorGlassSurface : NativePaintBorder
         {
             Point location=source.PointFromScreen(this.PointToScreen(new Point()));
             var size=new Size(Math.Max(1,Bounds.Width),Math.Max(1,Bounds.Height));
-            var live=new VisualBrush(source){SourceRect = new RelativeRect(location,size, RelativeUnit.Relative),Stretch=Stretch.Fill,};
+            var live=new VisualBrush(source){SourceRect = new RelativeRect(new Rect(location,size), RelativeUnit.Absolute),Stretch=Stretch.Fill,};
             
             
             
@@ -183,7 +183,7 @@ public sealed class OperatorGlassSurface : NativePaintBorder
                 // Blur only the sampled backdrop. Native labels and hit targets never enter this layer.
                 var frost=new NativeBorder{Width=size.Width,Height=size.Height,Background=live,Effect=new BlurEffect{Radius=OperatorAppearance.GlassIntensity==OperatorGlassIntensity.Soft?10:6,}};
                 frost.Measure(size);frost.Arrange(new Rect(size));
-                _sample=new VisualBrush(frost){SourceRect = new RelativeRect(size, RelativeUnit.Relative),Stretch=Stretch.Fill,};
+                _sample=new VisualBrush(frost){SourceRect = new RelativeRect(new Rect(size), RelativeUnit.Absolute),Stretch=Stretch.Fill,};
                 
             }
             else _sample=live;
@@ -203,7 +203,7 @@ public sealed class OperatorGlassSurface : NativePaintBorder
             using(var dc = drawing.RenderOpen())
             {
                 dc.DrawRectangle(Avalonia.Media.Brushes.Black, null, new Rect(0,0,width,height));
-                dc.DrawRectangle(new VisualBrush(source) {  SourceRect = new RelativeRect(new Rect(location, new Size(width,height)), RelativeUnit.Absolute), Stretch = Stretch.Fill, }, null, new Rect(0,0,width,height));
+                dc.DrawRectangle(new VisualBrush(source) { SourceRect = new RelativeRect(new Rect(location, new Size(width,height)), RelativeUnit.Absolute), Stretch = Stretch.Fill, }, null, new Rect(0,0,width,height));
             }
             var bitmap = new NativeRenderTargetBitmap(Math.Max(1,(int)Math.Ceiling(width*scale)),Math.Max(1,(int)Math.Ceiling(height*scale)),96*scale,96*scale,PixelFormats.Bgra32);
             bitmap.Render(drawing); bitmap.Freeze();
@@ -229,7 +229,7 @@ public sealed class OperatorGlassSurface : NativePaintBorder
                 var colour = owner.BaseTint;
                 if(NativeSystemPreferences.HighContrast)
                 {
-                    var foreground = owner.GetValue(TextBlock.ForegroundProperty) as SolidColorBrush;
+                    var foreground = owner.GetValue(TextBlock.ForegroundProperty) as ISolidColorBrush;
                     colour = foreground is not null && foreground.Color.R + foreground.Color.G + foreground.Color.B < 384 ? Colors.White : Colors.Black;
                 }
                 dc.DrawRoundedRectangle(new SolidColorBrush(colour),null,bounds,radius,radius);

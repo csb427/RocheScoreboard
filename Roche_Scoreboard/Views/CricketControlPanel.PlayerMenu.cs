@@ -68,7 +68,7 @@ public partial class CricketControlPanel
             BorderBrush = new SolidColorBrush(Color.FromArgb(110, 255, 255, 255)),
             BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(26),
             Padding = new Thickness(7), Child = options, Width = 280,
-            RenderTransformOrigin = new System.Windows.Point(.88, 0)
+            RenderTransformOrigin = new System.Windows.Point(.5, .5)
         };
         var scale = new ScaleTransform(1, 1);
         var shift = new TranslateTransform();
@@ -87,11 +87,13 @@ public partial class CricketControlPanel
         _playerMenu = popup;
         _playerMenuAnchor = anchor;
         bool closing = false, completed = false;
+        bool arrivalPending = OperatorMotion.Enabled, arrivalStarted = false;
+        double sourceDirectionY = 0;
+        surface.Opacity = arrivalPending ? 0 : 1;
         bool Current() => ReferenceEquals(match, _match) && ReferenceEquals(innings, match.CurrentInnings) && revision == match.DeliveryRevision;
         bool Active() => !closing && !completed && generation == _playerMenuGeneration && ReferenceEquals(_playerMenu, popup);
         void Detach()
         {
-            OperatorAppearance.Changed -= PreferenceChanged;
             anchor.Unloaded -= AnchorUnloaded; Unloaded -= PanelUnloaded;
             if (owner is not null)
             {
@@ -103,6 +105,9 @@ public partial class CricketControlPanel
         {
             if (completed) return;
             completed = true; Detach();
+            surface.Loaded -= SurfaceLoaded;
+            arrivalPending = false;
+            OperatorAppearance.Changed -= PreferenceChanged;
             surface.BeginAnimation(OpacityProperty, null);
             scale.BeginAnimation(ScaleTransform.ScaleXProperty, null); scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
             shift.BeginAnimation(TranslateTransform.YProperty, null);
@@ -110,14 +115,106 @@ public partial class CricketControlPanel
             if (ReferenceEquals(_retiringPlayerMenu, popup)) _retiringPlayerMenu = null;
             popup.IsOpen = false;
             popup.Child = null;
+            CricketRoot.Children.Remove(popup);
         }
+        bool KeepArrivalOwner()
+        {
+            if (!Active()) return false;
+            if (!Current() || !popup.IsOpen || owner is not { IsVisible: true }
+                || !anchor.IsLoaded || !anchor.IsVisible || !anchor.IsEnabled)
+            {
+                Dismiss(false, true);
+                return false;
+            }
+            return true;
+        }
+        void SettleArrival()
+        {
+            // A pending arrival cancelled by Reduce must not restart on Loaded.
+            arrivalPending = false;
+            if (!KeepArrivalOwner()) return;
+            surface.BeginAnimation(OpacityProperty, null);
+            if (!KeepArrivalOwner()) return;
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            if (!KeepArrivalOwner()) return;
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            if (!KeepArrivalOwner()) return;
+            shift.BeginAnimation(TranslateTransform.YProperty, null);
+            if (!KeepArrivalOwner()) return;
+            scale.ScaleX = 1;
+            if (!KeepArrivalOwner()) return;
+            scale.ScaleY = 1;
+            if (!KeepArrivalOwner()) return;
+            shift.Y = 0;
+            if (!KeepArrivalOwner()) return;
+            surface.Opacity = 1;
+        }
+        bool ContinueArrival()
+        {
+            if (!KeepArrivalOwner()) return false;
+            if (arrivalPending && OperatorMotion.Enabled) return true;
+            SettleArrival();
+            return false;
+        }
+        bool TryMeasureOrigin(out System.Windows.Point origin, out double direction)
+        {
+            origin = new System.Windows.Point(.5, .5);
+            direction = 0;
+            double width = surface.ActualWidth, height = surface.ActualHeight;
+            double anchorWidth = anchor.ActualWidth, anchorHeight = anchor.ActualHeight;
+            if (!double.IsFinite(width) || !double.IsFinite(height) || width <= 0 || height <= 0
+                || !double.IsFinite(anchorWidth) || !double.IsFinite(anchorHeight) || anchorWidth <= 0 || anchorHeight <= 0) return false;
+            try
+            {
+                // Popup and source can occupy different visual roots and DPI.
+                // Let each root convert real screen coordinates; never infer
+                // smart placement from the requested Custom/Bottom candidate.
+                var source = surface.PointFromScreen(anchor.PointToScreen(
+                    new System.Windows.Point(anchorWidth * .5, anchorHeight * .5)));
+                if (!double.IsFinite(source.X) || !double.IsFinite(source.Y)) return false;
+                origin = new System.Windows.Point(Math.Clamp(source.X / width, 0, 1), Math.Clamp(source.Y / height, 0, 1));
+                // An overlapping/clamped source already lies at the pivot.
+                // Extra vertical translation would move the shell away from it.
+                direction = source.Y < 0 ? -1 : source.Y > height ? 1 : 0;
+                return true;
+            }
+            catch (InvalidOperationException) { return false; }
+        }
+        void TryStartArrival()
+        {
+            if (arrivalStarted || !surface.IsLoaded || !popup.IsOpen) return;
+            if (!KeepArrivalOwner()) return;
+            arrivalStarted = true;
+            if (!TryMeasureOrigin(out var origin, out var direction))
+            {
+                // A disconnected/unmeasurable root has no truthful source
+                // direction. Keep its commands usable without invented travel.
+                SettleArrival();
+                return;
+            }
+            if (!KeepArrivalOwner()) return;
+            sourceDirectionY = direction;
+            surface.RenderTransformOrigin = new System.Windows.Point(origin.X, origin.Y);
+            if (!ContinueArrival()) return;
+            double travel = OperatorMotion.TravelScale;
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1 - .06 * travel, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            if (!ContinueArrival()) return;
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1 - .32 * travel, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            if (!ContinueArrival()) return;
+            shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(sourceDirectionY * 18 * travel, 0, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            if (!ContinueArrival()) return;
+            surface.Opacity = 1;
+            if (!ContinueArrival()) return;
+            surface.BeginAnimation(OpacityProperty, new DoubleAnimation(.65, 1, TimeSpan.FromMilliseconds(180)) { FillBehavior = FillBehavior.Stop });
+            if (!ContinueArrival()) return;
+            arrivalPending = false;
+        }
+        void SurfaceLoaded(object sender, RoutedEventArgs e) => TryStartArrival();
         void PreferenceChanged()
         {
             if (OperatorMotion.Enabled || completed) return;
             if (closing) { Complete(); return; }
-            surface.BeginAnimation(OpacityProperty, null); surface.Opacity = 1;
-            scale.BeginAnimation(ScaleTransform.ScaleXProperty, null); scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-            shift.BeginAnimation(TranslateTransform.YProperty, null); scale.ScaleX = scale.ScaleY = 1; shift.Y = 0;
+            SettleArrival();
         }
         void Dismiss(bool restoreFocus, bool immediate)
         {
@@ -134,12 +231,14 @@ public partial class CricketControlPanel
                     if (dismissalGeneration != _playerMenuGeneration || _playerMenu is not null || owner is not { IsActive: true } || !anchor.IsLoaded || !anchor.IsVisible || !anchor.IsEnabled) return;
                     anchor.Focus(); Keyboard.Focus(anchor);
                 }), DispatcherPriority.Input);
-            if (immediate || !OperatorMotion.Enabled || !surface.IsLoaded || !popup.IsOpen) { Complete(); return; }
-            var fade = new DoubleAnimation(surface.Opacity, 0, TimeSpan.FromMilliseconds(140)) { EasingFunction = OperatorMotion.SmoothOut };
+            if (immediate || arrivalPending || !OperatorMotion.Enabled || !surface.IsLoaded || !popup.IsOpen) { Complete(); return; }
+            double travel = OperatorMotion.TravelScale;
+            var duration = OperatorMotion.SurfaceClose;
+            var fade = new DoubleAnimation(surface.Opacity, 0, duration) { EasingFunction = OperatorMotion.SmoothOut };
             fade.Completed += (_, _) => Complete();
-            scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(scale.ScaleX, .94, TimeSpan.FromMilliseconds(140)) { EasingFunction = OperatorMotion.SmoothOut });
-            scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(scale.ScaleY, .94, TimeSpan.FromMilliseconds(140)) { EasingFunction = OperatorMotion.SmoothOut });
-            shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(shift.Y, -5, TimeSpan.FromMilliseconds(140)) { EasingFunction = OperatorMotion.SmoothOut });
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(scale.ScaleX, 1 - .06 * travel, duration) { EasingFunction = OperatorMotion.SmoothOut });
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(scale.ScaleY, 1 - .06 * travel, duration) { EasingFunction = OperatorMotion.SmoothOut });
+            shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(shift.Y, sourceDirectionY * 5 * travel, duration) { EasingFunction = OperatorMotion.SmoothOut });
             surface.BeginAnimation(OpacityProperty, fade);
         }
         void AnchorUnloaded(object sender, RoutedEventArgs e) => Dismiss(false, true);
@@ -178,7 +277,7 @@ public partial class CricketControlPanel
             button.Click += async (_, _) => { if (!Active()) return; Dismiss(false, false); if (Current()) await action(); };
         }
         if (bowling)
-            Add("Choose another bowler", "change-bowler", () => { ShowBowlerSelection(false); return Task.CompletedTask; }, !innings.IsComplete && !match.IsMatchFinalized);
+            Add("Choose another bowler", "change-bowler", () => { ShowBowlerSelection(false, anchor); return Task.CompletedTask; }, !innings.IsComplete && !match.IsMatchFinalized);
         else
         {
             Add("Replace batter", "replace-batter", () => OpenBatterActionsAsync(playerIndex, true), !innings.IsComplete && !match.IsMatchFinalized);
@@ -202,20 +301,53 @@ public partial class CricketControlPanel
         popup.Opened += (_, _) =>
         {
             if (!Active()) return;
-            if (OperatorMotion.Enabled)
-            {
-                scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.94, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-                scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.68, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-                shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-18, 0, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-                surface.BeginAnimation(OpacityProperty, new DoubleAnimation(.65, 1, TimeSpan.FromMilliseconds(180)) { FillBehavior = FillBehavior.Stop });
-            }
+            TryStartArrival();
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (!Active() || owner is not { IsActive: true }) return;
                 options.Children.OfType<Button>().FirstOrDefault(b => b.IsEnabled)?.Focus();
             }), DispatcherPriority.Input);
         };
+        surface.Loaded += SurfaceLoaded;
         OperatorAppearance.Changed += PreferenceChanged;
+        // Keep the transient popup in this panel's logical/resource lifetime.
+        // Its child must be rooted before opening so menu rows can load, focus
+        // and inherit the same resources as the persistent source control.
+        CricketRoot.Children.Add(popup);
+        if (!Active() || !Current()) { if (Active()) Dismiss(false, true); return; }
         popup.IsOpen = true;
     }
+    private bool UpdatePlayerMenuNames()
+    {
+        var match = _match;
+        var innings = match?.CurrentInnings;
+        int top = _cpTopBatterIndex, bottom = _cpBottomBatterIndex;
+        int striker = innings?.StrikerIndex ?? -1, nonStriker = innings?.NonStrikerIndex ?? -1;
+        int bowlerIndex = innings?.CurrentBowlerIndex ?? -1;
+        var topPlayer = innings is not null && top >= 0 && top < innings.BattingOrder.Count ? innings.BattingOrder[top] : null;
+        var bottomPlayer = innings is not null && bottom >= 0 && bottom < innings.BattingOrder.Count ? innings.BattingOrder[bottom] : null;
+        var bowler = innings?.CurrentBowler;
+        string topName = topPlayer?.FullName ?? "", bottomName = bottomPlayer?.FullName ?? "", bowlerName = bowler?.FullName ?? "";
+        bool Current() => ReferenceEquals(match, _match) && ReferenceEquals(innings, match?.CurrentInnings)
+            && top == _cpTopBatterIndex && bottom == _cpBottomBatterIndex
+            && striker == (innings?.StrikerIndex ?? -1) && nonStriker == (innings?.NonStrikerIndex ?? -1)
+            && bowlerIndex == (innings?.CurrentBowlerIndex ?? -1) && ReferenceEquals(bowler, innings?.CurrentBowler)
+            && ReferenceEquals(topPlayer, innings is not null && top >= 0 && top < innings.BattingOrder.Count ? innings.BattingOrder[top] : null)
+            && ReferenceEquals(bottomPlayer, innings is not null && bottom >= 0 && bottom < innings.BattingOrder.Count ? innings.BattingOrder[bottom] : null)
+            && topName == (topPlayer?.FullName ?? "") && bottomName == (bottomPlayer?.FullName ?? "") && bowlerName == (bowler?.FullName ?? "");
+        string BatterLabel(int index, string name, bool hasPlayer)
+        {
+            if (!hasPlayer) return "Batter options";
+            string role = index == striker ? "Striker" : index == nonStriker ? "Non-striker" : "Batter";
+            return string.IsNullOrWhiteSpace(name) ? role + " options" : role + " options for " + name;
+        }
+        string bowlerLabel = string.IsNullOrWhiteSpace(bowlerName) ? "Bowler options" : "Bowler options for " + bowlerName;
+        System.Windows.Automation.AutomationProperties.SetName(StrikerMenuButton, BatterLabel(top, topName, topPlayer is not null));
+        if (!Current()) return false;
+        System.Windows.Automation.AutomationProperties.SetName(NonStrikerMenuButton, BatterLabel(bottom, bottomName, bottomPlayer is not null));
+        if (!Current()) return false;
+        System.Windows.Automation.AutomationProperties.SetName(BowlerMenuButton, bowlerLabel);
+        return Current();
+    }
+
 }

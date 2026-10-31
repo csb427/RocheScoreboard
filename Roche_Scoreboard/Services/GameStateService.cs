@@ -44,31 +44,33 @@ internal static class GameStateService
     /// Saves the current match state and UI configuration to disk.
     /// Failures are silently ignored (best-effort persistence).
     /// </summary>
-    internal static void Save(GameState state)
+    internal static void Save(GameState state) => SaveTo(state, StateFilePath);
+
+    private static void SaveTo(GameState state, string path)
     {
-        string temporaryPath = StateFilePath + ".tmp";
+        string temporaryPath = path + ".tmp";
         try
         {
             state.SavedAtUtc = DateTimeOffset.UtcNow;
-            Directory.CreateDirectory(Path.GetDirectoryName(StateFilePath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             string json = JsonSerializer.Serialize(state, JsonOptions);
             File.WriteAllText(temporaryPath, json);
 
-            if (File.Exists(StateFilePath))
+            if (File.Exists(path))
             {
                 try
                 {
-                    File.Replace(temporaryPath, StateFilePath, BackupFilePath, ignoreMetadataErrors: true);
+                    File.Replace(temporaryPath, path, path + ".bak", ignoreMetadataErrors: true);
                 }
                 catch (PlatformNotSupportedException)
                 {
-                    File.Copy(StateFilePath, BackupFilePath, overwrite: true);
-                    File.Move(temporaryPath, StateFilePath, overwrite: true);
+                    File.Copy(path, path + ".bak", overwrite: true);
+                    File.Move(temporaryPath, path, overwrite: true);
                 }
             }
             else
             {
-                File.Move(temporaryPath, StateFilePath);
+                File.Move(temporaryPath, path);
             }
         }
         catch
@@ -89,30 +91,47 @@ internal static class GameStateService
     /// Loads saved game state from disk. Returns <see langword="null"/> if
     /// no state file exists or it cannot be deserialised.
     /// </summary>
-    internal static GameState? Load()
+    internal static GameState? Load() => LoadFrom(StateFilePath, LegacyStateFilePath);
+
+    internal static GameState? LoadFrom(string path, string? legacyPath = null)
     {
-        GameState? state = TryLoad(StateFilePath);
+        GameState? state = TryLoad(path);
         if (state is not null) return state;
 
-        state = TryLoad(BackupFilePath);
+        state = TryLoad(path + ".bak");
         if (state is not null)
         {
             // Repair a corrupt or interrupted primary from its last valid
             // recovery copy so every subsequent launch does not repeatedly
             // parse the same damaged file before falling back.
-            Save(state);
+            RepairPrimary(state, path);
             return state;
         }
 
         // Migrate releases that stored the active match beside the executable.
-        state = TryLoad(LegacyStateFilePath);
+        state = legacyPath is null ? null : TryLoad(legacyPath);
         if (state is not null)
         {
-            Save(state);
+            RepairPrimary(state, path);
             return state;
         }
 
         return null;
+    }
+
+    private static void RepairPrimary(GameState state, string path)
+    {
+        string temporary = path + ".repair." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(temporary, JsonSerializer.Serialize(state, JsonOptions));
+            // A normal save backs up its previous primary. During recovery that
+            // primary is corrupt: never overwrite the known-valid backup with it.
+            File.Move(temporary, path, overwrite: true);
+        }
+        catch { /* Leave the valid backup/legacy source available for retry. */ }
+        finally { try { if (File.Exists(temporary)) File.Delete(temporary); } catch { } }
     }
 
     private static GameState? TryLoad(string path)
@@ -120,7 +139,8 @@ internal static class GameStateService
         try
         {
             if (!File.Exists(path)) return null;
-            return JsonSerializer.Deserialize<GameState>(File.ReadAllText(path), JsonOptions);
+            var state = JsonSerializer.Deserialize<GameState>(File.ReadAllText(path), JsonOptions);
+            return RecoverySession.Describe(state) is null ? null : state;
         }
         catch { return null; }
     }

@@ -26,7 +26,7 @@ public partial class OutputScreensaverControl : UserControl
         Unloaded += (_, _) => { _clockTimer.Stop(); _customVideo?.Stop(); };
         IsVisibleChanged += (_, _) =>
         {
-            if (Visibility == Visibility.Visible && CustomVideoHost.Visibility == Visibility.Visible)
+            if (IsVisible && CustomVideoHost.IsVisible)
                 _customVideo?.Play();
             else if (_customVideo?.IsPlaying == true)
                 _customVideo.Pause();
@@ -75,7 +75,7 @@ public partial class OutputScreensaverControl : UserControl
             DefaultScene.Visibility = Visibility.Collapsed;
             _customVideo!.Loop = true;
             _customVideo.SetVideoSource(_configuredPath);
-            if (Visibility == Visibility.Visible) _customVideo.Play();
+            if (IsVisible) _customVideo.Play();
         }
         catch
         {

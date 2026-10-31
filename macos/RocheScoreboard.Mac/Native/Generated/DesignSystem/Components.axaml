@@ -264,8 +264,8 @@
                             </ToggleButton.Template>
                         </ToggleButton>
                         <ContentPresenter x:Name="contentPresenter" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Margin="12,0,32,0" VerticalAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False" />
-                        <Popup x:Name="PART_Popup" PlacementTarget="{Binding ElementName=toggleButton}" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" Focusable="False" port:ProductionNames.TemplateId="popup" ns3:PopupMotion.Kind="Slide">
-                            <Border Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.ControlBorder}" BorderThickness="1" CornerRadius="{DynamicResource ScoreGrid.CornerRadius.Default}" MinWidth="{Binding ActualWidth, ElementName=toggleButton}" MaxHeight="200">
+                        <Popup x:Name="PART_Popup" PlacementTarget="{Binding ElementName=toggleButton}" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}" Focusable="False" port:ProductionNames.TemplateId="popup" ns3:PopupMotion.Kind="Slide">
+                            <Border Background="{DynamicResource ScoreGrid.Brush.Surface}" BorderBrush="{DynamicResource ScoreGrid.Brush.ControlBorder}" BorderThickness="1" CornerRadius="{DynamicResource ScoreGrid.CornerRadius.Default}" MinWidth="{Binding Bounds.Width, ElementName=toggleButton}" MaxHeight="200">
                                 <ScrollViewer>
                                     <ItemsPresenter x:Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
                                 </ScrollViewer>

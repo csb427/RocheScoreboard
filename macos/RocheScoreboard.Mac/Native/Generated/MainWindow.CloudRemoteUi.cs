@@ -1,5 +1,5 @@
 // Generated from MainWindow.CloudRemoteUi.cs; edit translator/adapters.
-// Source SHA-256: 10137b5203f027924f3273e342f4376c1934eb4e149b21b69090bc1b29d9b102
+// Source SHA-256: e3b3d26eafbc2a06504300999cefeea4753eb411e60f04149c8ca820f66f9e62
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -55,8 +55,16 @@ public partial class MainWindow
 
         launcher.StartRequested        += async (_, _) => await LauncherStartRequestedAsync(launcher).ConfigureAwait(true);
         launcher.EndRequested          += async (_, _) => await LauncherEndRequestedAsync(launcher).ConfigureAwait(true);
-        launcher.CopyJoinCodeRequested += (_, _) => LauncherCopyJoinCode();
-        launcher.CopyJoinUrlRequested  += (_, _) => LauncherCopyJoinUrl();
+        launcher.CopyJoinCodeRequested += (_, args) =>
+        {
+            if (args is CloudRemoteLauncher.CopyRequestEventArgs request)
+                request.Succeeded = TryCopyLauncherValue(request.Value);
+        };
+        launcher.CopyJoinUrlRequested += (_, args) =>
+        {
+            if (args is CloudRemoteLauncher.CopyRequestEventArgs request)
+                request.Succeeded = TryCopyLauncherValue(request.Value);
+        };
 
         _cloudLaunchers.Add(launcher);
 
@@ -101,19 +109,11 @@ public partial class MainWindow
         }
     }
 
-    private void LauncherCopyJoinCode()
+    private static bool TryCopyLauncherValue(string value)
     {
-        if (string.IsNullOrWhiteSpace(CloudJoinCode)) return;
-        try { NativeClipboard.SetText(CloudJoinCode!); }
-        catch (System.Runtime.InteropServices.ExternalException) { /* clipboard locked */ }
-    }
-
-    private void LauncherCopyJoinUrl()
-    {
-        string? url = CloudJoinUrl;
-        if (string.IsNullOrWhiteSpace(url)) return;
-        try { NativeClipboard.SetText(url!); }
-        catch (System.Runtime.InteropServices.ExternalException) { /* clipboard locked */ }
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        try { NativeClipboard.SetText(value); return true; }
+        catch (System.Runtime.InteropServices.ExternalException) { return false; }
     }
 
     private void PushStateToLauncher(CloudRemoteLauncher launcher)

@@ -19,8 +19,10 @@ namespace Roche_Scoreboard.Views;
 public partial class UpdatePromptWindow : Window
 {
     private readonly AutoUpdateService _updateService;
+    private readonly Func<IProgress<UpdateProgressInfo>?, CancellationToken, Task<bool>> _applyUpdateOperation;
     private bool _isDownloading;
     private bool _cancellationRequested;
+    private bool _closed;
     private CancellationTokenSource? _downloadCancellation;
 
     public bool UpdateApplied { get; private set; }
@@ -31,11 +33,18 @@ public partial class UpdatePromptWindow : Window
     }
 
     internal UpdatePromptWindow(AutoUpdateService updateService, GitHubRelease? releasePreview)
+        : this(updateService, releasePreview, null)
+    {
+    }
+
+    internal UpdatePromptWindow(AutoUpdateService updateService, GitHubRelease? releasePreview,
+        Func<IProgress<UpdateProgressInfo>?, CancellationToken, Task<bool>>? applyUpdateOperation)
     {
         ArgumentNullException.ThrowIfNull(updateService);
         InitializeComponent();
         InteractionMotion.Enable(this);
         _updateService = updateService;
+        _applyUpdateOperation = applyUpdateOperation ?? updateService.DownloadAndApplyDetailedAsync;
 
         CurrentVersionText.Text = AutoUpdateService.CurrentVersion.ToString(3);
         GitHubRelease? release = releasePreview ?? updateService.LatestRelease;
@@ -55,16 +64,24 @@ public partial class UpdatePromptWindow : Window
             : "Package validation enabled";
 
         SharedSurfaceMotion.Attach(DialogShell);
+        UpdateClosePurpose();
+        System.Windows.Automation.AutomationProperties.SetLiveSetting(ProgressText, System.Windows.Automation.AutomationLiveSetting.Polite);
+        Loaded += (_, _) => { if (!_closed && !_isDownloading) SkipButton.Focus(); };
         Closing += (_, args) =>
         {
-            if (!_isDownloading) return;
+            if (!_isDownloading || UpdateApplied) return;
             args.Cancel = true;
             RequestDownloadCancellation();
         };
         Closed += (_, _) =>
         {
-            _downloadCancellation?.Cancel();
-            _downloadCancellation?.Dispose();
+            _closed = true;
+            var cancellation = _downloadCancellation;
+            _downloadCancellation = null;
+            _isDownloading = false;
+            _cancellationRequested = false;
+            if (!UpdateApplied) cancellation?.Cancel();
+            cancellation?.Dispose();
         };
     }
 
@@ -121,12 +138,14 @@ public partial class UpdatePromptWindow : Window
 
     private async void Update_Click(object sender, RoutedEventArgs e)
     {
-        if (_isDownloading) return;
+        if (_closed || _isDownloading || UpdateApplied) return;
 
         _isDownloading = true;
         _cancellationRequested = false;
         _downloadCancellation?.Dispose();
-        _downloadCancellation = new CancellationTokenSource();
+        var cancellation = new CancellationTokenSource();
+        _downloadCancellation = cancellation;
+        bool Current() => !_closed && ReferenceEquals(_downloadCancellation, cancellation);
         SetBusyState(true);
         ProgressPanel.Visibility = Visibility.Visible;
         UpdateProgressBar.Value = 0;
@@ -136,10 +155,16 @@ public partial class UpdatePromptWindow : Window
         ProgressPercentText.Foreground = new SolidColorBrush(Color.FromRgb(0x9C, 0xCB, 0xFF));
         ProgressDetailText.Text = "Your current installation remains untouched until verification completes.";
 
-        var progress = new Progress<UpdateProgressInfo>(UpdateProgressUi);
+        ReportStatusChanged();
+        var progress = new Progress<UpdateProgressInfo>(info =>
+        {
+            if (Current() && _isDownloading && !_cancellationRequested) UpdateProgressUi(info);
+        });
         try
         {
-            bool success = await _updateService.DownloadAndApplyDetailedAsync(progress, _downloadCancellation.Token);
+            if (!Current()) return;
+            bool success = await _applyUpdateOperation(progress, cancellation.Token);
+            if (!Current()) return;
             if (success)
             {
                 UpdateApplied = true;
@@ -147,6 +172,11 @@ public partial class UpdatePromptWindow : Window
                 return;
             }
 
+            if (cancellation.IsCancellationRequested)
+            {
+                ShowOperationMessage("Download cancelled", "Nothing was installed and your current version is unchanged.", isError: false);
+                return;
+            }
             ShowOperationMessage("Update was not installed",
                 string.IsNullOrWhiteSpace(_updateService.LastError)
                     ? "Nothing changed. You can retry or use View release for the portable download."
@@ -155,26 +185,32 @@ public partial class UpdatePromptWindow : Window
         }
         catch (OperationCanceledException)
         {
+            if (!Current()) return;
             ShowOperationMessage("Download cancelled", "Nothing was installed and your current version is unchanged.", isError: false);
         }
         catch (Exception ex)
         {
+            if (!Current()) return;
             ShowOperationMessage("Update was not installed",
                 string.IsNullOrWhiteSpace(ex.Message) ? "The current installation is unchanged." : ex.Message,
                 isError: true);
         }
         finally
         {
-            _isDownloading = false;
-            _cancellationRequested = false;
-            SetBusyState(false);
-            _downloadCancellation?.Dispose();
-            _downloadCancellation = null;
+            if (ReferenceEquals(_downloadCancellation, cancellation))
+            {
+                _downloadCancellation = null;
+                _isDownloading = false;
+                _cancellationRequested = false;
+                if (!_closed) SetBusyState(false);
+            }
+            cancellation.Dispose();
         }
     }
 
     private void UpdateProgressUi(UpdateProgressInfo info)
     {
+        if (_closed) return;
         ProgressText.Text = info.Message;
         if (info.Stage == UpdateProgressStage.Downloading)
         {
@@ -207,10 +243,12 @@ public partial class UpdatePromptWindow : Window
                 _ => "Your current installation has not been changed."
             };
         }
+        ReportStatusChanged();
     }
 
     private void ShowOperationMessage(string heading, string detail, bool isError)
     {
+        if (_closed) return;
         ProgressPanel.Visibility = Visibility.Visible;
         ProgressText.Text = heading;
         ProgressText.Foreground = new SolidColorBrush(isError ? Color.FromRgb(0xFF, 0x9A, 0x94) : Color.FromRgb(0xC8, 0xD5, 0xE3));
@@ -218,26 +256,57 @@ public partial class UpdatePromptWindow : Window
         ProgressPercentText.Text = isError ? "SAFE" : "STOPPED";
         ProgressPercentText.Foreground = new SolidColorBrush(isError ? Color.FromRgb(0xFF, 0xB0, 0x69) : Color.FromRgb(0x9C, 0xCB, 0xFF));
         UpdateProgressBar.Value = 0;
+        ReportStatusChanged();
     }
 
     private void SetBusyState(bool busy)
     {
+        if (_closed) return;
         UpdateButton.IsEnabled = !busy;
         UpdateButton.Content = busy ? "Update in progress…" : "Retry update  →";
         ViewReleaseButton.IsEnabled = !busy;
         SkipButton.Content = busy ? "Cancel safely" : "Remind me later";
         SkipButton.IsEnabled = !busy || !_cancellationRequested;
         CloseButton.IsEnabled = !busy || !_cancellationRequested;
+        UpdateClosePurpose();
+    }
+
+    private void UpdateClosePurpose()
+    {
+        string action = !_isDownloading ? "Remind me later" : _cancellationRequested ? "Cancelling update" : "Cancel update";
+        CloseButton.ToolTip = action;
+        System.Windows.Automation.AutomationProperties.SetName(CloseButton, action);
+        System.Windows.Automation.AutomationProperties.SetHelpText(CloseButton, _isDownloading
+            ? "Request cancellation and wait for the current update operation to finish safely."
+            : "Close this prompt without starting an update.");
+    }
+
+    private void ReportStatusChanged()
+    {
+        if (_closed) return;
+        System.Windows.Automation.AutomationProperties.SetHelpText(UpdateProgressBar, ProgressText.Text + " " + ProgressDetailText.Text);
+        // WPF exposes explicit live-region events; the portable view retains
+        // LiveSetting/Text notifications through its framework automation peer.
+#if WINDOWS
+        if (System.Windows.Automation.Peers.AutomationPeer.ListenerExists(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged))
+        {
+            var peer = System.Windows.Automation.Peers.UIElementAutomationPeer.FromElement(ProgressText)
+                ?? System.Windows.Automation.Peers.UIElementAutomationPeer.CreatePeerForElement(ProgressText);
+            peer?.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
+        }
+#endif
     }
 
     private void RequestDownloadCancellation()
     {
-        if (!_isDownloading || _downloadCancellation is null || _cancellationRequested) return;
+        if (_closed || !_isDownloading || _downloadCancellation is null || _cancellationRequested) return;
         _cancellationRequested = true;
         ProgressText.Text = "Cancelling safely…";
-        ProgressDetailText.Text = "Removing the staged download. Your installed version is unchanged.";
+        ProgressDetailText.Text = "Cancellation requested. Waiting for the update operation to finish safely.";
         SkipButton.IsEnabled = false;
         CloseButton.IsEnabled = false;
+        UpdateClosePurpose();
+        ReportStatusChanged();
         _downloadCancellation.Cancel();
     }
 

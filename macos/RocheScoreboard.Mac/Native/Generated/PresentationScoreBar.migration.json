@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/PresentationScoreBar.xaml",
-  "source_sha256": "8831a3a6fe7c86e444fbadb7ed364185005558075842133ca976a474918e7fb4",
+  "source_sha256": "3798312e49487979724887388a20f64895cac8e65b49528b15d2777315eeeb0c",
   "names": [
     {
       "name": "HomeLogoColumn",
@@ -173,7 +173,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "2c9ae555242f08a65521837db42fe706c7788443a9bc315e170fd429ddd80bcb",
+  "code_source_sha256": "59625f7aa05a87aed767611bf5ef31d5f74e14143b0901db25c9b390c8cde9db",
   "native_events": [],
   "platform_translations": [
     {
@@ -199,13 +199,13 @@
     {
       "name": "HomeTotalText",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "HomeDeltaText",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
@@ -235,13 +235,13 @@
     {
       "name": "AwayTotalText",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     },
     {
       "name": "AwayDeltaText",
       "property": "FontFamily",
-      "source": "Arial",
+      "source": "Arial, Helvetica Neue, Helvetica, Liberation Sans",
       "native_fallback": "Inter"
     }
   ],

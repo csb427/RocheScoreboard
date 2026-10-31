@@ -26,19 +26,19 @@ public partial class MainWindow
             await Task.Delay(500);
             Button Find(string name)=>(Button)screen.FindName(name);
             void Invoke(Button button)=>((IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke)).Invoke();
-            var afl=Find("AflLaunchAction");var cricket=Find("CricketLaunchAction");var training=Find("TrainingLaunchAction");var settings=Find("SettingsLaunchAction");
-            checks["sports-launch-cards-and-settings-expose-native-keyboard-and-button-semantics"]=new[] {afl,cricket,training,settings}.All(button=>button.Focusable && !string.IsNullOrWhiteSpace(AutomationProperties.GetName(button)) && new ButtonAutomationPeer(button).GetAutomationControlType()==AutomationControlType.Button);
+            var afl=Find("AflLaunchAction");var training=Find("TrainingLaunchAction");var settings=Find("SettingsLaunchAction");
+            checks["sports-launch-cards-and-settings-expose-native-keyboard-and-button-semantics"]=new[] {afl,training,settings}.All(button=>button.Focusable && !string.IsNullOrWhiteSpace(AutomationProperties.GetName(button)) && new ButtonAutomationPeer(button).GetAutomationControlType()==AutomationControlType.Button);
             var original=screen.AflCard.TransformToAncestor(screen).TransformBounds(new Rect(0,0,screen.AflCard.ActualWidth,screen.AflCard.ActualHeight));
             afl.Focus();await Task.Delay(220);
             var focused=screen.AflCard.TransformToAncestor(screen).TransformBounds(new Rect(0,0,screen.AflCard.ActualWidth,screen.AflCard.ActualHeight));
             checks["sports-keyboard-focus-is-visible-without-moving-the-card-hit-target"]=afl.IsKeyboardFocused && screen.AflGlow.Opacity>.5 && original==focused;
             checks["sports-launch-surface-does-not-add-an-inset-second-focus-box"]=afl.Template.FindName("FocusRing",afl) is null;
             afl.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice,PresentationSource.FromVisual(window)!,0,Key.Right) {RoutedEvent=Keyboard.PreviewKeyDownEvent});
-            checks["sports-arrow-navigation-moves-between-launch-actions"]=cricket.IsKeyboardFocused;
+            checks["sports-arrow-navigation-moves-between-launch-actions"]=training.IsKeyboardFocused;
             CaptureCricketQa(screen,Path.Combine(directory,"sports-native-focus-and-stable-full-card-targets.png"));
 
-            Invoke(afl);await Task.Delay(35);screen.PrepareForDisplay();Invoke(cricket);await Task.Delay(450);
-            checks["sports-dispatch-each-click-immediately-without-delayed-replay"]=choices.SequenceEqual(new[] {SportMode.AFL,SportMode.Cricket}) && screen.IsHitTestVisible;
+            Invoke(afl);await Task.Delay(35);screen.PrepareForDisplay();Invoke(training);await Task.Delay(450);
+            checks["sports-dispatch-each-click-immediately-without-delayed-replay"]=choices.SequenceEqual(new[] {SportMode.AFL,SportMode.Training}) && screen.IsHitTestVisible;
             choices.Clear();Invoke(training);await Task.Delay(20);window.Content=null;await Task.Delay(40);window.Content=screen;screen.PrepareForDisplay();await Task.Delay(350);
             checks["leaving-and-returning-does-not-replay-navigation-or-lock-input"]=choices.SequenceEqual(new[] {SportMode.Training}) && screen.IsHitTestVisible;
             afl.Focus();var previous=Keyboard.FocusedElement;

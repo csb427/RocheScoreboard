@@ -51,20 +51,153 @@ public sealed class SharedMaterialMotionTests
         }
         finally{panel.ClearMatch();w.Close();OperatorAppearance.Configure(oldGlass,oldReduce);OperatorMotion.AnimationOverride=previous;}
     }
+    // OUTSIDE TEST-ONLY DRAFT: UNCOMPILED/UNRUN. Replace only the existing method.
+    // Actual Loaded state and public headless pointer input are observed before
+    // any await/PNG. No native65ms claim and no production timeline change.
     [AvaloniaFact]
     public async Task SharedWindowArrivalKeepsItsCommandUsableAndReducedMotionStatic()
     {
-        bool? previous=OperatorMotion.AnimationOverride;OperatorMotion.AnimationOverride=true;
-        var command=new Button{Content="Act now",Width=120,Height=45};int clicks=0;command.Click+=(_,_)=>clicks++;
-        var surface=new Grid();surface.Children.Add(command);var w=new NativeWindow{Width=700,Height=450,Content=surface};OperatorFeedback.Enable(w);w.Show();
+        bool? previous = OperatorMotion.AnimationOverride;
+        var command = new Button { Content = "Act now", Width = 120, Height = 45 };
+        int clicks = 0; command.Click += (_, _) => clicks++;
+        var surface = new Grid(); surface.Children.Add(command);
+        var w = new NativeWindow { Width = 700, Height = 450, Content = surface };
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var trace = new List<object>();
+        double? loadedOpacity = null;
+        bool loadedClock = false, loadedVisible = false, loadedHit = false, arrivalHit = false, arrivalEnded = false, probing = false;
+        bool dispatchStarted = false, dispatchCompleted = false, upDuringArrival = false;
+        string? inputPhase = null;
+        string? loadedInputError = null;
+        bool Within(object? hit) => ReferenceEquals(hit, command)
+            || hit is Avalonia.Visual visual && visual.GetVisualAncestors().Contains(command);
+        Point? ReadyPoint()
+        {
+            var corners = new[] { new Point(), new Point(command.Bounds.Width, 0),
+                new Point(0, command.Bounds.Height), new Point(command.Bounds.Width, command.Bounds.Height) }
+                .Select(point => command.TranslatePoint(point, w)).ToArray();
+            if (corners.Any(point => point is null) || command.Bounds.Width <= 0 || command.Bounds.Height <= 0) return null;
+            double left = corners.Min(point => point!.Value.X), top = corners.Min(point => point!.Value.Y);
+            var box = new Rect(left, top, corners.Max(point => point!.Value.X) - left, corners.Max(point => point!.Value.Y) - top);
+            if (!new Rect(w.ClientSize).Contains(box)) return null;
+            var probes = new[] { box.Center, new Point(box.Left + 3, box.Center.Y), new Point(box.Right - 3, box.Center.Y),
+                new Point(box.Center.X, box.Top + 3), new Point(box.Center.X, box.Bottom - 3) };
+            return probes.All(point => Within(w.InputHitTest(point))) ? box.Center : null;
+        }
+        void Loaded(object? sender, RoutedEventArgs args)
+        {
+            if (loadedOpacity is not null) return;
+            // Source Loaded installed all timeline callbacks before this observer.
+            // Run the observation after Motion.Tick, never against a stale pose.
+            NativeRendering.Rendering += Frame;
+            // Enable() attaches the actual Surface.Loaded handler first.
+            // No assert or awaited continuation can delay this observation.
+            loadedOpacity = surface.Opacity;
+            loadedClock = Motion.IsAnimating(surface);
+            loadedVisible = w.IsVisible && surface.IsEffectivelyVisible && command.IsEffectivelyEnabled;
+            trace.Add(new { Source = "Loaded", Milliseconds = watch.Elapsed.TotalMilliseconds,
+                Opacity = loadedOpacity, ActiveClock = loadedClock, Visible = loadedVisible });
+            try
+            {
+                // Diagnostic logical hit only. Platform input always waits for
+                // the guarded rendered scene in Frame, never this early event.
+                loadedHit = ReadyPoint() is not null;
+            }
+            catch (Exception error) { loadedInputError = error.ToString(); }
+        }
+        void OpacityChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
+        {
+            if (args.Property == Visual.OpacityProperty)
+                trace.Add(new { Source = "OpacityChanged", Milliseconds = watch.Elapsed.TotalMilliseconds,
+                    Opacity = surface.Opacity, ActiveClock = Motion.IsAnimating(surface) });
+        }
+        void Frame(object? sender, EventArgs args)
+        {
+            trace.Add(new { Source = "NativeRendering", Milliseconds = watch.Elapsed.TotalMilliseconds,
+                Opacity = surface.Opacity, ActiveClock = Motion.IsAnimating(surface) });
+            if (loadedOpacity is not null && !Motion.IsAnimating(surface) && surface.Opacity >= .999)
+                arrivalEnded = true;
+            // Loaded precedes the headless hit scene. Observe the first real
+            // usable rendering phase, still requiring an active, mid-arrival
+            // timeline; there is no click fallback after arrival has finished.
+            if (!dispatchStarted && !probing && Motion.IsAnimating(surface) && surface.Opacity is >= .70 and < .999)
+            {
+                probing = true;
+                try
+                {
+                    // NativeRendering precedes publication of the headless
+                    // hit scene. Render before injecting platform input, then
+                    // recheck the actual clock/pose instead of clicking late.
+                    using var rendered = w.CaptureRenderedFrame();
+                    if (rendered is not null && Motion.IsAnimating(surface) && surface.Opacity is >= .70 and < .999
+                        && ReadyPoint() is Point point)
+                    {
+                        inputPhase = "NativeRendering"; dispatchStarted = true;
+                        trace.Add(new { Source = "InputBeforeMove", Milliseconds = watch.Elapsed.TotalMilliseconds,
+                            Opacity = surface.Opacity, ActiveClock = Motion.IsAnimating(surface), command.IsPointerOver });
+                        w.MouseMove(point);
+                        trace.Add(new { Source = "InputBeforeDispatch", Milliseconds = watch.Elapsed.TotalMilliseconds,
+                            Opacity = surface.Opacity, ActiveClock = Motion.IsAnimating(surface), command.IsPointerOver });
+                        // MouseMove pumps native rendering. Do not publish a
+                        // completed witness before Down/Up have actually returned,
+                        // or a reentrant await can assert/close the owner mid-move.
+                        if (!Motion.IsAnimating(surface) || surface.Opacity is < .70 or >= .999
+                            || ReadyPoint() is null) return;
+                        w.MouseDown(point, MouseButton.Left);
+                        trace.Add(new { Source = "InputAfterDown", Milliseconds = watch.Elapsed.TotalMilliseconds,
+                            Opacity = surface.Opacity, ActiveClock = Motion.IsAnimating(surface), Clicks = clicks });
+                        upDuringArrival = Motion.IsAnimating(surface) && surface.Opacity is >= .70 and < .999;
+                        w.MouseUp(point, MouseButton.Left);
+                        trace.Add(new { Source = "InputAfterUp", Milliseconds = watch.Elapsed.TotalMilliseconds,
+                            Opacity = surface.Opacity, ActiveClock = Motion.IsAnimating(surface), Clicks = clicks });
+                        dispatchCompleted = true; arrivalHit = true;
+                    }
+                }
+                catch (Exception error) { loadedInputError = error.ToString(); }
+                finally { probing = false; }
+            }
+        }
         try
         {
-            await Settle(65);Capture(w,"shared-window-arrival-early");Assert.InRange(surface.Opacity,.70,.999);
-            var p=command.TranslatePoint(new Point(command.Bounds.Width/2,command.Bounds.Height/2),w)!.Value;w.MouseDown(p,MouseButton.Left);w.MouseUp(p,MouseButton.Left);Assert.Equal(1,clicks);
-            SharedSurfaceMotion.Reveal(surface);SharedSurfaceMotion.Reveal(surface);await Settle(700);Assert.InRange(surface.Opacity,.999,1);
-            OperatorMotion.AnimationOverride=false;SharedSurfaceMotion.Reveal(surface);Assert.Equal(1,surface.Opacity);Assert.True(surface.RenderTransform is null || surface.RenderTransform.Value==Matrix.Identity);
+            OperatorMotion.AnimationOverride = true;
+            surface.PropertyChanged += OpacityChanged;
+            OperatorFeedback.Enable(w);
+            surface.Loaded += Loaded;
+            w.Show();
+            for (int attempt = 0; attempt < 100 && (probing || (!arrivalHit && !arrivalEnded)); attempt++) await Settle(12);
+            Assert.NotNull(loadedOpacity);
+            Assert.InRange(loadedOpacity!.Value, .70, .999);
+            Assert.True(loadedClock, "The actual Loaded arrival must install an active opacity clock, not a static dim pose.");
+            Assert.True(loadedVisible); Assert.Null(loadedInputError);
+            Assert.True(arrivalHit, "The command needs its complete actual hit region during an observed active arrival.");
+            Assert.True(dispatchStarted); Assert.True(dispatchCompleted); Assert.True(upDuringArrival);
+            Assert.Equal(1, clicks);
+            // Re-entry remains real source behavior. No clock is rewound or
+            // sampled synthetically; eventual real rendering supplies the end.
+            SharedSurfaceMotion.Reveal(surface); SharedSurfaceMotion.Reveal(surface);
+            await Settle(700);
+            Capture(w, "shared-window-arrival-after-command");
+            Assert.InRange(surface.Opacity, .999, 1);
+            OperatorMotion.AnimationOverride = false;
+            SharedSurfaceMotion.Reveal(surface);
+            Assert.Equal(1, surface.Opacity);
+            Assert.True(surface.RenderTransform is null || surface.RenderTransform.Value == Matrix.Identity);
+            Assert.False(Motion.IsAnimating(surface));
+            Assert.True(ReadyPoint() is not null);
         }
-        finally{w.Close();OperatorMotion.AnimationOverride=previous;}
+        finally
+        {
+            NativeRendering.Rendering -= Frame; surface.Loaded -= Loaded; surface.PropertyChanged -= OpacityChanged;
+            try { w.Close(); } finally { OperatorMotion.AnimationOverride = previous; }
+            if (Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR") is { Length: > 0 } directory)
+            {
+                Directory.CreateDirectory(directory);
+                File.WriteAllText(Path.Combine(directory, "shared-window-arrival-observations.json"),
+                    JsonSerializer.Serialize(new { LoadedOpacity = loadedOpacity, LoadedClock = loadedClock,
+                        LoadedLogicalHitReady = loadedHit, ArrivalHit = arrivalHit, ArrivalEnded = arrivalEnded, DispatchStarted = dispatchStarted, DispatchCompleted = dispatchCompleted, UpDuringArrival = upDuringArrival, InputPhase = inputPhase, LoadedInputError = loadedInputError, Clicks = clicks, Samples = trace },
+                        new JsonSerializerOptions { WriteIndented = true }));
+            }
+        }
     }
 
     [AvaloniaTheory]

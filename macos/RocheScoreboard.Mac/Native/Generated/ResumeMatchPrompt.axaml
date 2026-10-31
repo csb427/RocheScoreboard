@@ -16,11 +16,18 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <StackPanel>
-                <TextBlock x:Name="PromptHeading" Text="CONTINUE YOUR MATCH?" FontSize="24" FontWeight="Bold" TextWrapping="Wrap" />
-                <TextBlock x:Name="PhaseText" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" Margin="0,8,0,12" />
-            </StackPanel>
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid x:Name="RecoveryHeader">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="42" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ns2:OperatorSymbol x:Name="RecoverySymbol" Kind="resume" Width="28" Height="28" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Top" Margin="0,3,10,0" />
+                <StackPanel Grid.Column="1">
+                    <TextBlock x:Name="PromptHeading" Text="CONTINUE YOUR MATCH?" FontSize="24" FontWeight="Bold" TextWrapping="Wrap" />
+                    <TextBlock x:Name="PhaseText" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" Margin="0,8,0,12" />
+                </StackPanel>
+            </Grid>
+            <ScrollViewer x:Name="RecoveryDetails" Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <Border x:Name="HomeTeamCard" Padding="12" Margin="0,0,0,8" Theme="{StaticResource SettingsSectionSurface}">
                         <Grid>
@@ -44,7 +51,7 @@
                     </Border>
                 </StackPanel>
             </ScrollViewer>
-            <StackPanel Grid.Row="2">
+            <StackPanel x:Name="RecoveryActions" Grid.Row="2">
                 <UniformGrid Columns="2">
                     <Button x:Name="LaterButton" Content="CONTINUE LATER" Click="KeepSaved_Click" FontSize="14" Padding="8,0" MinHeight="0" Height="46" Margin="0,0,6,0" Theme="{StaticResource ControlCentre.Button}" />
                     <Button x:Name="ResumeButton" Content="CONTINUE MATCH  →" Click="Resume_Click" FontSize="14" Padding="8,0" MinHeight="0" Height="46" Margin="6,0,0,0" IsDefault="True" Theme="{StaticResource ControlCentre.PrimaryButton}" />

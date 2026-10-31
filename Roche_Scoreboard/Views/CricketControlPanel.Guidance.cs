@@ -1,16 +1,32 @@
 using System.Windows;
 using System.Windows.Input;
+using Roche_Scoreboard.Models;
 namespace Roche_Scoreboard.Views;
 
 public partial class CricketControlPanel
 {
     private bool _bowlerWasRequired, _batterWasRequired;
-    private void CloseResolvedSelections(bool battingNeeded, bool bowlingNeeded)
+    private bool CloseResolvedSelections(bool battingNeeded, bool bowlingNeeded, CricketMatchManager match, CricketInnings innings)
     {
+        int generation = _selectorGeneration;
+        bool StillCurrent() => generation == _selectorGeneration && ReferenceEquals(_match, match)
+            && ReferenceEquals(match.CurrentInnings, innings);
+        if (!StillCurrent()) return false;
         if (_bowlerWasRequired && !bowlingNeeded && BowlerSelectionOverlay.Visibility == Visibility.Visible)
-        { _bowlerWasRequired = false; _selectorGeneration++; BowlerSelectionOverlay.Visibility = Visibility.Collapsed; }
+        {
+            _bowlerWasRequired = false;
+            generation = ++_selectorGeneration;
+            BowlerSelectionOverlay.Visibility = Visibility.Collapsed;
+            if (!StillCurrent()) return false;
+        }
         if (_batterWasRequired && !battingNeeded && BatterSelectionOverlay.Visibility == Visibility.Visible)
-        { _batterWasRequired = false; _selectorGeneration++; BatterSelectionOverlay.Visibility = Visibility.Collapsed; }
+        {
+            _batterWasRequired = false;
+            generation = ++_selectorGeneration;
+            BatterSelectionOverlay.Visibility = Visibility.Collapsed;
+            if (!StillCurrent()) return false;
+        }
+        return StillCurrent();
     }
     private void ScoringLock_Click(object sender, MouseButtonEventArgs args)
     {

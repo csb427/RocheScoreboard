@@ -24,6 +24,8 @@ internal sealed class OperatorWorkflowPreferencesData
     public bool OutputScreensaverShowClock { get; set; } = true;
     public bool AflBreakScreenEnabled { get; set; } = true;
     public bool AflAutoOverlaysEnabled { get; set; } = true;
+    public bool? CricketAutomaticOverlays { get; set; }
+    public bool? CricketBreakPresentationRotation { get; set; }
     public bool CricketEventAnimations { get; set; } = true;
     public bool CricketRollingFigures { get; set; } = true;
     public bool CricketBowlerDetails { get; set; } = true;
@@ -87,7 +89,7 @@ internal static class OperatorWorkflowPreferences
         }
         catch
         {
-            return new OperatorWorkflowPreferencesData();
+            return Normalize(new OperatorWorkflowPreferencesData());
         }
     }
 
@@ -106,6 +108,12 @@ internal static class OperatorWorkflowPreferences
 
     private static OperatorWorkflowPreferencesData Normalize(OperatorWorkflowPreferencesData data)
     {
+        // Capture the legacy effective cricket choice before any Update caller
+        // changes AFL automation. Explicit cricket true/false stays independent.
+        data.CricketBreakPresentationRotation ??= data.AflBreakScreenEnabled;
+        // Older versions seeded cricket's automatic overlays from the AFL
+        // preference. Preserve that effective choice once, then keep them separate.
+        data.CricketAutomaticOverlays ??= data.AflAutoOverlaysEnabled;
         data.AflQuarterMinutes = Math.Clamp(data.AflQuarterMinutes, 1, 60);
         data.AflQuarterSeconds = Math.Clamp(data.AflQuarterSeconds, 0, 59);
         data.AflWeatherLocation = string.IsNullOrWhiteSpace(data.AflWeatherLocation)

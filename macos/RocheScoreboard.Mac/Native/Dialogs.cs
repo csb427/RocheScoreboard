@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Layout;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -138,7 +139,10 @@ public class NativeWindow : Window
     public bool? DialogResult { get => _dialogResult; set { _dialogResult = value; Close(value); } }
     public bool? ShowDialog() => NativeAwait.Run(base.ShowDialog<bool?>(Owner ?? NativeDesktop.MainWindow ?? throw new InvalidOperationException("A dialog requires an open operator window.")));
     public static Window? GetWindow(AvaloniaObject target)=>target is Control control?GetWindow(control):null;
-    public static Window? GetWindow(Control control) => TopLevel.GetTopLevel(control) as Window;
+    public static Window? GetWindow(Control control) => TopLevel.GetTopLevel(control) as Window
+        // WPF ownership is available before Loaded. Accessible scroll hosts
+        // may not have a visual presenter yet, but already have logical owners.
+        ?? control.GetLogicalAncestors().OfType<Window>().FirstOrDefault();
 }
 public class NativeOpenFileDialog
 {

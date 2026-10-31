@@ -127,6 +127,7 @@ public partial class CricketControlPanel
         extras.ToolTip = "View extras breakdown";
         summary.Children.Add(ScorecardSummaryCard(extras, "Extras", (draft.Wides + draft.NoBalls + draft.Byes + draft.LegByes).ToString()));
         _scorecardRows.Children.Add(summary);
+        _scorecardRows.Children.Add(WorkflowButton("Edit runs & extras together", async () => await EditScorecardTotalsAsync(), "scorecard-edit-totals"));
     }
 
     private void AddInlineFallOfWickets(CricketScorecardDraft draft)
@@ -162,10 +163,16 @@ public partial class CricketControlPanel
             entry.LostKeyboardFocus += (_, _) => { _scorecardFowEditing = false; if (ReferenceEquals(draft, _scorecardDraft)) UpdateScorecardStatus(); };
             entry.TextChanged += (_, _) =>
             {
-                if (!ReferenceEquals(draft, _scorecardDraft)) return;
-                draft.FallOfWickets[i] = entry.Text.Trim();
+                if (!ReferenceEquals(draft, _scorecardDraft) || i >= draft.FallOfWickets.Count || !_scorecardRows.IsAncestorOf(entry)) return;
+                string normalized = entry.Text.Trim();
+                // Keep empty-entry feedback even when the current draft is
+                // already pending; a semantic no-op must not clear that state.
                 if (string.IsNullOrWhiteSpace(entry.Text)) entry.BorderBrush = ScorecardAlertBrush(true);
                 else entry.SetResourceReference(System.Windows.Controls.Control.BorderBrushProperty, "ControlCentre.BorderBrush");
+                // Avalonia can deliver the initial TextChanged after the row is
+                // rebuilt. Re-loading identical text is not a pending edit.
+                if (string.Equals(draft.FallOfWickets[i], normalized, StringComparison.Ordinal)) return;
+                draft.FallOfWickets[i] = normalized;
                 _scorecardDirty = true; UpdateScorecardStatus();
             };
             Grid.SetColumn(entry, 1); row.Children.Add(entry);

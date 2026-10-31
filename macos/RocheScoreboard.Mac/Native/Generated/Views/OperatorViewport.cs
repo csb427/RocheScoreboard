@@ -1,5 +1,5 @@
 // Generated from Views/OperatorViewport.cs; edit translator/adapters.
-// Source SHA-256: dfd6905d2f069b157be8723ca8ecb51a6dc4b2342b63ae4d9d63c1932cfe569a
+// Source SHA-256: 99fed30d738255786b83e7f75253fbbf7135794271fe89ec2e30e6d421544e82
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -42,11 +42,16 @@ public class OperatorViewport : ScrollViewer
 
     /// <summary>Explicit feedback after a rejected submission must be readable,
     /// even when pointer focus scrolling is otherwise suppressed.</summary>
-    public static void RevealValidationError(Control error)
+    public static void RevealValidationError(Control error) => RevealOperatorTarget(error);
+
+    /// <summary>Explicit navigation, such as returning from a picker, may
+    /// reveal its destination without enabling scroll-on-focus for scoring clicks.</summary>
+    public static void RevealOperatorTarget(Control target, Func<bool>? isCurrent = null)
     {
-        error.UpdateLayout();
+        target.UpdateLayout();
+        if (isCurrent?.Invoke() == false || !target.IsLoaded || !target.IsVisible) return;
         _validationScrollDepth++;
-        try { error.BringIntoView(); }
+        try { NativeFocusReveal.Reveal(target); }
         finally { _validationScrollDepth--; }
     }
 

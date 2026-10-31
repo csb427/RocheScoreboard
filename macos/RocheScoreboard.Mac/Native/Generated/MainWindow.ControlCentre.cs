@@ -1,5 +1,5 @@
 // Generated from MainWindow.ControlCentre.cs; edit translator/adapters.
-// Source SHA-256: 1208c1cc0c8962b1433be90d61670cc7076a9b6406d7c8300391daf42b37458b
+// Source SHA-256: 29a60b8f79a16aaa48e71496898cf1b2759b9bec3b4ed98c61017e4b6c0da2e8
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -46,7 +46,7 @@ public partial class MainWindow
         RefreshAflClockChoices();
         RefreshOperatorForm(AflOutputColumns);
         RefreshAflPresentationChoices();
-        workspace.CategoryChanged+=category=>{_settingsActiveCategory=category.ToLowerInvariant();_uxPreferences.LastSettingsCategory=_settingsActiveCategory;QueueUxPreferencesSave();};
+        workspace.CategoryChanged+=category=>{RetireKeybindCapture();_settingsActiveCategory=category.ToLowerInvariant();_uxPreferences.LastSettingsCategory=_settingsActiveCategory;QueueUxPreferencesSave();};
         Grid.SetColumnSpan(workspace,2);Grid.SetRowSpan(workspace,2);AflSettingsColumns.Children.Add(workspace);
     }
 
@@ -104,8 +104,15 @@ public partial class MainWindow
         SetPageHeight(AflScoringColumns, AflMatchPageViewport, stacked, 24);
         SetPageHeight(AflOutputColumns, AflOutputPageViewport, stacked, 24);
         SetPageHeight(AflMediaColumns, AflMediaPageViewport, stacked, 24);
-        AflSettingsColumns.Height = Math.Max(80, AflSettingsPageViewport.NativeHeight());
-        AflSettingsPageViewport.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+        // Keep a usable inner form viewport when a short window leaves less
+        // space than the category/search header. The page then scrolls as a
+        // whole, so its header can leave room for fields without covering the
+        // fixed navigation dock.
+        const double minimumSettingsPageHeight = 320;
+        double settingsHeight = AflSettingsPageViewport.NativeHeight();
+        AflSettingsColumns.Height = Math.Max(minimumSettingsPageHeight, settingsHeight);
+        AflSettingsPageViewport.VerticalScrollBarVisibility = settingsHeight < minimumSettingsPageHeight
+            ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
         MatchLogPanel.MaxHeight = stacked ? 330 : double.PositiveInfinity;
         AflHeaderMarginSurface.IsVisible = Bounds.Width < 1100 ? false : true;
         StatusBadge.IsVisible = Bounds.Width < 560 ? false : true;

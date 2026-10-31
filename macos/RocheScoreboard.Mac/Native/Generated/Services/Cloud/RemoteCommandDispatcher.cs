@@ -1,5 +1,5 @@
 // Generated from Services/Cloud/RemoteCommandDispatcher.cs; edit translator/adapters.
-// Source SHA-256: eec8864021d547c650db86d18ba7ab9e859bb16eeceb5dc03b3237a8733dd3ca
+// Source SHA-256: 9d97292ee2444266a5c63d4316dc173ce80e1998886d25ce09d44804c94d0d60
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -83,6 +83,13 @@ public interface IRemoteCommandTarget
     void CricketNextInnings();
 }
 
+// Optional local execution authority. Capture may run on the receive thread;
+// the returned predicate is evaluated only on the actual UI dispatch path.
+internal interface IRemoteCommandScope
+{
+    Func<bool>? CaptureExecutionGuard(string eventType);
+}
+
 /// <summary>
 /// Interval-builder payload accepted by
 /// <see cref="IRemoteCommandTarget.TrainingAddTimer"/>. When non-null,
@@ -99,7 +106,7 @@ public sealed record TrainingIntervalSpec(int Rounds, int WorkSeconds, int RestS
 public sealed class RemoteCommandDispatcher
 {
     private readonly IRemoteCommandTarget _target;
-    private readonly Dispatcher _uiDispatcher;
+    private readonly Action<Action> _enqueue;
     private readonly LruIdCache _processed = new(capacity: 512);
 
     public RemoteCommandDispatcher(IRemoteCommandTarget target, Dispatcher uiDispatcher)
@@ -107,7 +114,18 @@ public sealed class RemoteCommandDispatcher
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(uiDispatcher);
         _target = target;
-        _uiDispatcher = uiDispatcher;
+        _enqueue = callback => { _ = uiDispatcher.InvokeAsync(callback); };
+    }
+
+    // Tests may hold the actual dispatch closure across a public UI boundary.
+    // The caller must drain it on the UI thread; command application and
+    // deduplication stay owned by this same production dispatcher.
+    internal RemoteCommandDispatcher(IRemoteCommandTarget target, Action<Action> enqueue)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(enqueue);
+        _target = target;
+        _enqueue = enqueue;
     }
 
     /// <summary>
@@ -119,13 +137,15 @@ public sealed class RemoteCommandDispatcher
         if (string.IsNullOrEmpty(ev.EventType)) return;
         if (!_processed.TryAdd(ev.Id)) return;
 
-        _ = _uiDispatcher.InvokeAsync(() => ApplyOnUiThread(ev));
+        var guard = (_target as IRemoteCommandScope)?.CaptureExecutionGuard(ev.EventType);
+        _enqueue(() => ApplyOnUiThread(ev, guard));
     }
 
-    private void ApplyOnUiThread(RemoteEvent ev)
+    private void ApplyOnUiThread(RemoteEvent ev, Func<bool>? guard)
     {
         try
         {
+            if (guard is not null && !guard()) return;
             switch (ev.EventType)
             {
                 // Scoring

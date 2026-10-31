@@ -110,7 +110,7 @@
                         <TextBlock x:Name="ProgressText" Text="Preparing update…" Foreground="#F7FAFC" FontSize="13" FontWeight="SemiBold"/>
                         <TextBlock x:Name="ProgressPercentText" Grid.Column="1" Text="0%" Foreground="#9CCBFF" FontFamily="Segoe UI Variable, Segoe UI" FontWeight="Bold"/>
                     </Grid>
-                    <ProgressBar x:Name="UpdateProgressBar" Minimum="0" Maximum="100" Value="0"
+                    <ProgressBar x:Name="UpdateProgressBar" AutomationProperties.Name="Update progress" Minimum="0" Maximum="100" Value="0"
                                  Style="{StaticResource UpdateProgressStyle}" Margin="0,8,0,0"/>
                     <TextBlock x:Name="ProgressDetailText" Text="Nothing has been installed yet."
                                Foreground="{StaticResource MutedBrush}" FontSize="13" Margin="0,7,0,0" TextWrapping="Wrap"/>
@@ -122,9 +122,9 @@
                 <Button x:Name="ViewReleaseButton" Grid.Column="0" Style="{StaticResource DialogButton}"
                         Content="View release" MinWidth="120" Click="ViewRelease_Click"/>
                 <Button x:Name="SkipButton" Grid.Column="2" Style="{StaticResource DialogButton}"
-                        Content="Remind me later" Click="Skip_Click" IsCancel="True"/>
+                        Content="Remind me later" Click="Skip_Click" IsCancel="True" IsDefault="True"/>
                 <Button x:Name="UpdateButton" Grid.Column="4" Style="{StaticResource PrimaryButton}"
-                        Content="Download and restart  →" MinWidth="205" Click="Update_Click" IsDefault="True"/>
+                        Content="Download and restart  →" MinWidth="205" Click="Update_Click" IsDefault="False"/>
             </Grid>
         </Grid>
     </glass:OperatorGlassSurface>

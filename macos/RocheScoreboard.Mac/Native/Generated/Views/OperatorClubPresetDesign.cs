@@ -1,5 +1,5 @@
 // Generated from Views/OperatorClubPresetDesign.cs; edit translator/adapters.
-// Source SHA-256: 9aa16ca10d653a27d137fcb70c59375642e47afc135d16449cf0a8f748403e4c
+// Source SHA-256: d17b13bf36a9bbd7a1efe4fbf5ef8f8b7e2bbd0c7c91cf62c5f61261178d157f
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -25,6 +25,56 @@ internal static class OperatorClubPresetDesign
         internal Avalonia.Controls.Shapes.Path? Check;
         internal ScaleTransform Pop=new(1,1);
         internal bool Selected,Hovered,Installed;
+        private Border _tile=null!;
+        private Window? _owner;
+        private bool _watching,_ownerClosed;
+        internal bool CanAnimate=>!_ownerClosed&&_tile.IsLoaded&&_tile.IsVisible&&_tile.IsEnabled
+            &&(_owner is null||(_owner.IsVisible&&_owner.IsEnabled));
+        internal void Install(Border tile)
+        {
+            _tile=tile;tile.Loaded+=Loaded;tile.Unloaded+=Unloaded;
+            NativeEvents.WatchProperty(tile,Avalonia.Controls.Control.IsVisibleProperty,true,AvailabilityChanged);NativeEvents.WatchProperty(tile,Avalonia.Controls.Control.IsEnabledProperty,true,AvailabilityChanged);
+            Refresh();
+        }
+        private void Loaded(object? sender,RoutedEventArgs args){_ownerClosed=false;Refresh();DrawSelection(this,_tile,Selected);}
+        private void Unloaded(object? sender,RoutedEventArgs args){Suspend();DrawSelection(this,_tile,false);}
+        private void AvailabilityChanged(object? sender,AvaloniaPropertyChangedEventArgs args)
+        {Refresh();DrawSelection(this,_tile,false);}
+        private void Refresh()
+        {
+            if(!_tile.IsLoaded){Suspend();return;}
+            if(!_ownerClosed)
+            {
+                var owner=NativeWindow.GetWindow(_tile);
+                if(!ReferenceEquals(owner,_owner))
+                {
+                    DetachOwner();_owner=owner;
+                    if(owner is not null){NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsVisibleProperty,true,AvailabilityChanged);NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsEnabledProperty,true,AvailabilityChanged);owner.Closed+=OwnerClosed;}
+                }
+            }
+            Watch(CanAnimate);
+        }
+        private void Watch(bool enabled)
+        {
+            if(enabled==_watching)return;_watching=enabled;
+            if(enabled){OperatorAppearance.Changed+=PreferenceChanged;NativeSystemPreferences.StaticPropertyChanged+=SystemPreferenceChanged;}
+            else{OperatorAppearance.Changed-=PreferenceChanged;NativeSystemPreferences.StaticPropertyChanged-=SystemPreferenceChanged;}
+        }
+        private void PreferenceChanged()
+        {
+            if(!_watching)return;
+            if(!Dispatcher.UIThread.CheckAccess()){Dispatcher.UIThread.InvokeAsync(new Action(PreferenceChanged));return;}
+            if(_watching&&CanAnimate&&!OperatorMotion.Enabled)DrawSelection(this,_tile,false);
+        }
+        private void SystemPreferenceChanged(object? sender,System.ComponentModel.PropertyChangedEventArgs args)
+        {if(args.PropertyName==nameof(NativeSystemPreferences.ClientAreaAnimation))PreferenceChanged();}
+        private void OwnerClosed(object? sender,EventArgs args){_ownerClosed=true;Suspend();DrawSelection(this,_tile,false);}
+        private void DetachOwner()
+        {
+            if(_owner is not null){NativeEvents.WatchProperty(_owner,Avalonia.Controls.Control.IsVisibleProperty,false,AvailabilityChanged);NativeEvents.WatchProperty(_owner,Avalonia.Controls.Control.IsEnabledProperty,false,AvailabilityChanged);_owner.Closed-=OwnerClosed;}
+            _owner=null;
+        }
+        private void Suspend(){Watch(false);DetachOwner();}
     }
     private static readonly ConditionalWeakTable<Border,State> States=new();
     internal static void Update(Border tile,TeamPreset team,bool selected)
@@ -34,8 +84,7 @@ internal static class OperatorClubPresetDesign
         {
             state.Installed=true;OperatorFeedback.SetManaged(tile,true);OperatorRoundedClip.SetRadius(tile,20);
             tile.SetBinding(NativeToolTipPolicy.EnabledProperty,new Avalonia.Data.Binding{Source=tile,Path=new PropertyPath(OperatorGuidance.ShowHintsProperty)});
-            tile.Loaded+=(_,_)=>DrawSelection(state,tile,state.Selected);
-            tile.Unloaded+=(_,_)=>DrawSelection(state,tile,false);
+            state.Install(tile);
             tile.GotFocus+=(_,_)=>Hover(tile,true);tile.LostFocus+=(_,_)=>Hover(tile,tile.IsPointerOver);
         }
         string signature=string.Join("|",team.TeamName,team.LogoPath,team.PrimaryColor);
@@ -70,7 +119,7 @@ internal static class OperatorClubPresetDesign
         state.Mark.BeginAnimation(Control.OpacityProperty,null);state.Mark.Opacity=state.Selected?1:0;
         state.Check.BeginAnimation(Avalonia.Controls.Shapes.Shape.StrokeDashOffsetProperty,null);state.Check.StrokeDashOffset=0;
         state.Pop.BeginAnimation(ScaleTransform.ScaleXProperty,null);state.Pop.BeginAnimation(ScaleTransform.ScaleYProperty,null);state.Pop.ScaleX=state.Pop.ScaleY=1;
-        if(!animate||!state.Selected||!OperatorMotion.Enabled||!tile.IsLoaded)return;
+        if(!animate||!state.Selected||!OperatorMotion.Enabled||!state.CanAnimate)return;
         state.Check.BeginAnimation(Avalonia.Controls.Shapes.Shape.StrokeDashOffsetProperty,new DoubleAnimation(10,0,OperatorMotion.CheckDraw){FillBehavior=FillBehavior.Stop,EasingFunction=OperatorMotion.SmoothOut});
         var arrival=new DoubleAnimation(.55,1,OperatorMotion.SurfaceOpen){FillBehavior=FillBehavior.Stop,EasingFunction=new BackEase{Amplitude=.2,EasingMode=EasingMode.EaseOut}};
         state.Pop.BeginAnimation(ScaleTransform.ScaleXProperty,arrival);state.Pop.BeginAnimation(ScaleTransform.ScaleYProperty,arrival.Clone());

@@ -18,10 +18,11 @@ using Roche_Scoreboard.Services.Cloud;
 
 namespace Roche_Scoreboard;
 
-public partial class MainWindow : IRemoteCommandTarget
+public partial class MainWindow : IRemoteCommandTarget, IRemoteCommandScope
 {
     private RemoteControlService? _cloudRemote;
     private SupabaseConfig? _cloudConfig;
+    private bool _remoteCommandOwnerClosed;
 
     /// <summary>True while a cloud session has been created.</summary>
     public bool IsCloudSessionActive => _cloudRemote?.IsActive == true;
@@ -355,6 +356,31 @@ public partial class MainWindow : IRemoteCommandTarget
 
     // ── IRemoteCommandTarget — every cloud event presses an existing local
     //    handler so animations / validation / snapshots keep working. ──
+
+    Func<bool>? IRemoteCommandScope.CaptureExecutionGuard(string eventType)
+    {
+        if (eventType is RemoteEventTypes.TrainingStartPause or RemoteEventTypes.TrainingSkip
+            or RemoteEventTypes.TrainingResetActive or RemoteEventTypes.TrainingAddTimer
+            or RemoteEventTypes.TrainingUpdateTimer or RemoteEventTypes.TrainingRemoveTimer
+            or RemoteEventTypes.TrainingClearQueue or RemoteEventTypes.TrainingSetAutoAdvance
+            or RemoteEventTypes.TrainingReorder or RemoteEventTypes.TrainingAdjustActive or RemoteEventTypes.TrainingExit)
+        {
+            // Capture only the atomic runtime owner on the receive thread.
+            // Mode/window checks stay on actual UI execution; Home, settings
+            // and output-off may retain this same live Training session.
+            var training = Volatile.Read(ref _trainingSession);
+            return () => training is not null && OwnsTrainingRemoteCommand(training);
+        }
+        if (eventType is not (RemoteEventTypes.HomeGoal or RemoteEventTypes.HomeBehind
+            or RemoteEventTypes.AwayGoal or RemoteEventTypes.AwayBehind or RemoteEventTypes.Undo))
+            return null;
+        // Only the atomic model token is read on a possible receive thread.
+        // Window and mode eligibility are deliberately evaluated on the UI.
+        long lifetime = _match.LifecycleVersion;
+        // Home, preferences and minimization may retain this same live session.
+        // Presentation visibility is not match authority.
+        return () => _match.LifecycleVersion == lifetime && !_remoteCommandOwnerClosed && _aflMatchReady;
+    }
 
     void IRemoteCommandTarget.HomeGoal()    => HomeGoal_Click(this, new RoutedEventArgs());
     void IRemoteCommandTarget.HomeBehind()  => HomeBehind_Click(this, new RoutedEventArgs());

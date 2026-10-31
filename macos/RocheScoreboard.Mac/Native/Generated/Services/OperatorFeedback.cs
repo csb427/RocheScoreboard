@@ -1,5 +1,5 @@
 // Generated from Services/OperatorFeedback.cs; edit translator/adapters.
-// Source SHA-256: dcaa8f0837f5bdb71b2564287680030530584887e52d077131ad70a4131d2410
+// Source SHA-256: 0a756fef7cf8b56419eb163e688223b85d237bca0daae02376a50daedfdf2ce7
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -43,7 +43,10 @@ internal static class OperatorFeedback
         {
             var menu=(ContextMenu)sender;
             if(menu.PlacementTarget is not null && NativeWindow.GetWindow(menu.PlacementTarget) is Window owner && IsOperatorWindow(owner))
-            {OperatorDesign.Apply(menu);Scopes.GetValue(menu,key=>new Scope(key));Roche_Scoreboard.Views.SharedSurfaceMotion.Reveal(menu);}
+            {
+                OperatorDesign.Apply(menu);Scopes.GetValue(menu,key=>new Scope(key));
+                if(!OperatorMenuMotion.OwnsArrival(menu))Roche_Scoreboard.Views.SharedSurfaceMotion.Reveal(menu);
+            }
         }));
         NativeEventManager.RegisterClassHandler(typeof(ToolTip),Control.LoadedEvent,new EventHandler<RoutedEventArgs>((sender,_)=>
         {var tip=(ToolTip)sender;if(NativeToolTipPolicy.PlacementTarget(tip) is not null&&NativeWindow.GetWindow(NativeToolTipPolicy.PlacementTarget(tip)) is Window owner&&IsOperatorWindow(owner)){OperatorDesign.Apply(tip);Roche_Scoreboard.Views.SharedSurfaceMotion.Reveal(tip);}}));
@@ -128,9 +131,13 @@ internal static class OperatorFeedback
     private sealed class Scope
     {
         internal readonly HashSet<Feedback> Live=new();
+        private readonly Control _root;
         private Control? _hovered;
+        private Control? _pressedTarget;
+        private bool _observing;
         internal Scope(Control root)
         {
+            _root=root;
             // MouseEnter is direct in WPF. Track the routed pointer instead so
             // legacy controls receive feedback as well as templated buttons.
             root.AddHandler(Avalonia.Input.InputElement.PointerMovedEvent,new EventHandler<Avalonia.Input.PointerEventArgs>((_,e)=>
@@ -141,10 +148,17 @@ internal static class OperatorFeedback
                 previous?.Let(t=>Get(t)?.Refresh());next?.Let(t=>Get(t)?.Refresh());
             }),true);
             root.AddHandler(Avalonia.Input.InputElement.PointerExitedEvent,new EventHandler<Avalonia.Input.PointerEventArgs>((_,_)=>
-            {if(root.IsPointerOver)return;var previous=_hovered;_hovered=null;previous?.Let(t=>Get(t)?.Refresh());}),true);
-            root.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent,new EventHandler<Avalonia.Input.PointerPressedEventArgs>((_,e)=>Target(e.Source as AvaloniaObject,root)?.Let(t=>Get(t)?.Press(true))),true);
-            root.AddHandler(Avalonia.Input.InputElement.PointerReleasedEvent,new EventHandler<Avalonia.Input.PointerReleasedEventArgs>((_,e)=>Target(e.Source as AvaloniaObject,root)?.Let(t=>Get(t)?.Press(false))),true);
-            root.AddHandler(InputElement.PointerCaptureLostEvent,new EventHandler<Avalonia.Input.PointerCaptureLostEventArgs>((_,e)=>Target(e.Source as AvaloniaObject,root)?.Let(t=>Get(t)?.Press(false))),true);
+            {
+                if(root.IsPointerOver)return;
+                var previous=_hovered;_hovered=null;previous?.Let(t=>Get(t)?.Refresh());
+                if((_pressedTarget is null ? (bool?)null : NativePointer.IsCaptureWithin(_pressedTarget))!=true)ReleasePress();
+            }),true);
+            root.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent,new EventHandler<Avalonia.Input.PointerPressedEventArgs>((_,e)=>
+            {ReleasePress();_pressedTarget=Target(e.Source as AvaloniaObject,root);_pressedTarget?.Let(t=>Get(t)?.Press(true));}),true);
+            // A plain hand-cursor Border does not capture the mouse. Release
+            // belongs to the pressed target even when another target receives Up.
+            root.AddHandler(Avalonia.Input.InputElement.PointerReleasedEvent,new EventHandler<Avalonia.Input.PointerReleasedEventArgs>((_,_)=>ReleasePress()),true);
+            root.AddHandler(InputElement.PointerCaptureLostEvent,new EventHandler<Avalonia.Input.PointerCaptureLostEventArgs>((_,_)=>ReleasePress()),true);
             root.AddHandler(Avalonia.Input.InputElement.GotFocusEvent,new EventHandler<RoutedEventArgs>((_,e)=>Target(e.Source as AvaloniaObject,root)?.Let(t=>Get(t)?.Refresh())),true);
             root.AddHandler(Avalonia.Input.InputElement.LostFocusEvent,new EventHandler<RoutedEventArgs>((_,e)=>Target(e.Source as AvaloniaObject,root)?.Let(t=>Get(t)?.Refresh())),true);
             root.AddHandler(ButtonBase.ClickEvent,new EventHandler<RoutedEventArgs>((_,e)=>Target(e.Source as AvaloniaObject,root)?.Let(Pulse)),true);
@@ -152,9 +166,34 @@ internal static class OperatorFeedback
             {if(e.Source is Control target && target is ComboBox or ListBox && (target.IsKeyboardFocusWithin||target.IsPointerOver))Pulse(target);}),true);
             root.AddHandler(RangeBase.ValueChangedEvent,new EventHandler<RangeBaseValueChangedEventArgs>((_,e)=>
             {if(e.Source is Slider target && (target.IsKeyboardFocusWithin||NativePointer.IsCaptureWithin(target)))Get(target)?.Refresh();}),true);
-            void Clear(){_hovered=null;foreach(var state in Live.ToArray())state.Remove();}
-            root.Unloaded+=(_,_)=>Clear();
+            void Clear(){_hovered=null;_pressedTarget=null;foreach(var state in Live.ToArray())state.Remove();}
+            root.Loaded+=(_,_)=>Observe();
+            root.Unloaded+=(_,_)=>{StopObserving();Clear();};
             if(root is Window window)window.Deactivated+=(_,_)=>Clear();
+            if(root.IsLoaded)Observe();
+        }
+        private void ReleasePress()
+        {var previous=_pressedTarget;_pressedTarget=null;previous?.Let(t=>Get(t)?.Press(false));}
+        private void Observe()
+        {
+            if(_observing)return;_observing=true;
+            OperatorAppearance.Changed+=PreferenceChanged;
+            NativeSystemPreferences.StaticPropertyChanged+=SystemPreferenceChanged;
+        }
+        private void StopObserving()
+        {
+            if(!_observing)return;_observing=false;
+            OperatorAppearance.Changed-=PreferenceChanged;
+            NativeSystemPreferences.StaticPropertyChanged-=SystemPreferenceChanged;
+        }
+        private void SystemPreferenceChanged(object? sender,System.ComponentModel.PropertyChangedEventArgs args)
+        {if(args.PropertyName==nameof(NativeSystemPreferences.ClientAreaAnimation))PreferenceChanged();}
+        private void PreferenceChanged()
+        {
+            if(!_observing)return;
+            if(!Dispatcher.UIThread.CheckAccess()){Dispatcher.UIThread.InvokeAsync(new Action(PreferenceChanged));return;}
+            if(!_observing||!_root.IsLoaded||OperatorMotion.Enabled)return;
+            foreach(var state in Live.ToArray())state.Settle();
         }
     }
     private sealed class Feedback:Adorner
@@ -163,7 +202,7 @@ internal static class OperatorFeedback
         internal static readonly AttachedProperty<double> FocusProperty=(AttachedProperty<double>)NativeProperty.Register("Focus",typeof(double),typeof(Feedback),new FrameworkPropertyMetadata(0d,FrameworkPropertyMetadataOptions.AffectsRender));
         internal static readonly AttachedProperty<double> PressProperty=(AttachedProperty<double>)NativeProperty.Register("Pressure",typeof(double),typeof(Feedback),new FrameworkPropertyMetadata(0d,FrameworkPropertyMetadataOptions.AffectsRender));
         internal static readonly AttachedProperty<double> ConfirmProperty=(AttachedProperty<double>)NativeProperty.Register("Confirm",typeof(double),typeof(Feedback),new FrameworkPropertyMetadata(0d,FrameworkPropertyMetadataOptions.AffectsRender));
-        private readonly Control _target;private readonly AdornerLayer _layer;private readonly Scope _scope;private bool _added;
+        private readonly Control _target;private readonly AdornerLayer _layer;private readonly Scope _scope;private bool _added,_pressed;
         internal Feedback(Control target,AdornerLayer layer,Scope scope):base(target)
         {
             _target=target;_layer=layer;_scope=scope;IsHitTestVisible=false;Focusable=false;
@@ -182,7 +221,18 @@ internal static class OperatorFeedback
             if(!OperatorMotion.Enabled)CleanIfIdle();
         }
         internal void Press(bool down)
-        {if(!_target.IsEnabled||!_target.IsVisible)return;Ensure();Animate(PressProperty,down?1:0,down?OperatorMotion.Press:OperatorMotion.SurfaceClose);}
+        {if(!_target.IsEnabled||!_target.IsVisible)return;_pressed=down;Ensure();Animate(PressProperty,down?1:0,down?OperatorMotion.Press:OperatorMotion.SurfaceClose);}
+        internal void Settle()
+        {
+            if(!_target.IsEnabled||!_target.IsVisible){Remove();return;}
+            foreach(var property in new[]{RevealProperty,FocusProperty,PressProperty,ConfirmProperty})this.BeginAnimation(property,null);
+            SetValue(RevealProperty,_target.IsPointerOver?1d:0d);
+            SetValue(FocusProperty,_target.IsKeyboardFocusWithin&&OperatorInputFocus.GetIsKeyboardMode(_target)?1d:0d);
+            _pressed=_pressed&&(_target.IsPointerOver||NativePointer.IsCaptureWithin(_target));
+            SetValue(PressProperty,_pressed?1d:0d);
+            SetValue(ConfirmProperty,0d);
+            CleanIfIdle();
+        }
         internal void Confirm()
         {
             if(!_target.IsEnabled||!_target.IsVisible)return;Ensure();
@@ -202,6 +252,7 @@ internal static class OperatorFeedback
         }
         internal void Remove()
         {
+            _pressed=false;
             foreach(var prop in new[]{RevealProperty,FocusProperty,PressProperty,ConfirmProperty}){this.BeginAnimation(prop,null);SetValue(prop,0d);}
             if(_added){_layer.Remove(this);_scope.Live.Remove(this);_added=false;}
         }

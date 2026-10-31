@@ -88,10 +88,11 @@
                         <TextBlock x:Name="SelectedMeta" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" TextAlignment="Center" Margin="0,6,0,0" TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0"><Border x:Name="PrimarySwatch" Width="64" Height="8"/><Border x:Name="SecondarySwatch" Width="64" Height="8" Margin="6,0,0,0"/></StackPanel>
                         <TextBlock x:Name="StatusText" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextAlignment="Center" Margin="0,10,0,10" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="PresetStatus" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextAlignment="Center" Margin="0,0,0,10" TextWrapping="Wrap" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"/>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Margin="0,12,0,0">
                         <Button x:Name="UseButton" Content="Use this team" Style="{StaticResource ControlCentre.PrimaryButton}" Click="Use_Click" IsEnabled="False" Margin="0,0,0,8"/>
-                        <Button x:Name="FavouriteButton" Content="Save to presets" Tag="False" Style="{StaticResource LibraryButton}" Click="Favourite_Click" IsEnabled="False">
+                        <Button x:Name="FavouriteButton" Content="Save to presets" Tag="False" Style="{StaticResource SettingsSavedAction}" Click="Favourite_Click" IsEnabled="False">
                             <Button.ContentTemplate><DataTemplate><StackPanel Orientation="Horizontal"><design:OperatorSymbol Kind="favourite" Width="19" Height="19" Margin="0,0,9,0" Foreground="#FFD166" IsActive="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}"/><TextBlock Text="{Binding}" VerticalAlignment="Center"/></StackPanel></DataTemplate></Button.ContentTemplate>
                         </Button>
                     </StackPanel>

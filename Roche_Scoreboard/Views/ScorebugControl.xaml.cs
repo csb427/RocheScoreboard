@@ -2391,7 +2391,7 @@ namespace Roche_Scoreboard.Views
             foreach (TextBlock digit in animatedDigits)
                 digit.CacheMode = new BitmapCache(VisualTreeHelper.GetDpi(digit).PixelsPerDip);
 
-            // Detect which components actually changed for blink highlighting
+            // Detect which components actually changed for the score reveal
             bool goalsChanged = goalsText.Text != newGoals.ToString();
             bool behindsChanged = behindsText.Text != newBehinds.ToString();
 
@@ -2424,19 +2424,9 @@ namespace Roche_Scoreboard.Views
                 timers.Add(ut); ut.Start();
             }
 
-            // Simple synced blink: all changed digits blink together at even intervals
-            void AddBlink(TextBlock tb, double startAt)
-            {
-                const double offDur = 0.055;
-                const double onDur = 0.075;
-                const int blinkCount = 4;
-                for (int i = 0; i < blinkCount; i++)
-                {
-                    double t = startAt + i * (offDur + onDur);
-                    sb.Children.Add(MakeDA(tb, OpacityProperty, 1, 0.1, offDur, t));
-                    sb.Children.Add(MakeDA(tb, OpacityProperty, 0.1, 1, onDur, t + offDur));
-                }
-            }
+            // Keep the accepted numerals readable for the same interval as the
+            // former blink sequence, preserving the host completion budget.
+            const double readableHoldDuration = 0.52;
 
             // For the expanded layout, we wait for any goal preset to finish playing
             // (`flipStart` seconds), THEN play the +N swipe coming UP from the bottom of
@@ -2462,13 +2452,8 @@ namespace Roche_Scoreboard.Views
                 if (goalsChanged) AddSlide(goalsText, newGoals.ToString(), slideAt, altG, pop: true);
                 if (behindsChanged) AddSlide(behindsText, newBehinds.ToString(), slideAt, altB, pop: true);
 
-                // Synced blink right after the slide-in completes
-                double blinkTime = flipStart + slideAt + 0.10 + 0.16 + 0.10;
-                if (goalsChanged) AddBlink(goalsText, blinkTime);
-                if (behindsChanged) AddBlink(behindsText, blinkTime);
-                AddBlink(totalText, blinkTime);
-
-                totalDur = blinkTime + 4 * (0.055 + 0.075) + 0.18;
+                double readableHoldStart = flipStart + slideAt + 0.10 + 0.16 + 0.10;
+                totalDur = readableHoldStart + readableHoldDuration + 0.18;
             }
             else
             {
@@ -2476,12 +2461,8 @@ namespace Roche_Scoreboard.Views
                 if (goalsChanged) AddSlide(goalsText, newGoals.ToString(), 0.10, altG, pop: true);
                 if (behindsChanged) AddSlide(behindsText, newBehinds.ToString(), 0.10, altB, pop: true);
 
-                double blinkTime = flipStart + 0.10 + 0.10 + 0.16 + 0.10;
-                if (goalsChanged) AddBlink(goalsText, blinkTime);
-                if (behindsChanged) AddBlink(behindsText, blinkTime);
-                AddBlink(totalText, blinkTime);
-
-                totalDur = blinkTime + 4 * (0.055 + 0.075) + 0.12;
+                double readableHoldStart = flipStart + 0.10 + 0.10 + 0.16 + 0.10;
+                totalDur = readableHoldStart + readableHoldDuration + 0.12;
             }
 
             var guard = new DispatcherTimer { Interval = TimeSpan.FromSeconds(totalDur) };
@@ -4331,16 +4312,6 @@ namespace Roche_Scoreboard.Views
                 ? VerticalAlignment.Top
                 : VerticalAlignment.Bottom;
             ExpTeamStoryDirectionHost.Opacity = 1;
-
-            var flash = new DoubleAnimationUsingKeyFrames
-            {
-                Duration = TimeSpan.FromMilliseconds(720),
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-            flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(1, KeyTime.FromPercent(0)));
-            flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromPercent(0.5)));
-            ExpTeamStoryDirectionHost.BeginAnimation(OpacityProperty, flash,
-                HandoffBehavior.SnapshotAndReplace);
         }
 
         private void StopTeamStoryDirection()

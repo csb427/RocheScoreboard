@@ -1,5 +1,5 @@
 // Generated from Services/OperatorControlMotion.cs; edit translator/adapters.
-// Source SHA-256: e7c20a0fb28fee1593d28f2e73cfd5486273cc90e0d062205fd8f0d393804662
+// Source SHA-256: 1dcf2144ed45842d6d759a7adaf5501aae9dbb390ef336a1ab48362878bb9d6b
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -20,6 +20,9 @@ public static class OperatorControlMotion
     public static readonly AttachedProperty<bool> EnabledProperty = (AttachedProperty<bool>)NativeProperty.RegisterAttached("Enabled", typeof(bool), typeof(OperatorControlMotion), new PropertyMetadata(false, Changed));
     public static bool GetEnabled(AvaloniaObject target) => (bool)target.GetValue(EnabledProperty);
     public static void SetEnabled(AvaloniaObject target, bool value) => target.SetValue(EnabledProperty, value);
+    public static readonly AttachedProperty<bool> InflateOnPressProperty=(AttachedProperty<bool>)NativeProperty.RegisterAttached("InflateOnPress",typeof(bool),typeof(OperatorControlMotion),new PropertyMetadata(false));
+    public static bool GetInflateOnPress(AvaloniaObject target)=>(bool)target.GetValue(InflateOnPressProperty);
+    public static void SetInflateOnPress(AvaloniaObject target,bool value)=>target.SetValue(InflateOnPressProperty,value);
     private static readonly ConditionalWeakTable<TemplatedControl, State> States = new();
     private static void Changed(AvaloniaObject target, AvaloniaPropertyChangedEventArgs args)
     {
@@ -49,10 +52,10 @@ public static class OperatorControlMotion
             _templateDescriptor = NativePropertyDescriptor.FromProperty(TemplatedControl.TemplateProperty, typeof(TemplatedControl));
             control.Loaded += Loaded; control.Unloaded += Unloaded;
             control.PointerEntered += Refresh; control.PointerExited += Leave;
-            control.PointerPressed += Down; control.PointerReleased += Up;
-            control.PointerCaptureLost += LostCapture; control.KeyDown += KeyDown; control.KeyUp += KeyUp;
+            control.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, Down, Avalonia.Interactivity.RoutingStrategies.Tunnel, handledEventsToo: true); control.AddHandler(Avalonia.Input.InputElement.PointerReleasedEvent, Up, Avalonia.Interactivity.RoutingStrategies.Tunnel, handledEventsToo: true);
+            control.PointerCaptureLost += LostCapture; control.AddHandler(Avalonia.Input.InputElement.KeyDownEvent, KeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel, handledEventsToo: true); control.AddHandler(Avalonia.Input.InputElement.KeyUpEvent, KeyUp, Avalonia.Interactivity.RoutingStrategies.Tunnel, handledEventsToo: true);
             control.LostFocus += LostFocus;
-            NativeEvents.WatchProperty(control,Avalonia.Controls.Control.IsEnabledProperty,true,Availability); NativeEvents.WatchProperty(control,Avalonia.Controls.Control.IsVisibleProperty,true,Availability);
+            NativeEffectiveVisibility.WatchProperty(control,Avalonia.Controls.Control.IsEnabledProperty,true,Availability); NativeEffectiveVisibility.WatchProperty(control,Avalonia.Controls.Control.IsVisibleProperty,true,Availability);
             control.AddHandler(ToggleButton.CheckedEvent, new EventHandler<RoutedEventArgs>(Toggle));
             control.AddHandler(ToggleButton.UncheckedEvent, new EventHandler<RoutedEventArgs>(Toggle));
             if(control is ComboBox choice) { choice.DropDownOpened += OpenChoice; choice.DropDownClosed += CloseChoice; }
@@ -82,12 +85,12 @@ public static class OperatorControlMotion
         private void Refresh(object? sender, RoutedEventArgs e) => Update();
         private void Leave(object? sender, Avalonia.Input.PointerEventArgs e) { _pressed = false; Update(); }
         private void Down(object? sender, PointerEventArgs e)
-        {
+        {if(e.GetCurrentPoint(_control).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonPressed)return;
             if(_control is Avalonia.Controls.TabItem)
             {var point=e.GetPosition(_control);if(point.X<0 || point.Y<0 || point.X>_control.NativeWidth() || point.Y>_control.NativeHeight())return;}
             _pressed = true; Update();
         }
-        private void Up(object? sender, PointerEventArgs e) { _pressed = false; Update(); }
+        private void Up(object? sender, PointerEventArgs e) {if(e.GetCurrentPoint(_control).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased)return; _pressed = false; Update(); }
         private void LostCapture(object? sender, PointerCaptureLostEventArgs e) { _pressed = false; Update(); }
         private void KeyDown(object? sender, Avalonia.Input.KeyEventArgs e) { if(_control is Avalonia.Controls.TabItem && !_control.IsFocused)return; if (e.Key is Key.Space or Key.Enter) { _pressed = true; Update(); } }
         private void KeyUp(object? sender, Avalonia.Input.KeyEventArgs e) { _pressed = false; Update(); }
@@ -119,15 +122,37 @@ public static class OperatorControlMotion
             }
             Update();
         }
-        private void Availability(object? sender, AvaloniaPropertyChangedEventArgs e) { if (!_control.IsEnabled || !_control.IsVisible) Reset(); else Update(); }
+        private void Availability(object? sender, AvaloniaPropertyChangedEventArgs e) { if (!_control.IsEnabled || !NativeEffectiveVisibility.IsVisible(_control)) Reset(); else Update(); }
         private void Unloaded(object? sender, RoutedEventArgs e) { OperatorAppearance.Changed-=AppearanceChanged;Reset(); if (_watchingTemplate) { _templateDescriptor.RemoveValueChanged(_control, Retemplate); _watchingTemplate = false; } }
         private void AppearanceChanged()=>Update();
         private void Update()
         {
-            if (!_control.IsEnabled || !_control.IsVisible) { Reset(); return; }
-            _target = _pressed ? .945 : _control.IsPointerOver ? (_thumb is not null ? 1.075 : 1 + Math.Min(.018, 4 / Math.Max(1, _control.NativeWidth()))) : 1;
+            if (!_control.IsEnabled || !NativeEffectiveVisibility.IsVisible(_control)) { Reset(); return; }
+            _target = _pressed ? (GetInflateOnPress(_control) && _thumb is null?1+.035*OperatorMotion.TravelScale:.945) : _control.IsPointerOver ? (_thumb is not null ? 1.075 : 1 + Math.Min(.018, 4 / Math.Max(1, _control.NativeWidth()))) : 1;
             _stretchTarget = _thumb is not null && _pressed ? 1.18 : 1;
             double highlight=_pressed?.075:_control.IsPointerOver?.035:0;
+            if (!OperatorMotion.Enabled)
+            {
+                // Settle every owned timeline, including parts whose target
+                // has not changed. Native checked/open/value state is untouched.
+                Stop();
+                CloseChoice(null, EventArgs.Empty);
+                _scale = _target = _stretch = _stretchTarget = 1;
+                _velocity = _thumbVelocity = _stretchVelocity = 0;
+                _thumbX = _thumbTarget;
+                if (_check is not null)
+                {
+                    _check.BeginAnimation(Avalonia.Controls.Shapes.Shape.StrokeDashOffsetProperty, null);
+                    _check.StrokeDashOffset = _thumbTarget > 0 ? 0 : 22;
+                }
+                if (_highlight is not null)
+                {
+                    _highlight.BeginAnimation(Control.OpacityProperty, null);
+                    _highlight.Opacity = _highlightTarget = highlight;
+                }
+                Paint();
+                return;
+            }
             if(_highlight is not null && Math.Abs(highlight-_highlightTarget)>.001)
             {
                 _highlightTarget=highlight;
@@ -135,7 +160,6 @@ public static class OperatorControlMotion
                 else _highlight.BeginAnimation(Control.OpacityProperty,new RocheScoreboard.Mac.Native.DoubleAnimation(highlight,TimeSpan.FromMilliseconds(110)){EasingFunction=OperatorMotion.SmoothOut});
             }
             if (_transform is null && _thumb is null) return;
-            if (!OperatorMotion.Enabled) { _scale = _target = _stretch = _stretchTarget = 1; _velocity = _stretchVelocity = 0; _thumbX = _thumbTarget; Paint(); Stop(); return; }
             if (_running) return;
             // A loaded or re-entered idle control does not need a rendering loop.
             if(Math.Abs(_target-_scale)<.0002 && Math.Abs(_velocity)<.002 && Math.Abs(_thumbTarget-_thumbX)<.02 && Math.Abs(_thumbVelocity)<.05 && Math.Abs(_stretchTarget-_stretch)<.0002 && Math.Abs(_stretchVelocity)<.002)
@@ -174,8 +198,8 @@ public static class OperatorControlMotion
             Reset(); var c = _control;
             if (_watchingTemplate) { _templateDescriptor.RemoveValueChanged(_control, Retemplate); _watchingTemplate = false; }
             c.Loaded -= Loaded; c.Unloaded -= Unloaded; c.PointerEntered -= Refresh; c.PointerExited -= Leave;
-            c.PointerPressed -= Down; c.PointerReleased -= Up; c.PointerCaptureLost -= LostCapture;
-            c.KeyDown -= KeyDown; c.KeyUp -= KeyUp; NativeEvents.WatchProperty(c,Avalonia.Controls.Control.IsEnabledProperty,false,Availability); NativeEvents.WatchProperty(c,Avalonia.Controls.Control.IsVisibleProperty,false,Availability);
+            c.RemoveHandler(Avalonia.Input.InputElement.PointerPressedEvent, Down); c.RemoveHandler(Avalonia.Input.InputElement.PointerReleasedEvent, Up); c.PointerCaptureLost -= LostCapture;
+            c.RemoveHandler(Avalonia.Input.InputElement.KeyDownEvent, KeyDown); c.RemoveHandler(Avalonia.Input.InputElement.KeyUpEvent, KeyUp); NativeEffectiveVisibility.WatchProperty(c,Avalonia.Controls.Control.IsEnabledProperty,false,Availability); NativeEffectiveVisibility.WatchProperty(c,Avalonia.Controls.Control.IsVisibleProperty,false,Availability);
             c.LostFocus -= LostFocus;
             c.RemoveHandler(ToggleButton.CheckedEvent, new EventHandler<RoutedEventArgs>(Toggle)); c.RemoveHandler(ToggleButton.UncheckedEvent, new EventHandler<RoutedEventArgs>(Toggle));
             if(c is ComboBox choice){choice.DropDownOpened-=OpenChoice;choice.DropDownClosed-=CloseChoice;}

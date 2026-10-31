@@ -6,7 +6,11 @@
   "ready_to_package": false,
   "mac_acceptance_verified": false,
   "completed_screens": [],
-  "completed_features": [],
+  "completed_features": [
+    "home_resume_validated_recovery_and_private_output",
+    "contextual_local_command_search",
+    "single_home_and_unified_sport_first_setup"
+  ],
   "required_features": [
     "launcher_and_navigation",
     "afl_setup_wizard",
@@ -109,22 +113,27 @@
     "preferences_state_files_and_restore",
     "output_dimensions_calibration_and_multiple_windows",
     "mac_update_and_restart_workflow",
-    "fonts_assets_and_rendering_comparison"
+    "fonts_assets_and_rendering_comparison",
+    "home_resume_validated_recovery_and_private_output",
+    "contextual_local_command_search",
+    "single_home_and_unified_sport_first_setup"
   ],
   "verification": {
     "environment": "Linux headless Avalonia with local LibVLC",
-    "passed_checks": 182,
+    "passed_checks": 352,
     "failed_checks": 0,
     "skipped_checks": 0,
-    "final_combined_run": "2026-10-28; batches 1\u20134; 182/182 passed; Linux headless + native LibVLC; 3m17s",
+    "final_combined_run": "2026-10-29; batches 1\u201311;352/352 passed; Linux headless + native LibVLC;5m48s; local uncommitted batches 5\u201311",
     "mac_runtime_exercised": false,
     "visual_reference_comparison": false,
     "acceptance_guide": "macos/MAC_ACCEPTANCE.md",
-    "local_refinement_report": "docs/refinement/2026-10-28-preview-refresh.md"
+    "local_refinement_report": "docs/refinement/2026-10-29-batch-11.md",
+    "windows_wpf_runtime_exercised": false,
+    "preview_download_commit": "e2e9de61908e7b06e3665aa8218d0ecfcb60bc91"
   },
   "known_differences": [
     "Native borders/title bars on output windows are allowed.",
-    "Unavailable original typefaces fall back to embedded Inter; the repository contains no font files.",
+    "Arial keeps compatible Helvetica/Liberation Sans fallbacks when unavailable; other unavailable typefaces fall back to embedded Inter. The repository contains no original font files.",
     "WDP/JPEG-XR images require conversion to PNG on Mac.",
     "Windows DirectX glass refraction uses the original source software fallback on Avalonia; native visual comparison remains outstanding."
   ],

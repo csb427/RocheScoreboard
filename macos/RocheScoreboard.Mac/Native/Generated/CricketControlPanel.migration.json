@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-  "source_sha256": "edd49be06f9d05412fd73ceefd1f3a0150a8486ffab7b1dcd6152272d72c3812",
+  "source_sha256": "5ffdebb6d0f68e32c4b98455cacdf1c723800865b4349a4bfd2d186cfc4eab38",
   "names": [
     {
       "name": "PART_Surface",
@@ -195,6 +195,11 @@
       "object": false
     },
     {
+      "name": "StrikerMenuButton",
+      "type": "Button",
+      "object": false
+    },
+    {
       "name": "NonStrikerBar",
       "type": "Border",
       "object": false
@@ -222,6 +227,11 @@
     {
       "name": "NonStrikerBallsFaced",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "NonStrikerMenuButton",
+      "type": "Button",
       "object": false
     },
     {
@@ -272,6 +282,11 @@
     {
       "name": "BowlerOverFigures",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "BowlerMenuButton",
+      "type": "Button",
       "object": false
     },
     {
@@ -372,6 +387,16 @@
     {
       "name": "CricketOnAirText",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketExtrasOverlayButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CricketBoundariesOverlayButton",
+      "type": "Button",
       "object": false
     },
     {
@@ -615,7 +640,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "ff07b46ceeb00096ff36235248381214abd6f39adc0b448fe7df13f23aa7c61c",
+  "code_source_sha256": "883eb038022c8086156d7734cc81266627bfe2de180de08f628cf68ef3b0c881",
   "native_events": [
     {
       "name": "MainTabControl",
@@ -708,7 +733,32 @@
       "handler": "TossChoice_Checked"
     }
   ],
-  "platform_translations": [],
+  "platform_translations": [
+    {
+      "name": "BattingZoneLogo",
+      "property": "Width",
+      "source": "{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Canvas}}",
+      "translation": "Arranged control Bounds dimension binding"
+    },
+    {
+      "name": "BattingZoneLogo",
+      "property": "Height",
+      "source": "{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Canvas}}",
+      "translation": "Arranged control Bounds dimension binding"
+    },
+    {
+      "name": "BowlingZoneLogo",
+      "property": "Width",
+      "source": "{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Canvas}}",
+      "translation": "Arranged control Bounds dimension binding"
+    },
+    {
+      "name": "BowlingZoneLogo",
+      "property": "Height",
+      "source": "{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Canvas}}",
+      "translation": "Arranged control Bounds dimension binding"
+    }
+  ],
   "visual_parity_verified": false,
   "behavior_parity_verified": false
 }

@@ -34,11 +34,16 @@ public class OperatorViewport : ScrollViewer
 
     /// <summary>Explicit feedback after a rejected submission must be readable,
     /// even when pointer focus scrolling is otherwise suppressed.</summary>
-    public static void RevealValidationError(FrameworkElement error)
+    public static void RevealValidationError(FrameworkElement error) => RevealOperatorTarget(error);
+
+    /// <summary>Explicit navigation, such as returning from a picker, may
+    /// reveal its destination without enabling scroll-on-focus for scoring clicks.</summary>
+    public static void RevealOperatorTarget(FrameworkElement target, Func<bool>? isCurrent = null)
     {
-        error.UpdateLayout();
+        target.UpdateLayout();
+        if (isCurrent?.Invoke() == false || !target.IsLoaded || !target.IsVisible) return;
         _validationScrollDepth++;
-        try { error.BringIntoView(); }
+        try { target.BringIntoView(); }
         finally { _validationScrollDepth--; }
     }
 

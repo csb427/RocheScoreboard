@@ -120,7 +120,7 @@
                         <TextBlock x:Name="ProgressText" Text="Preparing update…" Foreground="#F7FAFC" FontSize="13" FontWeight="SemiBold" />
                         <TextBlock x:Name="ProgressPercentText" Grid.Column="1" Text="0%" Foreground="#9CCBFF" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontWeight="Bold" />
                     </Grid>
-                    <ProgressBar x:Name="UpdateProgressBar" Minimum="0" Maximum="100" Value="0" Margin="0,8,0,0" Theme="{StaticResource UpdateProgressStyle}" />
+                    <ProgressBar x:Name="UpdateProgressBar" AutomationProperties.Name="Update progress" Minimum="0" Maximum="100" Value="0" Margin="0,8,0,0" Theme="{StaticResource UpdateProgressStyle}" />
                     <TextBlock x:Name="ProgressDetailText" Text="Nothing has been installed yet." Foreground="{StaticResource MutedBrush}" FontSize="13" Margin="0,7,0,0" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
@@ -133,8 +133,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="ViewReleaseButton" Grid.Column="0" Content="View release" MinWidth="120" Click="ViewRelease_Click" Theme="{StaticResource DialogButton}" />
-                <Button x:Name="SkipButton" Grid.Column="2" Content="Remind me later" Click="Skip_Click" IsCancel="True" Theme="{StaticResource DialogButton}" />
-                <Button x:Name="UpdateButton" Grid.Column="4" Content="Download and restart  →" MinWidth="205" Click="Update_Click" IsDefault="True" Theme="{StaticResource PrimaryButton}" />
+                <Button x:Name="SkipButton" Grid.Column="2" Content="Remind me later" Click="Skip_Click" IsCancel="True" IsDefault="True" Theme="{StaticResource DialogButton}" />
+                <Button x:Name="UpdateButton" Grid.Column="4" Content="Download and restart  →" MinWidth="205" Click="Update_Click" IsDefault="False" Theme="{StaticResource PrimaryButton}" />
             </Grid>
         </Grid>
     </ns4:OperatorGlassSurface>

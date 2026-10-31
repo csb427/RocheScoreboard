@@ -22,6 +22,36 @@ namespace Roche_Scoreboard.Views
         private bool _suspended;
         private bool _resumePlayingOnVisible;
         private long _suspendPositionMs;
+        private readonly object _dispatchGate = new();
+        private long _sourceGeneration;
+
+        // Native events identify the shared player, not the originating Media.
+        // This retires work received before a boundary; it cannot attribute an
+        // old native event first delivered after a new source was installed.
+        private long InvalidateSourceWork()
+        {
+            lock (_dispatchGate)
+            {
+                System.Threading.Interlocked.Increment(ref _sourceGeneration);
+                _pendingSeekMs = -1;
+                _seekDispatchPending = 0;
+                _positionDispatchPending = 0;
+                return _sourceGeneration;
+            }
+        }
+
+        private bool IsCurrentScope(long generation) => !_isDisposed
+            && generation == System.Threading.Volatile.Read(ref _sourceGeneration);
+        private bool IsCurrentSource(long generation) => IsCurrentScope(generation)
+            && !_suspended && _sourcePath is not null && _player is not null;
+        private bool TryCaptureSource(out long generation)
+        {
+            lock (_dispatchGate)
+            {
+                generation = _sourceGeneration;
+                return IsCurrentSource(generation);
+            }
+        }
 
         // Hardware decoding is preferred for performance, but some GPUs /
         // drivers / codec combinations produce black frames or fail outright.
@@ -97,7 +127,7 @@ namespace Roche_Scoreboard.Views
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            if (_player is not null) return;
+            if (_isDisposed || _player is not null) return;
             try
             {
                 VideoDiagnostics.Info(LogCategory, "Creating MediaPlayer (hardware decoding enabled).");
@@ -218,22 +248,32 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         public void Seek(TimeSpan position)
         {
-            if (_sourcePath is null || _player is null) return;
+            if (!TryCaptureSource(out long generation)) return;
             TimeSpan max = Duration;
             if (max > TimeSpan.Zero && position > max) position = max;
             if (position < TimeSpan.Zero) position = TimeSpan.Zero;
 
-            long ms = (long)position.TotalMilliseconds;
-            System.Threading.Interlocked.Exchange(ref _pendingSeekMs, ms);
-
-            if (System.Threading.Interlocked.Exchange(ref _seekDispatchPending, 1) == 1) return;
+            lock (_dispatchGate)
+            {
+                if (!IsCurrentSource(generation)) return;
+                _pendingSeekMs = (long)position.TotalMilliseconds;
+                if (_seekDispatchPending == 1) return;
+                _seekDispatchPending = 1;
+            }
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                _seekDispatchPending = 0;
-                if (_isDisposed || _player is null) return;
-                long target = System.Threading.Interlocked.Exchange(ref _pendingSeekMs, -1);
+                long target;
+                lock (_dispatchGate)
+                {
+                    // An obsolete callback must not clear B's queued flag or
+                    // consume B's most recent coalesced seek target.
+                    if (!IsCurrentSource(generation)) return;
+                    _seekDispatchPending = 0;
+                    target = _pendingSeekMs;
+                    _pendingSeekMs = -1;
+                }
                 if (target < 0) return;
-                try { _player.Time = target; }
+                try { if (IsCurrentSource(generation)) _player!.Time = target; }
                 catch { /* media may be loading or unloading */ }
             }), System.Windows.Threading.DispatcherPriority.Background);
         }
@@ -243,8 +283,16 @@ namespace Roche_Scoreboard.Views
 
         private void Cleanup()
         {
-            if (_isDisposed) return;
-            _isDisposed = true;
+            lock (_dispatchGate)
+            {
+                if (_isDisposed) return;
+                _isDisposed = true;
+                InvalidateSourceWork();
+                _sourcePath = null;
+                _suspended = false;
+                _resumePlayingOnVisible = false;
+                _suspendPositionMs = 0;
+            }
             IsVisibleChanged -= OnIsVisibleChanged;
             VideoDiagnostics.Info(LogCategory, "Cleanup() invoked - tearing down MediaPlayer.");
             if (_watchdogTimer is not null)
@@ -287,24 +335,25 @@ namespace Roche_Scoreboard.Views
         public void SetVideoSource(string filePath)
         {
             ArgumentNullException.ThrowIfNull(filePath);
+            if (_isDisposed) return;
 
             // Prefer the pre-optimised playback copy when one is available.
             string resolved = VideoOptimizer.GetPlaybackPath(filePath);
-            _sourcePath = resolved;
+            lock (_dispatchGate)
+            {
+                InvalidateSourceWork();
+                _sourcePath = resolved;
+                // A fresh source must not inherit the previous clip's saved
+                // position or play/pause intent from a visibility suspension.
+                _suspended = false;
+                _suspendPositionMs = 0;
+                _resumePlayingOnVisible = false;
+            }
+            StopWatchdog();
             VideoDiagnostics.Info(LogCategory,
                 resolved == filePath
                     ? $"Source set: {filePath}"
                     : $"Source set: {filePath} (optimised copy: {resolved})");
-
-            // A fresh source must not inherit the previous clip's
-            // suspend bookkeeping. Without this, the Suspend → Resume
-            // cycle triggered by EnterVideoTakeover would seek the new
-            // (e.g. away) goal video to the previous (home) clip's
-            // end-of-stream position, which is exactly why the away
-            // MP4 sometimes never appeared on the scoreboard.
-            _suspended = false;
-            _suspendPositionMs = 0;
-            _resumePlayingOnVisible = false;
 
             // Re-arm hardware decoding for the new clip — every source gets
             // one chance at HW decode before we fall back to software.
@@ -356,7 +405,14 @@ namespace Roche_Scoreboard.Views
         /// <summary>Starts playback from the current position.</summary>
         public void Play()
         {
-            if (_sourcePath is null || _player is null) return;
+            if (_isDisposed || _sourcePath is null || _player is null) return;
+            if (_suspended)
+            {
+                _resumePlayingOnVisible = true;
+                Resume();
+                return;
+            }
+            if (!TryCaptureSource(out long generation)) return;
             // Visibility and presentation routing can legitimately ask an
             // already-playing surface to play again. Treat that as a no-op so
             // VLC is not restarted and the diagnostics writer is not flooded.
@@ -373,14 +429,15 @@ namespace Roche_Scoreboard.Views
                 _lastPlayStartedUtc = DateTime.UtcNow;
                 _player.Play();
                 SetPlayingState(true);
-                StartWatchdog();
+                if (!IsCurrentSource(generation)) return;
+                StartWatchdog(generation);
                 VideoDiagnostics.Info(LogCategory,
                     $"Play() requested · hwDecode={_hwDecodeEnabled} · source={_sourcePath}");
             }
             catch (Exception ex)
             {
                 VideoDiagnostics.Error(LogCategory, "Play() failed.", ex);
-                SetPlayingState(false);
+                if (IsCurrentSource(generation)) SetPlayingState(false);
             }
         }
 
@@ -415,6 +472,15 @@ namespace Roche_Scoreboard.Views
         /// <summary>Stops playback and clears the display.</summary>
         public void Stop()
         {
+            lock (_dispatchGate)
+            {
+                InvalidateSourceWork();
+                _sourcePath = null;
+                _suspended = false;
+                _resumePlayingOnVisible = false;
+                _suspendPositionMs = 0;
+            }
+            StopWatchdog();
             try
             {
                 if (_player is not null)
@@ -426,9 +492,7 @@ namespace Roche_Scoreboard.Views
                 }
             }
             catch { /* control may already be unloaded */ }
-            StopWatchdog();
             VideoDiagnostics.Info(LogCategory, "Stop() requested.");
-            _sourcePath = null;
             SetPlayingState(false);
         }
 
@@ -443,19 +507,24 @@ namespace Roche_Scoreboard.Views
         private int _positionDispatchPending;
         private void OnVlcTimeChanged(object? sender, MediaPlayerTimeChangedEventArgs e)
         {
-            // Watchdog: record the most recent time we observed VLC advancing.
-            // The watchdog timer compares this against UtcNow to detect stalls.
-            System.Threading.Interlocked.Exchange(ref _lastObservedTimeMs, e.Time);
-            _lastTimeAdvanceUtc = DateTime.UtcNow;
-
-            // Coalesce: if a prior tick is still queued, drop this one. Stops
-            // the UI thread from being drowned when VLC fires bursts (e.g.
-            // immediately after a seek).
-            if (System.Threading.Interlocked.Exchange(ref _positionDispatchPending, 1) == 1) return;
+            long generation;
+            lock (_dispatchGate)
+            {
+                generation = _sourceGeneration;
+                if (!IsCurrentSource(generation)) return;
+                // Update the watchdog and coalesce only within this source.
+                System.Threading.Interlocked.Exchange(ref _lastObservedTimeMs, e.Time);
+                _lastTimeAdvanceUtc = DateTime.UtcNow;
+                if (_positionDispatchPending == 1) return;
+                _positionDispatchPending = 1;
+            }
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                _positionDispatchPending = 0;
-                if (_isDisposed) return;
+                lock (_dispatchGate)
+                {
+                    if (!IsCurrentSource(generation)) return;
+                    _positionDispatchPending = 0;
+                }
                 try { PositionChanged?.Invoke(this, EventArgs.Empty); }
                 catch { /* never let a subscriber crash playback */ }
             }), System.Windows.Threading.DispatcherPriority.Background);
@@ -463,12 +532,13 @@ namespace Roche_Scoreboard.Views
 
         private void OnVlcEndReached(object? sender, EventArgs e)
         {
+            if (!TryCaptureSource(out long generation)) return;
             // VLC raises EndReached on the media thread, so hop to the
             // dispatcher before mutating UI-bound state or calling back into
             // application code.
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (_isDisposed || _player is null || _sourcePath is null) return;
+                if (!IsCurrentSource(generation)) return;
 
                 VideoDiagnostics.Info(LogCategory, $"EndReached (loop={Loop}).");
 
@@ -476,6 +546,7 @@ namespace Roche_Scoreboard.Views
                 {
                     StopWatchdog();
                     SetPlayingState(false);
+                    if (!IsCurrentSource(generation)) return;
                     try { PlaybackEnded?.Invoke(this, EventArgs.Empty); }
                     catch { /* never let a subscriber crash playback */ }
                     return;
@@ -483,13 +554,14 @@ namespace Roche_Scoreboard.Views
 
                 try
                 {
+                    var player = _player!;
                     // VLC requires a fresh Media instance to restart after
                     // EndReached — Time = 0 on the same media is a no-op.
                     using var media = CreateMediaForCurrentSource();
                     if (media is null) return;
-                    _player.Media = media;
+                    player.Media = media;
                     _lastPlayStartedUtc = DateTime.UtcNow;
-                    _player.Play();
+                    player.Play();
                     SetPlayingState(true);
                 }
                 catch { /* ignore */ }
@@ -498,50 +570,66 @@ namespace Roche_Scoreboard.Views
 
         private void OnVlcError(object? sender, EventArgs e)
         {
+            if (!TryCaptureSource(out long generation)) return;
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                if (!IsCurrentSource(generation)) return;
                 VideoDiagnostics.Warn(LogCategory,
                     $"VLC EncounteredError · source={_sourcePath} · hwDecode={_hwDecodeEnabled}");
 
                 // If the error fired shortly after Play() with hardware
                 // decoding enabled, transparently retry once in software
                 // mode before surfacing the failure to the operator.
-                if (TryFallbackToSoftware("EncounteredError")) return;
+                if (TryFallbackToSoftware("EncounteredError", generation)) return;
+                if (!IsCurrentSource(generation)) return;
 
                 StopWatchdog();
                 VideoDiagnostics.Error(LogCategory, "Playback failed and software fallback unavailable.");
-                _sourcePath = null;
-                SetPlayingState(false);
-                MediaLoadFailed?.Invoke(this, new VideoLoadFailedEventArgs(
-                    new InvalidOperationException("VLC reported a playback error.")));
+                FailCurrentSource(generation, new InvalidOperationException("VLC reported a playback error."));
             }));
+        }
+
+        private void FailCurrentSource(long generation, Exception error)
+        {
+            long failureGeneration;
+            lock (_dispatchGate)
+            {
+                if (!IsCurrentSource(generation)) return;
+                failureGeneration = InvalidateSourceWork();
+                _sourcePath = null;
+            }
+            SetPlayingState(false);
+            // A state subscriber can synchronously close or replace this source.
+            if (IsCurrentScope(failureGeneration))
+                MediaLoadFailed?.Invoke(this, new VideoLoadFailedEventArgs(error));
         }
 
         // Shared HW->SW retry path used by both EncounteredError and the
         // frozen-playback watchdog. Returns true when a fallback attempt was
         // launched so callers can short-circuit failure reporting.
-        private bool TryFallbackToSoftware(string reason)
+        private bool TryFallbackToSoftware(string reason, long generation)
         {
+            if (!IsCurrentSource(generation)) return false;
             if (!_hwDecodeEnabled || _swDecodeFallbackAttempted) return false;
-            if (_sourcePath is null || _player is null) return false;
 
             _swDecodeFallbackAttempted = true;
             _hwDecodeEnabled = false;
+            var player = _player!;
             VideoDiagnostics.Warn(LogCategory,
                 $"Falling back to software decoding ({reason}).");
-            try { _player.EnableHardwareDecoding = false; } catch { /* best-effort */ }
+            try { player.EnableHardwareDecoding = false; } catch { /* best-effort */ }
 
             try
             {
                 using var media = CreateMediaForCurrentSource();
                 if (media is null) return false;
-                _player.Media = media;
+                player.Media = media;
                 _lastPlayStartedUtc = DateTime.UtcNow;
                 _lastTimeAdvanceUtc = DateTime.UtcNow;
                 System.Threading.Interlocked.Exchange(ref _lastObservedTimeMs, 0);
-                _player.Play();
+                player.Play();
                 SetPlayingState(true);
-                StartWatchdog();
+                if (IsCurrentSource(generation)) StartWatchdog(generation);
                 return true;
             }
             catch (Exception ex)
@@ -551,8 +639,11 @@ namespace Roche_Scoreboard.Views
             }
         }
 
-        private void StartWatchdog()
+        private long _watchdogGeneration;
+        private void StartWatchdog(long generation)
         {
+            if (!IsCurrentSource(generation)) return;
+            _watchdogGeneration = generation;
             _lastTimeAdvanceUtc = DateTime.UtcNow;
             System.Threading.Interlocked.Exchange(ref _lastObservedTimeMs, 0);
 
@@ -575,7 +666,8 @@ namespace Roche_Scoreboard.Views
 
         private void OnWatchdogTick(object? sender, EventArgs e)
         {
-            if (_isDisposed || _player is null || _sourcePath is null || !_isPlaying)
+            long generation = _watchdogGeneration;
+            if (!IsCurrentSource(generation) || !_isPlaying)
             {
                 StopWatchdog();
                 return;
@@ -593,20 +685,25 @@ namespace Roche_Scoreboard.Views
                 $"Frozen playback detected · observedMs={observed} · sincePlay={sincePlay.TotalSeconds:F1}s · sinceAdvance={sinceAdvance.TotalSeconds:F1}s");
 
             StopWatchdog();
-            if (TryFallbackToSoftware("watchdog")) return;
+            if (TryFallbackToSoftware("watchdog", generation)) return;
+            if (!IsCurrentSource(generation)) return;
 
             VideoDiagnostics.Error(LogCategory,
                 "Playback stalled with no remaining fallback - surfacing failure to operator.");
-            _sourcePath = null;
-            SetPlayingState(false);
-            MediaLoadFailed?.Invoke(this, new VideoLoadFailedEventArgs(
-                new InvalidOperationException("Playback stalled - VLC stopped advancing.")));
+            FailCurrentSource(generation, new InvalidOperationException("Playback stalled - VLC stopped advancing."));
         }
 
         private void SetPlayingStateOnDispatcher(bool playing)
         {
-            if (Dispatcher.CheckAccess()) SetPlayingState(playing);
-            else Dispatcher.BeginInvoke(new Action(() => SetPlayingState(playing)));
+            if (!TryCaptureSource(out long generation)) return;
+            if (Dispatcher.CheckAccess())
+            {
+                if (IsCurrentSource(generation)) SetPlayingState(playing);
+            }
+            else Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (IsCurrentSource(generation)) SetPlayingState(playing);
+            }));
         }
 
         private void SetPlayingState(bool playing)
@@ -625,9 +722,14 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         public void Suspend()
         {
-            if (_suspended || _sourcePath is null || _player is null) return;
-            _suspended = true;
-            _resumePlayingOnVisible = _isPlaying;
+            lock (_dispatchGate)
+            {
+                if (_isDisposed || _suspended || _sourcePath is null || _player is null) return;
+                _suspended = true;
+                _resumePlayingOnVisible = _isPlaying;
+                InvalidateSourceWork();
+            }
+            StopWatchdog();
             try { _suspendPositionMs = _player.Time; } catch { _suspendPositionMs = 0; }
 
             try
@@ -649,36 +751,45 @@ namespace Roche_Scoreboard.Views
         /// </summary>
         public void Resume()
         {
-            if (!_suspended) return;
-            _suspended = false;
-            if (_sourcePath is null || _player is null) return;
+            long generation;
+            lock (_dispatchGate)
+            {
+                if (_isDisposed || !_suspended) return;
+                generation = InvalidateSourceWork();
+                _suspended = false;
+            }
+            if (!IsCurrentSource(generation)) return;
+            var player = _player!;
+            bool resumePlaying = _resumePlayingOnVisible;
+            long position = _suspendPositionMs;
 
             try
             {
                 using var media = CreateMediaForCurrentSource();
                 if (media is null) return;
-                _player.Mute = !_resumePlayingOnVisible || _isMuted;
-                _player.Media = media;
+                player.Mute = !resumePlaying || _isMuted;
+                player.Media = media;
                 _lastPlayStartedUtc = DateTime.UtcNow;
-                _player.Play();
-                if (_suspendPositionMs > 0)
+                player.Play();
+                if (position > 0)
                 {
-                    try { _player.Time = _suspendPositionMs; } catch { }
+                    try { player.Time = position; } catch { }
                 }
-                if (!_resumePlayingOnVisible)
+                if (!resumePlaying)
                 {
-                    _player.SetPause(true);
+                    player.SetPause(true);
                     SetPlayingState(false);
                 }
                 else
                 {
                     SetPlayingState(true);
+                    if (IsCurrentSource(generation)) StartWatchdog(generation);
                 }
             }
             catch { /* ignore */ }
             finally
             {
-                _suspendPositionMs = 0;
+                if (IsCurrentScope(generation)) _suspendPositionMs = 0;
             }
         }
 

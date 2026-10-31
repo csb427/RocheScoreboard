@@ -67,7 +67,9 @@ public static class NativeCache
 public enum NativeBaseValueSource {Default,Inherited,Local}
 public static class NativeValueSource
 {
-    public readonly record struct Source(NativeBaseValueSource BaseValueSource);
-    public static Source GetValueSource(AvaloniaObject target,AvaloniaProperty property)=>new(target.IsSet(property)?NativeBaseValueSource.Local:NativeBaseValueSource.Inherited);
+    // IsAnimated describes a lease owned by the WPF compatibility Motion
+    // adapter, not arbitrary native Avalonia transitions or external writers.
+    public readonly record struct Source(NativeBaseValueSource BaseValueSource, bool IsAnimated = false);
+    public static Source GetValueSource(AvaloniaObject target,AvaloniaProperty property)=>new(target.IsSet(property)?NativeBaseValueSource.Local:NativeBaseValueSource.Inherited, Motion.HasAnimationValue(target, property));
     public static object? ReadLocalValue(this AvaloniaObject target,AvaloniaProperty property)=>target.IsSet(property)?target.GetValue(property):AvaloniaProperty.UnsetValue;
 }

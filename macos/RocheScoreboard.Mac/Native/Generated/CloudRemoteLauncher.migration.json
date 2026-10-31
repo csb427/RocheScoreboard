@@ -1,10 +1,20 @@
 {
   "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml",
-  "source_sha256": "a24fb169d68a9c9e44a5ad3d9cfae4008e8057831c630e6de5b3f2668af9612c",
+  "source_sha256": "d1f1475792dd52acb6d2d76bade2ab5a455096d6ed1cd482ae32739246a3ee33",
   "names": [
+    {
+      "name": "HeaderSurface",
+      "type": "Border",
+      "object": false
+    },
     {
       "name": "CollapsedButton",
       "type": "Button",
+      "object": false
+    },
+    {
+      "name": "LauncherRemoteSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -14,7 +24,47 @@
     },
     {
       "name": "CollapsedChevron",
-      "type": "TextBlock",
+      "type": "Path",
+      "object": false
+    },
+    {
+      "name": "ChevronRotate",
+      "type": "RotateTransform",
+      "object": true
+    },
+    {
+      "name": "DetailsPopup",
+      "type": "Popup",
+      "object": false
+    },
+    {
+      "name": "DetailsSurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "DetailsScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "DetailsTravel",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "DetailsHeader",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "DetailsCloseButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "DetailsScroller",
+      "type": "ScrollViewer",
       "object": false
     },
     {
@@ -58,6 +108,11 @@
       "object": false
     },
     {
+      "name": "CopyCodeButton",
+      "type": "Button",
+      "object": false
+    },
+    {
       "name": "JoinCodeText",
       "type": "TextBlock",
       "object": false
@@ -86,15 +141,20 @@
       "name": "EndButton",
       "type": "Button",
       "object": false
+    },
+    {
+      "name": "CopyFeedbackText",
+      "type": "TextBlock",
+      "object": false
     }
   ],
-  "code_source_sha256": "e5248f647a6ab3c74427cc71cf5d4d80c07fd86a5808e559cf37ad8c2c8d8b4c",
+  "code_source_sha256": "37f50952b81efe79d24629fb369a3de0dd17ea1374016278d290734b6087ecad",
   "native_events": [
     {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "JoinCodeBox_Click"
+      "name": "DetailsSurface",
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "DetailsPreviewKeyDown"
     }
   ],
   "platform_translations": [
@@ -103,6 +163,12 @@
       "property": "FontFamily",
       "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
+    },
+    {
+      "name": "DetailsPopup",
+      "property": "AllowsTransparency",
+      "source": "True",
+      "translation": "Native popup compositor and editable combo routing"
     },
     {
       "name": "JoinCodeText",

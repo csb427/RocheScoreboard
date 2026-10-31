@@ -21,6 +21,7 @@ public sealed class NativeDataTemplate : IDataTemplate
 }
 public class NativeSearchTextBox : TextBox
 {
+    protected override Type StyleKeyOverride => GetType() == typeof(NativeSearchTextBox) ? typeof(Avalonia.Controls.TextBox) : base.StyleKeyOverride;
     public object? ToolTip{get=>Avalonia.Controls.ToolTip.GetTip(this);set=>Avalonia.Controls.ToolTip.SetTip(this,value);}
     private INameScope? _scope;
     public NativeSearchTextBox(){TextChanged+=(_,e)=>OnNativeTextChanged(e);GotFocus+=(_,e)=>OnNativeGotFocus(e);}

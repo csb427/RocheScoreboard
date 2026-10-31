@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Resources/SettingsControls.xaml",
-  "source_sha256": "ddf4d7c29d07a5fd425aa9cb078e9c52d19a9cae9eccf96a58f28557d52b562d",
+  "source_sha256": "59bb91d39369b784960cd8181ffbfb53602807078ca2877cea972e4d44138ea3",
   "names": [
     {
       "name": "Outline",
@@ -96,11 +96,22 @@
       "type": "Border",
       "object": false,
       "template": true
+    },
+    {
+      "name": "ClockFocus",
+      "type": "Border",
+      "object": false,
+      "template": true
     }
   ],
   "code_source_sha256": null,
   "native_events": [],
   "platform_translations": [
+    {
+      "name": "PART_Popup",
+      "property": "IsOpen",
+      "translation": "Native ComboBox popup closure synchronizes dropdown state"
+    },
     {
       "name": "PART_Popup",
       "property": "AllowsTransparency",
@@ -111,6 +122,18 @@
       "name": null,
       "property": "CanContentScroll",
       "source": "True"
+    },
+    {
+      "name": "Frame",
+      "property": "Width",
+      "source": "{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ComboBox}}",
+      "translation": "Arranged control Bounds dimension binding"
+    },
+    {
+      "name": null,
+      "property": "MinWidth",
+      "source": "{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}",
+      "translation": "Arranged control Bounds dimension binding"
     }
   ],
   "visual_parity_verified": false,

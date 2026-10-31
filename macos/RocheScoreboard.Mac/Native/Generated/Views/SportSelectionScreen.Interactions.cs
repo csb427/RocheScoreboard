@@ -1,5 +1,5 @@
 // Generated from Views/SportSelectionScreen.Interactions.cs; edit translator/adapters.
-// Source SHA-256: be5dbc3812a8b0bd3952188c6e70a9a63675608d60ef0eb4ec75ea869f6f989c
+// Source SHA-256: dea45367cb6f95bd2062d69a04860814c48538f850cee96eff79fcd9bac8b76d
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -26,7 +26,6 @@ public partial class SportSelectionScreen
     private readonly Dictionary<Border, HomeTileMotion> _homeTiles = new();
     private HomeLensMotion? _homeLens;
     private HomeSheetMotion? _releaseSheetMotion;
-    private int _lastPrimarySport;
 
     private void InitializeLaunchInteractions()
     {
@@ -46,17 +45,16 @@ public partial class SportSelectionScreen
             {
                 if(args.Key==Key.Enter) {if(!NativeKeyboard.IsRepeated(args))ActivateSport(mode);args.Handled=true;return;}
                 if(mode==SportMode.Settings || args.Key is not (Key.Left or Key.Right or Key.Up or Key.Down)) return;
-                var cards=new[] {AflCard,CricketCard,TrainingCard};int index=Array.IndexOf(cards,card);
+                var cards=new[] {AflCard,TrainingCard};int index=Array.IndexOf(cards,card);
                 int offset=args.Key is Key.Left or Key.Up ? -1 : 1;
-                int next=_sportCardsStacked==true || _sportCardsAcross==true?(index+offset+cards.Length)%cards.Length:args.Key switch
-                {Key.Down=>2,Key.Up=>index==2?_lastPrimarySport:2,Key.Left=>index==2?0:1-index,_=>index==2?1:1-index};
+                int next=(index+offset+cards.Length)%cards.Length;
                 _launchActions[cards[next]].Focus();args.Handled=true;
             };
             action.GotFocus+=(_,_)=>FocusLaunch(card,true);
             action.LostFocus+=(_,_)=> {if(!card.IsPointerOver)FocusLaunch(card,false);};
             _launchActions[card]=action;NativeNameScope.Register(this,name,action);layer.Children.Add(action);card.Child=layer;
         }
-        Install(AflCard,SportMode.AFL,"AflLaunchAction","Select AFL",10);
+        Install(AflCard,SportMode.AFL,"AflLaunchAction","Start Game",10);
         Install(CricketCard,SportMode.Cricket,"CricketLaunchAction","Select cricket",11);
         Install(TrainingCard,SportMode.Training,"TrainingLaunchAction","Select training",12);
         Install(SettingsTile,SportMode.Settings,"SettingsLaunchAction","Open app settings",0);
@@ -65,18 +63,25 @@ public partial class SportSelectionScreen
         _homeTiles[TrainingCard] = new HomeTileMotion(this, TrainingCard, TrainingIconMotionScale, TrainingIconMotionShift, TrainingGlassEdge, TrainingHover);
         _homeLens = new HomeLensMotion(this);
         _releaseSheetMotion = new HomeSheetMotion(this);
-        KeyboardNavigation.SetTabIndex(ResumeSavedMatchButton,1);KeyboardNavigation.SetTabIndex(ChangelogToggle,20);
-        Unloaded+=(_,_)=>SuspendLandingInteractions();
+        KeyboardNavigation.SetTabIndex(HomeResumeButton,1);KeyboardNavigation.SetTabIndex(HomeCommandsButton,2);KeyboardNavigation.SetTabIndex(ResumeSavedMatchButton,1);KeyboardNavigation.SetTabIndex(ChangelogToggle,20);
+        Loaded+=(_,_)=>{OperatorAppearance.Changed-=LandingPreferencesChanged;OperatorAppearance.Changed+=LandingPreferencesChanged;};
+        Unloaded+=(_,_)=>{OperatorAppearance.Changed-=LandingPreferencesChanged;SuspendLandingInteractions();};
         NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_,_) =>
         {
             if(!IsVisible) SuspendLandingInteractions();
             else if(_entryPlayed) PrepareForDisplay();
         });
     }
+    private void LandingPreferencesChanged()
+    {foreach(var tile in _homeTiles.Values)tile.PreferencesChanged();}
+
+    internal void HomeStartGameFocus()
+    {
+        if (_launchActions.TryGetValue(AflCard, out var action)) action.Focus();
+    }
 
     private void FocusLaunch(Border card,bool active)
     {
-        if(active && card==AflCard)_lastPrimarySport=0;else if(active && card==CricketCard)_lastPrimarySport=1;
         var args=new RoutedEventArgs();
         if(card==SettingsTile) {if(active)SettingsTile_MouseEnter(card,args);else SettingsTile_MouseLeave(card,args);}
         else if(card==TrainingCard) {if(active)TrainingTile_MouseEnter(card,args);else TrainingTile_MouseLeave(card,args);}
@@ -85,7 +90,7 @@ public partial class SportSelectionScreen
 
     private void ActivateSport(SportMode mode)
     {
-        if(!IsVisible || _changelogOpen || !TryBeginSelection()) return;
+        if(!IsVisible || HasOpenSheet || !TryBeginSelection()) return;
         int generation=_selectionGeneration;
         // Navigation is a command, not the completion of a decorative flash.
         // The destination owns its entrance and remains interactive immediately.
@@ -164,14 +169,14 @@ public partial class SportSelectionScreen
         private readonly ScaleTransform _scale;
         private readonly TranslateTransform _shift;
         private readonly HomeSpring _size = new(1), _x = new(0), _y = new(0), _light = new(.12), _white = new(0);
-        private bool _pressed, _running;
+        private bool _pressed, _running, _engaged;
         private double _last;
         public HomeTileMotion(SportSelectionScreen owner, Border card, ScaleTransform scale, TranslateTransform shift, Border edge, Border wash)
         {
             _owner = owner; _card = card; _scale = scale; _shift = shift; _edge = edge; _wash = wash;
             var action = owner._launchActions[card];
-            action.PointerPressed += (_, _) => { _pressed = true; Engage(true); };
-            action.PointerReleased += (_, _) => { _pressed = false; Engage(card.IsPointerOver || action.IsKeyboardFocusWithin); };
+            action.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, (_, e) => { if(e.GetCurrentPoint(action).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonPressed)return; _pressed=true;Engage(true); },Avalonia.Interactivity.RoutingStrategies.Tunnel,true);
+            action.AddHandler(Avalonia.Input.InputElement.PointerReleasedEvent, (_, e) => { if(e.GetCurrentPoint(action).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased)return; _pressed=false;Engage(card.IsPointerOver || action.IsKeyboardFocusWithin); },Avalonia.Interactivity.RoutingStrategies.Tunnel,true);
             action.PointerCaptureLost += (_, _) => { _pressed = false; Engage(card.IsPointerOver || action.IsKeyboardFocusWithin); };
             action.KeyDown += (_, e) => { if (e.Key is Key.Space or Key.Enter) { _pressed = true; Engage(true); } };
             action.KeyUp += (_, _) => { _pressed = false; Engage(action.IsKeyboardFocusWithin); };
@@ -180,26 +185,37 @@ public partial class SportSelectionScreen
             {
                 if (!OperatorMotion.Enabled || !card.IsPointerOver || card.NativeWidth() < 1 || card.NativeHeight() < 1) return;
                 var point = e.GetPosition(card);
-                _x.Target = (point.X / card.NativeWidth() - .5) * 5;
-                _y.Target = -4 + (point.Y / card.NativeHeight() - .5) * 4;
+                double travel=OperatorMotion.TravelScale;
+                bool training=ReferenceEquals(card,owner.TrainingCard);
+                _x.Target = (point.X / card.NativeWidth() - .5) * (training?2:5)*travel;
+                double lift=training?(_pressed?1.5:-2):_pressed && ReferenceEquals(card,owner.AflCard)?-1:-4;
+                _y.Target = (lift + (point.Y / card.NativeHeight() - .5) * (training?2:4))*travel;
                 Start();
             };
         }
         public void Engage(bool active)
         {
-            _size.Target = _pressed ? .975 : active ? 1.035 : 1;
-            _x.Target = 0; _y.Target = active ? -4 : 0;
+            _engaged=active;double travel=OperatorMotion.TravelScale;
+            bool startGame=ReferenceEquals(_card,_owner.AflCard);
+            bool training=ReferenceEquals(_card,_owner.TrainingCard);
+            double pressedScale=startGame ? .05 : training ? -.01 : -.025;
+            double hoverScale=training ? .018 : .035;
+            _size.Target = 1 + (_pressed ? pressedScale : active ? hoverScale : 0) * travel;
+            double pressedY=startGame ? -1 : training ? 1.5 : -4,hoverY=training ? -2 : -4;
+            _x.Target = 0; _y.Target = (_pressed ? pressedY : active ? hoverY : 0)*travel;
             _light.Target = active ? .68 : .12; _white.Target = active ? .035 : 0;
             Start();
         }
         public void Enter()
         {
             if (!OperatorMotion.Enabled) return;
-            _size.Value = .9; _size.Target = 1; _y.Value = 10; _y.Target = 0; Start();
+            bool training=ReferenceEquals(_card,_owner.TrainingCard);
+            _size.Value = 1-(training ? .06 : .1)*OperatorMotion.TravelScale; _size.Target = 1; _y.Value = (training ? 6 : 10)*OperatorMotion.TravelScale; _y.Target = 0; Start();
         }
+        public void PreferencesChanged(){if(!_card.IsVisible){Reset();return;}Engage(_engaged);}
         private void Start()
         {
-            if (!_owner.IsVisible || !_owner.IsLoaded) return;
+            if (!_owner.IsVisible || !_owner.IsLoaded || !_card.IsVisible) {Stop();return;}
             if (!OperatorMotion.Enabled)
             {
                 _size.Set(1); _x.Set(0); _y.Set(0); _light.Set(_light.Target); _white.Set(_white.Target); Paint(); Stop(); return;
@@ -210,14 +226,15 @@ public partial class SportSelectionScreen
         private static double Time() => System.Diagnostics.Stopwatch.GetTimestamp() / (double)System.Diagnostics.Stopwatch.Frequency;
         private void Frame(object? sender, EventArgs e)
         {
-            if (!_owner.IsVisible || !_owner.IsLoaded) { Reset(); return; }
+            if (!_owner.IsVisible || !_owner.IsLoaded || !_card.IsVisible) { Reset(); return; }
             double now = Time(), delta = now - _last; _last = now;
-            bool moving = _size.Step(delta) | _x.Step(delta) | _y.Step(delta) | _light.Step(delta) | _white.Step(delta);
+            double response=25*OperatorMotion.SpringResponse;
+            bool moving = _size.Step(delta,response) | _x.Step(delta,response) | _y.Step(delta,response) | _light.Step(delta,response) | _white.Step(delta,response);
             Paint(); if (!moving) Stop();
         }
         private void Paint() { _scale.ScaleX = _scale.ScaleY = _size.Value; _shift.X = _x.Value; _shift.Y = _y.Value; _edge.Opacity = Math.Clamp(_light.Value, 0, 1); _wash.Opacity = Math.Clamp(_white.Value, 0, 1); }
         private void Stop() { if (!_running) return; NativeRendering.Rendering -= Frame; _running = false; }
-        public void Reset() { Stop(); _pressed = false; _size.Set(1); _x.Set(0); _y.Set(0); _light.Set(.12); _white.Set(0); Paint(); }
+        public void Reset() { Stop(); _pressed = _engaged = false; _size.Set(1); _x.Set(0); _y.Set(0); _light.Set(.12); _white.Set(0); Paint(); }
     }
 
     private sealed class HomeLensMotion(SportSelectionScreen owner)
@@ -262,9 +279,23 @@ public partial class SportSelectionScreen
         private bool _running;
         private double _last;
         private Action? _closed;
+        private ExpansionOrigin _origin=ExpansionOrigin.Default;
+        private readonly Avalonia.Media.BlurEffect _blur=new();
+        private Avalonia.Media.IEffect? _previousEffect;
+        private bool _ownsBackdrop;
+        private double _layoutOpacity=1;
         private Avalonia.Threading.DispatcherTimer? _closeDeadline;
         public void Move(bool open, Action? closed = null)
         {
+            if(open && _progress.Value==0)_layoutOpacity=owner.HomeLayout.Opacity;
+            // Sample layout geometry without the previous presentation transform.
+            // Paint restores the current spring sample in this same dispatcher turn.
+            owner.UpdateLayout();
+            owner.ChangelogPanelScale.ScaleX=owner.ChangelogPanelScale.ScaleY=1;
+            owner.ChangelogPanelTranslate.X=owner.ChangelogPanelTranslate.Y=0;
+            _origin=ExpansionOrigin.From(owner.ChangelogPanel,owner.ChangelogToggle).WithTravel(OperatorMotion.TravelScale);
+            OperatorAppearance.Changed-=PreferencesChanged;OperatorAppearance.Changed+=PreferencesChanged;
+            Paint();
             _closeDeadline?.Stop();_closeDeadline=null;
             _closed = closed;
             _progress.Target = open ? 1 : 0;
@@ -290,7 +321,7 @@ public partial class SportSelectionScreen
         {
             if (!owner.IsVisible || !owner.IsLoaded) { Reset(); return; }
             double now = Time(), delta = now - _last; _last = now;
-            bool moving = _progress.Step(delta, _progress.Target == 0 ? 48 : 30);
+            bool moving = _progress.Step(delta, (_progress.Target == 0 ? 48 : 30)*OperatorMotion.SpringResponse);
             Paint();
             if (!moving || (_progress.Target == 0 && _progress.Value < .003 && Math.Abs(_progress.Velocity) < .1))
             {
@@ -302,10 +333,38 @@ public partial class SportSelectionScreen
         {
             double progress = Math.Clamp(_progress.Value, 0, 1);
             owner.ChangelogOverlay.Opacity = progress;
-            owner.ChangelogPanelScale.ScaleX = owner.ChangelogPanelScale.ScaleY = .96 + progress * .04;
-            owner.ChangelogPanelTranslate.Y = (1 - progress) * 24;
+            // Modal separation fades the dashboard, retaining sharp glyphs.
+            // Only the ambient backdrop is blurred; foreground content is not.
+            owner.HomeLayout.Opacity=_layoutOpacity*(1-.9*progress);
+            owner.ChangelogPanelScale.ScaleX = _origin.ScaleX+(1-_origin.ScaleX)*progress;
+            owner.ChangelogPanelScale.ScaleY = _origin.ScaleY+(1-_origin.ScaleY)*progress;
+            owner.ChangelogPanelTranslate.X = (1-progress)*_origin.OffsetX;
+            owner.ChangelogPanelTranslate.Y = (1-progress)*_origin.OffsetY;
+            double sourceRadius=Math.Max(32,Math.Min(owner.ChangelogPanel.NativeWidth(),owner.ChangelogPanel.NativeHeight())*.5);
+            owner.ChangelogPanel.CornerRadius=new CornerRadius(32+(sourceRadius-32)*(1-progress));
+            // The shell leads; text enters near full size rather than becoming
+            // microscopic labels inside the source pill.
+            if(owner.ChangelogPanel.Child is Control content)content.Opacity=OperatorMotion.Enabled?Math.Clamp((progress-.55)/.35,0,1):progress;
+            if(progress>0 && OperatorAppearance.GlassEnabled && !NativeSystemPreferences.HighContrast)
+            {
+                if(!_ownsBackdrop){_previousEffect=owner.HomeBackdrop.Effect;_ownsBackdrop=true;}
+                _blur.Radius=6;owner.HomeBackdrop.Effect=_blur;
+            }
+            else RestoreBackdrop();
         }
-        private void Stop() { _closeDeadline?.Stop();_closeDeadline=null;if (!_running) return; NativeRendering.Rendering -= Frame; _running = false; }
-        public void Reset() { Stop(); _closed = null; _progress.Set(0); Paint(); }
+        private void RestoreBackdrop()
+        {
+            if(!_ownsBackdrop)return;
+            if(ReferenceEquals(owner.HomeBackdrop.Effect,_blur))owner.HomeBackdrop.Effect=_previousEffect;
+            _ownsBackdrop=false;_previousEffect=null;
+        }
+        private void PreferencesChanged()
+        {
+            if(OperatorMotion.Enabled){Paint();return;}
+            _progress.Set(_progress.Target);Paint();Stop();
+            if(_progress.Target==0){var complete=_closed;_closed=null;complete?.Invoke();}
+        }
+        private void Stop() { _closeDeadline?.Stop();_closeDeadline=null;if(_progress.Target==0)OperatorAppearance.Changed-=PreferencesChanged;if (!_running) return; NativeRendering.Rendering -= Frame; _running = false; }
+        public void Reset() { Stop();OperatorAppearance.Changed-=PreferencesChanged; _closed = null; _progress.Set(0); Paint();RestoreBackdrop();owner.ChangelogPanel.CornerRadius=new CornerRadius(32);if(owner.ChangelogPanel.Child is Control content)content.Opacity=1; }
     }
 }

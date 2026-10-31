@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/TrainingScorebugControl.xaml",
-  "source_sha256": "08bb2eb90fad4d533bbaff974af6f0890f54ca35a1d7fcbe64f0d9776284e4a0",
+  "source_sha256": "10a772ba82e5c95e621e6fbd6320c07a63b47213fd189da8aae98ff1a320e99c",
   "names": [
     {
       "name": "RootGrid",
@@ -48,6 +48,11 @@
       "object": true
     },
     {
+      "name": "CompletionMark",
+      "type": "Path",
+      "object": false
+    },
+    {
       "name": "ActiveTimerHost",
       "type": "StackPanel",
       "object": false
@@ -61,6 +66,26 @@
       "name": "TimerTranslate",
       "type": "TranslateTransform",
       "object": true
+    },
+    {
+      "name": "TimerReadout",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TimerHoursLane",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "TimerHoursText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TimerHoursSpacer",
+      "type": "Border",
+      "object": false
     },
     {
       "name": "TimerText",
@@ -133,7 +158,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "3c114a4bfa8029ed72e275087fb625d0f6700cbe2dad6c9e57aef553adc72e26",
+  "code_source_sha256": "07b17e23494ac21e11299a7b99b394ad121ac4cb1788cef3e8ea307dd45e9772",
   "native_events": [],
   "platform_translations": [
     {
@@ -171,6 +196,18 @@
       "name": "TimerScale",
       "property": "CenterY",
       "source": "0.5"
+    },
+    {
+      "name": "TimerHoursText",
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
+    },
+    {
+      "name": null,
+      "property": "FontFamily",
+      "source": "Bahnschrift",
+      "native_fallback": "Inter"
     },
     {
       "name": "TimerText",

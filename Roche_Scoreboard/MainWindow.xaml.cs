@@ -150,6 +150,9 @@ namespace Roche_Scoreboard
         private string _activeScreenKey = "scorebug";
         private Dictionary<AflAction, Key> _aflKeybinds = new();
         private AflAction? _pendingKeybindAction;
+        private System.Windows.Controls.Button? _pendingKeybindSource;
+        private FrameworkElement? _pendingKeybindSection;
+        private long _pendingKeybindLifecycle;
         private UxPreferencesData _uxPreferences = new();
         private bool _suppressNavigationPersistence = true;
         private bool _initializingGoalAnimation = true;
@@ -318,9 +321,8 @@ namespace Roche_Scoreboard
                 if (MatchLogCountBadge is not null)
                     MatchLogCountBadge.Text = $"({_match.Events.Count})";
 
-                // Pulse the control panel score display for the scoring team
-                PulseElement(ev.Team == TeamSide.Home ? HomeScoreDisplay : AwayScoreDisplay, 250);
-                PulseElement(HeaderScore, 200);
+                // Keep live numeric glyphs steady. The scoring button supplies
+                // press feedback; accepted totals update immediately above.
 
                 // Reset scoreless timer on any score
                 _scorebug?.ResetScorelessTimer();
@@ -369,11 +371,11 @@ namespace Roche_Scoreboard
 
             // Wire up the embedded setup wizard (AFL)
             SetupWizardPanel.SetupCompleted += OnSetupCompleted;
-            SetupWizardPanel.BackToSportSelection += ShowSetupWizard;
+            SetupWizardPanel.BackToSportSelection += ReturnToSportChoice;
 
             // Wire up the cricket setup wizard
             CricketSetupWizardPanel.SetupCompleted += OnCricketSetupCompleted;
-            CricketSetupWizardPanel.BackToSportSelection += ShowSetupWizard;
+            CricketSetupWizardPanel.BackToSportSelection += ReturnToSportChoice;
 
             // Populate the custom quarter / break labels in settings from
             // persisted overrides; live updates flow through QuarterLabelService.
@@ -388,11 +390,22 @@ namespace Roche_Scoreboard
                     _ = StartOrUpdateWeatherServiceAsync(location);
             };
 
-            // Wire up sport selection
+            InitializeUnifiedSetup();
+            // Wire up Home
             SportSelectionPanel.SportSelected += OnSportSelected;
-            SportSelectionPanel.ResumeSavedMatchRequested += ResumeDeferredMatch;
+            SportSelectionPanel.ResumeSavedMatchRequested += ResumeFromHome;
+            SportSelectionPanel.CommandBarRequested += () => OpenCommandBar();
+            _match.MatchChanged += RefreshHomeCurrentSession;
             CricketControlPanelView.ApplicationPreferencesRequested += OpenCricketApplicationPreferences;
             GlobalSettingsPanel.BackRequested += OnGlobalSettingsBackRequested;
+            GlobalSettingsPanel.CricketOutputPreferencesChanged += () => {
+                var preferences = OperatorWorkflowPreferences.Load();
+                CricketControlPanelView.CricketEventAnimations.IsChecked = preferences.CricketEventAnimations;
+                CricketControlPanelView.CricketRollingFigures.IsChecked = preferences.CricketRollingFigures;
+                CricketControlPanelView.CricketBowlerDetails.IsChecked = preferences.CricketBowlerDetails;
+                CricketControlPanelView.CricketAutomaticOverlays.IsChecked = preferences.CricketAutomaticOverlays;
+                CricketControlPanelView.BreakPresentationRotationEnabled = preferences.CricketBreakPresentationRotation ?? preferences.AflBreakScreenEnabled;
+            };
             GlobalSettingsPanel.StartupModeChanged += OnGlobalSettingsStartupModeChanged;
             GlobalSettingsPanel.ThemeChanged += OnGlobalSettingsThemeChanged;
             GlobalSettingsPanel.DensityChanged += OnGlobalSettingsDensityChanged;
@@ -419,6 +432,7 @@ namespace Roche_Scoreboard
             SportSelectionPanel.Visibility = Visibility.Visible;
 
             Closing += MainWindow_Closing;
+            Closed += (_, _) => _remoteCommandOwnerClosed = true;
             Loaded += MainWindow_Loaded;
             PreviewKeyDown += MainWindow_PreviewKeyDown;
 #if DEBUG
@@ -448,7 +462,8 @@ namespace Roche_Scoreboard
             UpdateScreensaverSettingsStatus();
             ApplyRememberedGoalAnimation(workflowPreferences.AflGoalAnimation);
             RefreshGlobalSettingsOutputPreferences(workflowPreferences);
-            SettingsShowControlPanelCountdown.IsChecked = workflowPreferences.AflControlPanelCountdown;
+            SynchronizeSettingsStoppageToggle(workflowPreferences.AflControlPanelCountdown);
+            _syncingSettingsStoppageToggle = false;
             _initializingGoalAnimation = false;
             UpdateAnimCards();
             _hideTeamNames = _uxPreferences.HideTeamNames;
@@ -679,6 +694,8 @@ namespace Roche_Scoreboard
             RestoreCricketPreview();
             _cricketDiagnostics?.Close();
 #endif
+            if (CommandOverlay.Visibility == Visibility.Visible) CloseCommandBar();
+            InvalidatePresentationWork();
             // Update prompt on close has been removed in favour of an in-app
             // update section in the Settings tab. Proceed straight to teardown.
 
@@ -744,10 +761,8 @@ namespace Roche_Scoreboard
             bool selfTest = System.Windows.Application.Current is App { IsSelfTestMode: true };
             if (!selfTest)
             {
-                // Keep the public display useful before setup: the neutral,
-                // low-cost sports scene is replaced atomically at match ready.
-                EnsureScoreboardWindow();
-                ShowOutputScreensaver(manualSelection: false);
+                // Home is private. Do not initialize/play output media before
+                // the operator completes new setup or explicitly shows output.
 
                 // Cloud remote session startup is wired up in MainWindow.CloudRemote.cs.
                 StartCloudRemoteOnLoad();
@@ -853,24 +868,23 @@ namespace Roche_Scoreboard
         /// Deferring never removes the saved match or disables the resume shortcut.
         /// </summary>
         private bool _recoveryPromptActive;
-        private bool _recoveryPromptShown;
         private void ResumeDeferredMatch()
         {
             if (_recoveryPromptActive) return;
-            _recoveryPromptShown = true;
             GameState? saved = GameStateService.Load();
-            if (saved?.MatchState is null && saved?.CricketMatchState is null)
+            if (RecoverySession.Describe(saved) is null)
             {
                 SportSelectionPanel.PrepareForDisplay();
                 return;
             }
-            ShowRecoveryPrompt(saved);
+            ShowRecoveryPrompt(saved!);
         }
 
         private void ShowRecoveryPrompt(GameState saved)
         {
             if (_recoveryPromptActive) return;
             var dialog = new Views.ResumeMatchPrompt(saved) { Margin = new Thickness(16) };
+            dialog.SetExpansionOrigin(SportSelectionPanel.RecoveryExpansionSource);
             SportSelectionPanel.SetDeferredResumeAvailable(false);
             _recoveryPromptActive = true;
             // Keep recovery in the application surface; no extra HWND or modal message loop.
@@ -889,7 +903,7 @@ namespace Roche_Scoreboard
                 SportSelectionPanel.SetDeferredResumeAvailable(dialog.DeferredChosen);
                 SportSelectionPanel.PrepareForDisplay();
                 if (dialog.ResumeChosen) RestoreFromSavedState(saved);
-                else if (dialog.DiscardChosen) GameStateService.Clear();
+                else if (dialog.DiscardChosen) { GameStateService.Clear(); SportSelectionPanel.PrepareForDisplay(); }
             };
             dialog.Loaded += (_, _) => dialog.Focus();
         }
@@ -925,8 +939,7 @@ namespace Roche_Scoreboard
 
             // A valid live recovery takes precedence over a navigation
             // preference. StartupMode only decides where a fresh session opens.
-            if (!_recoveryPromptShown && !_aflMatchReady && _cricketMatch is null && GameStateService.HasSavedState())
-                ResumeDeferredMatch();
+            if (SportSelectionPanel.IsVisible) SportSelectionPanel.PrepareForDisplay();
         }
 
         // ───────────────────────────────────────────────────────────────
@@ -985,6 +998,15 @@ namespace Roche_Scoreboard
 
         private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            if (_pendingKeybindAction is not null && !KeybindCaptureContextCurrent()) RetireKeybindCapture();
+            if (_resetDecisionActive) { HandleResetPreviewKeyDown(e); return; }
+            bool commandChord = e.Key == Key.K && (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+            if (CommandOverlay.Visibility == Visibility.Visible)
+            {
+                if (commandChord) { e.Handled = true; if (!e.IsRepeat) CloseCommandBar(); }
+                return;
+            }
+            if (commandChord) { RetireKeybindCapture(); e.Handled = true; if (!e.IsRepeat) OpenCommandBar(); return; }
             if (_recoveryPromptActive) return; // The integrated prompt owns keyboard navigation until dismissed.
             bool ctrlPressed = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
             if (_sportMode == SportMode.Cricket && CricketControlPanelView.IsVisible)
@@ -995,10 +1017,12 @@ namespace Roche_Scoreboard
                 if (ctrlPressed && cricketTab >= 0) { CricketControlPanelView.MainTabControl.SelectedIndex = cricketTab; e.Handled = true; }
                 return; // Never dispatch AFL shortcuts to its hidden control panel.
             }
+            if (!MainContent.IsVisible) return; // Hidden AFL navigation/settings must not react while Home or setup owns input.
             bool settingsVisible = ReferenceEquals(MainTabControl?.SelectedItem, MatchSetupTab);
 
             if (ctrlPressed && (Keyboard.Modifiers & ModifierKeys.Shift) != 0 && e.Key == Key.A)
             {
+                RetireKeybindCapture();
                 GuidedModeButton_Click(GuidedModeButton, new RoutedEventArgs());
                 e.Handled = true;
                 return;
@@ -1006,13 +1030,21 @@ namespace Roche_Scoreboard
 
             if (settingsVisible && ctrlPressed && !_uxPreferences.GuidedOperatorMode && e.Key == Key.F)
             {
-                SettingsSearchBox.Focus();
-                SettingsSearchBox.SelectAll();
-                e.Handled = true;
-                return;
+                RetireKeybindCapture();
+                if (_aflSettingsWorkspace?.FocusSearch() == true)
+                {
+                    e.Handled = true;
+                    return;
+                }
+                if (SettingsSearchBox.IsVisible && SettingsSearchBox.Focus())
+                {
+                    SettingsSearchBox.SelectAll();
+                    e.Handled = true;
+                    return;
+                }
             }
 
-            if (settingsVisible && e.Key == Key.Escape && SettingsSearchBox.IsKeyboardFocusWithin)
+            if (settingsVisible && e.Key == Key.Escape && SettingsSearchBox.IsVisible && SettingsSearchBox.IsKeyboardFocusWithin)
             {
                 SettingsSearchBox.Clear();
                 Keyboard.ClearFocus();
@@ -1051,7 +1083,7 @@ namespace Roche_Scoreboard
 
             // Don't intercept when typing in a TextBox
             if (e.OriginalSource is System.Windows.Controls.TextBox) return;
-            if (_sportMode != SportMode.AFL) return;
+            if (_sportMode != SportMode.AFL || !MainContent.IsVisible) return;
 
             if (TryHandleKeybindCapture(e.Key))
             {
@@ -1177,22 +1209,80 @@ namespace Roche_Scoreboard
             if (keybindAwayGoalButton is not null) keybindAwayGoalButton.Content = awayGoalLabel;
             if (keybindAwayBehindButton is not null) keybindAwayBehindButton.Content = awayBehindLabel;
             if (keybindEndQuarterButton is not null) keybindEndQuarterButton.Content = endQuarterLabel;
+            void Describe(System.Windows.Controls.Button? button, AflAction action, string keyLabel)
+            {
+                if (button is null) return;
+                System.Windows.Automation.AutomationProperties.SetName(button, $"{KeybindActionLabel(action)} shortcut, {keyLabel}");
+                System.Windows.Automation.AutomationProperties.SetHelpText(button, "Choose a key. Escape cancels an active change; presentation shortcuts cannot be assigned.");
+                if (!ReferenceEquals(button, _pendingKeybindSource))
+                    System.Windows.Automation.AutomationProperties.SetItemStatus(button, $"Configured key: {keyLabel}");
+            }
+            Describe(keybindToggleClockButton, AflAction.ToggleClock, toggleClockLabel);
+            Describe(keybindHomeGoalButton, AflAction.HomeGoal, homeGoalLabel);
+            Describe(keybindHomeBehindButton, AflAction.HomeBehind, homeBehindLabel);
+            Describe(keybindAwayGoalButton, AflAction.AwayGoal, awayGoalLabel);
+            Describe(keybindAwayBehindButton, AflAction.AwayBehind, awayBehindLabel);
+            Describe(keybindEndQuarterButton, AflAction.EndQuarter, endQuarterLabel);
         }
 
-        private void BeginKeybindCapture(AflAction action)
+        private static string KeybindActionLabel(AflAction action) => action switch
         {
+            AflAction.ToggleClock => "Start or pause clock",
+            AflAction.HomeGoal => "Home goal",
+            AflAction.HomeBehind => "Home behind",
+            AflAction.AwayGoal => "Away goal",
+            AflAction.AwayBehind => "Away behind",
+            AflAction.EndQuarter => "End quarter",
+            _ => action.ToString()
+        };
+
+        private bool KeybindCaptureSurfaceCurrent(System.Windows.Controls.Button? source, FrameworkElement? section)
+            => IsLoaded && IsVisible && IsEnabled && _sportMode == SportMode.AFL && _aflMatchReady
+                && MainContent.IsVisible && MainContent.IsEnabled
+                && ReferenceEquals(MainTabControl.SelectedItem, MatchSetupTab)
+                && source is { IsLoaded: true, IsVisible: true, IsEnabled: true }
+                && ReferenceEquals(Window.GetWindow(source), this)
+                && section is { IsLoaded: true, IsVisible: true, IsEnabled: true }
+                && !_resetDecisionActive && !_recoveryPromptActive
+                && !(CommandOverlay.IsVisible && CommandOverlay.IsHitTestVisible);
+
+        private bool KeybindCaptureContextCurrent() => _pendingKeybindAction is not null
+            && _pendingKeybindLifecycle == _match.LifecycleVersion
+            && KeybindCaptureSurfaceCurrent(_pendingKeybindSource, _pendingKeybindSection);
+
+        private void BeginKeybindCapture(AflAction action, System.Windows.Controls.Button? source)
+        {
+            RetireKeybindCapture();
+            var section = FindElement<FrameworkElement>("SettingsSection_Keybinds");
+            if (!KeybindCaptureSurfaceCurrent(source, section)) return;
+            // Public/automation invocation does not necessarily move focus as a
+            // pointer click does. Claim the keyboard owner before arming, then
+            // recheck because focus callbacks may change the current surface.
+            if (source is null || !source.Focus() || !KeybindCaptureSurfaceCurrent(source, section)) return;
             _pendingKeybindAction = action;
+            _pendingKeybindSource = source;
+            _pendingKeybindSection = section;
+            _pendingKeybindLifecycle = _match.LifecycleVersion;
+            AttachKeybindCapture();
+            System.Windows.Automation.AutomationProperties.SetItemStatus(source!, "Waiting for a key");
             var keybindHintText = FindElement<TextBlock>("KeybindHintText");
             if (keybindHintText is not null)
             {
-                keybindHintText.Text = $"Press a new key for {action}. Esc cancels.";
+                keybindHintText.Text = $"Press a new key for {KeybindActionLabel(action)}. Esc cancels.";
                 keybindHintText.Foreground = FindResource("AccentBrush") as SolidColorBrush ?? Brushes.White;
             }
         }
 
         private void FinishKeybindCapture(string message, System.Windows.Media.Brush? foreground = null)
         {
+            var source = _pendingKeybindSource;
+            var action = _pendingKeybindAction;
             _pendingKeybindAction = null;
+            DetachKeybindCapture();
+            _pendingKeybindSource = null;
+            _pendingKeybindSection = null;
+            if (source is not null && action is AflAction previous && _aflKeybinds.TryGetValue(previous, out Key current))
+                System.Windows.Automation.AutomationProperties.SetItemStatus(source, $"Configured key: {AflKeybindSettings.FormatKey(current)}");
             var keybindHintText = FindElement<TextBlock>("KeybindHintText");
             if (keybindHintText is not null)
             {
@@ -1201,11 +1291,100 @@ namespace Roche_Scoreboard
             }
         }
 
+        private void RetireKeybindCapture()
+        {
+            if (_pendingKeybindAction is null) return;
+            FinishKeybindCapture("Keybind change cancelled. Choose a shortcut button to start again.");
+        }
+
+        private void AttachKeybindCapture()
+        {
+            var source = _pendingKeybindSource!;
+            var section = _pendingKeybindSection!;
+            source.LostKeyboardFocus += KeybindCaptureFocusLeft;
+            source.Unloaded += KeybindCaptureUnloaded;
+            source.IsVisibleChanged += KeybindCaptureVisibilityChanged;
+            source.IsEnabledChanged += KeybindCaptureEnabledChanged;
+            section.IsVisibleChanged += KeybindCaptureVisibilityChanged;
+            section.IsEnabledChanged += KeybindCaptureEnabledChanged;
+            MainContent.IsVisibleChanged += KeybindCaptureVisibilityChanged;
+            MainContent.IsEnabledChanged += KeybindCaptureEnabledChanged;
+            IsVisibleChanged += KeybindCaptureVisibilityChanged;
+            IsEnabledChanged += KeybindCaptureEnabledChanged;
+            ResetOverlay.IsVisibleChanged += KeybindCaptureOverlayChanged;
+            CommandOverlay.IsVisibleChanged += KeybindCaptureOverlayChanged;
+            RecoveryOverlay.IsVisibleChanged += KeybindCaptureOverlayChanged;
+            MainTabControl.SelectionChanged += KeybindCaptureTabChanged;
+            _match.MatchChanged += KeybindCaptureMatchChanged;
+            Deactivated += KeybindCaptureOwnerDeactivated;
+            Closed += KeybindCaptureOwnerClosed;
+        }
+
+        private void DetachKeybindCapture()
+        {
+            if (_pendingKeybindSource is { } source)
+            {
+                source.LostKeyboardFocus -= KeybindCaptureFocusLeft;
+                source.Unloaded -= KeybindCaptureUnloaded;
+                source.IsVisibleChanged -= KeybindCaptureVisibilityChanged;
+                source.IsEnabledChanged -= KeybindCaptureEnabledChanged;
+            }
+            if (_pendingKeybindSection is { } section)
+            {
+                section.IsVisibleChanged -= KeybindCaptureVisibilityChanged;
+                section.IsEnabledChanged -= KeybindCaptureEnabledChanged;
+            }
+            MainContent.IsVisibleChanged -= KeybindCaptureVisibilityChanged;
+            MainContent.IsEnabledChanged -= KeybindCaptureEnabledChanged;
+            IsVisibleChanged -= KeybindCaptureVisibilityChanged;
+            IsEnabledChanged -= KeybindCaptureEnabledChanged;
+            ResetOverlay.IsVisibleChanged -= KeybindCaptureOverlayChanged;
+            CommandOverlay.IsVisibleChanged -= KeybindCaptureOverlayChanged;
+            RecoveryOverlay.IsVisibleChanged -= KeybindCaptureOverlayChanged;
+            MainTabControl.SelectionChanged -= KeybindCaptureTabChanged;
+            _match.MatchChanged -= KeybindCaptureMatchChanged;
+            Deactivated -= KeybindCaptureOwnerDeactivated;
+            Closed -= KeybindCaptureOwnerClosed;
+        }
+
+        private void KeybindCaptureFocusLeft(object sender, RoutedEventArgs e) => RetireKeybindCapture();
+        private void KeybindCaptureUnloaded(object sender, RoutedEventArgs e) => RetireKeybindCapture();
+        private void KeybindCaptureOwnerDeactivated(object? sender, EventArgs e) => RetireKeybindCapture();
+        private void KeybindCaptureOwnerClosed(object? sender, EventArgs e) => RetireKeybindCapture();
+        private void KeybindCaptureTabChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (!ReferenceEquals(MainTabControl.SelectedItem, MatchSetupTab)) RetireKeybindCapture();
+        }
+        private void KeybindCaptureMatchChanged()
+        {
+            if (!KeybindCaptureContextCurrent()) RetireKeybindCapture();
+        }
+        private void KeybindCaptureVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.Property.Name == nameof(UIElement.IsVisible) && sender is UIElement { IsVisible: false }) RetireKeybindCapture();
+        }
+        private void KeybindCaptureEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.Property.Name == nameof(UIElement.IsEnabled) && sender is UIElement { IsEnabled: false }) RetireKeybindCapture();
+        }
+        private void KeybindCaptureOverlayChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.Property.Name != nameof(UIElement.IsVisible)) return;
+            if ((ReferenceEquals(sender, ResetOverlay) && _resetDecisionActive)
+                || (ReferenceEquals(sender, CommandOverlay) && CommandOverlay.IsVisible)
+                || (ReferenceEquals(sender, RecoveryOverlay) && RecoveryOverlay.IsVisible)) RetireKeybindCapture();
+        }
+
         private bool TryHandleKeybindCapture(Key key)
         {
             if (_pendingKeybindAction is not AflAction action)
             {
                 return false;
+            }
+            if (!KeybindCaptureContextCurrent())
+            {
+                RetireKeybindCapture();
+                return false; // The stale capture cannot swallow a normal key.
             }
 
             if (key == Key.Escape)
@@ -1216,6 +1395,11 @@ namespace Roche_Scoreboard
 
             if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin)
             {
+                return true;
+            }
+            if (AflKeybindSettings.IsPresentationShortcut(key))
+            {
+                FinishKeybindCapture($"{AflKeybindSettings.FormatKey(key)} is reserved for presentations. Choose a shortcut button to try another key.", PausedAmberBrush);
                 return true;
             }
 
@@ -1232,27 +1416,27 @@ namespace Roche_Scoreboard
             AflKeybindSettings.SaveBindings(_aflKeybinds);
             ApplyAflKeybindsToUi();
             UpdateLiveUI();
-            FinishKeybindCapture($"{action} is now bound to {AflKeybindSettings.FormatKey(key)}.", LiveGreenBrush);
+            FinishKeybindCapture($"{KeybindActionLabel(action)} is now bound to {AflKeybindSettings.FormatKey(key)}.", LiveGreenBrush);
             return true;
         }
 
         private void KeybindToggleClockButton_Click(object sender, RoutedEventArgs e)
-            => BeginKeybindCapture(AflAction.ToggleClock);
+            => BeginKeybindCapture(AflAction.ToggleClock, sender as System.Windows.Controls.Button);
 
         private void KeybindHomeGoalButton_Click(object sender, RoutedEventArgs e)
-            => BeginKeybindCapture(AflAction.HomeGoal);
+            => BeginKeybindCapture(AflAction.HomeGoal, sender as System.Windows.Controls.Button);
 
         private void KeybindHomeBehindButton_Click(object sender, RoutedEventArgs e)
-            => BeginKeybindCapture(AflAction.HomeBehind);
+            => BeginKeybindCapture(AflAction.HomeBehind, sender as System.Windows.Controls.Button);
 
         private void KeybindAwayGoalButton_Click(object sender, RoutedEventArgs e)
-            => BeginKeybindCapture(AflAction.AwayGoal);
+            => BeginKeybindCapture(AflAction.AwayGoal, sender as System.Windows.Controls.Button);
 
         private void KeybindAwayBehindButton_Click(object sender, RoutedEventArgs e)
-            => BeginKeybindCapture(AflAction.AwayBehind);
+            => BeginKeybindCapture(AflAction.AwayBehind, sender as System.Windows.Controls.Button);
 
         private void KeybindEndQuarterButton_Click(object sender, RoutedEventArgs e)
-            => BeginKeybindCapture(AflAction.EndQuarter);
+            => BeginKeybindCapture(AflAction.EndQuarter, sender as System.Windows.Controls.Button);
 
         private bool TryHandlePresentationKey(Key key)
         {
@@ -1430,6 +1614,7 @@ namespace Roche_Scoreboard
         // ----------------------------
         private static readonly SolidColorBrush LiveGreenBrush = new(Color.FromRgb(0x22, 0xC5, 0x5E));
         private static readonly SolidColorBrush LiveGreenBgBrush = new(Color.FromRgb(0x14, 0x53, 0x2D));
+        private static readonly SolidColorBrush LiveStatusTextBrush = ContrastHelper.GetReadableTextBrush(LiveGreenBgBrush.Color, LiveGreenBrush.Color);
         private static readonly SolidColorBrush PausedAmberBrush = new(Color.FromRgb(0xF5, 0x9E, 0x0B));
         private static readonly SolidColorBrush PausedAmberBgBrush = new(Color.FromRgb(0x42, 0x20, 0x06));
         private static readonly SolidColorBrush ClockRunningBrush = new(Color.FromRgb(0x4A, 0xDE, 0x80));
@@ -1470,7 +1655,7 @@ namespace Roche_Scoreboard
             {
                 StatusDot.Fill = LiveGreenBrush;
                 StatusText.Text = "LIVE";
-                StatusText.Foreground = LiveGreenBrush;
+                StatusText.Foreground = LiveStatusTextBrush;
                 StatusBadge.Background = LiveGreenBgBrush;
                 StatusBadge.ToolTip = "The match clock is running.";
             }
@@ -1491,11 +1676,8 @@ namespace Roche_Scoreboard
                 StatusBadge.ToolTip = "The match clock is stopped.";
             }
 
-            // Animate state change on Start/Pause button and status badge
-            if (clockStateChanged && !q4Ended)
-            {
-                AnimateClockStateChange();
-            }
+            // Keep this frequently read status label opaque and stationary.
+            // Start/Pause supplies its own immediate input feedback below.
 
             // Drive the scorebug's pause-aware match clock from the same
             // signal so scoring-run / scoreless / drought elapsed timers
@@ -1686,52 +1868,21 @@ namespace Roche_Scoreboard
         // ----------------------------
         // Setup wizard
         // ----------------------------
-        private void ShowSetupWizard()
-        {
-            GameStateService.Clear();
-            _aflMatchReady = false;
-            ShowOutputScreensaver(manualSelection: false);
-            // Clear any held animation values from a previous transition so
-            // local property sets take effect on the next wizard completion.
-            MainContent.BeginAnimation(OpacityProperty, null);
-            SetupWizardPanel.BeginAnimation(OpacityProperty, null);
-
-            // Return to sport selection
-            MainContent.Visibility = Visibility.Collapsed;
-            SetupWizardPanel.Visibility = Visibility.Collapsed;
-            CricketSetupWizardPanel.Visibility = Visibility.Collapsed;
-            CricketControlPanelView.Visibility = Visibility.Collapsed;
-            GlobalSettingsPanel.Visibility = Visibility.Collapsed;
-            SportSelectionPanel.PrepareForDisplay();
-            SportSelectionPanel.Opacity = 1;
-            SportSelectionPanel.Visibility = Visibility.Visible;
-        }
-
         private void OnSportSelected(SportMode mode)
         {
+            if (mode is SportMode.AFL or SportMode.Cricket) { BeginUnifiedSetup(); return; }
+            if (!ConfirmNewSession(mode)) { SportSelectionPanel.PrepareForDisplay(); return; }
             StopAflSetupTransition();
-            _sportMode = mode;
+            if (!HasCurrentSession) _sportMode = mode;
             PersistLastMode(mode);
             SportSelectionPanel.Visibility = Visibility.Collapsed;
             if (!_aflMatchReady)
                 ShowOutputScreensaver(manualSelection: false);
 
-            if (mode == SportMode.AFL)
-            {
-                SetupWizardPanel.Reset();
-                SetupWizardPanel.Opacity = 1;
-                SetupWizardPanel.Visibility = Visibility.Visible;
-            }
-            else if (mode == SportMode.Cricket)
-            {
-                CricketSetupWizardPanel.Reset();
-                CricketSetupWizardPanel.Opacity = 1;
-                CricketSetupWizardPanel.Visibility = Visibility.Visible;
-            }
-            else if (mode == SportMode.Settings)
+            if (mode == SportMode.Settings)
             {
                 _returnToCricketFromGlobalSettings = false;
-                GlobalSettingsPanel.SetBackCaption("←  Back to sports");
+                GlobalSettingsPanel.SetBackCaption("←  Back to Home");
                 RefreshGlobalSettingsOutputPreferences();
                 MainContent.Visibility = Visibility.Collapsed;
                 SetupWizardPanel.Visibility = Visibility.Collapsed;
@@ -1760,16 +1911,24 @@ namespace Roche_Scoreboard
 
         private void OnGlobalSettingsBackRequested()
         {
+            if (_commandPreferencesReturn is { } surface)
+            {
+                _commandPreferencesReturn = null;
+                GlobalSettingsPanel.Visibility = Visibility.Collapsed;
+                surface.Visibility = Visibility.Visible;
+                GlobalSettingsPanel.SetBackCaption("←  Back to Home");
+                return;
+            }
             if (_returnToCricketFromGlobalSettings && _cricketMatch is not null)
             {
                 _returnToCricketFromGlobalSettings = false;
                 GlobalSettingsPanel.Visibility = Visibility.Collapsed;
-                GlobalSettingsPanel.SetBackCaption("←  Back to sports");
+                GlobalSettingsPanel.SetBackCaption("←  Back to Home");
                 CricketControlPanelView.Visibility = Visibility.Visible;
                 return;
             }
             _returnToCricketFromGlobalSettings = false;
-            GlobalSettingsPanel.SetBackCaption("←  Back to sports");
+            GlobalSettingsPanel.SetBackCaption("←  Back to Home");
             PersistLastMode(SportMode.Settings);
             GlobalSettingsPanel.Visibility = Visibility.Collapsed;
             MainContent.Visibility = Visibility.Collapsed;
@@ -1838,7 +1997,6 @@ namespace Roche_Scoreboard
         private void OnGlobalBreakScreenEnabledChanged(bool enabled)
         {
             SettingsBreakScreenToggle.IsChecked = enabled;
-            CricketControlPanelView.BreakPresentationRotationEnabled = enabled;
         }
 
         private void OnGlobalAutoOverlaysEnabledChanged(bool enabled)
@@ -1902,7 +2060,8 @@ namespace Roche_Scoreboard
 
         private void ApplyQuickStartupNavigation()
         {
-            if (_uxPreferences.StartupMode != StartupExperience.LastMode)
+            // A saved session takes precedence over quick-start setup; recovery is explicit on Home.
+            if (RecoverySession.Describe(GameStateService.Load()) is not null || _uxPreferences.StartupMode != StartupExperience.LastMode)
                 return;
 
             switch (_uxPreferences.LastMode)
@@ -1930,6 +2089,11 @@ namespace Roche_Scoreboard
         // ----------------------------
         private void EnterTrainingMode()
         {
+            if (!RetireSessionForReplacement()) return;
+            _sportMode = SportMode.Training;
+            _homeReturn.Clear();
+            SportSelectionPanel.SetCurrentSession(null);
+            _outputActivationRequired = false;
             // Tear down any prior session
             ExitTrainingModeInternal(suppressUiTransition: true);
             _displayWindow?.Hide();
@@ -1939,8 +2103,7 @@ namespace Roche_Scoreboard
             _trainingScorebug.Bind(_trainingSession);
 
             TrainingControlPanelView.Bind(_trainingSession);
-            TrainingControlPanelView.ExitRequested -= OnTrainingExitRequested;
-            TrainingControlPanelView.ExitRequested += OnTrainingExitRequested;
+            TrainingControlPanelView.ConfirmedExitCommit = OnTrainingExitRequested;
 
             // Mirror the AFL Scoring & Clock launcher onto the Training
             // header so operators can start / share the cloud remote
@@ -1956,43 +2119,43 @@ namespace Roche_Scoreboard
             // Drive the session's countdown from a UI tick
             _trainingTickTimer?.Stop();
             _trainingTickTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
-            _trainingTickTimer.Tick += (_, _) =>
-            {
-                _trainingSession?.Tick();
-                // The publisher is internally throttled to ~10/s, so it's
-                // safe to call on the 30 fps tick.
-                if (_trainingSession is not null) PublishCloudSnapshot();
-            };
+            _trainingTickTimer.Tick += (_, _) => TickTrainingSession();
             _trainingTickTimer.Start();
 
             EnsureTrainingDisplayWindow();
 
-            TrainingControlPanelView.Opacity = 0;
-            TrainingControlPanelView.RenderTransform = new TranslateTransform(0, 20);
+            // The live console is immediately readable. Entry belongs to its
+            // small training emblem, never to moving clock/transport targets.
+            TrainingControlPanelView.BeginAnimation(OpacityProperty, null);
+            TrainingControlPanelView.Opacity = 1;
+            TrainingControlPanelView.RenderTransform = null;
             TrainingControlPanelView.Visibility = Visibility.Visible;
-
-            var sb = new Storyboard();
-            var fade = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.35))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-            Storyboard.SetTarget(fade, TrainingControlPanelView);
-            Storyboard.SetTargetProperty(fade, new PropertyPath(OpacityProperty));
-            sb.Children.Add(fade);
-            var slide = new DoubleAnimation(20, 0, TimeSpan.FromSeconds(0.35))
-            { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-            Storyboard.SetTarget(slide, TrainingControlPanelView);
-            Storyboard.SetTargetProperty(slide, new PropertyPath("RenderTransform.(TranslateTransform.Y)"));
-            sb.Children.Add(slide);
-            sb.Completed += (_, _) => TrainingControlPanelView.RenderTransform = null;
-            sb.Begin();
+            TrainingControlPanelView.ShowSessionEntry();
 
             Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Training Mode";
+        }
+
+        private void TickTrainingSession()
+        {
+            var session = _trainingSession;
+            var active = session?.Active;
+            session?.Tick();
+            // A loaded scorebug synchronously stages the next timer while it
+            // holds the finished visual. Closing that output must not stop
+            // the live session: progress here only if the view did not already
+            // consume this exact finished timer. Never consume a replacement.
+            if (session is not null && ReferenceEquals(_trainingSession, session)
+                && active is { HasFinished: true } && ReferenceEquals(session.Active, active))
+                session.AdvanceAfterFinish(autoStart: session.AutoAdvance && session.UpNext is not null);
+            // The publisher is internally throttled to ~10/s.
+            if (_trainingSession is not null) PublishCloudSnapshot();
         }
 
         private void EnsureTrainingDisplayWindow()
         {
             if (_trainingDisplayWindow != null)
             {
-                if (!_trainingDisplayWindow.IsVisible) _trainingDisplayWindow.Show();
+                if (!_outputActivationRequired && !_trainingDisplayWindow.IsVisible) _trainingDisplayWindow.Show();
                 return;
             }
             if (_trainingScorebug == null) return;
@@ -2033,8 +2196,13 @@ namespace Roche_Scoreboard
             if (savedTraining is not null)
                 WindowLayoutStorage.Apply(_trainingDisplayWindow, savedTraining);
 
+            var trainingOutput = _trainingDisplayWindow;
+            WindowLayoutStorage.WindowLayout? trainingClosingLayout = null;
+            trainingOutput.Closing += (_, _) => trainingClosingLayout = WindowLayoutStorage.Capture(trainingOutput);
             _trainingDisplayWindow.Closed += (_, _) =>
             {
+                if (!ReferenceEquals(_trainingDisplayWindow, trainingOutput)) return;
+                RememberClosedOutput(trainingOutput, WindowLayoutStorage.TrainingDisplayKey, trainingClosingLayout);
                 container.Children.Clear();
                 _trainingDisplayWindow = null;
             };
@@ -2051,40 +2219,73 @@ namespace Roche_Scoreboard
                 source.AddHook(TrainingDisplayWndProc);
             };
 
-            _trainingDisplayWindow.Show();
+            if (!_outputActivationRequired) _trainingDisplayWindow.Show();
         }
 
-        private void OnTrainingExitRequested()
+        private bool OnTrainingExitRequested(TrainingSession expectedSession)
         {
+            if (!ReferenceEquals(_trainingSession, expectedSession) || _sportMode != SportMode.Training || _remoteCommandOwnerClosed) return false;
             ExitTrainingModeInternal(suppressUiTransition: false);
+            return true;
         }
 
+        private int _trainingExitGeneration;
         private void ExitTrainingModeInternal(bool suppressUiTransition)
         {
-            _trainingTickTimer?.Stop();
+            int generation = ++_trainingExitGeneration;
+            int replacement = _sessionReplacementGeneration, setup = _setupFlowGeneration;
+            var mode = _sportMode;
+            var session = _trainingSession;
+            var scorebug = _trainingScorebug;
+            var output = _trainingDisplayWindow;
+            var tick = _trainingTickTimer;
+            // Retire shared authority/listeners BEFORE any synchronous observer
+            // can enter another session. Cleanup below owns captured resources.
             _trainingTickTimer = null;
-
-            if (_trainingSession is not null)
-            {
-                DetachTrainingCloudBridge(_trainingSession);
-            }
-
-            _trainingScorebug?.ResetVisuals();
             _trainingScorebug = null;
-            _trainingSession = null;
-
-            TrainingControlPanelView.ExitRequested -= OnTrainingExitRequested;
-
-            _trainingDisplayWindow?.Close();
             _trainingDisplayWindow = null;
-
-            if (suppressUiTransition) return;
-
-            TrainingControlPanelView.BeginAnimation(OpacityProperty, null);
-            TrainingControlPanelView.Visibility = Visibility.Collapsed;
-            SportSelectionPanel.Opacity = 1;
-            SportSelectionPanel.Visibility = Visibility.Visible;
-            ShowOutputScreensaver(manualSelection: false);
+            _trainingSession = null;
+            TrainingControlPanelView.ConfirmedExitCommit = null;
+            tick?.Stop();
+            if (session is not null) DetachTrainingCloudBridge(session);
+            bool CurrentRetirement() => generation == _trainingExitGeneration
+                && replacement == _sessionReplacementGeneration && setup == _setupFlowGeneration
+                && _sportMode == mode && _trainingSession is null && !_remoteCommandOwnerClosed;
+            try
+            {
+                scorebug?.ResetVisuals();
+                if (output is not null)
+                {
+                    // The old Closed delegate intentionally sees a retired root
+                    // field; remember its layout before closing and detach only
+                    // its captured visual tree, never a replacement output.
+                    if (CurrentRetirement()) RememberClosedOutput(output, WindowLayoutStorage.TrainingDisplayKey);
+                    output.Content = null;
+                    output.Close();
+                }
+                if (suppressUiTransition || !CurrentRetirement()) return;
+                _homeReturn.Clear();
+                SportSelectionPanel.SetCurrentSession(null);
+                if (!CurrentRetirement()) return;
+                TrainingControlPanelView.BeginAnimation(OpacityProperty, null);
+                if (!CurrentRetirement()) return;
+                TrainingControlPanelView.Visibility = Visibility.Collapsed;
+                if (!CurrentRetirement()) return;
+                SportSelectionPanel.Opacity = 1;
+                if (!CurrentRetirement()) return;
+                SportSelectionPanel.Visibility = Visibility.Visible;
+                if (!CurrentRetirement()) return;
+                SportSelectionPanel.HomeStartGameFocus();
+                if (!CurrentRetirement()) return;
+                ShowOutputScreensaver(manualSelection: false);
+            }
+            finally
+            {
+                // Pause banks elapsed time and raises Changed synchronously.
+                // It is LAST: a replacement opened by that observer remains
+                // authoritative; no shared root/UI/focus write follows it.
+                session?.Pause();
+            }
         }
 
         private void ShowMatchLoadingScreen(
@@ -2164,18 +2365,29 @@ namespace Roche_Scoreboard
 
         private void OnSetupCompleted(SetupResult result)
         {
+            if (!ConsumeSetupCompletion(SportMode.AFL, result)) return;
+            PersistLastMode(SportMode.AFL);
             FinalizeAflSetup(result);
         }
 
         private void FinalizeAflSetup(SetupResult result)
         {
+            if (!RetireSessionForReplacement()) return;
+            _sportMode = SportMode.AFL;
+            // Replacement was explicitly confirmed. A new setup starts a new
+            // match; retained Home/resume and cancelled setup never reach here.
+            _match.ResetForNewGame();
+            ResetAflRuntimeForNewMatch();
+            _homeReturn.Clear();
+            SportSelectionPanel.SetCurrentSession(null);
+            _outputActivationRequired = false;
             _aflMatchReady = true;
             ApplySetupResult(result);
 
             BeginAflSetupTransition();
 
             EnsureScoreboardWindow();
-            if (_displayWindow is { IsVisible: false }) _displayWindow.Show();
+            if (!_outputActivationRequired && _displayWindow is { IsVisible: false }) _displayWindow.Show();
             PushAllToScoreboard();
             if (_scorebug is not null)
             {
@@ -2190,7 +2402,8 @@ namespace Roche_Scoreboard
         // ----------------------------
         private void OnCricketSetupCompleted(CricketSetupResult result)
         {
-            if (_cricketMatch is not null) return;
+            if (!ConsumeSetupCompletion(SportMode.Cricket, result)) return;
+            PersistLastMode(SportMode.Cricket);
             result.FillEmptySquads();
             FinalizeCricketSetup(result);
         }
@@ -2210,6 +2423,11 @@ namespace Roche_Scoreboard
 
         private void FinalizeCricketSetup(CricketSetupResult result, bool promptForInitialSelection = true)
         {
+            if (!RetireSessionForReplacement()) return;
+            _sportMode = SportMode.Cricket;
+            _homeReturn.Clear();
+            SportSelectionPanel.SetCurrentSession(null);
+            if (promptForInitialSelection) _outputActivationRequired = false;
             StopCricketSetupTransition();
             int generation = _cricketSetupGeneration;
             // The shared idle output hands off to cricket's dedicated live
@@ -2306,7 +2524,8 @@ namespace Roche_Scoreboard
         {
             if (_cricketDisplayWindow != null)
             {
-                if (!_cricketDisplayWindow.IsVisible) _cricketDisplayWindow.Show();
+                if (!_outputActivationRequired && !_cricketDisplayWindow.IsVisible) _cricketDisplayWindow.Show();
+                CricketControlPanelView.SetOperatorOutputVisible(_cricketDisplayWindow.IsVisible);
                 return;
             }
             if (_cricketScorebug == null) return;
@@ -2342,12 +2561,18 @@ namespace Roche_Scoreboard
             if (savedCricket is not null)
                 WindowLayoutStorage.Apply(_cricketDisplayWindow, savedCricket);
 
+            var cricketOutput = _cricketDisplayWindow;
+            WindowLayoutStorage.WindowLayout? cricketClosingLayout = null;
+            cricketOutput.Closing += (_, _) => cricketClosingLayout = WindowLayoutStorage.Capture(cricketOutput);
             _cricketDisplayWindow.Closed += (_, __) =>
             {
+                if (!ReferenceEquals(_cricketDisplayWindow, cricketOutput)) return;
+                RememberClosedOutput(cricketOutput, WindowLayoutStorage.CricketDisplayKey, cricketClosingLayout);
                 // A closed Window still owns its children. Detach the reusable
                 // scorebug and summary before the operator reopens the display.
-                container.Children.Clear();
+                CricketControlPanelView.ClearOverlayHost(overlays);
                 overlays.Dispose();
+                container.Children.Clear();
                 _cricketDisplayWindow = null;
                 UpdateWindowToggleVisual();
             };
@@ -2367,7 +2592,15 @@ namespace Roche_Scoreboard
                 source.AddHook(CricketDisplayWndProc);
             };
 
-            _cricketDisplayWindow.Show();
+            _cricketDisplayWindow.IsVisibleChanged += (_, _) =>
+            {
+                bool visible = _cricketDisplayWindow?.IsVisible == true;
+                overlays.SetOutputActive(visible);
+                CricketControlPanelView.SetOperatorOutputVisible(visible);
+            };
+            overlays.SetOutputActive(false);
+            if (!_outputActivationRequired) _cricketDisplayWindow.Show();
+            CricketControlPanelView.SetOperatorOutputVisible(_cricketDisplayWindow.IsVisible);
             UpdateWindowToggleVisual();
         }
 
@@ -2375,6 +2608,7 @@ namespace Roche_Scoreboard
         {
             if (target == "window")
             {
+                _outputActivationRequired = false;
                 EnsureCricketDisplayWindow();
                 return;
             }
@@ -2385,6 +2619,7 @@ namespace Roche_Scoreboard
 
         private void OnCricketMatchChanged()
         {
+            RefreshHomeCurrentSession();
             QueueCricketGameStateSave();
             PublishCloudSnapshot();
         }
@@ -2457,7 +2692,7 @@ namespace Roche_Scoreboard
             }
 
             _showControlPanelCountdown = r.ClockMode == ClockMode.CountUp && r.ShowControlPanelCountdown;
-            SettingsShowControlPanelCountdown.IsChecked = OperatorWorkflowPreferences.Load().AflControlPanelCountdown;
+            SynchronizeSettingsStoppageToggle(OperatorWorkflowPreferences.Load().AflControlPanelCountdown);
             _controlPanelCountdownRunning = false;
             _controlPanelCountdownDuration = TimeSpan.FromMinutes(r.ControlPanelCountdownMinutes) + TimeSpan.FromSeconds(r.ControlPanelCountdownSeconds);
             if (_controlPanelCountdownDuration <= TimeSpan.Zero)
@@ -2655,6 +2890,12 @@ namespace Roche_Scoreboard
 
         private void RestoreFromSavedState(GameState state)
         {
+            if (RecoverySession.Describe(state) is null) return;
+            InvalidateStoppageEditor();
+            _homeReturn.Clear();
+            SportSelectionPanel.SetCurrentSession(null);
+            _outputActivationRequired = true;
+            foreach (var output in OutputWindows()) output.Hide();
             if (state.CricketMatchState is not null || string.Equals(state.Sport, "cricket", StringComparison.OrdinalIgnoreCase))
             {
                 RestoreCricketFromSavedState(state);
@@ -2724,7 +2965,7 @@ namespace Roche_Scoreboard
             UpdateSettingsFinalsCardVisuals();
             _weatherLocation = state.WeatherLocation;
             _showControlPanelCountdown = state.ShowControlPanelCountdown && _match.ClockMode == ClockMode.CountUp;
-            SettingsShowControlPanelCountdown.IsChecked = state.ShowControlPanelCountdown;
+            SynchronizeSettingsStoppageToggle(state.ShowControlPanelCountdown);
             _controlPanelCountdownRunning = false;
             _controlPanelCountdownDuration = state.ControlPanelCountdownDurationSeconds > 0
                 ? TimeSpan.FromSeconds(state.ControlPanelCountdownDurationSeconds)
@@ -2792,7 +3033,7 @@ namespace Roche_Scoreboard
             _sportMode = SportMode.AFL;
             _aflMatchReady = true;
             EnsureScoreboardWindow();
-            if (_displayWindow is { IsVisible: false }) _displayWindow.Show();
+            if (!_outputActivationRequired && _displayWindow is { IsVisible: false }) _displayWindow.Show();
             if (_scorebug is not null)
                 SwitchToScreen(_scorebug, "Live Scorebug");
 
@@ -2829,7 +3070,7 @@ namespace Roche_Scoreboard
         {
             if (_displayWindow != null)
             {
-                if (!_displayWindow.IsVisible) _displayWindow.Show();
+                if (!_outputActivationRequired && !_displayWindow.IsVisible) _displayWindow.Show();
                 return;
             }
 
@@ -2846,7 +3087,7 @@ namespace Roche_Scoreboard
             _breakScreen.SetFinalsMode(_finalsMode);
             _scoreworm = new ScorewormControl { Visibility = Visibility.Collapsed };
             _statsScreen = new StatsScreenControl { Visibility = Visibility.Collapsed };
-            _videoPlayer = new VideoPlayerControl { Visibility = Visibility.Collapsed };
+            _videoPlayer = new VideoPlayerControl { Visibility = Visibility.Collapsed,Volume=VideoTabVolumeSlider?.Value??1,IsMuted=_videoAudioMuted };
             _weatherScreen = new WeatherScreenControl { Visibility = Visibility.Collapsed };
 
             _displayContainer = new Grid { ClipToBounds = true };
@@ -2955,8 +3196,14 @@ namespace Roche_Scoreboard
                     outputDefaults.OutputWindowHeight);
             }
 
+            var aflOutput = _displayWindow;
+            WindowLayoutStorage.WindowLayout? aflClosingLayout = null;
+            aflOutput.Closing += (_, _) => aflClosingLayout = WindowLayoutStorage.Capture(aflOutput);
             _displayWindow.Closed += (_, __) =>
             {
+                if (!ReferenceEquals(_displayWindow, aflOutput)) return;
+                _videoAudioMuted=_videoPlayer?.IsMuted??_videoAudioMuted;
+                RememberClosedOutput(aflOutput, WindowLayoutStorage.AflDisplayKey, aflClosingLayout);
                 // Invalidate callbacks tied to the old display controls before
                 // their references are cleared. A late storyboard or VLC event
                 // must not complete an animation on a newly opened output.
@@ -3014,11 +3261,12 @@ namespace Roche_Scoreboard
                 source.AddHook(DisplayWndProc);
             };
 
-            _displayWindow.Show();
+            if (!_outputActivationRequired) _displayWindow.Show();
             PushAllToScoreboard();
             UpdateWindowToggleVisual();
 
             AnimationRadio_Changed(this, new RoutedEventArgs());
+            UpdateVideoTabMuteButtonIcon();
         }
 
         private void RestoreCricketFromSavedState(GameState state)
@@ -3087,9 +3335,11 @@ namespace Roche_Scoreboard
 
         }
 
-        private void PushAllToScoreboard()
+        private void PushAllToScoreboard() => PopulateScorebugState(includeHidden: false);
+
+        private void PopulateScorebugState(bool includeHidden)
         {
-            if (_scorebug == null || _displayWindow == null || !_displayWindow.IsVisible) return;
+            if (_scorebug == null || _displayWindow == null || (!includeHidden && !_displayWindow.IsVisible)) return;
 
             _scorebug.SetTeams(_match.HomeName, _match.HomeAbbr, _match.AwayName, _match.AwayAbbr);
             _scorebug.SetLayout(LayoutExpandedRadio?.IsChecked == true
@@ -3118,7 +3368,12 @@ namespace Roche_Scoreboard
             _scorebug.SetHideTeamNames(_hideTeamNames);
             _scorebug.SetWeatherLocation(_weatherLocation);
 
-            PushClockToScoreboard();
+            if (_displayWindow.IsVisible) PushClockToScoreboard();
+            else
+            {
+                var clock = _match.DisplayClock;
+                _scorebug.SetClock($"{(int)clock.TotalMinutes:D2}:{clock.Seconds:D2}");
+            }
         }
 
         private void PushClockToScoreboard()
@@ -3272,6 +3527,26 @@ namespace Roche_Scoreboard
             UpdateLogoCropSummaryText();
         }
 
+        // A single-team logo edit must not erase the other team's framing.
+        // Keep ResetLogoCropState for genuine two-team/new-match resets.
+        private void ResetHomeLogoCropState()
+        {
+            _homeLogoZoom = 1.0;
+            _homeLogoOffsetX = 0;
+            _homeLogoOffsetY = 0;
+            SyncLogoCropControlsFromState();
+            UpdateLogoCropSummaryText();
+        }
+
+        private void ResetAwayLogoCropState()
+        {
+            _awayLogoZoom = 1.0;
+            _awayLogoOffsetX = 0;
+            _awayLogoOffsetY = 0;
+            SyncLogoCropControlsFromState();
+            UpdateLogoCropSummaryText();
+        }
+
         private void SyncLogoCropControlsFromState()
         {
             if (HomeLogoZoomSlider == null || AwayLogoZoomSlider == null) return;
@@ -3345,8 +3620,10 @@ namespace Roche_Scoreboard
         private void ShowScoreboard_Click(object sender, RoutedEventArgs e)
         {
             SetSelectedPreview("presentation:window");
-            EnsureScoreboardWindow();
-            _displayWindow?.Activate();
+            EnableOperatorOutput();
+            if (_sportMode == SportMode.Cricket) _cricketDisplayWindow?.Activate();
+            else if (_sportMode == SportMode.Training) _trainingDisplayWindow?.Activate();
+            else _displayWindow?.Activate();
         }
 
         // ----------------------------
@@ -3407,6 +3684,7 @@ namespace Roche_Scoreboard
 
         private void ShowOutputScreensaver(bool manualSelection)
         {
+            if (_outputActivationRequired) return;
             if (!manualSelection && !_screensaverEnabled)
             {
                 if (!_aflMatchReady && _cricketMatch is null && _trainingSession is null)
@@ -3521,52 +3799,7 @@ namespace Roche_Scoreboard
             ((TranslateTransform)entry.RenderTransform).BeginAnimation(TranslateTransform.XProperty, slideIn);
         }
 
-        /// <summary>
-        /// Animates the Start/Pause button and status badge when the clock state changes.
-        /// Provides a scale pulse and opacity flash to confirm the state transition to the operator.
-        /// </summary>
-        private void AnimateClockStateChange()
-        {
-            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-            var backEase = new BackEase { Amplitude = 0.2, EasingMode = EasingMode.EaseOut };
 
-            // Status badge: quick scale pulse
-            if (StatusBadge.RenderTransform is not ScaleTransform badgeSc)
-            {
-                StatusBadge.RenderTransformOrigin = new Point(0.5, 0.5);
-                StatusBadge.RenderTransform = badgeSc = new ScaleTransform(1, 1);
-            }
 
-            badgeSc.BeginAnimation(ScaleTransform.ScaleXProperty,
-                new DoubleAnimation(1.12, 1.0, TimeSpan.FromMilliseconds(280)) { EasingFunction = backEase });
-            badgeSc.BeginAnimation(ScaleTransform.ScaleYProperty,
-                new DoubleAnimation(1.12, 1.0, TimeSpan.FromMilliseconds(280)) { EasingFunction = backEase });
-
-            // Status badge: opacity flash
-            StatusBadge.BeginAnimation(OpacityProperty,
-                new DoubleAnimation(0.6, 1.0, TimeSpan.FromMilliseconds(300)) { EasingFunction = ease });
-
-            // Score displays: subtle pulse to acknowledge state change is registered
-            PulseElement(HomeScoreDisplay, 180);
-            PulseElement(AwayScoreDisplay, 180);
-        }
-
-        /// <summary>
-        /// Quick scale pulse on a text element to acknowledge a state change.
-        /// </summary>
-        private static void PulseElement(FrameworkElement element, int durationMs)
-        {
-            if (element.RenderTransform is not ScaleTransform sc)
-            {
-                element.RenderTransformOrigin = new Point(0.5, 0.5);
-                element.RenderTransform = sc = new ScaleTransform(1, 1);
-            }
-
-            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-            sc.BeginAnimation(ScaleTransform.ScaleXProperty,
-                new DoubleAnimation(1.04, 1.0, TimeSpan.FromMilliseconds(durationMs)) { EasingFunction = ease });
-            sc.BeginAnimation(ScaleTransform.ScaleYProperty,
-                new DoubleAnimation(1.04, 1.0, TimeSpan.FromMilliseconds(durationMs)) { EasingFunction = ease });
-        }
     }
 }

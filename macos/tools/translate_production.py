@@ -41,6 +41,44 @@ OBJECTS = {'LinearGradientBrush', 'RadialGradientBrush', 'SolidColorBrush', 'Gra
 def relative(v):
     return ','.join(f'{float(n) * 100:g}%' for n in v.split(','))
 
+def native_control_size_binding(value):
+    """Map the outer binding path while preserving quoted/nested arguments."""
+    if not value.startswith('{Binding') or not value.endswith('}'):
+        return value
+    if len(value) > 8 and not (value[8].isspace() or value[8] in ',}'):
+        return value
+    body = value[8:-1]
+    parts, start, depth, quote, escaped = [], 0, 0, None, False
+    for index, char in enumerate(body):
+        if escaped:
+            escaped = False
+            continue
+        if char == '\\':
+            escaped = True
+            continue
+        if quote:
+            if char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char == '{':
+            depth += 1
+        elif char == '}':
+            depth -= 1
+        elif char == ',' and depth == 0:
+            parts.append(body[start:index])
+            start = index + 1
+    if quote or depth != 0:
+        return value
+    parts.append(body[start:])
+    for index, part in enumerate(parts):
+        match = re.fullmatch(r'(\s*Path\s*=\s*)(ActualWidth|ActualHeight)(\s*)', part)
+        if match is None and index == 0:
+            match = re.fullmatch(r'(\s*)(ActualWidth|ActualHeight)(\s*)', part)
+        if match:
+            parts[index] = match[1] + 'Bounds.' + match[2].removeprefix('Actual') + match[3]
+    return '{Binding' + ','.join(parts) + '}'
+
 def translate_markup(name):
     source = SRC / f'{name}.xaml' if '/' in name or name == 'MainWindow' else SRC / 'Views' / f'{name}.xaml'
     namespace_aliases = dict(value for event, value in ET.iterparse(source, events=['start-ns']))
@@ -247,6 +285,10 @@ def translate_markup(name):
                 e.set(prop, '{TemplateBinding ' + prop + '}')
             e.set('Value', '{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}')
         if tag == 'ContentPresenter' and id(e) in inside_template:
+            if parents.get(e) is not None and parents[e].get(f'{{{X}}}Name') == 'CorrectionSectionHeader':
+                # Avalonia distinguishes the presenter bounds from alignment
+                # of its content; WPF's stretched presenter fills this header.
+                e.set('HorizontalContentAlignment', 'Stretch')
             ancestor=parents.get(e)
             while ancestor is not None and not ancestor.tag.endswith('}ControlTemplate'): ancestor=parents.get(ancestor)
             if ancestor is not None and ancestor.get('TargetType') == 'MenuItem':
@@ -272,6 +314,16 @@ def translate_markup(name):
         if tag == 'Popup' and name == 'DesignSystem/Components' and identifier == 'popup':
             e.set(f'{{{PORT}}}ProductionNames.TemplateId', identifier)
             e.set(f'{{{X}}}Name', 'PART_Popup')
+        if tag == 'Popup' and re.fullmatch(r'\{TemplateBinding\s+IsDropDownOpen\s*\}', e.get('IsOpen', '')):
+            template = parents.get(e)
+            while template is not None and not template.tag.endswith('}ControlTemplate'):
+                template = parents.get(template)
+            if template is not None and template.get('TargetType') in {'ComboBox', '{x:Type ComboBox}'}:
+                # Avalonia closes the Popup directly on pointer selection.
+                # Its ComboBox state must receive that close, as in Fluent's
+                # native template. Explicit source modes stay intentional.
+                e.set('IsOpen', '{TemplateBinding IsDropDownOpen, Mode=TwoWay}')
+                changes.append({'name': identifier, 'property': 'IsOpen', 'translation': 'Native ComboBox popup closure synchronizes dropdown state'})
         if tag == 'Style' and 'Selector' not in e.attrib:
             target_type = e.get('TargetType')
             if not any(child.get('Property') == 'Template' for child in e if child.tag.endswith('}Setter')) and target_type in {'Button', 'CheckBox', 'RadioButton', 'Slider', 'TextBox', 'ComboBox', 'ComboBoxItem', 'ListBox', 'ListBoxItem', 'TabControl', 'TabItem', 'ScrollViewer', 'ToggleButton'}:
@@ -300,6 +352,10 @@ def translate_markup(name):
                 e.set('CommandParameter','{Binding RelativeSource={RelativeSource AncestorType='+('ScrollBar' if value.startswith('ScrollBar.') else 'Slider')+'}}')
             if key=='Property' and value=='Command' and e.get('Value','').startswith(('ScrollBar.','Slider.')):
                 e.set('Value','{x:Static native:NativeRangeCommands.'+e.get('Value').split('.')[-1]+'}')
+        if e.attrib.pop('Typography.NumeralAlignment', None) == 'Tabular':
+            e.set('FontFeatures', 'tnum,lnum,-kern')
+        e.attrib.pop('Typography.NumeralStyle', None)
+        e.attrib.pop('Typography.Kerning', None)
         check_both = 'Checked' in e.attrib and e.get('Checked') == e.get('Unchecked')
         for key, value in list(e.attrib.items()):
             local = key.rsplit('}', 1)[-1]
@@ -452,6 +508,16 @@ def translate_markup(name):
                 changes.append({'name': identifier, 'property': local, 'source': value})
     for node in root.iter():
         for key,value in list(node.attrib.items()):
+            original_value = value
+            if node.tag.endswith('}Binding') and key == 'Path' and value in {'ActualWidth', 'ActualHeight'}:
+                value = 'Bounds.' + value.removeprefix('Actual')
+            elif value.startswith('{Binding'):
+                # Rewrite only the binding path, never text, ElementName or
+                # ConverterParameter. WPF ActualWidth/Height are Avalonia's
+                # arranged Bounds dimensions, including template ancestors.
+                value = native_control_size_binding(value)
+            if value != original_value:
+                changes.append({'name': node.get(f'{{{X}}}Name'), 'property': key, 'source': original_value, 'translation': 'Arranged control Bounds dimension binding'})
             value=value.replace('#PageBefore','#PART_DecreaseButton').replace('#PageAfter','#PART_IncreaseButton')
             value=value.replace('InputGestureText','InputGesture').replace('IsSubmenuOpen','IsSubMenuOpen')
             if node.tag.endswith('}Setter') and key=='Value' and value=='Auto':value='NaN'
@@ -484,6 +550,11 @@ def translate_markup(name):
     return fields + sorted(set(wrappers))
 
 REPLACEMENTS = {
+    # Consume the complete qualified enum token before namespace/member maps;
+    # a surviving global:: prefix would otherwise produce invalid global::true.
+    'global::System.Windows.Visibility.Visible': 'true',
+    'global::System.Windows.Visibility.Collapsed': 'false',
+    'global::System.Windows.Visibility.Hidden': 'false',
     'System.Windows.Media.Imaging': 'Avalonia.Media.Imaging',
     'System.Windows.Shapes': 'Avalonia.Controls.Shapes',
     'System.Windows.Documents': 'Avalonia.Controls.Documents',
@@ -639,7 +710,63 @@ def native_text_contract(code):
     parts.append(reads(code[offset:]))
     return ''.join(parts).replace('SearchBox?.Text.Trim()', '(SearchBox?.Text ?? string.Empty).Trim()')
 
+def native_absolute_brush_viewboxes(code):
+    """Keep adjacent explicit pixel viewboxes in pixel units, including nested Rect arguments."""
+    pattern = re.compile(r'ViewboxUnits\s*=\s*(?:[\w.]+\.)?BrushMappingMode\.Absolute\s*,\s*Viewbox\s*=\s*(new\s+Rect\s*\()')
+    edits = []
+    for match in pattern.finditer(code):
+        depth, end = 1, match.end()
+        while end < len(code) and depth:
+            if code[end] == '(':
+                depth += 1
+            elif code[end] == ')':
+                depth -= 1
+            end += 1
+        if depth == 0:
+            rectangle = code[match.start(1):end]
+            edits.append((match.start(), end, f'SourceRect = new RelativeRect({rectangle}, RelativeUnit.Absolute)'))
+    for start, end, replacement in reversed(edits):
+        code = code[:start] + replacement + code[end:]
+    return code
+
+
+def native_glass_brush_reads(code):
+    """Accept immutable native brushes at the renderer's read-only WPF sites.
+
+    Keep construction/mutation concrete and preserve literal/comment payloads.
+    These finite lexical boundaries are not a general C# parser.
+    """
+    tokens = re.compile(r'//[^\n]*|/\*[\s\S]*?\*/|@"(?:""|[^"])*"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
+    masked = tokens.sub(lambda match: ' ' * len(match.group()), code)
+    if not re.search(r'\bclass\s+OperatorGlassSurface\b', masked):
+        return code
+    replacements = (
+        ('Background is SolidColorBrush {', 'Background is ISolidColorBrush {'),
+        ('BorderBrush is SolidColorBrush {', 'BorderBrush is ISolidColorBrush {'),
+        ('is SolidColorBrush surface && surface.Color.R>180', 'is ISolidColorBrush surface && surface.Color.R>180'),
+        ('SolidColorBrush solid => solid.Color', 'ISolidColorBrush solid => solid.Color'),
+        ('GradientBrush gradient when gradient.GradientStops.Count > 0 => gradient.GradientStops[0].Color',
+         'IGradientBrush gradient when gradient.GradientStops.Count > 0 => gradient.GradientStops[0].Color'),
+        ('is SolidColorBrush opaque)colour=opaque.Color', 'is ISolidColorBrush opaque)colour=opaque.Color'),
+        ('owner.GetValue(TextBlock.ForegroundProperty) as SolidColorBrush',
+         'owner.GetValue(TextBlock.ForegroundProperty) as ISolidColorBrush'),
+    )
+    def reads(segment):
+        for old, new in replacements:
+            segment = segment.replace(old, new)
+        return segment
+    parts, offset = [], 0
+    for match in tokens.finditer(code):
+        parts.extend((reads(code[offset:match.start()]), match.group()))
+        offset = match.end()
+    parts.append(reads(code[offset:]))
+    return ''.join(parts)
+
+
 def map_native_api(code):
+    # Avalonia reports Alt-modified keys directly; WPF's SystemKey fallback is
+    # not a member of its KeyEventArgs. Handle the shared idiom in all partials.
+    code = re.sub(r'(?P<arg>[A-Za-z_]\w*)\.Key\s*==\s*Key\.System\s*\?\s*(?P=arg)\.SystemKey\s*:\s*(?P=arg)\.Key\b', r'\g<arg>.Key', code)
     code = code.replace('using Window = NativeWindow;', 'using Window = RocheScoreboard.Mac.Native.NativeWindow;')
     code = code.replace('using SystemColors = NativeSystemColors;', 'using SystemColors = RocheScoreboard.Mac.Native.NativeSystemColors;')
     code = code.replace('using Cursors = NativeCursors;', 'using Cursors = RocheScoreboard.Mac.Native.NativeCursors;').replace('using Cursors=NativeCursors;', 'using Cursors=RocheScoreboard.Mac.Native.NativeCursors;')
@@ -647,6 +774,7 @@ def map_native_api(code):
     if 'IMultiValueConverter' in code:
         code = code.replace('Convert(object[] values,', 'Convert(IList<object?> values,').replace('values.Length', 'values.Count')
     if 'class OperatorGlassSurface' in code:
+        code = native_glass_brush_reads(code)
         code = code.replace('class OperatorGlassSurface : Border', 'class OperatorGlassSurface : NativePaintBorder')
         code = code.replace('_materialVisual.Effect is OperatorGlassEffect', 'false')
         code = re.sub(r'_materialVisual.Effect = !ForceFallback[^;]+;', '_materialVisual.Effect = null;', code)
@@ -661,6 +789,9 @@ def map_native_api(code):
     code = re.sub(r'(\w+)\.CacheMode\b', r'NativeCache.Get(\1)', code)
     code = re.sub(r'\bCacheMode\b', 'NativeCacheMode', code).replace('new BitmapCache(', 'new NativeBitmapCache(')
     code = code.replace('System.IO.FileFormatException', 'System.IO.InvalidDataException')
+    code = re.sub(r'\bAvalonia\.Media\.Effect\b','Avalonia.Media.IEffect',code)
+    code = re.sub(r'Avalonia.Controls.Documents.Typography.SetNumeralAlignment\((\w+),FontNumeralAlignment.Tabular\);',
+        r'\1.FontFeatures=new FontFeatureCollection { FontFeature.Parse("tnum"), FontFeature.Parse("lnum"), FontFeature.Parse("-kern") };',code)
     code = code.replace('Binding.DoNothing', 'Avalonia.Data.BindingOperations.DoNothing')
     code = code.replace('RenderSize', 'Bounds.Size')
     code = re.sub(r'(?<![.\w])SetResourceReference\(', 'this.SetResourceReference(', code)
@@ -674,9 +805,10 @@ def map_native_api(code):
     code = code.replace('MouseEnter +=', 'PointerEntered +=').replace('MouseLeave +=', 'PointerExited +=')
     code = code.replace('Avalonia.Input.MouseEventHandler', 'EventHandler<Avalonia.Input.PointerEventArgs>')
     code = code.replace('RoutedEventHandler', 'EventHandler<RoutedEventArgs>').replace('MouseButtonEventHandler', 'EventHandler<Avalonia.Input.PointerPressedEventArgs>')
-    code = code.replace('Viewbox = new Rect(location, new Size(width,height))', 'SourceRect = new RelativeRect(new Rect(location, new Size(width,height)), RelativeUnit.Absolute)')
+    code = native_absolute_brush_viewboxes(code)
     code = code.replace('PixelFormats.Pbgra32', 'PixelFormats.Bgra32').replace('Rect.Empty', 'default(Rect)')
     code = code.replace('ScrollToTop()', 'ScrollToHome()')
+    code = re.sub(r'\b(\w+)\?\.VerticalOffset\b', r'\1?.Offset.Y', code)
     code = re.sub(r'\b(\w+)\.VerticalOffset\b', r'\1.Offset.Y', code)
     code = code.replace('.ViewportWidthChange', '.ViewportDelta.X').replace('.ViewportHeightChange', '.ViewportDelta.Y').replace('.ExtentHeightChange', '.ExtentDelta.Y').replace('.ExtentWidthChange', '.ExtentDelta.X').replace('.VerticalChange', '.OffsetDelta.Y').replace('.HorizontalChange', '.OffsetDelta.X')
     code = re.sub(r'(?<![.\w])ViewportWidth\b', 'Viewport.Width', code)
@@ -720,6 +852,7 @@ def map_native_api(code):
     code = re.sub(r'RenderOptions.SetCachingHint\([^;]+;', '', code)
     code = code.replace('new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Slider), 1)', 'new RelativeSource(RelativeSourceMode.FindAncestor){AncestorType=typeof(Slider),AncestorLevel=1}')
     code = code.replace('ToolTipService.IsEnabledProperty', 'NativeToolTipPolicy.EnabledProperty')
+    code = code.replace('Avalonia.Controls.ToolTipService.SetShowOnDisabled(', 'Avalonia.Controls.ToolTip.SetShowOnDisabled(')
     code = code.replace('Avalonia.Controls.TemplatedControl', 'Avalonia.Controls.Primitives.TemplatedControl')
     code = code.replace('ControlFactory', 'NativeElementFactory')
     code = re.sub(r'\bRenderTargetBitmap\b', 'NativeRenderTargetBitmap', code)
@@ -744,6 +877,8 @@ def map_native_api(code):
     code = re.sub(r'StrokeLineCap\s*=\s*PenLineCap.Round\s*,\s*StrokeLineCap\s*=\s*PenLineCap.Round', 'StrokeLineCap = PenLineCap.Round', code)
     code = code.replace('Avalonia.Controls.Control.BackgroundProperty','Avalonia.Controls.Primitives.TemplatedControl.BackgroundProperty')
     code = code.replace('new DispatcherTimer(DispatcherPriority.Background)', 'new DispatcherTimer()').replace('new DispatcherTimer(DispatcherPriority.Input)', 'new DispatcherTimer()')
+    code = re.sub(r'\b(\w+)\?\.IsMouseCaptureWithin\b',
+                  r'(\1 is null ? (bool?)null : NativePointer.IsCaptureWithin(\1))',code)
     code = re.sub(r'(\w+)\.IsMouseCaptureWithin',r'NativePointer.IsCaptureWithin(\1)',code)
     code = code.replace('if (!brush.IsFrozen) brush.Freeze();', 'brush.Freeze();')
     code = code.replace('Point _originalOrigin', 'RelativePoint _originalOrigin')
@@ -831,6 +966,10 @@ def map_native_api(code):
     code = code.replace('Avalonia.MessageBox', 'NativeMessageBox').replace('MessageBoxButton.', 'NativeMessageBoxButton.').replace('MessageBoxImage.', 'NativeMessageBoxImage.')
     code = re.sub(r'(?<![\w.])SystemParameters.WorkArea', 'NativeDesktop.WorkArea', code)
     code = re.sub(r'(\w+)\.CaptureMouse\(\)', r'NativePointer.Capture(\1)', code)
+    if 'private void ScrubMove(' in code and 'class OperatorSegmentedPanel' in code:
+        code = code.replace('NativePointer.Capture(this)', 'NativePointer.Capture(this,args)')
+        for source, native, handler in [('PreviewMouseLeftButtonDown','PointerPressed','ScrubDown'), ('PreviewMouseMove','PointerMoved','ScrubMove'), ('PreviewMouseLeftButtonUp','PointerReleased','ScrubUp'), ('PreviewKeyDown','KeyDown','ScrubKey')]:
+            code = code.replace(f'this.{source} += {handler};', f'this.AddHandler(Avalonia.Input.InputElement.{native}Event, {handler}, Avalonia.Interactivity.RoutingStrategies.Tunnel, handledEventsToo: true);')
     code = re.sub(r'(\w+)\.ReleaseMouseCapture\(\)', r'NativePointer.Release(\1)', code)
     code = re.sub(r'(\w+)\.LeftButton != MouseButtonState.Pressed', r'!\1.GetCurrentPoint(null).Properties.IsLeftButtonPressed', code)
     code = re.sub(r'(\w+)\.LeftButton == MouseButtonState.Pressed', r'\1.GetCurrentPoint(null).Properties.IsLeftButtonPressed', code)
@@ -924,6 +1063,8 @@ def map_native_api(code):
     code = code.replace('args.NewFocus','args.Source').replace('args.OldFocus','args.Source')
     code = code.replace('PreviewKeyDown +=', 'KeyDown +=')
     code = code.replace('PropertyPath =', 'PropertyPath =')
+    code = re.sub(r'selection.SetBinding\(OperatorChoiceSurface.ProgressProperty,new Avalonia.Data.Binding\s*\{ Source=item,Path=new PropertyPath\(OperatorChoiceMotion.ProgressProperty\) \}\);',
+        'selection.Bind(OperatorChoiceSurface.ProgressProperty,item.GetObservable(OperatorChoiceMotion.ProgressProperty));',code)
     code = code.replace('Dispatcher.UIThread.Post(new Action(() => { _refresh', 'Dispatcher.UIThread.InvokeAsync(new Action(() => { _refresh')
     code = code.replace('DispatcherPriority.Render', 'DispatcherPriority.Background')
     code = code.replace('new ImageBrush(', 'new NativeImageBrush(')
@@ -1019,7 +1160,7 @@ def map_native_api(code):
     code = code.replace('new ResourceDictionary { Source = new Uri("/Roche Scoreboard;component/Resources/OperatorControls.xaml", UriKind.Relative) }','NativeAssets.Dictionary("OperatorControls")')
     code = code.replace('surface.RenderTransformOrigin=new Avalonia.Point(Math.Clamp(origin.X/surface.NativeWidth(),.12,.88),Math.Clamp(origin.Y/surface.NativeHeight(),.08,.92))','surface.RenderTransformOrigin=new RelativePoint(Math.Clamp(origin.X/surface.NativeWidth(),.12,.88),Math.Clamp(origin.Y/surface.NativeHeight(),.08,.92),RelativeUnit.Relative)')
     code = code.replace('_surface.RenderTransformOrigin = Origin()', '_surface.RenderTransformOrigin = new RelativePoint(Origin(),RelativeUnit.Relative)')
-    code = code.replace('args.IsRepeat', 'NativeKeyboard.IsRepeated(args)')
+    code = code.replace('args.IsRepeat', 'NativeKeyboard.IsRepeated(args)').replace('e.IsRepeat', 'NativeKeyboard.IsRepeated(e)')
     code = code.replace('NativeswipeText', 'swipeText')
     code = re.sub(r'if \(previousStatus[^\n]*AutomationPeer.ListenerExists[^\n]*\)\s*\{.*?peer\?.RaiseAutomationEvent\([^;]+;\s*\}', 'Avalonia.Automation.AutomationProperties.SetLiveSetting(_scorecardStatus,Avalonia.Automation.AutomationLiveSetting.Polite);',code,flags=re.S)
     code = code.replace('ToolTip.OpenedEvent','Control.LoadedEvent')
@@ -1037,7 +1178,37 @@ def map_native_api(code):
     code=code.replace('new NativeDrawingContext(nativeContext)', 'new NativeDrawingContext(nativeContext,Bounds.Size)')
     code = re.sub(r'((?:public|private|internal|protected) static readonly )AvaloniaProperty(\s+\w+\s*=\s*)NativeProperty.(Register(?:Attached)?)\(([^\n]*?typeof\(([^)]+)\))',lambda m:m[1]+'AttachedProperty<'+m[5]+'>'+m[2]+'(AttachedProperty<'+m[5]+'>)NativeProperty.'+m[3]+'('+m[4],code)
     code = re.sub(r'((?:public|private|internal|protected) static readonly )AvaloniaProperty(\s+\w+\s*=\s*)NativeProperty.(Register(?:Attached)?)\(\s*("[^"\n]+"|nameof\(\w+\))\s*,\s*typeof\(([^)]+)\)',lambda m:m[1]+'AttachedProperty<'+m[5]+'>'+m[2]+'(AttachedProperty<'+m[5]+'>)NativeProperty.'+m[3]+'('+m[4]+',typeof('+m[5]+')',code)
+    # WPF's untyped dependency property permits a nullable brush wrapper. Keep
+    # that reference annotation on Avalonia's typed property and cast as well;
+    # typeof(Brush), metadata/default and runtime registration stay unchanged.
+    # Do not infer this for value types: T? would change their runtime generic.
+    for brush_type, property_name in re.findall(r'\bpublic\s+(Brush|IBrush)\?\s+(\w+)\s*\{', code):
+        field = re.escape(property_name + 'Property')
+        pattern = r'AttachedProperty<' + brush_type + r'>(\s+' + field + r'\s*=\s*\(AttachedProperty<)' + brush_type + r'(>\))'
+        code = re.sub(pattern, lambda m: 'AttachedProperty<' + brush_type + '?>' + m[1] + brush_type + '?' + m[2], code)
     code = code.replace('AvaloniaProperty HasQueryProperty = HasQueryPropertyKey.DependencyProperty','AttachedProperty<bool> HasQueryProperty = (AttachedProperty<bool>)HasQueryPropertyKey.DependencyProperty')
+    if re.search(r'\bclass\s+TrainingControlPanel\b', code):
+        # This owner must observe repeated decision keys BEFORE its textbox's
+        # bubbling Enter handler. Keep WPF PreviewKeyDown's tunnel semantics,
+        # without broadening the existing mapping for other panels/handlers.
+        code = re.sub(r'(?m)^(?P<indent>[ \t]*)(?:this\.)?(?:Preview)?KeyDown\s*\+=\s*OnPanelPreviewKeyDown\s*;',
+            lambda match: match['indent'] + 'AddHandler(Avalonia.Input.InputElement.KeyDownEvent, OnPanelPreviewKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);', code)
+    if 'class OperatorControlMotion' in code:
+        # WPF Preview handlers observe input before a native CheckBox handles
+        # it. Plain Avalonia event subscriptions bubble and miss those presses.
+        # Preserve the original feedback-only observers, including exact removal.
+        for event, handler in [('PointerPressed', 'Down'), ('PointerReleased', 'Up'), ('KeyDown', 'KeyDown'), ('KeyUp', 'KeyUp')]:
+            code = code.replace(f'control.{event} += {handler};', f'control.AddHandler(Avalonia.Input.InputElement.{event}Event, {handler}, Avalonia.Interactivity.RoutingStrategies.Tunnel, handledEventsToo: true);')
+            code = code.replace(f'c.{event} -= {handler};', f'c.RemoveHandler(Avalonia.Input.InputElement.{event}Event, {handler});')
+        for handler, update in [('Down', 'LeftButtonPressed'), ('Up', 'LeftButtonReleased')]:
+            pattern = r'(private void ' + handler + r'\(object\?? sender, PointerEventArgs e\)\s*\{)'
+            code = re.sub(pattern, lambda m: m[1] + f'if(e.GetCurrentPoint(_control).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.{update})return;', code)
+    if any('class ' + name in code for name in ('OperatorChoiceMotion', 'OperatorControlMotion', 'OperatorSymbol')):
+        # These WPF motion owners read effective visibility, not Avalonia's
+        # local IsVisible flag. Keep local Visibility assignments untouched.
+        code = re.sub(r'\b(_control|button|this)\.IsVisible\b(?!\s*=(?!=))', r'NativeEffectiveVisibility.IsVisible(\1)', code)
+        code = re.sub(r'(?<![\w.])IsVisible\b(?!\s*=(?!=))', 'NativeEffectiveVisibility.IsVisible(this)', code)
+        code = code.replace('NativeEvents.WatchProperty(', 'NativeEffectiveVisibility.WatchProperty(')
     if 'class SettingsWorkspace' in code:code=code.replace('public Avalonia.Controls.Controls Sections', '[Avalonia.Metadata.Content] public Avalonia.Controls.Controls Sections')
     code = re.sub(r'(void \w+_(?:PointerCaptureLost|LostFocus)\([^,]+,\s*)(?:Avalonia.Input.)?(?:MouseEventArgs|PointerEventArgs|GotFocusEventArgs)', r'\1RoutedEventArgs', code)
     return code.replace('using SystemColors = NativeSystemColors;', 'using SystemColors = RocheScoreboard.Mac.Native.NativeSystemColors;').replace('using Cursors = NativeCursors;', 'using Cursors = RocheScoreboard.Mac.Native.NativeCursors;').replace('using Cursors=NativeCursors;', 'using Cursors=RocheScoreboard.Mac.Native.NativeCursors;').replace('Avalonia.Controls.Primitives.Avalonia.Input.', 'Avalonia.Input.').replace('NativeNativeWindow', 'NativeWindow').replace('Nativenew ', 'new ').replace('bool Visibility)', 'bool IsVisible)')
@@ -1135,6 +1306,18 @@ def native_auto_update(code):
     code = code.replace('Writes a log to <c>%TEMP%\\Roche_Scoreboard_Update.log</c>', 'Writes a log in the per-user Roche_Scoreboard data directory')
     return code.replace('using SystemColors = NativeSystemColors;', 'using SystemColors = RocheScoreboard.Mac.Native.NativeSystemColors;').replace('using Cursors = NativeCursors;', 'using Cursors = RocheScoreboard.Mac.Native.NativeCursors;').replace('using Cursors=NativeCursors;', 'using Cursors=RocheScoreboard.Mac.Native.NativeCursors;').replace('Avalonia.Controls.Primitives.Avalonia.Input.', 'Avalonia.Input.').replace('NativeNativeWindow', 'NativeWindow').replace('Nativenew ', 'new ').replace('bool Visibility)', 'bool IsVisible)')
 
+def native_window_type_names(code):
+    # Keep the same literal/comment boundaries used by native_text_contract.
+    # A native implementation type is not a replacement for human-facing copy.
+    tokens = re.compile(r'//[^\n]*|/\*[\s\S]*?\*/|@"(?:""|[^"])*"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
+    parts, offset = [], 0
+    for match in tokens.finditer(code):
+        parts.extend((re.sub(r'(?<![\w.])Window\b', 'NativeWindow', code[offset:match.start()]), match.group()))
+        offset = match.end()
+    parts.append(re.sub(r'(?<![\w.])Window\b', 'NativeWindow', code[offset:]))
+    return ''.join(parts)
+
+
 def native_main_window(code):
     # Native output windows provide their own resize borders; the Win32 HWND
     # hooks and DWM frame suppression have no counterpart or purpose on Mac.
@@ -1151,7 +1334,7 @@ def native_main_window(code):
     code = code.replace('MatchSetupTab.ToolTip?.ToString()', 'Avalonia.Controls.ToolTip.GetTip(MatchSetupTab)?.ToString()')
     code = re.sub(r'ViewboxUnits = (?:Avalonia.Media.)?BrushMappingMode.RelativeToBoundingBox,', '', code)
     code = code.replace('ShowActivated = false,', '')
-    code = re.sub(r'(?<![\w.])Window\b', 'NativeWindow', code)
+    code = native_window_type_names(code)
     code = code.replace('Avalonia.Controls.NativeWindow', 'NativeWindow')
     code = re.sub(r'ResizeMode = ResizeMode.\w+,', 'CanResize = true,', code)
     code = code.replace('_retroCrtOverlay.RenderTransform = new ScaleTransform(1, 1, 0, height / 2);', '_retroCrtOverlay.RenderTransformOrigin = new RelativePoint(0, .5, RelativeUnit.Relative);\n        _retroCrtOverlay.RenderTransform = new ScaleTransform(1, 1);')
@@ -1222,9 +1405,23 @@ def translate_support(relative):
     code = code.replace('Brush = Avalonia.Media.Brush;', 'Brush = Avalonia.Media.IBrush;')
     code = re.sub(r'\bAvalonia.Media.Brush\b', 'Avalonia.Media.IBrush', code)
     code = map_native_api(code)
+    if relative == 'Views/SportSelectionScreen.Interactions.cs':
+        # WPF preview observes a press before ButtonBase consumes it. Apply after
+        # generic API mapping so source and portable event names are unambiguous.
+        code=code.replace('action.PointerPressed += (_, _) => { _pressed = true; Engage(true); };',
+            'action.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, (_, e) => { if(e.GetCurrentPoint(action).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonPressed)return; _pressed=true;Engage(true); },Avalonia.Interactivity.RoutingStrategies.Tunnel,true);')
+        code=code.replace('action.PointerReleased += (_, _) => { _pressed = false; Engage(card.IsPointerOver || action.IsKeyboardFocusWithin); };',
+            'action.AddHandler(Avalonia.Input.InputElement.PointerReleasedEvent, (_, e) => { if(e.GetCurrentPoint(action).Properties.PointerUpdateKind != Avalonia.Input.PointerUpdateKind.LeftButtonReleased)return; _pressed=false;Engage(card.IsPointerOver || action.IsKeyboardFocusWithin); },Avalonia.Interactivity.RoutingStrategies.Tunnel,true);')
+        assert 'action.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent' in code, 'Home press adapter did not match its source.'
     code = code.replace('Avalonia.Media.BrushConverter', 'NativeBrushConverter').replace('new BrushConverter()', 'new NativeBrushConverter()')
     if relative == 'Views/OperatorViewport.cs':
         code=code.replace('public class OperatorViewport : ScrollViewer\n{','public class OperatorViewport : ScrollViewer\n{\n    protected override Type StyleKeyOverride=>typeof(ScrollViewer);')
+        # Explicit validation and navigation returns need the nested-viewport pass.
+        # Avalonia's routed BringIntoView can over-scroll a just-unfolded group.
+        code=code.replace('try { target.BringIntoView(); }','try { NativeFocusReveal.Reveal(target); }')
+    if relative == 'Views/OperatorMaterialPreferences.cs':
+        # Current Avalonia event, retaining WPF Checked's true-only semantics.
+        code=code.replace('choice.Checked+=(_,_)=>{','choice.IsCheckedChanged+=(_,_)=>{if(choice.IsChecked!=true)return;')
     if relative == 'Views/CricketControlPanel.Workflows.cs':
         code=native_lineup_drag(code)
     if relative == 'Services/CricketReliabilityChecks.cs':

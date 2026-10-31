@@ -18,6 +18,7 @@ public sealed class TrainingSession
     private readonly Stopwatch _sw = new();
     private TimeSpan _remainingAtLastStart;
     private int _activeIndex;
+    private bool _autoAdvance = true;
 
     public TrainingSession()
     {
@@ -49,7 +50,16 @@ public sealed class TrainingSession
     /// after the current one finishes. When false, the session pauses at the
     /// end of every interval and waits for the operator to press Start.
     /// </summary>
-    public bool AutoAdvance { get; set; } = true;
+    public bool AutoAdvance
+    {
+        get => _autoAdvance;
+        set
+        {
+            if (_autoAdvance == value) return;
+            _autoAdvance = value;
+            Changed?.Invoke();
+        }
+    }
 
     /// <summary>
     /// True once every queued timer has hit zero (i.e. the session is fully
@@ -57,7 +67,7 @@ public sealed class TrainingSession
     /// </summary>
     public bool IsExhausted => _timers.Count > 0 && _activeIndex >= _timers.Count;
 
-    /// <summary>Fires every UI tick while running; useful for live remaining-time UI.</summary>
+    /// <summary>Fires when live state or AutoAdvance changes, and every UI tick while running.</summary>
     public event Action? Changed;
 
     /// <summary>
@@ -85,6 +95,31 @@ public sealed class TrainingSession
     {
         _timers.Add(t);
         RaiseStructural();
+    }
+
+    /// <summary>Validate one operator-created batch before changing the queue.
+    /// Existing active stopwatch/context stays intact; expensive UI rebuilds
+    /// receive one structural notification rather than one per interval.</summary>
+    public bool TryAppendTimers(IEnumerable<TrainingTimer>? timers,out string error)
+    {
+        error="";
+        if(timers is null){error="No intervals were supplied.";return false;}
+        var additions=timers.ToArray();
+        if(additions.Length==0)return true;
+        if(_timers.Any(timer=>timer is null || timer.Duration<TimeSpan.Zero || timer.Remaining<TimeSpan.Zero))
+        {error="Correct the existing timer data before appending intervals.";return false;}
+        var identities=new HashSet<Guid>(_timers.Select(timer=>timer.Id));
+        if(additions.Any(timer=>timer is null || timer.Duration<TimeSpan.Zero || timer.Remaining<TimeSpan.Zero || !identities.Add(timer.Id)))
+        {error="Each interval must be a distinct timer with a non-negative duration.";return false;}
+        try
+        {
+            long duration=0,remaining=0;
+            foreach(var timer in _timers.Concat(additions))
+            {duration=checked(duration+timer.Duration.Ticks);remaining=checked(remaining+timer.Remaining.Ticks);}
+        }
+        catch(OverflowException){error="The combined session duration is too long. Use fewer or shorter intervals.";return false;}
+        foreach(var timer in additions)_timers.Add(timer);
+        RaiseStructural();return true;
     }
 
     public void RemoveTimer(TrainingTimer t)

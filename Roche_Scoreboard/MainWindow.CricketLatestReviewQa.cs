@@ -22,6 +22,14 @@ public partial class MainWindow
         try
         {
             var settings=new GlobalSettingsScreen();window.Content=settings;settings.SetScreensaverPreferences(null,true);await Task.Delay(120);
+            checks["general-settings-exclude-afl-only-controls"] = settings.GeneralSettingsTab.IsChecked == true && !settings.GoalAnimationCombo.IsVisible && !settings.BreakScreenToggle.IsVisible;
+            checks["general-settings-build-identifier-is-selectable-and-explicit"] = settings.BuildInfoBox.IsReadOnly
+                && settings.BuildInfoBox.Text == BuildIdentity.Description && settings.BuildInfoBox.Text.Contains("build ");
+            settings.AflSettingsTab.IsChecked = true; await Task.Delay(120);
+            checks["afl-settings-include-goal-and-quarter-break-options"] = settings.GoalAnimationCombo.IsVisible && settings.BreakScreenToggle.IsVisible;
+            settings.CricketSettingsScopeTab.IsChecked = true; await Task.Delay(120);
+            checks["cricket-settings-have-specific-defaults-without-afl-options"] = settings.CricketEventsDefaultToggle.IsVisible && !settings.GoalAnimationCombo.IsVisible && !settings.BreakScreenToggle.IsVisible;
+            settings.GeneralSettingsTab.IsChecked = true; await Task.Delay(120);
             checks["screensaver-choices-use-full-presentation-cards-and-show-active-source"] = settings.BuiltinScreensaverButton.ActualHeight>=100 && System.Windows.Automation.AutomationProperties.GetItemStatus(settings.BuiltinScreensaverButton)=="Selected";
             bool mediaRequested=false;settings.ScreensaverMediaRequested+=()=>mediaRequested=true;Click(settings.CustomScreensaverButton);
             checks["cancelling-custom-media-selection-retains-current-source"] = mediaRequested && System.Windows.Automation.AutomationProperties.GetItemStatus(settings.BuiltinScreensaverButton)=="Selected";

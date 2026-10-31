@@ -51,12 +51,26 @@ public partial class CricketControlPanel
         try { var result = await CricketPrompt.ShowAsync(CricketRoot, title, message, body, choices); return generation == _workflowGeneration ? result : null; }
         finally { ReleaseWorkflow(generation); }
     }
+    private async Task<string?> ValidatedFormAsync(string title,string message,UIElement body,Func<bool> validate,params CricketPrompt.Choice[] choices)
+    {
+        if (_workflowBusy) return null;
+        _workflowBusy = true; int generation = _workflowGeneration;
+        try { var result = await CricketPrompt.ShowValidatedAsync(CricketRoot,title,message,body,validate,choices); return generation == _workflowGeneration ? result : null; }
+        finally { ReleaseWorkflow(generation); }
+    }
     private void ReleaseWorkflow(int generation)
     {
         if (generation != _workflowGeneration) return;
         _workflowBusy = false; _deliveryPointerGuardUntil = DateTime.UtcNow.AddMilliseconds(220);
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
         { if (generation == _workflowGeneration) UpdateWorkflowState(); }));
+    }
+    private async Task<string?> CorrectionFormAsync(string title,string message,UIElement body,FrameworkElement summary,FrameworkElement? source,Func<bool> validate,params CricketPrompt.Choice[] choices)
+    {
+        if(_workflowBusy)return null;
+        _workflowBusy=true;int generation=_workflowGeneration;
+        try{var result=await CricketPrompt.ShowCorrectionAsync(CricketRoot,title,message,body,summary,source,validate,choices);return generation==_workflowGeneration?result:null;}
+        finally{ReleaseWorkflow(generation);}
     }
     private Task<string?> ShowErrorAsync(string title, string error) => ChooseAsync(title, error, new CricketPrompt.Choice("close", "Return", true));
     private Button WorkflowButton(string text, Action action, string? tag = null)
@@ -106,6 +120,14 @@ public partial class CricketControlPanel
     {
         var match = _match; var innings = match?.CurrentInnings;
         if (match is null || innings is null || match.TossPending || match.IsMatchFinalized) return false;
+        string context = match.MatchConditionsToken;
+        bool Current() => ReferenceEquals(match, _match) && ReferenceEquals(innings, match.CurrentInnings)
+            && context == match.MatchConditionsToken;
+        async Task ExplainChangedInnings()
+        {
+            if (ReferenceEquals(match, _match))
+                await ShowErrorAsync("Innings changed", "Play or match conditions changed while this decision was open. No innings action was applied. Reopen innings options to review the current score.");
+        }
         var choices = new List<CricketPrompt.Choice> { new("back", fromOptions ? "Back to match options" : automatic ? "Review match" : "Keep scoring") };
         if (fromOptions) choices.Add(new("close", "Close"));
         bool finishRecommended=match.Format==CricketFormat.LimitedOvers && match.AllInnings.Count>=2 && innings.IsComplete;
@@ -121,17 +143,19 @@ public partial class CricketControlPanel
         if (!innings.IsComplete && match.Format == CricketFormat.LimitedOvers && innings.LegalBallsBowled < match.CurrentOverLimit * 6)
             message = $"This innings still has {(match.CurrentOverLimit * 6 - innings.LegalBallsBowled) / 6}.{(match.CurrentOverLimit * 6 - innings.LegalBallsBowled) % 6} overs available. Starting another innings will close it early.\n\n" + message;
         string? answer = await ChooseAsync(automatic ? match.CompletionReason : "Innings options", message, choices.ToArray());
-        if (!ReferenceEquals(match, _match)) return false;
+        if (!Current()) { if (answer is "a" or "b" or "continue" or "finish") await ExplainChangedInnings(); return false; }
         if (answer == "back") return fromOptions;
         if (answer is "a" or "b")
         {
             if (!innings.IsComplete && await ChooseAsync("Close this innings early?", "The existing deliveries remain in the scorecard. You can review them later.", new("back", "Go back"), new("yes", "Close innings and continue", true)) != "yes") return false;
+            if (!Current()) { await ExplainChangedInnings(); return false; }
             if (match.TryStartAdditionalInnings(answer == "a", out string error)) { _completionShown = null; _cpTopBatterIndex = _cpBottomBatterIndex = -1; TriggerInitialSelection(); }
             else await ShowErrorAsync("Unable to start innings", error);
         }
         else if (answer == "continue")
         {
             if (await ChooseAsync("Continue beyond the usual finish?", "The current target and over limit will no longer stop this innings. All-out still ends it.", new("back", "Go back"), new("yes", "Continue scoring", true)) != "yes") return false;
+            if (!Current()) { await ExplainChangedInnings(); return false; }
             if (!match.TryContinueCurrentInnings(out string error)) await ShowErrorAsync("Unable to continue", error); else ResumePendingSelection();
         }
         else if (answer == "finish")

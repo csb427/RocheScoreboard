@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketScorebugControl.xaml.cs; edit translator/adapters.
-// Source SHA-256: d9867b9f899378b46a3d226a7519f01a4d0c710e9a3823e5e356adc17302740b
+// Source SHA-256: adb9e8a3ae21106905b3fa90b787d8dfcc96f853e379b763c488a7c5d80c9d3b
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -194,6 +194,7 @@ public partial class CricketScorebugControl : UserControl
         private string _lastBowlerFigures = "", _lastBowlerOvers = "", _lastOversDisplay = "";
         private int _lastBallCount = -1;
         private bool _isDisposed;
+        private int _primaryRunCapacity = 4;
         private int _lastBowlerIndex = -1, _infoGeneration, _ballGeneration;
         private bool _clearingBalls;
         private readonly List<string> _displayedBalls = new();
@@ -206,6 +207,8 @@ public partial class CricketScorebugControl : UserControl
             NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
             ((Control)ScoreRuns.Parent).SizeChanged += (_, _) => FitPrimaryScore();
             ((Control)ScoreWickets.Parent).SizeChanged += (_, _) => FitPrimaryScore();
+            foreach (var number in new[] { OversText, ExtrasValue, StrikerRuns, StrikerBalls, NonStrikerRuns, NonStrikerBalls, BowlerFigures, BowlerOvers })
+                ((Control)number.Parent).SizeChanged += (_, _) => FitLongNumericFields();
             InfoValue.SizeChanged+=(_,_)=>FitContextValue((InfoLabel.Text ?? string.Empty),(InfoValue.Text ?? string.Empty));
             SizeChanged += (_, _) =>
             {
@@ -274,7 +277,7 @@ public partial class CricketScorebugControl : UserControl
         public void UpdateFromMatch(CricketMatchManager match)
         {
             if (_isDisposed || DeferForBroadcast(match)) return;
-            if (!ReferenceEquals(_lastMatch, match)) { _pregamePending=null; _pregameGeneration++; _lastInningsNumber = -1; _displayedBalls.Clear(); _ballGeneration++; _clearingBalls = false; }
+            if (!ReferenceEquals(_lastMatch, match)) { StopReels(InfoValue); CancelInfoFade(); _pregamePending=null; _pregameGeneration++; _lastInningsNumber = -1; _displayedBalls.Clear(); _ballGeneration++; _clearingBalls = false; }
             _lastMatch = match;
             var inn = match.CurrentInnings;
             if (inn == null) return;
@@ -552,6 +555,9 @@ public partial class CricketScorebugControl : UserControl
 
             // This over ball tracker
             UpdateOverBallsDisplay(inn);
+            int capacity = Math.Max(4, runsStr.Length);
+            if (capacity != _primaryRunCapacity) { _primaryRunCapacity = capacity; FitPrimaryScore(); }
+            FitLongNumericFields();
 
             // Logo
             SetLogo(match);
@@ -564,6 +570,15 @@ public partial class CricketScorebugControl : UserControl
 
         // ---- Info tile: slow, automatic rotation independent of scoring ----
 
+        private void CancelInfoFade()
+        {
+            ++_infoGeneration;
+            InfoLabel.BeginAnimation(OpacityProperty, null);
+            InfoValue.BeginAnimation(OpacityProperty, null);
+            InfoLabel.Opacity = 1;
+            // An active same-category digit reel owns the value's base opacity.
+        }
+
         private void UpdateInfoTile(CricketMatchManager match)
         {
             var inn = match.CurrentInnings;
@@ -575,10 +590,14 @@ public partial class CricketScorebugControl : UserControl
 
             if ((InfoLabel.Text ?? string.Empty) == newLabel)
             {
+                // A pending category change may now be obsolete (for example,
+                // Rain was cancelled before its BREAK caption appeared).
+                CancelInfoFade();
                 FitContextValue(newLabel,newValue);
                 RollField(InfoValue,newValue);
                 return;
             }
+            StopReels(InfoValue);
             int generation = ++_infoGeneration;
             // Crossfade only when the category rotates, not on every ball.
             if ((InfoLabel.Text ?? string.Empty) != newLabel || (InfoValue.Text ?? string.Empty) != newValue)
@@ -621,7 +640,7 @@ public partial class CricketScorebugControl : UserControl
             // Font metrics scale linearly. Three measurements replace hundreds of
             // trial sizes on every frame of an overlay's height animation.
             var wickets = Measure(ScoreWickets, "88", 100); var word = Measure(ScoreSlash, "FOR", 70);
-            var runs = Measure(ScoreRuns, "8888", 100);
+            var runs = Measure(ScoreRuns, new string('8', _primaryRunCapacity), 100);
             double VerticalFit(NativeFormattedText sample,double height)
             {
                 var ink=sample.BuildGeometry(new Avalonia.Point()).Bounds;
@@ -635,8 +654,35 @@ public partial class CricketScorebugControl : UserControl
                     Math.Min((WicketRow.NativeWidth()-18)/(wickets.Width+word.Width)*100, VerticalFit(wickets,WicketRow.NativeHeight())),
                     Math.Min((ScoreStack.NativeWidth()-4)/runs.Width*100, VerticalFit(runs,runCell.NativeHeight()))));
             double size = Math.Clamp(Math.Floor(fit*2)/2,8,160);
+            // Reserve both wicket digits so FOR never moves at 9 -> 10.
+            ScoreWickets.MinWidth = wickets.Width * size / 100;
             if (Math.Abs(ScoreRuns.FontSize-size) < .1) return;
             ScoreRuns.FontSize = ScoreWickets.FontSize = size; ScoreSlash.FontSize = size*.70;
+        }
+
+        // Ordinary cricket figures keep their design size. Exceptionally long
+        // manual corrections still have to fit their existing numeric cell.
+        // No adjacent label/name is measured or resized by this guard.
+        private void FitLongNumericFields()
+        {
+            Fit(OversText, 5, 72); Fit(ExtrasValue, 4, 72);
+            Fit(StrikerRuns, 4, 65); Fit(NonStrikerRuns, 4, 65);
+            Fit(StrikerBalls, 4, 40); Fit(NonStrikerBalls, 4, 40);
+            Fit(BowlerFigures, 7, 56); Fit(BowlerOvers, 4, 38);
+            void Fit(TextBlock number, int reservedCharacters, double designSize)
+            {
+                if (number.Parent is not Control cell || cell.NativeWidth() <= 0) return;
+                double size = designSize;
+                string value = (number.Text ?? string.Empty) ?? "";
+                if (value.Length > reservedCharacters)
+                {
+                    var sample = new NativeFormattedText(new string('8', value.Length), System.Globalization.CultureInfo.InvariantCulture,
+                        Avalonia.Media.FlowDirection.LeftToRight, new Typeface(number.FontFamily, number.FontStyle, number.FontWeight, number.FontStretch),
+                        designSize, WhiteBrush);
+                    size = Math.Max(8, Math.Min(designSize, (cell.NativeWidth() - 6) / Math.Max(1, sample.WidthIncludingTrailingWhitespace) * designSize));
+                }
+                if (Math.Abs(number.FontSize - size) > .05) number.FontSize = size;
+            }
         }
 
         private void StartInfoRotation()

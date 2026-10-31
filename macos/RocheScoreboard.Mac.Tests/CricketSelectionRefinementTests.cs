@@ -25,7 +25,7 @@ public sealed class CricketSelectionRefinementTests
         var w=new NativeWindow{Width=width,Height=height,Content=panel};w.Show();
         try
         {
-            await Settle();typeof(CricketControlPanel).GetMethod(bowling?"ShowBowlerSelection":"ShowBatterSelection",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(panel,bowling?[false]:["SELECT BATTER"]);await Settle();
+            await Settle();typeof(CricketControlPanel).GetMethod(bowling?"ShowBowlerSelection":"ShowBatterSelection",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(panel,bowling?[false,null,false]:["SELECT BATTER",null,false]);await Settle();
             var list=panel.FindControl<ListBox>(bowling?"BowlerSelectionList":"BatterSelectionList")!;
             var item=list.GetVisualDescendants().OfType<ListBoxItem>().First(x=>x.Bounds.Width>0);
             var p=item.TranslatePoint(new Point(item.Bounds.Width/2,item.Bounds.Height/2),w)!.Value;w.MouseMove(p);await Settle(350);
@@ -59,7 +59,7 @@ public sealed class CricketSelectionRefinementTests
         {
             await Settle();Capture(w,"wizard-step-icons");
             var kinds=Enumerable.Range(1,4).Select(i=>view.FindControl<OperatorSymbol>($"Step{i}Symbol")!.Kind).ToArray();
-            Assert.Equal(new[]{"team","players","clock","sliders"},kinds);
+            Assert.Equal(new[]{"team","players","format","sliders"},kinds);
         }
         finally{w.Close();}
     }

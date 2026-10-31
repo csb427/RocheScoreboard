@@ -1,7 +1,22 @@
 {
   "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml",
-  "source_sha256": "f2dc09c6082aff23d17508c65b2f3f421822e0b3d0969e9403af62ed2342c9b4",
+  "source_sha256": "a1aa76067e4aaeb1494358671b66a9cc12e1acca1a54de8da65dbc8b6a44aefb",
   "names": [
+    {
+      "name": "GeneralSettingsTab",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "CricketSettingsScopeTab",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AflSettingsTab",
+      "type": "RadioButton",
+      "object": false
+    },
     {
       "name": "SettingsWorkspace",
       "type": "SettingsWorkspace",
@@ -83,16 +98,6 @@
       "object": false
     },
     {
-      "name": "GoalAnimationRow",
-      "type": "Grid",
-      "object": false
-    },
-    {
-      "name": "GoalAnimationCombo",
-      "type": "ComboBox",
-      "object": false
-    },
-    {
       "name": "OutputFieldsGrid",
       "type": "Grid",
       "object": false
@@ -113,18 +118,8 @@
       "object": false
     },
     {
-      "name": "AutomationSection",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "BreakScreenToggle",
-      "type": "CheckBox",
-      "object": false
-    },
-    {
-      "name": "AutoOverlaysToggle",
-      "type": "CheckBox",
+      "name": "OutputDimensionsValidationText",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -188,13 +183,86 @@
       "object": false
     },
     {
+      "name": "BuildInfoBox",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "GoalAnimationRow",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "GoalAnimationCombo",
+      "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "AutomationSection",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "BreakScreenToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "CricketEventsDefaultToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "CricketRollingDefaultToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "CricketBowlerDefaultToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "CricketAutomaticDefaultToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "CricketBreakRotationDefaultToggle",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
       "name": "BackButton",
       "type": "Button",
       "object": false
     }
   ],
-  "code_source_sha256": "9faa915195ced9f0a0eedec6bac8859cdeb7b6212f11bf9872f71069b2108327",
+  "code_source_sha256": "23df2c5d850c49f82a540c53ec504ede39a49c7c6a85245fa36f678962fbb82e",
   "native_events": [
+    {
+      "name": "GeneralSettingsTab",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsScope_Checked"
+    },
+    {
+      "name": "CricketSettingsScopeTab",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsScope_Checked"
+    },
+    {
+      "name": "AflSettingsTab",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsScope_Checked"
+    },
     {
       "name": "LightThemeTile",
       "source": "Checked",
@@ -268,36 +336,6 @@
       "handler": "QuickHintsToggle_Changed"
     },
     {
-      "name": "GoalAnimationCombo",
-      "source": "SelectionChanged",
-      "native": "SelectionChanged",
-      "handler": "GoalAnimationCombo_SelectionChanged"
-    },
-    {
-      "name": "BreakScreenToggle",
-      "source": "Checked",
-      "native": "IsCheckedChanged",
-      "handler": "BreakScreenToggle_Changed"
-    },
-    {
-      "name": "BreakScreenToggle",
-      "source": "Unchecked",
-      "native": "IsCheckedChanged",
-      "handler": "BreakScreenToggle_Changed"
-    },
-    {
-      "name": "AutoOverlaysToggle",
-      "source": "Checked",
-      "native": "IsCheckedChanged",
-      "handler": "AutoOverlaysToggle_Changed"
-    },
-    {
-      "name": "AutoOverlaysToggle",
-      "source": "Unchecked",
-      "native": "IsCheckedChanged",
-      "handler": "AutoOverlaysToggle_Changed"
-    },
-    {
       "name": "ScreensaverToggle",
       "source": "Checked",
       "native": "IsCheckedChanged",
@@ -344,6 +382,96 @@
       "source": "SelectionChanged",
       "native": "SelectionChanged",
       "handler": "StartupModeCombo_SelectionChanged"
+    },
+    {
+      "name": "GoalAnimationCombo",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "GoalAnimationCombo_SelectionChanged"
+    },
+    {
+      "name": "BreakScreenToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "BreakScreenToggle_Changed"
+    },
+    {
+      "name": "BreakScreenToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "BreakScreenToggle_Changed"
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "AutoOverlaysToggle_Changed"
+    },
+    {
+      "name": "AutoOverlaysToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "AutoOverlaysToggle_Changed"
+    },
+    {
+      "name": "CricketEventsDefaultToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketEventsDefaultToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketRollingDefaultToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketRollingDefaultToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketBowlerDefaultToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketBowlerDefaultToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketAutomaticDefaultToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketAutomaticDefaultToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketBreakRotationDefaultToggle",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
+    },
+    {
+      "name": "CricketBreakRotationDefaultToggle",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "CricketDefault_Changed"
     }
   ],
   "platform_translations": [],

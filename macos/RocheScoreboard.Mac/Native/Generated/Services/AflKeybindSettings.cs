@@ -1,5 +1,5 @@
 // Generated from Services/AflKeybindSettings.cs; edit translator/adapters.
-// Source SHA-256: be7687661a27e3aa4429dbc47f4de276df88899c8687134054abc55adc616bc5
+// Source SHA-256: 35f2e4417aefc97512e11010fd7fda59b49397e20c1d9dd891445c590f98d7d1
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -108,6 +108,12 @@ internal static class AflKeybindSettings
     }
 
     public static IReadOnlyDictionary<AflAction, Key> GetDefaultBindings() => new Dictionary<AflAction, Key>(DefaultBindings);
+
+    // The normal presentation router owns these keys before scoring bindings.
+    // Keep loaded profiles untouched; this is availability for a new capture.
+    internal static bool IsPresentationShortcut(Key key) => key is
+        Key.D1 or Key.D2 or Key.D3 or Key.D4 or Key.D5 or Key.D6
+        or Key.NumPad1 or Key.NumPad2 or Key.NumPad3 or Key.NumPad4 or Key.NumPad5 or Key.NumPad6;
 
     public static string FormatKey(Key key) => key switch
     {

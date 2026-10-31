@@ -90,7 +90,7 @@
                         <TextBlock Text="Colour wheel" FontFamily="{fonts:ProductionFont 'Segoe UI Variable, Segoe UI'}" FontSize="17" />
                         <TextBlock Text="Choose directly from the wheel, then fine-tune saturation and brightness." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,3,0,0" />
                     </StackPanel>
-                    <Button Grid.Column="2" Content="×" IsCancel="True" Width="32" Height="32" MinHeight="0" Padding="0" FontSize="22" VerticalAlignment="Top" ToolTip.Tip="Cancel colour selection" />
+                    <Button Grid.Column="2" Content="×" AutomationProperties.Name="Cancel colour selection" IsCancel="True" Click="Cancel_Click" Width="32" Height="32" MinHeight="0" Padding="0" FontSize="22" VerticalAlignment="Top" ToolTip.Tip="Cancel colour selection" />
                 </Grid>
                 <Grid Grid.Row="1">
                     <Grid.RowDefinitions>
@@ -119,13 +119,18 @@
                         <Slider Grid.Column="1" x:Name="BrightnessSlider" AutomationProperties.Name="Brightness" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1" ValueChanged="FineTuneSlider_ValueChanged" />
                     </Grid>
                 </Grid>
-                <Grid Grid.Row="2" Margin="0,7,0,10">
+                <Grid Grid.Row="2" x:Name="HexEntryRegion" Margin="0,7,0,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Hex colour" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
-                    <TextBox Grid.Column="1" x:Name="HexBox" Height="38" Padding="10,6" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="17" FontWeight="Bold" MaxLength="7" Background="{DynamicResource ControlCentre.SurfaceBrush}" Foreground="{DynamicResource ControlCentre.TextBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" CaretBrush="{DynamicResource ControlCentre.TextBrush}" TextChanged="Native_HexBox_TextChanged" />
+                    <TextBox Grid.Column="1" x:Name="HexBox" Height="38" Padding="10,6" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="17" FontWeight="Bold" MaxLength="7" AutomationProperties.Name="Hex colour" AutomationProperties.HelpText="Enter six hexadecimal digits, with an optional #." Background="{DynamicResource ControlCentre.SurfaceBrush}" Foreground="{DynamicResource ControlCentre.TextBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" CaretBrush="{DynamicResource ControlCentre.TextBrush}" TextChanged="Native_HexBox_TextChanged" />
+                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" x:Name="ValidationText" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,6,0,0" />
                 </Grid>
                 <TextBlock Grid.Row="3" Text="Default colours" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,5" />
                 <WrapPanel Grid.Row="4" x:Name="DefaultColoursPanel" />
@@ -135,14 +140,13 @@
                         <StackPanel x:Name="RecentColoursPanel" Orientation="Horizontal" />
                     </ScrollViewer>
                 </StackPanel>
-                <TextBlock Grid.Row="6" x:Name="ValidationText" Foreground="#FF9A9A" TextWrapping="Wrap" />
                 <Grid Grid.Row="7">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Button Content="CANCEL" IsCancel="True" Margin="0,0,6,0" />
-                    <Button Grid.Column="1" Content="USE COLOUR" IsDefault="True" Margin="6,0,0,0" Click="Accept_Click" Theme="{StaticResource ControlCentre.PrimaryButton}" />
+                    <Button Content="CANCEL" IsCancel="True" Click="Cancel_Click" Margin="0,0,6,0" />
+                    <Button x:Name="UseColourButton" Grid.Column="1" Content="USE COLOUR" IsDefault="True" Margin="6,0,0,0" Click="Accept_Click" Theme="{StaticResource ControlCentre.PrimaryButton}" />
                 </Grid>
             </Grid>
         </ns4:OperatorGlassSurface>

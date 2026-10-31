@@ -38,7 +38,7 @@ public static class NativeEvents
         EventHandler<AvaloniaPropertyChangedEventArgs> callback=(sender,args)=>
         {
             if(args.Property!=property)return;
-            if(selected is {} expected){if(args.NewValue is bool state&&state==expected)((EventHandler<RoutedEventArgs>)handler)(sender,new RoutedEventArgs());}
+            if(selected is {} expected){if(args.NewValue is bool state&&state==expected)((EventHandler<RoutedEventArgs>)handler)(sender,new RoutedEventArgs { Source = sender });}
             else ((EventHandler<AvaloniaPropertyChangedEventArgs>)handler)(sender,args);
         };
         entries.Add(key,callback);target.PropertyChanged+=callback;

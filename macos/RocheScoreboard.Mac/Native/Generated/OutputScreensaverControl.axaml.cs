@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/OutputScreensaverControl.xaml.cs; edit translator/adapters.
-// Source SHA-256: 378e2ae4349d012da66b0f82147486688c5ddc6b61980f3104345922a244763a
+// Source SHA-256: b6104847511c9687005ea3b62debe244e725bfa59ec487446b821a29a1828e95
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -34,7 +34,7 @@ public partial class OutputScreensaverControl : UserControl
         Unloaded += (_, _) => { _clockTimer.Stop(); _customVideo?.Stop(); };
         NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, _) =>
         {
-            if (IsVisible == true && CustomVideoHost.IsVisible == true)
+            if (IsVisible && CustomVideoHost.IsVisible)
                 _customVideo?.Play();
             else if (_customVideo?.IsPlaying == true)
                 _customVideo.Pause();
@@ -83,7 +83,7 @@ public partial class OutputScreensaverControl : UserControl
             DefaultScene.IsVisible = false;
             _customVideo!.Loop = true;
             _customVideo.SetVideoSource(_configuredPath);
-            if (IsVisible == true) _customVideo.Play();
+            if (IsVisible) _customVideo.Play();
         }
         catch
         {

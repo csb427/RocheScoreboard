@@ -128,7 +128,14 @@ public partial class MainWindow
     private void EnsureOverlayQueueWired()
     {
         if (_overlayQueueWired || _scorebug == null) return;
-        _scorebug.OverlayHidden += OnOverlayHidden;
+        DetachOverlayQueueOwner();
+        var owner = _scorebug; int generation = _presentationLifetimeGeneration;
+        _overlayHiddenOwner = owner;
+        _overlayHiddenHandler = () =>
+        {
+            if (generation == _presentationLifetimeGeneration && ReferenceEquals(owner, _scorebug)) OnOverlayHidden();
+        };
+        owner.OverlayHidden += _overlayHiddenHandler;
         _overlayQueueWired = true;
     }
 
@@ -219,7 +226,7 @@ public partial class MainWindow
     /// </summary>
     private void EnqueueAutoOverlay(Action showAction, bool isPriority = false, Action? onCancelled = null)
     {
-        if (!_autoOverlaysEnabled)
+        if (!_autoOverlaysEnabled || _outputActivationRequired || _sportMode != SportMode.AFL || _displayWindow?.IsVisible != true || _showingBreakScreen)
         {
             onCancelled?.Invoke();
             return;
@@ -308,87 +315,67 @@ public partial class MainWindow
         bool allowWhenClockStopped = false,
         Action? onCancelled = null)
     {
-        getTimer()?.Stop();
-        DispatcherTimer timer = new() { Interval = delay };
-        setTimer(timer);
-        timer.Tick += (_, _) =>
+        if (getTimer() is { } previous)
         {
-            timer.Stop();
-
-            // An overlay should never trample a goal animation, "+6" swipe,
-            // active goal video, normal mp4 playback, or another on-screen
-            // overlay. Wait until everything has cleared. This keeps the
-            // scoring-run graphic feeling like a follow-up commentary card
-            // rather than something that interrupts live scoring excitement.
-            bool ShouldKeepWaiting() =>
-                (_scorebug != null && _scorebug.IsScoreAnimating) ||
-                (_scorebug != null && _scorebug.IsOverlayActive) ||
-                IsAnyVideoPlaying();
-
-            if (ShouldKeepWaiting())
+            if (_scheduledOverlayCancellations.TryGetValue(previous, out var cancelPrevious)) cancelPrevious();
+            else previous.Stop();
+        }
+        int lifetime = _presentationLifetimeGeneration, screen = _screenTransitionVersion;
+        var owner = _scorebug;
+        DispatcherTimer? active = null;
+        bool completed = false;
+        bool IsCurrent() => lifetime == _presentationLifetimeGeneration && screen == _screenTransitionVersion
+            && ReferenceEquals(owner, _scorebug) && !_outputActivationRequired && _sportMode == SportMode.AFL
+            && _displayWindow?.IsVisible == true && !_showingBreakScreen;
+        void Finish(bool show)
+        {
+            if (completed) return;
+            completed = true;
+            if (active is not null)
             {
-                DispatcherTimer poll = new() { Interval = TimeSpan.FromMilliseconds(200) };
-                setTimer(poll);
-                poll.Tick += (_, _) =>
-                {
-                    if (!ShouldKeepWaiting())
-                    {
-                        poll.Stop();
-                        // Give the restored scorebug one stable visual beat
-                        // before an automatic overlay starts. Starting on the
-                        // exact poll tick that the prior animation ended caused
-                        // the abrupt handoff not seen with manual activation.
-                        DispatcherTimer settle = new() { Interval = TimeSpan.FromMilliseconds(360) };
-                        setTimer(settle);
-                        settle.Tick += (_, _) =>
-                        {
-                            if (ShouldKeepWaiting())
-                                return;
-
-                            settle.Stop();
-                            setTimer(null);
-                            if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning))
-                            {
-                                onCancelled?.Invoke();
-                                return;
-                            }
-                            showAction();
-                        };
-                        settle.Start();
-                    }
-                };
-                poll.Start();
+                active.Stop(); _scheduledOverlayCancellations.Remove(active);
+                if (ReferenceEquals(getTimer(), active)) setTimer(null);
             }
-            else
+            if (show) showAction(); else onCancelled?.Invoke();
+        }
+        void Cancel() => Finish(false);
+        void Start(TimeSpan interval, Action continuation)
+        {
+            if (completed) return;
+            if (active is not null) { active.Stop(); _scheduledOverlayCancellations.Remove(active); }
+            var timer = new DispatcherTimer { Interval = interval }; bool fired = false;
+            active = timer; setTimer(timer); _scheduledOverlayCancellations[timer] = Cancel;
+            timer.Tick += (_, _) =>
             {
-                setTimer(null);
-                if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning))
-                {
-                    onCancelled?.Invoke();
-                    return;
-                }
-                showAction();
-            }
-        };
-        timer.Start();
+                if (fired || completed) return;
+                fired = true; timer.Stop();
+                if (!IsCurrent() || !ReferenceEquals(getTimer(), timer)) { Finish(false); return; }
+                continuation();
+            };
+            timer.Start();
+        }
+        bool Busy() => (_scorebug?.IsScoreAnimating == true) || (_scorebug?.IsOverlayActive == true) || IsAnyVideoPlaying();
+        void ShowWhenValid()
+        {
+            if (!IsCurrent() || !_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning)) Finish(false);
+            else Finish(true);
+        }
+        void Poll()
+        {
+            if (Busy()) Start(TimeSpan.FromMilliseconds(200), Poll);
+            else Start(TimeSpan.FromMilliseconds(360), () => { if (Busy()) Poll(); else ShowWhenValid(); });
+        }
+        if (!IsCurrent()) { Finish(false); return; }
+        Start(delay, () => { if (Busy()) Start(TimeSpan.FromMilliseconds(200), Poll); else ShowWhenValid(); });
     }
 
     /// <summary>Schedules an auto overlay with the default 2-second delay.</summary>
     private void ScheduleAutoOverlay(Action showAction, bool allowWhenClockStopped = false, Action? onCancelled = null)
     {
-        if (_autoOverlayDelayTimer is not null)
-        {
-            _autoOverlayDelayTimer.Stop();
-            _autoOverlayDelayCancellation?.Invoke();
-        }
-        _autoOverlayDelayCancellation = onCancelled;
         ScheduleAutoOverlay(showAction, AutoOverlayDelay,
-            () => _autoOverlayDelayTimer, t =>
-            {
-                _autoOverlayDelayTimer = t;
-                if (t is null) _autoOverlayDelayCancellation = null;
-            },
+            () => _autoOverlayDelayTimer, timer => _autoOverlayDelayTimer = timer,
             allowWhenClockStopped, onCancelled);
+        _autoOverlayDelayCancellation = _autoOverlayDelayTimer is { } timer && _scheduledOverlayCancellations.TryGetValue(timer, out var cancel) ? cancel : null;
     }
 
     // ── Automatic overlay toggle ──
@@ -451,48 +438,16 @@ public partial class MainWindow
 
     private void UpdateSettingsFinalsCardVisuals()
     {
-        if (SettingsFinalsCard == null || SettingsFinalsGlow == null) return;
-
-        bool on = SettingsFinalsToggle.IsChecked == true;
-
-        SettingsFinalsCard.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A2020"));
-        SettingsFinalsCard.BorderThickness = new Thickness(2);
-        SettingsFinalsCard.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#70521D")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#242428"));
-
-        SettingsFinalsGlow.Opacity = 0;
-
-        SettingsFinalsTitle.Foreground = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#E1D2AF"));
-
-        // Toggle track + thumb
-        SettingsFinalsTrack.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#2A2008")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#1A1610"));
-        SettingsFinalsTrack.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#3A3018"));
-        SettingsFinalsThumb.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#E1D2AF"));
-        SettingsFinalsThumb.HorizontalAlignment = on
-            ? System.Windows.HorizontalAlignment.Right
-            : System.Windows.HorizontalAlignment.Left;
-        SettingsFinalsThumb.Margin = on ? new Thickness(0, 0, 3, 0) : new Thickness(3, 0, 0, 0);
+        if (SettingsFinalsToggle == null) return;
+        // The original checkbox/template owns state and motion. Remote and
+        // restore callers may refresh descriptions without replaying a gesture.
+        System.Windows.Automation.AutomationProperties.SetItemStatus(SettingsFinalsToggle,
+            SettingsFinalsToggle.IsChecked == true ? "On" : "Off");
     }
 
     // ── Hide team names toggle (settings tab) ──
 
     private bool _hideTeamNames;
-
-    private void SettingsHideTeamNamesCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-        SettingsHideTeamNamesToggle.IsChecked = SettingsHideTeamNamesToggle.IsChecked != true;
-    }
 
     private void SettingsHideTeamNamesToggle_Changed(object sender, RoutedEventArgs e)
     {
@@ -506,45 +461,14 @@ public partial class MainWindow
 
     private void UpdateSettingsHideTeamNamesCardVisuals()
     {
-        if (SettingsHideTeamNamesCard == null) return;
-
-        bool on = SettingsHideTeamNamesToggle.IsChecked == true;
-
-        SettingsHideTeamNamesCard.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#1C2030"));
-        SettingsHideTeamNamesCard.BorderThickness = new Thickness(2);
-        SettingsHideTeamNamesCard.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#0A101C")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#080A12"));
-
-        SettingsHideTeamNamesTitle.Foreground = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#7AB8E8")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#4A5A70"));
-
-        SettingsHideTeamNamesTrack.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#0A1828")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#131620"));
-        SettingsHideTeamNamesTrack.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A3040"));
-        SettingsHideTeamNamesThumb.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#3A4050"));
-        SettingsHideTeamNamesThumb.HorizontalAlignment = on
-            ? System.Windows.HorizontalAlignment.Right
-            : System.Windows.HorizontalAlignment.Left;
-        SettingsHideTeamNamesThumb.Margin = on ? new Thickness(0, 0, 3, 0) : new Thickness(3, 0, 0, 0);
+        if (SettingsHideTeamNamesToggle is not { } toggle) return;
+        System.Windows.Automation.AutomationProperties.SetItemStatus(toggle,
+            toggle.IsChecked == true ? "On — name panels hidden" : "Off — name panels allowed");
     }
 
     // ── Break screen toggle (settings tab) ──
 
     private bool _breakScreenEnabled = true;
-
-    private void SettingsBreakScreenCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-        SettingsBreakScreenToggle.IsChecked = SettingsBreakScreenToggle.IsChecked != true;
-    }
 
     private void SettingsBreakScreenToggle_Changed(object sender, RoutedEventArgs e)
     {
@@ -555,38 +479,9 @@ public partial class MainWindow
 
     private void UpdateSettingsBreakScreenCardVisuals()
     {
-        if (SettingsBreakScreenCard == null || SettingsBreakScreenGlow == null) return;
-
-        bool on = SettingsBreakScreenToggle.IsChecked == true;
-
-        SettingsBreakScreenCard.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#1A1A2A"));
-        SettingsBreakScreenCard.BorderThickness = new Thickness(on ? 1 : 1);
-        SettingsBreakScreenCard.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#060A14")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#0A0A10"));
-
-        SettingsBreakScreenGlow.Opacity = on ? 0.10 : 0;
-
-        SettingsBreakScreenTitle.Foreground = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A3A50"));
-
-        // Toggle track + thumb
-        SettingsBreakScreenTrack.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#0A1628")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#0E0E14"));
-        SettingsBreakScreenTrack.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A2A40"));
-        SettingsBreakScreenThumb.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A3A50"));
-        SettingsBreakScreenThumb.HorizontalAlignment = on
-            ? System.Windows.HorizontalAlignment.Right
-            : System.Windows.HorizontalAlignment.Left;
-        SettingsBreakScreenThumb.Margin = on ? new Thickness(0, 0, 3, 0) : new Thickness(3, 0, 0, 0);
+        if (SettingsBreakScreenToggle is not { } toggle) return;
+        System.Windows.Automation.AutomationProperties.SetItemStatus(toggle,
+            toggle.IsChecked == true ? "On — automatic screens at the next quarter end" : "Off — no automatic screens at the next quarter end");
     }
 
     private void DeferScorePush(TimeSpan duration)
@@ -1221,6 +1116,7 @@ public partial class MainWindow
 
     private void ControlPanelCountdownResetButton_Click(object sender, RoutedEventArgs e)
     {
+        InvalidateStoppageEditor();
         PauseControlPanelCountdown(forceAutoPausedFlag: false);
         _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
         _controlPanelCountdownAutoPausedClock = false;
@@ -1241,6 +1137,7 @@ public partial class MainWindow
 
     private void AdjustControlPanelCountdown(TimeSpan delta)
     {
+        InvalidateStoppageEditor();
         // Adjust the live value in place. A running stoppage clock remains running,
         // and the main scoreboard clock is deliberately never touched.
         _controlPanelCountdownRemaining = CalculateAdjustedStoppageTime(
@@ -1285,63 +1182,15 @@ public partial class MainWindow
 
     private void ControlPanelCountdownEditButton_Click(object sender, RoutedEventArgs e)
     {
-        _countdownEditorGeneration++;
-        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
-        var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
-        var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
-        var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as System.Windows.Controls.TextBox;
-        var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as System.Windows.Controls.TextBlock;
-
-        if (editPopup is null)
-            return;
-
-        if (editMinutesBox is not null)
-            editMinutesBox.Text = ((int)_controlPanelCountdownRemaining.TotalMinutes).ToString("D2");
-
-        if (editSecondsBox is not null)
-            editSecondsBox.Text = _controlPanelCountdownRemaining.Seconds.ToString("D2");
-
-        if (editErrorText is not null)
-        {
-            editErrorText.Text = string.Empty;
-            editErrorText.Visibility = Visibility.Collapsed;
-        }
-
-        editPopup.BeginAnimation(UIElement.OpacityProperty, null);
-        popupScale?.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-        popupScale?.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-
-        var editPopupHost = this.FindName("ControlPanelCountdownEditPopupHost") as System.Windows.Controls.Primitives.Popup;
-        if (editPopupHost is not null)
-            editPopupHost.IsOpen = true;
-
-        editPopup.Visibility = Visibility.Visible;
-        editPopup.Opacity = 0;
-        if (popupScale is not null)
-        {
-            popupScale.ScaleX = 0.96;
-            popupScale.ScaleY = 0.96;
-        }
-
-        editPopup.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(170))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        });
-
-        if (popupScale is not null)
-        {
-            popupScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(170))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            });
-            popupScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(170))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            });
-        }
-
-        editMinutesBox?.Focus();
-        editMinutesBox?.SelectAll();
+        if(!StoppageEditorAvailable || FocusExistingStoppageEditor())return;
+        if(StoppagePart<System.Windows.Controls.TextBox>("ControlPanelCountdownEditMinutesBox") is {} minutes)
+            minutes.Text=((int)_controlPanelCountdownRemaining.TotalMinutes).ToString("D2");
+        if(StoppagePart<System.Windows.Controls.TextBox>("ControlPanelCountdownEditSecondsBox") is {} seconds)
+            seconds.Text=_controlPanelCountdownRemaining.Seconds.ToString("D2");
+        if(StoppagePart<System.Windows.Controls.TextBlock>("ControlPanelCountdownEditErrorText") is {} error)
+        {error.Text="";error.Visibility=Visibility.Collapsed;}
+        OpenStoppageEditor();
+        StoppagePart<System.Windows.Controls.TextBox>("ControlPanelCountdownEditMinutesBox")?.SelectAll();
     }
 
     private void ControlPanelCountdownCancelEditButton_Click(object sender, RoutedEventArgs e)
@@ -1351,7 +1200,7 @@ public partial class MainWindow
 
     private void ControlPanelCountdownApplyButton_Click(object sender, RoutedEventArgs e)
     {
-        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
+        if(!CanApplyStoppageEditor())return;
         var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as System.Windows.Controls.TextBox;
         var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as System.Windows.Controls.TextBox;
         var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as System.Windows.Controls.TextBlock;
@@ -1376,13 +1225,7 @@ public partial class MainWindow
         if (_controlPanelCountdownRunning)
             _countdownNextTick = DateTime.UtcNow.AddSeconds(1);
 
-        _countdownEditorGeneration++;
-        if (editPopup is not null)
-            editPopup.Visibility = Visibility.Collapsed;
-
-        var editPopupHost = this.FindName("ControlPanelCountdownEditPopupHost") as System.Windows.Controls.Primitives.Popup;
-        if (editPopupHost is not null)
-            editPopupHost.IsOpen = false;
+        CompleteStoppageEditorClose(returnFocus:true);
 
         UpdateControlPanelCountdownUi();
     }
@@ -1418,68 +1261,7 @@ public partial class MainWindow
         return Math.Clamp((long)current + step, 0, limit).ToString("D2");
     }
 
-    private void CloseControlPanelCountdownEditPopup()
-    {
-        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as System.Windows.Controls.Border;
-        var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
-        var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as System.Windows.Controls.Button;
-        var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as System.Windows.Controls.TextBlock;
-
-        if (editPopup is null || editPopup.Visibility != Visibility.Visible)
-            return;
-
-        int generation = ++_countdownEditorGeneration;
-        // Capture the rendered values before removing opening animations: their
-        // base values are still zero/.96 and otherwise make Cancel snap shut.
-        double visibleOpacity = editPopup.Opacity;
-        double visibleScale = popupScale?.ScaleX ?? 1;
-        editPopup.BeginAnimation(UIElement.OpacityProperty, null);
-        popupScale?.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-        popupScale?.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-        editPopup.Opacity = visibleOpacity;
-        if (popupScale is not null)
-            popupScale.ScaleX = popupScale.ScaleY = visibleScale;
-
-        var fade = new DoubleAnimation(editPopup.Opacity, 0, TimeSpan.FromMilliseconds(140))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-        };
-        fade.Completed += (_, _) =>
-        {
-            if (generation != _countdownEditorGeneration) return;
-            editPopup.Visibility = Visibility.Collapsed;
-            editPopup.Opacity = 0;
-            var popupHostOnClose = this.FindName("ControlPanelCountdownEditPopupHost") as System.Windows.Controls.Primitives.Popup;
-            if (popupHostOnClose is not null)
-                popupHostOnClose.IsOpen = false;
-            if (popupScale is not null)
-            {
-                popupScale.ScaleX = 0.96;
-                popupScale.ScaleY = 0.96;
-            }
-        };
-        editPopup.BeginAnimation(UIElement.OpacityProperty, fade);
-
-        if (popupScale is not null)
-        {
-            popupScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(popupScale.ScaleX, 0.96, TimeSpan.FromMilliseconds(140))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            });
-            popupScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(popupScale.ScaleY, 0.96, TimeSpan.FromMilliseconds(140))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            });
-        }
-
-        if (cancelEditButton is not null)
-            cancelEditButton.Visibility = Visibility.Collapsed;
-        if (editErrorText is not null)
-        {
-            editErrorText.Text = string.Empty;
-            editErrorText.Visibility = Visibility.Collapsed;
-        }
-    }
+    private void CloseControlPanelCountdownEditPopup()=>BeginStoppageEditorClose();
 
     private void HomeGoal_Click(object sender, RoutedEventArgs e)
     {
@@ -1661,6 +1443,7 @@ public partial class MainWindow
             if (ReferenceEquals(_match.Events[i], ev)) { eventIndex = i; break; }
         }
         if (eventIndex < 0) return;
+        var beforeEdit = ev.Clone();
 
         ScoreEventEditorWindow editor = new(ev, _match.HomeName, _match.AwayName, HomeColorBox.Text, AwayColorBox.Text)
         {
@@ -1668,14 +1451,12 @@ public partial class MainWindow
         };
         editor.ShowDialog();
 
-        bool changed = editor.Result switch
+        if (!TryApplyScoreLogEdit(ev, beforeEdit, editor.Result, editor.SelectedTeam, editor.SelectedType,
+            editor.SelectedGameTime, editor.SelectedQuarter, out string error))
         {
-            ScoreEventEditorWindow.EditorResult.Deleted => _match.RemoveEvent(eventIndex),
-            ScoreEventEditorWindow.EditorResult.Saved => _match.ModifyEvent(eventIndex, editor.SelectedTeam, editor.SelectedType, editor.SelectedGameTime, editor.SelectedQuarter),
-            _ => false
-        };
-
-        if (!changed) return;
+            if (error.Length > 0) System.Windows.MessageBox.Show(this, error, "Score was not changed", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
 
         // Run score validation after the edit
         var warnings = _match.ValidateScoreSequence();
@@ -1704,17 +1485,79 @@ public partial class MainWindow
         RefreshVisibleScreens();
     }
 
+    // A modal pumps the dispatcher: remote Undo/scoring and reload can replace
+    // or move the original event while the editor is open. A list position is
+    // never an identity. Unrelated later scores remain fully supported.
+    internal bool TryApplyScoreLogEdit(ScoreEvent original, ScoreEvent before, ScoreEventEditorWindow.EditorResult result,
+        TeamSide team, ScoreType type, TimeSpan time, int quarter, out string error)
+    {
+        error = "";
+        if (result == ScoreEventEditorWindow.EditorResult.Cancelled) return false;
+        int index = -1;
+        for (int i = 0; i < _match.Events.Count; i++)
+            if (ReferenceEquals(_match.Events[i], original)) { index = i; break; }
+        if (index < 0 || original.Timestamp != before.Timestamp || original.Team != before.Team || original.Type != before.Type
+            || original.Quarter != before.Quarter || original.GameTime != before.GameTime)
+        {
+            error = "This score was removed, replaced or corrected while the editor was open. No change was applied. Reopen the current score event to review it.";
+            return false;
+        }
+        return result switch
+        {
+            ScoreEventEditorWindow.EditorResult.Deleted => _match.RemoveEvent(index),
+            ScoreEventEditorWindow.EditorResult.Saved => _match.ModifyEvent(index, team, type, time, quarter),
+            _ => false
+        };
+    }
+
     private void AddMatchLogScore_Click(object sender, RoutedEventArgs e)
     {
-        var editor = new ScoreEventEditorWindow(
-            _match.HomeName, _match.AwayName, _match.Quarter, _match.ElapsedInQuarter,
-            HomeColorBox.Text, AwayColorBox.Text)
+        if (!IsLoaded || !IsVisible || _sportMode != SportMode.AFL || !_aflMatchReady || !MainContent.IsVisible) return;
+        var intendedMatch = _match;
+        var intendedMode = _sportMode;
+        int intendedQuarter = _match.Quarter;
+        bool changed = false, ownerRetired = false;
+        void MatchChanged() => changed = true;
+        void OwnerClosing(object? owner, System.ComponentModel.CancelEventArgs args) => ownerRetired = true;
+        void OwnerClosed(object? owner, EventArgs args) => ownerRetired = true;
+        ScoreEventEditorWindow editor;
+        bool stale;
+        intendedMatch.MatchChanged += MatchChanged;
+        Closing += OwnerClosing;
+        Closed += OwnerClosed;
+        try
         {
-            Owner = this
-        };
-        editor.ShowDialog();
-        if (editor.Result != ScoreEventEditorWindow.EditorResult.Saved) return;
+            editor = new ScoreEventEditorWindow(
+                intendedMatch.HomeName, intendedMatch.AwayName, intendedQuarter, intendedMatch.ElapsedInQuarter,
+                HomeColorBox.Text, AwayColorBox.Text)
+            {
+                Owner = this
+            };
+            editor.ShowDialog();
+            if (editor.Result != ScoreEventEditorWindow.EditorResult.Saved) return;
+            // Unlike Edit, Add has no original event identity to revalidate.
+            // LoadState changes this readonly manager's contents; ordinary
+            // stopwatch ticks do not raise MatchChanged or retire this receipt.
+            stale = changed || ownerRetired || !ReferenceEquals(intendedMatch, _match)
+                || !IsLoaded || !IsVisible || _sportMode != intendedMode || !_aflMatchReady
+                || !MainContent.IsVisible || _match.Quarter != intendedQuarter;
+        }
+        finally
+        {
+            intendedMatch.MatchChanged -= MatchChanged;
+            Closing -= OwnerClosing;
+            Closed -= OwnerClosed;
+        }
+        if (stale)
+        {
+            if (!ownerRetired && IsLoaded && IsVisible && _sportMode == SportMode.AFL && _aflMatchReady && MainContent.IsVisible)
+                System.Windows.MessageBox.Show(this,
+                    "The match changed while the Add Score editor was open. No score was added. Open Add Score again to review the current match.",
+                    "Score was not added", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
 
+        // The receipt is consumed before any queue, output or model mutation.
         ResetScoreAnimationQueue();
         _scorebug?.ResetAllOverlayState();
         ResetPeriodicOverlayTracking();
@@ -1773,23 +1616,45 @@ public partial class MainWindow
         }
     }
 
+    private bool _continueQuarterPromptOpen;
+
     private void ContinueQuarter_Click(object sender, RoutedEventArgs e)
     {
-        if (!_match.CanContinueQuarter) return;
+        if (_continueQuarterPromptOpen || !_match.CanContinueQuarter) return;
 
-        _controlPanelCountdownRunning = false;
-        _controlPanelCountdownAutoPausedClock = false;
+        int quarter = _match.Quarter;
+        int resumeQ = quarter - 1;
+        var mode = _sportMode;
+        bool contextChanged = false;
+        void MatchChangedWhilePromptOpen() => contextChanged = true;
+        MessageBoxResult confirm;
+        _continueQuarterPromptOpen = true;
+        _match.MatchChanged += MatchChangedWhilePromptOpen;
+        try
+        {
+            confirm = System.Windows.MessageBox.Show(
+                this,
+                $"This will resume Quarter {resumeQ} from where it left off.\n\nThe next quarter will not start.",
+                $"Resume Q{resumeQ}",
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Information,
+                MessageBoxResult.Cancel);
+        }
+        finally
+        {
+            _match.MatchChanged -= MatchChangedWhilePromptOpen;
+            _continueQuarterPromptOpen = false;
+        }
 
-        int resumeQ = _match.Quarter - 1;
-        MessageBoxResult confirm = System.Windows.MessageBox.Show(
-            $"This will resume Quarter {resumeQ} from where it left off.\n\nThe next quarter will not start.",
-            $"Resume Q{resumeQ}",
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Information);
-
-        if (confirm != MessageBoxResult.OK) return;
+        // The modal pumps messages: remote input, load/reset or a mode change
+        // can replace the state its explanation described. Cancel/rejected
+        // receipts must not mutate either the match or the live countdown.
+        if (confirm != MessageBoxResult.OK || contextChanged || !IsLoaded
+            || _sportMode != mode || _match.Quarter != quarter) return;
 
         if (!_match.ContinueQuarter()) return;
+        _controlPanelCountdownRunning = false;
+        _controlPanelCountdownAutoPausedClock = false;
 
         // Cancel any pending break screen
         if (_breakScreenDelayTimer != null)
@@ -1858,11 +1723,12 @@ public partial class MainWindow
             return;
         }
 
+        if(StoppagePopup?.IsOpen==true && !StoppageContextCurrent)InvalidateStoppageEditor();
         bool visible = _match.ClockMode == ClockMode.CountUp && _showControlPanelCountdown;
         ControlPanelCountdownPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         if (!visible)
         {
-            CloseControlPanelCountdownEditPopup();
+            InvalidateStoppageEditor();
             return;
         }
 
@@ -2978,6 +2844,12 @@ public partial class MainWindow
 
     private void UpdateActiveDisplayLabel(string label)
     {
+        if (_outputActivationRequired)
+        {
+            CurrentDisplayText.Text = "OFF AIR";
+            HeaderOutputText.Text = "Output is off · show output when ready";
+            return;
+        }
         CurrentDisplayText.Text = string.IsNullOrWhiteSpace(label)
             ? "OFF AIR"
             : $"ON AIR · {label.ToUpperInvariant()}";
@@ -2988,7 +2860,7 @@ public partial class MainWindow
     private void SwitchToScreen(UIElement target, string label, bool fromRotation = false)
     {
         EnsureScoreboardWindow();
-        if (_displayWindow is { IsVisible: false })
+        if (!_outputActivationRequired && _displayWindow is { IsVisible: false })
         {
             _displayWindow.Show();
         }
@@ -3006,6 +2878,7 @@ public partial class MainWindow
             _videoPlayer?.Pause();
         }
 
+        CancelQueuedOverlays(); CancelScheduledOverlayWork();
         int transitionVersion = ++_screenTransitionVersion;
         CancelPresentationAnimations();
 
@@ -3128,8 +3001,9 @@ public partial class MainWindow
     {
         EnsureScoreboardWindow();
         StopBreakRotation();
-        if (_displayWindow is { IsVisible: false }) _displayWindow.Show();
+        if (!_outputActivationRequired && _displayWindow is { IsVisible: false }) _displayWindow.Show();
 
+        CancelQueuedOverlays(); CancelScheduledOverlayWork();
         int transitionVersion = ++_screenTransitionVersion;
         CancelPresentationAnimations();
         UIElement? current = GetCurrentlyVisibleScreen();
@@ -3771,36 +3645,108 @@ public partial class MainWindow
     private void DropperHomeSecondaryColor_Click(object sender, MouseButtonEventArgs e) => DropColorInto(HomeSecondaryColorBox, HomeSecondaryColorPreview);
     private void DropperAwaySecondaryColor_Click(object sender, MouseButtonEventArgs e) => DropColorInto(AwaySecondaryColorBox, AwaySecondaryColorPreview);
 
+    private bool _teamColourPickerOpen;
+
     private void PickColorInto(System.Windows.Controls.TextBox target, Border preview)
     {
-        MediaColor initial;
-        try { initial = (MediaColor)System.Windows.Media.ColorConverter.ConvertFromString(target.Text); }
-        catch { initial = Colors.White; }
-        if (!ColorPickerWindow.TryPick(System.Windows.Window.GetWindow(this), initial, out MediaColor picked,
-                previewColor => ApplyTeamColourPreview(target, preview, previewColor))) return;
+        if (_teamColourPickerOpen || !IsLoaded || _sportMode != SportMode.AFL || !_aflMatchReady) return;
+        _teamColourPickerOpen = true;
+        var intendedMatch = _match;
+        long lifetime = intendedMatch.LifecycleVersion;
+        int session = _sessionReplacementGeneration, setup = _setupFlowGeneration;
+        var mode = _sportMode;
+        string originalRaw = target.Text, lastOwnedRaw = originalRaw;
+        var originalBrush = preview.Background;
+        bool active = true, ownerClosed = false, retired = false;
+        // A Closing attempt may be cancelled by a later subscriber. Only an
+        // actual Closed event retires this owner. A hidden current owner can
+        // still roll back its own draft; modal owner.IsEnabled is not authority.
+        void OwnerClosed(object? sender, EventArgs args) => ownerClosed = true;
+        bool ContextCurrent() => active && !ownerClosed && !retired
+            && ReferenceEquals(_match, intendedMatch) && intendedMatch.LifecycleVersion == lifetime
+            && _sessionReplacementGeneration == session && _setupFlowGeneration == setup
+            && _sportMode == mode && _aflMatchReady;
+        bool OwnsValue()
+        {
+            if (!ContextCurrent() || !string.Equals(target.Text, lastOwnedRaw, StringComparison.Ordinal))
+            { retired = true; return false; }
+            return true;
+        }
+        Closed += OwnerClosed;
+        try
+        {
+            MediaColor initial;
+            try { initial = (MediaColor)System.Windows.Media.ColorConverter.ConvertFromString(originalRaw); }
+            catch { initial = Colors.White; }
+            bool accepted = ColorPickerWindow.TryPick(System.Windows.Window.GetWindow(this), initial, out MediaColor picked,
+                previewColor =>
+                {
+                    if (!OwnsValue()) return;
+                    if (!ApplyTeamColourPreview(target, preview, previewColor, ContextCurrent))
+                    { retired = true; return; }
+                    lastOwnedRaw = target.Text;
+                });
+            if (!OwnsValue()) return;
+            if (!accepted)
+            {
+                bool previousSuppression = _suppressTeamSync;
+                _suppressTeamSync = true;
+                try
+                {
+                    target.Text = originalRaw; lastOwnedRaw = originalRaw;
+                    if (!OwnsValue()) return;
+                    preview.Background = originalBrush;
+                }
+                finally { _suppressTeamSync = previousSuppression; }
+                if (!OwnsValue()) return;
+                ApplyCurrentTeamColorsToScorebug();
+                if (!OwnsValue()) return;
+                ApplyTeamColorsToScoringPanels();
+                if (OwnsValue()) RefreshVisiblePresentationTeamStyle();
+                return;
+            }
 
-        string hex = $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}";
-        target.Text = hex;
-        preview.Background = new SolidColorBrush(picked);
-        ApplyTeamSettingsLive();
-        RefreshVisiblePresentationTeamStyle();
+            string hex = $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}";
+            target.Text = hex; lastOwnedRaw = hex;
+            if (!OwnsValue()) return;
+            preview.Background = new SolidColorBrush(picked);
+            if (!OwnsValue()) return;
+            ApplyTeamSettingsLive();
+            if (OwnsValue()) RefreshVisiblePresentationTeamStyle();
+        }
+        finally
+        {
+            active = false;
+            Closed -= OwnerClosed;
+            _teamColourPickerOpen = false;
+        }
     }
 
-    private void ApplyTeamColourPreview(System.Windows.Controls.TextBox target, Border preview, MediaColor color)
+    private bool ApplyTeamColourPreview(System.Windows.Controls.TextBox target, Border preview, MediaColor color, Func<bool> current)
     {
+        if (!current()) return false;
         string hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        var expectedRaw = target.Text;
+        bool CurrentValue() => current() && string.Equals(target.Text, expectedRaw, StringComparison.Ordinal);
+        bool previousSuppression = _suppressTeamSync;
         _suppressTeamSync = true;
         try
         {
             if (!string.Equals(target.Text, hex, StringComparison.OrdinalIgnoreCase))
-                target.Text = hex;
+            { expectedRaw = hex; target.Text = hex; }
         }
-        finally { _suppressTeamSync = false; }
-
+        finally { _suppressTeamSync = previousSuppression; }
+        // Property callbacks can synchronously replace the match or colour.
+        // Never continue painting the previous receipt over that newer state.
+        if (!CurrentValue()) return false;
         preview.Background = new SolidColorBrush(color);
+        if (!CurrentValue()) return false;
         ApplyCurrentTeamColorsToScorebug();
+        if (!CurrentValue()) return false;
         ApplyTeamColorsToScoringPanels();
+        if (!CurrentValue()) return false;
         RefreshVisiblePresentationTeamStyle();
+        return CurrentValue();
     }
 
     private void DropColorInto(System.Windows.Controls.TextBox target, Border preview)
@@ -3836,7 +3782,7 @@ public partial class MainWindow
 
         _homeLogoPath = path;
         HomeLogoStatusText.Text = System.IO.Path.GetFileName(path);
-        ResetLogoCropState();
+        ResetHomeLogoCropState();
         PushAllToScoreboard();
     }
 
@@ -3847,7 +3793,7 @@ public partial class MainWindow
 
         _awayLogoPath = path;
         AwayLogoStatusText.Text = System.IO.Path.GetFileName(path);
-        ResetLogoCropState();
+        ResetAwayLogoCropState();
         PushAllToScoreboard();
     }
 
@@ -3855,7 +3801,7 @@ public partial class MainWindow
     {
         _homeLogoPath = null;
         HomeLogoStatusText.Text = "";
-        ResetLogoCropState();
+        ResetHomeLogoCropState();
         PushAllToScoreboard();
     }
 
@@ -3863,7 +3809,7 @@ public partial class MainWindow
     {
         _awayLogoPath = null;
         AwayLogoStatusText.Text = "";
-        ResetLogoCropState();
+        ResetAwayLogoCropState();
         PushAllToScoreboard();
     }
 
@@ -4377,6 +4323,14 @@ public partial class MainWindow
             return;
         }
 
+        // Some native radio implementations raise Checked before clearing the
+        // previous group member. Establish exclusivity before the existing
+        // clock handler reads both radios (including accessibility selection).
+        if(ReferenceEquals(sender,ClockModeCountUp) && ClockModeCountUp.IsChecked==true)
+            ClockModeCountdown.IsChecked=false;
+        else if(ReferenceEquals(sender,ClockModeCountdown) && ClockModeCountdown.IsChecked==true)
+            ClockModeCountUp.IsChecked=false;
+
         bool wasRunning = _match.ClockRunning;
         bool wasCountUp = _match.ClockMode == ClockMode.CountUp;
         TimeSpan previousElapsed = _match.ElapsedInQuarter;
@@ -4461,12 +4415,7 @@ public partial class MainWindow
 
     private void ApplyQuarterDuration_Click(object sender, RoutedEventArgs e)
     {
-        if (!int.TryParse(QuarterMinutesBox.Text, out int mins)) return;
-        if (!int.TryParse(QuarterSecondsBox.Text, out int secs)) return;
-        if (mins < 0 || mins > 60 || secs < 0 || secs > 59) return;
-        if (mins == 0 && secs == 0) return;
-
-        var duration = TimeSpan.FromMinutes(mins) + TimeSpan.FromSeconds(secs);
+        if (!TryReadLiveQuarterDuration(out TimeSpan duration)) return;
         _match.SetQuarterDuration(duration);
         _controlPanelCountdownDuration = duration;
         if (!_controlPanelCountdownRunning)
@@ -4477,6 +4426,30 @@ public partial class MainWindow
         UpdateClockStatus();
         PushAllToScoreboard();
         BroadcastWebState();
+    }
+
+    private bool TryReadLiveQuarterDuration(out TimeSpan duration)
+    {
+        duration = TimeSpan.Zero;
+        bool validMinutes = int.TryParse(QuarterMinutesBox.Text, out int minutes) && minutes is >= 0 and <= 60;
+        bool validSeconds = int.TryParse(QuarterSecondsBox.Text, out int seconds) && seconds is >= 0 and <= 59;
+        if (!validMinutes || !validSeconds || (minutes == 0 && seconds == 0))
+        {
+            QuarterDurationError.Text = "Enter 0–60 whole minutes and 0–59 seconds, with a duration greater than 0.";
+            QuarterDurationError.Visibility = Visibility.Visible;
+            var field = !validMinutes || (validSeconds && minutes == 0 && seconds == 0)
+                ? QuarterMinutesBox : QuarterSecondsBox;
+            field.Focus();
+            field.SelectAll();
+            // Enter is not Tab navigation. Use the existing explicit validation
+            // reveal scope so the viewport does not suppress correction feedback.
+            OperatorViewport.RevealValidationError(field);
+            OperatorViewport.RevealValidationError(QuarterDurationError);
+            return false;
+        }
+        QuarterDurationError.Visibility = Visibility.Collapsed;
+        duration = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+        return true;
     }
 
     private void BrowseVideo_Click(object sender, RoutedEventArgs e)
@@ -4907,16 +4880,18 @@ public partial class MainWindow
         if (VideoTabSeekSlider != null && duration > TimeSpan.Zero)
         {
             double totalSec = duration.TotalSeconds;
-            if (Math.Abs(VideoTabSeekSlider.Maximum - totalSec) > 0.05)
+            bool wasSuppressed = _videoTabSuppressSeekFeedback;
+            _videoTabSuppressSeekFeedback = true;
+            try
             {
-                VideoTabSeekSlider.Maximum = totalSec;
+                // Maximum can coerce Value too; both decoder-driven changes
+                // must stay separate from an operator keyboard/automation seek.
+                if (Math.Abs(VideoTabSeekSlider.Maximum - totalSec) > 0.05)
+                    VideoTabSeekSlider.Maximum = totalSec;
+                if (!_videoTabSeekIsDragging)
+                    VideoTabSeekSlider.Value = Math.Min(position.TotalSeconds, totalSec);
             }
-            if (!_videoTabSeekIsDragging)
-            {
-                _videoTabSuppressSeekFeedback = true;
-                VideoTabSeekSlider.Value = Math.Min(position.TotalSeconds, totalSec);
-                _videoTabSuppressSeekFeedback = false;
-            }
+            finally { _videoTabSuppressSeekFeedback = wasSuppressed; }
         }
 
         if (VideoTabCurrentTimeText != null)
@@ -5000,6 +4975,12 @@ public partial class MainWindow
             if (VideoTabCurrentTimeText != null)
                 VideoTabCurrentTimeText.Text = FormatTime(TimeSpan.FromSeconds(e.NewValue));
         }
+        else
+        {
+            // Arrow keys and accessible value changes have no mouse-up or
+            // DragCompleted event. Apply them through the same coalesced seek.
+            ApplySeekFromSlider();
+        }
     }
 
     private void ApplySeekFromSlider()
@@ -5023,6 +5004,7 @@ public partial class MainWindow
     }
 
     private double _lastAppliedVolume = -1.0;
+    private bool _videoAudioMuted;
     private void VideoTabVolume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         // The volume slider raises ValueChanged on every sub-pixel move. VLC
@@ -5039,7 +5021,8 @@ public partial class MainWindow
     private void VideoTabMute_Click(object sender, RoutedEventArgs e)
     {
         if (_videoPlayer is null) return;
-        _videoPlayer.IsMuted = !_videoPlayer.IsMuted;
+        _videoAudioMuted = !_videoPlayer.IsMuted;
+        _videoPlayer.IsMuted = _videoAudioMuted;
         UpdateVideoTabMuteButtonIcon();
     }
 
@@ -5048,7 +5031,11 @@ public partial class MainWindow
         if (VideoTabMuteButton is null) return;
         bool muted = _videoPlayer?.IsMuted == true;
         double vol = _videoPlayer?.Volume ?? 1.0;
-        VideoTabMuteButton.Content = muted || vol <= 0.001 ? "🔇" : vol < 0.5 ? "🔉" : "🔊";
+        if(FindElement<OperatorSymbol>("VideoTabAudioSymbol") is { } symbol)
+        {symbol.AudioLevel=vol;symbol.AudioMuted=muted || vol<=.001;}
+        string action=$"{(muted?"Unmute":"Mute")} scoreboard audio · volume {Math.Round(vol*100):0}%";
+        VideoTabMuteButton.ToolTip=action;
+        System.Windows.Automation.AutomationProperties.SetName(VideoTabMuteButton,action);
     }
 
     // Connect the VIDEO-tab preview rectangle to a live VisualBrush of the
@@ -5441,68 +5428,26 @@ public partial class MainWindow
     }
 
     // ═══════════════════════════════════════════════════════
-    //  RESET MATCH — cinematic confirmation overlay
+    //  RESET MATCH — one owned, context-bound decision
     // ═══════════════════════════════════════════════════════
 
     private void ResetMatch_Click(object sender, RoutedEventArgs e)
     {
-        ShowResetOverlay();
-    }
-
-    private void ShowResetOverlay()
-    {
-        ResetOverlay.IsHitTestVisible = true;
-        ResetOverlay.Visibility = Visibility.Visible;
-        var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(250))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        };
-        ResetOverlay.BeginAnimation(OpacityProperty, fadeIn);
+        ShowResetOverlay(sender as FrameworkElement);
     }
 
     private void CancelReset_Click(object sender, RoutedEventArgs e)
     {
-        HideResetOverlay();
+        CancelResetDecision();
     }
 
     private void ConfirmReset_Click(object sender, RoutedEventArgs e)
     {
-        // The sport selector becomes visible during ExecuteMatchReset. Do not
-        // leave a transparent, hit-testable reset layer above it while the old
-        // fade completes.
-        ResetOverlay.BeginAnimation(OpacityProperty, null);
-        ResetOverlay.Opacity = 0;
-        ResetOverlay.Visibility = Visibility.Collapsed;
-        ResetOverlay.IsHitTestVisible = false;
-        ExecuteMatchReset();
+        ConfirmResetDecision();
     }
 
-    private void HideResetOverlay()
+    private void ResetAflRuntimeForNewMatch()
     {
-        var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-        };
-        fadeOut.Completed += (_, _) =>
-        {
-            ResetOverlay.BeginAnimation(OpacityProperty, null);
-            ResetOverlay.Opacity = 0;
-            ResetOverlay.Visibility = Visibility.Collapsed;
-            ResetOverlay.IsHitTestVisible = false;
-        };
-        ResetOverlay.BeginAnimation(OpacityProperty, fadeOut);
-    }
-
-    private void ExecuteMatchReset()
-    {
-        _deferredGameStateSaveTimer?.Stop();
-        GameStateService.Clear();
-        _aflMatchReady = false;
-        StopBreakRotation();
-        StopStatsBarTimer();
-        ExitVideoTakeover();
-
-        _match.ResetForNewGame();
         _winProbEngine.Reset();
         _fiveMinWarningShown = false;
         _previousRemainingTime = TimeSpan.MaxValue;
@@ -5511,18 +5456,26 @@ public partial class MainWindow
         _lastDisplayedSecond = -1;
         _overlayQueueWired = false;
         ResetPeriodicOverlayTracking();
-
-        EventList.Children.Clear();
+        RebuildMatchLog();
         LastEventText.Text = string.Empty;
+        _scorebug?.ResetAllOverlayState();
+    }
+
+    private void ExecuteMatchReset()
+    {
+        InvalidateStoppageEditor();
+        InvalidatePresentationWork();
+        _deferredGameStateSaveTimer?.Stop();
+        GameStateService.Clear();
+        _aflMatchReady = false;
+        StopBreakRotation();
+        StopStatsBarTimer();
+        ExitVideoTakeover();
+
+        _match.ResetForNewGame();
+        ResetAflRuntimeForNewMatch();
         UpdateActiveDisplayLabel("No active output");
 
-        // Restore the match log empty state
-        if (MatchLogCountBadge is not null)
-            MatchLogCountBadge.Text = "";
-        if (MatchLogEmptyHint is not null)
-            MatchLogEmptyHint.Visibility = Visibility.Visible;
-
-        _scorebug?.ResetAllOverlayState();
         _scorebug?.SetScores(0, 0, 0, 0);
         if (_scorebug != null) _scorebug.Visibility = Visibility.Collapsed;
         if (_quarterBreakScorebug != null) _quarterBreakScorebug.Visibility = Visibility.Collapsed;
@@ -5783,32 +5736,9 @@ public partial class MainWindow
             ? _displayWindow is { IsVisible: true }
             : _cricketDisplayWindow is { IsVisible: true };
 
-        // Animate the thumb position
-        var thumbAnim = new DoubleAnimation(isOpen ? 20 : 0, TimeSpan.FromMilliseconds(200))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        };
-        WindowToggleThumbTranslate.BeginAnimation(TranslateTransform.XProperty, thumbAnim);
+        UpdatePresentationWindowThumb(isOpen);
 
-        // Colour updates
-        WindowToggleTrack.Background = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#0D4429")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#18212C"));
-        WindowToggleTrack.BorderBrush = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#304055"));
-        WindowToggleThumb.Background = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#8191A4"));
-
-        WindowToggleLabel.Text = isOpen ? "Close" : "Open";
-        WindowToggleLabel.Foreground = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#8191A4"));
-
-        PresCardWindow.BorderBrush = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#304055"));
+        UpdateAflOutputWindowCardPaint(isOpen);
     }
 
     private void UpdatePresentationCards(string active)
@@ -5827,6 +5757,13 @@ public partial class MainWindow
         foreach (var (card, check, glow, key) in cards)
         {
             bool selected = key == active;
+            if(ReferenceEquals(card,PresCardScorebug)){UpdateAflLiveScorebugCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardSummary)){UpdateAflQuarterSummaryCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardWorm)){UpdateAflMarginFlowCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardStats)){UpdateAflMatchStatsCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardWeather)){UpdateAflWeatherCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardQuarterBreak)){UpdateAflQuarterBreakCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardScreensaver)){UpdateAflScreensaverCardSelection(selected);continue;}
             card.Background = new SolidColorBrush(selected
                 ? (MediaColor)MediaColorConverter.ConvertFromString("#0A1628")
                 : (MediaColor)MediaColorConverter.ConvertFromString("#101721"));
@@ -5996,49 +5933,28 @@ public partial class MainWindow
         SettingsCountdownGlow.Opacity = !countUp ? 0.12 : 0;
         SettingsCountdownCheck.Visibility = !countUp ? Visibility.Visible : Visibility.Collapsed;
 
-        if(_aflSettingsWorkspace is not null)
-        {
-            SettingsCountUpCard.BorderThickness=SettingsCountdownCard.BorderThickness=new Thickness(0);
-            SettingsCountUpCard.Background=SettingsCountdownCard.Background=System.Windows.Media.Brushes.Transparent;
-            SettingsCountUpCheck.Visibility=SettingsCountdownCheck.Visibility=Visibility.Collapsed;
-            SettingsCountUpGlow.Opacity=SettingsCountdownGlow.Opacity=0;
-        }
+        if(_aflSettingsWorkspace is not null)UpdateAflClockChoiceState(countUp);
 
         UpdateSettingsControlPanelCountdownOptionVisuals();
     }
 
-    private static void AnimateSettingsDouble(DependencyObject target, DependencyProperty property, double to, int durationMs, IEasingFunction? easing = null)
+    // XAML initialization and restore/setup assignments synchronize a display
+    // preference; only a native operator Toggle commits it to the live tool.
+    private bool _syncingSettingsStoppageToggle = true;
+    private void SynchronizeSettingsStoppageToggle(bool value)
     {
-        var animation = new DoubleAnimation
-        {
-            To = to,
-            Duration = TimeSpan.FromMilliseconds(durationMs),
-            EasingFunction = easing
-        };
-
-        if (target is UIElement element)
-        {
-            element.BeginAnimation(property, animation);
-            return;
-        }
-
-        if (target is Animatable animatable)
-        {
-            animatable.BeginAnimation(property, animation);
-        }
+        bool previous = _syncingSettingsStoppageToggle;
+        _syncingSettingsStoppageToggle = true;
+        try { SettingsShowControlPanelCountdown.IsChecked = value; }
+        finally { _syncingSettingsStoppageToggle = previous; }
     }
 
-    private void SettingsControlPanelCountdownOptionCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void SettingsShowControlPanelCountdown_Changed(object sender, RoutedEventArgs e)
     {
-        if (ClockModeCountUp.IsChecked != true)
+        if (_syncingSettingsStoppageToggle || ClockModeCountUp?.IsChecked != true)
             return;
 
-        var settingsShowCountdownToggle = FindElement<System.Windows.Controls.CheckBox>("SettingsShowControlPanelCountdown");
-        if (settingsShowCountdownToggle is null)
-            return;
-
-        settingsShowCountdownToggle.IsChecked = settingsShowCountdownToggle.IsChecked != true;
-        _showControlPanelCountdown = settingsShowCountdownToggle.IsChecked == true;
+        _showControlPanelCountdown = SettingsShowControlPanelCountdown.IsChecked == true;
         OperatorWorkflowPreferences.Update(p => p.AflControlPanelCountdown = _showControlPanelCountdown);
         if (!_showControlPanelCountdown)
             PauseControlPanelCountdown(forceAutoPausedFlag: false);
@@ -6046,101 +5962,176 @@ public partial class MainWindow
         UpdateControlPanelCountdownUi();
     }
 
-    private void UpdateSettingsControlPanelCountdownOptionVisuals()
+    private bool _settingsCountdownOptionHooked, _settingsCountdownOptionClosed, _updatingSettingsCountdownOption;
+    private int _settingsCountdownOptionGeneration;
+    private readonly List<FrameworkElement> _settingsCountdownOptionAncestors = new();
+
+    private void WatchSettingsStoppageAncestors()
     {
-        var optionCard = FindElement<System.Windows.Controls.Border>("SettingsControlPanelCountdownOptionCard");
-        var settingsShowCountdownToggle = FindElement<System.Windows.Controls.CheckBox>("SettingsShowControlPanelCountdown");
-        var cardTranslate = FindElement<TranslateTransform>("SettingsControlPanelCountdownCardTranslate");
-        var cardScale = FindElement<ScaleTransform>("SettingsControlPanelCountdownCardScale");
-        var toggleTrack = FindElement<System.Windows.Controls.Border>("SettingsControlPanelCountdownToggleTrack");
-        var thumbTranslate = FindElement<TranslateTransform>("SettingsControlPanelCountdownThumbTranslate");
-        var toggleLabel = FindElement<System.Windows.Controls.TextBlock>("SettingsControlPanelCountdownToggleLabel");
+        foreach (var owner in _settingsCountdownOptionAncestors)
+            owner.IsVisibleChanged -= SettingsStoppageHostVisibilityChanged;
+        _settingsCountdownOptionAncestors.Clear();
+        DependencyObject? parent = VisualTreeHelper.GetParent(SettingsControlPanelCountdownOptionCard);
+        while (parent is not null)
+        {
+            if (parent is FrameworkElement element && !_settingsCountdownOptionAncestors.Contains(element))
+                _settingsCountdownOptionAncestors.Add(element);
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        if (!_settingsCountdownOptionAncestors.Contains(this)) _settingsCountdownOptionAncestors.Add(this);
+        foreach (var owner in _settingsCountdownOptionAncestors)
+            owner.IsVisibleChanged += SettingsStoppageHostVisibilityChanged;
+    }
 
-        if (optionCard is null || settingsShowCountdownToggle is null || cardTranslate is null || cardScale is null)
-            return;
+    private void SettingsStoppageHostVisibilityChanged(object sender, DependencyPropertyChangedEventArgs args)
+    {
+        if (!_updatingSettingsCountdownOption) RestSettingsStoppageOption();
+    }
 
-        bool isVisible = ClockModeCountUp.IsChecked == true;
-        bool isEnabled = settingsShowCountdownToggle.IsChecked == true;
-        bool wasCollapsed = _settingsCountdownOptionWasCollapsed;
-        _settingsCountdownOptionWasCollapsed = !isVisible;
+    private void SettingsStoppageAppearanceChanged() => RestSettingsStoppageOption();
 
+    private void SettingsStoppageLoaded(object sender, RoutedEventArgs args)
+    {
+        WatchSettingsStoppageAncestors();
+        OperatorAppearance.Changed -= SettingsStoppageAppearanceChanged;
+        OperatorAppearance.Changed += SettingsStoppageAppearanceChanged;
+        RestSettingsStoppageOption();
+    }
+
+    private void SettingsStoppageUnloaded(object sender, RoutedEventArgs args)
+    {
+        foreach (var owner in _settingsCountdownOptionAncestors)
+            owner.IsVisibleChanged -= SettingsStoppageHostVisibilityChanged;
+        _settingsCountdownOptionAncestors.Clear();
+        OperatorAppearance.Changed -= SettingsStoppageAppearanceChanged;
+        RestSettingsStoppageOption();
+    }
+
+    private bool SettingsStoppageHostVisible()
+    {
+        if (_settingsCountdownOptionClosed || !IsLoaded || !IsVisible || !SettingsControlPanelCountdownOptionCard.IsLoaded) return false;
+        foreach (var owner in _settingsCountdownOptionAncestors)
+            if (!owner.IsVisible) return false;
+        return true;
+    }
+
+    private void CancelSettingsStoppageMotion()
+    {
+        ++_settingsCountdownOptionGeneration;
         _settingsCountdownOptionHideTimer?.Stop();
         _settingsCountdownOptionHideTimer = null;
+        SettingsControlPanelCountdownOptionCard.BeginAnimation(UIElement.OpacityProperty, null);
+        SettingsControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        SettingsControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        SettingsControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+    }
 
-        var easeOut = new QuadraticEase { EasingMode = EasingMode.EaseOut };
-
-        if (isVisible)
+    private void SetSettingsStoppageAvailability(bool available)
+    {
+        var card = SettingsControlPanelCountdownOptionCard;
+        bool ownedFocus = card.IsKeyboardFocusWithin;
+        card.IsHitTestVisible = available;
+        SettingsShowControlPanelCountdown.IsEnabled = available;
+        if (!available && ownedFocus)
         {
-            optionCard.BeginAnimation(UIElement.OpacityProperty, null);
-            cardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            cardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            cardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-            optionCard.Visibility = Visibility.Visible;
-
-            if (wasCollapsed)
-            {
-                optionCard.Opacity = 0;
-                cardTranslate.Y = 18;
-                cardScale.ScaleX = 0.97;
-                cardScale.ScaleY = 0.97;
-
-                AnimateSettingsDouble(optionCard, UIElement.OpacityProperty, 1, 260, easeOut);
-                AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 0, 280, easeOut);
-                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 1, 260, easeOut);
-                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 1, 260, easeOut);
-            }
-            else
-            {
-                AnimateSettingsDouble(optionCard, UIElement.OpacityProperty, 1, 180, easeOut);
-                AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 0, 180, easeOut);
-                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 1, 180, easeOut);
-                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 1, 180, easeOut);
-            }
+            if (ClockModeCountdown.IsVisible && ClockModeCountdown.IsEnabled) ClockModeCountdown.Focus();
+            else Keyboard.ClearFocus();
         }
-        else
+    }
+
+    private void RestSettingsStoppageOption()
+    {
+        if (!_settingsCountdownOptionHooked) return;
+        bool previous = _updatingSettingsCountdownOption;
+        _updatingSettingsCountdownOption = true;
+        try
         {
-            optionCard.BeginAnimation(UIElement.OpacityProperty, null);
-            cardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            cardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            cardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            CancelSettingsStoppageMotion();
+            bool available = ClockModeCountUp.IsChecked == true;
+            SetSettingsStoppageAvailability(available);
+            SettingsControlPanelCountdownOptionCard.Opacity = 1;
+            SettingsControlPanelCountdownCardTranslate.Y = 0;
+            SettingsControlPanelCountdownCardScale.ScaleX = 1;
+            SettingsControlPanelCountdownCardScale.ScaleY = 1;
+            _settingsCountdownOptionWasCollapsed = !available;
+            SettingsControlPanelCountdownOptionCard.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+        }
+        finally { _updatingSettingsCountdownOption = previous; }
+    }
 
-            AnimateSettingsDouble(optionCard, UIElement.OpacityProperty, 0, 180, easeOut);
-            AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 14, 180, easeOut);
-            AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 0.98, 180, easeOut);
-            AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 0.98, 180, easeOut);
-
-            _settingsCountdownOptionHideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(190) };
-            _settingsCountdownOptionHideTimer.Tick += (_, _) =>
+    private void UpdateSettingsControlPanelCountdownOptionVisuals()
+    {
+        if (_updatingSettingsCountdownOption || SettingsControlPanelCountdownOptionCard is null
+            || SettingsShowControlPanelCountdown is null || ClockModeCountUp is null) return;
+        var card = SettingsControlPanelCountdownOptionCard;
+        if (!_settingsCountdownOptionHooked)
+        {
+            _settingsCountdownOptionHooked = true;
+            card.Loaded += SettingsStoppageLoaded;
+            card.Unloaded += SettingsStoppageUnloaded;
+            WatchSettingsStoppageAncestors();
+            if (card.IsLoaded) OperatorAppearance.Changed += SettingsStoppageAppearanceChanged;
+            Closed += (_, _) => { _settingsCountdownOptionClosed = true; SettingsStoppageUnloaded(card, new RoutedEventArgs()); };
+            RestSettingsStoppageOption();
+        }
+        _updatingSettingsCountdownOption = true;
+        try
+        {
+            bool available = ClockModeCountUp.IsChecked == true;
+            SetSettingsStoppageAvailability(available);
+            if (!OperatorMotion.Enabled || !SettingsStoppageHostVisible())
             {
-                _settingsCountdownOptionHideTimer?.Stop();
-                _settingsCountdownOptionHideTimer = null;
-                if (ClockModeCountUp.IsChecked != true)
-                {
-                    optionCard.Visibility = Visibility.Collapsed;
-                }
+                RestSettingsStoppageOption();
+                return;
+            }
+            // Same-value model/selection refreshes must not restart a reveal.
+            if (_settingsCountdownOptionWasCollapsed == !available) return;
+            bool freshEntry = card.Visibility == Visibility.Collapsed;
+            double opacity = card.Opacity, y = SettingsControlPanelCountdownCardTranslate.Y;
+            double scaleX = SettingsControlPanelCountdownCardScale.ScaleX, scaleY = SettingsControlPanelCountdownCardScale.ScaleY;
+            CancelSettingsStoppageMotion();
+            int generation = _settingsCountdownOptionGeneration;
+            _settingsCountdownOptionWasCollapsed = !available;
+            card.Visibility = Visibility.Visible;
+            if (available && freshEntry)
+            {
+                opacity = 0; y = 18 * OperatorMotion.TravelScale;
+                scaleX = scaleY = 1 - .03 * OperatorMotion.TravelScale;
+            }
+            card.Opacity = opacity;
+            SettingsControlPanelCountdownCardTranslate.Y = y;
+            SettingsControlPanelCountdownCardScale.ScaleX = scaleX;
+            SettingsControlPanelCountdownCardScale.ScaleY = scaleY;
+            var duration = available ? OperatorMotion.Page : OperatorMotion.SurfaceClose;
+            var fade = new DoubleAnimation(available ? 1 : 0, duration) { EasingFunction = OperatorMotion.SmoothOut };
+            fade.Completed += (_, _) =>
+            {
+                if (generation == _settingsCountdownOptionGeneration
+                    && (ClockModeCountUp.IsChecked == true) == available) RestSettingsStoppageOption();
             };
-            _settingsCountdownOptionHideTimer.Start();
+            card.BeginAnimation(UIElement.OpacityProperty, fade);
+            SettingsControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(available ? 0 : 10 * OperatorMotion.TravelScale, duration) { EasingFunction = OperatorMotion.SmoothOut });
+            foreach (var property in new[] { ScaleTransform.ScaleXProperty, ScaleTransform.ScaleYProperty })
+                SettingsControlPanelCountdownCardScale.BeginAnimation(property,
+                    new DoubleAnimation(available ? 1 : 1 - .02 * OperatorMotion.TravelScale, duration) { EasingFunction = OperatorMotion.SmoothOut });
+            if (!available)
+            {
+                // A bounded fallback also retires exit on an occluded compositor.
+                var timer = new DispatcherTimer { Interval = duration + TimeSpan.FromMilliseconds(100) };
+                timer.Tick += (_, _) =>
+                {
+                    timer.Stop();
+                    if (generation != _settingsCountdownOptionGeneration || !ReferenceEquals(_settingsCountdownOptionHideTimer, timer)) return;
+                    _settingsCountdownOptionHideTimer = null;
+                    RestSettingsStoppageOption();
+                };
+                _settingsCountdownOptionHideTimer = timer;
+                timer.Start();
+            }
         }
-
-        optionCard.Background = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#0E1B2B" : "#10161D"));
-        optionCard.BorderBrush = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#30363D"));
-        optionCard.BorderThickness = new Thickness(2);
-
-        if (toggleTrack is not null)
-            toggleTrack.Background = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#2D333B"));
-
-        if (thumbTranslate is not null)
-            thumbTranslate.X = isEnabled ? 24 : 0;
-
-        if (toggleLabel is not null)
-        {
-            toggleLabel.Text = isEnabled ? "ON" : "OFF";
-            toggleLabel.Foreground = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#8B949E"));
-        }
-
-        // Rendering this settings card must be side-effect free. The live
-        // preference changes only from an explicit operator click, setup
-        // completion, clock-mode change or saved-state restore.
+        finally { _updatingSettingsCountdownOption = false; }
+        // Visibility/paint never commits a preference or changes either clock.
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -6151,7 +6142,7 @@ public partial class MainWindow
     {
         if (int.TryParse(QuarterMinutesBox.Text, out int mins))
         {
-            QuarterMinutesBox.Text = Math.Max(1, mins - 1).ToString();
+            QuarterMinutesBox.Text = Math.Max(0, mins - 1).ToString();
             ApplyQuarterDuration_Click(sender, new RoutedEventArgs());
         }
     }
@@ -6217,8 +6208,19 @@ public partial class MainWindow
 
     private void ClockSet_Click(object sender, RoutedEventArgs e)
     {
-        if (!int.TryParse(ClockSetMinutesBox.Text, out int mins)) mins = 0;
-        if (!int.TryParse(ClockSetSecondsBox.Text, out int secs)) secs = 0;
+        bool validMinutes = int.TryParse(ClockSetMinutesBox.Text, out int mins) && mins is >= 0 and <= 999;
+        bool validSeconds = int.TryParse(ClockSetSecondsBox.Text, out int secs) && secs is >= 0 and <= 59;
+        if (!validMinutes || !validSeconds)
+        {
+            ClockSetError.Text = "Enter minutes from 0 to 999 and seconds from 0 to 59. The clock has not changed.";
+            ClockSetError.Visibility = Visibility.Visible;
+            Views.OperatorViewport.RevealValidationError(ClockSetError);
+            var invalidField = validMinutes ? ClockSetSecondsBox : ClockSetMinutesBox;
+            invalidField.Focus();
+            invalidField.SelectAll();
+            return;
+        }
+        ClockSetError.Visibility = Visibility.Collapsed;
 
         TimeSpan target = TimeSpan.FromMinutes(mins) + TimeSpan.FromSeconds(secs);
 
@@ -6394,7 +6396,7 @@ public partial class MainWindow
     private void WidthMinus_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (int.TryParse(WindowWidthBox.Text, out int w))
-            WindowWidthBox.Text = Math.Max(200, w - 1).ToString();
+            WindowWidthBox.Text = Math.Max(50, w - 1).ToString();
     }
 
     private void WidthPlus_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -6406,7 +6408,7 @@ public partial class MainWindow
     private void HeightMinus_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (int.TryParse(WindowHeightBox.Text, out int h))
-            WindowHeightBox.Text = Math.Max(100, h - 1).ToString();
+            WindowHeightBox.Text = Math.Max(50, h - 1).ToString();
     }
 
     private void HeightPlus_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)

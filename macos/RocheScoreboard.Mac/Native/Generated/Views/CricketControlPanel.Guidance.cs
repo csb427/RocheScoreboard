@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.Guidance.cs; edit translator/adapters.
-// Source SHA-256: 2956eecd2efa3f04648f4024b63e2b772cf7bd9efd86e8b7bddd89d08bd1f4fa
+// Source SHA-256: 9a39049467186600fd5ce1e05aa1b97a220032614fca063b8d14791b4b5cb47e
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -8,17 +8,33 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using Avalonia.Input;
+using Roche_Scoreboard.Models;
 namespace Roche_Scoreboard.Views;
 
 public partial class CricketControlPanel
 {
     private bool _bowlerWasRequired, _batterWasRequired;
-    private void CloseResolvedSelections(bool battingNeeded, bool bowlingNeeded)
+    private bool CloseResolvedSelections(bool battingNeeded, bool bowlingNeeded, CricketMatchManager match, CricketInnings innings)
     {
+        int generation = _selectorGeneration;
+        bool StillCurrent() => generation == _selectorGeneration && ReferenceEquals(_match, match)
+            && ReferenceEquals(match.CurrentInnings, innings);
+        if (!StillCurrent()) return false;
         if (_bowlerWasRequired && !bowlingNeeded && BowlerSelectionOverlay.IsVisible == true)
-        { _bowlerWasRequired = false; _selectorGeneration++; BowlerSelectionOverlay.IsVisible = false; }
+        {
+            _bowlerWasRequired = false;
+            generation = ++_selectorGeneration;
+            BowlerSelectionOverlay.IsVisible = false;
+            if (!StillCurrent()) return false;
+        }
         if (_batterWasRequired && !battingNeeded && BatterSelectionOverlay.IsVisible == true)
-        { _batterWasRequired = false; _selectorGeneration++; BatterSelectionOverlay.IsVisible = false; }
+        {
+            _batterWasRequired = false;
+            generation = ++_selectorGeneration;
+            BatterSelectionOverlay.IsVisible = false;
+            if (!StillCurrent()) return false;
+        }
+        return StillCurrent();
     }
     private void ScoringLock_Click(object? sender, PointerEventArgs args)
     {

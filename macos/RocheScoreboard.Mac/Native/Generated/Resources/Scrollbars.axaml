@@ -4,6 +4,7 @@
         <Setter Property="services:ScrollActivity.Enabled" Value="True" />
     </ControlTheme>
     <ControlTheme TargetType="ScrollBar" x:Key="{x:Type ScrollBar}">
+        <Setter Property="services:ScrollActivity.FadeEnabled" Value="True" />
         <Setter Property="Width" Value="10" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Opacity" Value="0" />
@@ -57,9 +58,6 @@
         </Style>
         <Style Selector="^[(services|ScrollActivity.Active)=True]">
             <Setter Property="Opacity" Value=".85" />
-        </Style>
-        <Style Selector="^[(services|ScrollActivity.Active)=False]">
-            <Setter Property="Opacity" Value="0" />
         </Style>
     </ControlTheme>
 </ResourceDictionary>

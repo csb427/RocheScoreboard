@@ -62,12 +62,16 @@ public partial class MainWindow
             try
             {
                 panel.MainTabControl.SelectedItem=panel.OutputTab; await Task.Delay(250);
-                var triggers=QaDescendants(panel.CricketOverlayButtons).OfType<Button>().Where(b=>b.Tag is CricketOverlayKind).ToArray();
+                var triggers=QaDescendants(panel).OfType<Button>().Where(b=>b.Tag is CricketOverlayKind).ToArray();
                 checks["cricket-output-tab-has-all-live-bound-overlay-actions"] = triggers.Length==Enum.GetValues<CricketOverlayKind>().Length;
                 CaptureCricketQa(panel,Path.Combine(directory,"cricket-output-live-bound-overlay-groups.png"));
                 triggers.Single(b=>Equals(b.Tag,CricketOverlayKind.Extras)).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 await Task.Delay(1350);
                 checks["cricket-output-tab-overlay-button-actually-reaches-public-display"] = overlays.Status.Contains("EXTRAS");
+                checks["extras-control-renders-only-extra-metrics"] = QaDescendants(overlays).OfType<TextBlock>().Any(text => text.Text == "WIDES") && !QaDescendants(overlays).OfType<TextBlock>().Any(text => text.Text == "FOURS");
+                panel.CricketBoundariesOverlayButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await Task.Delay(1350);
+                checks["separate-boundaries-control-renders-fours-and-sixes"] = overlays.Status.Contains("INNINGS BOUNDARIES") && QaDescendants(overlays).OfType<TextBlock>().Any(text => text.Text == "FOURS") && !QaDescendants(overlays).OfType<TextBlock>().Any(text => text.Text == "WIDES");
                 panel.MainTabControl.SelectedItem=panel.CricketSettingsTab; await Task.Delay(200);
                 CaptureCricketQa(panel,Path.Combine(directory,"cricket-live-settings-shared-navigation.png"));
             }

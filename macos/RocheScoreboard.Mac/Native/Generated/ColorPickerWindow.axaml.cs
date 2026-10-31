@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/ColorPickerWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 5e8ea45a6a4d2b6e51061bf60984ceb3a5ee9ffdd0d443127fd7259d9fce55bd
+// Source SHA-256: f3dd451934b91ee974592b6695324a3b6f125f54086e39dabcdcfc41ca369318
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -52,6 +52,15 @@ public partial class ColorPickerWindow : NativeWindow
             ColourWheelImage.Source = BuildColourWheel();
             PopulateSwatches();
             RefreshFieldAndSelection();
+            // The primary action keeps its established template and press/focus
+            // behavior, with a solid face beneath its dark ink. Secondary
+            // controls and the picker shell retain their glass material.
+            // Preserve this template's authored primary face as a concrete
+            // brush across platform brush implementations.
+            UseColourButton.Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF7));
+            UseColourButton.ApplyTemplate();
+            if (NativeTemplates.FindObject(UseColourButton,"Bd") is OperatorGlassSurface face)
+                face.Material = GlassMaterial.Opaque;
         };
     }
 
@@ -128,12 +137,12 @@ public partial class ColorPickerWindow : NativeWindow
         if (_updating || !IsLoaded) return;
         if (TryParseHex((HexBox.Text ?? string.Empty), out Color color))
         {
-            ValidationText.Text = string.Empty;
+            SetHexValidation(string.Empty);
             SelectedColor = color;
             RgbToHsv(color, out _hue, out _saturation, out _value);
             RefreshFieldAndSelection();
         }
-        else ValidationText.Text = "Enter a six-digit colour such as #0A2A6A.";
+        else SetHexValidation("Enter a six-digit colour such as #0A2A6A.");
     }
 
     private void Swatch_Click(object? sender, RoutedEventArgs e)
@@ -146,14 +155,30 @@ public partial class ColorPickerWindow : NativeWindow
 
     private void Accept_Click(object? sender, RoutedEventArgs e)
     {
+        if (!IsVisible) return;
         if (!TryParseHex((HexBox.Text ?? string.Empty), out Color color))
         {
-            ValidationText.Text = "Enter a valid six-digit colour before continuing.";
+            SetHexValidation("Enter a valid six-digit colour before continuing.");
+            HexBox.Focus();
+            OperatorViewport.RevealValidationError(HexEntryRegion);
             return;
         }
         SelectedColor = color;
         RecentColorStorage.Record(color);
         DialogResult = true;
+    }
+
+    private void Cancel_Click(object? sender, RoutedEventArgs e)
+    {
+        if (!IsVisible) return;
+        DialogResult = false;
+    }
+
+    private void SetHexValidation(string message)
+    {
+        ValidationText.Text = message;
+        Avalonia.Automation.AutomationProperties.SetHelpText(HexBox, string.IsNullOrEmpty(message)
+            ? "Enter six hexadecimal digits, with an optional #." : message);
     }
 
     private void PopulateSwatches()
@@ -188,7 +213,7 @@ public partial class ColorPickerWindow : NativeWindow
         HexBox.Text = $"#{SelectedColor.R:X2}{SelectedColor.G:X2}{SelectedColor.B:X2}";
         SaturationSlider.Value = _saturation;
         BrightnessSlider.Value = _value;
-        ValidationText.Text = string.Empty;
+        SetHexValidation(string.Empty);
         _updating = false;
         UpdateSliderBrushes();
         double angle = _hue * Math.PI / 180;

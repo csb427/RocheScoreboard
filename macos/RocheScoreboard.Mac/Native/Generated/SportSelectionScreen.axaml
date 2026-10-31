@@ -11,6 +11,12 @@
                 <GradientStop Color="#D5DEE9" Offset=".55" />
                 <GradientStop Color="#8E9BAC" Offset="1" />
             </LinearGradientBrush>
+            <DataTemplate x:Key="HomeResumeLabel">
+                <StackPanel Orientation="Horizontal">
+                    <ns2:OperatorSymbol Kind="resume" Width="20" Height="20" Margin="0,0,9,0" Foreground="{DynamicResource ControlCentre.TextBrush}" />
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource ControlCentre.TextBrush}" />
+                </StackPanel>
+            </DataTemplate>
             <ControlTheme x:Key="SportsLaunchSurface" TargetType="Button">
                 <Setter Property="motion:CricketActionMotion.Enabled" Value="False" />
                 <Setter Property="motion:OperatorControlMotion.Enabled" Value="False" />
@@ -41,6 +47,7 @@
                 </Style>
             </ControlTheme>
             <ControlTheme x:Key="HomeUtility" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+                <Setter Property="motion:OperatorControlMotion.InflateOnPress" Value="True" />
                 <Setter Property="MinHeight" Value="44" />
                 <Setter Property="Padding" Value="16,10" />
                 <Setter Property="Background" Value="Transparent" />
@@ -48,11 +55,27 @@
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="FontSize" Value="14" />
             </ControlTheme>
-            <ControlTheme x:Key="ReleaseFilter" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
-                <Setter Property="MinHeight" Value="38" />
-                <Setter Property="MinWidth" Value="68" />
-                <Setter Property="Margin" Value="3" />
-                <Setter Property="Padding" Value="13,7" />
+            <DataTemplate x:Key="ReleaseAllLabel">
+                <StackPanel Orientation="Horizontal">
+                    <ns2:OperatorSymbol Kind="release-all" Width="18" Height="18" Margin="0,0,6,0" Foreground="{Binding Foreground,RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                    <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
+            <DataTemplate x:Key="ReleaseNewLabel">
+                <StackPanel Orientation="Horizontal">
+                    <ns2:OperatorSymbol Kind="release-new" Width="18" Height="18" Margin="0,0,6,0" Foreground="{Binding Foreground,RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                    <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
+            <DataTemplate x:Key="ReleaseFixedLabel">
+                <StackPanel Orientation="Horizontal">
+                    <ns2:OperatorSymbol Kind="release-fixed" Width="18" Height="18" Margin="0,0,6,0" Foreground="{Binding Foreground,RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                    <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                </StackPanel>
+            </DataTemplate>
+            <ControlTheme x:Key="ReleaseFilter" TargetType="RadioButton" BasedOn="{StaticResource SettingsSegment}">
+                <Setter Property="MinHeight" Value="44" />
+                <Setter Property="Padding" Value="6,7" />
                 <Setter Property="FontSize" Value="14" />
             </ControlTheme>
             <ControlTheme x:Key="ReleaseDisclosure" TargetType="Expander">
@@ -95,8 +118,8 @@
             </ControlTheme>
         </ResourceDictionary>
     </UserControl.Resources>
-    <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled" PointerWheelChanged="Native_ResponsiveScrollHost_PreviewMouseWheel">
-        <Grid x:Name="SportViewport" Width="{Binding ViewportWidth, ElementName=ResponsiveScrollHost}" Height="{Binding ViewportHeight, ElementName=ResponsiveScrollHost}" ClipToBounds="True">
+    <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" PointerWheelChanged="Native_ResponsiveScrollHost_PreviewMouseWheel">
+        <Grid x:Name="SportViewport" MinHeight="620" Width="{Binding ViewportWidth, ElementName=ResponsiveScrollHost}" Height="{Binding ViewportHeight, ElementName=ResponsiveScrollHost}" ClipToBounds="True">
             <Grid x:Name="HomeBackdrop" IsHitTestVisible="False">
                 <ns4:OperatorSceneBackdrop />
                 <Border>
@@ -112,10 +135,12 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid x:Name="HomeToolbar">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -137,9 +162,10 @@
                             </StackPanel>
                         </StackPanel>
                     </ns4:OperatorGlassSurface>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K" Theme="{StaticResource HomeUtility}" />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                         <ns4:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" IsVisible="{Binding Visibility, ElementName=ResumeSavedMatchButton}">
-                            <Button x:Name="ResumeSavedMatchButton" Content="Continue match" Click="ResumeSavedMatch_Click" IsVisible="False" Theme="{StaticResource HomeUtility}" ToolTip.Tip="Resume the match you chose to continue later" />
+                            <Button x:Name="ResumeSavedMatchButton" Content="Continue match" Click="ResumeSavedMatch_Click" IsVisible="False" Theme="{StaticResource HomeUtility}" ToolTip.Tip="Review and resume the saved match" />
                         </ns4:OperatorGlassSurface>
                         <ns4:OperatorGlassSurface Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0">
                             <Button x:Name="ChangelogToggle" Click="ChangelogToggle_Click" Theme="{StaticResource HomeUtility}">
@@ -163,7 +189,15 @@
                         <TextBlock x:Name="HomeSubtitle" Text="Start a match or a training session." Foreground="#D8E2EC" FontSize="15" TextAlignment="Center" Margin="0,7,0,0" />
                     </StackPanel>
                 </Border>
-                <Grid x:Name="SportCardsGrid" Grid.Row="2" MaxWidth="1100" Height="330" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                <Border x:Name="ResumeSessionSurface" Grid.Row="2" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="#6073B9FF" BorderThickness="1" CornerRadius="24" Padding="22,16" Margin="10,0,10,12">
+                    <StackPanel>
+                        <TextBlock x:Name="SessionHeading" Text="Ready for your next session" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock x:Name="SessionDetail" Text="No recoverable match saved. Start a new match below." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,6,0,0" />
+                        <TextBlock Text="Output stays off when resuming. Use Show output window (Ctrl+K) when ready." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,7,0,0" />
+                        <Button x:Name="HomeResumeButton" Content="Resume saved match" ContentTemplate="{StaticResource HomeResumeLabel}" Click="ResumeSavedMatch_Click" HorizontalAlignment="Left" Background="#284E739D" Margin="0,12,0,0" IsVisible="False" Theme="{StaticResource HomeUtility}" />
+                    </StackPanel>
+                </Border>
+                <Grid x:Name="SportCardsGrid" Grid.Row="3" MaxWidth="1100" Height="330" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
@@ -346,11 +380,11 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <WrapPanel x:Name="ReleaseFilters">
-                                <Button x:Name="AllReleaseFilter" Content="All" Tag="All" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" />
-                                <Button x:Name="NewReleaseFilter" Content="New" Tag="New" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" />
-                                <Button x:Name="FixedReleaseFilter" Content="Fixed" Tag="Fixed" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" />
-                            </WrapPanel>
+                            <ns4:OperatorSegmentedPanel x:Name="ReleaseFilters" Columns="3" Rows="1" Width="264" Height="44" HorizontalAlignment="Left" AllowScrubbing="True" KeyDown="Native_ReleaseFilters_PreviewKeyDown">
+                                <RadioButton x:Name="AllReleaseFilter" Content="All" ContentTemplate="{StaticResource ReleaseAllLabel}" Tag="All" GroupName="ReleaseFilterChoice" IsChecked="True" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
+                                <RadioButton x:Name="NewReleaseFilter" Content="New" ContentTemplate="{StaticResource ReleaseNewLabel}" Tag="New" GroupName="ReleaseFilterChoice" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
+                                <RadioButton x:Name="FixedReleaseFilter" Content="Fixed" ContentTemplate="{StaticResource ReleaseFixedLabel}" Tag="Fixed" GroupName="ReleaseFilterChoice" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
+                            </ns4:OperatorSegmentedPanel>
                             <TextBlock x:Name="ReleaseResultCount" Grid.Column="1" Foreground="#B8C4D6" FontSize="12" VerticalAlignment="Center" Margin="12,0,0,0" />
                         </Grid>
                         <Grid x:Name="ReleaseLayout" Grid.Row="3">
