@@ -191,7 +191,7 @@ public sealed class OperatorRequestedRefinementTests
         finally{window.Close();OperatorMotion.AnimationOverride=old;}
     }
     [AvaloniaFact]
-    public async Task CricketNumeralsRetainFontAndTabularWidthsWithReservedWicketSpace()
+    public async Task CricketNumeralsRetainFontAndTabularWidthsWithCompactWicketSpacing()
     {
         var bug=new CricketScorebugControl{RollingFiguresEnabled=false,EventAnimationsEnabled=false};
         var window=new NativeWindow{Width=386,Height=193,Content=bug};window.Show();
@@ -208,11 +208,14 @@ public sealed class OperatorRequestedRefinementTests
             File.WriteAllText(Path.Combine(Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR")??"/tmp", "numeric-font-metrics.json"),metrics);
             Assert.True(advances.Max()-advances.Min()<.05,metrics);
             var wicket=bug.FindControl<TextBlock>("ScoreWickets")!;var word=bug.FindControl<TextBlock>("ScoreSlash")!;
-            double anchor=0,font=runs.FontSize;
+            double font=runs.FontSize;var group=bug.FindControl<StackPanel>("WicketGroup")!;
             foreach(string value in new[]{"9","10","11"})
             {
                 wicket.Text=value;runs.Text=value=="9"?"99":"100";await Settle();
-                double x=word.TranslatePoint(default,bug)!.Value.X;if(anchor==0)anchor=x;else Assert.InRange(Math.Abs(x-anchor),0,.1);
+                // The current Windows feedback explicitly replaces the old fixed
+                // FOR anchor: one-digit wickets must not reserve a blank digit.
+                double gap=word.TranslatePoint(default,group)!.Value.X-wicket.TranslatePoint(default,group)!.Value.X-wicket.Bounds.Width;
+                Assert.InRange(gap,0,8.1);
                 Assert.Equal(font,runs.FontSize);Assert.True(wicket.DesiredSize.Width<=wicket.Bounds.Width+.1);
                 Capture(window,"numeric-"+value);
             }

@@ -64,7 +64,7 @@
                                 <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                             </Grid.RenderTransform>
                             <ns6:OperatorGlassSurface x:Name="Bd" CornerRadius="26" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
-                            <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                            <ns1:OperatorChoiceSurface CornerRadius="26" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                             <Border x:Name="ActionGlow" CornerRadius="26" Background="White" Opacity="0" IsHitTestVisible="False" Margin="1" />
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}">
                                 <ContentPresenter.Margin>
@@ -217,7 +217,7 @@
                         </Grid.ColumnDefinitions>
                         <Border x:Name="Track" Width="50" Height="30" CornerRadius="15" Background="#48484D" BorderBrush="#66666C" BorderThickness="1" VerticalAlignment="Center">
                             <Grid>
-                                <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ns1:OperatorChoiceSurface CornerRadius="15" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                                 <Ellipse x:Name="ToggleKnob" Width="24" Height="24" Fill="White" HorizontalAlignment="Left" Margin="2,0,0,0" RenderTransformOrigin="50%,50%">
                                     <Ellipse.RenderTransform>
                                         <TransformGroup>
@@ -262,7 +262,7 @@
                 <ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent">
                         <Border x:Name="FinalsBase" CornerRadius="22" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                        <ns1:OperatorChoiceSurface x:Name="FinalsSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}">
+                        <ns1:OperatorChoiceSurface CornerRadius="22" x:Name="FinalsSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}">
                             <ns1:OperatorChoiceSurface.FillBrush>
                                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
                                     <GradientStop Color="#8A76551A" Offset="0" />
@@ -350,7 +350,7 @@
                 <ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent">
                         <Border x:Name="StoppageBase" CornerRadius="16" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                        <ns1:OperatorChoiceSurface x:Name="StoppageSelection" OriginX="0" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <ns1:OperatorChoiceSurface CornerRadius="16" x:Name="StoppageSelection" OriginX="0" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                         <Grid Margin="{TemplateBinding Padding}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -417,7 +417,7 @@
                 <ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent">
                         <Border x:Name="NamesBase" CornerRadius="18" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                        <ns1:OperatorChoiceSurface x:Name="NamesSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <ns1:OperatorChoiceSurface CornerRadius="18" x:Name="NamesSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                         <Grid Margin="{TemplateBinding Padding}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -483,7 +483,7 @@
                 <ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent">
                         <Border x:Name="AutomaticOverlaysBase" CornerRadius="22" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                        <ns1:OperatorChoiceSurface OriginX="0" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <ns1:OperatorChoiceSurface CornerRadius="22" OriginX="0" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                         <Grid Margin="{TemplateBinding Padding}" IsHitTestVisible="False">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="38" />
@@ -539,7 +539,7 @@
                 <ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent">
                         <Border x:Name="QuarterBreakBase" CornerRadius="20" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                        <ns1:OperatorChoiceSurface x:Name="QuarterBreakSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <ns1:OperatorChoiceSurface CornerRadius="20" x:Name="QuarterBreakSelection" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                         <Grid Margin="{TemplateBinding Padding}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -622,7 +622,7 @@
                                 <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                             </Grid.RenderTransform>
                             <ns6:OperatorGlassSurface x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="20" />
-                            <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                            <ns1:OperatorChoiceSurface CornerRadius="20" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                             <Border x:Name="ActionGlow" Background="White" CornerRadius="20" Margin="1" Opacity="0" IsHitTestVisible="False" />
                             <Grid Margin="{TemplateBinding Padding}">
                                 <Grid.ColumnDefinitions>
@@ -1140,7 +1140,7 @@
                                 <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                             </Border.RenderTransform>
                             <Grid>
-                                <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ns1:OperatorChoiceSurface CornerRadius="15" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                                 <ns1:OperatorSymbol Kind="power" Width="25" Height="25" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Grid>
                         </Border>
@@ -1171,7 +1171,7 @@
                                 <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                             </Grid.RenderTransform>
                             <ns6:OperatorGlassSurface x:Name="ChoiceSurface" CornerRadius="23" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" />
-                            <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                            <ns1:OperatorChoiceSurface CornerRadius="23" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                             <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                             <Ellipse Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0" Fill="{DynamicResource ControlCentre.TextBrush}" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False" />
                         </Grid>
@@ -1202,7 +1202,7 @@
                                 <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                             </Grid.RenderTransform>
                             <ns6:OperatorGlassSurface x:Name="ChoiceSurface" CornerRadius="23" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" />
-                            <ns1:OperatorChoiceSurface x:Name="RoleFill" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                            <ns1:OperatorChoiceSurface CornerRadius="23" x:Name="RoleFill" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                             <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                             <Ellipse Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0" Fill="{DynamicResource ControlCentre.TextBrush}" Opacity="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False" />
                         </Grid>
@@ -1231,7 +1231,7 @@
                 <ControlTemplate TargetType="Button">
                     <Grid Background="Transparent">
                         <ns6:OperatorGlassSurface CornerRadius="20" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" />
-                        <ns1:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <ns1:OperatorChoiceSurface CornerRadius="20" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                         <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                         <Border x:Name="SavedFocus" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" CornerRadius="20" IsHitTestVisible="False" IsVisible="False" />
                     </Grid>

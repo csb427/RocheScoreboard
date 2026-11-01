@@ -27,6 +27,16 @@ public sealed partial class CricketPlayerMenuPreferencesBaselineTests
         await Settle(180); string state=State(match);
         var extras=Named<Button>(panel,"CricketExtrasOverlayButton"); var boundaries=Named<Button>(panel,"CricketBoundariesOverlayButton");
         Assert.NotSame(extras,boundaries);
+        foreach(var button in new[]{extras,boundaries})Assert.Contains(Named<StackPanel>(panel,"CricketOverlayButtons"),button.GetVisualAncestors());
+        var groups=Named<StackPanel>(panel,"CricketOverlayButtons");
+        foreach(var pair in new[]{(button:extras,heading:"MATCH CONTEXT"),(button:boundaries,heading:"RECENT PLAY")})
+        {
+            var cards=Assert.IsAssignableFrom<Control>(pair.button.Parent);int index=groups.Children.IndexOf(cards);
+            Assert.True(index>0);Assert.Equal(pair.heading,Assert.IsAssignableFrom<TextBlock>(groups.Children[index-1]).Text);
+        }
+        // Rebinding must move the retained controls, not duplicate their event handlers.
+        panel.SetOverlayHost(host);await Settle(50);
+        Assert.Single(panel.GetVisualDescendants().OfType<Button>(),x=>ReferenceEquals(x,extras));
         foreach(var entry in new[]{(button:extras,kind:CricketOverlayKind.Extras,caption:"EXTRAS",metric:"WIDES",value:"2",excluded:"FOURS"),
             (button:boundaries,kind:CricketOverlayKind.Boundaries,caption:"INNINGS BOUNDARIES",metric:"FOURS",value:"1",excluded:"WIDES")})
         {

@@ -28,14 +28,22 @@ public sealed partial class CricketPlayerMenuPreferencesBaselineTests
         Record("delivery-entry-"+width,new{box=Painted(window,row),probes=DockEdgePoints(Painted(window,row)).Select(point=>new{point,owned=Within(row,window.InputHitTest(point)),type=window.InputHitTest(point)?.GetType().Name,name=(window.InputHitTest(point)as Control)?.Name})});await StableReachable(window,row);
         window.FocusManager!.ClearFocus();window.MouseMove(new Avalonia.Point(1,1));await Settle(250);Assert.True(Ready(window,row));double beforeHeight=row.Bounds.Height;string before=State(match);
         if(Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR") is {Length:>0} directory)Directory.CreateDirectory(directory);
+        var affordance=Assert.Single(row.GetVisualDescendants().OfType<Border>(),x=>Equals(x.Tag,"delivery-edit-affordance"));
+        Assert.InRange(row.Bounds.Height,40,48);Assert.Equal(0,affordance.Width);Assert.Equal(0,affordance.Opacity);Assert.False(affordance.IsHitTestVisible);
+        var group=Assert.IsAssignableFrom<StackPanel>(row.GetVisualAncestors().OfType<StackPanel>().First(x=>x.Tag is int));
+        var overHeader=Assert.IsAssignableFrom<Border>(group.Children[0]);
+        Assert.InRange(Math.Abs(overHeader.Bounds.Width-row.Bounds.Width),0,.5);
+        Assert.True(Painted(window,overHeader).Bottom+5<=Painted(window,row).Top,"The newest row must clear the over header.");
         PromptCapture(window,$"delivery-rest-{width}");window.MouseMove(Painted(window,row).Center);await Settle(350);PromptCapture(window,$"delivery-hover-{width}");
         Assert.Equal(beforeHeight,row.Bounds.Height);Assert.Equal(before,State(match));
-        var edit=Assert.Single(row.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Tag,"edit-ball"));Assert.True(edit.Bounds.Height>=28);Assert.True(edit.IsEffectivelyVisible);
+        var edit=Assert.Single(row.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Tag,"edit-ball"));Assert.True(edit.Bounds.Height>=28);Assert.True(edit.IsEffectivelyVisible);Assert.Equal(82,affordance.Width);Assert.Equal(1,affordance.Opacity);Assert.True(affordance.IsHitTestVisible);
         for(int i=0;i<3;i++){window.MouseMove(new Avalonia.Point(1,1));await Settle(20);window.MouseMove(Painted(window,row).Center);await Settle(20);}
         OperatorAppearance.Configure(OperatorAppearance.GlassEnabled,true);await Settle(100);Assert.Equal(beforeHeight,row.Bounds.Height);Assert.Equal(before,State(match));
+        window.MouseMove(new Avalonia.Point(1,1));await Settle(120);Assert.Equal(0,affordance.Width);
+        await Reveal(window,row);await Settle(100);Assert.Equal(82,affordance.Width);Assert.Equal(before,State(match));
     }
     [AvaloniaTheory]
-    [InlineData("enter")][InlineData("space")][InlineData("invoke")][InlineData("pointer")]
+    [InlineData("enter")][InlineData("space")][InlineData("invoke")][InlineData("pointer")][InlineData("edit-pointer")]
     [Trait("Evidence","CricketDeliveryHistoryRow")]
     public async Task DeliveryHistoryActivationOpensCurrentEditorAndCancelPreservesPlay(string input)
     {
@@ -43,7 +51,12 @@ public sealed partial class CricketPlayerMenuPreferencesBaselineTests
         var panel=new CricketControlPanel();panel.SetMatch(match);var window=scope.Window(panel,1280,850);await Settle(550);
         var row=DeliveryHistoryRow(panel,match.CurrentInnings!.Deliveries[0]);await Reveal(window,row);await StableReachable(window,row);string before=State(match);
         var peer=ControlAutomationPeer.CreatePeerForElement(row);Assert.NotNull(peer);Assert.Contains("0.1",peer.GetName());Assert.Contains("Player 1",peer.GetName());
-        if(input=="invoke")Assert.IsAssignableFrom<IInvokeProvider>(peer).Invoke();else if(input=="pointer")TapNow(window,row);else
+        if(input=="invoke")Assert.IsAssignableFrom<IInvokeProvider>(peer).Invoke();else if(input=="edit-pointer")
+        {
+            var edit=Assert.Single(row.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Tag,"edit-ball"));
+            await StableReachable(window,edit);TapNow(window,edit);
+        }
+        else if(input=="pointer")TapNow(window,row);else
         {
             var key=input=="enter"?PhysicalKey.Enter:PhysicalKey.Space;
             var focusBefore=window.FocusManager?.GetFocusedElement()?.GetType().Name;

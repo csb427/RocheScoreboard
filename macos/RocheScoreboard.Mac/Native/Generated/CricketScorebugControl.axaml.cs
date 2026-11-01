@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketScorebugControl.xaml.cs; edit translator/adapters.
-// Source SHA-256: 62cdba6132b7ff0d20bd57b8245b7e8a6c749e42c9c526182b0a518b792b6c3e
+// Source SHA-256: 41eb4ce6327239fe4eb1e050050850967303c51b6d52a7239fb83c4ee0a0245e
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -194,7 +194,7 @@ public partial class CricketScorebugControl : UserControl
         private string _lastBowlerFigures = "", _lastBowlerOvers = "", _lastOversDisplay = "";
         private int _lastBallCount = -1;
         private bool _isDisposed;
-        private int _primaryRunCapacity = 4;
+        private int _primaryRunCapacity = 4, _primaryWicketCapacity = 1;
         private int _lastBowlerIndex = -1, _infoGeneration, _ballGeneration;
         private bool _clearingBalls;
         private readonly List<string> _displayedBalls = new();
@@ -209,6 +209,8 @@ public partial class CricketScorebugControl : UserControl
             ((Control)ScoreWickets.Parent).SizeChanged += (_, _) => FitPrimaryScore();
             foreach (var number in new[] { OversText, ExtrasValue, StrikerRuns, StrikerBalls, NonStrikerRuns, NonStrikerBalls, BowlerFigures, BowlerOvers })
                 ((Control)number.Parent).SizeChanged += (_, _) => FitLongNumericFields();
+            BattingHeaderPanel.SizeChanged += (_, _) => FitHeaderTypography();
+            BowlingHeaderPanel.SizeChanged += (_, _) => FitHeaderTypography();
             InfoValue.SizeChanged+=(_,_)=>FitContextValue((InfoLabel.Text ?? string.Empty),(InfoValue.Text ?? string.Empty));
             SizeChanged += (_, _) =>
             {
@@ -225,7 +227,7 @@ public partial class CricketScorebugControl : UserControl
                     {ReturnHeaderHandoffs();ApplyOverlayGeometry(false);}
                 }));
             };
-            _timeUpdater.Tick += (_, _) => { TopTimeText.Text = BroadcastClock.WallTime(); TickBowlerDetails(); };
+            _timeUpdater.Tick += (_, _) => { TopTimeText.Text = BroadcastClock.WallTime(); FitHeaderTypography(); TickBowlerDetails(); };
             TopTimeText.Text = BroadcastClock.WallTime();
             StartInfoRotation();
             _chaseMiniTimer.Tick+=(_,_)=>
@@ -272,11 +274,11 @@ public partial class CricketScorebugControl : UserControl
         }
         public void ClearWeatherSnapshot()
         {
-            if (!_isDisposed) TopWeatherText.Text = "";
+            if (!_isDisposed) { TopWeatherText.Text = ""; FitHeaderTypography(); }
         }
         public void UpdateWeatherSnapshot(WeatherSnapshot snapshot)
         {
-            if (!_isDisposed) TopWeatherText.Text = $"{snapshot.Icon} {Math.Round(snapshot.CurrentTemp)}°";
+            if (!_isDisposed) { TopWeatherText.Text = $"{snapshot.Icon} {Math.Round(snapshot.CurrentTemp)}°"; FitHeaderTypography(); }
         }
         public void UpdateFromMatch(CricketMatchManager match)
         {
@@ -369,6 +371,7 @@ public partial class CricketScorebugControl : UserControl
             // Headers
             BattingHeaderText.Text = match.BattingTeamName.ToUpper();
             BowlingHeaderText.Text = match.BowlingTeamName.ToUpper();
+            FitHeaderTypography();
             RollField(ExtrasValue,inn.TotalExtras.ToString());
             ScoreSlash.Foreground = battingTextBrush;
             OversText.Foreground = InfoValue.Foreground = ExtrasValue.Foreground = battingTextBrush;
@@ -560,7 +563,8 @@ public partial class CricketScorebugControl : UserControl
             // This over ball tracker
             UpdateOverBallsDisplay(inn);
             int capacity = Math.Max(4, runsStr.Length);
-            if (capacity != _primaryRunCapacity) { _primaryRunCapacity = capacity; FitPrimaryScore(); }
+            if (capacity != _primaryRunCapacity || wktsStr.Length != _primaryWicketCapacity)
+            { _primaryRunCapacity = capacity; _primaryWicketCapacity = wktsStr.Length; FitPrimaryScore(); }
             FitLongNumericFields();
 
             // Logo
@@ -658,10 +662,33 @@ public partial class CricketScorebugControl : UserControl
                     Math.Min((WicketRow.NativeWidth()-18)/(wickets.Width+word.Width)*100, VerticalFit(wickets,WicketRow.NativeHeight())),
                     Math.Min((ScoreStack.NativeWidth()-4)/runs.Width*100, VerticalFit(runs,runCell.NativeHeight()))));
             double size = Math.Clamp(Math.Floor(fit*2)/2,8,160);
-            // Reserve both wicket digits so FOR never moves at 9 -> 10.
-            ScoreWickets.MinWidth = wickets.Width * size / 100;
+            // Fit type against two digits, but reserve only the current digit count.
+            // A single wicket digit must not leave a blank digit before FOR.
+            ScoreWickets.MinWidth = wickets.Width * size / 100 * _primaryWicketCapacity / 2;
             if (Math.Abs(ScoreRuns.FontSize-size) < .1) return;
             ScoreRuns.FontSize = ScoreWickets.FontSize = size; ScoreSlash.FontSize = size*.70;
+        }
+
+        private void FitHeaderTypography()
+        {
+            if (_isDisposed || BattingHeaderPanel.NativeHeight() <= 0) return;
+            NativeFormattedText Measure(TextBlock text,string sample,double size) => new(sample,
+                System.Globalization.CultureInfo.InvariantCulture,Avalonia.Media.FlowDirection.LeftToRight,
+                new Typeface(text.FontFamily,text.FontStyle,text.FontWeight,text.FontStretch),size,WhiteBrush);
+            double HeightSize(TextBlock text,double height,double maximum)
+                => Math.Max(8,Math.Min(maximum,(height-8)/Math.Max(1,Measure(text,"Ag",100).Height)*100));
+            void Set(TextBlock text,double size) { if(Math.Abs(text.FontSize-size)>.2) text.FontSize=size; }
+            // Enlarge within the existing header rows, preserving all surrounding
+            // panel geometry. Long names retain the existing ellipsis treatment.
+            Set(BattingHeaderText,HeightSize(BattingHeaderText,BattingHeaderPanel.NativeHeight(),72));
+            Set(BowlingHeaderText,HeightSize(BowlingHeaderText,BowlingHeaderPanel.NativeHeight(),72));
+            double weatherSize=HeightSize(TopWeatherText,BattingHeaderPanel.NativeHeight(),56);
+            double clockSize=HeightSize(TopTimeText,BattingHeaderPanel.NativeHeight(),56);
+            double weatherWidth=Measure(TopWeatherText,(TopWeatherText.Text ?? string.Empty) ?? "",weatherSize).WidthIncludingTrailingWhitespace;
+            double clockWidth=Measure(TopTimeText,(TopTimeText.Text ?? string.Empty) ?? "",clockSize).WidthIncludingTrailingWhitespace;
+            double available=Math.Max(1,BattingHeaderPanel.NativeWidth()*.55-44);
+            double fit=Math.Min(1,available/Math.Max(1,weatherWidth+clockWidth));
+            Set(TopWeatherText,weatherSize*fit);Set(TopTimeText,clockSize*fit);
         }
 
         // Ordinary cricket figures keep their design size. Exceptionally long

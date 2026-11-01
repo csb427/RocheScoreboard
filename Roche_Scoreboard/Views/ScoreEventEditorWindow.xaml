@@ -30,7 +30,7 @@
                 <Grid Background="Transparent">
                     <glass:OperatorGlassSurface x:Name="ScoreChoiceMaterial" CornerRadius="16" Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" IsHitTestVisible="False"/>
-                    <design:OperatorChoiceSurface x:Name="ScoreChoiceLens" OriginX="0.5"
+                    <design:OperatorChoiceSurface CornerRadius="16" x:Name="ScoreChoiceLens" OriginX="0.5"
                         Progress="{Binding Path=(design:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}"/>
                     <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
                     <Border x:Name="ScoreSelectionMark" Width="18" Height="18" CornerRadius="9" Margin="6"

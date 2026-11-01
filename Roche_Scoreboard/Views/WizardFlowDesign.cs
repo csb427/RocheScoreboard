@@ -113,7 +113,12 @@ internal static class WizardFlowDesign
         if (wizard.FindName("WizardBody") is FrameworkElement body)
             body.Margin = new Thickness(compact ? 12 : 20, 8, compact ? 12 : 20, 20);
         if(wizard.FindName("NavBar") is Grid nav && nav.ColumnDefinitions.Count==3)
-        {nav.ColumnDefinitions[0].Width=new GridLength(compact ? 84 : 104);if(nav.Parent is Border shell)shell.MaxWidth=560;}
+        {
+            bool hasBack=wizard.FindName("BackButton") is FrameworkElement back && back.Visibility==Visibility.Visible;
+            nav.ColumnDefinitions[0].Width=hasBack?new GridLength(compact?84:104):new GridLength(0);
+            nav.ColumnDefinitions[1].Width=hasBack?GridLength.Auto:new GridLength(1,GridUnitType.Star);
+            if(nav.Parent is Border shell)shell.MaxWidth=560;
+        }
         if(wizard.FindName("NextButton") is Button {Content:Grid forward})
         {
             // At the narrowest supported width the action's complete name is

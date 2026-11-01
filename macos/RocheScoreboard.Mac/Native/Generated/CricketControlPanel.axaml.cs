@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketControlPanel.xaml.cs; edit translator/adapters.
-// Source SHA-256: ca59ce83e5a0404f5d91e3299de0aa4f907b681e6465050a96577100b48459be
+// Source SHA-256: efb099ff76da5c5cc29c19bddc17d98b9668645a5013c10f91feab445bdab935
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -41,8 +41,6 @@ namespace Roche_Scoreboard.Views
             host.SetPresentation(_currentPresentation);
             host.AutomaticEnabled = CricketAutomaticOverlays.IsChecked == true;
             CricketOverlayButtons.Children.Clear(); _overlayButtons.Clear();
-            RegisterOverlayButton(CricketOverlayKind.Extras, CricketExtrasOverlayButton);
-            RegisterOverlayButton(CricketOverlayKind.Boundaries, CricketBoundariesOverlayButton);
             foreach (CricketOverlayGroup group in Enum.GetValues<CricketOverlayGroup>())
             {
                 var colour = group switch { CricketOverlayGroup.Review => "#75D286", CricketOverlayGroup.Pressure => "#E7B94F", CricketOverlayGroup.Context => "#8FC5FF", _ => "#B9A1FA" };
@@ -57,7 +55,7 @@ namespace Roche_Scoreboard.Views
                 });
                 var cards = new Avalonia.Controls.Primitives.UniformGrid { Columns = 2, Margin = new Thickness(0, 0, 0, 10) };
                 CricketOverlayButtons.Children.Add(cards);
-                foreach (var fact in host.Facts.Where(f => f.Group == group && f.Kind is not (CricketOverlayKind.Extras or CricketOverlayKind.Boundaries)))
+                foreach (var fact in host.Facts.Where(f => f.Group == group))
                 {
                     CricketOverlayKind kind = fact.Kind;
                     var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(4, 10, 4, 10) };
@@ -76,16 +74,23 @@ namespace Roche_Scoreboard.Views
                         Margin = new Thickness(0, 0, 0, 3)
                     });
                     content.Children.Add(new NativeTextBlock { Text = OverlayCaption(kind), FontSize = 11, FontWeight = FontWeight.Black, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour)), HorizontalAlignment = HorizontalAlignment.Center,TextWrapping=TextWrapping.Wrap,TextAlignment=TextAlignment.Center });
-                    var button = new NativeButton
+                    // Retain the named controls and their original XAML handlers while
+                    // placing each beside the other facts in its semantic group.
+                    bool retained = kind is CricketOverlayKind.Extras or CricketOverlayKind.Boundaries;
+                    var button = kind switch
                     {
-                        Tag = kind,
-                        Content = content,
-                        Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "OperatorPresentationButton"),
-                        MinHeight = 72,
-                        Margin = new Thickness(4),
-                        Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(background))
+                        CricketOverlayKind.Extras => CricketExtrasOverlayButton,
+                        CricketOverlayKind.Boundaries => CricketBoundariesOverlayButton,
+                        _ => new NativeButton()
                     };
-                    button.Click += (_, _) => _overlayHost?.Request(kind);
+                    if (button.Parent is Avalonia.Controls.Panel previousParent) previousParent.Children.Remove(button);
+                    button.Tag = kind;
+                    button.Content = content;
+                    button.Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "OperatorPresentationButton");
+                    button.MinHeight = 72;
+                    button.Margin = new Thickness(4);
+                    button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(background));
+                    if (!retained) button.Click += (_, _) => _overlayHost?.Request(kind);
                     if(situation){OperatorFeedback.SetManaged(button,true);CricketActionMotion.SetEnabled(button,false);}
                     RegisterOverlayButton(kind,button);cards.Children.Add(button);
                 }
@@ -1274,7 +1279,7 @@ namespace Roche_Scoreboard.Views
             if (delivery.OverNumber != _logCurrentOver)
             {
                 _logCurrentOver = delivery.OverNumber;
-                _logCurrentOverPanel = new StackPanel();
+                _logCurrentOverPanel = new StackPanel { HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 6, 0, 0) };
 
                 // Over header
                 var header = new NativeBorder
@@ -1332,7 +1337,7 @@ namespace Roche_Scoreboard.Views
 
                 header.Child = headerGrid;
 
-                var overGroup = new StackPanel { Tag = delivery.OverNumber };
+                var overGroup = new StackPanel { Tag = delivery.OverNumber, HorizontalAlignment = HorizontalAlignment.Stretch, ClipToBounds = true };
                 overGroup.Children.Add(header);
                 overGroup.Children.Add(_logCurrentOverPanel);
 
@@ -1393,15 +1398,18 @@ namespace Roche_Scoreboard.Views
             {
                 Tag = delivery,
                 CornerRadius = new CornerRadius(12),
-                Margin = new Thickness(0, 0, 16, 6),
-                Padding = new Thickness(9, 6, 9, 6),
+                Margin = new Thickness(0, 0, 0, 6),
+                Padding = new Thickness(8, 5, 8, 5),
+                MinHeight = 42,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
                 BorderThickness = new Thickness(1),
                 BorderBrush = TeamVisuals.Accent(_match?.BattingTeamPrimaryColor),
                 Background = TeamVisuals.Panel(_match?.BattingTeamPrimaryColor, _match?.BattingTeamPrimaryColor, .2),
                 Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
             };
-            var body = new StackPanel();
-            var header = new Grid(); header.ColumnDefinitions.Add(new() { Width = new GridLength(34) }); header.ColumnDefinitions.Add(new()); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            OperatorFeedback.SetManaged(border, true);
+            OperatorControlMotion.SetEnabled(border, false);
+            var header = new Grid(); header.ColumnDefinitions.Add(new() { Width = new GridLength(34) }); header.ColumnDefinitions.Add(new()); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
             var code = new NativeBorder
             {
                 Width = 28,
@@ -1411,7 +1419,7 @@ namespace Roche_Scoreboard.Views
                 Child = new NativeTextBlock { Text = symbol, FontSize = 12, FontWeight = FontWeight.Bold, Foreground = ContrastHelper.GetContrastBrush(badgeColour), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
             };
             header.Children.Add(code);
-            var description = new NativeTextBlock { Text = delivery.Description, FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 8, 0) };
+            var description = new NativeTextBlock { Text = delivery.Description, FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brushes.White, TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = delivery.Description, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 8, 0) };
             Grid.SetColumn(description, 1); header.Children.Add(description);
             bool legal = CricketOverlayAnalysis.IsLegal(delivery);
             int ballNumber = legal && delivery.BallInOver > 0 ? delivery.BallInOver : (delivery.StateBefore?.LegalBallsBowled ?? delivery.OverNumber * 6) % 6 + 1;
@@ -1425,7 +1433,7 @@ namespace Roche_Scoreboard.Views
                 VerticalAlignment = VerticalAlignment.Center,
                 ToolTip = legal ? "Over.ball" : "Extra delivery — the same ball number is used again"
             };
-            Grid.SetColumn(total, 2); header.Children.Add(total); body.Children.Add(header);
+            Grid.SetColumn(total, 2); header.Children.Add(total);
             var actionContent = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal };
             actionContent.Children.Add(new NativeTextBlock { Text = "\uE70F", FontFamily = NativeFonts.Family("Segoe MDL2 Assets"), FontSize = 12, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center });
             actionContent.Children.Add(new NativeTextBlock { Text = "Edit ball", FontSize = 12, VerticalAlignment = VerticalAlignment.Center });
@@ -1435,6 +1443,8 @@ namespace Roche_Scoreboard.Views
                 Content = actionContent,
                 Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "ToolBtn"),
                 Height = 32,
+                MinHeight = 0,
+                MinWidth = 0,
                 FontSize = 12,
                 Focusable = false,
                 IsTabStop = false,
@@ -1457,11 +1467,11 @@ namespace Roche_Scoreboard.Views
                 OpenDeliveryDialog(delivery.Type,delivery);
             }
             editAction.Click += (_, args) => { args.Handled = true; OpenHistoryDelivery(); };
-            var affordance=new NativeBorder {Tag="delivery-edit-affordance",Child=editAction,Margin=new Thickness(0,4,0,0),BorderThickness=new Thickness(0,1,0,0)};
-            affordance.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");body.Children.Add(affordance);
+            var affordance=new NativeBorder {Tag="delivery-edit-affordance",Child=editAction,Width=0,Opacity=0,ClipToBounds=true,IsHitTestVisible=false,Padding=new Thickness(10,0,0,0)};
+            Grid.SetColumn(affordance,3);header.Children.Add(affordance);
             var focusRing=new NativeBorder {Tag="delivery-keyboard-focus",CornerRadius=new CornerRadius(10),BorderThickness=new Thickness(2),IsHitTestVisible=false,IsVisible=false};
             focusRing.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.AccentBrush");
-            var layer=new Grid();layer.Children.Add(body);layer.Children.Add(focusRing);border.Child=layer;
+            var layer=new Grid();layer.Children.Add(header);layer.Children.Add(focusRing);border.Child=layer;
             var rest=border.BorderBrush;
             bool observing=false,spaceArmed=false;
             void UpdateAffordance(bool animate)
@@ -1470,10 +1480,18 @@ namespace Roche_Scoreboard.Views
                 bool keyboard=border.IsKeyboardFocusWithin && OperatorInputFocus.GetIsKeyboardMode(border);
                 border.BorderBrush=active?TeamVisuals.Accent(historyMatch?.BattingTeamPrimaryColor):rest;
                 focusRing.IsVisible=keyboard?true:false;
-                double from=actionContent.Opacity,target=active?1:.72;
-                actionContent.BeginAnimation(OpacityProperty,null);actionContent.Opacity=target;
+                double fromWidth=affordance.Width,fromOpacity=affordance.Opacity;
+                double targetWidth=active?82:0,targetOpacity=active?1:0;
+                affordance.BeginAnimation(WidthProperty,null);affordance.BeginAnimation(OpacityProperty,null);
+                affordance.Width=targetWidth;affordance.Opacity=targetOpacity;
+                affordance.IsHitTestVisible=active;
                 if(animate && OperatorMotion.Enabled && border.IsLoaded && border.IsVisible && !OperatorInputFocus.GetIsKeyboardMode(border))
-                    actionContent.BeginAnimation(OpacityProperty,new DoubleAnimation(from,target,OperatorMotion.Press){FillBehavior=FillBehavior.Stop,EasingFunction=OperatorMotion.SmoothOut});
+                {
+                    // A trailing reveal moves only the edit action; the row and
+                    // outcome badge keep their positions, clear of the over header.
+                    affordance.BeginAnimation(WidthProperty,new DoubleAnimation(fromWidth,targetWidth,OperatorMotion.HoverIn){FillBehavior=FillBehavior.Stop,EasingFunction=OperatorMotion.SmoothOut});
+                    affordance.BeginAnimation(OpacityProperty,new DoubleAnimation(fromOpacity,targetOpacity,OperatorMotion.HoverIn){FillBehavior=FillBehavior.Stop,EasingFunction=OperatorMotion.SmoothOut});
+                }
             }
             void AppearanceChanged(){code.BeginAnimation(OpacityProperty,null);code.Opacity=1;UpdateAffordance(false);}
             border.PointerEntered += (_,_)=>UpdateAffordance(true);border.PointerExited += (_,_)=>UpdateAffordance(true);
@@ -1488,7 +1506,7 @@ namespace Roche_Scoreboard.Views
             border.Unloaded += (_,_)=>
             {
                 spaceArmed=false;if(observing){OperatorAppearance.Changed-=AppearanceChanged;observing=false;}
-                code.BeginAnimation(OpacityProperty,null);code.Opacity=1;actionContent.BeginAnimation(OpacityProperty,null);actionContent.Opacity=.72;focusRing.IsVisible=false;
+                code.BeginAnimation(OpacityProperty,null);code.Opacity=1;affordance.BeginAnimation(WidthProperty,null);affordance.BeginAnimation(OpacityProperty,null);affordance.Width=0;affordance.Opacity=0;affordance.IsHitTestVisible=false;focusRing.IsVisible=false;
             };
             // Match native button Space semantics: transfer focus only after release,
             // so the opening key-up cannot activate Apply in the new editor.

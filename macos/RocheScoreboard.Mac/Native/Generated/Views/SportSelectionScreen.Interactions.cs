@@ -1,5 +1,5 @@
 // Generated from Views/SportSelectionScreen.Interactions.cs; edit translator/adapters.
-// Source SHA-256: dea45367cb6f95bd2062d69a04860814c48538f850cee96eff79fcd9bac8b76d
+// Source SHA-256: e0fe33e2baf0659c0bb3b9ef71741773a408863c9db29077f988f74c8fde4fca
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -188,7 +188,7 @@ public partial class SportSelectionScreen
                 double travel=OperatorMotion.TravelScale;
                 bool training=ReferenceEquals(card,owner.TrainingCard);
                 _x.Target = (point.X / card.NativeWidth() - .5) * (training?2:5)*travel;
-                double lift=training?(_pressed?1.5:-2):_pressed && ReferenceEquals(card,owner.AflCard)?-1:-4;
+                double lift=training?(_pressed?-1:-3.5):_pressed && ReferenceEquals(card,owner.AflCard)?-1:-4;
                 _y.Target = (lift + (point.Y / card.NativeHeight() - .5) * (training?2:4))*travel;
                 Start();
             };
@@ -198,10 +198,10 @@ public partial class SportSelectionScreen
             _engaged=active;double travel=OperatorMotion.TravelScale;
             bool startGame=ReferenceEquals(_card,_owner.AflCard);
             bool training=ReferenceEquals(_card,_owner.TrainingCard);
-            double pressedScale=startGame ? .05 : training ? -.01 : -.025;
-            double hoverScale=training ? .018 : .035;
+            double pressedScale=startGame ? .05 : training ? .035 : -.025;
+            double hoverScale=training ? .028 : .035;
             _size.Target = 1 + (_pressed ? pressedScale : active ? hoverScale : 0) * travel;
-            double pressedY=startGame ? -1 : training ? 1.5 : -4,hoverY=training ? -2 : -4;
+            double pressedY=startGame ? -1 : training ? -1 : -4,hoverY=training ? -3.5 : -4;
             _x.Target = 0; _y.Target = (_pressed ? pressedY : active ? hoverY : 0)*travel;
             _light.Target = active ? .68 : .12; _white.Target = active ? .035 : 0;
             Start();

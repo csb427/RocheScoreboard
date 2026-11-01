@@ -27,8 +27,8 @@
 </Grid>
 <Grid x:Name="ScoreStack" Grid.Row="0" Grid.RowSpan="2" Margin="4,0" ClipToBounds="True"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
 <Grid x:Name="WicketRow"><StackPanel x:Name="WicketGroup" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-<Grid><TextBlock x:Name="ScoreWickets" Text="0" FontSize="104" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="ScoreWicketsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
-<TextBlock x:Name="ScoreSlash" Text="FOR" FontSize="62" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" Margin="14,0,0,0" HorizontalAlignment="Left"></TextBlock>
+<Grid><TextBlock x:Name="ScoreWickets" TextAlignment="Right" Text="0" FontSize="104" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="ScoreWicketsTranslate"/></TextBlock.RenderTransform></TextBlock></Grid>
+<TextBlock x:Name="ScoreSlash" Text="FOR" FontSize="62" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" Margin="8,0,0,0" HorizontalAlignment="Left"></TextBlock>
 </StackPanel></Grid><Grid x:Name="RunsRow" Grid.Row="1" ClipToBounds="True"><TextBlock x:Name="ScoreRuns" Text="0" FontSize="104" FontFamily="Arial, Helvetica Neue, Helvetica, Liberation Sans" HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"><TextBlock.RenderTransform><TranslateTransform x:Name="ScoreRunsTranslate"/></TextBlock.RenderTransform></TextBlock><local:RollingScoreVisual x:Name="ScoreRollVisual"/></Grid>
 </Grid>
 <Border x:Name="OversLabelPanel" Grid.Row="2" Background="#080B10"><TextBlock Text="OVERS" FontSize="29" HorizontalAlignment="Center" Foreground="White"/></Border>
@@ -45,7 +45,7 @@
 <Image x:Name="BattingHeaderLogo" Stretch="UniformToFill" Opacity=".22" IsHitTestVisible="False"/><Border x:Name="BattingHeaderSheen" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#38FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset=".55"/><GradientStop Color="#25000000" Offset="1"/></LinearGradientBrush></Border.Background></Border>
 <Grid Margin="10,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
 <TextBlock x:Name="BattingHeaderText" Text="TEAM A" FontSize="38" TextTrimming="CharacterEllipsis"/>
-<TextBlock x:Name="TopWeatherText" Text="" FontSize="36" Grid.Column="1" Margin="22,0,20,0"/>
+<TextBlock x:Name="TopWeatherText" Text="" FontSize="48" Grid.Column="1" Margin="12,0,12,0"/>
 <TextBlock x:Name="TopTimeText" Text="1:32 PM" FontSize="34" Grid.Column="2" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
 </Grid></Grid></Border>
 <Border x:Name="StrikerBand" Grid.Row="1" Margin="9,7" BorderThickness="2" Background="#06080B"><Border.BorderBrush><SolidColorBrush x:Name="StrikerBorder" Color="#CC0000"/></Border.BorderBrush><Grid x:Name="StrikerContents" Margin="7,0">

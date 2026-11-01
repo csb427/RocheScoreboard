@@ -1,23 +1,20 @@
-# Verification of this test source
+# Revised Windows preview verification
 
-Prepared snapshot: RocheScoreboard-5.0.0-local-20261101-v1.
+This is the first-feedback revision of the261db075 Windows preview, not a native desktop certification.
 
-One recent affected-workflow aggregate passed **137/137**, zero failed/skipped, in4m06s on Linux/Avalonia with real native-video tests where specified. Exact test-ID membership matched the union of the saved scope receipts; the initial134 display-name count had collapsed three parameter cases with identical truncated display names. There was one run, not a rerun to force green.
+| Check | Result |
+| --- | --- |
+| Combined affected-workflow Linux/Avalonia run |45 passed,0 failed/skipped;1m12s |
+| Final activation follow-up |5 passed,0 failed/skipped;10s; adds actual revealed-Edit pointer activation |
+| Distinct cases across both runs |46 (four overlap; not a single46-case run) |
+| Windows Release cross-build |0 warnings/errors;25.40s |
+| Windows Debug cross-build |0 warnings/errors;25.55s |
+| Native translated test-project build |0 errors;190 existing warnings, unchanged count from before this pass |
+| Test-only final rebuild |0 warnings/errors |
+| Source translation/parity |49 XAML surfaces,307 C# files,575 UI event bindings |
 
-| Scope | Cases |
-| --- | ---: |
-| Remote intent/payload/capacity/owner/dedup | 60 |
-| Screensaver/source/media activation | 14 |
-| Owned club browser handoff | 12 |
-| Media seek/error boundaries | 7 |
-| AFL Add/recovery | 5 |
-| Unified setup/preset-preview Escape | 28 |
-| Routed score bursts/close-reopen | 4 |
-| Audio/volume | 5 |
-| Output rendering diagnostic | 2 |
+Coverage: shape geometry and actual sport choices, footer/back/cancel, Training pointer hover, delivery-row height/full-width/header separation/hover/reduced motion/keyboard, active and stale editor guards/cancel, separate overlay content/grouping/rebind/presentation eligibility, compact/large output typography, four actual player-picker flows, existing combined scorecard corrections/reload/rejected operations/settings/saved selection/tabular/large corrected figures/AFL scoring-undo-reload invariants. Product source did not change after the Windows builds and45-case run; the final follow-up added one test input.
 
-The frozen source was restored from the existing package cache and freshly Windows Debug cross-built in a separate directory: **zero warnings/errors,25.80s**. It stamped source revision/state unknown because .git was absent. The latest previous Release source cross-build was clean.
+Native Windows WPF appearance, cold-start timing, physical input/UIA/DPI/audio/video/monitor and OS behavior are unrun here. Native Mac desktop acceptance is unrun. First-use animation skipping remains unresolved. Historical font-host/selector/Mac-freeze limitations are retained in KNOWN-LIMITATIONS.md. No broad/global suite or fresh Mac CI/package run is claimed for this publication.
 
-The aggregate is not the entire global suite and does not rerun all chart/situation-overlay/fuzzy-search/cricket-law suites. Those retain their earlier scoped receipts. It excludes default-selector failures, the font causal experiment, native WPF/OS/hardware acceptance and Mac packaging. See KNOWN-LIMITATIONS.md.
-
-Publication preserves all selected frozen source bytes, including every Windows project file/asset. Launch/public-verification docs and this minimal publication manifest are packaging additions; omitted research/private execution records are not application inputs. No source logic or workflow trigger is changed for this publication.
+SOURCE-SNAPSHOT.json records exact included bytes, source baseline and protected previous snapshots. All425 Windows project source/assets match the tested working revision. Publication-only documentation and manifest do not change application source. No private test captures/logs, operator saves, credentials or generated build archives are included.

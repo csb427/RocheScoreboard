@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-  "source_sha256": "b1a19eeb4d8ec5f56c5d1119ac37c8fe4166608bf0b8c2f4e1613358feecacec",
+  "source_sha256": "be42de13333985d461ff102befe5f6ca57d8553c47270fc484f394702802d981",
   "names": [
     {
       "name": "PART_Surface",
@@ -443,16 +443,6 @@
       "object": false
     },
     {
-      "name": "CricketExtrasOverlayButton",
-      "type": "Button",
-      "object": false
-    },
-    {
-      "name": "CricketBoundariesOverlayButton",
-      "type": "Button",
-      "object": false
-    },
-    {
       "name": "CricketPresentationGrid",
       "type": "UniformGrid",
       "object": false
@@ -585,6 +575,16 @@
     {
       "name": "CricketOverlayButtons",
       "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "CricketExtrasOverlayButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CricketBoundariesOverlayButton",
+      "type": "Button",
       "object": false
     },
     {
@@ -813,7 +813,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "ca59ce83e5a0404f5d91e3299de0aa4f907b681e6465050a96577100b48459be",
+  "code_source_sha256": "efb099ff76da5c5cc29c19bddc17d98b9668645a5013c10f91feab445bdab935",
   "native_events": [
     {
       "name": "MainTabControl",

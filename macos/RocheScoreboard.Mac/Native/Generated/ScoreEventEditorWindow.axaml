@@ -25,7 +25,7 @@
                         <ControlTemplate TargetType="RadioButton">
                             <Grid Background="Transparent">
                                 <ns4:OperatorGlassSurface x:Name="ScoreChoiceMaterial" CornerRadius="16" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                                <ns2:OperatorChoiceSurface x:Name="ScoreChoiceLens" OriginX="0.5" Progress="{Binding Path=(design:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ns2:OperatorChoiceSurface CornerRadius="16" x:Name="ScoreChoiceLens" OriginX="0.5" Progress="{Binding Path=(design:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                                 <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                                 <Border x:Name="ScoreSelectionMark" Width="18" Height="18" CornerRadius="9" Margin="6" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{DynamicResource ControlCentre.AccentBrush}" IsHitTestVisible="False" IsVisible="False">
                                     <Path Data="M4,9 L7,12 14,5" Stroke="{DynamicResource ControlCentre.CanvasBrush}" StrokeThickness="2" StrokeLineCap="Round" />

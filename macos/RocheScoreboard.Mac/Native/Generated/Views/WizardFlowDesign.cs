@@ -1,5 +1,5 @@
 // Generated from Views/WizardFlowDesign.cs; edit translator/adapters.
-// Source SHA-256: fed8abb716ca6b1166854d637c8861fcef16da3d6d3908af0520150081189445
+// Source SHA-256: d501d80b7ffe93b196311b590a3599d1fb894e5e470e67432b02c01668d0c8e9
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -118,7 +118,12 @@ internal static class WizardFlowDesign
         if (wizard.FindName("WizardBody") is Control body)
             body.Margin = new Thickness(compact ? 12 : 20, 8, compact ? 12 : 20, 20);
         if(wizard.FindName("NavBar") is Grid nav && nav.ColumnDefinitions.Count==3)
-        {nav.ColumnDefinitions[0].Width=new GridLength(compact ? 84 : 104);if(nav.Parent is Border shell)shell.MaxWidth=560;}
+        {
+            bool hasBack=wizard.FindName("BackButton") is Control back && back.IsVisible==true;
+            nav.ColumnDefinitions[0].Width=hasBack?new GridLength(compact?84:104):new GridLength(0);
+            nav.ColumnDefinitions[1].Width=hasBack?GridLength.Auto:new GridLength(1,GridUnitType.Star);
+            if(nav.Parent is Border shell)shell.MaxWidth=560;
+        }
         if(wizard.FindName("NextButton") is Button {Content:Grid forward})
         {
             // At the narrowest supported width the action's complete name is

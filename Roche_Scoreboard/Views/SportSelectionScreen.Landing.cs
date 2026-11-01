@@ -36,8 +36,8 @@ public partial class SportSelectionScreen
         TrainingTileBody.RenderTransformOrigin=new System.Windows.Point(.5,.5);
         TrainingCard.Effect=null;
         var trainingMotion=new TransformGroup();trainingMotion.Children.Add(TrainingIconMotionScale);trainingMotion.Children.Add(TrainingIconMotionShift);
-        TrainingTileBody.RenderTransform=Transform.Identity;
-        if(_trainingArtwork is {} trainingArt){trainingArt.RenderTransformOrigin=new System.Windows.Point(.5,.5);trainingArt.RenderTransform=trainingMotion;}
+        TrainingTileBody.RenderTransform=trainingMotion;
+        if(_trainingArtwork is {} trainingArt){trainingArt.RenderTransformOrigin=new System.Windows.Point(.5,.5);trainingArt.RenderTransform=Transform.Identity;}
         foreach(var layer in new[]{AflHover,CricketHover,TrainingHover,AflFlash,CricketFlash,TrainingFlash})layer.CornerRadius=new CornerRadius(28);
         foreach(var edge in new[]{AflGlow,CricketGlow,TrainingGlassEdge})System.Windows.Controls.Panel.SetZIndex(edge,2);
         AflDescription.Text="AFL (footy) or cricket";

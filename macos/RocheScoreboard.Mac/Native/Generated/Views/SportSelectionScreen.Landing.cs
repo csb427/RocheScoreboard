@@ -1,5 +1,5 @@
 // Generated from Views/SportSelectionScreen.Landing.cs; edit translator/adapters.
-// Source SHA-256: 2b98fac02313d3e166d645ac5f2d7476bc65fddcd9082e42a67afbc9f0f7051f
+// Source SHA-256: 0c5154a921bf660a0046170328aafe51118ea90275f4893e08747bd4f47d176d
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -42,8 +42,8 @@ public partial class SportSelectionScreen
         TrainingTileBody.RenderTransformOrigin=new RelativePoint(.5,.5,RelativeUnit.Relative);
         TrainingCard.Effect=null;
         var trainingMotion=new TransformGroup();trainingMotion.Children.Add(TrainingIconMotionScale);trainingMotion.Children.Add(TrainingIconMotionShift);
-        TrainingTileBody.RenderTransform=new MatrixTransform(Matrix.Identity);
-        if(_trainingArtwork is {} trainingArt){trainingArt.RenderTransformOrigin=new RelativePoint(.5,.5,RelativeUnit.Relative);trainingArt.RenderTransform=trainingMotion;}
+        TrainingTileBody.RenderTransform=trainingMotion;
+        if(_trainingArtwork is {} trainingArt){trainingArt.RenderTransformOrigin=new RelativePoint(.5,.5,RelativeUnit.Relative);trainingArt.RenderTransform=new MatrixTransform(Matrix.Identity);}
         foreach(var layer in new[]{AflHover,CricketHover,TrainingHover,AflFlash,CricketFlash,TrainingFlash})layer.CornerRadius=new CornerRadius(28);
         foreach(var edge in new[]{AflGlow,CricketGlow,TrainingGlassEdge})NativePanel.SetZIndex(edge,2);
         AflDescription.Text="AFL (footy) or cricket";

@@ -1,23 +1,25 @@
-# Roche Scoreboard — Windows test preview
+# Roche Scoreboard — revised Windows test preview
 
-**Test source snapshot: 5.0.0-local-20261101-v1.** This branch contains the current integrated application source beyond the older a007d8c preview. It is for testing and has not been merged into master or published as a release.
+**Snapshot: 5.0.0-windows-feedback-20261101-v2.** Includes the first Windows hands-on feedback fixes on top of the previous261db075 preview. Previous downloads and master are unchanged. This is source for testing, not a precompiled installer or a public release.
 
 ## Run on Windows
 
-1. Download this branch/commit as a ZIP and extract into a new folder outside your existing checkout.
-2. Use Visual Studio2026 (or a current version supporting .NET10), with **.NET desktop development** and the **.NET10 SDK**.
-3. Open **Roche_Scoreboard.slnx**, set Roche_Scoreboard as startup project, choose Debug, restore NuGet packages, then press **F5**.
+1. Extract the complete ZIP into a new folder, separate from earlier test copies.
+2. Use Visual Studio2026/current .NET10-capable version with **.NET desktop development** and the **.NET10 SDK**.
+3. Open **Roche_Scoreboard.slnx**, set **Roche_Scoreboard** as startup project, choose **Debug**, restore NuGet, then **F5**.
 
-This is source, not a precompiled Windows installer. The project already targets win-x64. See [START-WINDOWS-HERE.md](START-WINDOWS-HERE.md) for details and the first acceptance checks.
+[Detailed launch steps](START-WINDOWS-HERE.md) · [Known limitations](KNOWN-LIMITATIONS.md) · [Verification](TEST-VERIFICATION.md)
 
-A separate source folder does not isolate saved app data: Windows still uses its normal Documents/Roche_Scoreboard folder. Back that folder up if you want to preserve existing matches/settings before testing resets or corrections. No operator saves are included.
+## Changes in this revision
 
-## What is included
+- Selection fills follow rounded card/button geometry rather than always forming capsules; tab motion is preserved.
+- First setup page removes the blank Back slot; Training has more noticeable hover feedback.
+- Thin full-width cricket delivery rows; Edit reveals on hover or row keyboard focus. The latest row clears its over header.
+- Tighter wicket/FOR spacing; larger team-name, clock and weather text fitted inside unchanged panels.
+- Extras and Innings Boundaries are normal Cricket Overlays controls under Match Context and Recent Play, with distinct content and scorebug-only eligibility.
 
-Current Windows source/assets and companion Mac/web/shared source/tests match the prepared local snapshot byte for byte. Repository-local instruction/reference sets retain their licences/provenance; they do not automatically install runtime services. Bulky research history, private diagnostic records, built binaries/caches and credentials are omitted. See [SOURCE-SNAPSHOT.json](SOURCE-SNAPSHOT.json).
+45 combined affected-workflow checks passed, plus5 final activation checks (46 distinct cases across both runs). Windows Release/Debug cross-builds each have zero warnings/errors. **Intermittent native Windows first-use animation skipping remains unresolved.** Linux translated UI tests and cross-builds are not native Windows acceptance.
 
-Recent Linux/Avalonia affected-workflow aggregate: **137/137 passed**. The frozen source restored offline and Windows Debug cross-built with **zero warnings/errors**. Those are not native WPF GUI/hardware acceptance. No new Mac CI/package run is claimed.
+The app still uses its normal Documents/Roche_Scoreboard data folder: a separate source folder does not isolate matches/settings. Preserve that data before testing destructive actions if needed. No operator saves, credentials, build caches or private diagnostic history are included. Companion source/tests and repository-local skills retain existing licences/provenance; they do not install services automatically.
 
-See [KNOWN-LIMITATIONS.md](KNOWN-LIMITATIONS.md) and [TEST-VERIFICATION.md](TEST-VERIFICATION.md). The older a007d8c preview remains unchanged.
-
-ZIPs omit .git, so About/build revision may correctly show unknown/local. Git-cloned builds can report this branch's actual revision. The prepared tests/build were performed before publication; no clean-commit/native-launch claim is retroactively made.
+ZIPs have no .git; About/build revision may correctly show unknown/local. A cloned build can identify its actual commit. Tests/builds ran before this publication; no clean-commit or native launch claim is made retroactively. SOURCE-SNAPSHOT.json lists the included files and hashes.

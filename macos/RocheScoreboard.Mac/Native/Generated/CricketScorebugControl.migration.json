@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml",
-  "source_sha256": "78db5c45236c2f4069a36c1ce56f48c564a8f104a0e0c359f3340d9eb5adc88a",
+  "source_sha256": "52f343f4e77d450b22023396b1627abd175ab904e5303beaabc862d3f3f2c02c",
   "names": [
     {
       "name": "CricketDesignRoot",
@@ -493,7 +493,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "62cdba6132b7ff0d20bd57b8245b7e8a6c749e42c9c526182b0a518b792b6c3e",
+  "code_source_sha256": "41eb4ce6327239fe4eb1e050050850967303c51b6d52a7239fb83c4ee0a0245e",
   "native_events": [],
   "platform_translations": [
     {

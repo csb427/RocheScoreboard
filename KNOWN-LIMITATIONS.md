@@ -1,3 +1,7 @@
+# Revised preview: first-use motion remains open
+
+**Intermittent first-use animation skipping reported on native Windows/Visual Studio has not been reproduced or resolved here.** First and repeated pointer selections had intermediate animation progress in Linux translated tests; that does not establish a native fix. Other Windows layout fixes are implemented and cross-built, but still need your native appearance/input checks.
+
 # Test preview limitations
 
 - **Native Windows WPF GUI is not yet validated.** Linux/Avalonia tests and Windows cross-compilation do not prove physical pointer/keyboard/tunnel ordering, modal/focus/capture, UIA/Narrator/IME, font/DPI/high-contrast, compositor or monitor behavior. Embedded VLC HWND, hardware-to-software fallback, audible output and monitor reconnect require actual Windows/hardware testing.

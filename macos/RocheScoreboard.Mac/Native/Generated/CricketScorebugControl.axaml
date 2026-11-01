@@ -55,13 +55,13 @@
                             <Grid x:Name="WicketRow">
                                 <StackPanel x:Name="WicketGroup" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Grid>
-                                        <TextBlock x:Name="ScoreWickets" Text="0" FontSize="104" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
+                                        <TextBlock x:Name="ScoreWickets" TextAlignment="Right" Text="0" FontSize="104" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" HorizontalAlignment="Center" FontFeatures="tnum,lnum,-kern">
                                             <TextBlock.RenderTransform>
                                                 <TranslateTransform port:ProductionNames.Id="ScoreWicketsTranslate" />
                                             </TextBlock.RenderTransform>
                                         </TextBlock>
                                     </Grid>
-                                    <TextBlock x:Name="ScoreSlash" Text="FOR" FontSize="62" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" Margin="14,0,0,0" HorizontalAlignment="Left" />
+                                    <TextBlock x:Name="ScoreSlash" Text="FOR" FontSize="62" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" Margin="8,0,0,0" HorizontalAlignment="Left" />
                                 </StackPanel>
                             </Grid>
                             <Grid x:Name="RunsRow" Grid.Row="1" ClipToBounds="True">
@@ -140,7 +140,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock x:Name="BattingHeaderText" Text="TEAM A" FontSize="38" TextTrimming="CharacterEllipsis" />
-                                <TextBlock x:Name="TopWeatherText" Text="" FontSize="36" Grid.Column="1" Margin="22,0,20,0" />
+                                <TextBlock x:Name="TopWeatherText" Text="" FontSize="48" Grid.Column="1" Margin="12,0,12,0" />
                                 <TextBlock x:Name="TopTimeText" Text="1:32 PM" FontSize="34" Grid.Column="2" FontFeatures="tnum,lnum,-kern" />
                             </Grid>
                         </Grid>

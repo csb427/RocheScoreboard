@@ -1,5 +1,5 @@
 // Generated from Services/OperatorLiquidSelection.cs; edit translator/adapters.
-// Source SHA-256: a3f867b443678d60e5519c73700ba3f399ac34aae5febd5bf27083c09b28aff1
+// Source SHA-256: c02a9ad09e2e7a76df4a50b22bc7898ce63971f2a703d78ea2ba6772d151ef94
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -21,7 +21,7 @@ internal static class OperatorLiquidSelection
 {
     // A dynamic resource dependency invalidates the surface when its theme changes.
     internal static readonly AttachedProperty<Brush> ContextProperty=(AttachedProperty<Brush>)NativeProperty.RegisterAttached("Context",typeof(Brush),typeof(OperatorLiquidSelection),new FrameworkPropertyMetadata(null,FrameworkPropertyMetadataOptions.AffectsRender));
-    internal readonly record struct Shape(Rect Bounds,double Deformation,double Direction);
+    internal readonly record struct Shape(Rect Bounds,double Deformation,double Direction,double CornerRadius=double.NaN);
     private static Brush Gradient(Color first,Color last)
     {var brush=NativeBrush.Linear(first,last,90);brush.Freeze();return brush;}
     private static Brush Solid(Color color){var brush=new SolidColorBrush(color);brush.Freeze();return brush;}
@@ -57,6 +57,7 @@ internal static class OperatorLiquidSelection
     {
         var r=shape.Bounds;
         if((r.Width<=0 || r.Height<=0) || r.Width<1 || r.Height<1 || !double.IsFinite(r.X+r.Y+r.Width+r.Height+shape.Deformation+shape.Direction))return new StreamGeometry();
+        if(double.IsFinite(shape.CornerRadius)) return RoundedGeometry(shape);
         double deform=Math.Clamp(shape.Deformation,0,1),direction=Math.Clamp(shape.Direction,-1,1);
         double ry=r.Height*.5,rx=Math.Min(r.Width*.5,ry);
         double leftRadius=rx*(1-deform*direction*.24),rightRadius=rx*(1+deform*direction*.24);
@@ -76,6 +77,36 @@ internal static class OperatorLiquidSelection
             context.BezierTo(new Point(middle-run*.18,r.Bottom-neck),new Point(r.Left+leftRadius+run*.20,r.Bottom),new Point(r.Left+leftRadius,r.Bottom),true,false);
             context.BezierTo(new Point(r.Left+leftRadius-leftRadius*k,r.Bottom),new Point(r.Left,cy+ry*k),new Point(r.Left,cy),true,false);
             context.BezierTo(new Point(r.Left,cy-ry*k),new Point(r.Left+leftRadius-leftRadius*k,r.Top),new Point(r.Left+leftRadius,r.Top),true,false);
+        }
+        geometry.Freeze();return geometry;
+    }
+
+    // Tabs retain their original capsule lens. Card selections use bounded
+    // corner arcs plus the same gentle directional neck during travel.
+    private static Geometry RoundedGeometry(Shape shape)
+    {
+        var r=shape.Bounds;
+        double radius=Math.Clamp(shape.CornerRadius,0,Math.Min(r.Width,r.Height)*.5);
+        double d=Math.Clamp(shape.Deformation,0,1),direction=Math.Clamp(shape.Direction,-1,1);
+        double left=radius*(1-d*direction*.18),right=radius*(1+d*direction*.18);
+        left=Math.Min(left,Math.Min(r.Width,r.Height)*.5);right=Math.Min(right,Math.Min(r.Width,r.Height)*.5);
+        double run=Math.Max(0,r.Width-left-right),middle=r.Left+left+run*(.5-direction*d*.12);
+        double neck=Math.Min(4,r.Height*.06)*d;
+        const double k=.5522847498307936;
+        var geometry=new StreamGeometry();
+        using(var c=geometry.Open())
+        {
+            c.BeginFigure(new Point(r.Left+left,r.Top),true,true);
+            c.BezierTo(new Point(r.Left+left+run*.2,r.Top),new Point(middle-run*.18,r.Top+neck),new Point(middle,r.Top+neck),true,false);
+            c.BezierTo(new Point(middle+run*.18,r.Top+neck),new Point(r.Right-right-run*.2,r.Top),new Point(r.Right-right,r.Top),true,false);
+            c.BezierTo(new Point(r.Right-right+right*k,r.Top),new Point(r.Right,r.Top+right-right*k),new Point(r.Right,r.Top+right),true,false);
+            c.LineTo(new Point(r.Right,r.Bottom-right),true,false);
+            c.BezierTo(new Point(r.Right,r.Bottom-right+right*k),new Point(r.Right-right+right*k,r.Bottom),new Point(r.Right-right,r.Bottom),true,false);
+            c.BezierTo(new Point(r.Right-right-run*.2,r.Bottom),new Point(middle+run*.18,r.Bottom-neck),new Point(middle,r.Bottom-neck),true,false);
+            c.BezierTo(new Point(middle-run*.18,r.Bottom-neck),new Point(r.Left+left+run*.2,r.Bottom),new Point(r.Left+left,r.Bottom),true,false);
+            c.BezierTo(new Point(r.Left+left-left*k,r.Bottom),new Point(r.Left,r.Bottom-left+left*k),new Point(r.Left,r.Bottom-left),true,false);
+            c.LineTo(new Point(r.Left,r.Top+left),true,false);
+            c.BezierTo(new Point(r.Left,r.Top+left-left*k),new Point(r.Left+left-left*k,r.Top),new Point(r.Left+left,r.Top),true,false);
         }
         geometry.Freeze();return geometry;
     }

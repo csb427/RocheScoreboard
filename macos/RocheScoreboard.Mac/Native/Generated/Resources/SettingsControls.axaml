@@ -148,7 +148,7 @@
                         </Grid.ColumnDefinitions>
                         <Border x:Name="Track" Width="42" Height="24" Background="{DynamicResource ScoreGrid.Brush.DisabledSurface}" BorderBrush="{DynamicResource ScoreGrid.Brush.ControlBorder}" BorderThickness="1" CornerRadius="12" VerticalAlignment="Center">
                             <Grid>
-                                <ns3:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ns3:OperatorChoiceSurface CornerRadius="12" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                                 <Ellipse x:Name="ToggleKnob" Width="16" Height="16" Fill="{DynamicResource ScoreGrid.Brush.TextSecondary}" HorizontalAlignment="Left" Margin="3,0,0,0">
                                     <Ellipse.RenderTransform>
                                         <TranslateTransform port:ProductionNames.TemplateId="Thumb" />
@@ -203,7 +203,7 @@
                             </TransformGroup>
                         </Grid.RenderTransform>
                         <Border x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="6" />
-                        <ns3:OperatorChoiceSurface Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                        <ns3:OperatorChoiceSurface CornerRadius="6" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                         <Border x:Name="ActionGlow" Background="White" CornerRadius="6" Opacity="0" IsHitTestVisible="False" Margin="2" />
                         <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                     </Grid>
@@ -238,7 +238,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <Grid Background="Transparent">
-                        <ns3:OperatorChoiceSurface OriginX=".12" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" Opacity=".4" />
+                        <ns3:OperatorChoiceSurface CornerRadius="22" OriginX=".12" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" Opacity=".4" />
                         <Border x:Name="ClockFocus" BorderBrush="Transparent" BorderThickness="2" CornerRadius="22" IsHitTestVisible="False" />
                         <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                     </Grid>

@@ -16,7 +16,7 @@ using Xunit;
 
 namespace RocheScoreboard.Mac.Tests;
 
-public sealed class UnifiedSetupTests
+public sealed partial class UnifiedSetupTests
 {
     private const BindingFlags Private=BindingFlags.NonPublic|BindingFlags.Instance;
     private static object? Invoke(object owner,string name,params object[] args)=>owner.GetType().GetMethod(name,BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(owner,args);

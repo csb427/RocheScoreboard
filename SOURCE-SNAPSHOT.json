@@ -1,11 +1,36 @@
 {
-  "snapshot_id": "RocheScoreboard-5.0.0-local-20261101-v1",
-  "prepared_archive_sha256": "9ca170fb92daf62442ef03a7c326035b357508a54a899fa0cb616e9bb6ae9281",
-  "prepared_archive_bytes": 31759729,
-  "prepared_source_git_base": "e2e9de61908e7b06e3665aa8218d0ecfcb60bc91",
-  "prepared_source_state": "modified working tree, not a clean commit",
-  "preserved_previous_download_commit": "a007d8c0cfff04913d0343534d3fc7137baeecea",
-  "source_files": [
+  "snapshot_id": "RocheScoreboard-5.0.0-windows-feedback-20261101-v2",
+  "parent_preview_commit": "261db075692dde20081a67552a34c8ca45f565d0",
+  "previous_preserved_commits": [
+    "261db075692dde20081a67552a34c8ca45f565d0",
+    "a007d8c0cfff04913d0343534d3fc7137baeecea"
+  ],
+  "source_provenance": "Reviewed tested working revision, published with a separate Git index; live checkout/index preserved. Builds/tests preceded publication.",
+  "windows_file_count": 425,
+  "checks": {
+    "combined": {
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0
+    },
+    "activation_follow_up": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    "distinct_cases": 46,
+    "windows_release": {
+      "warnings": 0,
+      "errors": 0
+    },
+    "windows_debug": {
+      "warnings": 0,
+      "errors": 0
+    },
+    "native_gui": "not run",
+    "first_use_skip": "unresolved"
+  },
+  "files": [
     {
       "path": ".agents/.gitattributes",
       "bytes": 91,
@@ -512,6 +537,11 @@
       "sha256": "9b983d0297a983110fdfda8dce55d19b750ca3e53ef155d75a3eff740d3874b8"
     },
     {
+      "path": ".agents/skills/benchmark/SKILL.md",
+      "bytes": 2630,
+      "sha256": "58e34c3ccf60ee5155e3db74357b73770015a7aad3594649b6758ba8375ab6ff"
+    },
+    {
       "path": ".agents/skills/benchmark-methodology/SKILL.md",
       "bytes": 9942,
       "sha256": "f24585262b9c3e106dc27d45f75c4b965501680a16ff6dc5a9995a53322549df"
@@ -520,11 +550,6 @@
       "path": ".agents/skills/benchmark-optimization-loop/SKILL.md",
       "bytes": 2658,
       "sha256": "f11208b6a86bc311cfbd9e20688a189238fda6c1e03b6f8000ef9e55487f6f95"
-    },
-    {
-      "path": ".agents/skills/benchmark/SKILL.md",
-      "bytes": 2630,
-      "sha256": "58e34c3ccf60ee5155e3db74357b73770015a7aad3594649b6758ba8375ab6ff"
     },
     {
       "path": ".agents/skills/bengali-nlp/SKILL.md",
@@ -747,6 +772,11 @@
       "sha256": "f228cd383a9063b3a0116c5aea02565e859992f63fae5e799adf9c9e44e2454d"
     },
     {
+      "path": ".agents/skills/continuous-learning/SKILL.md",
+      "bytes": 4536,
+      "sha256": "d494867b456999cad53c51c89fa2cf8da101f76ea875286987f52e5d45f72221"
+    },
+    {
       "path": ".agents/skills/continuous-learning-v2/SKILL.md",
       "bytes": 14149,
       "sha256": "ddad12451a0d582c6ef1b197b7be193bef613cbc74eba4117fcb74fc7a4ecd00"
@@ -755,11 +785,6 @@
       "path": ".agents/skills/continuous-learning-v2/agents/observer.md",
       "bytes": 6892,
       "sha256": "320d50ff2965efeabd6f07c2be134e11da160293e958c1bc27c309d613839ad2"
-    },
-    {
-      "path": ".agents/skills/continuous-learning/SKILL.md",
-      "bytes": 4536,
-      "sha256": "d494867b456999cad53c51c89fa2cf8da101f76ea875286987f52e5d45f72221"
     },
     {
       "path": ".agents/skills/contract-first/SKILL.md",
@@ -782,14 +807,14 @@
       "sha256": "f868207abd550308bc18902ecdfd2c51ad1ea85ba692dbe95cd9c3561da2a8bb"
     },
     {
-      "path": ".agents/skills/council-multi-model/SKILL.md",
-      "bytes": 5987,
-      "sha256": "3c67816efdab97c89f8433b8a88d720ca736871467f7d6d1ff344fee59f18ce5"
-    },
-    {
       "path": ".agents/skills/council/SKILL.md",
       "bytes": 6358,
       "sha256": "2104d002d301a061a16d21ea2e00292f80b66b20c9883a33525a7de404153502"
+    },
+    {
+      "path": ".agents/skills/council-multi-model/SKILL.md",
+      "bytes": 5987,
+      "sha256": "3c67816efdab97c89f8433b8a88d720ca736871467f7d6d1ff344fee59f18ce5"
     },
     {
       "path": ".agents/skills/counterparty-channel-discipline/SKILL.md",
@@ -2467,6 +2492,16 @@
       "sha256": "96b50a52e2c7989c9cf20fb752c47c1e9a3a70dc362f8f7989f8f5b64dac7708"
     },
     {
+      "path": ".agents/skills/taste/SKILL.md",
+      "bytes": 15406,
+      "sha256": "c0aa611b4d150d2d8356fb29d0cc437e48a4e5ceeb870c609229b9afa78bb9cf"
+    },
+    {
+      "path": ".agents/skills/taste/references/genre-taxonomy.md",
+      "bytes": 4869,
+      "sha256": "56b0a37d643c79b0b18f67053e4733ffc383f82c7c9e1134f3c6e21e295d8c77"
+    },
+    {
       "path": ".agents/skills/taste-application/SKILL.md",
       "bytes": 19794,
       "sha256": "422a07f05e0dfc16a1bcc14895ff6f34891473ddec28981c4fa7986591165d2e"
@@ -2525,16 +2560,6 @@
       "path": ".agents/skills/taste-distillation/scripts/requirements.txt",
       "bytes": 58,
       "sha256": "269eed88dc45309ca8ff64fc0dd7f454601ad5eb8a0971b0d1ba47c10bebd345"
-    },
-    {
-      "path": ".agents/skills/taste/SKILL.md",
-      "bytes": 15406,
-      "sha256": "c0aa611b4d150d2d8356fb29d0cc437e48a4e5ceeb870c609229b9afa78bb9cf"
-    },
-    {
-      "path": ".agents/skills/taste/references/genre-taxonomy.md",
-      "bytes": 4869,
-      "sha256": "56b0a37d643c79b0b18f67053e4733ffc383f82c7c9e1134f3c6e21e295d8c77"
     },
     {
       "path": ".agents/skills/tasteforge-video/SKILL.md",
@@ -2942,14 +2967,19 @@
       "sha256": "97ffc74b50933fe3101122c55a21377dfd2495e794a4e4ff3678cc26fab31acc"
     },
     {
+      "path": "KNOWN-LIMITATIONS.md",
+      "bytes": 2722,
+      "sha256": "c7cce52a94318c808fb8be9f40c6506d8d71be66f43540e9c8e0971278a20ac4"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2458,
+      "sha256": "1376242acb56afebd8385a1819726a7c1f182383e3912cf67fe1ee8fd021de16"
+    },
+    {
       "path": "RELEASING.md",
       "bytes": 1802,
       "sha256": "8d68a0cc7de9bc635f6a23a57b48d8929c55d9a9961ffaad958672bb17f13667"
-    },
-    {
-      "path": "Roche_Scoreboard.slnx",
-      "bytes": 85,
-      "sha256": "96a2c91e7da3c6a5405dee66f91610dcdc10fda70f7c006bcb73605859a82185"
     },
     {
       "path": "Roche_Scoreboard/App.xaml",
@@ -3783,8 +3813,8 @@
     },
     {
       "path": "Roche_Scoreboard/Resources/ControlCentre.xaml",
-      "bytes": 76646,
-      "sha256": "3cf0631c465b1a6cef25a8099300223e6b53e52b4655de001c3780e12b53a90e"
+      "bytes": 76862,
+      "sha256": "9268b5b2ecad681992eba8afd956fa84d50d328649b750c7535fed6663ae0f6f"
     },
     {
       "path": "Roche_Scoreboard/Resources/CricketActions.xaml",
@@ -3813,8 +3843,8 @@
     },
     {
       "path": "Roche_Scoreboard/Resources/SettingsControls.xaml",
-      "bytes": 14273,
-      "sha256": "59bb91d39369b784960cd8181ffbfb53602807078ca2877cea972e4d44138ea3"
+      "bytes": 14326,
+      "sha256": "e5adcb1e2c11aeb2a665aef46840609b62fc71c4026b24af6c6a3f44169281ac"
     },
     {
       "path": "Roche_Scoreboard/Resources/Shaders/OperatorGlass.hlsl",
@@ -4133,8 +4163,8 @@
     },
     {
       "path": "Roche_Scoreboard/Services/OperatorChoiceSurface.cs",
-      "bytes": 2366,
-      "sha256": "e709a1a7a40fa5de67f17cf1ebca53901b3fe067825c6f5f37c4d19eef870e3c"
+      "bytes": 2924,
+      "sha256": "60b4bf2118c8fa9cd89b0d4b2883289ee633a98ebbaf9b5e1c9f50a8f2c2d7ec"
     },
     {
       "path": "Roche_Scoreboard/Services/OperatorCommandSearch.cs",
@@ -4188,8 +4218,8 @@
     },
     {
       "path": "Roche_Scoreboard/Services/OperatorLiquidSelection.cs",
-      "bytes": 6331,
-      "sha256": "a3f867b443678d60e5519c73700ba3f399ac34aae5febd5bf27083c09b28aff1"
+      "bytes": 8744,
+      "sha256": "c02a9ad09e2e7a76df4a50b22bc7898ce63971f2a703d78ea2ba6772d151ef94"
     },
     {
       "path": "Roche_Scoreboard/Services/OperatorMenuMotion.cs",
@@ -4553,13 +4583,13 @@
     },
     {
       "path": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-      "bytes": 72049,
-      "sha256": "b1a19eeb4d8ec5f56c5d1119ac37c8fe4166608bf0b8c2f4e1613358feecacec"
+      "bytes": 72155,
+      "sha256": "be42de13333985d461ff102befe5f6ca57d8553c47270fc484f394702802d981"
     },
     {
       "path": "Roche_Scoreboard/Views/CricketControlPanel.xaml.cs",
-      "bytes": 102033,
-      "sha256": "ca59ce83e5a0404f5d91e3299de0aa4f907b681e6465050a96577100b48459be"
+      "bytes": 103594,
+      "sha256": "efb099ff76da5c5cc29c19bddc17d98b9668645a5013c10f91feab445bdab935"
     },
     {
       "path": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
@@ -4638,13 +4668,13 @@
     },
     {
       "path": "Roche_Scoreboard/Views/CricketScorebugControl.xaml",
-      "bytes": 16062,
-      "sha256": "78db5c45236c2f4069a36c1ce56f48c564a8f104a0e0c359f3340d9eb5adc88a"
+      "bytes": 16083,
+      "sha256": "52f343f4e77d450b22023396b1627abd175ab904e5303beaabc862d3f3f2c02c"
     },
     {
       "path": "Roche_Scoreboard/Views/CricketScorebugControl.xaml.cs",
-      "bytes": 49659,
-      "sha256": "62cdba6132b7ff0d20bd57b8245b7e8a6c749e42c9c526182b0a518b792b6c3e"
+      "bytes": 51998,
+      "sha256": "41eb4ce6327239fe4eb1e050050850967303c51b6d52a7239fb83c4ee0a0245e"
     },
     {
       "path": "Roche_Scoreboard/Views/CricketScorewormGlyph.cs",
@@ -4873,8 +4903,8 @@
     },
     {
       "path": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml",
-      "bytes": 17569,
-      "sha256": "a96d6214502dea856146c72809e73767f339e5c9dc3606e7aed75d9bf0e5a6a4"
+      "bytes": 17587,
+      "sha256": "065de1837300b222578647abb1e3fe2c8fba2ad3422539f87d42db72dc5dce28"
     },
     {
       "path": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml.cs",
@@ -4953,13 +4983,13 @@
     },
     {
       "path": "Roche_Scoreboard/Views/SportSelectionScreen.Interactions.cs",
-      "bytes": 22709,
-      "sha256": "dea45367cb6f95bd2062d69a04860814c48538f850cee96eff79fcd9bac8b76d"
+      "bytes": 22711,
+      "sha256": "e0fe33e2baf0659c0bb3b9ef71741773a408863c9db29077f988f74c8fde4fca"
     },
     {
       "path": "Roche_Scoreboard/Views/SportSelectionScreen.Landing.cs",
       "bytes": 4333,
-      "sha256": "2b98fac02313d3e166d645ac5f2d7476bc65fddcd9082e42a67afbc9f0f7051f"
+      "sha256": "0c5154a921bf660a0046170328aafe51118ea90275f4893e08747bd4f47d176d"
     },
     {
       "path": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
@@ -5053,8 +5083,8 @@
     },
     {
       "path": "Roche_Scoreboard/Views/WizardFlowDesign.cs",
-      "bytes": 8192,
-      "sha256": "fed8abb716ca6b1166854d637c8861fcef16da3d6d3908af0520150081189445"
+      "bytes": 8473,
+      "sha256": "d501d80b7ffe93b196311b590a3599d1fb894e5e470e67432b02c01668d0c8e9"
     },
     {
       "path": "Roche_Scoreboard/Views/WizardPair.cs",
@@ -5075,6 +5105,21 @@
       "path": "Roche_Scoreboard/app.png",
       "bytes": 1098385,
       "sha256": "b752b36a3afd86c811e3b9617df8385d25442c3bdfd8cdfccc7e319b1acb704a"
+    },
+    {
+      "path": "Roche_Scoreboard.slnx",
+      "bytes": 85,
+      "sha256": "96a2c91e7da3c6a5405dee66f91610dcdc10fda70f7c006bcb73605859a82185"
+    },
+    {
+      "path": "START-WINDOWS-HERE.md",
+      "bytes": 2393,
+      "sha256": "23187c2a664a543062660571accc9d472201269f5f541379ac6e86aeef8bf53a"
+    },
+    {
+      "path": "TEST-VERIFICATION.md",
+      "bytes": 2169,
+      "sha256": "eeb5c831d2268a139b0a335de2979b9dc94f1ca74f6edd23929cc2717d2f9951"
     },
     {
       "path": "USER_GUIDE.md",
@@ -5125,1466 +5170,6 @@
       "path": "macos/RocheScoreboard.Core/RocheScoreboard.Core.csproj",
       "bytes": 992,
       "sha256": "21e546c2f10235756985d23a0dde923e765724a103b5935ce4db1b17b2d46fbb"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflAddScoreAndDurationTests.cs",
-      "bytes": 30319,
-      "sha256": "ddddbea8f3c9aee1cd907395d940696ecdd2f27e88a343265417a9e0c47a83eb"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflClockStatusStabilityTests.cs",
-      "bytes": 11994,
-      "sha256": "5b3951012f563f92376f9a175c42c380db7fced8a6ff41ca653043407996d9aa"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflCommandLifetimeTests.cs",
-      "bytes": 2444,
-      "sha256": "47940dbe3d6f6a82c8dc8efcf5a4cc07608283bf3417d3c3917b4e9e90ccbd0a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflContinueQuarterSafetyTests.cs",
-      "bytes": 14524,
-      "sha256": "051724fbeab9f3b4854f5ad19b4b314ac1f4850f669f7bc2bb7e1117547fc163"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflEmptyColourCancellationDraftTests.cs",
-      "bytes": 29998,
-      "sha256": "251e06fb4fa3afd61e38dc4d61c6a4f16f934a62ab457eae865fc194cb457e79"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflHeaderPaletteTests.cs",
-      "bytes": 9057,
-      "sha256": "35ca9aa13ddd30153a885ee6cbe6919b9fab50b80f800629d9075245a12f7156"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflKeybindCaptureTests.cs",
-      "bytes": 24966,
-      "sha256": "24838e6531ee623ce94e26b4dad802526fb5f091773a160e79afe292eb8787af"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflLiveScorebugAfterOnlyTests.cs",
-      "bytes": 20125,
-      "sha256": "c214ac1abf1d88d709c32a974b7953922716c5ae44ee73df532a43437e738643"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflLiveScorebugBaselineTests.cs",
-      "bytes": 10033,
-      "sha256": "fbff1f74ca07544ee0ab78dcb824b4c6155899f7f9a74179ab54882f54856dfe"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflLiveScorebugDirectRefreshTests.cs",
-      "bytes": 5142,
-      "sha256": "2213cb0e249baaebc748db6a32b5bc6fecb335e6c1a4b8d05e16cdeba0cc7ef9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflLiveStatusPaletteTests.cs",
-      "bytes": 5983,
-      "sha256": "26c3f54074d5d01df5dfad63b32e845f9afbde8a514fd9e5a92c85c84d4803d9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflLogoCropIsolationTests.cs",
-      "bytes": 14420,
-      "sha256": "afcb33f275f51d9163b3bc67965457a9e4a4ef7e2f5fd028d638748c82e1c9d4"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflMarginFlowAfterOnlyTests.cs",
-      "bytes": 23563,
-      "sha256": "6bfe5254d81cdcee9aa89efc8b7a274b37dc9b6bbce5b3551fece1deeb121a06"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflMarginFlowBaselineTests.cs",
-      "bytes": 11879,
-      "sha256": "1938b25201ecab4eee35b32566ceeeedde193c6db078cb8cd45a0ae118b80021"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflMatchStatsAfterOnlyTests.cs",
-      "bytes": 28979,
-      "sha256": "1824545cbf7f50887ce651dede726c2ca9cae12dfdfe6a13f3ae5f871c44dbb5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflMatchStatsBaselineTests.cs",
-      "bytes": 12006,
-      "sha256": "42776888760a9a5dcc7fc30235693f22964f3b8b227ab7f942c2e78c01573843"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflMediaBrowseStagingTests.cs",
-      "bytes": 7886,
-      "sha256": "26d7ffc02289939eb07172dbd52a5942b4b008f69e2a1eddfd2e64a65c905acc"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflNumericReadoutStabilityTests.cs",
-      "bytes": 10775,
-      "sha256": "1481c9f8c32cd2b9aef5a89039f12db462013b1c3de333396462b2b3c97f907b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflPresentationCardTests.cs",
-      "bytes": 12594,
-      "sha256": "b44a30a930b51a01e188feb9957ce45e06c7185185ee2f8336dac121d7204734"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflPresetCaptureCancellationTests.cs",
-      "bytes": 10707,
-      "sha256": "8744ce1dafe56bcee01491a6c787b450075670a52632d7357c224f3419c09aaf"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflPresetKeyboardPublicTests.cs",
-      "bytes": 22312,
-      "sha256": "2acc8404c2671db0f099411a821d5b7ce848f49ec40161ac9bffe25c2ae8fb91"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflPresetSelectionIdentityTests.cs",
-      "bytes": 5379,
-      "sha256": "d54c690e86e3c0b4f65c4fa1bdf0117c7825b1a2140207be723604cf43ec38f3"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflQuarterBreakPresentationAfterOnlyTests.cs",
-      "bytes": 33866,
-      "sha256": "1eef758f51f9087ab071f35bea9737a26b108656471b63da1a9c62edae3ef7d2"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflQuarterBreakPresentationBaselineTests.cs",
-      "bytes": 16599,
-      "sha256": "857374d3af9dba9c32134eb1c796aeb6a8844d0259c01887aabd11d7ed9f8701"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflQuarterSummaryAfterOnlyTests.cs",
-      "bytes": 21180,
-      "sha256": "2c8d35a223f54f3e0c4e9009ae1b04542853dccb8ec5225dbddbe92ffe4793cd"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflQuarterSummaryBaselineTests.cs",
-      "bytes": 9633,
-      "sha256": "dccd96eab2cd187bdd40d876db289293f51ee983d305d70a6c87b5c7d186e519"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflResetScopeTests.cs",
-      "bytes": 42415,
-      "sha256": "da594a105e7a7d11f320402858fbefc2b2dcce3ba3e536345faf1eb11e3ee236"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflScoreHistoryRowDesignTests.cs",
-      "bytes": 6175,
-      "sha256": "2332f30541525c738dc3aab8c177a82d97202fbc0ff6ba5347ce06ea3647622e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflScreensaverAfterOnlyTests.cs",
-      "bytes": 26491,
-      "sha256": "10b04319fc7838fb8b22e306a0e16c95f19a41d8d390cd2f29763d069c109064"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflScreensaverBaselineTests.cs",
-      "bytes": 12803,
-      "sha256": "abdd9e2e85d4bae5f547ab473f25cf9750154c2abd957d82b5b6a7850d02618c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflSettingsInputSafetyTests.cs",
-      "bytes": 25935,
-      "sha256": "655a7690f2268fe7986ddb566fac6e16d05508c237b64c7b4160097424a90073"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflSetupFinalsSemanticsTests.cs",
-      "bytes": 26854,
-      "sha256": "f3d028886850bb4a30ea0bf8d8872beff57cf029edeadf12dadd9fae587bcb87"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflSetupMessageGeometryTests.cs",
-      "bytes": 6045,
-      "sha256": "66c93f62684ff36694e7b95752d3fff39ea62c93129537c1efe987ee2d4d6f20"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflStoppageMotionTests.cs",
-      "bytes": 22706,
-      "sha256": "583af79498c9e171499a23659dc22910c677e954e42fcf34172c023b06abc48a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflTeamColourSwatchKeyboardTests.cs",
-      "bytes": 14531,
-      "sha256": "17038115b121869ea61348eac67263973769a8665f3cb70d6576ea6fec701483"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflWeatherAfterOnlyTests.cs",
-      "bytes": 33563,
-      "sha256": "2fe9063fdd21c2506dcfc84af884ab6243da20069d5f6cc6f43ab6fe5062e526"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflWeatherBaselineTests.cs",
-      "bytes": 13013,
-      "sha256": "9f432715b58bb8d21743fd77b68470d5605595a294904291f72b516b67172ee0"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflWindowExternalRouteTests.cs",
-      "bytes": 11615,
-      "sha256": "40ea0c40852d435a366552e3031c08cf2c0d95e66b56d9a6ee893e05f3c2952e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflWindowGlyphAfterOnlyTests.cs",
-      "bytes": 10442,
-      "sha256": "0a8ceae14964d777a6aeea282a39da468d6223a6a6473cf682f6efc80c8f5bc2"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflWindowMotionLifecycleTests.cs",
-      "bytes": 16185,
-      "sha256": "fba028a6e05498b51618624ef9c68dde052c6ef4e1222e6f0265c7f3c57c82bb"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AflWindowVisualBaselineTests.cs",
-      "bytes": 10870,
-      "sha256": "f1d81b851bfda94afac0545d03e11c6683daa5ff32ca58c56aa418b328826ddb"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AppWideMotionTests.cs",
-      "bytes": 33281,
-      "sha256": "4c5411f4b8817140d1474f984ad7ee02f9f9c7bf2d719cdae5e2d63688b5579c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/AppleDesignRefinementTests.cs",
-      "bytes": 32013,
-      "sha256": "1d2952eae356294c1464cce787682b5bfc9142dbfc1cd44aad708eb3106f3af8"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/BreakRotationModeIsolationTests.cs",
-      "bytes": 20177,
-      "sha256": "a25fd1af4c2bf3435958a1ca1039b37c2f7282eb928e6ed1e1a46d4b430d6410"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CalibrationCompactTests.cs",
-      "bytes": 3069,
-      "sha256": "acce790b455b0997160f5f1252f383578b1da6d2acda3344ab2c9ea8d09153da"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CancelOverlayPointerGeometryTests.cs",
-      "bytes": 6922,
-      "sha256": "1b6c39f1927b564fba6d238ce6d6679aafdb817e74175a489e9c92912c09547b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CloudProviderLifetimeTests.cs",
-      "bytes": 26272,
-      "sha256": "77cde141e727c921488b7b4d34d7e469143ef4649b686fb512b2d944cc52c13a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CloudRemoteLauncherInteractionTests.cs",
-      "bytes": 52478,
-      "sha256": "1ae49c39b8d8ed0848ac8bc3bbc6fadf68a3aa6cff87a1a83dafbf7456e3b250"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CloudSessionOwnerTests.cs",
-      "bytes": 18442,
-      "sha256": "77a899061b2e97c24b06373d99f016553a4ec4c6106e0ed5ed4c89eb0882e0cf"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ClubCrestReadinessTests.cs",
-      "bytes": 3413,
-      "sha256": "e3ff410be7c0dd12a67ecb0c5a416df9cd9174f855ed13c897b5da24ba70fcdd"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ClubLibraryFilterPurposeTests.cs",
-      "bytes": 4010,
-      "sha256": "eb251497e513e442d75ed7a0f121baca9f5e852ad46e718046e07419517bd690"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetArtworkReplacementTests.cs",
-      "bytes": 2512,
-      "sha256": "1cff0b611289e7839a76f64a70d7d16ee7c658021503c4fe2bac4b3f79ceb266"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetBadgeLifetimeTests.cs",
-      "bytes": 12649,
-      "sha256": "f920c5db307d0988059e6c76012cf35d72a41fe5e9f60779596da471e41aeced"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetCalmTravelTests.cs",
-      "bytes": 2760,
-      "sha256": "7f440e33c917d9b3ff6064f920e960c23a57364d78326c1683dfeea5f6332b97"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetPersistenceDraftTests.cs",
-      "bytes": 27916,
-      "sha256": "85c6d4b355baf58a77711f1798619110e4f35f6e64333ad95eaddc55570346bf"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetStage2GatedTests.cs",
-      "bytes": 66095,
-      "sha256": "4828e8f2014ee3f7b7184586e5c8f89274e89638948cb43eb41217055fcfd52f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerNarrowWorkAreaTests.cs",
-      "bytes": 7227,
-      "sha256": "6d68117f72aa10c97a73e7e90f6de9753b55f5cb92ad91f6c06deb6e79f5cd97"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerPrimaryContrastTests.cs",
-      "bytes": 13664,
-      "sha256": "780b2a69d006d5da94f58a41d073c31e9a88be8d72d4fa82aac62817f228e3d3"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerRetainedAcceptTests.cs",
-      "bytes": 10493,
-      "sha256": "1188f6fa88fe71009fa5c27481d1947db4933318b59da901feb08cabe49a4e25"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerShortWorkAreaTests.cs",
-      "bytes": 4134,
-      "sha256": "004c3cf6b4030b4016883aa7e9df329b5545beae4da390c3fc661d64b56e784d"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerValidationTests.cs",
-      "bytes": 19046,
-      "sha256": "74da9e1c87732f24e1a333d064e12617950940b24d5eb269d190bed71545aeef"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CommandSearchTests.cs",
-      "bytes": 3093,
-      "sha256": "3c96a11514948f4ebccf0a8ba11883e76f04b0f42a71eb762a8274ff84c090f0"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketAdjustmentRecoveryDesignTests.cs",
-      "bytes": 4812,
-      "sha256": "10060df2ce2d428c17bc2113380bc2e16fa7e9931ecb3c154699d4ce49b43e75"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketBatterCorrectionReviewTests.cs",
-      "bytes": 9124,
-      "sha256": "de175bcedc853543ea27e20978ae684432bf56a2949cefcf3f1c9ba2afa05f49"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketBatterReplacementDesignTests.cs",
-      "bytes": 6530,
-      "sha256": "cba41c7533323c77cdca14a26daed689842a9d44d52e3c6cd6a38503a7e943b5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketBattingScorecardCardTests.cs",
-      "bytes": 19088,
-      "sha256": "799125c28868dc2a58909ecc5981fe998ac11e81a1ce749f9aa2933712b86f7a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketBowlerCorrectionScopeTests.cs",
-      "bytes": 11199,
-      "sha256": "d9e8bf81932109b30e953dfc457bbbb1532d90bd4cb95700faf89cfc7080df1e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketBowlingAllocationDesignTests.cs",
-      "bytes": 5875,
-      "sha256": "4f27ba01120dc9e087102e0280c39b949312cb7f802b7e6508e2f5d7633214cf"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketBowlingFiguresCardTests.cs",
-      "bytes": 10896,
-      "sha256": "684ebd7a870c4ae65a0e91fe1a9852b6097650b3caebf359b0c320e8f38a3f53"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketBreakReviewCurrentTests.cs",
-      "bytes": 2570,
-      "sha256": "7f4443bfcc2d0a187401c54150303ede246558bc6e7b7af433bd54c41c5d0727"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketBreakRotationOperatorTests.cs",
-      "bytes": 15610,
-      "sha256": "7e812117bdad3d16df1875e0b9f7dc9763a571f5c29d04152f309e6a261a8621"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketChartCoverageTests.cs",
-      "bytes": 4811,
-      "sha256": "0abb3538b121e84397bdd82c390bf048795a2deda1f0e2bbc3f2e45f0c0f16f7"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketConditionsInPlaceModelTests.cs",
-      "bytes": 6270,
-      "sha256": "ebdc679604e22b864f2baf23a1a4455dd269f3e40c0744fd1a0e30f96f7acb40"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketDeliveryD23RegressionDraftTests.cs",
-      "bytes": 31303,
-      "sha256": "c3f50941d12b2cfbb14f65565899ff420b4a077e4c3d7d9ba36abd19ed584fe9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketDeliveryFilterPolicyTests.cs",
-      "bytes": 4640,
-      "sha256": "b47dae6bf101904f127ffdfa580e8ebe1825d19aa0cc709a816e2ed659b7d7d2"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketDeliveryHistoryRowDesignTests.cs",
-      "bytes": 6502,
-      "sha256": "c95d354042bdfe39d89743fc4b8f1d68c8e7742f3fc0c5b5d1489390946cf31a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketDeliveryValidationTests.cs",
-      "bytes": 22940,
-      "sha256": "aad695c3b1b01fd3daff11ee8022325c58184620b5110aa3e5b60db6924ade51"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketDismissalSheetDesignTests.cs",
-      "bytes": 6361,
-      "sha256": "b1980ce4fd1f7fabd5ea8a4833aff3b2b35b50fde477bfe28999085e7a0ecde6"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketDotBallSemanticsTests.cs",
-      "bytes": 2574,
-      "sha256": "5674d08da1889995b75d67a6a1dcb554791264d749a6b86aa3e1cfeda1a9359a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketFormatSheetDesignTests.cs",
-      "bytes": 6217,
-      "sha256": "d3035770d7ec422c82b0832484d050dab0e54b175da7c355a120c7c386d8f11f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketInfoRailLifetimeTests.cs",
-      "bytes": 6615,
-      "sha256": "5574fa48f497410af7959272d3b046e3b44e52ffaad1ac083138dadd6210953f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketInfoRailRollingOwnershipTests.cs",
-      "bytes": 7508,
-      "sha256": "78f77baac174cfdf7564d5734f79d6eb5ff387a681b0446da1faf8e62e62dc35"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketInningsDecisionWorkspaceTests.cs",
-      "bytes": 4458,
-      "sha256": "a377e56ff1a73823fc4e911ca1af6708ef4dd2945aae7db5c1016a62c88d3e1d"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketLineupValidationDesignTests.cs",
-      "bytes": 5273,
-      "sha256": "22c5c578900e5cee97fe052366c44c1c737e87553ef8ae5d1f56966e532abc57"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketLineupWorkspaceDesignTests.cs",
-      "bytes": 6917,
-      "sha256": "b66bd9d8529641a72613acc201b483f79922ba663536fbc7fdf55e688757229e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketLiveScorebugCardTests.cs",
-      "bytes": 16325,
-      "sha256": "78750c39d90cb9d7d6f1d2cc0f16231b969189428dd3761ba3d9fa96944abacc"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketManhattanCardTests.cs",
-      "bytes": 7578,
-      "sha256": "d7dada3abd5f332b3dfd70f2cb27ea81dc74c2769e0ea80346da4e985019657f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketMatchOptionsDeskDesignTests.cs",
-      "bytes": 4296,
-      "sha256": "4d19d0090ae45acf91bab76c49c4db6663fcd6e63610452c04d102573796a5fd"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketMatchSummaryCardTests.cs",
-      "bytes": 7626,
-      "sha256": "b473b121485fd1f44c11bc8f03fcaf603bb40ba563074868874eab1718c6f2b5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketMenuCommandHandoffTests.cs",
-      "bytes": 3278,
-      "sha256": "4035b344779136ef323d44258cf96fa9a9d0c593b132fd05ba0cd4dd169d347f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketOffAirRotationTests.cs",
-      "bytes": 12281,
-      "sha256": "3d17e304cd498fef462515d53f7763ba466905084e394e4578c7ec7b07a60f30"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketOrdinaryPromptLifetimeTests.cs",
-      "bytes": 23231,
-      "sha256": "e0182f0ebbc40518f2f8c71f55717e7c9064225c85d963cb83333ea3ab62765a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketOutcomeReviewDesignTests.cs",
-      "bytes": 5316,
-      "sha256": "aa00339004d95961d56257ca7e48a46640d20a2b7489e1d4934aadae3f4539a7"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketOverlayButtonRetentionTests.cs",
-      "bytes": 4443,
-      "sha256": "9fc2c86cf8b50152bbb88d47aff65799bbdd073d0bc7fa59ee1820b9fed6db55"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketOverlayShellLifetimeTests.cs",
-      "bytes": 5337,
-      "sha256": "cee55e022a69156e3d49708612902dbc74a8894a6774b24c3e0a93c6135d064e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketPendingInningsSwitchTests.cs",
-      "bytes": 7219,
-      "sha256": "92e53ecb6e9f561c6f1a31ad2ea4334f9bbf0b302cd504cacd5388afbe83966b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketPlayerFiguresNavigationTests.cs",
-      "bytes": 5303,
-      "sha256": "e28e0dfdc5d686fcb61e608d009047355e053bdb3391d1e9ed4ee157090dca1b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketPlayerMenuPreferencesBaselineTests.cs",
-      "bytes": 46886,
-      "sha256": "95ec941920105ce74cbb468008c54606185890435024879fcc0c331d3b5e1f24"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketPlayerPickerDesignTests.cs",
-      "bytes": 4322,
-      "sha256": "36291898bb43d132d12479cded55cedb24d80c17d0292483b26940e62937a630"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketPresentationRefinementTests.cs",
-      "bytes": 8875,
-      "sha256": "db0fe2a6b4f88681713f7928c53e81c422eb440714a19df54173b5a7cc8f7b38"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketPresetCaptureCancellationTests.cs",
-      "bytes": 8453,
-      "sha256": "1125889b818ce3f66878f320917109d080ca525b277816637960727ea76c2870"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketPromptCalmTests.cs",
-      "bytes": 4300,
-      "sha256": "04ed17103e9a78851c9cc7431d1cf1f0c7f4a98439714981173d99ae7c7ca17b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketPromptOpeningFocusTests.cs",
-      "bytes": 3619,
-      "sha256": "32c4a268b6860cce2babf322099407673e07b8aa0252beb4f664cc1a3b411ea1"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketReopenReviewDesignTests.cs",
-      "bytes": 4839,
-      "sha256": "76283915b4d39292b47e712fb4bd8e22218cb1bb4df7d596e9131308ae94fae9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketResetReviewDesignTests.cs",
-      "bytes": 7073,
-      "sha256": "43a2f30f169414f1b0583b8af112f86b5c24d38ceb34d24f4e121c702f1d8443"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketRestoreOutputControlTests.cs",
-      "bytes": 4211,
-      "sha256": "5eecaaa07e2ae0e417d2583da78fa7928a15c8d9f111245d2704fc8882daef24"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketRevertPublicationOwnerTests.cs",
-      "bytes": 2612,
-      "sha256": "2a764f30719cc59e38cc3db0b85fabad0e4232264a44f2d224adc9fc029d94fd"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketRevisedConditionsDesignTests.cs",
-      "bytes": 9540,
-      "sha256": "52dc6aca2f001b062d2e448a44a90346dd035170027322cac937655fe9b23f4e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardAddFocusTests.cs",
-      "bytes": 4177,
-      "sha256": "77cf23522b372e3fd60b2a735ee9e6f0e9597a5a125326180add896ce869ad8e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardDockAdapterTests.cs",
-      "bytes": 12307,
-      "sha256": "2b2308f9946c517063805b43e3a77092035bcff4cc04b3d541007dab42bbbad7"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardDockLayoutTests.cs",
-      "bytes": 5136,
-      "sha256": "5e619fbc1247617b52a380f8e0a5f2f59c10672dfee9ff8e9e194b2fcf082651"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardDockReachabilityTests.cs",
-      "bytes": 13748,
-      "sha256": "7575c00ad19468c56c3999a2d9c001cfb7dfaff68d5d4400ca79189f0c2c4ff4"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardFigureValidationTests.cs",
-      "bytes": 15338,
-      "sha256": "e0a1bd60f0b2b035e8302617d4c95f844bdfcf8d2eff39685e655aa462127208"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardHistoricalContextTests.cs",
-      "bytes": 3457,
-      "sha256": "8dcef3c6d787a7526915757403beee5008637262d2576f8f2f512d162c504105"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardWorkspaceDesignTests.cs",
-      "bytes": 2330,
-      "sha256": "f41b38ef5f8c4b6b38bd1a8d8cbd4ceda2ff3961c478686a52dd93f4831c52e5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorewormCardTests.cs",
-      "bytes": 7208,
-      "sha256": "bf89cbce4fd8f21ab7572cb5b097efeec221f25ad4cfa3f08a9b22b137f265b1"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSelectionRefinementTests.cs",
-      "bytes": 3937,
-      "sha256": "d9f205ca65726898ce26b2af5c38fd3add789969d3e0ebcabd6213fd3ec5068c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSelectorCancelRegressionTests.cs",
-      "bytes": 44339,
-      "sha256": "c738752363142a047ff75e2efa231be70be0cea18c164b9b3bcbb65cb8cd17c9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSelectorScrollOwnerTests.cs",
-      "bytes": 4631,
-      "sha256": "305ebb504cd37ce77ae7248663e017a2940da987ada69774f8c19e69ce5dfae2"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSetupPlayerEditorDesignTests.cs",
-      "bytes": 6952,
-      "sha256": "72bab98c247b0dbcaf750caa5641508160b30c93ff19b52bfc6b301c9f59951d"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSetupSquadRowDesignTests.cs",
-      "bytes": 4778,
-      "sha256": "e35fa7f7500d034164d16c95cf18a42073bfe936c9ebc9bc42f3a2c8d556429d"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSituationOverlayTests.cs",
-      "bytes": 16307,
-      "sha256": "51b4bb9f294e8227460d85579814aa2a6642987aa8e09d0be783545e0de44f7b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSituationOverlayUiTests.cs",
-      "bytes": 15235,
-      "sha256": "7481b1379108a1e835d53f4a7d3d4e78e7408c10bb8c9e9f632f57d636813df0"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSquadRemovalRecoveryTests.cs",
-      "bytes": 10096,
-      "sha256": "0bf0fa654c579e96d3e305035df23d5517eec88fabe82ed3bf9d2bb005ba4604"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketSquadValidationTests.cs",
-      "bytes": 9762,
-      "sha256": "b0a92403ea2f14cb5ecb253f1ce57d540d2fb39ff2d94afaf0af8513d27c7ae0"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketTossTeamIdentityTests.cs",
-      "bytes": 6889,
-      "sha256": "c9d2df4efcafe07ae0d57ab7deda804a049d1766b47652f950a07979e28b3963"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketUndeliveredRunOutDesignTests.cs",
-      "bytes": 4982,
-      "sha256": "11761046db383e03a861399a63db4a7a6e6d6873cd6496508f33fcb8d4f2bb9d"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketWeatherFeedbackTests.cs",
-      "bytes": 12681,
-      "sha256": "10bff7d28e5a5faaa9849358ba3176d559c22e566dbd5d7934c21d13f1962525"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/CricketWizardInterruptionTests.cs",
-      "bytes": 13407,
-      "sha256": "a42fc2190d9f6550d7a8120525872cd8472c0d802a7f0d9afec4bdcaefdd4522"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/EditorInterruptionTests.cs",
-      "bytes": 10861,
-      "sha256": "663ca52bfb3999a4e3080809d4a459d77132f18940e4cb795defc78d4dd3543b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/EffectiveMotionVisibilityTests.cs",
-      "bytes": 5650,
-      "sha256": "9aa40afdbf1e103f2c78c742f9dcb1a6e654630453f954546cfbc0ee90f8c2f5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/EffectiveVisibilityCallbackContractTests.cs",
-      "bytes": 6788,
-      "sha256": "659cd55e3af42c7498e146515d398cd1d9b423642a0c961bf911e4034fbdea28"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/EmptyLoopingMediaTests.cs",
-      "bytes": 4443,
-      "sha256": "a94e5fc2681b71b0c6674c9625c473a81ecb53fdc074a6a74d78e542ff37a838"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ExceptionalCricketInteractionTests.cs",
-      "bytes": 8905,
-      "sha256": "9dfc001c0b861fc619fec537e60bcd808f2966d29ea5aa6b099b4dc0e8c2bac9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ExceptionalCricketTests.cs",
-      "bytes": 15317,
-      "sha256": "742df12cc3d26e6315efdbc64f20196c1b4bed499daab2bf31af91c240361731"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/Fixtures/test-pattern.mp4",
-      "bytes": 102273,
-      "sha256": "2d97d52c08abd336598ff8c8bf0d19704e1db670199d4c89506402b46c69d9c9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/GalleryDiagnosticContractTests.cs",
-      "bytes": 11533,
-      "sha256": "56ee3636d4afe1e435b91a191370dff2070dad2c587f757fa34502970a15a817"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/GlobalOutputDimensionsTests.cs",
-      "bytes": 12406,
-      "sha256": "3e3db33e37a8de8e7fcd9c92934ae04539a1acddc4d01baf009c97923ad4a10a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/HiddenMatchLoadingLifetimeTests.cs",
-      "bytes": 20824,
-      "sha256": "428d142085a4087673dcd24bb2e230749248dbf94a8b44fd477a6f1bf5d5638f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/HomeCommandTests.cs",
-      "bytes": 27796,
-      "sha256": "51abc9bfe9c2aa5087f16412e5e6ff612ec327ea084aa329af891b02d0bf5a87"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LegacyActionPreferenceTests.cs",
-      "bytes": 5405,
-      "sha256": "52e63c5f310a1ab08c1d11f1b4f76fd86d8316d937eb3d668907ba5f7d2555af"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveAutomaticOverlaysToggleTests.cs",
-      "bytes": 7676,
-      "sha256": "97aed1ebc90ee176726c092b0039a60f52afb669dcee233fa68d83b93bec32d8"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveCloudShareCardTests.cs",
-      "bytes": 9854,
-      "sha256": "36981ed2d5f3ded028729c7d258faed224bbe7cff7abc67de549347a9f604bca"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveExactClockEntryControlTests.cs",
-      "bytes": 4240,
-      "sha256": "15f588c371c9b46aa94493f6a247298bc6a04e45a7e0db44d1bc3d1d8b98d32e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveExactClockErrorReachabilityTests.cs",
-      "bytes": 3390,
-      "sha256": "86313bc13a58508f50f17d69eeb053f0b12fa187aa2c9cc4dc6cc9c1bc5a0145"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideNamesIconPixelTests.cs",
-      "bytes": 13549,
-      "sha256": "1bc3b07874f4b8668630c83935a5c9dd895038999dad15d7012428090759f047"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideNamesLifecycleTests.cs",
-      "bytes": 16909,
-      "sha256": "ecd2cbacc810b920f3b52e4f5ed3db2275025876aa628bb244bc8b4835d340af"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideNamesPaletteInitialTests.cs",
-      "bytes": 16794,
-      "sha256": "b741185eca92a0742786040cfcc76c990b4084096c4b0bf8a11a40d7981386b3"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideNamesSelectionMotionTests.cs",
-      "bytes": 14008,
-      "sha256": "afcf5b961c911d247dc28108d6b99f1124096e6e146f2266ca8c545c42de649c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideTeamNamesTests.cs",
-      "bytes": 9837,
-      "sha256": "081e368d688233b73e489369a573b9253526169a91f25785dd1a54f9d037350c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveLogoActionControlTests.cs",
-      "bytes": 5151,
-      "sha256": "793256004a5be390ba132f6f10241f79ee7fb1f54ea5ea3a7ebfc26717c7579c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveLogoCropSliderSemanticsTests.cs",
-      "bytes": 9050,
-      "sha256": "65884d3fc24c9e9bf99b24e6218967772b8c23a27e51e1eb30c520499092ce30"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveMediaSpeedLifecycleTests.cs",
-      "bytes": 3451,
-      "sha256": "da01a717583dd35ddbf4c62fb12287a00b912a3a59d8dc9e92402bea5cbff216"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveMediaTransportSemanticsTests.cs",
-      "bytes": 7159,
-      "sha256": "3bb9eb566910bd8952d50659fb6b43986b735bf607d178f4aae3fda91c819967"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakExtendedTests.cs",
-      "bytes": 24477,
-      "sha256": "eb25013cced66000dbf522dc5a023dd0ba3120b0ce3ebeca07f48c501c5026eb"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakKeyboardTests.cs",
-      "bytes": 3057,
-      "sha256": "d19c51a50320faac8371e354161fca0be92c0a795859abe234d9e07f16aa5bd8"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakPaletteTests.cs",
-      "bytes": 11706,
-      "sha256": "74fe48085e2e3229e7eee72943b6dd5345ef0586c8d4b3c7dc840fc1ac2c5ed1"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakPendingTests.cs",
-      "bytes": 3343,
-      "sha256": "90d782eebadff8c36a3f247c4634420b18486f82284313169b6dc4da2accd861"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakToggleTests.cs",
-      "bytes": 9090,
-      "sha256": "c60ffd6b1ec598dbd7a80d5a95173d5e06aee64fdbcef92f55b3b3d05576366c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterDurationStepperTests.cs",
-      "bytes": 4672,
-      "sha256": "d774c04ae9cf6a14d87058eabf7a6278bc09f3e9a14c423c0f1d7e7b9c22c354"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveScreenSamplerControlTests.cs",
-      "bytes": 4987,
-      "sha256": "63bdcfd1720fb2707a9c0fad8657271c767af40bd8d6d5b648a0650f41ea3202"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsClockChoiceSupplementTests.cs",
-      "bytes": 9595,
-      "sha256": "48e169d4383032c9f0e958f1ab7567b85e613704b19329f9c1888c3381479f99"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsClockChoiceTests.cs",
-      "bytes": 27432,
-      "sha256": "035ca3413e96ca3b84439d24f3b66a4c01cf0d010347551275957e7bb4aead5d"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsFinalsMotionTests.cs",
-      "bytes": 20379,
-      "sha256": "a09abcf30ec543584d6b8f4ea041bf24b3c3087d664042153d82a2f3032e81c3"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsFinalsPaletteTests.cs",
-      "bytes": 13784,
-      "sha256": "ab0844eb648381343f92e44806b846741109ac2080dde835a34e88ca0dcb3559"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsFinalsToggleTests.cs",
-      "bytes": 9023,
-      "sha256": "73176770ab036b787debe22d8dd08b7a43c7841f29c38b15f495ba035f8216ba"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsSearchKeyboardTests.cs",
-      "bytes": 18120,
-      "sha256": "7b5dc2347a492459e54ef814a40a076ad978d15003dcfe35ea10788f1032182b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageCloseTests.cs",
-      "bytes": 7059,
-      "sha256": "32ad958eab78ef0eb274b050528fa2c87d3d66df2f4ead388a81b2ea4b44bacf"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageInitialMountTests.cs",
-      "bytes": 4346,
-      "sha256": "043c5e2db91d639be8a266cf02a5f0e062345e16e67c5622b05296b0da0d2ff1"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageOptionTests.cs",
-      "bytes": 13841,
-      "sha256": "45fed367c55f874d182bf3c54909a1be3c0087c13a5147ce72711a3ed11d754c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppagePaletteTests.cs",
-      "bytes": 10163,
-      "sha256": "7eb0b61116e5180878695b1b53e89a7512a14eb412b1bfec705c5aa1e20e9ffa"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageRunningTests.cs",
-      "bytes": 6386,
-      "sha256": "d5da0b734a739389d2271458a6e762b444b93c1f23aa0b424f13726a5333afa2"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageSelectionMotionTests.cs",
-      "bytes": 13303,
-      "sha256": "94ec6d57c2c510a38310ca8850919ede5a79b1b708c7e05d73ea2d42eed8481e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveTickerKeyboardTests.cs",
-      "bytes": 6043,
-      "sha256": "b9f77168400eb619f7a669ae5e594944d69c0e3ace6f04dc5bd768b4dccfe2d5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveTickerTargetGeometryTests.cs",
-      "bytes": 2538,
-      "sha256": "a2256cf5b2a35a2072e93cfe9f330fb8a7e268c15236a7bf8eab8facfea5b3b6"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/LiveWindowDimensionControlsTests.cs",
-      "bytes": 5904,
-      "sha256": "98819cc04537e5e5d05f85f300bcb38e4f5953edfe4c31a672e2265572721118"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ManualWeatherOwnershipTests.cs",
-      "bytes": 22194,
-      "sha256": "21e641a196a0be61f8a2fb565d69ecbcbbc56abd4cdf4b833cceab65ac94e1e9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/MediaEndBoundaryTests.cs",
-      "bytes": 16711,
-      "sha256": "47091b3c8e28f9764e6856129ed1f4f382c33dbb44ba2f244d4befaeca511953"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/MediaErrorBoundaryTests.cs",
-      "bytes": 6850,
-      "sha256": "78202656ad887013bfc7b45ab5290657fe43c18ec1065d1b79899b2b9d45112c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/MediaPreviewTruthfulnessTests.cs",
-      "bytes": 6875,
-      "sha256": "d0b129e19c15d42df7e71a761dafa4b6dc6a5a9fda51e22d80744f45b6f0dde4"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/MediaRequestedRateTests.cs",
-      "bytes": 2347,
-      "sha256": "41e21ea65e46fd56b4f217154ec2094f3640c81a0fd64cd2e58078aed6921735"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/MediaRestartUnloadCurrentTests.cs",
-      "bytes": 4985,
-      "sha256": "85814cd092afa366e1a2b0443ebf2f47aa165886db6c58dfa1763b1631db0519"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/MediaSeekBoundaryTests.cs",
-      "bytes": 15454,
-      "sha256": "0b50bfcb3c8dfd8c536acf1c6768910653f86541a243257632b33b74ec6b21df"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/Mr9RemoteClockOwnerTests.cs",
-      "bytes": 13304,
-      "sha256": "823c0a744cb6aaf3a7a5396f665c29a7f20e707a61ad04d488b290f202a9f859"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/Mr9RemoteResetBoundaryTests.cs",
-      "bytes": 38814,
-      "sha256": "925822d1ba6102959aade7976f0fa0c8fcd72be23cdc64ab015805acb9aa123d"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/NativeFontFixtureDiagnostics.cs",
-      "bytes": 2085,
-      "sha256": "7f5762f41e0af7fdc553bbc1ea6a840db745acf5a38e7d7ded6733cf6f8e6c74"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/NativeInteractionTests.cs",
-      "bytes": 6160,
-      "sha256": "06910b11af90e47e532b2444cc3ed164efeaafa4a249bdde0cdcef24666785c7"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/NativeObjectGraphLayoutTests.cs",
-      "bytes": 2184,
-      "sha256": "980af9d06524ab2b29309f2f3dba6c58fd7cada0cd3c58cf048b01805970ed0f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/NativeProductionTests.cs",
-      "bytes": 17510,
-      "sha256": "d6252073d207854f1d55988b445deee05bc7e964ff3dd2c4951f8df098d3fdcd"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/NativeValueSourceAnimationTests.cs",
-      "bytes": 3698,
-      "sha256": "68655783c34edaeb6771f16dbf8ad10ffd9d36eda514e3739f5e85bfad491bc4"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OperationalTrustTests.cs",
-      "bytes": 11639,
-      "sha256": "bb28066e537917142bc85adbebee748d46592aa2e4fced46c7e0d741b6ce58c8"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OperatorActionBorderSemanticTests.cs",
-      "bytes": 2652,
-      "sha256": "64b9109ddb9f73fd25348224626aba2ab4c5c5bcdb4188d64adda46a83acc591"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OperatorEntryCaptureTests.cs",
-      "bytes": 3609,
-      "sha256": "d7834514fd086ba8fd7157def2c22e030276f962d1920ffb1e55d1727e46c5ca"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OperatorGlassBrushCompatibilityTests.cs",
-      "bytes": 11334,
-      "sha256": "3c3e453d034272e0968516ffc621e1f58d60e78991ecafd36e27c1e4a80a0ae6"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OperatorGlassSamplingTests.cs",
-      "bytes": 4262,
-      "sha256": "78263b57b8e5e2c4c79e0f190ff4a1e885c1d2a561c87c13f4fa2ceaf44b4b74"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OperatorRecoveryTests.cs",
-      "bytes": 17721,
-      "sha256": "6cfe65b897ea307b7b60770912cfa43f3c5b2a03ba6753eeadf8e4bfc981f9c1"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OperatorRequestedRefinementTests.cs",
-      "bytes": 19096,
-      "sha256": "ecf54fd225b5ef2fdff5898d519409942e1074bd5990bf1eced0a8f015d69c0b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OperatorThemeParityTests.cs",
-      "bytes": 20549,
-      "sha256": "5a7d0cac8c31732fcada839e556e41268d604250332fda7c3853612c108abf14"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OutputRenderingFeedbackTests.cs",
-      "bytes": 3615,
-      "sha256": "a6c31f593d2d33d5cbe9b65a234f36694766b0c959cf2ad07c0903358cdb8bd4"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/OverlayHandoffLifetimeTests.cs",
-      "bytes": 4188,
-      "sha256": "3acabd2b79c766a863ec7e944fd4f6113f8b859dc9f02a2d8824d240bd4a824c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/PresentationLifetimeTests.cs",
-      "bytes": 16281,
-      "sha256": "31a09cc192452b799216036c6122baadb8e83083d1534ff1016562cb1e142dba"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/PresetDuplicateSaveTests.cs",
-      "bytes": 6723,
-      "sha256": "539fc2674672d30a1553d512c7159a99992ada97abdd36c548dc9b8d125dff1f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/PresetKeyboardMotionTests.cs",
-      "bytes": 15864,
-      "sha256": "13921767614b4b965ec1ceba58bc8805efe6a1bb57849b9c066b0dba06687ef3"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/PresetKeyboardUnifiedEscapeTests.cs",
-      "bytes": 4820,
-      "sha256": "b46b05a82cc19c716c06daf3665f3aef32307df8e6e638c477c5666d330a9e47"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/PresetPendingActionsTests.cs",
-      "bytes": 5875,
-      "sha256": "418f46bdc5b14c3ca12f33e23779193987591237f6599de2a6e6880263d4966f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ProductionCricketRulesTests.cs",
-      "bytes": 940,
-      "sha256": "741368693739fb4653b30e124f56b5bf20db28b823729db4f3f54d540c4b8405"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ProductionScorebugTests.cs",
-      "bytes": 3636,
-      "sha256": "ce37b0068305b90abbe5d98545f9f3b839850a35e62a4147b9e19df676a8692f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/QuarterLabelsWindowLifetimeTests.cs",
-      "bytes": 9168,
-      "sha256": "df680b71af2b6b4870e549f52c1a6f8b7184b9e2de48a19909405ec871859c84"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/QueuedInvokeCallbackIdentityTests.cs",
-      "bytes": 3581,
-      "sha256": "55e116cfb5e4ab3e4a9fead070e323855074f4818d731294680c5d9442ccbef1"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/RecentScoreCardMotionTests.cs",
-      "bytes": 12242,
-      "sha256": "280f4102631f73ffa616703fa84b453667a6accca030e0de9563f0e995a2c6b5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/RecoveryDiscardMotionTests.cs",
-      "bytes": 19371,
-      "sha256": "a89d1354cc83d223c5b9ac646efb40102565e58a9df920beb60f9bb0f4fa105f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/RefinementInteractionTests.cs",
-      "bytes": 7520,
-      "sha256": "abf6390d39794dc523c4496f7dbadb84ec8a10781413ce95f7ec178791d16624"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/RefinementRemoteTests.cs",
-      "bytes": 2757,
-      "sha256": "8b25fba2474b096c161d2af9af660f9cd5bd1667df7fac7f1ca8e75be0ef566e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/RefinementRulesTests.cs",
-      "bytes": 14307,
-      "sha256": "91823e8f34c3840ece153e7094b0b98306e25940a86f90f0490982e7503ce25f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ResetSettingsEntryTests.cs",
-      "bytes": 3399,
-      "sha256": "9a211e118415381a5fb86dcd571569c7f0b98d14b9034be00bb4825ba5604ad6"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/RocheScoreboard.Mac.Tests.csproj",
-      "bytes": 2026,
-      "sha256": "53689d2d5fab46a0a4689bbb7a3a595f82fbf5536db67e065c444200ffe39264"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarBreakLifetimeTests.cs",
-      "bytes": 10348,
-      "sha256": "ca7e9e6b463c0ca642f9b69bd4dbd311e5a80f09e1a49b7433e1c0e2d5b576ac"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarDeltaHiddenTests.cs",
-      "bytes": 3659,
-      "sha256": "c4c2bcb3862738aed08481754cc075e9032e05ecb8d356f6fbed3b820bbdd89a"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarDeltaOwnerTests.cs",
-      "bytes": 13906,
-      "sha256": "a33f1916625a6b22de54abac0af573a8bcb8a95245203cbf1ec2f7b612911a14"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarDeltaUnloadTests.cs",
-      "bytes": 2294,
-      "sha256": "4fc36854908bb2c554a9c7369f0d2fdb9afb76c38895a54f3889dfbb2d32ca1f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarHiddenBreakTests.cs",
-      "bytes": 6398,
-      "sha256": "f5856f56b8029b609ea3534056bf252e5a2fef264318a0fa890c24c3383f3f78"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarReentrantVisibilityTests.cs",
-      "bytes": 6656,
-      "sha256": "ae49dc41cc2d850c8a1a0b5c73883a043b9fb21740f87abffb8bca109d8e2088"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarResetRefreshTests.cs",
-      "bytes": 5460,
-      "sha256": "cd9a7c9eeba76440a77ef2feec5f5fc76b305f2e062138466c6fd01b7c8a1bb1"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScoreEventCorrectionFlowTests.cs",
-      "bytes": 58347,
-      "sha256": "6f375e08b866b64aec98e873ebbbb01d2e10f6376af43867c80ac0b90982e771"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScorebugBurstLifetimeTests.cs",
-      "bytes": 10952,
-      "sha256": "83a9af95163819218303648c0e48ba9f6800823f7bcd591fa77ff72e57fa0c09"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScorebugFallbackCapacityTests.cs",
-      "bytes": 6128,
-      "sha256": "45c94b3724d038f38e57b1b4f1b12dc2f9049b1d5baee76f39b7b9a799e38fc0"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScorebugReadabilityTests.cs",
-      "bytes": 13968,
-      "sha256": "7adc5596c588b5bd499030787df8151fd692f238445d06dc79eb5c00021cf5d1"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScreensaverEffectiveSourceTests.cs",
-      "bytes": 9859,
-      "sha256": "9ec20bea619f587802368260c4aede537353ddb9c74ce11c8570afb3042bc07e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/ScreensaverMotionLifecycleTests.cs",
-      "bytes": 4508,
-      "sha256": "16a5efe6b2825499274d252e66cb49b1ec371b61b7de67bd2c4011d1d1b7605b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SelectionCheckLifetimeTests.cs",
-      "bytes": 19318,
-      "sha256": "26a8d63a4a7a9df1ec0c80bcb644b3eb7204578bf6a674cd468fadd7631527ce"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SessionTests.cs",
-      "bytes": 9644,
-      "sha256": "a35c4055576904f6479415b45910d1704b40e9a624282b911949e2b5093c1613"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SettingsAuthoredSemanticSearchTests.cs",
-      "bytes": 8195,
-      "sha256": "e8e9499dfa5827a154681d6298b44757782ff91b5dd15d533c3181c4057bc437"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SettingsCompactLifetimeTests.cs",
-      "bytes": 18896,
-      "sha256": "35925e93db09b070293a9ae614b667209d0825d83d80ccd368cce1120ee291d6"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SetupHandoffPreferenceTests.cs",
-      "bytes": 6065,
-      "sha256": "ffce97bbb8223f3630a9aa0c71d72cc3d2b0ebb9030b64dc0057878739df2985"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageCaptionTests.cs",
-      "bytes": 5324,
-      "sha256": "c7bb2e5bf0a4c3d829b252ad825d01bbaead0345debc4ecd3d8271c5be99c5de"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageDraftResetTests.cs",
-      "bytes": 3676,
-      "sha256": "2320273c8f11315e067d582e37b0950b680832fb596818fd7d9c4fa3c714b49e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageHighlightKeyboardTests.cs",
-      "bytes": 7353,
-      "sha256": "628b1c8b6283f6ac4fbaafeed36eee3eaf334f49ecda0941fcb8fdb8ea0f3568"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageLimitTests.cs",
-      "bytes": 13176,
-      "sha256": "faf4720e4ffcece66b149a562864745e6881bdeb8b74398773602f04a7814467"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessagePickerLifetimeTests.cs",
-      "bytes": 6984,
-      "sha256": "0b16e6926c68a281561e054db6407afa3a386ea9e0d6c1e5ed80e157e43dcdd8"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SetupTickerHeaderTests.cs",
-      "bytes": 9282,
-      "sha256": "2b2eb0b601e778b17c0bd680cb046a8bdb51821d3f2fd51bababe640070ad0b6"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SetupVenueReadabilityTests.cs",
-      "bytes": 6253,
-      "sha256": "971da564ede48f2480cae24b32a712e7558ae09e2056ede33d0e20b5483436a4"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SharedMaterialMotionTests.cs",
-      "bytes": 15825,
-      "sha256": "a990bdbd6c75ea79b8de213bef698b5ffec5478db7fd39dcc4963b55cc65f70d"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SharedPreferenceMotionTests.cs",
-      "bytes": 32399,
-      "sha256": "9a006392a5d14e870cd17a01ff4bb7ca512d8f47ebbd0beaa753201a9e92c092"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/SmallSurfaceTests.cs",
-      "bytes": 5647,
-      "sha256": "7d665e479b92a34b7383a43419786b5c90a6bb9e602b2a4874a0cc26731a4056"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TabFallbackLivePolicyTests.cs",
-      "bytes": 2916,
-      "sha256": "e7d1d5abaca46b3f723ed83a641a50998ad7a00071bcd4a332772acfac81217e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingClearLayoutMotionTests.cs",
-      "bytes": 8212,
-      "sha256": "7a77a7bbc8c77ffabe6e9dee96650d31a95d11c3a55c1e2677d9f71ace53d790"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingClearOwnershipTests.cs",
-      "bytes": 4002,
-      "sha256": "e30a08bab6155665ca601cfabf06b0e6f8158ed936c1464f0bd2e752e93e3df7"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingClearReviewTests.cs",
-      "bytes": 9193,
-      "sha256": "3ae8eda04e3d4a203b54799297c76bebf8b5738ffa3c89775e082931ff03378b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingClearRootGuardTests.cs",
-      "bytes": 14243,
-      "sha256": "31be00a9f5f9e6e28a5027e4ab5d8bf27b4af2c4e0f81149cf0da338d55c596b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingCloudDecisionScopeTests.cs",
-      "bytes": 6282,
-      "sha256": "6c758f5eaa671df227437cd076b4ffdda3791a6454835e16e599b2130b8ae784"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingCloudEndReentryTests.cs",
-      "bytes": 1609,
-      "sha256": "53e0db001aaf0930b06962d373bfe389161caf0d9f209cdcbbb7ab7fd251d0ca"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingControllerLifetimeTests.cs",
-      "bytes": 6146,
-      "sha256": "ed1e430a1f5e3f5bfe20bafcd555ec88f03a71dfa471fa0820b91945dc0cb173"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingCorrectionFlowTests.cs",
-      "bytes": 17422,
-      "sha256": "afdae756e358625c65791eabb12b300dfcb3cfcb90aab8f6d94665d6b3c5d54b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingDecisionHeldKeyTests.cs",
-      "bytes": 3483,
-      "sha256": "97445d3aca05bb0a69eaa711991cda52579155ad373a507b7de327098a651c15"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingDisplayMotionPolicyTests.cs",
-      "bytes": 7436,
-      "sha256": "b03c2eef58d7d48f48e656f80d105878fae8aba38cceb0f001cc7342fe2a9635"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingEarlyVisibilityTests.cs",
-      "bytes": 8109,
-      "sha256": "ef4c36c32cc31eb6f17980bc785416b0a7881b136bc76bc03a901d0c817fcf4b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitAcceptanceTests.cs",
-      "bytes": 7759,
-      "sha256": "abe25ca947d296e89752936ece5171acc30815f6a8cbe2bc17b9adfb4533f9d8"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitLayoutTests.cs",
-      "bytes": 7291,
-      "sha256": "689427969bfed91ca2e1c49bd5f062afa7dedc9579cc2a2013b550bf8defd300"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitPaletteTests.cs",
-      "bytes": 16441,
-      "sha256": "9711eefe3e42fe4b84f8cef6c49212c03e89c44d68d99d0f79bbb5b626d7d069"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitReplacementTests.cs",
-      "bytes": 3539,
-      "sha256": "3e0107f7b8e1a26970ff924437b8630517b2f5270a60a267935dbd819e313483"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitReviewTests.cs",
-      "bytes": 6192,
-      "sha256": "ab2e8c2941a4b9bcf53e9a4176781fa6d44ae49160ec0c01426978f756e0cc16"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitSafetyTests.cs",
-      "bytes": 10012,
-      "sha256": "149e232404f864701878c76d70e79c14e9ea302748e7d0ddd837db11bf08ef42"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingFormStateRegressionTests.cs",
-      "bytes": 27077,
-      "sha256": "a00566091ed0f3ecaad9c177e0523d473ff7fa1d7b8946e4913536e5eb13dda7"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingIntervalWorkflowTests.cs",
-      "bytes": 8004,
-      "sha256": "ffd53e0fec49eda5edc9c2931dbeab588fd47710e7230a5e1b05cb58ef84ca26"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingMotionTests.cs",
-      "bytes": 4522,
-      "sha256": "263907c553cf14d97957013e00b0201c3a3952078b5c88022053ef34d0e32965"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingOutputCapacityTests.cs",
-      "bytes": 20408,
-      "sha256": "2721cbd2dbc4c7a349bbdfa2f6e4a7543a9693ef03a11c9a75a2e9f5e3344fc5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingOutputLifetimeTests.cs",
-      "bytes": 11789,
-      "sha256": "8ffae6b30aded2545cae187b33e0259eeda027b4cca53f24ee8c48412c6f16f9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingOutputSteadyCueTests.cs",
-      "bytes": 21685,
-      "sha256": "95e185639b79c398fe97c2433376e1cce4b25e9a01d5b46d0a30d583b713e10e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingPolicyNotificationTests.cs",
-      "bytes": 1214,
-      "sha256": "bd91cfa278d41c1b7611f5f8d241f77da70b6ca67c7d055d767a67be075cb769"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingQueueCommandRegressionTests.cs",
-      "bytes": 25389,
-      "sha256": "8fe746a3f6942e107783863d021b37ec8d8ab57c913a0614742868cdb2c1c73f"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRecentQuickAddRegressionTests.cs",
-      "bytes": 20094,
-      "sha256": "3aa7aa432db443d9f2da0540949319ce2440006879dd6a96998825a74d4202aa"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteAggregateCapacityTests.cs",
-      "bytes": 2970,
-      "sha256": "47af527d2113d5efba1d9f67539e8eec7daece72a1292c73dbb57b2ce417d8de"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteClosedTargetTests.cs",
-      "bytes": 4500,
-      "sha256": "24e4d960ff5298816f5a97688fac1f1eb901a0371a3e4ff200be62b876f00693"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteExplicitIntentTests.cs",
-      "bytes": 4693,
-      "sha256": "6c255f159c8d1af24b70ea41f5bdc23eb9863f2e2750a16097109b5748e85bce"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteExplicitRootTests.cs",
-      "bytes": 1885,
-      "sha256": "23e4ba07e53ad83b3d8f923490c0635fd77f7805a4bc9c26295fdf41bce807c5"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteOwnerEndTests.cs",
-      "bytes": 4829,
-      "sha256": "831490f8f4a7024039f7a64c7fe8698102ac99a0ed1647821c1e5d8fb1985711"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteOwnerSupplementTests.cs",
-      "bytes": 7697,
-      "sha256": "c1918f62356a9c0cc8a569e69e71e398c0572f9886a77c7bcf4ac6a4f3d70490"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteOwnerTests.cs",
-      "bytes": 13074,
-      "sha256": "4704990cc5c4e9e05fc5ed16f778444cf6c82d64b355a0badce3beba9059a724"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemotePayloadBoundsTests.cs",
-      "bytes": 6239,
-      "sha256": "166f29fb3a41ba52dbe098a5703445f69cbbbf648ea7333a672b60e6d9d02ce9"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemotePayloadRootTests.cs",
-      "bytes": 1550,
-      "sha256": "45ba0a1bb5bb1d370bb726061de0d90e3ff730079284f9cdf8bd9dfc76a9a321"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/TrainingTitleVisibilityTests.cs",
-      "bytes": 3556,
-      "sha256": "96ee81c966629f4015ad88b958c4adbb690efe5a51dea74b8d91d36904d9e507"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/UnifiedSetupTests.cs",
-      "bytes": 19472,
-      "sha256": "b8d3a82682af127243c6b48c5aab7eb55000edab3428b094c992b9f204b3f723"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/UpdatePromptCompactTests.cs",
-      "bytes": 3052,
-      "sha256": "447067c0cc4362af04f23243a0d8e42057f77d775ba8347993a2ffa84cd3788b"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/UpdatePromptLifetimeTests.cs",
-      "bytes": 20618,
-      "sha256": "3cf29e18d8ebb5f37ea59b880b725aef571850fb8ea6024b99465be5facfca02"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/VisibleWeatherVenueLifetimeTests.cs",
-      "bytes": 7626,
-      "sha256": "0135b602589a40482554d666bac1144de1ebac783e72c3cdc54785b91eafedcf"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/WeatherCacheLocationTests.cs",
-      "bytes": 7558,
-      "sha256": "12dca49f6040c18eaaeeb3a9765ffb7f59dc0bc0bbee17ffc88d8354e507f7b3"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/WeatherLocationApplyStatusTests.cs",
-      "bytes": 20441,
-      "sha256": "0f7022c94e4c2f865526a94057cc2f3f60641ea94fd2cdc1408daa77eecdfe50"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/WeatherLocationResetTests.cs",
-      "bytes": 3351,
-      "sha256": "6adfdc91cd9b4c686ce53435b8bb69b5757e302110bfbe1219746695d8fd9a41"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/WeatherPendingStatusTests.cs",
-      "bytes": 4351,
-      "sha256": "edac419229499161c0210b4e319ae7e6b24310ccfe4846aa86df7a0cb2c22123"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/WindowPlacementTests.cs",
-      "bytes": 6289,
-      "sha256": "9e3d661f04dccdd614cfce59b676d1e4335b551b57bb6bca041005b91e78af5e"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.Tests/WindowTests.cs",
-      "bytes": 7392,
-      "sha256": "a5ff2855611e8f01c31c3be5653aa6043436c2161551f29d3683421fcf8b8d6c"
-    },
-    {
-      "path": "macos/RocheScoreboard.Mac.slnx",
-      "bytes": 241,
-      "sha256": "faf6042a3d325349be5ea5535d5734c1190894e9406984fa13339a4c02163ed4"
     },
     {
       "path": "macos/RocheScoreboard.Mac/App.cs",
@@ -6763,18 +5348,18 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketControlPanel.axaml",
-      "bytes": 90286,
-      "sha256": "d81bd3c81ea02d4855b9f631f8514d6c6f99199389f1a169c31685ba32d7a309"
+      "bytes": 90347,
+      "sha256": "f7e41a03895110ec23bd2e33596dd2243be9c2eeb3d57cd58f318ccae75be887"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketControlPanel.axaml.cs",
-      "bytes": 103150,
-      "sha256": "ddceb21f00576efc62682c2e0dac607880ff7ff94c53814b599a36f1fe68e211"
+      "bytes": 104705,
+      "sha256": "e6855c78c78ad696483bf0826ee1e1386d6e6e3e3abd8e449caec38ecb971326"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketControlPanel.migration.json",
       "bytes": 19724,
-      "sha256": "8dfcd38ccc903da31c00dd1f8e5acec2a37ca9d0b3ba9f4344f30557b6451a97"
+      "sha256": "9ae13469eee75f4b963fe76cd63db38e94b654fd3fd875ca65e81b62eb29bc3c"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketDeliveryDialog.axaml",
@@ -6793,18 +5378,18 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketScorebugControl.axaml",
-      "bytes": 24889,
-      "sha256": "f3d4297f41efdd032a6179dde779d36024ece3fac4300f2b48788c37b97780cf"
+      "bytes": 24910,
+      "sha256": "60ff753f6f8febe772f163a954f067371d5e722eab8fc59a9a634497270c6d3b"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketScorebugControl.axaml.cs",
-      "bytes": 52525,
-      "sha256": "0dc81e1c71c30fbd61f4a0d406d4e8589a35a5420ad08a025cda9bc92a7b84c0"
+      "bytes": 54875,
+      "sha256": "4c6d1cd563f6330a2123caa4d88ede78e145b09d34bb8d91f57872d4129c3bde"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketScorebugControl.migration.json",
       "bytes": 11264,
-      "sha256": "f2df75fc6cc6b628a8e43ee8d332d65f4daa37e9e742919d7751d2a3a024f95c"
+      "sha256": "08613917a5aa760dba5fd583a181f12692bf164d1171ad164cf7f51c8f6bd73e"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketSetupWizard.axaml",
@@ -7213,13 +5798,13 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Resources/ControlCentre.axaml",
-      "bytes": 95529,
-      "sha256": "310f6ec0bce064b373a1f42e79c2dfb30a7f56bd1cd3134ad0df6d40a4b71859"
+      "bytes": 95745,
+      "sha256": "200cf9f3b46829f9b42e7dd18df68324edbfce75134c67834815e992547045db"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Resources/ControlCentre.migration.json",
       "bytes": 15792,
-      "sha256": "8c105b1618fdfaed3278a4e3a0a8aeb1bd5fe061f1a4196243eec3336bb2bbea"
+      "sha256": "a6c867567a673c53b504955c6a6e9b8351f27f75f4510ca83e5a5e38d35b2d2d"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Resources/CricketActions.axaml",
@@ -7263,13 +5848,13 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Resources/SettingsControls.axaml",
-      "bytes": 18097,
-      "sha256": "53c9e86a893a1236d861b8480ab20eee4eb4517a6857221a84631326bb934e7f"
+      "bytes": 18150,
+      "sha256": "b6c062063d5e1f1c25c0c9d75f2a584337726d8aad86f958a6f61ba3a0b09055"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Resources/SettingsControls.migration.json",
       "bytes": 3267,
-      "sha256": "ae53f8f49d4ed926dc8a083bb2505a56318b9eda6caa6ef486f870cfa563f095"
+      "sha256": "9da3bad56a6a339826a81deb120825942f57869143cdf72a521130927784def9"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/ResumeGameDialog.axaml",
@@ -7303,8 +5888,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/ScoreEventEditorWindow.axaml",
-      "bytes": 18340,
-      "sha256": "e5b3d49a5f03c9a558cc1a145a950cd6db1fe1e39643275d7a6202e8cb13183d"
+      "bytes": 18358,
+      "sha256": "e4ab966f7297bba04976d4d73eaa9e4028fff4e11a2dafe2af1623b2b9bbae85"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/ScoreEventEditorWindow.axaml.cs",
@@ -7314,7 +5899,7 @@
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/ScoreEventEditorWindow.migration.json",
       "bytes": 4748,
-      "sha256": "414122ab48d093dd002fb3bc445ce29ec8382e50c294d826bae3bdb258f826e2"
+      "sha256": "ffd2a24c70a8789c77546cbfe920248ff90d0840165f9cd04238a6ef8cf8a278"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/ScorebugControl.axaml",
@@ -7513,8 +6098,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorChoiceSurface.cs",
-      "bytes": 2825,
-      "sha256": "69ab582e9e7b373b4822abb42130c113888eaf0ab569875642cb81fa26dd1a25"
+      "bytes": 3411,
+      "sha256": "508355466e8e7453470987c8bd0f82dcbd8ff2f84538a5dca4de2b71b72f7922"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorCommandSearch.cs",
@@ -7563,8 +6148,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorLiquidSelection.cs",
-      "bytes": 6677,
-      "sha256": "26cf4e1fea20b365a7723a93c21d4a68eb76d51cbb8a83ccedd3aacfd211a00b"
+      "bytes": 9090,
+      "sha256": "ad729fd2e0435697f6f1fc898eca032e18728c85cab582460fda2a8492944b86"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Services/OperatorMenuMotion.cs",
@@ -8168,13 +6753,13 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/SportSelectionScreen.Interactions.cs",
-      "bytes": 23348,
-      "sha256": "32e91a3324f0cb0e6bab4a8bf90ac90a6365f339c2141ff7c998dee7a93b1af1"
+      "bytes": 23350,
+      "sha256": "b18c84bf022ff126bd1fcf0f7916c2840534bb28072760882ec60c00d1985b66"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/SportSelectionScreen.Landing.cs",
       "bytes": 4618,
-      "sha256": "6fdeeb8bf562012b271684cfe668527356ded007b24a504aa99704d731e4fd7d"
+      "sha256": "2a1f41fa4f299999df96c8e9e8c3e9a29345f379fc8d80c1fdb2832f08a63202"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/TrainingControlPanel.ControlCentre.cs",
@@ -8188,8 +6773,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/WizardFlowDesign.cs",
-      "bytes": 8230,
-      "sha256": "772f07f0a9d1f41a78d5118bd78b685bb416932bcfdee1c2bffc00ee640185f0"
+      "bytes": 8487,
+      "sha256": "fc07d2601ef11b7027e14099810d00e32bfa264a30b0b9856b87c550fe14709a"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/WizardPair.cs",
@@ -8420,6 +7005,1476 @@
       "path": "macos/RocheScoreboard.Mac/app.manifest",
       "bytes": 372,
       "sha256": "a888728988541ada11c2954eaff40cf2da30368ef15d99ec93a5f70cef58cc82"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflAddScoreAndDurationTests.cs",
+      "bytes": 30319,
+      "sha256": "ddddbea8f3c9aee1cd907395d940696ecdd2f27e88a343265417a9e0c47a83eb"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflClockStatusStabilityTests.cs",
+      "bytes": 11994,
+      "sha256": "5b3951012f563f92376f9a175c42c380db7fced8a6ff41ca653043407996d9aa"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflCommandLifetimeTests.cs",
+      "bytes": 2444,
+      "sha256": "47940dbe3d6f6a82c8dc8efcf5a4cc07608283bf3417d3c3917b4e9e90ccbd0a"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflContinueQuarterSafetyTests.cs",
+      "bytes": 14524,
+      "sha256": "051724fbeab9f3b4854f5ad19b4b314ac1f4850f669f7bc2bb7e1117547fc163"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflEmptyColourCancellationDraftTests.cs",
+      "bytes": 29998,
+      "sha256": "251e06fb4fa3afd61e38dc4d61c6a4f16f934a62ab457eae865fc194cb457e79"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflHeaderPaletteTests.cs",
+      "bytes": 9057,
+      "sha256": "35ca9aa13ddd30153a885ee6cbe6919b9fab50b80f800629d9075245a12f7156"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflKeybindCaptureTests.cs",
+      "bytes": 24966,
+      "sha256": "24838e6531ee623ce94e26b4dad802526fb5f091773a160e79afe292eb8787af"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflLiveScorebugAfterOnlyTests.cs",
+      "bytes": 20125,
+      "sha256": "c214ac1abf1d88d709c32a974b7953922716c5ae44ee73df532a43437e738643"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflLiveScorebugBaselineTests.cs",
+      "bytes": 10033,
+      "sha256": "fbff1f74ca07544ee0ab78dcb824b4c6155899f7f9a74179ab54882f54856dfe"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflLiveScorebugDirectRefreshTests.cs",
+      "bytes": 5142,
+      "sha256": "2213cb0e249baaebc748db6a32b5bc6fecb335e6c1a4b8d05e16cdeba0cc7ef9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflLiveStatusPaletteTests.cs",
+      "bytes": 5983,
+      "sha256": "26c3f54074d5d01df5dfad63b32e845f9afbde8a514fd9e5a92c85c84d4803d9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflLogoCropIsolationTests.cs",
+      "bytes": 14420,
+      "sha256": "afcb33f275f51d9163b3bc67965457a9e4a4ef7e2f5fd028d638748c82e1c9d4"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflMarginFlowAfterOnlyTests.cs",
+      "bytes": 23563,
+      "sha256": "6bfe5254d81cdcee9aa89efc8b7a274b37dc9b6bbce5b3551fece1deeb121a06"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflMarginFlowBaselineTests.cs",
+      "bytes": 11879,
+      "sha256": "1938b25201ecab4eee35b32566ceeeedde193c6db078cb8cd45a0ae118b80021"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflMatchStatsAfterOnlyTests.cs",
+      "bytes": 28979,
+      "sha256": "1824545cbf7f50887ce651dede726c2ca9cae12dfdfe6a13f3ae5f871c44dbb5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflMatchStatsBaselineTests.cs",
+      "bytes": 12006,
+      "sha256": "42776888760a9a5dcc7fc30235693f22964f3b8b227ab7f942c2e78c01573843"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflMediaBrowseStagingTests.cs",
+      "bytes": 7886,
+      "sha256": "26d7ffc02289939eb07172dbd52a5942b4b008f69e2a1eddfd2e64a65c905acc"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflNumericReadoutStabilityTests.cs",
+      "bytes": 10775,
+      "sha256": "1481c9f8c32cd2b9aef5a89039f12db462013b1c3de333396462b2b3c97f907b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflPresentationCardTests.cs",
+      "bytes": 12594,
+      "sha256": "b44a30a930b51a01e188feb9957ce45e06c7185185ee2f8336dac121d7204734"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflPresetCaptureCancellationTests.cs",
+      "bytes": 10707,
+      "sha256": "8744ce1dafe56bcee01491a6c787b450075670a52632d7357c224f3419c09aaf"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflPresetKeyboardPublicTests.cs",
+      "bytes": 22312,
+      "sha256": "2acc8404c2671db0f099411a821d5b7ce848f49ec40161ac9bffe25c2ae8fb91"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflPresetSelectionIdentityTests.cs",
+      "bytes": 5379,
+      "sha256": "d54c690e86e3c0b4f65c4fa1bdf0117c7825b1a2140207be723604cf43ec38f3"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflQuarterBreakPresentationAfterOnlyTests.cs",
+      "bytes": 33866,
+      "sha256": "1eef758f51f9087ab071f35bea9737a26b108656471b63da1a9c62edae3ef7d2"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflQuarterBreakPresentationBaselineTests.cs",
+      "bytes": 16599,
+      "sha256": "857374d3af9dba9c32134eb1c796aeb6a8844d0259c01887aabd11d7ed9f8701"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflQuarterSummaryAfterOnlyTests.cs",
+      "bytes": 21180,
+      "sha256": "2c8d35a223f54f3e0c4e9009ae1b04542853dccb8ec5225dbddbe92ffe4793cd"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflQuarterSummaryBaselineTests.cs",
+      "bytes": 9633,
+      "sha256": "dccd96eab2cd187bdd40d876db289293f51ee983d305d70a6c87b5c7d186e519"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflResetScopeTests.cs",
+      "bytes": 42415,
+      "sha256": "da594a105e7a7d11f320402858fbefc2b2dcce3ba3e536345faf1eb11e3ee236"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflScoreHistoryRowDesignTests.cs",
+      "bytes": 6175,
+      "sha256": "2332f30541525c738dc3aab8c177a82d97202fbc0ff6ba5347ce06ea3647622e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflScreensaverAfterOnlyTests.cs",
+      "bytes": 26491,
+      "sha256": "10b04319fc7838fb8b22e306a0e16c95f19a41d8d390cd2f29763d069c109064"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflScreensaverBaselineTests.cs",
+      "bytes": 12803,
+      "sha256": "abdd9e2e85d4bae5f547ab473f25cf9750154c2abd957d82b5b6a7850d02618c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflSettingsInputSafetyTests.cs",
+      "bytes": 25935,
+      "sha256": "655a7690f2268fe7986ddb566fac6e16d05508c237b64c7b4160097424a90073"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflSetupFinalsSemanticsTests.cs",
+      "bytes": 26854,
+      "sha256": "f3d028886850bb4a30ea0bf8d8872beff57cf029edeadf12dadd9fae587bcb87"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflSetupMessageGeometryTests.cs",
+      "bytes": 6045,
+      "sha256": "66c93f62684ff36694e7b95752d3fff39ea62c93129537c1efe987ee2d4d6f20"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflStoppageMotionTests.cs",
+      "bytes": 22706,
+      "sha256": "583af79498c9e171499a23659dc22910c677e954e42fcf34172c023b06abc48a"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflTeamColourSwatchKeyboardTests.cs",
+      "bytes": 14531,
+      "sha256": "17038115b121869ea61348eac67263973769a8665f3cb70d6576ea6fec701483"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflWeatherAfterOnlyTests.cs",
+      "bytes": 33563,
+      "sha256": "2fe9063fdd21c2506dcfc84af884ab6243da20069d5f6cc6f43ab6fe5062e526"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflWeatherBaselineTests.cs",
+      "bytes": 13013,
+      "sha256": "9f432715b58bb8d21743fd77b68470d5605595a294904291f72b516b67172ee0"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflWindowExternalRouteTests.cs",
+      "bytes": 11615,
+      "sha256": "40ea0c40852d435a366552e3031c08cf2c0d95e66b56d9a6ee893e05f3c2952e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflWindowGlyphAfterOnlyTests.cs",
+      "bytes": 10442,
+      "sha256": "0a8ceae14964d777a6aeea282a39da468d6223a6a6473cf682f6efc80c8f5bc2"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflWindowMotionLifecycleTests.cs",
+      "bytes": 16185,
+      "sha256": "fba028a6e05498b51618624ef9c68dde052c6ef4e1222e6f0265c7f3c57c82bb"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AflWindowVisualBaselineTests.cs",
+      "bytes": 10870,
+      "sha256": "f1d81b851bfda94afac0545d03e11c6683daa5ff32ca58c56aa418b328826ddb"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AppWideMotionTests.cs",
+      "bytes": 33281,
+      "sha256": "4c5411f4b8817140d1474f984ad7ee02f9f9c7bf2d719cdae5e2d63688b5579c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/AppleDesignRefinementTests.cs",
+      "bytes": 32013,
+      "sha256": "1d2952eae356294c1464cce787682b5bfc9142dbfc1cd44aad708eb3106f3af8"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/BreakRotationModeIsolationTests.cs",
+      "bytes": 20177,
+      "sha256": "a25fd1af4c2bf3435958a1ca1039b37c2f7282eb928e6ed1e1a46d4b430d6410"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CalibrationCompactTests.cs",
+      "bytes": 3069,
+      "sha256": "acce790b455b0997160f5f1252f383578b1da6d2acda3344ab2c9ea8d09153da"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CancelOverlayPointerGeometryTests.cs",
+      "bytes": 6922,
+      "sha256": "1b6c39f1927b564fba6d238ce6d6679aafdb817e74175a489e9c92912c09547b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CloudProviderLifetimeTests.cs",
+      "bytes": 26272,
+      "sha256": "77cde141e727c921488b7b4d34d7e469143ef4649b686fb512b2d944cc52c13a"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CloudRemoteLauncherInteractionTests.cs",
+      "bytes": 52478,
+      "sha256": "1ae49c39b8d8ed0848ac8bc3bbc6fadf68a3aa6cff87a1a83dafbf7456e3b250"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CloudSessionOwnerTests.cs",
+      "bytes": 18442,
+      "sha256": "77a899061b2e97c24b06373d99f016553a4ec4c6106e0ed5ed4c89eb0882e0cf"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ClubCrestReadinessTests.cs",
+      "bytes": 3413,
+      "sha256": "e3ff410be7c0dd12a67ecb0c5a416df9cd9174f855ed13c897b5da24ba70fcdd"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ClubLibraryFilterPurposeTests.cs",
+      "bytes": 4010,
+      "sha256": "eb251497e513e442d75ed7a0f121baca9f5e852ad46e718046e07419517bd690"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetArtworkReplacementTests.cs",
+      "bytes": 2512,
+      "sha256": "1cff0b611289e7839a76f64a70d7d16ee7c658021503c4fe2bac4b3f79ceb266"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetBadgeLifetimeTests.cs",
+      "bytes": 12649,
+      "sha256": "f920c5db307d0988059e6c76012cf35d72a41fe5e9f60779596da471e41aeced"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetCalmTravelTests.cs",
+      "bytes": 2760,
+      "sha256": "7f440e33c917d9b3ff6064f920e960c23a57364d78326c1683dfeea5f6332b97"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetPersistenceDraftTests.cs",
+      "bytes": 27916,
+      "sha256": "85c6d4b355baf58a77711f1798619110e4f35f6e64333ad95eaddc55570346bf"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ClubPresetStage2GatedTests.cs",
+      "bytes": 66095,
+      "sha256": "4828e8f2014ee3f7b7184586e5c8f89274e89638948cb43eb41217055fcfd52f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerNarrowWorkAreaTests.cs",
+      "bytes": 7227,
+      "sha256": "6d68117f72aa10c97a73e7e90f6de9753b55f5cb92ad91f6c06deb6e79f5cd97"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerPrimaryContrastTests.cs",
+      "bytes": 13664,
+      "sha256": "780b2a69d006d5da94f58a41d073c31e9a88be8d72d4fa82aac62817f228e3d3"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerRetainedAcceptTests.cs",
+      "bytes": 10493,
+      "sha256": "1188f6fa88fe71009fa5c27481d1947db4933318b59da901feb08cabe49a4e25"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerShortWorkAreaTests.cs",
+      "bytes": 4134,
+      "sha256": "004c3cf6b4030b4016883aa7e9df329b5545beae4da390c3fc661d64b56e784d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ColorPickerValidationTests.cs",
+      "bytes": 19046,
+      "sha256": "74da9e1c87732f24e1a333d064e12617950940b24d5eb269d190bed71545aeef"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CommandSearchTests.cs",
+      "bytes": 3093,
+      "sha256": "3c96a11514948f4ebccf0a8ba11883e76f04b0f42a71eb762a8274ff84c090f0"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketAdjustmentRecoveryDesignTests.cs",
+      "bytes": 4812,
+      "sha256": "10060df2ce2d428c17bc2113380bc2e16fa7e9931ecb3c154699d4ce49b43e75"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketBatterCorrectionReviewTests.cs",
+      "bytes": 9124,
+      "sha256": "de175bcedc853543ea27e20978ae684432bf56a2949cefcf3f1c9ba2afa05f49"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketBatterReplacementDesignTests.cs",
+      "bytes": 6530,
+      "sha256": "cba41c7533323c77cdca14a26daed689842a9d44d52e3c6cd6a38503a7e943b5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketBattingScorecardCardTests.cs",
+      "bytes": 19088,
+      "sha256": "799125c28868dc2a58909ecc5981fe998ac11e81a1ce749f9aa2933712b86f7a"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketBowlerCorrectionScopeTests.cs",
+      "bytes": 11199,
+      "sha256": "d9e8bf81932109b30e953dfc457bbbb1532d90bd4cb95700faf89cfc7080df1e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketBowlingAllocationDesignTests.cs",
+      "bytes": 5875,
+      "sha256": "4f27ba01120dc9e087102e0280c39b949312cb7f802b7e6508e2f5d7633214cf"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketBowlingFiguresCardTests.cs",
+      "bytes": 10896,
+      "sha256": "684ebd7a870c4ae65a0e91fe1a9852b6097650b3caebf359b0c320e8f38a3f53"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketBreakReviewCurrentTests.cs",
+      "bytes": 2570,
+      "sha256": "7f4443bfcc2d0a187401c54150303ede246558bc6e7b7af433bd54c41c5d0727"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketBreakRotationOperatorTests.cs",
+      "bytes": 15610,
+      "sha256": "7e812117bdad3d16df1875e0b9f7dc9763a571f5c29d04152f309e6a261a8621"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketChartCoverageTests.cs",
+      "bytes": 4811,
+      "sha256": "0abb3538b121e84397bdd82c390bf048795a2deda1f0e2bbc3f2e45f0c0f16f7"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketConditionsInPlaceModelTests.cs",
+      "bytes": 6270,
+      "sha256": "ebdc679604e22b864f2baf23a1a4455dd269f3e40c0744fd1a0e30f96f7acb40"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketDeliveryD23RegressionDraftTests.cs",
+      "bytes": 31303,
+      "sha256": "c3f50941d12b2cfbb14f65565899ff420b4a077e4c3d7d9ba36abd19ed584fe9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketDeliveryFilterPolicyTests.cs",
+      "bytes": 4640,
+      "sha256": "b47dae6bf101904f127ffdfa580e8ebe1825d19aa0cc709a816e2ed659b7d7d2"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketDeliveryHistoryRowDesignTests.cs",
+      "bytes": 7794,
+      "sha256": "c67ff35ad78d6abd830b7e278a8c373038ba791605144a2a584e4d36f25464a0"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketDeliveryValidationTests.cs",
+      "bytes": 22940,
+      "sha256": "aad695c3b1b01fd3daff11ee8022325c58184620b5110aa3e5b60db6924ade51"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketDismissalSheetDesignTests.cs",
+      "bytes": 6361,
+      "sha256": "b1980ce4fd1f7fabd5ea8a4833aff3b2b35b50fde477bfe28999085e7a0ecde6"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketDotBallSemanticsTests.cs",
+      "bytes": 2574,
+      "sha256": "5674d08da1889995b75d67a6a1dcb554791264d749a6b86aa3e1cfeda1a9359a"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketFormatSheetDesignTests.cs",
+      "bytes": 6217,
+      "sha256": "d3035770d7ec422c82b0832484d050dab0e54b175da7c355a120c7c386d8f11f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketInfoRailLifetimeTests.cs",
+      "bytes": 6615,
+      "sha256": "5574fa48f497410af7959272d3b046e3b44e52ffaad1ac083138dadd6210953f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketInfoRailRollingOwnershipTests.cs",
+      "bytes": 7508,
+      "sha256": "78f77baac174cfdf7564d5734f79d6eb5ff387a681b0446da1faf8e62e62dc35"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketInningsDecisionWorkspaceTests.cs",
+      "bytes": 4458,
+      "sha256": "a377e56ff1a73823fc4e911ca1af6708ef4dd2945aae7db5c1016a62c88d3e1d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketLineupValidationDesignTests.cs",
+      "bytes": 5273,
+      "sha256": "22c5c578900e5cee97fe052366c44c1c737e87553ef8ae5d1f56966e532abc57"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketLineupWorkspaceDesignTests.cs",
+      "bytes": 6917,
+      "sha256": "b66bd9d8529641a72613acc201b483f79922ba663536fbc7fdf55e688757229e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketLiveScorebugCardTests.cs",
+      "bytes": 16325,
+      "sha256": "78750c39d90cb9d7d6f1d2cc0f16231b969189428dd3761ba3d9fa96944abacc"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketManhattanCardTests.cs",
+      "bytes": 7578,
+      "sha256": "d7dada3abd5f332b3dfd70f2cb27ea81dc74c2769e0ea80346da4e985019657f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketMatchOptionsDeskDesignTests.cs",
+      "bytes": 4296,
+      "sha256": "4d19d0090ae45acf91bab76c49c4db6663fcd6e63610452c04d102573796a5fd"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketMatchSummaryCardTests.cs",
+      "bytes": 7626,
+      "sha256": "b473b121485fd1f44c11bc8f03fcaf603bb40ba563074868874eab1718c6f2b5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketMenuCommandHandoffTests.cs",
+      "bytes": 3278,
+      "sha256": "4035b344779136ef323d44258cf96fa9a9d0c593b132fd05ba0cd4dd169d347f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketOffAirRotationTests.cs",
+      "bytes": 12281,
+      "sha256": "3d17e304cd498fef462515d53f7763ba466905084e394e4578c7ec7b07a60f30"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketOrdinaryPromptLifetimeTests.cs",
+      "bytes": 23231,
+      "sha256": "e0182f0ebbc40518f2f8c71f55717e7c9064225c85d963cb83333ea3ab62765a"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketOutcomeReviewDesignTests.cs",
+      "bytes": 5316,
+      "sha256": "aa00339004d95961d56257ca7e48a46640d20a2b7489e1d4934aadae3f4539a7"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketOverlayButtonRetentionTests.cs",
+      "bytes": 5286,
+      "sha256": "bfa8622234049691b67061a926a0f3552fb8e136dd318a7f948cb0ae9ae04d1d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketOverlayShellLifetimeTests.cs",
+      "bytes": 5337,
+      "sha256": "cee55e022a69156e3d49708612902dbc74a8894a6774b24c3e0a93c6135d064e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketPendingInningsSwitchTests.cs",
+      "bytes": 7219,
+      "sha256": "92e53ecb6e9f561c6f1a31ad2ea4334f9bbf0b302cd504cacd5388afbe83966b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketPlayerFiguresNavigationTests.cs",
+      "bytes": 5303,
+      "sha256": "e28e0dfdc5d686fcb61e608d009047355e053bdb3391d1e9ed4ee157090dca1b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketPlayerMenuPreferencesBaselineTests.cs",
+      "bytes": 46886,
+      "sha256": "95ec941920105ce74cbb468008c54606185890435024879fcc0c331d3b5e1f24"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketPlayerPickerDesignTests.cs",
+      "bytes": 4322,
+      "sha256": "36291898bb43d132d12479cded55cedb24d80c17d0292483b26940e62937a630"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketPresentationRefinementTests.cs",
+      "bytes": 8875,
+      "sha256": "db0fe2a6b4f88681713f7928c53e81c422eb440714a19df54173b5a7cc8f7b38"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketPresetCaptureCancellationTests.cs",
+      "bytes": 8453,
+      "sha256": "1125889b818ce3f66878f320917109d080ca525b277816637960727ea76c2870"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketPromptCalmTests.cs",
+      "bytes": 4300,
+      "sha256": "04ed17103e9a78851c9cc7431d1cf1f0c7f4a98439714981173d99ae7c7ca17b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketPromptOpeningFocusTests.cs",
+      "bytes": 3619,
+      "sha256": "32c4a268b6860cce2babf322099407673e07b8aa0252beb4f664cc1a3b411ea1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketReopenReviewDesignTests.cs",
+      "bytes": 4839,
+      "sha256": "76283915b4d39292b47e712fb4bd8e22218cb1bb4df7d596e9131308ae94fae9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketResetReviewDesignTests.cs",
+      "bytes": 7073,
+      "sha256": "43a2f30f169414f1b0583b8af112f86b5c24d38ceb34d24f4e121c702f1d8443"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketRestoreOutputControlTests.cs",
+      "bytes": 4211,
+      "sha256": "5eecaaa07e2ae0e417d2583da78fa7928a15c8d9f111245d2704fc8882daef24"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketRevertPublicationOwnerTests.cs",
+      "bytes": 2612,
+      "sha256": "2a764f30719cc59e38cc3db0b85fabad0e4232264a44f2d224adc9fc029d94fd"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketRevisedConditionsDesignTests.cs",
+      "bytes": 9540,
+      "sha256": "52dc6aca2f001b062d2e448a44a90346dd035170027322cac937655fe9b23f4e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardAddFocusTests.cs",
+      "bytes": 4177,
+      "sha256": "77cf23522b372e3fd60b2a735ee9e6f0e9597a5a125326180add896ce869ad8e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardDockAdapterTests.cs",
+      "bytes": 12307,
+      "sha256": "2b2308f9946c517063805b43e3a77092035bcff4cc04b3d541007dab42bbbad7"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardDockLayoutTests.cs",
+      "bytes": 5136,
+      "sha256": "5e619fbc1247617b52a380f8e0a5f2f59c10672dfee9ff8e9e194b2fcf082651"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardDockReachabilityTests.cs",
+      "bytes": 13748,
+      "sha256": "7575c00ad19468c56c3999a2d9c001cfb7dfaff68d5d4400ca79189f0c2c4ff4"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardFigureValidationTests.cs",
+      "bytes": 15338,
+      "sha256": "e0a1bd60f0b2b035e8302617d4c95f844bdfcf8d2eff39685e655aa462127208"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardHistoricalContextTests.cs",
+      "bytes": 3457,
+      "sha256": "8dcef3c6d787a7526915757403beee5008637262d2576f8f2f512d162c504105"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorecardWorkspaceDesignTests.cs",
+      "bytes": 2330,
+      "sha256": "f41b38ef5f8c4b6b38bd1a8d8cbd4ceda2ff3961c478686a52dd93f4831c52e5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketScorewormCardTests.cs",
+      "bytes": 7208,
+      "sha256": "bf89cbce4fd8f21ab7572cb5b097efeec221f25ad4cfa3f08a9b22b137f265b1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSelectionRefinementTests.cs",
+      "bytes": 3937,
+      "sha256": "d9f205ca65726898ce26b2af5c38fd3add789969d3e0ebcabd6213fd3ec5068c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSelectorCancelRegressionTests.cs",
+      "bytes": 44339,
+      "sha256": "c738752363142a047ff75e2efa231be70be0cea18c164b9b3bcbb65cb8cd17c9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSelectorScrollOwnerTests.cs",
+      "bytes": 4631,
+      "sha256": "305ebb504cd37ce77ae7248663e017a2940da987ada69774f8c19e69ce5dfae2"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSetupPlayerEditorDesignTests.cs",
+      "bytes": 6952,
+      "sha256": "72bab98c247b0dbcaf750caa5641508160b30c93ff19b52bfc6b301c9f59951d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSetupSquadRowDesignTests.cs",
+      "bytes": 4778,
+      "sha256": "e35fa7f7500d034164d16c95cf18a42073bfe936c9ebc9bc42f3a2c8d556429d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSituationOverlayTests.cs",
+      "bytes": 16307,
+      "sha256": "51b4bb9f294e8227460d85579814aa2a6642987aa8e09d0be783545e0de44f7b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSituationOverlayUiTests.cs",
+      "bytes": 15235,
+      "sha256": "7481b1379108a1e835d53f4a7d3d4e78e7408c10bb8c9e9f632f57d636813df0"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSquadRemovalRecoveryTests.cs",
+      "bytes": 10096,
+      "sha256": "0bf0fa654c579e96d3e305035df23d5517eec88fabe82ed3bf9d2bb005ba4604"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketSquadValidationTests.cs",
+      "bytes": 9762,
+      "sha256": "b0a92403ea2f14cb5ecb253f1ce57d540d2fb39ff2d94afaf0af8513d27c7ae0"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketTossTeamIdentityTests.cs",
+      "bytes": 6889,
+      "sha256": "c9d2df4efcafe07ae0d57ab7deda804a049d1766b47652f950a07979e28b3963"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketUndeliveredRunOutDesignTests.cs",
+      "bytes": 4982,
+      "sha256": "11761046db383e03a861399a63db4a7a6e6d6873cd6496508f33fcb8d4f2bb9d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketWeatherFeedbackTests.cs",
+      "bytes": 12681,
+      "sha256": "10bff7d28e5a5faaa9849358ba3176d559c22e566dbd5d7934c21d13f1962525"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/CricketWizardInterruptionTests.cs",
+      "bytes": 13407,
+      "sha256": "a42fc2190d9f6550d7a8120525872cd8472c0d802a7f0d9afec4bdcaefdd4522"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/EditorInterruptionTests.cs",
+      "bytes": 10861,
+      "sha256": "663ca52bfb3999a4e3080809d4a459d77132f18940e4cb795defc78d4dd3543b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/EffectiveMotionVisibilityTests.cs",
+      "bytes": 5650,
+      "sha256": "9aa40afdbf1e103f2c78c742f9dcb1a6e654630453f954546cfbc0ee90f8c2f5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/EffectiveVisibilityCallbackContractTests.cs",
+      "bytes": 6788,
+      "sha256": "659cd55e3af42c7498e146515d398cd1d9b423642a0c961bf911e4034fbdea28"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/EmptyLoopingMediaTests.cs",
+      "bytes": 4443,
+      "sha256": "a94e5fc2681b71b0c6674c9625c473a81ecb53fdc074a6a74d78e542ff37a838"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ExceptionalCricketInteractionTests.cs",
+      "bytes": 8905,
+      "sha256": "9dfc001c0b861fc619fec537e60bcd808f2966d29ea5aa6b099b4dc0e8c2bac9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ExceptionalCricketTests.cs",
+      "bytes": 15317,
+      "sha256": "742df12cc3d26e6315efdbc64f20196c1b4bed499daab2bf31af91c240361731"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/FirstFeedbackChoiceTests.cs",
+      "bytes": 4613,
+      "sha256": "514fc733f90174c8ec5827f8b0d4d4885d4a203ae22b589ed7ecef3defa6acb0"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/FirstFeedbackOutputTests.cs",
+      "bytes": 3081,
+      "sha256": "5d4df670345d28617bc78cb1c6f1143bac8911c74a948c068cce46f3e9eaee6f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/Fixtures/test-pattern.mp4",
+      "bytes": 102273,
+      "sha256": "2d97d52c08abd336598ff8c8bf0d19704e1db670199d4c89506402b46c69d9c9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/GalleryDiagnosticContractTests.cs",
+      "bytes": 11533,
+      "sha256": "56ee3636d4afe1e435b91a191370dff2070dad2c587f757fa34502970a15a817"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/GlobalOutputDimensionsTests.cs",
+      "bytes": 12406,
+      "sha256": "3e3db33e37a8de8e7fcd9c92934ae04539a1acddc4d01baf009c97923ad4a10a"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/HiddenMatchLoadingLifetimeTests.cs",
+      "bytes": 20824,
+      "sha256": "428d142085a4087673dcd24bb2e230749248dbf94a8b44fd477a6f1bf5d5638f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/HomeCommandTests.cs",
+      "bytes": 27796,
+      "sha256": "51abc9bfe9c2aa5087f16412e5e6ff612ec327ea084aa329af891b02d0bf5a87"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LegacyActionPreferenceTests.cs",
+      "bytes": 5405,
+      "sha256": "52e63c5f310a1ab08c1d11f1b4f76fd86d8316d937eb3d668907ba5f7d2555af"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveAutomaticOverlaysToggleTests.cs",
+      "bytes": 7676,
+      "sha256": "97aed1ebc90ee176726c092b0039a60f52afb669dcee233fa68d83b93bec32d8"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveCloudShareCardTests.cs",
+      "bytes": 9854,
+      "sha256": "36981ed2d5f3ded028729c7d258faed224bbe7cff7abc67de549347a9f604bca"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveExactClockEntryControlTests.cs",
+      "bytes": 4240,
+      "sha256": "15f588c371c9b46aa94493f6a247298bc6a04e45a7e0db44d1bc3d1d8b98d32e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveExactClockErrorReachabilityTests.cs",
+      "bytes": 3390,
+      "sha256": "86313bc13a58508f50f17d69eeb053f0b12fa187aa2c9cc4dc6cc9c1bc5a0145"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideNamesIconPixelTests.cs",
+      "bytes": 13549,
+      "sha256": "1bc3b07874f4b8668630c83935a5c9dd895038999dad15d7012428090759f047"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideNamesLifecycleTests.cs",
+      "bytes": 16909,
+      "sha256": "ecd2cbacc810b920f3b52e4f5ed3db2275025876aa628bb244bc8b4835d340af"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideNamesPaletteInitialTests.cs",
+      "bytes": 16794,
+      "sha256": "b741185eca92a0742786040cfcc76c990b4084096c4b0bf8a11a40d7981386b3"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideNamesSelectionMotionTests.cs",
+      "bytes": 14008,
+      "sha256": "afcf5b961c911d247dc28108d6b99f1124096e6e146f2266ca8c545c42de649c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveHideTeamNamesTests.cs",
+      "bytes": 9837,
+      "sha256": "081e368d688233b73e489369a573b9253526169a91f25785dd1a54f9d037350c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveLogoActionControlTests.cs",
+      "bytes": 5151,
+      "sha256": "793256004a5be390ba132f6f10241f79ee7fb1f54ea5ea3a7ebfc26717c7579c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveLogoCropSliderSemanticsTests.cs",
+      "bytes": 9050,
+      "sha256": "65884d3fc24c9e9bf99b24e6218967772b8c23a27e51e1eb30c520499092ce30"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveMediaSpeedLifecycleTests.cs",
+      "bytes": 3451,
+      "sha256": "da01a717583dd35ddbf4c62fb12287a00b912a3a59d8dc9e92402bea5cbff216"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveMediaTransportSemanticsTests.cs",
+      "bytes": 7159,
+      "sha256": "3bb9eb566910bd8952d50659fb6b43986b735bf607d178f4aae3fda91c819967"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakExtendedTests.cs",
+      "bytes": 24477,
+      "sha256": "eb25013cced66000dbf522dc5a023dd0ba3120b0ce3ebeca07f48c501c5026eb"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakKeyboardTests.cs",
+      "bytes": 3057,
+      "sha256": "d19c51a50320faac8371e354161fca0be92c0a795859abe234d9e07f16aa5bd8"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakPaletteTests.cs",
+      "bytes": 11706,
+      "sha256": "74fe48085e2e3229e7eee72943b6dd5345ef0586c8d4b3c7dc840fc1ac2c5ed1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakPendingTests.cs",
+      "bytes": 3343,
+      "sha256": "90d782eebadff8c36a3f247c4634420b18486f82284313169b6dc4da2accd861"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterBreakToggleTests.cs",
+      "bytes": 9090,
+      "sha256": "c60ffd6b1ec598dbd7a80d5a95173d5e06aee64fdbcef92f55b3b3d05576366c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveQuarterDurationStepperTests.cs",
+      "bytes": 4672,
+      "sha256": "d774c04ae9cf6a14d87058eabf7a6278bc09f3e9a14c423c0f1d7e7b9c22c354"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveScreenSamplerControlTests.cs",
+      "bytes": 4987,
+      "sha256": "63bdcfd1720fb2707a9c0fad8657271c767af40bd8d6d5b648a0650f41ea3202"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsClockChoiceSupplementTests.cs",
+      "bytes": 9595,
+      "sha256": "48e169d4383032c9f0e958f1ab7567b85e613704b19329f9c1888c3381479f99"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsClockChoiceTests.cs",
+      "bytes": 27432,
+      "sha256": "035ca3413e96ca3b84439d24f3b66a4c01cf0d010347551275957e7bb4aead5d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsFinalsMotionTests.cs",
+      "bytes": 20379,
+      "sha256": "a09abcf30ec543584d6b8f4ea041bf24b3c3087d664042153d82a2f3032e81c3"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsFinalsPaletteTests.cs",
+      "bytes": 13784,
+      "sha256": "ab0844eb648381343f92e44806b846741109ac2080dde835a34e88ca0dcb3559"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsFinalsToggleTests.cs",
+      "bytes": 9023,
+      "sha256": "73176770ab036b787debe22d8dd08b7a43c7841f29c38b15f495ba035f8216ba"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveSettingsSearchKeyboardTests.cs",
+      "bytes": 18120,
+      "sha256": "7b5dc2347a492459e54ef814a40a076ad978d15003dcfe35ea10788f1032182b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageCloseTests.cs",
+      "bytes": 7059,
+      "sha256": "32ad958eab78ef0eb274b050528fa2c87d3d66df2f4ead388a81b2ea4b44bacf"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageInitialMountTests.cs",
+      "bytes": 4346,
+      "sha256": "043c5e2db91d639be8a266cf02a5f0e062345e16e67c5622b05296b0da0d2ff1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageOptionTests.cs",
+      "bytes": 13841,
+      "sha256": "45fed367c55f874d182bf3c54909a1be3c0087c13a5147ce72711a3ed11d754c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppagePaletteTests.cs",
+      "bytes": 10163,
+      "sha256": "7eb0b61116e5180878695b1b53e89a7512a14eb412b1bfec705c5aa1e20e9ffa"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageRunningTests.cs",
+      "bytes": 6386,
+      "sha256": "d5da0b734a739389d2271458a6e762b444b93c1f23aa0b424f13726a5333afa2"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveStoppageSelectionMotionTests.cs",
+      "bytes": 13303,
+      "sha256": "94ec6d57c2c510a38310ca8850919ede5a79b1b708c7e05d73ea2d42eed8481e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveTickerKeyboardTests.cs",
+      "bytes": 6043,
+      "sha256": "b9f77168400eb619f7a669ae5e594944d69c0e3ace6f04dc5bd768b4dccfe2d5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveTickerTargetGeometryTests.cs",
+      "bytes": 2538,
+      "sha256": "a2256cf5b2a35a2072e93cfe9f330fb8a7e268c15236a7bf8eab8facfea5b3b6"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/LiveWindowDimensionControlsTests.cs",
+      "bytes": 5904,
+      "sha256": "98819cc04537e5e5d05f85f300bcb38e4f5953edfe4c31a672e2265572721118"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ManualWeatherOwnershipTests.cs",
+      "bytes": 22194,
+      "sha256": "21e641a196a0be61f8a2fb565d69ecbcbbc56abd4cdf4b833cceab65ac94e1e9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/MediaEndBoundaryTests.cs",
+      "bytes": 16711,
+      "sha256": "47091b3c8e28f9764e6856129ed1f4f382c33dbb44ba2f244d4befaeca511953"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/MediaErrorBoundaryTests.cs",
+      "bytes": 6850,
+      "sha256": "78202656ad887013bfc7b45ab5290657fe43c18ec1065d1b79899b2b9d45112c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/MediaPreviewTruthfulnessTests.cs",
+      "bytes": 6875,
+      "sha256": "d0b129e19c15d42df7e71a761dafa4b6dc6a5a9fda51e22d80744f45b6f0dde4"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/MediaRequestedRateTests.cs",
+      "bytes": 2347,
+      "sha256": "41e21ea65e46fd56b4f217154ec2094f3640c81a0fd64cd2e58078aed6921735"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/MediaRestartUnloadCurrentTests.cs",
+      "bytes": 4985,
+      "sha256": "85814cd092afa366e1a2b0443ebf2f47aa165886db6c58dfa1763b1631db0519"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/MediaSeekBoundaryTests.cs",
+      "bytes": 15454,
+      "sha256": "0b50bfcb3c8dfd8c536acf1c6768910653f86541a243257632b33b74ec6b21df"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/Mr9RemoteClockOwnerTests.cs",
+      "bytes": 13304,
+      "sha256": "823c0a744cb6aaf3a7a5396f665c29a7f20e707a61ad04d488b290f202a9f859"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/Mr9RemoteResetBoundaryTests.cs",
+      "bytes": 38814,
+      "sha256": "925822d1ba6102959aade7976f0fa0c8fcd72be23cdc64ab015805acb9aa123d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/NativeFontFixtureDiagnostics.cs",
+      "bytes": 2085,
+      "sha256": "7f5762f41e0af7fdc553bbc1ea6a840db745acf5a38e7d7ded6733cf6f8e6c74"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/NativeInteractionTests.cs",
+      "bytes": 6160,
+      "sha256": "06910b11af90e47e532b2444cc3ed164efeaafa4a249bdde0cdcef24666785c7"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/NativeObjectGraphLayoutTests.cs",
+      "bytes": 2184,
+      "sha256": "980af9d06524ab2b29309f2f3dba6c58fd7cada0cd3c58cf048b01805970ed0f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/NativeProductionTests.cs",
+      "bytes": 17510,
+      "sha256": "d6252073d207854f1d55988b445deee05bc7e964ff3dd2c4951f8df098d3fdcd"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/NativeValueSourceAnimationTests.cs",
+      "bytes": 3698,
+      "sha256": "68655783c34edaeb6771f16dbf8ad10ffd9d36eda514e3739f5e85bfad491bc4"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OperationalTrustTests.cs",
+      "bytes": 11639,
+      "sha256": "bb28066e537917142bc85adbebee748d46592aa2e4fced46c7e0d741b6ce58c8"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OperatorActionBorderSemanticTests.cs",
+      "bytes": 2652,
+      "sha256": "64b9109ddb9f73fd25348224626aba2ab4c5c5bcdb4188d64adda46a83acc591"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OperatorEntryCaptureTests.cs",
+      "bytes": 3609,
+      "sha256": "d7834514fd086ba8fd7157def2c22e030276f962d1920ffb1e55d1727e46c5ca"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OperatorGlassBrushCompatibilityTests.cs",
+      "bytes": 11334,
+      "sha256": "3c3e453d034272e0968516ffc621e1f58d60e78991ecafd36e27c1e4a80a0ae6"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OperatorGlassSamplingTests.cs",
+      "bytes": 4262,
+      "sha256": "78263b57b8e5e2c4c79e0f190ff4a1e885c1d2a561c87c13f4fa2ceaf44b4b74"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OperatorRecoveryTests.cs",
+      "bytes": 17721,
+      "sha256": "6cfe65b897ea307b7b60770912cfa43f3c5b2a03ba6753eeadf8e4bfc981f9c1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OperatorRequestedRefinementTests.cs",
+      "bytes": 19351,
+      "sha256": "c26120ded59d04a8dea11624401c3e6f39d9fb514fc201613a8d6596a6516bfb"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OperatorThemeParityTests.cs",
+      "bytes": 20549,
+      "sha256": "5a7d0cac8c31732fcada839e556e41268d604250332fda7c3853612c108abf14"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OutputRenderingFeedbackTests.cs",
+      "bytes": 3615,
+      "sha256": "a6c31f593d2d33d5cbe9b65a234f36694766b0c959cf2ad07c0903358cdb8bd4"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/OverlayHandoffLifetimeTests.cs",
+      "bytes": 4188,
+      "sha256": "3acabd2b79c766a863ec7e944fd4f6113f8b859dc9f02a2d8824d240bd4a824c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/PresentationLifetimeTests.cs",
+      "bytes": 16281,
+      "sha256": "31a09cc192452b799216036c6122baadb8e83083d1534ff1016562cb1e142dba"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/PresetDuplicateSaveTests.cs",
+      "bytes": 6723,
+      "sha256": "539fc2674672d30a1553d512c7159a99992ada97abdd36c548dc9b8d125dff1f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/PresetKeyboardMotionTests.cs",
+      "bytes": 15864,
+      "sha256": "13921767614b4b965ec1ceba58bc8805efe6a1bb57849b9c066b0dba06687ef3"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/PresetKeyboardUnifiedEscapeTests.cs",
+      "bytes": 4820,
+      "sha256": "b46b05a82cc19c716c06daf3665f3aef32307df8e6e638c477c5666d330a9e47"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/PresetPendingActionsTests.cs",
+      "bytes": 5875,
+      "sha256": "418f46bdc5b14c3ca12f33e23779193987591237f6599de2a6e6880263d4966f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ProductionCricketRulesTests.cs",
+      "bytes": 940,
+      "sha256": "741368693739fb4653b30e124f56b5bf20db28b823729db4f3f54d540c4b8405"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ProductionScorebugTests.cs",
+      "bytes": 3636,
+      "sha256": "ce37b0068305b90abbe5d98545f9f3b839850a35e62a4147b9e19df676a8692f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/QuarterLabelsWindowLifetimeTests.cs",
+      "bytes": 9168,
+      "sha256": "df680b71af2b6b4870e549f52c1a6f8b7184b9e2de48a19909405ec871859c84"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/QueuedInvokeCallbackIdentityTests.cs",
+      "bytes": 3581,
+      "sha256": "55e116cfb5e4ab3e4a9fead070e323855074f4818d731294680c5d9442ccbef1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/RecentScoreCardMotionTests.cs",
+      "bytes": 12242,
+      "sha256": "280f4102631f73ffa616703fa84b453667a6accca030e0de9563f0e995a2c6b5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/RecoveryDiscardMotionTests.cs",
+      "bytes": 19371,
+      "sha256": "a89d1354cc83d223c5b9ac646efb40102565e58a9df920beb60f9bb0f4fa105f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/RefinementInteractionTests.cs",
+      "bytes": 7520,
+      "sha256": "abf6390d39794dc523c4496f7dbadb84ec8a10781413ce95f7ec178791d16624"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/RefinementRemoteTests.cs",
+      "bytes": 2757,
+      "sha256": "8b25fba2474b096c161d2af9af660f9cd5bd1667df7fac7f1ca8e75be0ef566e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/RefinementRulesTests.cs",
+      "bytes": 14307,
+      "sha256": "91823e8f34c3840ece153e7094b0b98306e25940a86f90f0490982e7503ce25f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ResetSettingsEntryTests.cs",
+      "bytes": 3399,
+      "sha256": "9a211e118415381a5fb86dcd571569c7f0b98d14b9034be00bb4825ba5604ad6"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/RocheScoreboard.Mac.Tests.csproj",
+      "bytes": 2026,
+      "sha256": "53689d2d5fab46a0a4689bbb7a3a595f82fbf5536db67e065c444200ffe39264"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarBreakLifetimeTests.cs",
+      "bytes": 10348,
+      "sha256": "ca7e9e6b463c0ca642f9b69bd4dbd311e5a80f09e1a49b7433e1c0e2d5b576ac"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarDeltaHiddenTests.cs",
+      "bytes": 3659,
+      "sha256": "c4c2bcb3862738aed08481754cc075e9032e05ecb8d356f6fbed3b820bbdd89a"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarDeltaOwnerTests.cs",
+      "bytes": 13906,
+      "sha256": "a33f1916625a6b22de54abac0af573a8bcb8a95245203cbf1ec2f7b612911a14"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarDeltaUnloadTests.cs",
+      "bytes": 2294,
+      "sha256": "4fc36854908bb2c554a9c7369f0d2fdb9afb76c38895a54f3889dfbb2d32ca1f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarHiddenBreakTests.cs",
+      "bytes": 6398,
+      "sha256": "f5856f56b8029b609ea3534056bf252e5a2fef264318a0fa890c24c3383f3f78"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarReentrantVisibilityTests.cs",
+      "bytes": 6656,
+      "sha256": "ae49dc41cc2d850c8a1a0b5c73883a043b9fb21740f87abffb8bca109d8e2088"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScoreBarResetRefreshTests.cs",
+      "bytes": 5460,
+      "sha256": "cd9a7c9eeba76440a77ef2feec5f5fc76b305f2e062138466c6fd01b7c8a1bb1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScoreEventCorrectionFlowTests.cs",
+      "bytes": 58347,
+      "sha256": "6f375e08b866b64aec98e873ebbbb01d2e10f6376af43867c80ac0b90982e771"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScorebugBurstLifetimeTests.cs",
+      "bytes": 10952,
+      "sha256": "83a9af95163819218303648c0e48ba9f6800823f7bcd591fa77ff72e57fa0c09"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScorebugFallbackCapacityTests.cs",
+      "bytes": 6128,
+      "sha256": "45c94b3724d038f38e57b1b4f1b12dc2f9049b1d5baee76f39b7b9a799e38fc0"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScorebugReadabilityTests.cs",
+      "bytes": 13968,
+      "sha256": "7adc5596c588b5bd499030787df8151fd692f238445d06dc79eb5c00021cf5d1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScreensaverEffectiveSourceTests.cs",
+      "bytes": 9859,
+      "sha256": "9ec20bea619f587802368260c4aede537353ddb9c74ce11c8570afb3042bc07e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/ScreensaverMotionLifecycleTests.cs",
+      "bytes": 4508,
+      "sha256": "16a5efe6b2825499274d252e66cb49b1ec371b61b7de67bd2c4011d1d1b7605b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SelectionCheckLifetimeTests.cs",
+      "bytes": 19318,
+      "sha256": "26a8d63a4a7a9df1ec0c80bcb644b3eb7204578bf6a674cd468fadd7631527ce"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SessionTests.cs",
+      "bytes": 9644,
+      "sha256": "a35c4055576904f6479415b45910d1704b40e9a624282b911949e2b5093c1613"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SettingsAuthoredSemanticSearchTests.cs",
+      "bytes": 8195,
+      "sha256": "e8e9499dfa5827a154681d6298b44757782ff91b5dd15d533c3181c4057bc437"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SettingsCompactLifetimeTests.cs",
+      "bytes": 18896,
+      "sha256": "35925e93db09b070293a9ae614b667209d0825d83d80ccd368cce1120ee291d6"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SetupHandoffPreferenceTests.cs",
+      "bytes": 6065,
+      "sha256": "ffce97bbb8223f3630a9aa0c71d72cc3d2b0ebb9030b64dc0057878739df2985"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageCaptionTests.cs",
+      "bytes": 5324,
+      "sha256": "c7bb2e5bf0a4c3d829b252ad825d01bbaead0345debc4ecd3d8271c5be99c5de"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageDraftResetTests.cs",
+      "bytes": 3676,
+      "sha256": "2320273c8f11315e067d582e37b0950b680832fb596818fd7d9c4fa3c714b49e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageHighlightKeyboardTests.cs",
+      "bytes": 7353,
+      "sha256": "628b1c8b6283f6ac4fbaafeed36eee3eaf334f49ecda0941fcb8fdb8ea0f3568"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageLimitTests.cs",
+      "bytes": 13176,
+      "sha256": "faf4720e4ffcece66b149a562864745e6881bdeb8b74398773602f04a7814467"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SetupMessagePickerLifetimeTests.cs",
+      "bytes": 6984,
+      "sha256": "0b16e6926c68a281561e054db6407afa3a386ea9e0d6c1e5ed80e157e43dcdd8"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SetupTickerHeaderTests.cs",
+      "bytes": 9282,
+      "sha256": "2b2eb0b601e778b17c0bd680cb046a8bdb51821d3f2fd51bababe640070ad0b6"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SetupVenueReadabilityTests.cs",
+      "bytes": 6253,
+      "sha256": "971da564ede48f2480cae24b32a712e7558ae09e2056ede33d0e20b5483436a4"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SharedMaterialMotionTests.cs",
+      "bytes": 15825,
+      "sha256": "a990bdbd6c75ea79b8de213bef698b5ffec5478db7fd39dcc4963b55cc65f70d"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SharedPreferenceMotionTests.cs",
+      "bytes": 32399,
+      "sha256": "9a006392a5d14e870cd17a01ff4bb7ca512d8f47ebbd0beaa753201a9e92c092"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/SmallSurfaceTests.cs",
+      "bytes": 5647,
+      "sha256": "7d665e479b92a34b7383a43419786b5c90a6bb9e602b2a4874a0cc26731a4056"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TabFallbackLivePolicyTests.cs",
+      "bytes": 2916,
+      "sha256": "e7d1d5abaca46b3f723ed83a641a50998ad7a00071bcd4a332772acfac81217e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingClearLayoutMotionTests.cs",
+      "bytes": 8212,
+      "sha256": "7a77a7bbc8c77ffabe6e9dee96650d31a95d11c3a55c1e2677d9f71ace53d790"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingClearOwnershipTests.cs",
+      "bytes": 4002,
+      "sha256": "e30a08bab6155665ca601cfabf06b0e6f8158ed936c1464f0bd2e752e93e3df7"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingClearReviewTests.cs",
+      "bytes": 9193,
+      "sha256": "3ae8eda04e3d4a203b54799297c76bebf8b5738ffa3c89775e082931ff03378b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingClearRootGuardTests.cs",
+      "bytes": 14243,
+      "sha256": "31be00a9f5f9e6e28a5027e4ab5d8bf27b4af2c4e0f81149cf0da338d55c596b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingCloudDecisionScopeTests.cs",
+      "bytes": 6282,
+      "sha256": "6c758f5eaa671df227437cd076b4ffdda3791a6454835e16e599b2130b8ae784"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingCloudEndReentryTests.cs",
+      "bytes": 1609,
+      "sha256": "53e0db001aaf0930b06962d373bfe389161caf0d9f209cdcbbb7ab7fd251d0ca"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingControllerLifetimeTests.cs",
+      "bytes": 6146,
+      "sha256": "ed1e430a1f5e3f5bfe20bafcd555ec88f03a71dfa471fa0820b91945dc0cb173"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingCorrectionFlowTests.cs",
+      "bytes": 17422,
+      "sha256": "afdae756e358625c65791eabb12b300dfcb3cfcb90aab8f6d94665d6b3c5d54b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingDecisionHeldKeyTests.cs",
+      "bytes": 3483,
+      "sha256": "97445d3aca05bb0a69eaa711991cda52579155ad373a507b7de327098a651c15"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingDisplayMotionPolicyTests.cs",
+      "bytes": 7436,
+      "sha256": "b03c2eef58d7d48f48e656f80d105878fae8aba38cceb0f001cc7342fe2a9635"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingEarlyVisibilityTests.cs",
+      "bytes": 8109,
+      "sha256": "ef4c36c32cc31eb6f17980bc785416b0a7881b136bc76bc03a901d0c817fcf4b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitAcceptanceTests.cs",
+      "bytes": 7759,
+      "sha256": "abe25ca947d296e89752936ece5171acc30815f6a8cbe2bc17b9adfb4533f9d8"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitLayoutTests.cs",
+      "bytes": 7291,
+      "sha256": "689427969bfed91ca2e1c49bd5f062afa7dedc9579cc2a2013b550bf8defd300"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitPaletteTests.cs",
+      "bytes": 16441,
+      "sha256": "9711eefe3e42fe4b84f8cef6c49212c03e89c44d68d99d0f79bbb5b626d7d069"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitReplacementTests.cs",
+      "bytes": 3539,
+      "sha256": "3e0107f7b8e1a26970ff924437b8630517b2f5270a60a267935dbd819e313483"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitReviewTests.cs",
+      "bytes": 6192,
+      "sha256": "ab2e8c2941a4b9bcf53e9a4176781fa6d44ae49160ec0c01426978f756e0cc16"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingExitSafetyTests.cs",
+      "bytes": 10012,
+      "sha256": "149e232404f864701878c76d70e79c14e9ea302748e7d0ddd837db11bf08ef42"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingFormStateRegressionTests.cs",
+      "bytes": 27077,
+      "sha256": "a00566091ed0f3ecaad9c177e0523d473ff7fa1d7b8946e4913536e5eb13dda7"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingIntervalWorkflowTests.cs",
+      "bytes": 8004,
+      "sha256": "ffd53e0fec49eda5edc9c2931dbeab588fd47710e7230a5e1b05cb58ef84ca26"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingMotionTests.cs",
+      "bytes": 4522,
+      "sha256": "263907c553cf14d97957013e00b0201c3a3952078b5c88022053ef34d0e32965"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingOutputCapacityTests.cs",
+      "bytes": 20408,
+      "sha256": "2721cbd2dbc4c7a349bbdfa2f6e4a7543a9693ef03a11c9a75a2e9f5e3344fc5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingOutputLifetimeTests.cs",
+      "bytes": 11789,
+      "sha256": "8ffae6b30aded2545cae187b33e0259eeda027b4cca53f24ee8c48412c6f16f9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingOutputSteadyCueTests.cs",
+      "bytes": 21685,
+      "sha256": "95e185639b79c398fe97c2433376e1cce4b25e9a01d5b46d0a30d583b713e10e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingPolicyNotificationTests.cs",
+      "bytes": 1214,
+      "sha256": "bd91cfa278d41c1b7611f5f8d241f77da70b6ca67c7d055d767a67be075cb769"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingQueueCommandRegressionTests.cs",
+      "bytes": 25389,
+      "sha256": "8fe746a3f6942e107783863d021b37ec8d8ab57c913a0614742868cdb2c1c73f"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRecentQuickAddRegressionTests.cs",
+      "bytes": 20094,
+      "sha256": "3aa7aa432db443d9f2da0540949319ce2440006879dd6a96998825a74d4202aa"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteAggregateCapacityTests.cs",
+      "bytes": 2970,
+      "sha256": "47af527d2113d5efba1d9f67539e8eec7daece72a1292c73dbb57b2ce417d8de"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteClosedTargetTests.cs",
+      "bytes": 4500,
+      "sha256": "24e4d960ff5298816f5a97688fac1f1eb901a0371a3e4ff200be62b876f00693"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteExplicitIntentTests.cs",
+      "bytes": 4693,
+      "sha256": "6c255f159c8d1af24b70ea41f5bdc23eb9863f2e2750a16097109b5748e85bce"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteExplicitRootTests.cs",
+      "bytes": 1885,
+      "sha256": "23e4ba07e53ad83b3d8f923490c0635fd77f7805a4bc9c26295fdf41bce807c5"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteOwnerEndTests.cs",
+      "bytes": 4829,
+      "sha256": "831490f8f4a7024039f7a64c7fe8698102ac99a0ed1647821c1e5d8fb1985711"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteOwnerSupplementTests.cs",
+      "bytes": 7697,
+      "sha256": "c1918f62356a9c0cc8a569e69e71e398c0572f9886a77c7bcf4ac6a4f3d70490"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemoteOwnerTests.cs",
+      "bytes": 13074,
+      "sha256": "4704990cc5c4e9e05fc5ed16f778444cf6c82d64b355a0badce3beba9059a724"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemotePayloadBoundsTests.cs",
+      "bytes": 6239,
+      "sha256": "166f29fb3a41ba52dbe098a5703445f69cbbbf648ea7333a672b60e6d9d02ce9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingRemotePayloadRootTests.cs",
+      "bytes": 1550,
+      "sha256": "45ba0a1bb5bb1d370bb726061de0d90e3ff730079284f9cdf8bd9dfc76a9a321"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/TrainingTitleVisibilityTests.cs",
+      "bytes": 3556,
+      "sha256": "96ee81c966629f4015ad88b958c4adbb690efe5a51dea74b8d91d36904d9e507"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/UnifiedSetupTests.cs",
+      "bytes": 19480,
+      "sha256": "3f41bbc432310c459db1f7893aa7bf5bd3c09e1c24213de9ade736cb8960dda0"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/UpdatePromptCompactTests.cs",
+      "bytes": 3052,
+      "sha256": "447067c0cc4362af04f23243a0d8e42057f77d775ba8347993a2ffa84cd3788b"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/UpdatePromptLifetimeTests.cs",
+      "bytes": 20618,
+      "sha256": "3cf29e18d8ebb5f37ea59b880b725aef571850fb8ea6024b99465be5facfca02"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/VisibleWeatherVenueLifetimeTests.cs",
+      "bytes": 7626,
+      "sha256": "0135b602589a40482554d666bac1144de1ebac783e72c3cdc54785b91eafedcf"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/WeatherCacheLocationTests.cs",
+      "bytes": 7558,
+      "sha256": "12dca49f6040c18eaaeeb3a9765ffb7f59dc0bc0bbee17ffc88d8354e507f7b3"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/WeatherLocationApplyStatusTests.cs",
+      "bytes": 20441,
+      "sha256": "0f7022c94e4c2f865526a94057cc2f3f60641ea94fd2cdc1408daa77eecdfe50"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/WeatherLocationResetTests.cs",
+      "bytes": 3351,
+      "sha256": "6adfdc91cd9b4c686ce53435b8bb69b5757e302110bfbe1219746695d8fd9a41"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/WeatherPendingStatusTests.cs",
+      "bytes": 4351,
+      "sha256": "edac419229499161c0210b4e319ae7e6b24310ccfe4846aa86df7a0cb2c22123"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/WindowPlacementTests.cs",
+      "bytes": 6289,
+      "sha256": "9e3d661f04dccdd614cfce59b676d1e4335b551b57bb6bca041005b91e78af5e"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/WindowTests.cs",
+      "bytes": 7392,
+      "sha256": "a5ff2855611e8f01c31c3be5653aa6043436c2161551f29d3683421fcf8b8d6c"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.slnx",
+      "bytes": 241,
+      "sha256": "faf6042a3d325349be5ea5535d5734c1190894e9406984fa13339a4c02163ed4"
     },
     {
       "path": "macos/Start Demo.command",
@@ -8816,16 +8871,5 @@
       "bytes": 767,
       "sha256": "c30e124a55ee7ed4f0ac9e562384ad0e21d7246c110e65c73f4bf662870bbdcb"
     }
-  ],
-  "source_files_exact_count": 1762,
-  "windows_project_files_exact_count": 425,
-  "omissions": "Research/history/raw diagnostic documents and root test-output records; no application source/assets/tests omitted from selected runtime trees.",
-  "verification": "137/137 recent Linux/Avalonia aggregate; Windows Debug frozen-source cross-build0warnings/errors; native GUI/hardware unrun",
-  "publication_docs": [
-    "README.md",
-    "START-WINDOWS-HERE.md",
-    "KNOWN-LIMITATIONS.md",
-    "TEST-VERIFICATION.md",
-    "SOURCE-SNAPSHOT.json"
   ]
 }

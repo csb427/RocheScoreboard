@@ -175,7 +175,7 @@
                         <ControlTemplate TargetType="Button">
                             <Grid Background="Transparent">
                                 <Border CornerRadius="20" Background="{TemplateBinding Background}" />
-                                <ns2:OperatorChoiceSurface OriginX=".5" FillBrush="{DynamicResource ControlCentre.SelectionBrush}" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ns2:OperatorChoiceSurface CornerRadius="20" OriginX=".5" FillBrush="{DynamicResource ControlCentre.SelectionBrush}" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                                 <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                                 <TextBlock x:Name="ScorecardTeamSelected" Text="✓" Foreground="White" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,8,0" IsHitTestVisible="False" IsVisible="False" />
                                 <Border x:Name="ScorecardTeamFocus" CornerRadius="20" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
@@ -202,7 +202,7 @@
                         <ControlTemplate TargetType="Button">
                             <Grid Background="Transparent">
                                 <Border CornerRadius="12" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" />
-                                <ns2:OperatorChoiceSurface OriginX="0" FillBrush="White" Opacity=".16" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ns2:OperatorChoiceSurface CornerRadius="12" OriginX="0" FillBrush="White" Opacity=".16" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                                 <Border x:Name="LineupRoleFocus" CornerRadius="12" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
                             </Grid>
@@ -231,7 +231,7 @@
                                         <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
                                     </Grid.RenderTransform>
                                     <Border x:Name="Surface" CornerRadius="15" Background="#202024" />
-                                    <ns2:OperatorChoiceSurface OriginX="0" FillBrush="{DynamicResource PlayerSelectionSurface}" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False" />
+                                    <ns2:OperatorChoiceSurface CornerRadius="15" OriginX="0" FillBrush="{DynamicResource PlayerSelectionSurface}" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False" />
                                     <Border x:Name="PlayerChoiceContentLayer" Padding="{TemplateBinding Padding}">
                                         <ContentPresenter Margin="0,0,28,0" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
                                     </Border>
@@ -509,7 +509,7 @@
                                                 <TextBlock Text="DELIVERY LOG" Theme="{StaticResource SectionHead}" />
                                                 <ComboBox x:Name="DeliveryOverChoice" AutomationProperties.Name="Filter delivery log by over" AutomationProperties.HelpText="Show all deliveries or a single over. Changing this filter does not change the score." MinHeight="32" FontSize="12" Margin="0,4,0,8" ToolTip.Tip="Show all deliveries or a single over. The score stays unchanged." Theme="{StaticResource SettingsChoice}" SelectionChanged="Native_DeliveryOverChoice_Changed" />
                                             </StackPanel>
-                                            <ScrollViewer x:Name="DeliveryLogScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                            <ScrollViewer x:Name="DeliveryLogScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" ClipToBounds="True">
                                                 <StackPanel x:Name="EventLog" />
                                             </ScrollViewer>
                                         </Grid>
@@ -539,10 +539,6 @@
                                             <Border Background="#142236" BorderBrush="#3D5F85" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,0,10">
                                                 <TextBlock x:Name="CricketOnAirText" Text="ON AIR · LIVE SCOREBUG" Foreground="#9CCBFF" FontSize="11" FontWeight="SemiBold" />
                                             </Border>
-                                            <UniformGrid Columns="2" Margin="0,0,0,10">
-                                                <Button x:Name="CricketExtrasOverlayButton" Content="EXTRAS" Click="ExtrasOverlay_Click" IsEnabled="False" MinHeight="48" Margin="4" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Show wides, no-balls, byes and leg-byes" />
-                                                <Button x:Name="CricketBoundariesOverlayButton" Content="INNINGS BOUNDARIES" Click="BoundariesOverlay_Click" IsEnabled="False" MinHeight="48" Margin="4" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Show this innings' fours and sixes" />
-                                            </UniformGrid>
                                             <UniformGrid x:Name="CricketPresentationGrid" Columns="2" Margin="0,0,0,18">
                                                 <Button x:Name="Presentationscorebug" Tag="scorebug" Click="PresentationButton_Click" Theme="{StaticResource CricketLiveScorebugButton}">
                                                     <Grid IsHitTestVisible="False">
@@ -646,7 +642,10 @@
                                             </UniformGrid>
                                             <TextBlock Text="CRICKET OVERLAYS" FontSize="14" Theme="{StaticResource SectionHead}" />
                                             <TextBlock x:Name="OverlayStatusText" Text="NO OVERLAY ON AIR" Foreground="#9CCBFF" FontWeight="Bold" FontSize="11" Margin="0,4,0,8" />
-                                            <StackPanel x:Name="CricketOverlayButtons" />
+                                            <StackPanel x:Name="CricketOverlayButtons">
+                                                <Button x:Name="CricketExtrasOverlayButton" Content="EXTRAS" Click="ExtrasOverlay_Click" IsEnabled="False" MinHeight="48" Margin="4" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Show wides, no-balls, byes and leg-byes" />
+                                                <Button x:Name="CricketBoundariesOverlayButton" Content="INNINGS BOUNDARIES" Click="BoundariesOverlay_Click" IsEnabled="False" MinHeight="48" Margin="4" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Show this innings' fours and sixes" />
+                                            </StackPanel>
                                             <Button Content="CANCEL CURRENT OVERLAY" Click="CancelCricketOverlay_Click" Height="42" Margin="4,10,4,8" Theme="{StaticResource ToolBtn}" />
                                         </StackPanel>
                                     </ScrollViewer>
