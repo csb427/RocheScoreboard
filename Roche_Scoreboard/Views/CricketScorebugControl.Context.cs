@@ -14,7 +14,6 @@ public partial class CricketScorebugControl
             return ("BREAK", match.BreakKind switch { CricketBreakKind.Rain => "RAIN", CricketBreakKind.Other => "PAUSED", _ => match.BreakKind.ToString().ToUpperInvariant() });
         if(match.FreeHitsEnabled && match.FreeHitPending) return ("NEXT BALL","FREE HIT");
         string Rate() => innings.RunRate.ToString("0.00", CultureInfo.InvariantCulture);
-        (string, string) Partnership() => ("PARTNERSHIP", $"{innings.PartnershipRuns}({innings.PartnershipBalls})");
         (string, string) OversLeft()
         {
             int balls = Math.Max(0, match.CurrentOverLimit * 6 - innings.LegalBallsBowled);
@@ -43,13 +42,12 @@ public partial class CricketScorebugControl
             {
                 0 or 2 or 4 => LeadTrail(),
                 1 when previous is not null => (previous.Value.Label, previous.Value.Score),
-                5 => Partnership(),
                 _ => ("RUN RATE", Rate())
             };
         }
         if (match.Format == CricketFormat.LimitedOvers)
-            return Slot(8) switch { 1 or 5 => Partnership(), 2 or 6 => OversLeft(), _ => ("RUN RATE", Rate()) };
-        return Slot(4) == 3 ? Partnership() : ("RUN RATE", Rate());
+            return Slot(4) switch { 1 or 3 => OversLeft(), _ => ("RUN RATE", Rate()) };
+        return ("RUN RATE", Rate());
     }
     internal static (string Label,string Value) SelectChaseMiniContext(CricketMatchManager match,int phase)
     {
@@ -58,10 +56,9 @@ public partial class CricketScorebugControl
         if(match.IsMatchFinalized) return SelectRailContext(match,phase);
         return (((phase%4)+4)%4) switch
         {
-            0 => ("REQUIRED RATE",match.RequiredRunRate?.ToString("0.00",CultureInfo.InvariantCulture) ?? "—"),
+            0 or 3 => ("REQUIRED RATE",match.RequiredRunRate?.ToString("0.00",CultureInfo.InvariantCulture) ?? "—"),
             1 => ("OVERS LEFT",$"{Math.Max(0,match.BallsRemaining ?? 0)/6}.{Math.Max(0,match.BallsRemaining ?? 0)%6}"),
-            2 => ("RUN RATE",innings.RunRate.ToString("0.00",CultureInfo.InvariantCulture)),
-            _ => ("PARTNERSHIP",$"{innings.PartnershipRuns}({innings.PartnershipBalls})")
+            _ => ("RUN RATE",innings.RunRate.ToString("0.00",CultureInfo.InvariantCulture))
         };
     }
 }

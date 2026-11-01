@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/LogoCropWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: cc97acc8b085c536ed471c88822394dd310b80322cdf29529227bbfdd21c03a2
+// Source SHA-256: 66fd9e6775927eb2076def482c6341d21dfa7614ea40eb0957aec80ecde27ace
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -151,7 +151,7 @@ namespace Roche_Scoreboard.Views
             SetAwaySource(image);
         }
 
-        private static string? SelectLogoFile(string? initialPath)
+        private string? SelectLogoFile(string? initialPath)
         {
             NativeOpenFileDialog picker = new()
             {
@@ -167,7 +167,7 @@ namespace Roche_Scoreboard.Views
                 picker.FileName = Path.GetFileName(initialPath);
             }
 
-            return picker.ShowDialog() == true ? picker.FileName : null;
+            return picker.ShowDialog(this) == true ? picker.FileName : null;
         }
 
         private void Preview_MouseLeftButtonDown(object? sender, Avalonia.Input.PointerEventArgs e)

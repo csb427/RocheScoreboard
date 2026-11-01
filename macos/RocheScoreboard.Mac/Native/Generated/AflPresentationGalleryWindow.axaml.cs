@@ -267,11 +267,11 @@ public partial class AflPresentationGalleryWindow : NativeWindow
         // isolated captures ensure compact cases can never escape visual review.
         GalleryTabs.SelectedIndex = 0;
         UpdateLayout();
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         foreach ((string name, ScorebugControl view) in _scorebugPreviews)
         {
             view.UpdateLayout();
-            await Dispatcher.UIThread.InvokeAsync(view.UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+            await Dispatcher.UIThread.InvokeAsync(view.UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
             CaptureElement(view, outputDirectory, "scorebug-" + name);
         }
         File.WriteAllLines(Path.Combine(outputDirectory, "scorebug-typography.txt"),
@@ -283,7 +283,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
         await CaptureGoalAnimationPackagesAsync(outputDirectory);
         GalleryTabs.SelectedIndex = 2;
         UpdateLayout();
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         foreach ((string name, QuarterBreakScorebugControl view) in _quarterBreakScorebugPreviews)
         {
             view.UpdateLayout();
@@ -308,7 +308,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
         // for descendants of a collapsed TabItem.
         GalleryTabs.SelectedIndex = 1;
         UpdateLayout();
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         foreach ((string name, ScorebugControl view, Action<ScorebugControl> refresh) in _overlayPreviews)
         {
             // Each isolated frame must show the settled, fully-open state. Some
@@ -318,7 +318,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
             refresh(view);
             await Task.Delay(1000);
             view.UpdateLayout();
-            await Dispatcher.UIThread.InvokeAsync(view.UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+            await Dispatcher.UIThread.InvokeAsync(view.UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
             CaptureElement(view, outputDirectory, "overlay-" + name);
         }
         File.WriteAllLines(Path.Combine(outputDirectory, "overlay-scorebug-metrics.txt"),
@@ -341,7 +341,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
         {
             _whitePrimaryStatsPreview.UpdateLayout();
             await Dispatcher.UIThread.InvokeAsync(_whitePrimaryStatsPreview.UpdateLayout,
-                Avalonia.Threading.DispatcherPriority.Background);
+                Avalonia.Threading.DispatcherPriority.Render);
             CaptureElement(_whitePrimaryStatsPreview, outputDirectory, "match-stats-white-primary-386x193");
         }
         await CaptureScorebugLifecycleStressAsync(outputDirectory);
@@ -662,7 +662,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
 
         GalleryTabs.SelectedIndex = index;
         UpdateLayout();
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         CaptureCurrentWindow(outputDirectory, name + "-lifecycle-baseline");
 
         var originalSizes = new List<(Control View, double Width, double Height)>();
@@ -677,7 +677,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
             UpdateLayout();
             await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
             foreach (Control view in views) view.IsVisible = true;
-            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         }
 
         // Exercise geometry changes independently from absolute size: small
@@ -696,7 +696,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
                 view.Width = width;
                 view.Height = height;
             }
-            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         }
 
         foreach ((Control view, double width, double height) in originalSizes)
@@ -704,7 +704,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
             view.Width = width;
             view.Height = height;
         }
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         CaptureCurrentWindow(outputDirectory, name + "-lifecycle-after");
     }
 
@@ -734,7 +734,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
 
         GalleryTabs.SelectedIndex = 0;
         UpdateLayout();
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
 
         ScorebugControl view = _scorebugPreviews[0].View;
         double originalWidth = view.Width;
@@ -747,7 +747,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
             UpdateLayout();
             await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
             view.IsVisible = true;
-            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
 
             foreach ((double width, double height) in new[]
                      {
@@ -757,14 +757,14 @@ public partial class AflPresentationGalleryWindow : NativeWindow
             {
                 view.Width = width;
                 view.Height = height;
-                await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+                await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
             }
         }
 
         view.Width = originalWidth;
         view.Height = originalHeight;
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         CaptureElement(view, outputDirectory, "scorebug-responsive-after");
     }
 
@@ -786,7 +786,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
             view.SetClock($"{cycle:D2}:{(cycle * 7) % 60:D2}");
             view.SetHideTeamNames(cycle % 3 == 0);
             view.SetFinalsMode(cycle % 4 == 0);
-            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         }
 
         view.SetLayout(ScorebugLayout.Distance);
@@ -796,7 +796,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
         view.SetClock("19:59");
         view.SetHideTeamNames(false);
         view.SetFinalsMode(true);
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         CaptureElement(view, outputDirectory, "scorebug-distance-finals-operations-386x193");
 
         view.SetFinalsMode(false);
@@ -853,7 +853,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
         view.IsVisible = true;
         view.ResetAllOverlayState();
         view.SetScores(18, 12, 17, 11);
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
 
         foreach ((GoalAnimationStyle style, string name, int sampleMilliseconds) in new[]
                  {
@@ -887,7 +887,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
         ScorebugControl view = _scorebugPreviews[0].View;
         view.ResetAllOverlayState();
         UpdateLayout();
-        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+        await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         CaptureElement(view, outputDirectory, "overlay-name-lifecycle-baseline");
 
         MatchStats stats = MatchStats.Calculate(BuildRepresentativeMatch(), 2, TimeSpan.FromMinutes(8));
@@ -896,7 +896,7 @@ public partial class AflPresentationGalleryWindow : NativeWindow
             view.ShowStatsBar(stats);
             await Task.Delay(380);
             view.ResetAllOverlayState();
-            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Background);
+            await Dispatcher.UIThread.InvokeAsync(UpdateLayout, Avalonia.Threading.DispatcherPriority.Render);
         }
         CaptureElement(view, outputDirectory, "overlay-name-lifecycle-after");
 

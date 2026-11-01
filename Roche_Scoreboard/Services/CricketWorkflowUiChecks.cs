@@ -72,6 +72,27 @@ internal static class CricketWorkflowUiChecks
             checks["cricket-tabs-include-editable-scorecard-before-output"] = panel.MainTabControl.Items.IndexOf(panel.ScorecardTab) == 1 && panel.MainTabControl.Items.IndexOf(panel.OutputTab) == 2;
             panel.MainTabControl.SelectedItem = panel.ScorecardTab; await Pump();
             checks["scorecard-uses-immediate-edits-without-top-save-or-more"] = Tagged("save-scorecard") is null && Tagged("scorecard-more") is null && !Descendants<System.Windows.Controls.TextBox>(panel.ScorecardHost).Any();
+            // Exercise the real WPF button/form path as well as model arithmetic.
+            Click(Tagged("scorecard-edit-totals")); await Pump();
+            var totalsSheet = Sheet();
+            System.Windows.Controls.TextBox? TotalField(string tag) => totalsSheet is null ? null : Descendants<System.Windows.Controls.TextBox>(totalsSheet).SingleOrDefault(field => Equals(field.Tag, tag));
+            if (TotalField("scorecard-edit-batter-0") is { } batterRuns) batterRuns.Text = "3";
+            if (TotalField("scorecard-edit-wides") is { } wides) wides.Text = "1";
+            if (TotalField("scorecard-edit-bowler-runs-0") is { } conceded) conceded.Text = "4";
+            if (TotalField("scorecard-edit-bowler-wides-0") is { } bowlerWides) bowlerWides.Text = "1";
+            await Pump();
+            checks["atomic-totals-form-recomputes-current-batter-plus-wide-without-mutating-match"] = TotalField("scorecard-edit-team-total")?.Text == "4" && match.TotalRuns == 0;
+            Click(Tagged("apply")); await WaitFor(() => Sheet() is null);
+            checks["atomic-balanced-totals-apply-without-false-rejection"] = match.TotalRuns == 4 && match.CurrentInnings!.Wides == 1 && match.CurrentInnings.BattingOrder[0].Runs == 3 && match.ValidateScorecard(match.CreateScorecardDraft(1)).Count == 0;
+            checks["atomic-correction-keeps-one-reversible-checkpoint"] = match.CurrentInnings!.ScorecardChanges.Count == 1 && match.TryRevertLatestScorecardCorrection(1, out _) && match.TotalRuns == 0;
+            await Pump();
+            match.RecordDelivery(1, CricketDeliveryType.Runs);
+            var beforeUndo = match.CreateScorecardDraft(1);
+            match.UndoLastDelivery(); match.RecordDelivery(6, CricketDeliveryType.Six);
+            string correctedState = System.Text.Json.JsonSerializer.Serialize(match.ToState());
+            checks["undo-and-rescore-at-same-count-rejects-stale-scorecard"] = !match.TryApplyScorecard(beforeUndo, out _)
+                && System.Text.Json.JsonSerializer.Serialize(match.ToState()) == correctedState;
+            match.UndoLastDelivery(); await Pump();
             await Capture("cricket-scorecard-wide");
             var rowsScroll = Descendants<ScrollViewer>(panel.ScorecardHost).FirstOrDefault(s => Equals(s.Tag, "scorecard-rows-scroll"));
             double navigationY = Tagged("scorecard-innings-1")?.TranslatePoint(new System.Windows.Point(), panel).Y ?? -1;

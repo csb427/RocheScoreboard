@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/MatchLoadingScreen.xaml.cs; edit translator/adapters.
-// Source SHA-256: d0e7b05df8b59d8a62b1d5397e2d8dbbbb6628b207b2a5139b443708c8ff2fbf
+// Source SHA-256: 351535e27ce4c1fd319983cb4d2385ddeab8b2d536d41a41be1fcc339be96852
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -16,6 +16,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Controls.Shapes;
+using Roche_Scoreboard.Services;
 using Color = Avalonia.Media.Color;
 using ColorConverter = RocheScoreboard.Mac.Native.ColorConverter;
 using FontFamily = Avalonia.Media.FontFamily;
@@ -41,13 +42,28 @@ namespace Roche_Scoreboard.Views
         private readonly Random _rng = new();
         private Avalonia.Threading.DispatcherTimer? _progressTimer;
         private Avalonia.Threading.DispatcherTimer? _watchdogTimer;
+        private Avalonia.Threading.DispatcherTimer? _finishTimer;
+        private int _runGeneration;
+        private Window? _owner;
+        private bool _ownerClosed;
+        private bool _watchingPreferences;
+        private bool _ambientRunning;
 
         public MatchLoadingScreen()
         {
             NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
-            SizeChanged += (_, _) => RebuildBackdrop();
+            NativeEffectiveVisibility.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,AvailabilityChanged);
+            NativeEffectiveVisibility.WatchProperty(this,Avalonia.Input.InputElement.IsEffectivelyEnabledProperty,true,AvailabilityChanged);
+            SizeChanged += (_, _) =>
+            {
+                if (!_ambientRunning) return;
+                RetireDynamicBackdrop();
+                RebuildBackdrop();
+                SpawnBeams();
+                SpawnParticles();
+            };
         }
 
         /// <summary>
@@ -84,6 +100,7 @@ namespace Roche_Scoreboard.Views
         public void StartLoading(IReadOnlyList<string> stepLabels, TimeSpan totalDuration)
         {
             // Reset state so the panel is safe to reuse across matches.
+            CancelRunTimers();
             _completed = false;
             _finishedRaised = false;
             _stopped = false;
@@ -101,20 +118,23 @@ namespace Roche_Scoreboard.Views
             // generous timeout so the loader can never deadlock the app.
             _watchdogTimer?.Stop();
             var watchdogMs = Math.Max(4000, totalDuration.TotalMilliseconds * 2 + 1500);
-            _watchdogTimer = new Avalonia.Threading.DispatcherTimer
+            int generation = _runGeneration;
+            var watchdog = new Avalonia.Threading.DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(watchdogMs)
             };
-            _watchdogTimer.Tick += (_, _) =>
+            _watchdogTimer = watchdog;
+            watchdog.Tick += (_, _) =>
             {
-                _watchdogTimer?.Stop();
+                watchdog.Stop();
+                if (generation != _runGeneration || _stopped) return;
                 if (!_finishedRaised)
                 {
                     System.Diagnostics.Debug.WriteLine("[MatchLoading] watchdog forced completion");
                     ForceComplete();
                 }
             };
-            _watchdogTimer.Start();
+            watchdog.Start();
         }
 
         /// <summary>
@@ -125,7 +145,7 @@ namespace Roche_Scoreboard.Views
 
         private void ForceComplete()
         {
-            if (_finishedRaised) return;
+            if (_finishedRaised || _stopped || _completed) return;
 
             _completed = true;
             _progressTimer?.Stop();
@@ -136,12 +156,16 @@ namespace Roche_Scoreboard.Views
             PercentText.Text = "100%";
             AnimateProgressTo(100, TimeSpan.FromMilliseconds(180));
 
+            _finishTimer?.Stop();
+            _finishTimer = null;
             RaiseFinishedSoon(TimeSpan.FromMilliseconds(200));
         }
 
         private void RaiseFinishedSoon(TimeSpan delay)
         {
-            if (_finishedRaised) return;
+            if (_finishedRaised || _stopped) return;
+            _finishTimer?.Stop();
+            int generation = _runGeneration;
 
             // Use a one-shot DispatcherTimer for the visual beat; if it never
             // ticks for some reason the watchdog still guarantees the fire.
@@ -149,9 +173,12 @@ namespace Roche_Scoreboard.Views
             {
                 Interval = delay <= TimeSpan.Zero ? TimeSpan.FromMilliseconds(1) : delay
             };
+            _finishTimer = t;
             t.Tick += (_, _) =>
             {
                 t.Stop();
+                if (generation != _runGeneration || _stopped) return;
+                if (ReferenceEquals(_finishTimer, t)) _finishTimer = null;
                 RaiseFinishedNow();
             };
             t.Start();
@@ -174,26 +201,147 @@ namespace Roche_Scoreboard.Views
 
         private void OnLoaded(object? sender, RoutedEventArgs e)
         {
-            RebuildBackdrop();
-            StartAmbientAnimations();
+            _ownerClosed = false;
+            RefreshActivity();
         }
 
         private void OnUnloaded(object? sender, RoutedEventArgs e)
         {
+            WatchPreferences(false);
+            DetachOwner();
+            RetireAmbient();
             _stopped = true;
+            CancelRunTimers();
+            GridCanvas.Children.Clear();
+        }
+
+        // Hiding pauses decoration only. Detaching/closing cancels this run;
+        // a later StartLoading owns a fresh generation and its own callbacks.
+        private void CancelRunTimers()
+        {
+            ++_runGeneration;
             _progressTimer?.Stop();
             _progressTimer = null;
             _watchdogTimer?.Stop();
             _watchdogTimer = null;
-            GridCanvas.Children.Clear();
+            _finishTimer?.Stop();
+            _finishTimer = null;
+        }
+
+        private bool CanAnimate => IsLoaded && NativeEffectiveVisibility.IsVisible(this) && IsEffectivelyEnabled && !_ownerClosed
+            && (_owner is null || (_owner.IsVisible && _owner.IsEffectivelyEnabled)) && OperatorMotion.Enabled;
+
+        private void AvailabilityChanged(object? sender, AvaloniaPropertyChangedEventArgs e) => RefreshActivity();
+
+        private void RefreshActivity()
+        {
+            if (IsLoaded && !_ownerClosed)
+            {
+                var owner = NativeWindow.GetWindow(this);
+                if (!ReferenceEquals(owner, _owner))
+                {
+                    DetachOwner();
+                    _owner = owner;
+                    if (_owner is not null)
+                    {
+                        NativeEffectiveVisibility.WatchProperty(_owner,Avalonia.Controls.Control.IsVisibleProperty,true,AvailabilityChanged);
+                        NativeEffectiveVisibility.WatchProperty(_owner,Avalonia.Input.InputElement.IsEffectivelyEnabledProperty,true,AvailabilityChanged);
+                        _owner.Closed += OwnerClosed;
+                    }
+                }
+            }
+            WatchPreferences(IsLoaded && !_ownerClosed);
+            if (!CanAnimate) { RetireAmbient(); return; }
+            if (_ambientRunning) return;
+            _ambientRunning = true;
+            RebuildBackdrop();
+            StartAmbientAnimations();
+            foreach (var step in _steps) step.RefreshMotion(true);
+        }
+
+        private void WatchPreferences(bool watching)
+        {
+            if (_watchingPreferences == watching) return;
+            _watchingPreferences = watching;
+            if (watching)
+            {
+                OperatorAppearance.Changed += PreferenceChanged;
+                NativeSystemPreferences.StaticPropertyChanged += SystemPreferenceChanged;
+            }
+            else
+            {
+                OperatorAppearance.Changed -= PreferenceChanged;
+                NativeSystemPreferences.StaticPropertyChanged -= SystemPreferenceChanged;
+            }
+        }
+
+        private void PreferenceChanged()
+        {
+            if (!_watchingPreferences) return;
+            if (!Dispatcher.UIThread.CheckAccess()) { Dispatcher.UIThread.Post(new Action(PreferenceChanged)); return; }
+            if (_watchingPreferences) RefreshActivity();
+        }
+
+        private void SystemPreferenceChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(NativeSystemPreferences.ClientAreaAnimation)) PreferenceChanged();
+        }
+
+        private void OwnerClosed(object? sender, EventArgs e)
+        {
+            _ownerClosed = true;
+            _stopped = true;
+            CancelRunTimers();
+            WatchPreferences(false);
+            DetachOwner();
+            RetireAmbient();
+        }
+
+        private void DetachOwner()
+        {
+            if (_owner is not null)
+            {
+                NativeEffectiveVisibility.WatchProperty(_owner,Avalonia.Controls.Control.IsVisibleProperty,false,AvailabilityChanged);
+                NativeEffectiveVisibility.WatchProperty(_owner,Avalonia.Input.InputElement.IsEffectivelyEnabledProperty,false,AvailabilityChanged);
+                _owner.Closed -= OwnerClosed;
+                _owner = null;
+            }
+        }
+
+        private void RetireDynamicBackdrop()
+        {
+            foreach (Control beam in BeamCanvas.Children) beam.BeginAnimation(Canvas.LeftProperty, null);
+            foreach (Control particle in ParticleCanvas.Children)
+            {
+                particle.BeginAnimation(Canvas.TopProperty, null);
+                particle.BeginAnimation(OpacityProperty, null);
+            }
             BeamCanvas.Children.Clear();
             ParticleCanvas.Children.Clear();
+        }
+
+        private void RetireAmbient()
+        {
+            _ambientRunning = false;
+            OuterOrbitRotate.BeginAnimation(RotateTransform.AngleProperty, null);
+            InnerOrbitRotate.BeginAnimation(RotateTransform.AngleProperty, null);
+            VsChipScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            VsChipScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            BrandPulse.BeginAnimation(OpacityProperty, null);
+            HomeRingGlow.BeginAnimation(DropShadowEffect.OpacityProperty, null);
+            AwayRingGlow.BeginAnimation(DropShadowEffect.OpacityProperty, null);
+            ShineTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            ProgressFill.BeginAnimation(WidthProperty, null);
+            ProgressFill.Width = Math.Max(0, Math.Min(538, 538 * _displayPercent / 100.0));
+            foreach (var step in _steps) step.RefreshMotion(false);
+            RetireDynamicBackdrop();
         }
 
         // ----- Steps ticker -----
 
         private void BuildSteps(IReadOnlyList<string> stepLabels)
         {
+            foreach (var step in _steps) step.RefreshMotion(false);
             StepStack.Children.Clear();
             _steps.Clear();
             foreach (var label in stepLabels)
@@ -221,17 +369,18 @@ namespace Roche_Scoreboard.Views
             double tickMs = Math.Max(40, totalDuration.TotalMilliseconds / 100.0);
 
             int currentStep = 0;
+            int generation = _runGeneration;
             double elapsedMs = 0;
             var timer = new Avalonia.Threading.DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(tickMs)
             };
             _progressTimer = timer;
-            _steps[0].MarkActive();
+            _steps[0].MarkActive(_ambientRunning);
             StatusText.Text = _steps[0].Label.ToUpperInvariant();
             timer.Tick += (_, _) =>
             {
-                if (_stopped || _completed) { timer.Stop(); return; }
+                if (generation != _runGeneration || _stopped || _completed) { timer.Stop(); return; }
                 elapsedMs += tickMs;
                 double progress = Math.Min(100, elapsedMs / totalDuration.TotalMilliseconds * 100);
 
@@ -240,12 +389,13 @@ namespace Roche_Scoreboard.Views
                 {
                     _steps[currentStep].MarkComplete();
                     currentStep = idx;
-                    _steps[currentStep].MarkActive();
+                    _steps[currentStep].MarkActive(_ambientRunning);
                     StatusText.Text = _steps[currentStep].Label.ToUpperInvariant();
                 }
 
                 _targetPercent = progress;
                 AnimateProgressTo(progress, TimeSpan.FromMilliseconds(tickMs * 1.4));
+                if (generation != _runGeneration || _stopped) { timer.Stop(); return; }
 
                 if (progress >= 100)
                 {
@@ -264,6 +414,12 @@ namespace Roche_Scoreboard.Views
 
             double trackWidth = 540 - 2; // account for border
             double targetWidth = Math.Max(0, Math.Min(trackWidth, trackWidth * percent / 100.0));
+            if (!CanAnimate)
+            {
+                ProgressFill.BeginAnimation(WidthProperty, null);
+                ProgressFill.Width = targetWidth;
+                return;
+            }
             var anim = new DoubleAnimation(targetWidth, duration)
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
@@ -333,7 +489,6 @@ namespace Roche_Scoreboard.Views
         private void RebuildBackdrop()
         {
             GridCanvas.Children.Clear();
-            BeamCanvas.Children.Clear();
 
             double w = Math.Max(Bounds.Width, 1);
             double h = Math.Max(Bounds.Height, 1);
@@ -405,7 +560,6 @@ namespace Roche_Scoreboard.Views
 
         private void SpawnParticles()
         {
-            ParticleCanvas.Children.Clear();
             double w = Math.Max(Bounds.Width, 1280);
             double h = Math.Max(Bounds.Height, 720);
 
@@ -512,6 +666,7 @@ namespace Roche_Scoreboard.Views
             public Grid Root { get; }
             private readonly Ellipse _dot;
             private readonly TextBlock _text;
+            private bool _active;
 
             public StepRow(string label)
             {
@@ -541,8 +696,9 @@ namespace Roche_Scoreboard.Views
                 Root.Children.Add(_text);
             }
 
-            public void MarkActive()
+            public void MarkActive(bool animate)
             {
+                _active = true;
                 _dot.Fill = new SolidColorBrush(Color.FromRgb(0x58, 0xA6, 0xFF));
                 _dot.Effect = new DropShadowEffect
                 {
@@ -551,6 +707,14 @@ namespace Roche_Scoreboard.Views
                     OffsetX = 0, OffsetY = 0
                 };
                 _text.Foreground = new SolidColorBrush(Color.FromRgb(0xE6, 0xED, 0xF3));
+                RefreshMotion(animate);
+            }
+
+            public void RefreshMotion(bool animate)
+            {
+                _dot.BeginAnimation(Control.OpacityProperty, null);
+                _dot.Opacity = 1;
+                if (!_active || !animate) return;
                 var pulse = new DoubleAnimation(0.4, 1.0, TimeSpan.FromSeconds(0.6))
                 {
                     AutoReverse = true,
@@ -562,6 +726,7 @@ namespace Roche_Scoreboard.Views
 
             public void MarkComplete()
             {
+                _active = false;
                 _dot.BeginAnimation(Control.OpacityProperty, null);
                 _dot.Opacity = 1;
                 _dot.Fill = new SolidColorBrush(Color.FromRgb(0x3F, 0xB9, 0x50));

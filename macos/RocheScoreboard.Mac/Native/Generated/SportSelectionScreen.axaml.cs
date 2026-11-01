@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/SportSelectionScreen.xaml.cs; edit translator/adapters.
-// Source SHA-256: 0e1373748244eb938fbfc82b677ac01690a0fcf41896868c3adc9e58e66959d7
+// Source SHA-256: 23bbe07f69bbeda04edadcc80473691fa4bd3fcdd2eb8a5171e5e73202b78b8e
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -27,7 +27,6 @@ public partial class SportSelectionScreen : UserControl
 {
     private bool _selectionPending;
     private bool? _sportCardsStacked;
-    private bool? _sportCardsAcross;
     private void SportViewport_SizeChanged(object? sender, SizeChangedEventArgs e) => ReflowHome(e.NewSize);
 
     private void ReflowHome(Avalonia.Size size)
@@ -37,12 +36,14 @@ public partial class SportSelectionScreen : UserControl
         double width=size.Width,height=size.Height;bool compact=width<620,shortWindow=height<440;
         if(_sportCardsStacked!=true)
         {
-            _sportCardsStacked=true;_sportCardsAcross=false;SportCardsGrid.ColumnDefinitions.Clear();SportCardsGrid.RowDefinitions.Clear();SportCardsGrid.ColumnDefinitions.Add(new());
-            var cards=new[]{AflCard,CricketCard,TrainingCard};
-            for(int i=0;i<cards.Length;i++){SportCardsGrid.RowDefinitions.Add(new(){Height=new GridLength(i==2?.8:1,GridUnitType.Star)});Grid.SetRow(cards[i],i);Grid.SetColumn(cards[i],0);Grid.SetColumnSpan(cards[i],1);}
+            _sportCardsStacked=true;SportCardsGrid.ColumnDefinitions.Clear();SportCardsGrid.RowDefinitions.Clear();SportCardsGrid.ColumnDefinitions.Add(new());
+            var cards=new[]{AflCard,TrainingCard};
+            for(int i=0;i<cards.Length;i++){SportCardsGrid.RowDefinitions.Add(new(){Height=new GridLength(i==1?.8:1,GridUnitType.Star)});Grid.SetRow(cards[i],i);Grid.SetColumn(cards[i],0);Grid.SetColumnSpan(cards[i],1);}
         }
-        for(int row=0;row<SportCardsGrid.RowDefinitions.Count;row++)SportCardsGrid.RowDefinitions[row].Height=new GridLength(shortWindow?1:row==2?.8:1,GridUnitType.Star);
+        CricketCard.IsVisible = false;
+        for(int row=0;row<SportCardsGrid.RowDefinitions.Count;row++)SportCardsGrid.RowDefinitions[row].Height=new GridLength(shortWindow?1:row==1?.8:1,GridUnitType.Star);
         HomeLayout.Margin=new Thickness(compact?12:30,shortWindow?10:22,compact?12:30,shortWindow?10:22);
+        HomeCommandsButton.Content = size.Width < 620 ? "Ctrl+K" : "Commands · Ctrl+K";
         SettingsSubtitle.IsVisible=width>=900 && !shortWindow?true:false;
         SettingsActionCaption.IsVisible=width<390?false:true;UpdatesActionIcon.IsVisible=width<390?false:true;
         SettingsTile.Padding=new Thickness(width<390?10:14,8,width<390?2:14,8);
@@ -91,17 +92,41 @@ public partial class SportSelectionScreen : UserControl
     private void ResponsiveScrollHost_PreviewMouseWheel(object? sender, PointerWheelEventArgs e)
         => NestedScrollRouting.RoutePreviewMouseWheel(ResponsiveScrollHost, e);
 
+    internal bool HasOpenSheet => ChangelogOverlay.IsVisible;
     public event Action<SportMode>? SportSelected;
     public event Action? ResumeSavedMatchRequested;
-    private bool _deferredResumeAvailable;
+    public event Action? CommandBarRequested;
+    private void HomeCommands_Click(object? sender, RoutedEventArgs args) => CommandBarRequested?.Invoke();
+    private string? _currentSessionTitle;
+    private string? _currentSessionDetail;
+    internal void SetCurrentSession(string? title, string? detail = null)
+    {
+        _currentSessionTitle = title;
+        _currentSessionDetail = detail;
+        RefreshHomeSession();
+    }
+    private void RefreshHomeSession()
+    {
+        var saved = _currentSessionTitle is null ? RecoverySession.Describe(GameStateService.Load()) : null;
+        bool current = _currentSessionTitle is not null;
+        bool available = current || saved is not null;
+        SessionHeading.Text = _currentSessionTitle ?? saved?.Title ?? "Ready for your next session";
+        SessionDetail.Text = current ? _currentSessionDetail ?? "Current session · includes changes in this open app."
+            : saved?.Detail ?? (GameStateService.HasSavedState()
+                ? "The saved file cannot be resumed. Start a new match, or recover a valid backup."
+                : "No recoverable match saved. Start a new match below.");
+        HomeResumeButton.Content = current ? "Return to current session" : "Resume saved match";
+        HomeResumeButton.IsVisible = available ? true : false;
+        ResumeSavedMatchButton.IsVisible = false;
+    }
     public void SetDeferredResumeAvailable(bool available)
     {
-        _deferredResumeAvailable = available;
-        ResumeSavedMatchButton.IsVisible = available ? true : false;
+        RefreshHomeSession();
     }
 
     private void ResumeSavedMatch_Click(object? sender, RoutedEventArgs e)
         => ResumeSavedMatchRequested?.Invoke();
+    internal Control? RecoveryExpansionSource=>HomeResumeButton.IsVisible?HomeResumeButton:null;
 
     // ── Easing curves ──
     private static readonly CubicEase Smooth = new() { EasingMode = EasingMode.EaseOut };
@@ -145,8 +170,7 @@ public partial class SportSelectionScreen : UserControl
         IsHitTestVisible = true;
         if(_entryPlayed) RestoreLandingVisuals();
         ReacquireLandingPointer();
-        ResumeSavedMatchButton.IsVisible = _deferredResumeAvailable && GameStateService.HasSavedState()
-            ? true : false;
+        RefreshHomeSession();
     }
 
     private void PlayEntryAnimation()
@@ -301,6 +325,7 @@ public partial class SportSelectionScreen : UserControl
     private static SolidColorBrush ReleaseBrush(string value) => new((Color)ColorConverter.ConvertFromString(value));
 
     private string? _releaseRenderedSignature;
+    private bool _updatingReleaseFilters;
     private void PopulateChangelog()
     {
         string signature=string.Join("|",_changelogFilter,_selectedReleaseVersion,ChangelogSearchBox?.Text,_releaseCompact,_releaseShort);
@@ -308,14 +333,13 @@ public partial class SportSelectionScreen : UserControl
         VersionLabel.Text = $"v{ProductionVersion.CurrentVersion.ToString(3)}";
         ChangelogEntries.Children.Clear();
         string query = ChangelogSearchBox?.Text?.Trim() ?? string.Empty;
-        foreach (var button in new[] { AllReleaseFilter, NewReleaseFilter, FixedReleaseFilter })
+        _updatingReleaseFilters=true;
+        try{foreach (var button in new[] { AllReleaseFilter, NewReleaseFilter, FixedReleaseFilter })
         {
             bool selected = Equals(button.Tag, _changelogFilter);
-            button.Background = ReleaseBrush(selected ? "#F0F4FB" : "#163D4B60");
-            button.Foreground = ReleaseBrush(selected ? "#101923" : "#F2F6FD");
-            button.BorderBrush = ReleaseBrush(selected ? "#E6FFFFFF" : "#30D0DDEF");
+            button.IsChecked=selected;
             Avalonia.Automation.AutomationProperties.SetItemStatus(button, selected ? "Selected filter" : "Not selected");
-        }
+        }}finally{_updatingReleaseFilters=false;}
         var pages = new List<ReleasePage>();
         foreach (var version in ChangelogService.Versions)
         {
@@ -417,9 +441,9 @@ public partial class SportSelectionScreen : UserControl
 
     private void SelectRelease(string version)
     {
-        if (_selectedReleaseVersion == version) return;
+        if (!_changelogOpen || _selectedReleaseVersion == version) return;
         _selectedReleaseVersion = version; PopulateChangelog(); ReleaseScroller.ScrollToHome();
-        SharedSurfaceMotion.Reveal(ChangelogEntries);
+        // The owned sheet sequences the first visible sections on opening.
     }
 
     private void ReleaseVersionChoice_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -510,11 +534,23 @@ public partial class SportSelectionScreen : UserControl
 
     private void ChangelogFilter_Click(object? sender, RoutedEventArgs e)
     {
-        if (sender is Avalonia.Controls.Button { Tag: string filter })
+        if (_updatingReleaseFilters || !_changelogOpen)return;
+        if (sender is Avalonia.Controls.Button { Tag: string filter } && filter is "All" or "New" or "Fixed")
         {
+            bool changed=_changelogFilter!=filter;
             _changelogFilter = filter;
-            PopulateChangelog();
+            if(sender is Avalonia.Controls.RadioButton radio && radio.IsChecked!=true)radio.IsChecked=true;
+            if(changed && IsLoaded)PopulateChangelog();
         }
+    }
+    private void ReleaseFilters_PreviewKeyDown(object? sender,KeyEventArgs args)
+    {
+        if(!_changelogOpen || NativeKeyboard.Modifiers!=KeyModifiers.None || args.Key is not (Key.Left or Key.Right or Key.Home or Key.End))return;
+        var choices=new[]{AllReleaseFilter,NewReleaseFilter,FixedReleaseFilter};
+        int current=Array.FindIndex(choices,choice=>choice.IsKeyboardFocusWithin);
+        if(current<0)current=Array.FindIndex(choices,choice=>choice.IsChecked==true);
+        int next=args.Key==Key.Home?0:args.Key==Key.End?choices.Length-1:(Math.Max(0,current)+(args.Key==Key.Left?-1:1)+choices.Length)%choices.Length;
+        args.Handled=true;choices[next].IsChecked=true;choices[next].Focus();
     }
 
     private void ShowChangelog()
@@ -524,10 +560,12 @@ public partial class SportSelectionScreen : UserControl
         if (ChangelogOverlay.IsVisible != true)
             _changelogPreviousFocus = NativeKeyboard.FocusedElement;
         _changelogOpen = true;
+        ChangelogPanel.IsEnabled=true;ReleaseFilters.AllowScrubbing=true;
         PopulateChangelog();
         ChangelogOverlay.IsVisible = true;
         ChangelogOverlay.Focus();
         _releaseSheetMotion?.Move(true);
+        SharedSurfaceMotion.RevealSequence(ChangelogEntries.Children.OfType<Control>());
         ChangelogSearchBox.Focus();
     }
 
@@ -535,6 +573,7 @@ public partial class SportSelectionScreen : UserControl
     {
         if (!_changelogOpen) return;
         _changelogOpen = false;
+        ReleaseFilters.AllowScrubbing=false;ChangelogPanel.IsEnabled=false;
         int generation=++_changelogMotionGeneration;
         void CompleteClose()
         {
@@ -544,8 +583,9 @@ public partial class SportSelectionScreen : UserControl
             ChangelogOverlay.IsVisible = false;
             ChangelogPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty,null);ChangelogPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty,null);
             ChangelogPanelTranslate.BeginAnimation(TranslateTransform.YProperty,null);
+            ChangelogPanelTranslate.BeginAnimation(TranslateTransform.XProperty,null);
             ChangelogPanelScale.ScaleX = ChangelogPanelScale.ScaleY = 0.96;
-            ChangelogPanelTranslate.Y = 24;
+            ChangelogPanelTranslate.X=0;ChangelogPanelTranslate.Y = 24;
             void RestoreFocus()
             {
                 if (generation != _changelogMotionGeneration || _changelogOpen || !IsVisible) return;
@@ -644,9 +684,11 @@ public partial class SportSelectionScreen
     private void Native_Card_MouseEnter(object? sender, PointerEventArgs e) { Card_MouseEnter(sender!, e); }
     private void Native_Card_MouseLeave(object? sender, PointerEventArgs e) { Card_MouseLeave(sender!, e); }
     private void Native_ChangelogBackdrop_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; ChangelogBackdrop_Click(sender!, e); }
+    private void Native_ChangelogFilter_Click_Checked(object? sender, RoutedEventArgs e) { if (sender is Avalonia.Controls.Primitives.ToggleButton toggle && toggle.IsChecked != true) return; ChangelogFilter_Click(sender!, e); }
     private void Native_ChangelogOverlay_PreviewKeyDown(object? sender, KeyEventArgs e) { ChangelogOverlay_PreviewKeyDown(sender!, e); }
     private void Native_ChangelogSearch_TextChanged(object? sender, TextChangedEventArgs e) { ChangelogSearch_TextChanged(sender!, e); }
     private void Native_Cricket_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; Cricket_Click(sender!, e); }
+    private void Native_ReleaseFilters_PreviewKeyDown(object? sender, KeyEventArgs e) { ReleaseFilters_PreviewKeyDown(sender!, e); }
     private void Native_ReleaseVersionChoice_SelectionChanged(object? sender, SelectionChangedEventArgs e) { ReleaseVersionChoice_SelectionChanged(sender!, e); }
     private void Native_ResponsiveScrollHost_PreviewMouseWheel(object? sender, PointerWheelEventArgs e) { ResponsiveScrollHost_PreviewMouseWheel(sender!, e); }
     private void Native_SettingsTile_MouseEnter(object? sender, PointerEventArgs e) { SettingsTile_MouseEnter(sender!, e); }

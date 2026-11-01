@@ -1,0 +1,274 @@
+{
+  "source": "https://github.com/obra/superpowers",
+  "pin": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+  "version": "7.0.1",
+  "time_utc": "2026-10-29T03:41:49.006764+00:00",
+  "archive_sha256": "da34247c51339cdd6175b3590261f16e25b08d46669afd5b6fc3f842ab303e20",
+  "existing_skill_count": 321,
+  "selected_skill_count": 12,
+  "markdown_count": 41,
+  "installed_total": 333,
+  "records": [
+    {
+      "source": "skills/using-superpowers/SKILL.md",
+      "destination": ".agents/skills/using-superpowers/SKILL.md",
+      "sha256": "82c5c8866ad7f5dd4440ce66bd7806ba48a2f13771beae5cf112e53f08fe36ba",
+      "bytes": 3192
+    },
+    {
+      "source": "skills/using-superpowers/references/antigravity-tools.md",
+      "destination": ".agents/skills/using-superpowers/references/antigravity-tools.md",
+      "sha256": "4880f6de3da4e32f9659ebe7a72b9e0ebfff04e028c2ed96173f86d0387a04c0",
+      "bytes": 1495
+    },
+    {
+      "source": "skills/using-superpowers/references/claude-code-tools.md",
+      "destination": ".agents/skills/using-superpowers/references/claude-code-tools.md",
+      "sha256": "21479a3fee27448cab8748a3b5687e53bb257883bda9c070426f9a1ab5cebf1b",
+      "bytes": 1469
+    },
+    {
+      "source": "skills/using-superpowers/references/codex-tools.md",
+      "destination": ".agents/skills/using-superpowers/references/codex-tools.md",
+      "sha256": "1a38ad9b188c393052f58d95657a1c35ea6aafc8b5a27f198f3922912f70bbe7",
+      "bytes": 4762
+    },
+    {
+      "source": "skills/using-superpowers/references/gemini-tools.md",
+      "destination": ".agents/skills/using-superpowers/references/gemini-tools.md",
+      "sha256": "62b9157bcb0ee3c6784e3d0da0798ddfa5872f9e0c34bea48f3079dabea71965",
+      "bytes": 4598
+    },
+    {
+      "source": "skills/using-superpowers/references/hermes-tools.md",
+      "destination": ".agents/skills/using-superpowers/references/hermes-tools.md",
+      "sha256": "e2185c976a3c87503910e05e2aea58cc89bc8e569bb624b93df9958ac47a9190",
+      "bytes": 1964
+    },
+    {
+      "source": "skills/using-superpowers/references/muse-tools.md",
+      "destination": ".agents/skills/using-superpowers/references/muse-tools.md",
+      "sha256": "5a1da5c575fe18456ca71cd47ebfd8a38c745f8d82a67fe64d5b83080000eeb3",
+      "bytes": 1908
+    },
+    {
+      "source": "skills/using-superpowers/references/pi-tools.md",
+      "destination": ".agents/skills/using-superpowers/references/pi-tools.md",
+      "sha256": "703dbc83d23ecab9c6f388460c38abc482e9dee2fe6772a8c7a255152ad3a4d5",
+      "bytes": 1242
+    },
+    {
+      "source": "skills/brainstorming/SKILL.md",
+      "destination": ".agents/skills/brainstorming/SKILL.md",
+      "sha256": "61a7ef918652108c76a3fd01e02dd92d39996c6b46d4cb2819cbd03f6c45e46a",
+      "bytes": 13602
+    },
+    {
+      "source": "skills/brainstorming/builder-check-prompt.md",
+      "destination": ".agents/skills/brainstorming/builder-check-prompt.md",
+      "sha256": "36d51a4723d6f0a3ce5811a0ea3b3a8424f07533947e1355f5d8cb8cce40c55e",
+      "bytes": 881
+    },
+    {
+      "source": "skills/brainstorming/visual-companion.md",
+      "destination": ".agents/skills/brainstorming/visual-companion.md",
+      "sha256": "6ffcb038b53254bd31debaa15e12dcd4ff24bd63d690e0b644ac6396701cf2e2",
+      "bytes": 13413
+    },
+    {
+      "source": "skills/writing-plans/SKILL.md",
+      "destination": ".agents/skills/writing-plans/SKILL.md",
+      "sha256": "a6c67c1900064347c2a329990dd3c555657c51c3ec53b259a08aa01a2c26139a",
+      "bytes": 10335
+    },
+    {
+      "source": "skills/executing-plans/SKILL.md",
+      "destination": ".agents/skills/executing-plans/SKILL.md",
+      "sha256": "e4649e59880ef2643d1da128e3d607e87e3f969410d72095a5bf65811b6036dc",
+      "bytes": 18103
+    },
+    {
+      "source": "skills/systematic-debugging/CREATION-LOG.md",
+      "destination": ".agents/skills/systematic-debugging/CREATION-LOG.md",
+      "sha256": "c24733a5b1821bd6bed1fc950261f0b9f4e90097e0bbb96459d8179713730789",
+      "bytes": 4257
+    },
+    {
+      "source": "skills/systematic-debugging/SKILL.md",
+      "destination": ".agents/skills/systematic-debugging/SKILL.md",
+      "sha256": "51c6435d98c83c42c96ba7c35725a0b2c376cd487fb1a4e6bd0ddbe7e33ef202",
+      "bytes": 9530
+    },
+    {
+      "source": "skills/systematic-debugging/condition-based-waiting.md",
+      "destination": ".agents/skills/systematic-debugging/condition-based-waiting.md",
+      "sha256": "e89fec8400d6cd50f43407cec9fab50976ba4d55d0ec2eb51c0bd68036b54c26",
+      "bytes": 3516
+    },
+    {
+      "source": "skills/systematic-debugging/defense-in-depth.md",
+      "destination": ".agents/skills/systematic-debugging/defense-in-depth.md",
+      "sha256": "1e175fb86fc357e58c6aebf5441e481e1b7868b4380c0456b63a17eefbd18ba7",
+      "bytes": 3650
+    },
+    {
+      "source": "skills/systematic-debugging/root-cause-tracing.md",
+      "destination": ".agents/skills/systematic-debugging/root-cause-tracing.md",
+      "sha256": "75b933b6a8c40bdb2031b10f21654395b56ec6ab6bc7b018c18d3fe57aeb7fb8",
+      "bytes": 5321
+    },
+    {
+      "source": "skills/systematic-debugging/test-academic.md",
+      "destination": ".agents/skills/systematic-debugging/test-academic.md",
+      "sha256": "fe2ba480d78ac0d686dc025f41c2a32a43d642bf533f91b0c6053a04d35d6486",
+      "bytes": 653
+    },
+    {
+      "source": "skills/systematic-debugging/test-pressure-1.md",
+      "destination": ".agents/skills/systematic-debugging/test-pressure-1.md",
+      "sha256": "0b6a915db0054577819834c79be9eb614e97bddba10d73768e1fbe91cfed048a",
+      "bytes": 1900
+    },
+    {
+      "source": "skills/systematic-debugging/test-pressure-2.md",
+      "destination": ".agents/skills/systematic-debugging/test-pressure-2.md",
+      "sha256": "b2030aeffba07050e8ad573ddf87486457c4a016a786bb326235bebd856f2016",
+      "bytes": 2283
+    },
+    {
+      "source": "skills/systematic-debugging/test-pressure-3.md",
+      "destination": ".agents/skills/systematic-debugging/test-pressure-3.md",
+      "sha256": "96b50a52e2c7989c9cf20fb752c47c1e9a3a70dc362f8f7989f8f5b64dac7708",
+      "bytes": 2692
+    },
+    {
+      "source": "skills/test-driven-development/SKILL.md",
+      "destination": ".agents/skills/test-driven-development/SKILL.md",
+      "sha256": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
+      "bytes": 9578
+    },
+    {
+      "source": "skills/test-driven-development/writing-good-tests.md",
+      "destination": ".agents/skills/test-driven-development/writing-good-tests.md",
+      "sha256": "51471c853306ff92ca8bb41dcaea05f31c0e46b03651f8f3c99754b7172f4ae1",
+      "bytes": 8268
+    },
+    {
+      "source": "skills/verification-before-completion/SKILL.md",
+      "destination": ".agents/skills/verification-before-completion/SKILL.md",
+      "sha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+      "bytes": 3646
+    },
+    {
+      "source": "skills/requesting-code-review/SKILL.md",
+      "destination": ".agents/skills/requesting-code-review/SKILL.md",
+      "sha256": "2180e14a448e9410bec88e6646a2d1f0ce7fdd58de27388c1e052e929679d2bc",
+      "bytes": 2974
+    },
+    {
+      "source": "skills/requesting-code-review/code-reviewer.md",
+      "destination": ".agents/skills/requesting-code-review/code-reviewer.md",
+      "sha256": "82e370be6b3447523816286195571e4216ba56ba1ad6ad0e87862294c4c78dcb",
+      "bytes": 6449
+    },
+    {
+      "source": "skills/receiving-code-review/SKILL.md",
+      "destination": ".agents/skills/receiving-code-review/SKILL.md",
+      "sha256": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438",
+      "bytes": 6203
+    },
+    {
+      "source": "skills/subagent-driven-development/SKILL.md",
+      "destination": ".agents/skills/subagent-driven-development/SKILL.md",
+      "sha256": "ba41f697136cba88a7962d60c8e2f97488ba04a8688b1d0fbeb27f6953808e75",
+      "bytes": 19506
+    },
+    {
+      "source": "skills/subagent-driven-development/implementer-prompt.md",
+      "destination": ".agents/skills/subagent-driven-development/implementer-prompt.md",
+      "sha256": "81dd9d5a3fb0b09b96b5829f03b9796842f3199ef7591d1ba1c2db2a515f64d0",
+      "bytes": 6335
+    },
+    {
+      "source": "skills/subagent-driven-development/re-review-prompt.md",
+      "destination": ".agents/skills/subagent-driven-development/re-review-prompt.md",
+      "sha256": "0828a5e9cbb12ba49f14621dd8c3953c48c0fc383e75bb5494f055ed0d6d824f",
+      "bytes": 4761
+    },
+    {
+      "source": "skills/subagent-driven-development/references/batching.md",
+      "destination": ".agents/skills/subagent-driven-development/references/batching.md",
+      "sha256": "b54dc7e23dbfb90db89bcb2fb3af591aabf6a271a165fbc0da4c6f9439980eac",
+      "bytes": 583
+    },
+    {
+      "source": "skills/subagent-driven-development/references/cannot-verify.md",
+      "destination": ".agents/skills/subagent-driven-development/references/cannot-verify.md",
+      "sha256": "e698713a15e0eabf1a2ab26ffe1bb04bf70c9d6d2e2060d44a0f9a1bdd4408bf",
+      "bytes": 513
+    },
+    {
+      "source": "skills/subagent-driven-development/references/final-review.md",
+      "destination": ".agents/skills/subagent-driven-development/references/final-review.md",
+      "sha256": "2fd999d86e5dd0b9b32aaf93f2a41663ef30b3e3cb78fb2fd5cb450eb59eb9de",
+      "bytes": 2447
+    },
+    {
+      "source": "skills/subagent-driven-development/references/fix-loop.md",
+      "destination": ".agents/skills/subagent-driven-development/references/fix-loop.md",
+      "sha256": "eafff1f801af2ced86e8761f3eeef04b701860d986ba5d0a8b20d506a75104bb",
+      "bytes": 4249
+    },
+    {
+      "source": "skills/subagent-driven-development/references/handling-reports.md",
+      "destination": ".agents/skills/subagent-driven-development/references/handling-reports.md",
+      "sha256": "8f759cdd4936220c38aab05b6d6c48c6df8ac8f146b0f37a6d2facbf87133c67",
+      "bytes": 1062
+    },
+    {
+      "source": "skills/subagent-driven-development/references/preflight.md",
+      "destination": ".agents/skills/subagent-driven-development/references/preflight.md",
+      "sha256": "3ea21c5fc1af1a190ac8a9d19ceb0849b47bf2ffe27b87dffcc21b6a0539776c",
+      "bytes": 1353
+    },
+    {
+      "source": "skills/subagent-driven-development/references/resuming.md",
+      "destination": ".agents/skills/subagent-driven-development/references/resuming.md",
+      "sha256": "ff6e38bde2276faa2a7e93513086caded0ea10edbf2ec7f349a7e3b0d7c668c4",
+      "bytes": 614
+    },
+    {
+      "source": "skills/subagent-driven-development/task-reviewer-prompt.md",
+      "destination": ".agents/skills/subagent-driven-development/task-reviewer-prompt.md",
+      "sha256": "bfed55c8f19d0ff6ed57b0fe09127c92890e9311c6c73917129598826bf9ebe8",
+      "bytes": 9031
+    },
+    {
+      "source": "skills/using-git-worktrees/SKILL.md",
+      "destination": ".agents/skills/using-git-worktrees/SKILL.md",
+      "sha256": "8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd",
+      "bytes": 6813
+    },
+    {
+      "source": "skills/finishing-a-development-branch/SKILL.md",
+      "destination": ".agents/skills/finishing-a-development-branch/SKILL.md",
+      "sha256": "8db5a922b242dd4e1bf824cb91c13b3e8d8e8a86d6ceaf7f0774eb9cce909d65",
+      "bytes": 7781
+    }
+  ],
+  "not_installed": [
+    "scripts",
+    "hooks",
+    "plugin/MCP/config files",
+    "assets",
+    "agents/role config",
+    "external services",
+    "telemetry/visual companion"
+  ],
+  "excluded_skills": [
+    "dispatching-parallel-agents",
+    "writing-skills",
+    "diagnosing-superpowers"
+  ],
+  "runtime_activation": false
+}

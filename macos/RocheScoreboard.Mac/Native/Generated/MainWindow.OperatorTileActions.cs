@@ -1,5 +1,5 @@
 // Generated from MainWindow.OperatorTileActions.cs; edit translator/adapters.
-// Source SHA-256: bf86c95e4ebf01c5aa8132657f0d64b67e0c416f3b2288b680faab271e56008c
+// Source SHA-256: 1ccd75afbc213235afc2fbb79416109d3ee1ac39ab6726d862ab9e7aaa14b3e3
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -18,9 +18,7 @@ public partial class MainWindow
     private void OperatorTile_AnimCleanCard_Click(object sender,PointerEventArgs args)=>AnimCleanCard_Click(sender,args);
     private void OperatorTile_AnimCustomVideoCard_Click(object sender,PointerEventArgs args)=>AnimCustomVideoCard_Click(sender,args);
     private void OperatorTile_AnimElectricCard_Click(object sender,PointerEventArgs args)=>AnimElectricCard_Click(sender,args);
-    private void OperatorTile_AutoOverlaysCard_Click(object sender,PointerEventArgs args)=>AutoOverlaysCard_Click(sender,args);
     private void OperatorTile_ClassicLayoutCard_Click(object sender,PointerEventArgs args)=>ClassicLayoutCard_Click(sender,args);
-    private void OperatorTile_CopyCloudJoinCode_Click(object sender,PointerEventArgs args)=>CopyCloudJoinCode_Click(sender,args);
     private void OperatorTile_DropperAwayColor_Click(object sender,PointerEventArgs args)=>DropperAwayColor_Click(sender,args);
     private void OperatorTile_DropperAwaySecondaryColor_Click(object sender,PointerEventArgs args)=>DropperAwaySecondaryColor_Click(sender,args);
     private void OperatorTile_DropperHomeColor_Click(object sender,PointerEventArgs args)=>DropperHomeColor_Click(sender,args);
@@ -50,12 +48,9 @@ public partial class MainWindow
     private void OperatorTile_PresCardWindow_Click(object sender,PointerEventArgs args)=>PresCardWindow_Click(sender,args);
     private void OperatorTile_PresCardWorm_Click(object sender,PointerEventArgs args)=>PresCardWorm_Click(sender,args);
     private void OperatorTile_ResetCardSettings_Click(object sender,PointerEventArgs args)=>ResetCardSettings_Click(sender,args);
-    private void OperatorTile_SettingsBreakScreenCard_Click(object sender,PointerEventArgs args)=>SettingsBreakScreenCard_Click(sender,args);
-    private void OperatorTile_SettingsControlPanelCountdownOptionCard_Click(object sender,PointerEventArgs args)=>SettingsControlPanelCountdownOptionCard_Click(sender,args);
     private void OperatorTile_SettingsCountUpCard_Click(object sender,PointerEventArgs args)=>SettingsCountUpCard_Click(sender,args);
     private void OperatorTile_SettingsCountdownCard_Click(object sender,PointerEventArgs args)=>SettingsCountdownCard_Click(sender,args);
     private void OperatorTile_SettingsFinalsCard_Click(object sender,PointerEventArgs args)=>SettingsFinalsCard_Click(sender,args);
-    private void OperatorTile_SettingsHideTeamNamesCard_Click(object sender,PointerEventArgs args)=>SettingsHideTeamNamesCard_Click(sender,args);
     private void OperatorTile_SettingsMinutesMinus_Click(object sender,PointerEventArgs args)=>SettingsMinutesMinus_Click(sender,args);
     private void OperatorTile_SettingsMinutesPlus_Click(object sender,PointerEventArgs args)=>SettingsMinutesPlus_Click(sender,args);
     private void OperatorTile_SettingsNav_Advanced_Click(object sender,PointerEventArgs args)=>SettingsNav_Advanced_Click(sender,args);

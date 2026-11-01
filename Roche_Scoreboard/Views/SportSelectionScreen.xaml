@@ -9,14 +9,18 @@
   <ResourceDictionary Source="../Resources/ControlCentre.xaml"/>
  </ResourceDictionary.MergedDictionaries>
   <LinearGradientBrush x:Key="HomeIconFill" StartPoint=".2,0" EndPoint=".8,1"><GradientStop Color="White"/><GradientStop Color="#D5DEE9" Offset=".55"/><GradientStop Color="#8E9BAC" Offset="1"/></LinearGradientBrush>
+  <DataTemplate x:Key="HomeResumeLabel"><StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="resume" Width="20" Height="20" Margin="0,0,9,0" Foreground="{DynamicResource ControlCentre.TextBrush}"/><TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource ControlCentre.TextBrush}"/></StackPanel></DataTemplate>
   <Style x:Key="SportsLaunchSurface" TargetType="Button">
    <Setter Property="motion:CricketActionMotion.Enabled" Value="False"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="False"/>
    <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="0"/>
    <Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="HorizontalAlignment" Value="Stretch"/><Setter Property="VerticalAlignment" Value="Stretch"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Grid Background="Transparent"><Grid x:Name="PART_Surface" RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform><Border x:Name="PressWash" CornerRadius="32" Background="Transparent" Opacity="0" IsHitTestVisible="False"/><Border x:Name="ActionGlow" CornerRadius="32" Background="Transparent" Opacity="0" IsHitTestVisible="False"/></Grid></Grid><ControlTemplate.Triggers><Trigger Property="IsPressed" Value="True"><Setter TargetName="PressWash" Property="Opacity" Value=".1"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
-  <Style x:Key="HomeUtility" TargetType="Button" BasedOn="{StaticResource ToolBtn}"><Setter Property="MinHeight" Value="44"/><Setter Property="Padding" Value="16,10"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="White"/><Setter Property="FontSize" Value="14"/></Style>
-  <Style x:Key="ReleaseFilter" TargetType="Button" BasedOn="{StaticResource ToolBtn}"><Setter Property="MinHeight" Value="38"/><Setter Property="MinWidth" Value="68"/><Setter Property="Margin" Value="3"/><Setter Property="Padding" Value="13,7"/><Setter Property="FontSize" Value="14"/></Style>
+  <Style x:Key="HomeUtility" TargetType="Button" BasedOn="{StaticResource ToolBtn}"><Setter Property="motion:OperatorControlMotion.InflateOnPress" Value="True"/><Setter Property="MinHeight" Value="44"/><Setter Property="Padding" Value="16,10"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="White"/><Setter Property="FontSize" Value="14"/></Style>
+  <DataTemplate x:Key="ReleaseAllLabel"><StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="release-all" Width="18" Height="18" Margin="0,0,6,0" Foreground="{Binding Foreground,RelativeSource={RelativeSource AncestorType=RadioButton}}"/><TextBlock Text="{Binding}" VerticalAlignment="Center"/></StackPanel></DataTemplate>
+  <DataTemplate x:Key="ReleaseNewLabel"><StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="release-new" Width="18" Height="18" Margin="0,0,6,0" Foreground="{Binding Foreground,RelativeSource={RelativeSource AncestorType=RadioButton}}"/><TextBlock Text="{Binding}" VerticalAlignment="Center"/></StackPanel></DataTemplate>
+  <DataTemplate x:Key="ReleaseFixedLabel"><StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="release-fixed" Width="18" Height="18" Margin="0,0,6,0" Foreground="{Binding Foreground,RelativeSource={RelativeSource AncestorType=RadioButton}}"/><TextBlock Text="{Binding}" VerticalAlignment="Center"/></StackPanel></DataTemplate>
+  <Style x:Key="ReleaseFilter" TargetType="RadioButton" BasedOn="{StaticResource SettingsSegment}"><Setter Property="MinHeight" Value="44"/><Setter Property="Padding" Value="6,7"/><Setter Property="FontSize" Value="14"/></Style>
   <Style x:Key="ReleaseDisclosure" TargetType="Expander">
    <Setter Property="motion:DisclosureMotion.Enabled" Value="True"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Expander"><StackPanel>
@@ -26,20 +30,21 @@
    </StackPanel><ControlTemplate.Triggers><Trigger Property="IsExpanded" Value="True"><Setter TargetName="Body" Property="Visibility" Value="Visible"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
  </ResourceDictionary></UserControl.Resources>
- <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled" PanningMode="Both" CanContentScroll="False" PreviewMouseWheel="ResponsiveScrollHost_PreviewMouseWheel">
- <Grid x:Name="SportViewport" Width="{Binding ViewportWidth, ElementName=ResponsiveScrollHost}" Height="{Binding ViewportHeight, ElementName=ResponsiveScrollHost}" ClipToBounds="True">
+ <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" PanningMode="Both" CanContentScroll="False" PreviewMouseWheel="ResponsiveScrollHost_PreviewMouseWheel">
+ <Grid x:Name="SportViewport" MinHeight="620" Width="{Binding ViewportWidth, ElementName=ResponsiveScrollHost}" Height="{Binding ViewportHeight, ElementName=ResponsiveScrollHost}" ClipToBounds="True">
   <Grid x:Name="HomeBackdrop" IsHitTestVisible="False"><local:OperatorSceneBackdrop/><Border><Border.Background><RadialGradientBrush Center=".5,.45" GradientOrigin=".5,.45" RadiusX=".65" RadiusY=".85"><GradientStop Color="#002B3C55"/><GradientStop Color="#3C02070D" Offset="1"/></RadialGradientBrush></Border.Background></Border></Grid>
   <Grid x:Name="HomeLayout" Margin="28,22,28,24">
-   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
    <Grid x:Name="HomeToolbar">
-    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <local:OperatorGlassSurface x:Name="SettingsTile" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" HorizontalAlignment="Left" Padding="14,9" Cursor="Hand" BorderBrush="#60FFFFFF" BorderThickness="1" MouseLeftButtonUp="Settings_Click" MouseEnter="SettingsTile_MouseEnter" MouseLeave="SettingsTile_MouseLeave">
      <Border.RenderTransform><TransformGroup><ScaleTransform x:Name="SettingsTileScale"/><TranslateTransform x:Name="SettingsTileTranslate"/></TransformGroup></Border.RenderTransform>
      <Border.Effect><DropShadowEffect x:Name="SettingsTileGlow" BlurRadius="18" ShadowDepth="4" Color="Black" Opacity=".18"/></Border.Effect>
      <StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="Settings" Width="22" Height="22" Margin="0,0,9,0" Foreground="White"/><StackPanel VerticalAlignment="Center"><TextBlock x:Name="SettingsActionCaption" Text="Settings" Foreground="White" FontSize="14" FontWeight="SemiBold"/><TextBlock x:Name="SettingsSubtitle" Text="Application preferences" Foreground="#B9C4D4" FontSize="12" Margin="0,2,0,0"/></StackPanel></StackPanel>
     </local:OperatorGlassSurface>
-    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-     <local:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" Visibility="{Binding Visibility, ElementName=ResumeSavedMatchButton}"><Button x:Name="ResumeSavedMatchButton" Content="Continue match" Visibility="Collapsed" Style="{StaticResource HomeUtility}" Click="ResumeSavedMatch_Click" ToolTip="Resume the match you chose to continue later"/></local:OperatorGlassSurface>
+    <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" Style="{StaticResource HomeUtility}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K"/>
+    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+     <local:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" Visibility="{Binding Visibility, ElementName=ResumeSavedMatchButton}"><Button x:Name="ResumeSavedMatchButton" Content="Continue match" Visibility="Collapsed" Style="{StaticResource HomeUtility}" Click="ResumeSavedMatch_Click" ToolTip="Review and resume the saved match"/></local:OperatorGlassSurface>
      <local:OperatorGlassSurface Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0">
       <Button x:Name="ChangelogToggle" Style="{StaticResource HomeUtility}" Click="ChangelogToggle_Click">
        <StackPanel Orientation="Horizontal"><motion:OperatorSymbol x:Name="UpdatesActionIcon" Kind="Updates" Width="20" Height="20" Margin="0,0,8,0" Foreground="White"/><StackPanel><TextBlock Text="What’s New" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="14" FontWeight="SemiBold"/><TextBlock x:Name="VersionLabel" Text="Latest release" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" Margin="0,2,0,0"/></StackPanel></StackPanel>
@@ -51,7 +56,15 @@
     <Border.RenderTransform><TranslateTransform x:Name="HeaderTranslate"/></Border.RenderTransform>
     <StackPanel><TextBlock x:Name="HomeHeading" Text="Choose a sport" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center"/><TextBlock x:Name="HomeSubtitle" Text="Start a match or a training session." Foreground="#D8E2EC" FontSize="15" TextAlignment="Center" Margin="0,7,0,0"/></StackPanel>
    </Border>
-   <Grid x:Name="SportCardsGrid" Grid.Row="2" MaxWidth="1100" Height="330" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+   <Border x:Name="ResumeSessionSurface" Grid.Row="2" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="#6073B9FF" BorderThickness="1" CornerRadius="24" Padding="22,16" Margin="10,0,10,12">
+    <StackPanel>
+     <TextBlock x:Name="SessionHeading" Text="Ready for your next session" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+     <TextBlock x:Name="SessionDetail" Text="No recoverable match saved. Start a new match below." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,6,0,0"/>
+     <TextBlock Text="Output stays off when resuming. Use Show output window (Ctrl+K) when ready." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,7,0,0"/>
+     <Button x:Name="HomeResumeButton" Content="Resume saved match" ContentTemplate="{StaticResource HomeResumeLabel}" Visibility="Collapsed" Click="ResumeSavedMatch_Click" Style="{StaticResource HomeUtility}" HorizontalAlignment="Left" Background="#284E739D" Margin="0,12,0,0"/>
+    </StackPanel>
+   </Border>
+   <Grid x:Name="SportCardsGrid" Grid.Row="3" MaxWidth="1100" Height="330" VerticalAlignment="Center" HorizontalAlignment="Stretch">
     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
     <local:OperatorGlassSurface x:Name="HomeInteractionLens" Material="Clear" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Width="0" Height="0" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.ColumnSpan="3" Grid.RowSpan="3"><Border.RenderTransform><TranslateTransform x:Name="HomeLensTranslate"/></Border.RenderTransform></local:OperatorGlassSurface>
     <local:OperatorGlassSurface x:Name="AflCard" Grid.Column="0" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Margin="10" Cursor="Hand" ClipToBounds="True" MouseEnter="Card_MouseEnter" MouseLeave="Card_MouseLeave" MouseLeftButtonUp="AFL_Click" RenderTransformOrigin=".5,.5">
@@ -118,7 +131,7 @@
      </Grid>
      <Grid x:Name="ReleaseFilterHost" Grid.Row="2" Margin="0,0,0,16">
       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-      <WrapPanel x:Name="ReleaseFilters"><Button x:Name="AllReleaseFilter" Content="All" Tag="All" Style="{StaticResource ReleaseFilter}" Click="ChangelogFilter_Click"/><Button x:Name="NewReleaseFilter" Content="New" Tag="New" Style="{StaticResource ReleaseFilter}" Click="ChangelogFilter_Click"/><Button x:Name="FixedReleaseFilter" Content="Fixed" Tag="Fixed" Style="{StaticResource ReleaseFilter}" Click="ChangelogFilter_Click"/></WrapPanel>
+      <local:OperatorSegmentedPanel x:Name="ReleaseFilters" PreviewKeyDown="ReleaseFilters_PreviewKeyDown" Columns="3" Rows="1" Width="264" Height="44" HorizontalAlignment="Left" AllowScrubbing="True"><RadioButton x:Name="AllReleaseFilter" Content="All" ContentTemplate="{StaticResource ReleaseAllLabel}" Tag="All" GroupName="ReleaseFilterChoice" IsChecked="True" Style="{StaticResource ReleaseFilter}" Checked="ChangelogFilter_Click" Click="ChangelogFilter_Click"/><RadioButton x:Name="NewReleaseFilter" Content="New" ContentTemplate="{StaticResource ReleaseNewLabel}" Tag="New" GroupName="ReleaseFilterChoice" Style="{StaticResource ReleaseFilter}" Checked="ChangelogFilter_Click" Click="ChangelogFilter_Click"/><RadioButton x:Name="FixedReleaseFilter" Content="Fixed" ContentTemplate="{StaticResource ReleaseFixedLabel}" Tag="Fixed" GroupName="ReleaseFilterChoice" Style="{StaticResource ReleaseFilter}" Checked="ChangelogFilter_Click" Click="ChangelogFilter_Click"/></local:OperatorSegmentedPanel>
       <TextBlock x:Name="ReleaseResultCount" Grid.Column="1" Foreground="#B8C4D6" FontSize="12" VerticalAlignment="Center" Margin="12,0,0,0"/>
      </Grid>
      <Grid x:Name="ReleaseLayout" Grid.Row="3">

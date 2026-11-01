@@ -1,5 +1,5 @@
 // Generated from Views/CricketOverlayHost.FreeHit.cs; edit translator/adapters.
-// Source SHA-256: 3666b2d9bee5a6f54072183fc17efdc8c6075f1accb83f981bb3c604c69c9b92
+// Source SHA-256: 1b7f9962612df1fde55aafdefdb8ec95df5de61279e1df19877b88a7fdf69a56
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -38,7 +38,7 @@ public sealed partial class CricketOverlayHost
         bool correction = _freeHitRevision != _match.DeliveryRevision;
         bool appended = !changedInnings && !correction && count > _freeHitDeliveryCount;
         _freeHitInnings = innings; _freeHitRevision = _match.DeliveryRevision; _freeHitDeliveryCount = count;
-        bool available = AllowsOverlays && _match.FreeHitsEnabled && _match.FreeHitPending && !_match.IsMatchFinalized && _match.BreakKind == CricketBreakKind.None;
+        bool available = OutputActive && AllowsOverlays && _match.FreeHitsEnabled && _match.FreeHitPending && !_match.IsMatchFinalized && _match.BreakKind == CricketBreakKind.None;
         if (!available || changedInnings || correction)
         {
             // Recovery and history edits retain the domain's pending indication,
@@ -53,7 +53,7 @@ public sealed partial class CricketOverlayHost
 
     private void QueueFreeHitAlarm()
     {
-        if (_disposed || !AllowsOverlays || !IsLoaded || !IsVisible) return;
+        if (_disposed || !OutputActive || !AllowsOverlays || !IsLoaded || !IsVisible) return;
         _scheduler.Cancel(_clock.Elapsed.TotalSeconds);
         if (_freeHitAlarm && !_exiting)
         {
@@ -120,7 +120,7 @@ public sealed partial class CricketOverlayHost
         }
         stripe.Freeze();
         var tile=new DrawingBrush(NativeDrawing.Geometry(new SolidColorBrush(Color.FromArgb(32,255,208,90)),null,stripe))
-        {TileMode=TileMode.Tile,DestinationRect=new RelativeRect(0,0,160,148,RelativeUnit.Absolute),SourceRect = new RelativeRect(0,0,160,148, RelativeUnit.Absolute),Stretch=Stretch.Fill};
+        {TileMode=TileMode.Tile,DestinationRect=new RelativeRect(0,0,160,148,RelativeUnit.Absolute),SourceRect = new RelativeRect(new Rect(0,0,160,148), RelativeUnit.Absolute),Stretch=Stretch.Fill};
         tile.Freeze();
         var warning=new Rectangle {Tag="free-hit-direction-field",Width=_design.Width+160,Height=148,Fill=tile};
         var flow=new TranslateTransform(-160,0); warning.RenderTransform=flow; _freeHitBackdrop.Children.Add(warning); _freeHitMotion.Add(flow);

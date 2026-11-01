@@ -1,5 +1,5 @@
 // Generated from Services/Cloud/CloudGameSessionService.cs; edit translator/adapters.
-// Source SHA-256: 7a009dc2b2a6d2367f94b5d85be611e262deee3ad9dcf4dd96bcc8be57ae2767
+// Source SHA-256: 404a46a543298546489371026e92153a1695fe034be70d5e071d9acc1c9a5c06
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -25,7 +25,7 @@ namespace Roche_Scoreboard.Services.Cloud;
 /// <see cref="SupabaseRealtimeClient"/> and orchestrated by
 /// <see cref="RemoteControlService"/>.
 /// </summary>
-public sealed class CloudGameSessionService : IDisposable
+public sealed class CloudGameSessionService : IDisposable, ICloudSessionStore
 {
     private readonly SupabaseRestClient _rest;
 

@@ -1,5 +1,5 @@
 // Generated from MainWindow.RestoreMembers.cs; edit translator/adapters.
-// Source SHA-256: e8d76de7850f7569cabbdce412688a3a2adc7e0537b8d95ff17343c3a99265cb
+// Source SHA-256: 193c8a3d53235df9d203d61d8016b4ea1954fa93c6efcc113b040382eb71fb96
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -133,7 +133,14 @@ public partial class MainWindow
     private void EnsureOverlayQueueWired()
     {
         if (_overlayQueueWired || _scorebug == null) return;
-        _scorebug.OverlayHidden += OnOverlayHidden;
+        DetachOverlayQueueOwner();
+        var owner = _scorebug; int generation = _presentationLifetimeGeneration;
+        _overlayHiddenOwner = owner;
+        _overlayHiddenHandler = () =>
+        {
+            if (generation == _presentationLifetimeGeneration && ReferenceEquals(owner, _scorebug)) OnOverlayHidden();
+        };
+        owner.OverlayHidden += _overlayHiddenHandler;
         _overlayQueueWired = true;
     }
 
@@ -224,7 +231,7 @@ public partial class MainWindow
     /// </summary>
     private void EnqueueAutoOverlay(Action showAction, bool isPriority = false, Action? onCancelled = null)
     {
-        if (!_autoOverlaysEnabled)
+        if (!_autoOverlaysEnabled || _outputActivationRequired || _sportMode != SportMode.AFL || _displayWindow?.IsVisible != true || _showingBreakScreen)
         {
             onCancelled?.Invoke();
             return;
@@ -313,87 +320,67 @@ public partial class MainWindow
         bool allowWhenClockStopped = false,
         Action? onCancelled = null)
     {
-        getTimer()?.Stop();
-        DispatcherTimer timer = new() { Interval = delay };
-        setTimer(timer);
-        timer.Tick += (_, _) =>
+        if (getTimer() is { } previous)
         {
-            timer.Stop();
-
-            // An overlay should never trample a goal animation, "+6" swipe,
-            // active goal video, normal mp4 playback, or another on-screen
-            // overlay. Wait until everything has cleared. This keeps the
-            // scoring-run graphic feeling like a follow-up commentary card
-            // rather than something that interrupts live scoring excitement.
-            bool ShouldKeepWaiting() =>
-                (_scorebug != null && _scorebug.IsScoreAnimating) ||
-                (_scorebug != null && _scorebug.IsOverlayActive) ||
-                IsAnyVideoPlaying();
-
-            if (ShouldKeepWaiting())
+            if (_scheduledOverlayCancellations.TryGetValue(previous, out var cancelPrevious)) cancelPrevious();
+            else previous.Stop();
+        }
+        int lifetime = _presentationLifetimeGeneration, screen = _screenTransitionVersion;
+        var owner = _scorebug;
+        DispatcherTimer? active = null;
+        bool completed = false;
+        bool IsCurrent() => lifetime == _presentationLifetimeGeneration && screen == _screenTransitionVersion
+            && ReferenceEquals(owner, _scorebug) && !_outputActivationRequired && _sportMode == SportMode.AFL
+            && _displayWindow?.IsVisible == true && !_showingBreakScreen;
+        void Finish(bool show)
+        {
+            if (completed) return;
+            completed = true;
+            if (active is not null)
             {
-                DispatcherTimer poll = new() { Interval = TimeSpan.FromMilliseconds(200) };
-                setTimer(poll);
-                poll.Tick += (_, _) =>
-                {
-                    if (!ShouldKeepWaiting())
-                    {
-                        poll.Stop();
-                        // Give the restored scorebug one stable visual beat
-                        // before an automatic overlay starts. Starting on the
-                        // exact poll tick that the prior animation ended caused
-                        // the abrupt handoff not seen with manual activation.
-                        DispatcherTimer settle = new() { Interval = TimeSpan.FromMilliseconds(360) };
-                        setTimer(settle);
-                        settle.Tick += (_, _) =>
-                        {
-                            if (ShouldKeepWaiting())
-                                return;
-
-                            settle.Stop();
-                            setTimer(null);
-                            if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning))
-                            {
-                                onCancelled?.Invoke();
-                                return;
-                            }
-                            showAction();
-                        };
-                        settle.Start();
-                    }
-                };
-                poll.Start();
+                active.Stop(); _scheduledOverlayCancellations.Remove(active);
+                if (ReferenceEquals(getTimer(), active)) setTimer(null);
             }
-            else
+            if (show) showAction(); else onCancelled?.Invoke();
+        }
+        void Cancel() => Finish(false);
+        void Start(TimeSpan interval, Action continuation)
+        {
+            if (completed) return;
+            if (active is not null) { active.Stop(); _scheduledOverlayCancellations.Remove(active); }
+            var timer = new DispatcherTimer { Interval = interval }; bool fired = false;
+            active = timer; setTimer(timer); _scheduledOverlayCancellations[timer] = Cancel;
+            timer.Tick += (_, _) =>
             {
-                setTimer(null);
-                if (!_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning))
-                {
-                    onCancelled?.Invoke();
-                    return;
-                }
-                showAction();
-            }
-        };
-        timer.Start();
+                if (fired || completed) return;
+                fired = true; timer.Stop();
+                if (!IsCurrent() || !ReferenceEquals(getTimer(), timer)) { Finish(false); return; }
+                continuation();
+            };
+            timer.Start();
+        }
+        bool Busy() => (_scorebug?.IsScoreAnimating == true) || (_scorebug?.IsOverlayActive == true) || IsAnyVideoPlaying();
+        void ShowWhenValid()
+        {
+            if (!IsCurrent() || !_autoOverlaysEnabled || (!allowWhenClockStopped && !_match.ClockRunning)) Finish(false);
+            else Finish(true);
+        }
+        void Poll()
+        {
+            if (Busy()) Start(TimeSpan.FromMilliseconds(200), Poll);
+            else Start(TimeSpan.FromMilliseconds(360), () => { if (Busy()) Poll(); else ShowWhenValid(); });
+        }
+        if (!IsCurrent()) { Finish(false); return; }
+        Start(delay, () => { if (Busy()) Start(TimeSpan.FromMilliseconds(200), Poll); else ShowWhenValid(); });
     }
 
     /// <summary>Schedules an auto overlay with the default 2-second delay.</summary>
     private void ScheduleAutoOverlay(Action showAction, bool allowWhenClockStopped = false, Action? onCancelled = null)
     {
-        if (_autoOverlayDelayTimer is not null)
-        {
-            _autoOverlayDelayTimer.Stop();
-            _autoOverlayDelayCancellation?.Invoke();
-        }
-        _autoOverlayDelayCancellation = onCancelled;
         ScheduleAutoOverlay(showAction, AutoOverlayDelay,
-            () => _autoOverlayDelayTimer, t =>
-            {
-                _autoOverlayDelayTimer = t;
-                if (t is null) _autoOverlayDelayCancellation = null;
-            },
+            () => _autoOverlayDelayTimer, timer => _autoOverlayDelayTimer = timer,
             allowWhenClockStopped, onCancelled);
+        _autoOverlayDelayCancellation = _autoOverlayDelayTimer is { } timer && _scheduledOverlayCancellations.TryGetValue(timer, out var cancel) ? cancel : null;
     }
 
     // ── Automatic overlay toggle ──
@@ -412,30 +399,6 @@ public partial class MainWindow
             CancelQueuedOverlays();
             _periodicOverlayReserved = false;
         }
-        UpdateAutoOverlaysCardVisuals();
-    }
-
-    private void AutoOverlaysCard_Click(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        AutoOverlaysToggle.IsChecked = AutoOverlaysToggle.IsChecked != true;
-    }
-
-    private void UpdateAutoOverlaysCardVisuals()
-    {
-        if (AutoOverlaysCard == null || AutoOverlaysGlow == null || AutoOverlaysCheck == null) return;
-
-        bool enabled = AutoOverlaysToggle.IsChecked == true;
-
-        AutoOverlaysCard.BorderBrush = enabled
-            ? new SolidColorBrush((Avalonia.Media.Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#3FB950"))
-            : new SolidColorBrush((Avalonia.Media.Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#2A2A40"));
-        AutoOverlaysCard.BorderThickness = new Thickness(2);
-        AutoOverlaysCard.Background = enabled
-            ? new SolidColorBrush((Avalonia.Media.Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#0A1410"))
-            : new SolidColorBrush((Avalonia.Media.Color)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString("#0E0E1A"));
-
-        AutoOverlaysGlow.Opacity = enabled ? 0.12 : 0;
-        AutoOverlaysCheck.IsVisible = enabled ? true : false;
     }
 
     // ── Finals mode toggle (settings tab) ──
@@ -456,48 +419,16 @@ public partial class MainWindow
 
     private void UpdateSettingsFinalsCardVisuals()
     {
-        if (SettingsFinalsCard == null || SettingsFinalsGlow == null) return;
-
-        bool on = SettingsFinalsToggle.IsChecked == true;
-
-        SettingsFinalsCard.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A2020"));
-        SettingsFinalsCard.BorderThickness = new Thickness(2);
-        SettingsFinalsCard.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#70521D")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#242428"));
-
-        SettingsFinalsGlow.Opacity = 0;
-
-        SettingsFinalsTitle.Foreground = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#E1D2AF"));
-
-        // Toggle track + thumb
-        SettingsFinalsTrack.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#2A2008")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#1A1610"));
-        SettingsFinalsTrack.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#3A3018"));
-        SettingsFinalsThumb.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#D4A017")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#E1D2AF"));
-        SettingsFinalsThumb.HorizontalAlignment = on
-            ? Avalonia.Layout.HorizontalAlignment.Right
-            : Avalonia.Layout.HorizontalAlignment.Left;
-        SettingsFinalsThumb.Margin = on ? new Thickness(0, 0, 3, 0) : new Thickness(3, 0, 0, 0);
+        if (SettingsFinalsToggle == null) return;
+        // The original checkbox/template owns state and motion. Remote and
+        // restore callers may refresh descriptions without replaying a gesture.
+        Avalonia.Automation.AutomationProperties.SetItemStatus(SettingsFinalsToggle,
+            SettingsFinalsToggle.IsChecked == true ? "On" : "Off");
     }
 
     // ── Hide team names toggle (settings tab) ──
 
     private bool _hideTeamNames;
-
-    private void SettingsHideTeamNamesCard_Click(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        SettingsHideTeamNamesToggle.IsChecked = SettingsHideTeamNamesToggle.IsChecked != true;
-    }
 
     private void SettingsHideTeamNamesToggle_Changed(object? sender, RoutedEventArgs e)
     {
@@ -511,45 +442,14 @@ public partial class MainWindow
 
     private void UpdateSettingsHideTeamNamesCardVisuals()
     {
-        if (SettingsHideTeamNamesCard == null) return;
-
-        bool on = SettingsHideTeamNamesToggle.IsChecked == true;
-
-        SettingsHideTeamNamesCard.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#1C2030"));
-        SettingsHideTeamNamesCard.BorderThickness = new Thickness(2);
-        SettingsHideTeamNamesCard.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#0A101C")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#080A12"));
-
-        SettingsHideTeamNamesTitle.Foreground = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#7AB8E8")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#4A5A70"));
-
-        SettingsHideTeamNamesTrack.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#0A1828")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#131620"));
-        SettingsHideTeamNamesTrack.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A3040"));
-        SettingsHideTeamNamesThumb.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#4A90D9")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#3A4050"));
-        SettingsHideTeamNamesThumb.HorizontalAlignment = on
-            ? Avalonia.Layout.HorizontalAlignment.Right
-            : Avalonia.Layout.HorizontalAlignment.Left;
-        SettingsHideTeamNamesThumb.Margin = on ? new Thickness(0, 0, 3, 0) : new Thickness(3, 0, 0, 0);
+        if (SettingsHideTeamNamesToggle is not { } toggle) return;
+        Avalonia.Automation.AutomationProperties.SetItemStatus(toggle,
+            toggle.IsChecked == true ? "On — name panels hidden" : "Off — name panels allowed");
     }
 
     // ── Break screen toggle (settings tab) ──
 
     private bool _breakScreenEnabled = true;
-
-    private void SettingsBreakScreenCard_Click(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        SettingsBreakScreenToggle.IsChecked = SettingsBreakScreenToggle.IsChecked != true;
-    }
 
     private void SettingsBreakScreenToggle_Changed(object? sender, RoutedEventArgs e)
     {
@@ -560,38 +460,9 @@ public partial class MainWindow
 
     private void UpdateSettingsBreakScreenCardVisuals()
     {
-        if (SettingsBreakScreenCard == null || SettingsBreakScreenGlow == null) return;
-
-        bool on = SettingsBreakScreenToggle.IsChecked == true;
-
-        SettingsBreakScreenCard.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#1A1A2A"));
-        SettingsBreakScreenCard.BorderThickness = new Thickness(on ? 1 : 1);
-        SettingsBreakScreenCard.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#060A14")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#0A0A10"));
-
-        SettingsBreakScreenGlow.Opacity = on ? 0.10 : 0;
-
-        SettingsBreakScreenTitle.Foreground = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A3A50"));
-
-        // Toggle track + thumb
-        SettingsBreakScreenTrack.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#0A1628")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#0E0E14"));
-        SettingsBreakScreenTrack.BorderBrush = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A2A40"));
-        SettingsBreakScreenThumb.Background = new SolidColorBrush(on
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#58A6FF")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#2A3A50"));
-        SettingsBreakScreenThumb.HorizontalAlignment = on
-            ? Avalonia.Layout.HorizontalAlignment.Right
-            : Avalonia.Layout.HorizontalAlignment.Left;
-        SettingsBreakScreenThumb.Margin = on ? new Thickness(0, 0, 3, 0) : new Thickness(3, 0, 0, 0);
+        if (SettingsBreakScreenToggle is not { } toggle) return;
+        Avalonia.Automation.AutomationProperties.SetItemStatus(toggle,
+            toggle.IsChecked == true ? "On — automatic screens at the next quarter end" : "Off — no automatic screens at the next quarter end");
     }
 
     private void DeferScorePush(TimeSpan duration)
@@ -781,7 +652,7 @@ public partial class MainWindow
         {
             Text = points,
             Foreground = new SolidColorBrush(badgeInk),
-            FontSize = 10,
+            FontSize = 12,
             FontWeight = FontWeight.Black,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
         };
@@ -802,7 +673,7 @@ public partial class MainWindow
         {
             Text = type,
             Foreground = new SolidColorBrush(typeInk),
-            FontSize = 11,
+            FontSize = 13,
             FontWeight = FontWeight.Black,
             Margin = new Thickness(0, 0, 6, 0),
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
@@ -811,8 +682,9 @@ public partial class MainWindow
         TextBlock teamLabel = new()
         {
             Text = teamName.ToUpper(),
+            TextWrapping = TextWrapping.Wrap,
             Foreground = new SolidColorBrush(cardInk),
-            FontSize = 11,
+            FontSize = 13,
             FontWeight = FontWeight.Bold,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
         };
@@ -821,7 +693,7 @@ public partial class MainWindow
         {
             Text = clock,
             Foreground = new SolidColorBrush(cardInk),
-            FontSize = 10,
+            FontSize = 12,
             FontFamily = NativeFonts.Family("Consolas"),
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
@@ -830,15 +702,14 @@ public partial class MainWindow
         StackPanel headerLeft = new() { Orientation = Avalonia.Layout.Orientation.Horizontal };
         headerLeft.Children.Add(pointsBorder);
         headerLeft.Children.Add(typeLabel);
-        headerLeft.Children.Add(teamLabel);
 
         Grid headerRow = new();
-        headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(headerLeft, 0);
-        Grid.SetColumn(clockLabel, 1);
-        headerRow.Children.Add(headerLeft);
-        headerRow.Children.Add(clockLabel);
+        headerRow.ColumnDefinitions.Add(new ColumnDefinition());
+        headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        teamLabel.Margin = new Thickness(0,0,8,0);
+        Grid.SetColumn(teamLabel, 1);Grid.SetColumn(clockLabel, 2);
+        headerRow.Children.Add(headerLeft);headerRow.Children.Add(teamLabel);headerRow.Children.Add(clockLabel);
 
         // ── Scoreline row: HOME G.B.T — AWAY G.B.T ──
         var dimBrush = new SolidColorBrush(cardInk) { Opacity = 0.78 };
@@ -847,8 +718,9 @@ public partial class MainWindow
         TextBlock homeNameScore = new()
         {
             Text = _match.HomeName.ToUpper(),
+            TextWrapping = TextWrapping.Wrap,
             Foreground = isHome ? brightBrush : dimBrush,
-            FontSize = 10,
+            FontSize = 12,
             FontWeight = isHome ? FontWeight.Bold : FontWeight.Normal,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 4, 0)
@@ -858,7 +730,7 @@ public partial class MainWindow
         {
             Text = $"{ev.HomeGoals}.{ev.HomeBehinds}.{ev.HomeTotal}",
             Foreground = isHome ? brightBrush : dimBrush,
-            FontSize = 11,
+            FontSize = 13,
             FontWeight = isHome ? FontWeight.ExtraBold : FontWeight.Normal,
             FontFamily = NativeFonts.Family("Bahnschrift"),
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
@@ -868,7 +740,7 @@ public partial class MainWindow
         {
             Text = "–",
             Foreground = new SolidColorBrush(cardInk) { Opacity = 0.65 },
-            FontSize = 11,
+            FontSize = 13,
             FontWeight = FontWeight.Bold,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
             Margin = new Thickness(6, 0, 6, 0)
@@ -878,7 +750,7 @@ public partial class MainWindow
         {
             Text = $"{ev.AwayGoals}.{ev.AwayBehinds}.{ev.AwayTotal}",
             Foreground = !isHome ? brightBrush : dimBrush,
-            FontSize = 11,
+            FontSize = 13,
             FontWeight = !isHome ? FontWeight.ExtraBold : FontWeight.Normal,
             FontFamily = NativeFonts.Family("Bahnschrift"),
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
@@ -887,49 +759,41 @@ public partial class MainWindow
         TextBlock awayNameScore = new()
         {
             Text = _match.AwayName.ToUpper(),
+            TextWrapping = TextWrapping.Wrap,
             Foreground = !isHome ? brightBrush : dimBrush,
-            FontSize = 10,
+            FontSize = 12,
             FontWeight = !isHome ? FontWeight.Bold : FontWeight.Normal,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
             Margin = new Thickness(4, 0, 0, 0)
         };
 
-        StackPanel scoreLine = new()
-        {
-            Orientation = Avalonia.Layout.Orientation.Horizontal,
-            Margin = new Thickness(0, 2, 0, 0)
-        };
-        scoreLine.Children.Add(homeNameScore);
-        scoreLine.Children.Add(homeScoreLabel);
-        scoreLine.Children.Add(separator);
-        scoreLine.Children.Add(awayScoreLabel);
-        scoreLine.Children.Add(awayNameScore);
+        Grid scoreLine = new() { Margin = new Thickness(0,6,0,0) };
+        foreach (var width in new[] { new GridLength(1,GridUnitType.Star), GridLength.Auto, GridLength.Auto, GridLength.Auto, new GridLength(1,GridUnitType.Star) })
+            scoreLine.ColumnDefinitions.Add(new ColumnDefinition { Width = width });
+        Grid.SetColumn(homeScoreLabel,1);Grid.SetColumn(separator,2);Grid.SetColumn(awayScoreLabel,3);Grid.SetColumn(awayNameScore,4);
+        awayNameScore.TextAlignment = TextAlignment.Right;
+        scoreLine.Children.Add(homeNameScore);scoreLine.Children.Add(homeScoreLabel);scoreLine.Children.Add(separator);scoreLine.Children.Add(awayScoreLabel);scoreLine.Children.Add(awayNameScore);
+        foreach(var numeric in new[]{pointsBadge,homeScoreLabel,awayScoreLabel,clockLabel})
+            numeric.FontFeatures=new FontFeatureCollection { FontFeature.Parse("tnum"), FontFeature.Parse("lnum"), FontFeature.Parse("-kern") };
 
-        // ── Edit hint (hidden by default, revealed on hover with panel expand) ──
+        // ── Stable, discoverable editor affordance; never grows the history list ──
         TextBlock editHint = new()
         {
-            Text = "✎ Click to edit",
+            Text = "Edit score event",
             Foreground = new SolidColorBrush(cardInk),
-            FontSize = 9,
+            FontSize = 12,
             FontWeight = FontWeight.SemiBold,
-            Opacity = 0.0,
+            Opacity = .72,
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-            Margin = new Thickness(8, 0, 0, 0)
+            Margin = new Thickness(0, 0, 0, 0)
         };
 
         Border editHintBar = new NativeBorder()
         {
-            Background = new SolidColorBrush(MediaColor.FromArgb(0x00, 0x81, 0x8C, 0xF8)),
-            BorderBrush = new SolidColorBrush(MediaColor.FromArgb(0x18, 0x81, 0x8C, 0xF8)),
-            BorderThickness = new Thickness(0, 1, 0, 0),
-            CornerRadius = new CornerRadius(0, 0, 4, 4),
-            Padding = new Thickness(0, 3, 0, 3),
-            Margin = new Thickness(-2, 4, -2, -2),
-            Child = editHint,
-            MaxHeight = 22,
-            Height = 0,
-            ClipToBounds = true
+            Tag = "score-log-edit-hint",
+            BorderBrush = new SolidColorBrush(restBorder), BorderThickness = new Thickness(0,1,0,0),
+            Padding = new Thickness(0,6,0,0), Margin = new Thickness(0,6,0,0), Child = editHint
         };
 
         // ── Assemble content ──
@@ -942,76 +806,40 @@ public partial class MainWindow
         inner.Children.Add(accentStripe);
         inner.Children.Add(content);
 
-        Border bar = new NativeBorder()
+        inner.Margin = new Thickness(10,9,12,9);
+        var focusRing = new NativeBorder { Tag = "score-log-keyboard-focus", CornerRadius = new CornerRadius(15), BorderThickness = new Thickness(2), IsHitTestVisible = false, IsVisible = false };
+        focusRing.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.AccentBrush");
+        var row = new Grid();row.Children.Add(inner);row.Children.Add(focusRing);
+        OperatorActionBorder bar = new()
         {
-            Background = new SolidColorBrush(restBg),
-            BorderBrush = new SolidColorBrush(restBorder),
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(6),
-            Margin = new Thickness(0, 0, 0, 4),
-            Padding = new Thickness(6, 6, 8, 6),
-            Child = inner,
-            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
-            Tag = ev,
-            ToolTip = "Click to edit this score event"
+            Background = new SolidColorBrush(restBg), BorderBrush = new SolidColorBrush(restBorder),
+            BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(16),
+            Margin = new Thickness(0,0,0,8), Child = row, Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand), Tag = ev,
         };
-
-        // ── Hover animations ──
-        var bgRest = new SolidColorBrush(restBg);
-        var bgHover = new SolidColorBrush(hoverBg);
-        var borderRest = new SolidColorBrush(restBorder);
-        var borderHover = new SolidColorBrush(hoverBorder);
-
-        bar.PointerEntered += (_, _) =>
+        Avalonia.Controls.ToolTip.SetTip(bar, "Edit this score event — Enter or Space when focused");
+        Avalonia.Automation.AutomationProperties.SetName(bar,$"Edit {type.ToLowerInvariant()} for {teamName}, {clock}");
+        Avalonia.Automation.AutomationProperties.SetHelpText(bar,"Opens the score event editor. The match stays unchanged until an edit is saved.");
+        bool observing = false;
+        void UpdateAffordance(bool animate)
         {
-            bar.Background = bgHover;
-            bar.BorderBrush = borderHover;
-
-            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200))
-            {
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-            };
-            editHint.BeginAnimation(Control.OpacityProperty, fadeIn);
-            editHintBar.BeginAnimation(Control.HeightProperty,
-                new DoubleAnimation(editHintBar.NativeHeight(), 22, TimeSpan.FromMilliseconds(180))
-                { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } });
-
-            // Pop-out the edit hint bar background
-            var bgAnim = new ColorAnimation(
-                MediaColor.FromArgb(0x10, 0x81, 0x8C, 0xF8),
-                TimeSpan.FromMilliseconds(200));
-            ((SolidColorBrush)editHintBar.Background).BeginAnimation(SolidColorBrush.ColorProperty, bgAnim);
-
-            var borderAnim = new ColorAnimation(
-                MediaColor.FromArgb(0x30, 0x81, 0x8C, 0xF8),
-                TimeSpan.FromMilliseconds(200));
-            ((SolidColorBrush)editHintBar.BorderBrush).BeginAnimation(SolidColorBrush.ColorProperty, borderAnim);
-        };
-
-        bar.PointerExited += (_, _) =>
+            bool active = bar.IsPointerOver || bar.IsKeyboardFocusWithin;
+            bool keyboard = bar.IsKeyboardFocusWithin && OperatorInputFocus.GetIsKeyboardMode(bar);
+            bar.Background = new SolidColorBrush(active ? hoverBg : restBg);
+            bar.BorderBrush = new SolidColorBrush(active ? hoverBorder : restBorder);
+            focusRing.IsVisible = keyboard ? true : false;
+            double from = editHint.Opacity, target = active ? 1 : .72;
+            editHint.BeginAnimation(Control.OpacityProperty,null);editHint.Opacity = target;
+            if(animate && OperatorMotion.Enabled && bar.IsLoaded && bar.IsVisible && !OperatorInputFocus.GetIsKeyboardMode(bar))
+                editHint.BeginAnimation(Control.OpacityProperty,new DoubleAnimation(from,target,OperatorMotion.Press){EasingFunction=OperatorMotion.SmoothOut,FillBehavior=FillBehavior.Stop});
+        }
+        void AppearanceChanged() => UpdateAffordance(false);
+        bar.PointerEntered += (_,_) => UpdateAffordance(true);bar.PointerExited += (_,_) => UpdateAffordance(true);
+        bar.GotFocus += (_,_) => UpdateAffordance(false);bar.LostFocus += (_,_) => UpdateAffordance(false);
+        bar.Loaded += (_,_) => { if(!observing){OperatorAppearance.Changed += AppearanceChanged;observing=true;}UpdateAffordance(false); };
+        bar.Unloaded += (_,_) =>
         {
-            bar.Background = bgRest;
-            bar.BorderBrush = borderRest;
-
-            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200))
-            {
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-            };
-            editHint.BeginAnimation(Control.OpacityProperty, fadeOut);
-            editHintBar.BeginAnimation(Control.HeightProperty,
-                new DoubleAnimation(editHintBar.NativeHeight(), 0, TimeSpan.FromMilliseconds(160))
-                { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn } });
-
-            // Fade out the edit hint bar background
-            var bgAnim = new ColorAnimation(
-                MediaColor.FromArgb(0x00, 0x81, 0x8C, 0xF8),
-                TimeSpan.FromMilliseconds(200));
-            ((SolidColorBrush)editHintBar.Background).BeginAnimation(SolidColorBrush.ColorProperty, bgAnim);
-
-            var borderAnim = new ColorAnimation(
-                MediaColor.FromArgb(0x18, 0x81, 0x8C, 0xF8),
-                TimeSpan.FromMilliseconds(200));
-            ((SolidColorBrush)editHintBar.BorderBrush).BeginAnimation(SolidColorBrush.ColorProperty, borderAnim);
+            if(observing){OperatorAppearance.Changed -= AppearanceChanged;observing=false;}
+            editHint.BeginAnimation(Control.OpacityProperty,null);editHint.Opacity=.72;focusRing.IsVisible=false;
         };
 
         bar.PointerReleased += ScoreLogBar_Click;
@@ -1226,6 +1054,7 @@ public partial class MainWindow
 
     private void ControlPanelCountdownResetButton_Click(object? sender, RoutedEventArgs e)
     {
+        InvalidateStoppageEditor();
         PauseControlPanelCountdown(forceAutoPausedFlag: false);
         _controlPanelCountdownRemaining = _controlPanelCountdownDuration;
         _controlPanelCountdownAutoPausedClock = false;
@@ -1246,6 +1075,7 @@ public partial class MainWindow
 
     private void AdjustControlPanelCountdown(TimeSpan delta)
     {
+        InvalidateStoppageEditor();
         // Adjust the live value in place. A running stoppage clock remains running,
         // and the main scoreboard clock is deliberately never touched.
         _controlPanelCountdownRemaining = CalculateAdjustedStoppageTime(
@@ -1290,63 +1120,15 @@ public partial class MainWindow
 
     private void ControlPanelCountdownEditButton_Click(object? sender, RoutedEventArgs e)
     {
-        _countdownEditorGeneration++;
-        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as Avalonia.Controls.Border;
-        var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
-        var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as Avalonia.Controls.TextBox;
-        var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as Avalonia.Controls.TextBox;
-        var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as Avalonia.Controls.TextBlock;
-
-        if (editPopup is null)
-            return;
-
-        if (editMinutesBox is not null)
-            editMinutesBox.Text = ((int)_controlPanelCountdownRemaining.TotalMinutes).ToString("D2");
-
-        if (editSecondsBox is not null)
-            editSecondsBox.Text = _controlPanelCountdownRemaining.Seconds.ToString("D2");
-
-        if (editErrorText is not null)
-        {
-            editErrorText.Text = string.Empty;
-            editErrorText.IsVisible = false;
-        }
-
-        editPopup.BeginAnimation(Control.OpacityProperty, null);
-        popupScale?.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-        popupScale?.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-
-        var editPopupHost = this.FindName("ControlPanelCountdownEditPopupHost") as Avalonia.Controls.Primitives.Popup;
-        if (editPopupHost is not null)
-            editPopupHost.IsOpen = true;
-
-        editPopup.IsVisible = true;
-        editPopup.Opacity = 0;
-        if (popupScale is not null)
-        {
-            popupScale.ScaleX = 0.96;
-            popupScale.ScaleY = 0.96;
-        }
-
-        editPopup.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(170))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        });
-
-        if (popupScale is not null)
-        {
-            popupScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(170))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            });
-            popupScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(170))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            });
-        }
-
-        editMinutesBox?.Focus();
-        editMinutesBox?.SelectAll();
+        if(!StoppageEditorAvailable || FocusExistingStoppageEditor())return;
+        if(StoppagePart<Avalonia.Controls.TextBox>("ControlPanelCountdownEditMinutesBox") is {} minutes)
+            minutes.Text=((int)_controlPanelCountdownRemaining.TotalMinutes).ToString("D2");
+        if(StoppagePart<Avalonia.Controls.TextBox>("ControlPanelCountdownEditSecondsBox") is {} seconds)
+            seconds.Text=_controlPanelCountdownRemaining.Seconds.ToString("D2");
+        if(StoppagePart<Avalonia.Controls.TextBlock>("ControlPanelCountdownEditErrorText") is {} error)
+        {error.Text="";error.IsVisible=false;}
+        OpenStoppageEditor();
+        StoppagePart<Avalonia.Controls.TextBox>("ControlPanelCountdownEditMinutesBox")?.SelectAll();
     }
 
     private void ControlPanelCountdownCancelEditButton_Click(object? sender, RoutedEventArgs e)
@@ -1356,7 +1138,7 @@ public partial class MainWindow
 
     private void ControlPanelCountdownApplyButton_Click(object? sender, RoutedEventArgs e)
     {
-        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as Avalonia.Controls.Border;
+        if(!CanApplyStoppageEditor())return;
         var editMinutesBox = this.FindName("ControlPanelCountdownEditMinutesBox") as Avalonia.Controls.TextBox;
         var editSecondsBox = this.FindName("ControlPanelCountdownEditSecondsBox") as Avalonia.Controls.TextBox;
         var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as Avalonia.Controls.TextBlock;
@@ -1381,13 +1163,7 @@ public partial class MainWindow
         if (_controlPanelCountdownRunning)
             _countdownNextTick = DateTime.UtcNow.AddSeconds(1);
 
-        _countdownEditorGeneration++;
-        if (editPopup is not null)
-            editPopup.IsVisible = false;
-
-        var editPopupHost = this.FindName("ControlPanelCountdownEditPopupHost") as Avalonia.Controls.Primitives.Popup;
-        if (editPopupHost is not null)
-            editPopupHost.IsOpen = false;
+        CompleteStoppageEditorClose(returnFocus:true);
 
         UpdateControlPanelCountdownUi();
     }
@@ -1423,68 +1199,7 @@ public partial class MainWindow
         return Math.Clamp((long)current + step, 0, limit).ToString("D2");
     }
 
-    private void CloseControlPanelCountdownEditPopup()
-    {
-        var editPopup = this.FindName("ControlPanelCountdownEditPopup") as Avalonia.Controls.Border;
-        var popupScale = this.FindName("ControlPanelCountdownEditPopupScale") as ScaleTransform;
-        var cancelEditButton = this.FindName("ControlPanelCountdownCancelEditButton") as Avalonia.Controls.Button;
-        var editErrorText = this.FindName("ControlPanelCountdownEditErrorText") as Avalonia.Controls.TextBlock;
-
-        if (editPopup is null || editPopup.IsVisible != true)
-            return;
-
-        int generation = ++_countdownEditorGeneration;
-        // Capture the rendered values before removing opening animations: their
-        // base values are still zero/.96 and otherwise make Cancel snap shut.
-        double visibleOpacity = editPopup.Opacity;
-        double visibleScale = popupScale?.ScaleX ?? 1;
-        editPopup.BeginAnimation(Control.OpacityProperty, null);
-        popupScale?.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-        popupScale?.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-        editPopup.Opacity = visibleOpacity;
-        if (popupScale is not null)
-            popupScale.ScaleX = popupScale.ScaleY = visibleScale;
-
-        var fade = new DoubleAnimation(editPopup.Opacity, 0, TimeSpan.FromMilliseconds(140))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-        };
-        fade.Completed += (_, _) =>
-        {
-            if (generation != _countdownEditorGeneration) return;
-            editPopup.IsVisible = false;
-            editPopup.Opacity = 0;
-            var popupHostOnClose = this.FindName("ControlPanelCountdownEditPopupHost") as Avalonia.Controls.Primitives.Popup;
-            if (popupHostOnClose is not null)
-                popupHostOnClose.IsOpen = false;
-            if (popupScale is not null)
-            {
-                popupScale.ScaleX = 0.96;
-                popupScale.ScaleY = 0.96;
-            }
-        };
-        editPopup.BeginAnimation(Control.OpacityProperty, fade);
-
-        if (popupScale is not null)
-        {
-            popupScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(popupScale.ScaleX, 0.96, TimeSpan.FromMilliseconds(140))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            });
-            popupScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(popupScale.ScaleY, 0.96, TimeSpan.FromMilliseconds(140))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            });
-        }
-
-        if (cancelEditButton is not null)
-            cancelEditButton.IsVisible = false;
-        if (editErrorText is not null)
-        {
-            editErrorText.Text = string.Empty;
-            editErrorText.IsVisible = false;
-        }
-    }
+    private void CloseControlPanelCountdownEditPopup()=>BeginStoppageEditorClose();
 
     private void HomeGoal_Click(object? sender, RoutedEventArgs e)
     {
@@ -1666,6 +1381,7 @@ public partial class MainWindow
             if (ReferenceEquals(_match.Events[i], ev)) { eventIndex = i; break; }
         }
         if (eventIndex < 0) return;
+        var beforeEdit = ev.Clone();
 
         ScoreEventEditorWindow editor = new(ev, _match.HomeName, _match.AwayName, (HomeColorBox.Text ?? string.Empty), (AwayColorBox.Text ?? string.Empty))
         {
@@ -1673,14 +1389,12 @@ public partial class MainWindow
         };
         editor.ShowDialog();
 
-        bool changed = editor.Result switch
+        if (!TryApplyScoreLogEdit(ev, beforeEdit, editor.Result, editor.SelectedTeam, editor.SelectedType,
+            editor.SelectedGameTime, editor.SelectedQuarter, out string error))
         {
-            ScoreEventEditorWindow.EditorResult.Deleted => _match.RemoveEvent(eventIndex),
-            ScoreEventEditorWindow.EditorResult.Saved => _match.ModifyEvent(eventIndex, editor.SelectedTeam, editor.SelectedType, editor.SelectedGameTime, editor.SelectedQuarter),
-            _ => false
-        };
-
-        if (!changed) return;
+            if (error.Length > 0) RocheScoreboard.Mac.Native.NativeMessageBox.Show(this, error, "Score was not changed", NativeMessageBoxButton.OK, NativeMessageBoxImage.Information);
+            return;
+        }
 
         // Run score validation after the edit
         var warnings = _match.ValidateScoreSequence();
@@ -1688,6 +1402,7 @@ public partial class MainWindow
         {
             string warningText = string.Join("\n", warnings.Select(w => w.Message));
             RocheScoreboard.Mac.Native.NativeMessageBox.Show(
+                this,
                 $"Score validation detected {warnings.Count} issue(s):\n\n{warningText}",
                 "Score Validation Warning",
                 NativeMessageBoxButton.OK,
@@ -1709,17 +1424,79 @@ public partial class MainWindow
         RefreshVisibleScreens();
     }
 
+    // A modal pumps the dispatcher: remote Undo/scoring and reload can replace
+    // or move the original event while the editor is open. A list position is
+    // never an identity. Unrelated later scores remain fully supported.
+    internal bool TryApplyScoreLogEdit(ScoreEvent original, ScoreEvent before, ScoreEventEditorWindow.EditorResult result,
+        TeamSide team, ScoreType type, TimeSpan time, int quarter, out string error)
+    {
+        error = "";
+        if (result == ScoreEventEditorWindow.EditorResult.Cancelled) return false;
+        int index = -1;
+        for (int i = 0; i < _match.Events.Count; i++)
+            if (ReferenceEquals(_match.Events[i], original)) { index = i; break; }
+        if (index < 0 || original.Timestamp != before.Timestamp || original.Team != before.Team || original.Type != before.Type
+            || original.Quarter != before.Quarter || original.GameTime != before.GameTime)
+        {
+            error = "This score was removed, replaced or corrected while the editor was open. No change was applied. Reopen the current score event to review it.";
+            return false;
+        }
+        return result switch
+        {
+            ScoreEventEditorWindow.EditorResult.Deleted => _match.RemoveEvent(index),
+            ScoreEventEditorWindow.EditorResult.Saved => _match.ModifyEvent(index, team, type, time, quarter),
+            _ => false
+        };
+    }
+
     private void AddMatchLogScore_Click(object? sender, RoutedEventArgs e)
     {
-        var editor = new ScoreEventEditorWindow(
-            _match.HomeName, _match.AwayName, _match.Quarter, _match.ElapsedInQuarter,
-            (HomeColorBox.Text ?? string.Empty), (AwayColorBox.Text ?? string.Empty))
+        if (!IsLoaded || !IsVisible || _sportMode != SportMode.AFL || !_aflMatchReady || !MainContent.IsVisible) return;
+        var intendedMatch = _match;
+        var intendedMode = _sportMode;
+        int intendedQuarter = _match.Quarter;
+        bool changed = false, ownerRetired = false;
+        void MatchChanged() => changed = true;
+        void OwnerClosing(object? owner, System.ComponentModel.CancelEventArgs args) => ownerRetired = true;
+        void OwnerClosed(object? owner, EventArgs args) => ownerRetired = true;
+        ScoreEventEditorWindow editor;
+        bool stale;
+        intendedMatch.MatchChanged += MatchChanged;
+        Closing += OwnerClosing;
+        Closed += OwnerClosed;
+        try
         {
-            Owner = this
-        };
-        editor.ShowDialog();
-        if (editor.Result != ScoreEventEditorWindow.EditorResult.Saved) return;
+            editor = new ScoreEventEditorWindow(
+                intendedMatch.HomeName, intendedMatch.AwayName, intendedQuarter, intendedMatch.ElapsedInQuarter,
+                (HomeColorBox.Text ?? string.Empty), (AwayColorBox.Text ?? string.Empty))
+            {
+                Owner = this
+            };
+            editor.ShowDialog();
+            if (editor.Result != ScoreEventEditorWindow.EditorResult.Saved) return;
+            // Unlike Edit, Add has no original event identity to revalidate.
+            // LoadState changes this readonly manager's contents; ordinary
+            // stopwatch ticks do not raise MatchChanged or retire this receipt.
+            stale = changed || ownerRetired || !ReferenceEquals(intendedMatch, _match)
+                || !IsLoaded || !IsVisible || _sportMode != intendedMode || !_aflMatchReady
+                || !MainContent.IsVisible || _match.Quarter != intendedQuarter;
+        }
+        finally
+        {
+            intendedMatch.MatchChanged -= MatchChanged;
+            Closing -= OwnerClosing;
+            Closed -= OwnerClosed;
+        }
+        if (stale)
+        {
+            if (!ownerRetired && IsLoaded && IsVisible && _sportMode == SportMode.AFL && _aflMatchReady && MainContent.IsVisible)
+                RocheScoreboard.Mac.Native.NativeMessageBox.Show(this,
+                    "The match changed while the Add Score editor was open. No score was added. Open Add Score again to review the current match.",
+                    "Score was not added", NativeMessageBoxButton.OK, NativeMessageBoxImage.Information);
+            return;
+        }
 
+        // The receipt is consumed before any queue, output or model mutation.
         ResetScoreAnimationQueue();
         _scorebug?.ResetAllOverlayState();
         ResetPeriodicOverlayTracking();
@@ -1778,23 +1555,45 @@ public partial class MainWindow
         }
     }
 
+    private bool _continueQuarterPromptOpen;
+
     private void ContinueQuarter_Click(object? sender, RoutedEventArgs e)
     {
-        if (!_match.CanContinueQuarter) return;
+        if (_continueQuarterPromptOpen || !_match.CanContinueQuarter) return;
 
-        _controlPanelCountdownRunning = false;
-        _controlPanelCountdownAutoPausedClock = false;
+        int quarter = _match.Quarter;
+        int resumeQ = quarter - 1;
+        var mode = _sportMode;
+        bool contextChanged = false;
+        void MatchChangedWhilePromptOpen() => contextChanged = true;
+        NativeMessageBoxResult confirm;
+        _continueQuarterPromptOpen = true;
+        _match.MatchChanged += MatchChangedWhilePromptOpen;
+        try
+        {
+            confirm = RocheScoreboard.Mac.Native.NativeMessageBox.Show(
+                this,
+                $"This will resume Quarter {resumeQ} from where it left off.\n\nThe next quarter will not start.",
+                $"Resume Q{resumeQ}",
+                NativeMessageBoxButton.OKCancel,
+                NativeMessageBoxImage.Information,
+                NativeMessageBoxResult.Cancel);
+        }
+        finally
+        {
+            _match.MatchChanged -= MatchChangedWhilePromptOpen;
+            _continueQuarterPromptOpen = false;
+        }
 
-        int resumeQ = _match.Quarter - 1;
-        NativeMessageBoxResult confirm = RocheScoreboard.Mac.Native.NativeMessageBox.Show(
-            $"This will resume Quarter {resumeQ} from where it left off.\n\nThe next quarter will not start.",
-            $"Resume Q{resumeQ}",
-            NativeMessageBoxButton.OKCancel,
-            NativeMessageBoxImage.Information);
-
-        if (confirm != NativeMessageBoxResult.OK) return;
+        // The modal pumps messages: remote input, load/reset or a mode change
+        // can replace the state its explanation described. Cancel/rejected
+        // receipts must not mutate either the match or the live countdown.
+        if (confirm != NativeMessageBoxResult.OK || contextChanged || !IsLoaded
+            || _sportMode != mode || _match.Quarter != quarter) return;
 
         if (!_match.ContinueQuarter()) return;
+        _controlPanelCountdownRunning = false;
+        _controlPanelCountdownAutoPausedClock = false;
 
         // Cancel any pending break screen
         if (_breakScreenDelayTimer != null)
@@ -1863,11 +1662,12 @@ public partial class MainWindow
             return;
         }
 
+        if(StoppagePopup?.IsOpen==true && !StoppageContextCurrent)InvalidateStoppageEditor();
         bool visible = _match.ClockMode == ClockMode.CountUp && _showControlPanelCountdown;
         ControlPanelCountdownPanel.IsVisible = visible ? true : false;
         if (!visible)
         {
-            CloseControlPanelCountdownEditPopup();
+            InvalidateStoppageEditor();
             return;
         }
 
@@ -2253,8 +2053,7 @@ public partial class MainWindow
         // video surface owns the render pipeline.
         SuspendScoreboardForPlayback();
 
-        if (VideoTabPreviewBadge != null)
-            VideoTabPreviewBadge.Text = "VIDEO TAKEOVER · ON SCOREBOARD";
+        RefreshVisibleMediaPreview();
     }
 
     private void ExitVideoTakeover()
@@ -2282,8 +2081,7 @@ public partial class MainWindow
             _showingBreakScreen = !ReferenceEquals(restore, _scorebug);
         }
 
-        if (VideoTabPreviewBadge != null)
-            VideoTabPreviewBadge.Text = "LIVE · MIRRORING SCOREBOARD";
+        RefreshVisibleMediaPreview();
     }
 
     /// <summary>
@@ -2833,6 +2631,12 @@ public partial class MainWindow
 
     private void UpdateActiveDisplayLabel(string label)
     {
+        if (_outputActivationRequired)
+        {
+            CurrentDisplayText.Text = "OFF AIR";
+            HeaderOutputText.Text = "Output is off · show output when ready";
+            return;
+        }
         CurrentDisplayText.Text = string.IsNullOrWhiteSpace(label)
             ? "OFF AIR"
             : $"ON AIR · {label.ToUpperInvariant()}";
@@ -2843,7 +2647,7 @@ public partial class MainWindow
     private void SwitchToScreen(Control target, string label, bool fromRotation = false)
     {
         EnsureScoreboardWindow();
-        if (_displayWindow is { IsVisible: false })
+        if (!_outputActivationRequired && _displayWindow is { IsVisible: false })
         {
             _displayWindow.Show();
         }
@@ -2861,6 +2665,7 @@ public partial class MainWindow
             _videoPlayer?.Pause();
         }
 
+        CancelQueuedOverlays(); CancelScheduledOverlayWork();
         int transitionVersion = ++_screenTransitionVersion;
         CancelPresentationAnimations();
 
@@ -2983,8 +2788,9 @@ public partial class MainWindow
     {
         EnsureScoreboardWindow();
         StopBreakRotation();
-        if (_displayWindow is { IsVisible: false }) _displayWindow.Show();
+        if (!_outputActivationRequired && _displayWindow is { IsVisible: false }) _displayWindow.Show();
 
+        CancelQueuedOverlays(); CancelScheduledOverlayWork();
         int transitionVersion = ++_screenTransitionVersion;
         CancelPresentationAnimations();
         Control? current = GetCurrentlyVisibleScreen();
@@ -3627,36 +3433,108 @@ public partial class MainWindow
     private void DropperHomeSecondaryColor_Click(object? sender, PointerEventArgs e) => DropColorInto(HomeSecondaryColorBox, HomeSecondaryColorPreview);
     private void DropperAwaySecondaryColor_Click(object? sender, PointerEventArgs e) => DropColorInto(AwaySecondaryColorBox, AwaySecondaryColorPreview);
 
+    private bool _teamColourPickerOpen;
+
     private void PickColorInto(Avalonia.Controls.TextBox target, Border preview)
     {
-        MediaColor initial;
-        try { initial = (MediaColor)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString((target.Text ?? string.Empty)); }
-        catch { initial = Colors.White; }
-        if (!ColorPickerWindow.TryPick(RocheScoreboard.Mac.Native.NativeWindow.GetWindow(this), initial, out MediaColor picked,
-                previewColor => ApplyTeamColourPreview(target, preview, previewColor))) return;
+        if (_teamColourPickerOpen || !IsLoaded || _sportMode != SportMode.AFL || !_aflMatchReady) return;
+        _teamColourPickerOpen = true;
+        var intendedMatch = _match;
+        long lifetime = intendedMatch.LifecycleVersion;
+        int session = _sessionReplacementGeneration, setup = _setupFlowGeneration;
+        var mode = _sportMode;
+        string originalRaw = (target.Text ?? string.Empty), lastOwnedRaw = originalRaw;
+        var originalBrush = preview.Background;
+        bool active = true, ownerClosed = false, retired = false;
+        // A Closing attempt may be cancelled by a later subscriber. Only an
+        // actual Closed event retires this owner. A hidden current owner can
+        // still roll back its own draft; modal owner.IsEnabled is not authority.
+        void OwnerClosed(object? sender, EventArgs args) => ownerClosed = true;
+        bool ContextCurrent() => active && !ownerClosed && !retired
+            && ReferenceEquals(_match, intendedMatch) && intendedMatch.LifecycleVersion == lifetime
+            && _sessionReplacementGeneration == session && _setupFlowGeneration == setup
+            && _sportMode == mode && _aflMatchReady;
+        bool OwnsValue()
+        {
+            if (!ContextCurrent() || !string.Equals((target.Text ?? string.Empty), lastOwnedRaw, StringComparison.Ordinal))
+            { retired = true; return false; }
+            return true;
+        }
+        Closed += OwnerClosed;
+        try
+        {
+            MediaColor initial;
+            try { initial = (MediaColor)RocheScoreboard.Mac.Native.ColorConverter.ConvertFromString(originalRaw); }
+            catch { initial = Colors.White; }
+            bool accepted = ColorPickerWindow.TryPick(RocheScoreboard.Mac.Native.NativeWindow.GetWindow(this), initial, out MediaColor picked,
+                previewColor =>
+                {
+                    if (!OwnsValue()) return;
+                    if (!ApplyTeamColourPreview(target, preview, previewColor, ContextCurrent))
+                    { retired = true; return; }
+                    lastOwnedRaw = (target.Text ?? string.Empty);
+                });
+            if (!OwnsValue()) return;
+            if (!accepted)
+            {
+                bool previousSuppression = _suppressTeamSync;
+                _suppressTeamSync = true;
+                try
+                {
+                    target.Text = originalRaw; lastOwnedRaw = originalRaw;
+                    if (!OwnsValue()) return;
+                    preview.Background = originalBrush;
+                }
+                finally { _suppressTeamSync = previousSuppression; }
+                if (!OwnsValue()) return;
+                ApplyCurrentTeamColorsToScorebug();
+                if (!OwnsValue()) return;
+                ApplyTeamColorsToScoringPanels();
+                if (OwnsValue()) RefreshVisiblePresentationTeamStyle();
+                return;
+            }
 
-        string hex = $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}";
-        target.Text = hex;
-        preview.Background = new SolidColorBrush(picked);
-        ApplyTeamSettingsLive();
-        RefreshVisiblePresentationTeamStyle();
+            string hex = $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}";
+            target.Text = hex; lastOwnedRaw = hex;
+            if (!OwnsValue()) return;
+            preview.Background = new SolidColorBrush(picked);
+            if (!OwnsValue()) return;
+            ApplyTeamSettingsLive();
+            if (OwnsValue()) RefreshVisiblePresentationTeamStyle();
+        }
+        finally
+        {
+            active = false;
+            Closed -= OwnerClosed;
+            _teamColourPickerOpen = false;
+        }
     }
 
-    private void ApplyTeamColourPreview(Avalonia.Controls.TextBox target, Border preview, MediaColor color)
+    private bool ApplyTeamColourPreview(Avalonia.Controls.TextBox target, Border preview, MediaColor color, Func<bool> current)
     {
+        if (!current()) return false;
         string hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        var expectedRaw = (target.Text ?? string.Empty);
+        bool CurrentValue() => current() && string.Equals((target.Text ?? string.Empty), expectedRaw, StringComparison.Ordinal);
+        bool previousSuppression = _suppressTeamSync;
         _suppressTeamSync = true;
         try
         {
             if (!string.Equals((target.Text ?? string.Empty), hex, StringComparison.OrdinalIgnoreCase))
-                target.Text = hex;
+            { expectedRaw = hex; target.Text = hex; }
         }
-        finally { _suppressTeamSync = false; }
-
+        finally { _suppressTeamSync = previousSuppression; }
+        // Property callbacks can synchronously replace the match or colour.
+        // Never continue painting the previous receipt over that newer state.
+        if (!CurrentValue()) return false;
         preview.Background = new SolidColorBrush(color);
+        if (!CurrentValue()) return false;
         ApplyCurrentTeamColorsToScorebug();
+        if (!CurrentValue()) return false;
         ApplyTeamColorsToScoringPanels();
+        if (!CurrentValue()) return false;
         RefreshVisiblePresentationTeamStyle();
+        return CurrentValue();
     }
 
     private void DropColorInto(Avalonia.Controls.TextBox target, Border preview)
@@ -3692,7 +3570,7 @@ public partial class MainWindow
 
         _homeLogoPath = path;
         HomeLogoStatusText.Text = System.IO.Path.GetFileName(path);
-        ResetLogoCropState();
+        ResetHomeLogoCropState();
         PushAllToScoreboard();
     }
 
@@ -3703,7 +3581,7 @@ public partial class MainWindow
 
         _awayLogoPath = path;
         AwayLogoStatusText.Text = System.IO.Path.GetFileName(path);
-        ResetLogoCropState();
+        ResetAwayLogoCropState();
         PushAllToScoreboard();
     }
 
@@ -3711,7 +3589,7 @@ public partial class MainWindow
     {
         _homeLogoPath = null;
         HomeLogoStatusText.Text = "";
-        ResetLogoCropState();
+        ResetHomeLogoCropState();
         PushAllToScoreboard();
     }
 
@@ -3719,22 +3597,22 @@ public partial class MainWindow
     {
         _awayLogoPath = null;
         AwayLogoStatusText.Text = "";
-        ResetLogoCropState();
+        ResetAwayLogoCropState();
         PushAllToScoreboard();
     }
 
-    private static string? BrowseLogoFile()
+    private string? BrowseLogoFile()
     {
         NativeOpenFileDialog dlg = new()
         {
             Filter = ImageLoadHelper.LogoFilter,
             Title = "Select Team Logo"
         };
-        return dlg.ShowDialog() == true ? dlg.FileName : null;
+        return dlg.ShowDialog(this) == true ? dlg.FileName : null;
     }
 
-    private const int TickerSlotCount = 8;
-    private const int TickerMessageMaxLength = 140;
+    private const int TickerSlotCount = Roche_Scoreboard.Models.TickerMessagePolicy.SlotCount;
+    private const int TickerMessageMaxLength = Roche_Scoreboard.Models.TickerMessagePolicy.MaxTextLength;
     private bool _normalizingTickerSlots;
     private bool _suppressTickerSync;
     private DispatcherTimer? _tickerStatusResetTimer;
@@ -3785,7 +3663,7 @@ public partial class MainWindow
     private static string NormalizeTickerText(string? value)
     {
         if (string.IsNullOrEmpty(value)) return string.Empty;
-        string flattened = value.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ');
+        string flattened = Roche_Scoreboard.Models.TickerMessagePolicy.Flatten(value);
         // Preserve ordinary and trailing spaces while the operator is typing.
         // Removing a newly typed trailing space changed the bound value and
         // returned the caret to the start of the field.
@@ -4108,11 +3986,21 @@ public partial class MainWindow
     }
 
     private void ClearItemHighlightColor_Click(object? sender, PointerEventArgs e)
+        => ClearTickerItemHighlight(sender);
+
+    private void ClearTickerItemHighlight(object? sender)
     {
         if (sender is not Avalonia.Controls.Button btn) return;
         if (btn.Tag is not Roche_Scoreboard.Models.MarqueeMessage msg) return;
         msg.HighlightColor = null;
         SyncTickerMessages();
+    }
+
+    private void TickerItemHighlightColor_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (e.Key != Key.Delete || NativeKeyboard.Modifiers != KeyModifiers.None) return;
+        ClearTickerItemHighlight(sender);
+        e.Handled = true;
     }
 
     private void RemoveMessageItem_Click(object? sender, RoutedEventArgs e)
@@ -4233,6 +4121,14 @@ public partial class MainWindow
             return;
         }
 
+        // Some native radio implementations raise Checked before clearing the
+        // previous group member. Establish exclusivity before the existing
+        // clock handler reads both radios (including accessibility selection).
+        if(ReferenceEquals(sender,ClockModeCountUp) && ClockModeCountUp.IsChecked==true)
+            ClockModeCountdown.IsChecked=false;
+        else if(ReferenceEquals(sender,ClockModeCountdown) && ClockModeCountdown.IsChecked==true)
+            ClockModeCountUp.IsChecked=false;
+
         bool wasRunning = _match.ClockRunning;
         bool wasCountUp = _match.ClockMode == ClockMode.CountUp;
         TimeSpan previousElapsed = _match.ElapsedInQuarter;
@@ -4317,12 +4213,7 @@ public partial class MainWindow
 
     private void ApplyQuarterDuration_Click(object? sender, RoutedEventArgs e)
     {
-        if (!int.TryParse((QuarterMinutesBox.Text ?? string.Empty), out int mins)) return;
-        if (!int.TryParse((QuarterSecondsBox.Text ?? string.Empty), out int secs)) return;
-        if (mins < 0 || mins > 60 || secs < 0 || secs > 59) return;
-        if (mins == 0 && secs == 0) return;
-
-        var duration = TimeSpan.FromMinutes(mins) + TimeSpan.FromSeconds(secs);
+        if (!TryReadLiveQuarterDuration(out TimeSpan duration)) return;
         _match.SetQuarterDuration(duration);
         _controlPanelCountdownDuration = duration;
         if (!_controlPanelCountdownRunning)
@@ -4333,6 +4224,30 @@ public partial class MainWindow
         UpdateClockStatus();
         PushAllToScoreboard();
         BroadcastWebState();
+    }
+
+    private bool TryReadLiveQuarterDuration(out TimeSpan duration)
+    {
+        duration = TimeSpan.Zero;
+        bool validMinutes = int.TryParse((QuarterMinutesBox.Text ?? string.Empty), out int minutes) && minutes is >= 0 and <= 60;
+        bool validSeconds = int.TryParse((QuarterSecondsBox.Text ?? string.Empty), out int seconds) && seconds is >= 0 and <= 59;
+        if (!validMinutes || !validSeconds || (minutes == 0 && seconds == 0))
+        {
+            QuarterDurationError.Text = "Enter 0–60 whole minutes and 0–59 seconds, with a duration greater than 0.";
+            QuarterDurationError.IsVisible = true;
+            var field = !validMinutes || (validSeconds && minutes == 0 && seconds == 0)
+                ? QuarterMinutesBox : QuarterSecondsBox;
+            field.Focus();
+            field.SelectAll();
+            // Enter is not Tab navigation. Use the existing explicit validation
+            // reveal scope so the viewport does not suppress correction feedback.
+            OperatorViewport.RevealValidationError(field);
+            OperatorViewport.RevealValidationError(QuarterDurationError);
+            return false;
+        }
+        QuarterDurationError.IsVisible = false;
+        duration = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+        return true;
     }
 
     private void BrowseVideo_Click(object? sender, RoutedEventArgs e)
@@ -4428,18 +4343,18 @@ public partial class MainWindow
         }
     }
 
+    // Per-instance selection seam; null keeps the native chooser. No file,
+    // playback or automation state is supplied by this callback itself.
+    internal Func<NativeOpenFileDialog,RocheScoreboard.Mac.Native.NativeWindow,bool?>? MediaPickerSelectionOverride { get; set; }
+
     private void VideoTabBrowse_Click(object? sender, RoutedEventArgs e)
     {
+        if(!IsLoaded || !IsVisible || _remoteCommandOwnerClosed)return;
+        var match=_match;long lifetime=match.LifecycleVersion;
+        int session=_sessionReplacementGeneration;var mode=_sportMode;string? previousCue=_customVideoPath;
         string videoExts = "*.mp4;*.m4v;*.mov;*.mkv;*.webm;*.avi;*.wmv;*.flv;"
                          + "*.mpg;*.mpeg;*.ts;*.mts;*.m2ts;*.3gp;*.3g2;*.ogv;*.vob;*.asf";
         string imageExts = "*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff;*.webp";
-
-        if (_breakScreenDelayTimer != null)
-        {
-            _breakScreenDelayTimer.Stop();
-            _breakScreenDelayTimer = null;
-        }
-        StopBreakRotation();
 
         NativeOpenFileDialog picker = new()
         {
@@ -4450,7 +4365,13 @@ public partial class MainWindow
             Multiselect = false
         };
 
-        if (picker.ShowDialog() != true) return;
+        bool? selected=MediaPickerSelectionOverride is { } select?select(picker,this):picker.ShowDialog(this);
+        if (selected != true) return;
+        // A chooser can outlive an operator/session boundary. Ordinary goals
+        // and elapsed-clock updates do not retire this selection intent.
+        if(!IsLoaded || !IsVisible || _remoteCommandOwnerClosed || !ReferenceEquals(match,_match)
+            || lifetime!=match.LifecycleVersion || session!=_sessionReplacementGeneration || mode!=_sportMode
+            || !string.Equals(previousCue,_customVideoPath,StringComparison.Ordinal))return;
 
         _customVideoPath = picker.FileName;
         string pickedExtension = System.IO.Path.GetExtension(_customVideoPath);
@@ -4536,7 +4457,7 @@ public partial class MainWindow
         UpdateVideoTabPlayPauseButton();
         VideoTabStatusText.Text = _customMediaIsImage
             ? "Image loaded. Use \"Show on Scoreboard\" to display it."
-            : "Loaded · paused on first frame. Use \"Show on Scoreboard\" to broadcast.";
+            : "Loaded · playback paused. Use \"Show on Scoreboard\" to broadcast.";
     }
 
     private void VideoTabShowOnScoreboard_Click(object? sender, RoutedEventArgs e)
@@ -4702,7 +4623,7 @@ public partial class MainWindow
         {
             VideoTabApply_Click(this, new RoutedEventArgs());
             if (VideoTabStatusText != null)
-                VideoTabStatusText.Text = "Restored last video · paused on first frame.";
+                VideoTabStatusText.Text = "Restored last video · playback paused.";
         }
         catch
         {
@@ -4763,16 +4684,18 @@ public partial class MainWindow
         if (VideoTabSeekSlider != null && duration > TimeSpan.Zero)
         {
             double totalSec = duration.TotalSeconds;
-            if (Math.Abs(VideoTabSeekSlider.Maximum - totalSec) > 0.05)
+            bool wasSuppressed = _videoTabSuppressSeekFeedback;
+            _videoTabSuppressSeekFeedback = true;
+            try
             {
-                VideoTabSeekSlider.Maximum = totalSec;
+                // Maximum can coerce Value too; both decoder-driven changes
+                // must stay separate from an operator keyboard/automation seek.
+                if (Math.Abs(VideoTabSeekSlider.Maximum - totalSec) > 0.05)
+                    VideoTabSeekSlider.Maximum = totalSec;
+                if (!_videoTabSeekIsDragging)
+                    VideoTabSeekSlider.Value = Math.Min(position.TotalSeconds, totalSec);
             }
-            if (!_videoTabSeekIsDragging)
-            {
-                _videoTabSuppressSeekFeedback = true;
-                VideoTabSeekSlider.Value = Math.Min(position.TotalSeconds, totalSec);
-                _videoTabSuppressSeekFeedback = false;
-            }
+            finally { _videoTabSuppressSeekFeedback = wasSuppressed; }
         }
 
         if (VideoTabCurrentTimeText != null)
@@ -4856,6 +4779,12 @@ public partial class MainWindow
             if (VideoTabCurrentTimeText != null)
                 VideoTabCurrentTimeText.Text = FormatTime(TimeSpan.FromSeconds(e.NewValue));
         }
+        else
+        {
+            // Arrow keys and accessible value changes have no mouse-up or
+            // DragCompleted event. Apply them through the same coalesced seek.
+            ApplySeekFromSlider();
+        }
     }
 
     private void ApplySeekFromSlider()
@@ -4868,17 +4797,22 @@ public partial class MainWindow
         }
     }
 
+    private bool TryGetSelectedVideoSpeed(out double rate)
+    {
+        rate = 1;
+        return VideoTabSpeedCombo?.SelectedItem is Avalonia.Controls.ComboBoxItem { Tag: string tag }
+            && double.TryParse(tag, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out rate);
+    }
+
     private void VideoTabSpeed_Changed(object? sender, Avalonia.Controls.SelectionChangedEventArgs e)
     {
-        if (VideoTabSpeedCombo?.SelectedItem is not Avalonia.Controls.ComboBoxItem item) return;
-        if (item.Tag is not string tag) return;
-        if (!double.TryParse(tag, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double rate))
-            return;
-
-        if (_videoPlayer != null) _videoPlayer.SpeedRatio = rate;
+        if (TryGetSelectedVideoSpeed(out double rate) && _videoPlayer is not null)
+            _videoPlayer.SpeedRatio = rate;
     }
 
     private double _lastAppliedVolume = -1.0;
+    private bool _videoAudioMuted;
     private void VideoTabVolume_Changed(object? sender, Avalonia.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
         // The volume slider raises ValueChanged on every sub-pixel move. VLC
@@ -4895,7 +4829,8 @@ public partial class MainWindow
     private void VideoTabMute_Click(object? sender, RoutedEventArgs e)
     {
         if (_videoPlayer is null) return;
-        _videoPlayer.IsMuted = !_videoPlayer.IsMuted;
+        _videoAudioMuted = !_videoPlayer.IsMuted;
+        _videoPlayer.IsMuted = _videoAudioMuted;
         UpdateVideoTabMuteButtonIcon();
     }
 
@@ -4904,31 +4839,52 @@ public partial class MainWindow
         if (VideoTabMuteButton is null) return;
         bool muted = _videoPlayer?.IsMuted == true;
         double vol = _videoPlayer?.Volume ?? 1.0;
-        VideoTabMuteButton.Content = muted || vol <= 0.001 ? "🔇" : vol < 0.5 ? "🔉" : "🔊";
+        if(FindElement<OperatorSymbol>("VideoTabAudioSymbol") is { } symbol)
+        {symbol.AudioLevel=vol;symbol.AudioMuted=muted || vol<=.001;}
+        string action=$"{(muted?"Unmute":"Mute")} scoreboard audio · volume {Math.Round(vol*100):0}%";
+        Avalonia.Controls.ToolTip.SetTip(VideoTabMuteButton,action);
+        Avalonia.Automation.AutomationProperties.SetName(VideoTabMuteButton,action);
     }
 
-    // Connect the VIDEO-tab preview rectangle to a live VisualBrush of the
-    // scoreboard's display container. The brush updates automatically as the
-    // scoreboard repaints, so the right-hand pane always reflects the real
-    // top-left output (scorebug, break, scoreworm, stats, weather). LibVLC's
-    // native HWND is the one surface a VisualBrush can't sample, so during
-    // an MP4 takeover the local MediaElement overlay (which uses the
-    // optimised playback copy) is shown on top of the mirror.
+    // VisualBrush mirrors managed output without a second decoder. WPF's
+    // native video surface cannot be captured; show explicit guidance instead.
+    // The portable software surface does participate in its visual tree.
+    // Tests can exercise the capability branch, not prove native HWND capture.
+    internal bool NativeVideoMirrorSupported { get; set; } =
+#if WINDOWS
+        false;
+#else
+        true;
+#endif
+
+    private void RefreshVisibleMediaPreview()
+    {
+        if (ReferenceEquals(MainTabControl?.SelectedItem, MediaDeskTab)) AttachLiveMirror();
+    }
+
     private void AttachLiveMirror()
     {
         if (VideoTabLiveMirror is null) return;
-        if (_displayContainer is null)
+        bool outputVisible = _displayWindow is { IsVisible: true } && _displayContainer is not null;
+        bool unavailableMedia = outputVisible && _videoTakeoverActive && !NativeVideoMirrorSupported;
+        if (!outputVisible || _displayContainer is null || unavailableMedia)
         {
-            VideoTabLiveMirror.Fill = null;
-            if (VideoTabPreviewPlaceholder != null)
-                VideoTabPreviewPlaceholder.IsVisible = true;
+            DetachLiveMirror();
+            if (VideoTabPreviewHeading != null)
+                VideoTabPreviewHeading.Text = unavailableMedia ? "Check the output window" : "Output not visible";
+            if (VideoTabPreviewDetail != null)
+                VideoTabPreviewDetail.Text = unavailableMedia
+                    ? "This panel cannot preview media on Windows. Check the output window before you press Play."
+                    : "Open or restore the output window to preview it here. Your match stays unchanged.";
+            if (VideoTabPreviewBadge != null)
+                VideoTabPreviewBadge.Text = unavailableMedia ? "MEDIA · USE OUTPUT WINDOW" : "OUTPUT NOT VISIBLE";
             return;
         }
 
         // Re-use an existing brush if we already attached one — there's no
         // need to rebuild it every tab activation, and recreating the brush
         // forces WPF to discard its cached intermediate render bitmap.
-        if (VideoTabLiveMirror.Fill is not Avalonia.Media.VisualBrush)
+        if (VideoTabLiveMirror.Fill is not Avalonia.Media.VisualBrush existingBrush)
         {
             var brush = new Avalonia.Media.VisualBrush(_displayContainer)
             {
@@ -4946,10 +4902,14 @@ public partial class MainWindow
             VideoTabLiveMirror.Fill = brush;
         }
 
+        // Reopen/replacement must always sample the current output owner.
+        else if (!ReferenceEquals(existingBrush.Visual, _displayContainer))
+            existingBrush.Visual = _displayContainer;
+
         if (VideoTabPreviewPlaceholder != null)
             VideoTabPreviewPlaceholder.IsVisible = false;
-        if (VideoTabPreviewBadge != null && !_videoTakeoverActive)
-            VideoTabPreviewBadge.Text = "LIVE · MIRRORING SCOREBOARD";
+        if (VideoTabPreviewBadge != null)
+            VideoTabPreviewBadge.Text = _videoTakeoverActive ? "MEDIA OUTPUT PREVIEW" : "OUTPUT PREVIEW";
     }
 
     private void DetachLiveMirror()
@@ -5025,6 +4985,7 @@ public partial class MainWindow
 
     private void CancelCurrentOverlay_Click(object? sender, RoutedEventArgs e)
     {
+        InvalidateManualWeatherIntent();
         CancelQueuedOverlays();
         _periodicOverlayReserved = false;
         _autoOverlayDelayTimer?.Stop();
@@ -5125,59 +5086,93 @@ public partial class MainWindow
 
     private async void ManualWeatherForecast_Click(object? sender, RoutedEventArgs e)
     {
+        Task operation = ManualWeatherForecastOperationAsync();
+        ManualWeatherOperationObserved?.Invoke(operation);
+        await operation;
+    }
+
+    private async Task ManualWeatherForecastOperationAsync()
+    {
         SetSelectedPreview("overlay:forecast");
-        var snapshot = await GetWeatherForManualOverlayAsync();
-        if (snapshot is null) return;
+        var request = CaptureManualWeatherRequest();
+        var snapshot = await GetWeatherForManualOverlayAsync(request);
+        if (snapshot is null || !IsCurrentManualWeatherRequest(request)) return;
         if (!TryEnsureOverlaySurface()) return;
         _scorebug.ShowWeatherForecast(snapshot);
     }
 
     private async void ManualWeatherStats_Click(object? sender, RoutedEventArgs e)
     {
+        Task operation = ManualWeatherStatsOperationAsync();
+        ManualWeatherOperationObserved?.Invoke(operation);
+        await operation;
+    }
+
+    private async Task ManualWeatherStatsOperationAsync()
+    {
         SetSelectedPreview("overlay:weather");
-        var snapshot = await GetWeatherForManualOverlayAsync();
-        if (snapshot is null) return;
+        var request = CaptureManualWeatherRequest();
+        var snapshot = await GetWeatherForManualOverlayAsync(request);
+        if (snapshot is null || !IsCurrentManualWeatherRequest(request)) return;
         if (!TryEnsureOverlaySurface()) return;
         _scorebug.ShowWeatherStats(snapshot);
     }
 
     private async void ManualRainForecast_Click(object? sender, RoutedEventArgs e)
     {
+        Task operation = ManualRainForecastOperationAsync();
+        ManualWeatherOperationObserved?.Invoke(operation);
+        await operation;
+    }
+
+    private async Task ManualRainForecastOperationAsync()
+    {
         SetSelectedPreview("overlay:rain");
-        var snapshot = await GetWeatherForManualOverlayAsync();
-        if (snapshot is null) return;
+        var request = CaptureManualWeatherRequest();
+        var snapshot = await GetWeatherForManualOverlayAsync(request);
+        if (snapshot is null || !IsCurrentManualWeatherRequest(request)) return;
         if (!TryEnsureOverlaySurface()) return;
         _scorebug.ShowRainForecast(snapshot);
     }
 
-    private async Task<WeatherSnapshot?> GetWeatherForManualOverlayAsync()
+    private async Task<WeatherSnapshot?> GetWeatherForManualOverlayAsync(ManualWeatherRequest request)
     {
+        if (!IsCurrentManualWeatherRequest(request)) return null;
         WeatherSnapshot? snapshot = _scorebug?.GetWeatherSnapshot();
-        if (snapshot is not null) return snapshot;
-
-        if (string.IsNullOrWhiteSpace(_weatherLocation))
-        {
-            WeatherLocationStatus.Text = "Choose a weather location before using weather overlays.";
-            RocheScoreboard.Mac.Native.NativeMessageBox.Show(this,
-                "Choose a weather location in Settings before showing a weather overlay.",
-                "Weather location required", NativeMessageBoxButton.OK, NativeMessageBoxImage.Information);
-            return null;
-        }
-
-        WeatherLocationStatus.Text = $"Loading weather for {_weatherLocation}…";
-        await StartOrUpdateWeatherServiceAsync(_weatherLocation);
-        snapshot = _scorebug?.GetWeatherSnapshot() ?? _weatherService?.LatestSnapshot;
         if (snapshot is not null)
         {
-            _scorebug?.UpdateWeatherSnapshot(snapshot);
-            WeatherLocationStatus.Text = $"Weather ready for {_weatherLocation}";
+            SetWeatherLocationStatus($"Weather ready for {request.Location}");
             return snapshot;
         }
 
-        WeatherLocationStatus.Text = "Weather unavailable. Check the location and internet connection.";
-        RocheScoreboard.Mac.Native.NativeMessageBox.Show(this,
+        if (string.IsNullOrWhiteSpace(_weatherLocation))
+        {
+            SetWeatherLocationStatus("Choose a weather location before using weather overlays.");
+            ShowManualWeatherFeedback(
+                "Choose a weather location in Settings before showing a weather overlay.",
+                "Weather location required", warning: false);
+            return null;
+        }
+
+        SetWeatherLocationStatus($"Loading weather for {request.Location}…");
+        _manualWeatherPendingRequest = request;
+        try { snapshot = await FetchManualWeatherSnapshotAsync(request.Location!); }
+        finally
+        {
+            if (ReferenceEquals(_manualWeatherPendingRequest, request)) _manualWeatherPendingRequest = null;
+        }
+        if (!IsCurrentManualWeatherRequest(request)) return null;
+        if (snapshot is not null)
+        {
+            _scorebug?.UpdateWeatherSnapshot(snapshot);
+            SetWeatherLocationStatus($"Weather ready for {request.Location}");
+            return snapshot;
+        }
+
+        SetWeatherLocationStatus("Weather unavailable. Check the location and internet connection.");
+        ShowManualWeatherFeedback(
             "Weather could not be loaded. Check the location and internet connection, then try again.",
-            "Weather unavailable", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
+            "Weather unavailable", warning: true);
         return null;
     }
 
@@ -5196,6 +5191,21 @@ public partial class MainWindow
 
         SettingsWeatherLocation.GotFocus += (_, _) => _settingsWeatherActivated = true;
         SettingsWeatherLocation.DropDownOpened += (_, _) => _settingsWeatherActivated = true;
+        RestoreSettingsWeatherLocation((SettingsWeatherLocation.Text ?? string.Empty));
+    }
+
+    private void RestoreSettingsWeatherLocation(string? location)
+    {
+        _suppressSettingsWeatherFilter = true;
+        _settingsWeatherActivated = false;
+        try
+        {
+            SettingsWeatherLocation.IsDropDownOpen = false;
+            SettingsWeatherLocation.Items.Clear();
+            foreach (string city in SetupWizard.AustralianCities) SettingsWeatherLocation.Items.Add(city);
+            SettingsWeatherLocation.Text = location ?? "";
+        }
+        finally { _suppressSettingsWeatherFilter = false; }
     }
 
     private void SettingsWeatherLocation_TextChanged(object? sender, TextChangedEventArgs e)
@@ -5234,12 +5244,15 @@ public partial class MainWindow
 
     private void ApplyWeatherLocation_Click(object? sender, RoutedEventArgs e)
     {
+        // Applying settings is a newer weather intent, including a repeated
+        // location. A retired overlay fetch must not show feedback or air later.
+        InvalidateManualWeatherIntent();
         string location = (SettingsWeatherLocation.Text ?? string.Empty)?.Trim() ?? "";
         _weatherLocation = string.IsNullOrWhiteSpace(location) ? null : location;
         _scorebug?.SetWeatherLocation(_weatherLocation);
-        WeatherLocationStatus.Text = string.IsNullOrWhiteSpace(location)
+        SetWeatherLocationStatus(string.IsNullOrWhiteSpace(location)
             ? "Weather disabled"
-            : $"Weather set to {location}";
+            : $"Weather set to {location}");
         _ = StartOrUpdateWeatherServiceAsync(_weatherLocation);
     }
 
@@ -5248,114 +5261,127 @@ public partial class MainWindow
     /// currently configured location and pushes snapshots into the scorebug
     /// top bar so weather actually shows on the display.
     /// </summary>
-    internal async Task StartOrUpdateWeatherServiceAsync(string? location)
+    internal Task StartOrUpdateWeatherServiceAsync(string? location)
     {
+        Task operation = StartOrUpdateWeatherServiceCoreAsync(location);
+        WeatherLocationOperationObserved?.Invoke(operation);
+        return operation;
+    }
+
+    private async Task StartOrUpdateWeatherServiceCoreAsync(string? location)
+    {
+        var statusRequest = CaptureWeatherLocationStatusRequest(location);
+        ObserveManualWeatherLocation(location);
+        if (!IsLatestWeatherLocationStatusRequest(statusRequest)) return;
+        if (_sportMode == SportMode.AFL)
+        {
+            _scorebug?.SetWeatherLocation(_weatherLocation);
+            PopulateWeatherScreen();
+        }
+        if (_sportMode == SportMode.Cricket
+            && !string.Equals(_activeWeatherLocation, location, StringComparison.OrdinalIgnoreCase))
+        {
+            _cricketScorebug?.ClearWeatherSnapshot();
+            CricketControlPanelView.ClearWeatherSnapshot();
+        }
+        if (!IsLatestWeatherLocationStatusRequest(statusRequest)) return;
+        // Controlled manual-request checks must not launch an unrelated real
+        // background provider from the public location Apply/remote route.
+        if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }
+            && ManualWeatherFetchAsyncOverride is not null) return;
         if (string.IsNullOrWhiteSpace(location))
         {
+            long statusVersion = _weatherLocationStatusTextVersion;
             _weatherService?.Stop();
             _activeWeatherLocation = null;
+            DisableWeatherLocationStatus(statusRequest, statusVersion);
             return;
         }
 
         if (_weatherService is null)
         {
-            _weatherService = new WeatherService();
-            _weatherService.ForecastUpdated += snap =>
-            {
-                if (snap is null) return;
-                // Only refresh the cached snapshot + top weather bar from the
-                // live feed. Don't trigger the forecast overlay here — that
-                // belongs to the OverlayScheduler / manual buttons so it does
-                // not pop up unexpectedly (e.g. when continuing a quarter).
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    _scorebug?.UpdateWeatherSnapshot(snap);
-                    _cricketScorebug?.UpdateWeatherSnapshot(snap);
-                    CricketControlPanelView.UpdateWeatherSnapshot(snap);
-                });
-            };
+            var service = WeatherServiceFactory();
+            _weatherService = service;
+            service.ForecastUpdated += snap => Dispatcher.UIThread.Invoke(() => ApplyCurrentWeatherSnapshot(service, snap));
         }
 
         // Avoid re-geocoding if the location hasn't changed.
         if (string.Equals(_activeWeatherLocation, location, StringComparison.OrdinalIgnoreCase)
             && _weatherService.LatestSnapshot is not null)
         {
-            _scorebug?.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
-            _cricketScorebug?.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
-            CricketControlPanelView.UpdateWeatherSnapshot(_weatherService.LatestSnapshot);
+            long statusVersion = _weatherLocationStatusTextVersion;
+            ApplyCurrentWeatherSnapshot(_weatherService, _weatherService.LatestSnapshot);
+            CompleteWeatherLocationStatus(BeginWeatherLocationStatus(statusRequest, _weatherService, statusVersion));
             return;
         }
 
+        if (!IsLatestWeatherLocationStatusRequest(statusRequest)) return;
         _weatherService.Stop();
+        if (!IsLatestWeatherLocationStatusRequest(statusRequest)) return;
         _activeWeatherLocation = location;
 
-        try { await _weatherService.StartAsync(location); }
+        WeatherLocationStatusOwner? statusOwner = null;
+        long textVersion = _weatherLocationStatusTextVersion;
+        try
+        {
+            // Start transport before painting Loading. Reentrant UI observers
+            // can replace this request without the old caller stopping theirs.
+            Task startup = _weatherService.StartAsync(location);
+            statusOwner = BeginWeatherLocationStatus(statusRequest, _weatherService, textVersion);
+            await startup;
+        }
         catch { /* network/parse failures are surfaced via empty snapshot */ }
+        CompleteWeatherLocationStatus(statusOwner);
+    }
+
+    private void ApplyCurrentWeatherSnapshot(WeatherService service, WeatherSnapshot snapshot)
+    {
+        if (_remoteCommandOwnerClosed || !ReferenceEquals(service, _weatherService)
+            || !ReferenceEquals(snapshot, service.LatestSnapshot)) return;
+        // A shared provider must not relabel another sport's retained figures.
+        if (_sportMode == SportMode.AFL
+            && string.Equals(_activeWeatherLocation, _weatherLocation, StringComparison.OrdinalIgnoreCase))
+        {
+            _scorebug?.SetWeatherLocation(_weatherLocation);
+            _scorebug?.UpdateWeatherSnapshot(snapshot);
+            PopulateWeatherScreen();
+            if (_weatherLocationStatusOwner is { } statusOwner && ReferenceEquals(statusOwner.Service, service))
+                CompleteWeatherLocationStatus(statusOwner);
+        }
+        else if (_sportMode == SportMode.Cricket
+            && string.Equals(_activeWeatherLocation, _cricketMatch?.WeatherLocation, StringComparison.OrdinalIgnoreCase)
+            && CricketControlPanelView.IsWeatherVenueCurrent(_cricketMatch,_activeWeatherLocation))
+        {
+            var cricketMatch=_cricketMatch;string? venue=_activeWeatherLocation;
+            _cricketScorebug?.UpdateWeatherSnapshot(snapshot);
+            if(!ReferenceEquals(snapshot,service.LatestSnapshot) || !CricketControlPanelView.IsWeatherVenueCurrent(cricketMatch,venue))return;
+            CricketControlPanelView.UpdateWeatherSnapshot(snapshot);
+            if (_weatherLocationStatusOwner is { } cricketStatusOwner && ReferenceEquals(cricketStatusOwner.Service, service))
+                CompleteWeatherLocationStatus(cricketStatusOwner);
+        }
     }
 
     // ═══════════════════════════════════════════════════════
-    //  RESET MATCH — cinematic confirmation overlay
+    //  RESET MATCH — one owned, context-bound decision
     // ═══════════════════════════════════════════════════════
 
     private void ResetMatch_Click(object? sender, RoutedEventArgs e)
     {
-        ShowResetOverlay();
-    }
-
-    private void ShowResetOverlay()
-    {
-        ResetOverlay.IsHitTestVisible = true;
-        ResetOverlay.IsVisible = true;
-        var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(250))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        };
-        ResetOverlay.BeginAnimation(OpacityProperty, fadeIn);
+        ShowResetOverlay(sender as Control);
     }
 
     private void CancelReset_Click(object? sender, RoutedEventArgs e)
     {
-        HideResetOverlay();
+        CancelResetDecision();
     }
 
     private void ConfirmReset_Click(object? sender, RoutedEventArgs e)
     {
-        // The sport selector becomes visible during ExecuteMatchReset. Do not
-        // leave a transparent, hit-testable reset layer above it while the old
-        // fade completes.
-        ResetOverlay.BeginAnimation(OpacityProperty, null);
-        ResetOverlay.Opacity = 0;
-        ResetOverlay.IsVisible = false;
-        ResetOverlay.IsHitTestVisible = false;
-        ExecuteMatchReset();
+        ConfirmResetDecision();
     }
 
-    private void HideResetOverlay()
+    private void ResetAflRuntimeForNewMatch()
     {
-        var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-        };
-        fadeOut.Completed += (_, _) =>
-        {
-            ResetOverlay.BeginAnimation(OpacityProperty, null);
-            ResetOverlay.Opacity = 0;
-            ResetOverlay.IsVisible = false;
-            ResetOverlay.IsHitTestVisible = false;
-        };
-        ResetOverlay.BeginAnimation(OpacityProperty, fadeOut);
-    }
-
-    private void ExecuteMatchReset()
-    {
-        _deferredGameStateSaveTimer?.Stop();
-        GameStateService.Clear();
-        _aflMatchReady = false;
-        StopBreakRotation();
-        StopStatsBarTimer();
-        ExitVideoTakeover();
-
-        _match.ResetForNewGame();
         _winProbEngine.Reset();
         _fiveMinWarningShown = false;
         _previousRemainingTime = TimeSpan.MaxValue;
@@ -5364,18 +5390,26 @@ public partial class MainWindow
         _lastDisplayedSecond = -1;
         _overlayQueueWired = false;
         ResetPeriodicOverlayTracking();
-
-        EventList.Children.Clear();
+        RebuildMatchLog();
         LastEventText.Text = string.Empty;
+        _scorebug?.ResetAllOverlayState();
+    }
+
+    private void ExecuteMatchReset()
+    {
+        InvalidateStoppageEditor();
+        InvalidatePresentationWork();
+        _deferredGameStateSaveTimer?.Stop();
+        GameStateService.Clear();
+        _aflMatchReady = false;
+        StopBreakRotation();
+        StopStatsBarTimer();
+        ExitVideoTakeover();
+
+        _match.ResetForNewGame();
+        ResetAflRuntimeForNewMatch();
         UpdateActiveDisplayLabel("No active output");
 
-        // Restore the match log empty state
-        if (MatchLogCountBadge is not null)
-            MatchLogCountBadge.Text = "";
-        if (MatchLogEmptyHint is not null)
-            MatchLogEmptyHint.IsVisible = true;
-
-        _scorebug?.ResetAllOverlayState();
         _scorebug?.SetScores(0, 0, 0, 0);
         if (_scorebug != null) _scorebug.IsVisible = false;
         if (_quarterBreakScorebug != null) _quarterBreakScorebug.IsVisible = false;
@@ -5631,32 +5665,10 @@ public partial class MainWindow
             ? _displayWindow is { IsVisible: true }
             : _cricketDisplayWindow is { IsVisible: true };
 
-        // Animate the thumb position
-        var thumbAnim = new DoubleAnimation(isOpen ? 20 : 0, TimeSpan.FromMilliseconds(200))
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        };
-        WindowToggleThumbTranslate.BeginAnimation(TranslateTransform.XProperty, thumbAnim);
+        UpdatePresentationWindowThumb(isOpen);
 
-        // Colour updates
-        WindowToggleTrack.Background = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#0D4429")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#18212C"));
-        WindowToggleTrack.BorderBrush = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#304055"));
-        WindowToggleThumb.Background = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#8191A4"));
-
-        WindowToggleLabel.Text = isOpen ? "Close" : "Open";
-        WindowToggleLabel.Foreground = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#8191A4"));
-
-        PresCardWindow.BorderBrush = new SolidColorBrush(isOpen
-            ? (MediaColor)MediaColorConverter.ConvertFromString("#3FB950")
-            : (MediaColor)MediaColorConverter.ConvertFromString("#304055"));
+        UpdateAflOutputWindowCardPaint(isOpen);
+        RefreshVisibleMediaPreview();
     }
 
     private void UpdatePresentationCards(string active)
@@ -5675,6 +5687,13 @@ public partial class MainWindow
         foreach (var (card, check, glow, key) in cards)
         {
             bool selected = key == active;
+            if(ReferenceEquals(card,PresCardScorebug)){UpdateAflLiveScorebugCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardSummary)){UpdateAflQuarterSummaryCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardWorm)){UpdateAflMarginFlowCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardStats)){UpdateAflMatchStatsCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardWeather)){UpdateAflWeatherCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardQuarterBreak)){UpdateAflQuarterBreakCardSelection(selected);continue;}
+            if(ReferenceEquals(card,PresCardScreensaver)){UpdateAflScreensaverCardSelection(selected);continue;}
             card.Background = new SolidColorBrush(selected
                 ? (MediaColor)MediaColorConverter.ConvertFromString("#0A1628")
                 : (MediaColor)MediaColorConverter.ConvertFromString("#101721"));
@@ -5844,49 +5863,28 @@ public partial class MainWindow
         SettingsCountdownGlow.Opacity = !countUp ? 0.12 : 0;
         SettingsCountdownCheck.IsVisible = !countUp ? true : false;
 
-        if(_aflSettingsWorkspace is not null)
-        {
-            SettingsCountUpCard.BorderThickness=SettingsCountdownCard.BorderThickness=new Thickness(0);
-            SettingsCountUpCard.Background=SettingsCountdownCard.Background=Avalonia.Media.Brushes.Transparent;
-            SettingsCountUpCheck.IsVisible=SettingsCountdownCheck.IsVisible=false;
-            SettingsCountUpGlow.Opacity=SettingsCountdownGlow.Opacity=0;
-        }
+        if(_aflSettingsWorkspace is not null)UpdateAflClockChoiceState(countUp);
 
         UpdateSettingsControlPanelCountdownOptionVisuals();
     }
 
-    private static void AnimateSettingsDouble(AvaloniaObject target, AvaloniaProperty property, double to, int durationMs, IEasingFunction? easing = null)
+    // XAML initialization and restore/setup assignments synchronize a display
+    // preference; only a native operator Toggle commits it to the live tool.
+    private bool _syncingSettingsStoppageToggle = true;
+    private void SynchronizeSettingsStoppageToggle(bool value)
     {
-        var animation = new DoubleAnimation
-        {
-            To = to,
-            Duration = TimeSpan.FromMilliseconds(durationMs),
-            EasingFunction = easing
-        };
-
-        if (target is Control element)
-        {
-            element.BeginAnimation(property, animation);
-            return;
-        }
-
-        if (target is AvaloniaObject animatable)
-        {
-            animatable.BeginAnimation(property, animation);
-        }
+        bool previous = _syncingSettingsStoppageToggle;
+        _syncingSettingsStoppageToggle = true;
+        try { SettingsShowControlPanelCountdown.IsChecked = value; }
+        finally { _syncingSettingsStoppageToggle = previous; }
     }
 
-    private void SettingsControlPanelCountdownOptionCard_Click(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void SettingsShowControlPanelCountdown_Changed(object? sender, RoutedEventArgs e)
     {
-        if (ClockModeCountUp.IsChecked != true)
+        if (_syncingSettingsStoppageToggle || ClockModeCountUp?.IsChecked != true)
             return;
 
-        var settingsShowCountdownToggle = FindElement<Avalonia.Controls.CheckBox>("SettingsShowControlPanelCountdown");
-        if (settingsShowCountdownToggle is null)
-            return;
-
-        settingsShowCountdownToggle.IsChecked = settingsShowCountdownToggle.IsChecked != true;
-        _showControlPanelCountdown = settingsShowCountdownToggle.IsChecked == true;
+        _showControlPanelCountdown = SettingsShowControlPanelCountdown.IsChecked == true;
         OperatorWorkflowPreferences.Update(p => p.AflControlPanelCountdown = _showControlPanelCountdown);
         if (!_showControlPanelCountdown)
             PauseControlPanelCountdown(forceAutoPausedFlag: false);
@@ -5894,101 +5892,176 @@ public partial class MainWindow
         UpdateControlPanelCountdownUi();
     }
 
-    private void UpdateSettingsControlPanelCountdownOptionVisuals()
+    private bool _settingsCountdownOptionHooked, _settingsCountdownOptionClosed, _updatingSettingsCountdownOption;
+    private int _settingsCountdownOptionGeneration;
+    private readonly List<Control> _settingsCountdownOptionAncestors = new();
+
+    private void WatchSettingsStoppageAncestors()
     {
-        var optionCard = FindElement<Avalonia.Controls.Border>("SettingsControlPanelCountdownOptionCard");
-        var settingsShowCountdownToggle = FindElement<Avalonia.Controls.CheckBox>("SettingsShowControlPanelCountdown");
-        var cardTranslate = FindElement<TranslateTransform>("SettingsControlPanelCountdownCardTranslate");
-        var cardScale = FindElement<ScaleTransform>("SettingsControlPanelCountdownCardScale");
-        var toggleTrack = FindElement<Avalonia.Controls.Border>("SettingsControlPanelCountdownToggleTrack");
-        var thumbTranslate = FindElement<TranslateTransform>("SettingsControlPanelCountdownThumbTranslate");
-        var toggleLabel = FindElement<Avalonia.Controls.TextBlock>("SettingsControlPanelCountdownToggleLabel");
+        foreach (var owner in _settingsCountdownOptionAncestors)
+            NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsVisibleProperty,false,SettingsStoppageHostVisibilityChanged);
+        _settingsCountdownOptionAncestors.Clear();
+        AvaloniaObject? parent = VisualTreeHelper.GetParent(SettingsControlPanelCountdownOptionCard);
+        while (parent is not null)
+        {
+            if (parent is Control element && !_settingsCountdownOptionAncestors.Contains(element))
+                _settingsCountdownOptionAncestors.Add(element);
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        if (!_settingsCountdownOptionAncestors.Contains(this)) _settingsCountdownOptionAncestors.Add(this);
+        foreach (var owner in _settingsCountdownOptionAncestors)
+            NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsVisibleProperty,true,SettingsStoppageHostVisibilityChanged);
+    }
 
-        if (optionCard is null || settingsShowCountdownToggle is null || cardTranslate is null || cardScale is null)
-            return;
+    private void SettingsStoppageHostVisibilityChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
+    {
+        if (!_updatingSettingsCountdownOption) RestSettingsStoppageOption();
+    }
 
-        bool isVisible = ClockModeCountUp.IsChecked == true;
-        bool isEnabled = settingsShowCountdownToggle.IsChecked == true;
-        bool wasCollapsed = _settingsCountdownOptionWasCollapsed;
-        _settingsCountdownOptionWasCollapsed = !isVisible;
+    private void SettingsStoppageAppearanceChanged() => RestSettingsStoppageOption();
 
+    private void SettingsStoppageLoaded(object? sender, RoutedEventArgs args)
+    {
+        WatchSettingsStoppageAncestors();
+        OperatorAppearance.Changed -= SettingsStoppageAppearanceChanged;
+        OperatorAppearance.Changed += SettingsStoppageAppearanceChanged;
+        RestSettingsStoppageOption();
+    }
+
+    private void SettingsStoppageUnloaded(object? sender, RoutedEventArgs args)
+    {
+        foreach (var owner in _settingsCountdownOptionAncestors)
+            NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsVisibleProperty,false,SettingsStoppageHostVisibilityChanged);
+        _settingsCountdownOptionAncestors.Clear();
+        OperatorAppearance.Changed -= SettingsStoppageAppearanceChanged;
+        RestSettingsStoppageOption();
+    }
+
+    private bool SettingsStoppageHostVisible()
+    {
+        if (_settingsCountdownOptionClosed || !IsLoaded || !IsVisible || !SettingsControlPanelCountdownOptionCard.IsLoaded) return false;
+        foreach (var owner in _settingsCountdownOptionAncestors)
+            if (!owner.IsVisible) return false;
+        return true;
+    }
+
+    private void CancelSettingsStoppageMotion()
+    {
+        ++_settingsCountdownOptionGeneration;
         _settingsCountdownOptionHideTimer?.Stop();
         _settingsCountdownOptionHideTimer = null;
+        SettingsControlPanelCountdownOptionCard.BeginAnimation(Control.OpacityProperty, null);
+        SettingsControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        SettingsControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        SettingsControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+    }
 
-        var easeOut = new QuadraticEase { EasingMode = EasingMode.EaseOut };
-
-        if (isVisible)
+    private void SetSettingsStoppageAvailability(bool available)
+    {
+        var card = SettingsControlPanelCountdownOptionCard;
+        bool ownedFocus = card.IsKeyboardFocusWithin;
+        card.IsHitTestVisible = available;
+        SettingsShowControlPanelCountdown.IsEnabled = available;
+        if (!available && ownedFocus)
         {
-            optionCard.BeginAnimation(Control.OpacityProperty, null);
-            cardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            cardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            cardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-            optionCard.IsVisible = true;
-
-            if (wasCollapsed)
-            {
-                optionCard.Opacity = 0;
-                cardTranslate.Y = 18;
-                cardScale.ScaleX = 0.97;
-                cardScale.ScaleY = 0.97;
-
-                AnimateSettingsDouble(optionCard, Control.OpacityProperty, 1, 260, easeOut);
-                AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 0, 280, easeOut);
-                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 1, 260, easeOut);
-                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 1, 260, easeOut);
-            }
-            else
-            {
-                AnimateSettingsDouble(optionCard, Control.OpacityProperty, 1, 180, easeOut);
-                AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 0, 180, easeOut);
-                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 1, 180, easeOut);
-                AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 1, 180, easeOut);
-            }
+            if (ClockModeCountdown.IsVisible && ClockModeCountdown.IsEnabled) ClockModeCountdown.Focus();
+            else NativeKeyboard.ClearFocus();
         }
-        else
+    }
+
+    private void RestSettingsStoppageOption()
+    {
+        if (!_settingsCountdownOptionHooked) return;
+        bool previous = _updatingSettingsCountdownOption;
+        _updatingSettingsCountdownOption = true;
+        try
         {
-            optionCard.BeginAnimation(Control.OpacityProperty, null);
-            cardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-            cardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            cardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            CancelSettingsStoppageMotion();
+            bool available = ClockModeCountUp.IsChecked == true;
+            SetSettingsStoppageAvailability(available);
+            SettingsControlPanelCountdownOptionCard.Opacity = 1;
+            SettingsControlPanelCountdownCardTranslate.Y = 0;
+            SettingsControlPanelCountdownCardScale.ScaleX = 1;
+            SettingsControlPanelCountdownCardScale.ScaleY = 1;
+            _settingsCountdownOptionWasCollapsed = !available;
+            SettingsControlPanelCountdownOptionCard.IsVisible = available ? true : false;
+        }
+        finally { _updatingSettingsCountdownOption = previous; }
+    }
 
-            AnimateSettingsDouble(optionCard, Control.OpacityProperty, 0, 180, easeOut);
-            AnimateSettingsDouble(cardTranslate, TranslateTransform.YProperty, 14, 180, easeOut);
-            AnimateSettingsDouble(cardScale, ScaleTransform.ScaleXProperty, 0.98, 180, easeOut);
-            AnimateSettingsDouble(cardScale, ScaleTransform.ScaleYProperty, 0.98, 180, easeOut);
-
-            _settingsCountdownOptionHideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(190) };
-            _settingsCountdownOptionHideTimer.Tick += (_, _) =>
+    private void UpdateSettingsControlPanelCountdownOptionVisuals()
+    {
+        if (_updatingSettingsCountdownOption || SettingsControlPanelCountdownOptionCard is null
+            || SettingsShowControlPanelCountdown is null || ClockModeCountUp is null) return;
+        var card = SettingsControlPanelCountdownOptionCard;
+        if (!_settingsCountdownOptionHooked)
+        {
+            _settingsCountdownOptionHooked = true;
+            card.Loaded += SettingsStoppageLoaded;
+            card.Unloaded += SettingsStoppageUnloaded;
+            WatchSettingsStoppageAncestors();
+            if (card.IsLoaded) OperatorAppearance.Changed += SettingsStoppageAppearanceChanged;
+            Closed += (_, _) => { _settingsCountdownOptionClosed = true; SettingsStoppageUnloaded(card, new RoutedEventArgs()); };
+            RestSettingsStoppageOption();
+        }
+        _updatingSettingsCountdownOption = true;
+        try
+        {
+            bool available = ClockModeCountUp.IsChecked == true;
+            SetSettingsStoppageAvailability(available);
+            if (!OperatorMotion.Enabled || !SettingsStoppageHostVisible())
             {
-                _settingsCountdownOptionHideTimer?.Stop();
-                _settingsCountdownOptionHideTimer = null;
-                if (ClockModeCountUp.IsChecked != true)
-                {
-                    optionCard.IsVisible = false;
-                }
+                RestSettingsStoppageOption();
+                return;
+            }
+            // Same-value model/selection refreshes must not restart a reveal.
+            if (_settingsCountdownOptionWasCollapsed == !available) return;
+            bool freshEntry = card.IsVisible == false;
+            double opacity = card.Opacity, y = SettingsControlPanelCountdownCardTranslate.Y;
+            double scaleX = SettingsControlPanelCountdownCardScale.ScaleX, scaleY = SettingsControlPanelCountdownCardScale.ScaleY;
+            CancelSettingsStoppageMotion();
+            int generation = _settingsCountdownOptionGeneration;
+            _settingsCountdownOptionWasCollapsed = !available;
+            card.IsVisible = true;
+            if (available && freshEntry)
+            {
+                opacity = 0; y = 18 * OperatorMotion.TravelScale;
+                scaleX = scaleY = 1 - .03 * OperatorMotion.TravelScale;
+            }
+            card.Opacity = opacity;
+            SettingsControlPanelCountdownCardTranslate.Y = y;
+            SettingsControlPanelCountdownCardScale.ScaleX = scaleX;
+            SettingsControlPanelCountdownCardScale.ScaleY = scaleY;
+            var duration = available ? OperatorMotion.Page : OperatorMotion.SurfaceClose;
+            var fade = new DoubleAnimation(available ? 1 : 0, duration) { EasingFunction = OperatorMotion.SmoothOut };
+            fade.Completed += (_, _) =>
+            {
+                if (generation == _settingsCountdownOptionGeneration
+                    && (ClockModeCountUp.IsChecked == true) == available) RestSettingsStoppageOption();
             };
-            _settingsCountdownOptionHideTimer.Start();
+            card.BeginAnimation(Control.OpacityProperty, fade);
+            SettingsControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(available ? 0 : 10 * OperatorMotion.TravelScale, duration) { EasingFunction = OperatorMotion.SmoothOut });
+            foreach (var property in new[] { ScaleTransform.ScaleXProperty, ScaleTransform.ScaleYProperty })
+                SettingsControlPanelCountdownCardScale.BeginAnimation(property,
+                    new DoubleAnimation(available ? 1 : 1 - .02 * OperatorMotion.TravelScale, duration) { EasingFunction = OperatorMotion.SmoothOut });
+            if (!available)
+            {
+                // A bounded fallback also retires exit on an occluded compositor.
+                var timer = new DispatcherTimer { Interval = duration + TimeSpan.FromMilliseconds(100) };
+                timer.Tick += (_, _) =>
+                {
+                    timer.Stop();
+                    if (generation != _settingsCountdownOptionGeneration || !ReferenceEquals(_settingsCountdownOptionHideTimer, timer)) return;
+                    _settingsCountdownOptionHideTimer = null;
+                    RestSettingsStoppageOption();
+                };
+                _settingsCountdownOptionHideTimer = timer;
+                timer.Start();
+            }
         }
-
-        optionCard.Background = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#0E1B2B" : "#10161D"));
-        optionCard.BorderBrush = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#30363D"));
-        optionCard.BorderThickness = new Thickness(2);
-
-        if (toggleTrack is not null)
-            toggleTrack.Background = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#2D333B"));
-
-        if (thumbTranslate is not null)
-            thumbTranslate.X = isEnabled ? 24 : 0;
-
-        if (toggleLabel is not null)
-        {
-            toggleLabel.Text = isEnabled ? "ON" : "OFF";
-            toggleLabel.Foreground = new SolidColorBrush((MediaColor)MediaColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#8B949E"));
-        }
-
-        // Rendering this settings card must be side-effect free. The live
-        // preference changes only from an explicit operator click, setup
-        // completion, clock-mode change or saved-state restore.
+        finally { _updatingSettingsCountdownOption = false; }
+        // Visibility/paint never commits a preference or changes either clock.
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -5999,7 +6072,7 @@ public partial class MainWindow
     {
         if (int.TryParse((QuarterMinutesBox.Text ?? string.Empty), out int mins))
         {
-            QuarterMinutesBox.Text = Math.Max(1, mins - 1).ToString();
+            QuarterMinutesBox.Text = Math.Max(0, mins - 1).ToString();
             ApplyQuarterDuration_Click(sender, new RoutedEventArgs());
         }
     }
@@ -6065,8 +6138,19 @@ public partial class MainWindow
 
     private void ClockSet_Click(object? sender, RoutedEventArgs e)
     {
-        if (!int.TryParse((ClockSetMinutesBox.Text ?? string.Empty), out int mins)) mins = 0;
-        if (!int.TryParse((ClockSetSecondsBox.Text ?? string.Empty), out int secs)) secs = 0;
+        bool validMinutes = int.TryParse((ClockSetMinutesBox.Text ?? string.Empty), out int mins) && mins is >= 0 and <= 999;
+        bool validSeconds = int.TryParse((ClockSetSecondsBox.Text ?? string.Empty), out int secs) && secs is >= 0 and <= 59;
+        if (!validMinutes || !validSeconds)
+        {
+            ClockSetError.Text = "Enter minutes from 0 to 999 and seconds from 0 to 59. The clock has not changed.";
+            ClockSetError.IsVisible = true;
+            Views.OperatorViewport.RevealValidationError(ClockSetError);
+            var invalidField = validMinutes ? ClockSetSecondsBox : ClockSetMinutesBox;
+            invalidField.Focus();
+            invalidField.SelectAll();
+            return;
+        }
+        ClockSetError.IsVisible = false;
 
         TimeSpan target = TimeSpan.FromMinutes(mins) + TimeSpan.FromSeconds(secs);
 
@@ -6236,13 +6320,13 @@ public partial class MainWindow
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Settings tab — NativeWindow dimension steppers
+    // Settings tab — Window dimension steppers
     // ═══════════════════════════════════════════════════════════════
 
     private void WidthMinus_Click(object? sender, Avalonia.Input.PointerEventArgs e)
     {
         if (int.TryParse((WindowWidthBox.Text ?? string.Empty), out int w))
-            WindowWidthBox.Text = Math.Max(200, w - 1).ToString();
+            WindowWidthBox.Text = Math.Max(50, w - 1).ToString();
     }
 
     private void WidthPlus_Click(object? sender, Avalonia.Input.PointerEventArgs e)
@@ -6254,7 +6338,7 @@ public partial class MainWindow
     private void HeightMinus_Click(object? sender, Avalonia.Input.PointerEventArgs e)
     {
         if (int.TryParse((WindowHeightBox.Text ?? string.Empty), out int h))
-            WindowHeightBox.Text = Math.Max(100, h - 1).ToString();
+            WindowHeightBox.Text = Math.Max(50, h - 1).ToString();
     }
 
     private void HeightPlus_Click(object? sender, Avalonia.Input.PointerEventArgs e)

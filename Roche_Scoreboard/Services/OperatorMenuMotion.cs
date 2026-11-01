@@ -14,6 +14,15 @@ public static class OperatorMenuMotion
     public static void SetEnabled(DependencyObject target, bool value) => target.SetValue(EnabledProperty, value);
     public static bool GetEnabled(DependencyObject target) => (bool)target.GetValue(EnabledProperty);
     private static readonly ConditionalWeakTable<ContextMenu, State> States = new();
+    // A class Opened handler runs before the instance handler. Resolve the
+    // actual styled part here rather than relying on State.Open having run.
+    internal static bool OwnsArrival(ContextMenu menu)
+        => GetEnabled(menu) && States.TryGetValue(menu, out _) && Surface(menu) is not null;
+    private static FrameworkElement? Surface(ContextMenu menu)
+    {
+        menu.ApplyTemplate();
+        return menu.Template?.FindName("PART_MenuSurface", menu) as FrameworkElement;
+    }
     private static void Changed(DependencyObject target, DependencyPropertyChangedEventArgs args)
     {
         if (target is not ContextMenu menu) return;
@@ -28,13 +37,14 @@ public static class OperatorMenuMotion
         internal State(ContextMenu menu) { _menu = menu; menu.Opened += Open; menu.Closed += Close; }
         private void Open(object sender, RoutedEventArgs args)
         {
-            Reset(); _menu.ApplyTemplate(); _surface = _menu.Template.FindName("PART_MenuSurface", _menu) as FrameworkElement;
+            Reset(); _surface = Surface(_menu);
             if (_surface is null) return;
             OperatorAppearance.Changed += PreferenceChanged;
+            SystemParameters.StaticPropertyChanged += SystemPreferenceChanged;
             _surface.RenderTransformOrigin = Origin(); _surface.RenderTransform = _scale;
             if (!OperatorMotion.Enabled) return;
-            _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.94, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.68, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1-.06*OperatorMotion.TravelScale, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1-.32*OperatorMotion.TravelScale, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
             _surface.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(.65, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
         }
         private System.Windows.Point Origin()
@@ -48,11 +58,18 @@ public static class OperatorMenuMotion
             }
             catch(InvalidOperationException){return new(.5,0);}
         }
-        private void PreferenceChanged() { if (!OperatorMotion.Enabled) Reset(); }
+        private void SystemPreferenceChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs args)
+        { if (args.PropertyName == nameof(SystemParameters.ClientAreaAnimation)) PreferenceChanged(); }
+        private void PreferenceChanged()
+        {
+            if (!_menu.Dispatcher.CheckAccess()) { _menu.Dispatcher.BeginInvoke(new Action(PreferenceChanged)); return; }
+            if (!OperatorMotion.Enabled) Reset();
+        }
         private void Close(object sender, RoutedEventArgs args) => Reset();
         private void Reset()
         {
             OperatorAppearance.Changed -= PreferenceChanged;
+            SystemParameters.StaticPropertyChanged -= SystemPreferenceChanged;
             _scale.BeginAnimation(ScaleTransform.ScaleXProperty, null); _scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
             if (_surface is not null) { _surface.BeginAnimation(UIElement.OpacityProperty, null); _surface.RenderTransform = Transform.Identity; }
             _surface = null;

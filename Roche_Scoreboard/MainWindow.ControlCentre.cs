@@ -37,7 +37,7 @@ public partial class MainWindow
         RefreshAflClockChoices();
         RefreshOperatorForm(AflOutputColumns);
         RefreshAflPresentationChoices();
-        workspace.CategoryChanged+=category=>{_settingsActiveCategory=category.ToLowerInvariant();_uxPreferences.LastSettingsCategory=_settingsActiveCategory;QueueUxPreferencesSave();};
+        workspace.CategoryChanged+=category=>{RetireKeybindCapture();_settingsActiveCategory=category.ToLowerInvariant();_uxPreferences.LastSettingsCategory=_settingsActiveCategory;QueueUxPreferencesSave();};
         Grid.SetColumnSpan(workspace,2);Grid.SetRowSpan(workspace,2);AflSettingsColumns.Children.Add(workspace);
     }
 
@@ -95,8 +95,15 @@ public partial class MainWindow
         SetPageHeight(AflScoringColumns, AflMatchPageViewport, stacked, 24);
         SetPageHeight(AflOutputColumns, AflOutputPageViewport, stacked, 24);
         SetPageHeight(AflMediaColumns, AflMediaPageViewport, stacked, 24);
-        AflSettingsColumns.Height = Math.Max(80, AflSettingsPageViewport.ActualHeight);
-        AflSettingsPageViewport.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+        // Keep a usable inner form viewport when a short window leaves less
+        // space than the category/search header. The page then scrolls as a
+        // whole, so its header can leave room for fields without covering the
+        // fixed navigation dock.
+        const double minimumSettingsPageHeight = 320;
+        double settingsHeight = AflSettingsPageViewport.ActualHeight;
+        AflSettingsColumns.Height = Math.Max(minimumSettingsPageHeight, settingsHeight);
+        AflSettingsPageViewport.VerticalScrollBarVisibility = settingsHeight < minimumSettingsPageHeight
+            ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
         MatchLogPanel.MaxHeight = stacked ? 330 : double.PositiveInfinity;
         AflHeaderMarginSurface.Visibility = ActualWidth < 1100 ? Visibility.Collapsed : Visibility.Visible;
         StatusBadge.Visibility = ActualWidth < 560 ? Visibility.Collapsed : Visibility.Visible;
@@ -126,7 +133,9 @@ public partial class MainWindow
         AflMediaColumns.RowDefinitions.Clear();
         AflMediaColumns.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         AflMediaColumns.RowDefinitions.Add(new RowDefinition { Height = stacked ? GridLength.Auto : new GridLength(1, GridUnitType.Star) });
-        if (stacked) AflMediaColumns.RowDefinitions.Add(new RowDefinition { Height = new GridLength(300) });
+        // Let the existing page scroll include a fully readable media notice.
+        // A fixed 300px row clipped its last lines beneath the transport strip.
+        if (stacked) AflMediaColumns.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         AflMediaColumns.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
         AflMediaColumns.ColumnDefinitions[1].Width = new GridLength(stacked ? 0 : 20);
         AflMediaColumns.ColumnDefinitions[2].Width = stacked ? new GridLength(0) : new GridLength(1.2, GridUnitType.Star);

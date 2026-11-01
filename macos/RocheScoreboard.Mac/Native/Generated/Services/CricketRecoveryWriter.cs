@@ -1,5 +1,5 @@
 // Generated from Services/CricketRecoveryWriter.cs; edit translator/adapters.
-// Source SHA-256: 100d0220862fce0d7aff77fe45d9ea1f953726abaf5dca1ee0e516fe4156700d
+// Source SHA-256: 03cdc51f760073fcf9f8d04fc30a69014b9d353243fcebc4dfad8d191189137c
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -73,6 +73,14 @@ internal sealed class CricketRecoveryWriter
             }
             catch (Exception error) { lock (_gate) _lastError = error; Report(error); }
         }
+    }
+    /// <summary>Retire this session's writes without deleting its last committed recovery.</summary>
+    internal void InvalidatePending()
+    {
+        lock (_gate) { ++_generation; _pending = null; }
+        // Wait only for an atomic commit already in progress. Once this returns,
+        // an old session cannot overwrite the replacement session's next save.
+        lock (_commitGate) { }
     }
     internal bool Flush(TimeSpan timeout)
     {

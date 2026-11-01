@@ -1,0 +1,33 @@
+<Project>
+  <!-- Compile-time only. No Git, filesystem or network lookup at app startup. -->
+  <Target Name="RocheStampBuildIdentity" BeforeTargets="GetAssemblyAttributes">
+    <PropertyGroup>
+      <RocheSourceRevision>unknown</RocheSourceRevision>
+      <RocheSourceState>unknown</RocheSourceState>
+    </PropertyGroup>
+    <Exec Command="git rev-parse --verify HEAD" WorkingDirectory="$(MSBuildThisFileDirectory)"
+          ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="Low" StandardErrorImportance="Low">
+      <Output TaskParameter="ConsoleOutput" ItemName="_RocheRevisionOutput"/>
+      <Output TaskParameter="ExitCode" PropertyName="_RocheRevisionExitCode"/>
+    </Exec>
+    <Exec Command="git status --porcelain --untracked-files=normal" WorkingDirectory="$(MSBuildThisFileDirectory)"
+          ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="Low" StandardErrorImportance="Low">
+      <Output TaskParameter="ConsoleOutput" ItemName="_RocheStatusOutput"/>
+      <Output TaskParameter="ExitCode" PropertyName="_RocheStatusExitCode"/>
+    </Exec>
+    <PropertyGroup><_RocheRevisionText>@(_RocheRevisionOutput)</_RocheRevisionText></PropertyGroup>
+    <PropertyGroup Condition="'$(_RocheRevisionExitCode)' == '0' And $([System.Text.RegularExpressions.Regex]::IsMatch('$(_RocheRevisionText)', '^[0-9a-fA-F]{40,64}$'))">
+      <RocheSourceRevision>@(_RocheRevisionOutput)</RocheSourceRevision>
+      <RocheSourceState Condition="'$(_RocheStatusExitCode)' == '0'">clean</RocheSourceState>
+      <RocheSourceState Condition="'$(_RocheStatusExitCode)' == '0' And '@(_RocheStatusOutput->Count())' != '0'">modified</RocheSourceState>
+    </PropertyGroup>
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>RocheSourceRevision</_Parameter1><_Parameter2>$(RocheSourceRevision)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>RocheSourceState</_Parameter1><_Parameter2>$(RocheSourceState)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+</Project>

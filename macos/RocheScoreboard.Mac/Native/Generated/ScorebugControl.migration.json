@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/ScorebugControl.xaml",
-  "source_sha256": "0f90576ad788a25995770f7f522a33f7af9a594d88aa1ad0cde0de156784be4f",
+  "source_sha256": "eda68aaf4385f2ceac623dc2b2bcc416e49e43a519deeea7c66b896af8ca7618",
   "names": [
     {
       "name": "TeamGradient",
@@ -2133,7 +2133,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "4c418415313f01557dccb49f629633c718c36c2f3522503706ee2ff02423c325",
+  "code_source_sha256": "3ce4e47848f3c28644d4e52f9fb2a12ba2e9c5a5d7e14de01a6cfd9d79eca96d",
   "native_events": [],
   "platform_translations": [
     {
@@ -2832,6 +2832,18 @@
       "property": "FontFamily",
       "source": "Stolzl Bold",
       "native_fallback": "Inter"
+    },
+    {
+      "name": "HomeLogoContainer",
+      "property": "Width",
+      "source": "{Binding ActualHeight, ElementName=HomeRowGrid}",
+      "translation": "Arranged control Bounds dimension binding"
+    },
+    {
+      "name": "AwayLogoContainer",
+      "property": "Width",
+      "source": "{Binding ActualHeight, ElementName=AwayRowGrid}",
+      "translation": "Arranged control Bounds dimension binding"
     }
   ],
   "visual_parity_verified": false,

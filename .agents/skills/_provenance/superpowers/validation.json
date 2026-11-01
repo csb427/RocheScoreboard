@@ -1,0 +1,11 @@
+{
+  "definitions": 12,
+  "unique_names": 12,
+  "files_hashed": 41,
+  "hashes_match": true,
+  "root_skill_count": 333,
+  "unresolved_relative_links": [],
+  "runtime_helpers_activated": false,
+  "cloud_provider_catalog_count": 0,
+  "file_based_discovery_guide": "AGENTS.md"
+}

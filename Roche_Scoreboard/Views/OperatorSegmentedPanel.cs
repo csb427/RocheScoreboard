@@ -9,7 +9,7 @@ using Control = System.Windows.Controls.Control;
 namespace Roche_Scoreboard.Views;
 
 /// <summary>One continuous selection body under stationary native radio-button labels.</summary>
-public sealed class OperatorSegmentedPanel : UniformGrid
+public sealed partial class OperatorSegmentedPanel : UniformGrid
 {
     private double _left, _right, _leftVelocity, _rightVelocity, _targetLeft, _targetRight, _last;
     private double _surfaceWidth,_surfaceWidthVelocity;
@@ -17,6 +17,7 @@ public sealed class OperatorSegmentedPanel : UniformGrid
     private readonly Dictionary<RadioButton,bool> _inkCoverage = new();
     public OperatorSegmentedPanel()
     {
+        InstallScrubbing();
         SetResourceReference(OperatorLiquidSelection.ContextProperty,"ControlCentre.CanvasBrush");
         AddHandler(ToggleButton.CheckedEvent,new RoutedEventHandler((_,_)=>Update(true)));
         AddHandler(ToggleButton.UncheckedEvent,new RoutedEventHandler((_,_)=>Dispatcher.BeginInvoke(new Action(()=>{if(IsLoaded && Selected is null)Clear();}),System.Windows.Threading.DispatcherPriority.Loaded)));
@@ -25,7 +26,7 @@ public sealed class OperatorSegmentedPanel : UniformGrid
         IsVisibleChanged += (_,_)=>{if(IsVisible)Update(false);else Stop();};
         LayoutUpdated += (_,_)=>
         {
-            if(!IsLoaded)return;
+            if(!IsLoaded || _scrubbing)return;
             foreach(var removed in _inkCoverage.Keys.Where(button=>!Children.Contains(button)).ToArray())
             {removed.ClearValue(Control.ForegroundProperty);_inkCoverage.Remove(removed);}
             if(Selected is not {ActualWidth:>0} selected){Clear();return;}
@@ -45,6 +46,7 @@ public sealed class OperatorSegmentedPanel : UniformGrid
     }
     private void Update(bool animate)
     {
+        if(_scrubbing)return;
         if(!IsLoaded || !IsVisible)return;
         if(Selected is not {ActualWidth: > 0} selected){Clear();return;}
         _targetLeft=selected.TranslatePoint(new System.Windows.Point(),this).X+3;
@@ -67,7 +69,7 @@ public sealed class OperatorSegmentedPanel : UniformGrid
         Paint();
     }
     private static void Step(ref double value,ref double velocity,double target,double omega,double dt)
-    {double offset=value-target,c=velocity+omega*offset,e=Math.Exp(-omega*dt);value=target+(offset+c*dt)*e;velocity=(velocity-omega*c*dt)*e;}
+    {omega*=OperatorMotion.SpringResponse;double offset=value-target,c=velocity+omega*offset,e=Math.Exp(-omega*dt);value=target+(offset+c*dt)*e;velocity=(velocity-omega*c*dt)*e;}
     private void Stop(){if(!_running)return;CompositionTarget.Rendering-=Frame;_running=false;}
     private void Paint()
     {

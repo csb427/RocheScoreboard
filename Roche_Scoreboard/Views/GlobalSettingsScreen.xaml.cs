@@ -1,4 +1,5 @@
 using System;
+using System.Windows.Media;
 using Roche_Scoreboard.Services;
 
 namespace Roche_Scoreboard.Views;
@@ -6,6 +7,53 @@ namespace Roche_Scoreboard.Views;
 public partial class GlobalSettingsScreen : global::System.Windows.Controls.UserControl
 {
     public event Action? BackRequested;
+    public event Action? CricketOutputPreferencesChanged;
+    private void SettingsScope_Checked(object sender, global::System.Windows.RoutedEventArgs args)
+    {
+        if (SettingsWorkspace is null || sender is not global::System.Windows.Controls.RadioButton { Tag: string scope }) return;
+        SettingsWorkspace.SelectScope(scope);
+    }
+    private void CricketBreakRotation_FocusContext(object sender, global::System.Windows.RoutedEventArgs args)
+    {
+        if (sender is not global::System.Windows.FrameworkElement toggle
+            || toggle.Parent is not global::System.Windows.FrameworkElement row) return;
+        // Reveal the paired label after the switch's own focus scroll. This
+        // request is visual only and must never move a retired/hidden scope.
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (!toggle.IsLoaded || !toggle.IsKeyboardFocusWithin || !ReferenceEquals(toggle.Parent, row)) return;
+            for (global::System.Windows.DependencyObject? current = toggle; current is not null;
+                current = VisualTreeHelper.GetParent(current))
+                if (current is global::System.Windows.UIElement element && !element.IsVisible) return;
+            row.BringIntoView();
+        }), global::System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+    private void CricketDefault_Changed(object sender, global::System.Windows.RoutedEventArgs args)
+    {
+        if (_initializing) return;
+        OperatorWorkflowPreferences.Update(p => {
+            p.CricketEventAnimations = CricketEventsDefaultToggle.IsChecked == true;
+            p.CricketRollingFigures = CricketRollingDefaultToggle.IsChecked == true;
+            p.CricketBowlerDetails = CricketBowlerDefaultToggle.IsChecked == true;
+            p.CricketAutomaticOverlays = CricketAutomaticDefaultToggle.IsChecked == true;
+            p.CricketBreakPresentationRotation = CricketBreakRotationDefaultToggle.IsChecked == true;
+        });
+        CricketOutputPreferencesChanged?.Invoke();
+    }
+    public void RefreshCricketPreferences()
+    {
+        bool previous = _initializing; _initializing = true;
+        try
+        {
+            var preferences = OperatorWorkflowPreferences.Load();
+            CricketEventsDefaultToggle.IsChecked = preferences.CricketEventAnimations;
+            CricketRollingDefaultToggle.IsChecked = preferences.CricketRollingFigures;
+            CricketBowlerDefaultToggle.IsChecked = preferences.CricketBowlerDetails;
+            CricketAutomaticDefaultToggle.IsChecked = preferences.CricketAutomaticOverlays;
+            CricketBreakRotationDefaultToggle.IsChecked = preferences.CricketBreakPresentationRotation ?? preferences.AflBreakScreenEnabled;
+        }
+        finally { _initializing = previous; }
+    }
     public event Action<string>? StartupModeChanged;
     public event Action<AppTheme>? ThemeChanged;
     public event Action<UiDensity>? DensityChanged;
@@ -18,16 +66,23 @@ public partial class GlobalSettingsScreen : global::System.Windows.Controls.User
     public event Action<bool>? ScreensaverClockChanged;
     public event Action? ScreensaverMediaRequested;
     public event Action? BuiltInScreensaverRequested;
-    public void SetScreensaverPreferences(string? path,bool showClock,bool? enabled=null)
+    public void SetScreensaverPreferences(string? path,bool showClock,bool? enabled=null,OutputScreensaverMediaState? mediaState=null)
     {
         bool old=_initializing; _initializing=true;
-        GlobalScreensaverStatus.Text=string.IsNullOrWhiteSpace(path) ? "Built-in animated sports scene" : System.IO.File.Exists(path) ? System.IO.Path.GetFileName(path) : "Custom media unavailable · built-in scene will be used";
-        UpdateScreensaverSourceSelection(!string.IsNullOrWhiteSpace(path),System.IO.File.Exists(path));
+        bool custom=!string.IsNullOrWhiteSpace(path),fileExists=System.IO.File.Exists(path);
+        string file=System.IO.Path.GetFileName(path) ?? "Custom media";
+        GlobalScreensaverStatus.Text=!custom ? "Built-in animated sports scene"
+            : mediaState==OutputScreensaverMediaState.CustomImage ? file+" · custom image loaded for the output"+(fileExists?"":"; file unavailable for reloading")
+            : mediaState==OutputScreensaverMediaState.CustomUnavailable || !fileExists ? "Custom media unavailable · built-in scene will be used"
+            : mediaState==OutputScreensaverMediaState.CustomMediaRequested ? file+" · custom media selected; playback is requested when shown"
+            : file+" · selected; the output has not checked this file yet";
+        UpdateScreensaverSourceSelection(custom,fileExists && mediaState!=OutputScreensaverMediaState.CustomUnavailable,
+            fileExists?"UNAVAILABLE · REPLACE":"FILE MISSING · REPLACE");
         ScreensaverClockToggle.IsChecked=showClock; if(enabled is bool value) ScreensaverToggle.IsChecked=value; _initializing=old;
     }
     private void ScreensaverSource_Click(object sender,global::System.Windows.RoutedEventArgs args)
     { if(sender is global::System.Windows.Controls.Button {Tag:"builtin"}) {UpdateScreensaverSourceSelection(false); BuiltInScreensaverRequested?.Invoke();} else ScreensaverMediaRequested?.Invoke(); }
-    private void UpdateScreensaverSourceSelection(bool custom,bool available=true)
+    private void UpdateScreensaverSourceSelection(bool custom,bool available=true,string unavailableCaption="FILE MISSING · REPLACE")
     {
         foreach(var (button,selected) in new[]{(BuiltinScreensaverButton,!custom),(CustomScreensaverButton,custom)})
         {
@@ -36,8 +91,8 @@ public partial class GlobalSettingsScreen : global::System.Windows.Controls.User
             button.BorderThickness=new global::System.Windows.Thickness(1);
             global::System.Windows.Automation.AutomationProperties.SetItemStatus(button,selected?"Selected":"Not selected");
         }
-        BuiltinScreensaverSelected.Text=custom?(available?"USE THIS SCENE →":"FALLBACK SCENE"):"✓ ACTIVE";
-        CustomScreensaverSelected.Text=custom?(available?"✓ ACTIVE · CHANGE FILE":"FILE MISSING · REPLACE"):"SELECT FILE →";
+        BuiltinScreensaverSelected.Text=custom?(available?"USE THIS SCENE →":"FALLBACK SCENE"):"✓ SELECTED";
+        CustomScreensaverSelected.Text=custom?(available?"✓ SELECTED · CHANGE FILE":unavailableCaption):"SELECT FILE →";
     }
     private void ScreensaverClock_Changed(object sender,global::System.Windows.RoutedEventArgs args)
     { if(!_initializing) ScreensaverClockChanged?.Invoke(ScreensaverClockToggle.IsChecked==true); }
@@ -64,6 +119,11 @@ public partial class GlobalSettingsScreen : global::System.Windows.Controls.User
 
     private void Settings_SizeChanged(object sender, global::System.Windows.SizeChangedEventArgs e)
     {
+        // On very short windows the read-only identifier scrolls internally;
+        // its entire focusable field must still fit the settings viewport.
+        double viewportHeight = SettingsWorkspace?.Scroller.ActualHeight ?? 0;
+        if (BuildInfoBox is not null && viewportHeight > 0)
+            BuildInfoBox.MaxHeight = Math.Max(36, viewportHeight - 4);
         double contentWidth = SettingsWorkspace?.Scroller.ViewportWidth ?? 0;
         bool narrow = (contentWidth > 0 ? contentWidth : e.NewSize.Width) < 660;
         ReflowFields(AppearanceFieldsGrid, ThemeChoicePanel, narrow);
@@ -85,6 +145,8 @@ public partial class GlobalSettingsScreen : global::System.Windows.Controls.User
     public GlobalSettingsScreen()
     {
         InitializeComponent();
+        CricketBreakRotationDefaultToggle.GotKeyboardFocus += CricketBreakRotation_FocusContext;
+        BuildInfoBox.Text = BuildIdentity.Description;
         SettingsWorkspace.Scroller.SizeChanged += Settings_SizeChanged;
         StartupModeCombo.Items.Add("Resume in-progress session first");
         StartupModeCombo.Items.Add("Open last used mode");
@@ -111,7 +173,9 @@ public partial class GlobalSettingsScreen : global::System.Windows.Controls.User
         SyncPreferenceTiles();
         UpdateScreensaverSourceSelection(false);
         SyncInteractionPreferences();
-        Loaded += (_,_) => { OperatorAppearance.Changed-=SyncInteractionPreferences;OperatorAppearance.Changed+=SyncInteractionPreferences;SyncInteractionPreferences(); };
+        SettingsWorkspace.SelectScope("general");
+        RefreshCricketPreferences();
+        Loaded += (_,_) => { OperatorAppearance.Changed-=SyncInteractionPreferences;OperatorAppearance.Changed+=SyncInteractionPreferences;SyncInteractionPreferences(); RefreshCricketPreferences(); };
         Unloaded += (_,_) => OperatorAppearance.Changed-=SyncInteractionPreferences;
     }
     private void SyncInteractionPreferences()
@@ -228,22 +292,49 @@ public partial class GlobalSettingsScreen : global::System.Windows.Controls.User
 
     private void ApplyOutputDimensions_Click(object sender, global::System.Windows.RoutedEventArgs e)
     {
-        if (!int.TryParse(OutputWidthBox.Text, out int width)
-            || !int.TryParse(OutputHeightBox.Text, out int height)) return;
-        width = Math.Clamp(width, 50, 7680);
-        height = Math.Clamp(height, 50, 4320);
+        // Keep both values as a draft until the whole pair is valid. The
+        // parent event also queues persistence, so rejection must emit nothing.
+        if (!int.TryParse(OutputWidthBox.Text, out int width) || width is < 50 or > 7680)
+        {
+            ShowOutputDimensionsError(OutputWidthBox, "Width must be a whole number from 50 to 7680 pixels.");
+            return;
+        }
+        if (!int.TryParse(OutputHeightBox.Text, out int height) || height is < 50 or > 4320)
+        {
+            ShowOutputDimensionsError(OutputHeightBox, "Height must be a whole number from 50 to 4320 pixels.");
+            return;
+        }
+
+        ClearOutputDimensionsError();
         OutputWidthBox.Text = width.ToString();
         OutputHeightBox.Text = height.ToString();
         OutputDimensionsChanged?.Invoke(width, height);
     }
 
+    private void ShowOutputDimensionsError(global::System.Windows.Controls.TextBox field, string message)
+    {
+        OutputDimensionsValidationText.Text = message;
+        OutputDimensionsValidationText.Visibility = global::System.Windows.Visibility.Visible;
+        field.Focus();
+        field.SelectAll();
+        OperatorViewport.RevealValidationError(OutputDimensionsValidationText);
+    }
+
+    private void ClearOutputDimensionsError()
+    {
+        OutputDimensionsValidationText.Visibility = global::System.Windows.Visibility.Collapsed;
+        OutputDimensionsValidationText.Text = string.Empty;
+    }
+
     private void DoubleOutputDimensions_Click(object sender,global::System.Windows.RoutedEventArgs e)
     {
+        ClearOutputDimensionsError();
         OutputWidthBox.Text="772"; OutputHeightBox.Text="386";
         OutputDimensionsChanged?.Invoke(772,386);
     }
     private void ResetOutputDimensions_Click(object sender, global::System.Windows.RoutedEventArgs e)
     {
+        ClearOutputDimensionsError();
         OutputWidthBox.Text = "386";
         OutputHeightBox.Text = "193";
         OutputDimensionsChanged?.Invoke(386, 193);

@@ -1,5 +1,5 @@
 // Generated from Views/OperatorSegmentedPanel.cs; edit translator/adapters.
-// Source SHA-256: eb16380dce6660e9449a634c6aa28b166ab995557b01dc9036dd32871a9ce464
+// Source SHA-256: e9bf8b5aca7a4e5243b85402bd2f9510194a966e6a8a8bf3197e9cfc51c054da
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -14,7 +14,7 @@ using TemplatedControl = Avalonia.Controls.Primitives.TemplatedControl;
 namespace Roche_Scoreboard.Views;
 
 /// <summary>One continuous selection body under stationary native radio-button labels.</summary>
-public sealed class OperatorSegmentedPanel : NativePaintGrid
+public sealed partial class OperatorSegmentedPanel : NativePaintGrid
 {
     private double _left, _right, _leftVelocity, _rightVelocity, _targetLeft, _targetRight, _last;
     private double _surfaceWidth,_surfaceWidthVelocity;
@@ -22,6 +22,7 @@ public sealed class OperatorSegmentedPanel : NativePaintGrid
     private readonly Dictionary<RadioButton,bool> _inkCoverage = new();
     public OperatorSegmentedPanel()
     {
+        InstallScrubbing();
         this.SetResourceReference(OperatorLiquidSelection.ContextProperty,"ControlCentre.CanvasBrush");
         AddHandler(ToggleButton.CheckedEvent,new EventHandler<RoutedEventArgs>((_,_)=>Update(true)));
         AddHandler(ToggleButton.UncheckedEvent,new EventHandler<RoutedEventArgs>((_,_)=>Dispatcher.UIThread.Post(new Action(()=>{if(IsLoaded && Selected is null)Clear();}),Avalonia.Threading.DispatcherPriority.Loaded)));
@@ -30,7 +31,7 @@ public sealed class OperatorSegmentedPanel : NativePaintGrid
         NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_,_)=>{if(IsVisible)Update(false);else Stop();});
         LayoutUpdated += (_,_)=>
         {
-            if(!IsLoaded)return;
+            if(!IsLoaded || _scrubbing)return;
             foreach(var removed in _inkCoverage.Keys.Where(button=>!Children.Contains(button)).ToArray())
             {removed.ClearValue(TextBlock.ForegroundProperty);_inkCoverage.Remove(removed);}
             if(Selected is not {Bounds.Width:>0} selected){Clear();return;}
@@ -50,6 +51,7 @@ public sealed class OperatorSegmentedPanel : NativePaintGrid
     }
     private void Update(bool animate)
     {
+        if(_scrubbing)return;
         if(!IsLoaded || !IsVisible)return;
         if(Selected is not {Bounds.Width: > 0} selected){Clear();return;}
         _targetLeft=selected.NativeTranslatePoint(new Avalonia.Point(),this).X+3;
@@ -72,7 +74,7 @@ public sealed class OperatorSegmentedPanel : NativePaintGrid
         Paint();
     }
     private static void Step(ref double value,ref double velocity,double target,double omega,double dt)
-    {double offset=value-target,c=velocity+omega*offset,e=Math.Exp(-omega*dt);value=target+(offset+c*dt)*e;velocity=(velocity-omega*c*dt)*e;}
+    {omega*=OperatorMotion.SpringResponse;double offset=value-target,c=velocity+omega*offset,e=Math.Exp(-omega*dt);value=target+(offset+c*dt)*e;velocity=(velocity-omega*c*dt)*e;}
     private void Stop(){if(!_running)return;NativeRendering.Rendering-=Frame;_running=false;}
     private void Paint()
     {

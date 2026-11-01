@@ -15,7 +15,7 @@ internal static class CricketBroadcastStyle
     internal const double CompactTopFraction = OverlayFraction;
     internal static readonly TimeSpan OverlayMotionDuration=TimeSpan.FromMilliseconds(620);
     internal static IEasingFunction OverlayMotionEase()=>new SineEase {EasingMode=EasingMode.EaseInOut};
-    internal static readonly FontFamily Typeface = new("Arial");
+    internal static readonly FontFamily Typeface = new("Arial, Helvetica Neue, Helvetica, Liberation Sans");
     internal static FontWeight Weight => FontWeights.Bold;
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<(string Primary, string Secondary), LinearGradientBrush> Gradients = new();
     internal static LinearGradientBrush Gradient(string? primary, string? secondary)

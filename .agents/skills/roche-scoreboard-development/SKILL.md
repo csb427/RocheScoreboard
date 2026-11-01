@@ -37,6 +37,11 @@ description: Implement and review Roche Scoreboard changes while preserving shar
 
 ## UI review
 
+- Check the active route and ancestor visibility before treating a declaration as
+  an operator feature. Inspect runtime reparenting and mode/layout branches too.
+  Retain deliberately hidden legacy controls; do not expose or polish them just
+  to close source-ledger rows. Test through the active entry point, and label
+  dormant component-only evidence separately.
 - Inspect current rendered evidence before changing design. Retain the Score Grid
   identity and current native fallback limits; no decorative scope expansion.
 - Check pointer and keyboard activation, visible focus, Escape/cancel, modal owner,

@@ -27,6 +27,7 @@ public partial class ColorPickerWindow : Window
     private double _saturation;
     private double _value;
     private Action<Color>? _livePreview;
+    private Func<bool>? _canAccept;
     public Color SelectedColor { get; private set; }
 
     private ColorPickerWindow(Color initial)
@@ -36,7 +37,8 @@ public partial class ColorPickerWindow : Window
         ColourField.GotKeyboardFocus += (_, _) => { ColourMarker.Stroke = new SolidColorBrush(Color.FromRgb(0x58, 0xA6, 0xFF)); ColourMarker.StrokeThickness = 4; };
         ColourField.LostKeyboardFocus += (_, _) => { ColourMarker.Stroke = Brushes.White; ColourMarker.StrokeThickness = 3; };
         Closed += (_, _) => { _dragging = false; if (ColourField.IsMouseCaptured) ColourField.ReleaseMouseCapture(); };
-        MaxHeight = Math.Max(560, SystemParameters.WorkArea.Height - 24);
+        MaxWidth = Width = PreferredWidthForWorkArea(SystemParameters.WorkArea.Width);
+        MaxHeight = MaximumHeightForWorkArea(SystemParameters.WorkArea.Height);
         Height = Math.Min(760, MaxHeight);
         SelectedColor = initial;
         RgbToHsv(initial, out _hue, out _saturation, out _value);
@@ -45,12 +47,28 @@ public partial class ColorPickerWindow : Window
             ColourWheelImage.Source = BuildColourWheel();
             PopulateSwatches();
             RefreshFieldAndSelection();
+            // The primary action keeps its established template and press/focus
+            // behavior, with a solid face beneath its dark ink. Secondary
+            // controls and the picker shell retain their glass material.
+            // Preserve this template's authored primary face as a concrete
+            // brush across platform brush implementations.
+            UseColourButton.Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF7));
+            UseColourButton.ApplyTemplate();
+            if (UseColourButton.Template.FindName("Bd", UseColourButton) is OperatorGlassSurface face)
+                face.Material = GlassMaterial.Opaque;
         };
     }
 
-    public static bool TryPick(Window? owner, Color initial, out Color selected, Action<Color>? livePreview = null)
+    internal static double MaximumHeightForWorkArea(double workAreaHeight)
+        => Math.Max(1, workAreaHeight - 24);
+
+    internal static double PreferredWidthForWorkArea(double workAreaWidth)
+        => Math.Min(500, Math.Max(1, workAreaWidth - 24));
+
+    public static bool TryPick(Window? owner, Color initial, out Color selected, Action<Color>? livePreview = null,
+        Func<bool>? canAccept = null)
     {
-        var dialog = new ColorPickerWindow(initial) { _livePreview = livePreview };
+        var dialog = new ColorPickerWindow(initial) { _livePreview = livePreview, _canAccept = canAccept };
         if (owner is { IsLoaded: true }) dialog.Owner = owner;
         bool accepted = dialog.ShowDialog() == true;
         selected = accepted ? dialog.SelectedColor : initial;
@@ -121,12 +139,12 @@ public partial class ColorPickerWindow : Window
         if (_updating || !IsLoaded) return;
         if (TryParseHex(HexBox.Text, out Color color))
         {
-            ValidationText.Text = string.Empty;
+            SetHexValidation(string.Empty);
             SelectedColor = color;
             RgbToHsv(color, out _hue, out _saturation, out _value);
             RefreshFieldAndSelection();
         }
-        else ValidationText.Text = "Enter a six-digit colour such as #0A2A6A.";
+        else SetHexValidation("Enter a six-digit colour such as #0A2A6A.");
     }
 
     private void Swatch_Click(object sender, RoutedEventArgs e)
@@ -139,14 +157,37 @@ public partial class ColorPickerWindow : Window
 
     private void Accept_Click(object sender, RoutedEventArgs e)
     {
+        if (!IsVisible) return;
+        // The invoking form may have reset/replaced its draft during the modal
+        // loop. Reject before recording history or exposing an accepted result.
+        if (_canAccept is not null && !_canAccept())
+        {
+            DialogResult = false;
+            return;
+        }
         if (!TryParseHex(HexBox.Text, out Color color))
         {
-            ValidationText.Text = "Enter a valid six-digit colour before continuing.";
+            SetHexValidation("Enter a valid six-digit colour before continuing.");
+            HexBox.Focus();
+            OperatorViewport.RevealValidationError(HexEntryRegion);
             return;
         }
         SelectedColor = color;
         RecentColorStorage.Record(color);
         DialogResult = true;
+    }
+
+    private void Cancel_Click(object? sender, RoutedEventArgs e)
+    {
+        if (!IsVisible) return;
+        DialogResult = false;
+    }
+
+    private void SetHexValidation(string message)
+    {
+        ValidationText.Text = message;
+        System.Windows.Automation.AutomationProperties.SetHelpText(HexBox, string.IsNullOrEmpty(message)
+            ? "Enter six hexadecimal digits, with an optional #." : message);
     }
 
     private void PopulateSwatches()
@@ -181,7 +222,7 @@ public partial class ColorPickerWindow : Window
         HexBox.Text = $"#{SelectedColor.R:X2}{SelectedColor.G:X2}{SelectedColor.B:X2}";
         SaturationSlider.Value = _saturation;
         BrightnessSlider.Value = _value;
-        ValidationText.Text = string.Empty;
+        SetHexValidation(string.Empty);
         _updating = false;
         UpdateSliderBrushes();
         double angle = _hue * Math.PI / 180;

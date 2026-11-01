@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/UpdatePromptWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 48d02d26f7a96c36dc2f8804c697e815485007b7e6bcffd4a7ab96f8a06da9e4
+// Source SHA-256: a0594990606b9e60a5459446b999d7aa2b8eb353270117e403da14d426d89a1e
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -26,8 +26,11 @@ namespace Roche_Scoreboard.Views;
 public partial class UpdatePromptWindow : NativeWindow
 {
     private readonly AutoUpdateService _updateService;
+    private readonly Func<IProgress<UpdateProgressInfo>?, CancellationToken, Task<bool>> _applyUpdateOperation;
     private bool _isDownloading;
     private bool _cancellationRequested;
+    private bool _closed;
+    private bool? _compactLayout;
     private CancellationTokenSource? _downloadCancellation;
 
     public bool UpdateApplied { get; private set; }
@@ -38,11 +41,18 @@ public partial class UpdatePromptWindow : NativeWindow
     }
 
     internal UpdatePromptWindow(AutoUpdateService updateService, GitHubRelease? releasePreview)
+        : this(updateService, releasePreview, null)
+    {
+    }
+
+    internal UpdatePromptWindow(AutoUpdateService updateService, GitHubRelease? releasePreview,
+        Func<IProgress<UpdateProgressInfo>?, CancellationToken, Task<bool>>? applyUpdateOperation)
     {
         ArgumentNullException.ThrowIfNull(updateService);
         NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
         InteractionMotion.Enable(this);
         _updateService = updateService;
+        _applyUpdateOperation = applyUpdateOperation ?? updateService.DownloadAndApplyDetailedAsync;
 
         CurrentVersionText.Text = ProductionVersion.CurrentVersion.ToString(3);
         GitHubRelease? release = releasePreview ?? updateService.LatestRelease;
@@ -62,17 +72,48 @@ public partial class UpdatePromptWindow : NativeWindow
             : "Package validation enabled";
 
         SharedSurfaceMotion.Attach(DialogShell);
+        UpdateClosePurpose();
+        Avalonia.Automation.AutomationProperties.SetLiveSetting(ProgressText, Avalonia.Automation.AutomationLiveSetting.Polite);
+        SizeChanged += (_, _) => ReflowDialog();
+        Loaded += (_, _) => { ReflowDialog(); if (!_closed && !_isDownloading) SkipButton.Focus(); };
         Closing += (_, args) =>
         {
-            if (!_isDownloading) return;
+            if (!_isDownloading || UpdateApplied) return;
             args.Cancel = true;
             RequestDownloadCancellation();
         };
         Closed += (_, _) =>
         {
-            _downloadCancellation?.Cancel();
-            _downloadCancellation?.Dispose();
+            _closed = true;
+            var cancellation = _downloadCancellation;
+            _downloadCancellation = null;
+            _isDownloading = false;
+            _cancellationRequested = false;
+            if (!UpdateApplied) cancellation?.Cancel();
+            cancellation?.Dispose();
         };
+    }
+
+    // Details scroll independently; the safe decision actions never leave the
+    // available client area. Reflow changes layout, never operation state/focus.
+    private void ReflowDialog()
+    {
+        bool compact = Bounds.Width < 580;
+        if (_compactLayout == compact) return;
+        _compactLayout = compact;
+        DialogHeading.FontSize = compact ? 22 : 28;
+        UpdateActions.ColumnDefinitions[0].Width = compact ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
+        UpdateActions.ColumnDefinitions[2].Width = new GridLength(1, GridUnitType.Star);
+        UpdateActions.ColumnDefinitions[3].Width = new GridLength(compact ? 0 : 10);
+        UpdateActions.ColumnDefinitions[4].Width = compact ? new GridLength(0) : GridLength.Auto;
+        Avalonia.Controls.Grid.SetRow(ViewReleaseButton, compact ? 1 : 0);
+        Avalonia.Controls.Grid.SetRow(SkipButton, compact ? 1 : 0);
+        Avalonia.Controls.Grid.SetColumnSpan(SkipButton, compact ? 3 : 1);
+        Avalonia.Controls.Grid.SetColumn(UpdateButton, compact ? 0 : 4);
+        Avalonia.Controls.Grid.SetColumnSpan(UpdateButton, compact ? 5 : 1);
+        ViewReleaseButton.MinWidth = compact ? 0 : 120;
+        UpdateButton.MinWidth = compact ? 0 : 205;
+        UpdateButton.Margin = compact ? new Thickness(0, 0, 0, 8) : new Thickness(0);
     }
 
     private static string FormatReleaseNotes(string? notes)
@@ -128,12 +169,14 @@ public partial class UpdatePromptWindow : NativeWindow
 
     private async void Update_Click(object? sender, RoutedEventArgs e)
     {
-        if (_isDownloading) return;
+        if (_closed || _isDownloading || UpdateApplied) return;
 
         _isDownloading = true;
         _cancellationRequested = false;
         _downloadCancellation?.Dispose();
-        _downloadCancellation = new CancellationTokenSource();
+        var cancellation = new CancellationTokenSource();
+        _downloadCancellation = cancellation;
+        bool Current() => !_closed && ReferenceEquals(_downloadCancellation, cancellation);
         SetBusyState(true);
         ProgressPanel.IsVisible = true;
         UpdateProgressBar.Value = 0;
@@ -143,10 +186,16 @@ public partial class UpdatePromptWindow : NativeWindow
         ProgressPercentText.Foreground = new SolidColorBrush(Color.FromRgb(0x9C, 0xCB, 0xFF));
         ProgressDetailText.Text = "Your current installation remains untouched until verification completes.";
 
-        var progress = new Progress<UpdateProgressInfo>(UpdateProgressUi);
+        ReportStatusChanged();
+        var progress = new Progress<UpdateProgressInfo>(info =>
+        {
+            if (Current() && _isDownloading && !_cancellationRequested) UpdateProgressUi(info);
+        });
         try
         {
-            bool success = await _updateService.DownloadAndApplyDetailedAsync(progress, _downloadCancellation.Token);
+            if (!Current()) return;
+            bool success = await _applyUpdateOperation(progress, cancellation.Token);
+            if (!Current()) return;
             if (success)
             {
                 UpdateApplied = true;
@@ -154,6 +203,11 @@ public partial class UpdatePromptWindow : NativeWindow
                 return;
             }
 
+            if (cancellation.IsCancellationRequested)
+            {
+                ShowOperationMessage("Download cancelled", "Nothing was installed and your current version is unchanged.", isError: false);
+                return;
+            }
             ShowOperationMessage("Update was not installed",
                 string.IsNullOrWhiteSpace(_updateService.LastError)
                     ? "Nothing changed. You can retry or use View release for the portable download."
@@ -162,26 +216,32 @@ public partial class UpdatePromptWindow : NativeWindow
         }
         catch (OperationCanceledException)
         {
+            if (!Current()) return;
             ShowOperationMessage("Download cancelled", "Nothing was installed and your current version is unchanged.", isError: false);
         }
         catch (Exception ex)
         {
+            if (!Current()) return;
             ShowOperationMessage("Update was not installed",
                 string.IsNullOrWhiteSpace(ex.Message) ? "The current installation is unchanged." : ex.Message,
                 isError: true);
         }
         finally
         {
-            _isDownloading = false;
-            _cancellationRequested = false;
-            SetBusyState(false);
-            _downloadCancellation?.Dispose();
-            _downloadCancellation = null;
+            if (ReferenceEquals(_downloadCancellation, cancellation))
+            {
+                _downloadCancellation = null;
+                _isDownloading = false;
+                _cancellationRequested = false;
+                if (!_closed) SetBusyState(false);
+            }
+            cancellation.Dispose();
         }
     }
 
     private void UpdateProgressUi(UpdateProgressInfo info)
     {
+        if (_closed) return;
         ProgressText.Text = info.Message;
         if (info.Stage == UpdateProgressStage.Downloading)
         {
@@ -214,10 +274,12 @@ public partial class UpdatePromptWindow : NativeWindow
                 _ => "Your current installation has not been changed."
             };
         }
+        ReportStatusChanged();
     }
 
     private void ShowOperationMessage(string heading, string detail, bool isError)
     {
+        if (_closed) return;
         ProgressPanel.IsVisible = true;
         ProgressText.Text = heading;
         ProgressText.Foreground = new SolidColorBrush(isError ? Color.FromRgb(0xFF, 0x9A, 0x94) : Color.FromRgb(0xC8, 0xD5, 0xE3));
@@ -225,26 +287,57 @@ public partial class UpdatePromptWindow : NativeWindow
         ProgressPercentText.Text = isError ? "SAFE" : "STOPPED";
         ProgressPercentText.Foreground = new SolidColorBrush(isError ? Color.FromRgb(0xFF, 0xB0, 0x69) : Color.FromRgb(0x9C, 0xCB, 0xFF));
         UpdateProgressBar.Value = 0;
+        ReportStatusChanged();
     }
 
     private void SetBusyState(bool busy)
     {
+        if (_closed) return;
         UpdateButton.IsEnabled = !busy;
         UpdateButton.Content = busy ? "Update in progress…" : "Retry update  →";
         ViewReleaseButton.IsEnabled = !busy;
         SkipButton.Content = busy ? "Cancel safely" : "Remind me later";
         SkipButton.IsEnabled = !busy || !_cancellationRequested;
         CloseButton.IsEnabled = !busy || !_cancellationRequested;
+        UpdateClosePurpose();
+    }
+
+    private void UpdateClosePurpose()
+    {
+        string action = !_isDownloading ? "Remind me later" : _cancellationRequested ? "Cancelling update" : "Cancel update";
+        Avalonia.Controls.ToolTip.SetTip(CloseButton, action);
+        Avalonia.Automation.AutomationProperties.SetName(CloseButton, action);
+        Avalonia.Automation.AutomationProperties.SetHelpText(CloseButton, _isDownloading
+            ? "Request cancellation and wait for the current update operation to finish safely."
+            : "Close this prompt without starting an update.");
+    }
+
+    private void ReportStatusChanged()
+    {
+        if (_closed) return;
+        Avalonia.Automation.AutomationProperties.SetHelpText(UpdateProgressBar, (ProgressText.Text ?? string.Empty) + " " + (ProgressDetailText.Text ?? string.Empty));
+        // WPF exposes explicit live-region events; the portable view retains
+        // LiveSetting/Text notifications through its framework automation peer.
+#if WINDOWS
+        if (Avalonia.Automation.Peers.AutomationPeer.ListenerExists(Avalonia.Automation.Peers.AutomationEvents.LiveRegionChanged))
+        {
+            var peer = Avalonia.Automation.Peers.ControlAutomationPeer.FromElement(ProgressText)
+                ?? Avalonia.Automation.Peers.ControlAutomationPeer.CreatePeerForElement(ProgressText);
+            peer?.RaiseAutomationEvent(Avalonia.Automation.Peers.AutomationEvents.LiveRegionChanged);
+        }
+#endif
     }
 
     private void RequestDownloadCancellation()
     {
-        if (!_isDownloading || _downloadCancellation is null || _cancellationRequested) return;
+        if (_closed || !_isDownloading || _downloadCancellation is null || _cancellationRequested) return;
         _cancellationRequested = true;
         ProgressText.Text = "Cancelling safely…";
-        ProgressDetailText.Text = "Removing the staged download. Your installed version is unchanged.";
+        ProgressDetailText.Text = "Cancellation requested. Waiting for the update operation to finish safely.";
         SkipButton.IsEnabled = false;
         CloseButton.IsEnabled = false;
+        UpdateClosePurpose();
+        ReportStatusChanged();
         _downloadCancellation.Cancel();
     }
 

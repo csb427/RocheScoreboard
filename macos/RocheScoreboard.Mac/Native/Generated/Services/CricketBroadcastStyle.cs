@@ -1,5 +1,5 @@
 // Generated from Services/CricketBroadcastStyle.cs; edit translator/adapters.
-// Source SHA-256: e0d2f80e2062b5f3b0ca8f7d3f7a396888ac02df74155050277a550057ba7bac
+// Source SHA-256: e811859834fb28fb6610c48500b2c1a27b2409554fbac643e798955d1e6c0b66
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -21,7 +21,7 @@ internal static class CricketBroadcastStyle
     internal const double CompactTopFraction = OverlayFraction;
     internal static readonly TimeSpan OverlayMotionDuration=TimeSpan.FromMilliseconds(620);
     internal static IEasingFunction OverlayMotionEase()=>new SineEase {EasingMode=EasingMode.EaseInOut};
-    internal static readonly FontFamily Typeface = new("Arial");
+    internal static readonly FontFamily Typeface = new("Arial, Helvetica Neue, Helvetica, Liberation Sans");
     internal static FontWeight Weight => FontWeight.Bold;
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<(string Primary, string Secondary), LinearGradientBrush> Gradients = new();
     internal static LinearGradientBrush Gradient(string? primary, string? secondary)

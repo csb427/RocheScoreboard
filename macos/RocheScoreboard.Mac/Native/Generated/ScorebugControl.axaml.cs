@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/ScorebugControl.xaml.cs; edit translator/adapters.
-// Source SHA-256: 4c418415313f01557dccb49f629633c718c36c2f3522503706ee2ff02423c325
+// Source SHA-256: 3ce4e47848f3c28644d4e52f9fb2a12ba2e9c5a5d7e14de01a6cfd9d79eca96d
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -2396,7 +2396,7 @@ namespace Roche_Scoreboard.Views
             foreach (TextBlock digit in animatedDigits)
                 NativeCache.Set(digit, new NativeBitmapCache(VisualTreeHelper.GetDpi(digit).PixelsPerDip));
 
-            // Detect which components actually changed for blink highlighting
+            // Detect which components actually changed for the score reveal
             bool goalsChanged = (goalsText.Text ?? string.Empty) != newGoals.ToString();
             bool behindsChanged = (behindsText.Text ?? string.Empty) != newBehinds.ToString();
 
@@ -2429,19 +2429,9 @@ namespace Roche_Scoreboard.Views
                 timers.Add(ut); ut.Start();
             }
 
-            // Simple synced blink: all changed digits blink together at even intervals
-            void AddBlink(TextBlock tb, double startAt)
-            {
-                const double offDur = 0.055;
-                const double onDur = 0.075;
-                const int blinkCount = 4;
-                for (int i = 0; i < blinkCount; i++)
-                {
-                    double t = startAt + i * (offDur + onDur);
-                    sb.Children.Add(MakeDA(tb, OpacityProperty, 1, 0.1, offDur, t));
-                    sb.Children.Add(MakeDA(tb, OpacityProperty, 0.1, 1, onDur, t + offDur));
-                }
-            }
+            // Keep the accepted numerals readable for the same interval as the
+            // former blink sequence, preserving the host completion budget.
+            const double readableHoldDuration = 0.52;
 
             // For the expanded layout, we wait for any goal preset to finish playing
             // (`flipStart` seconds), THEN play the +N swipe coming UP from the bottom of
@@ -2467,13 +2457,8 @@ namespace Roche_Scoreboard.Views
                 if (goalsChanged) AddSlide(goalsText, newGoals.ToString(), slideAt, altG, pop: true);
                 if (behindsChanged) AddSlide(behindsText, newBehinds.ToString(), slideAt, altB, pop: true);
 
-                // Synced blink right after the slide-in completes
-                double blinkTime = flipStart + slideAt + 0.10 + 0.16 + 0.10;
-                if (goalsChanged) AddBlink(goalsText, blinkTime);
-                if (behindsChanged) AddBlink(behindsText, blinkTime);
-                AddBlink(totalText, blinkTime);
-
-                totalDur = blinkTime + 4 * (0.055 + 0.075) + 0.18;
+                double readableHoldStart = flipStart + slideAt + 0.10 + 0.16 + 0.10;
+                totalDur = readableHoldStart + readableHoldDuration + 0.18;
             }
             else
             {
@@ -2481,12 +2466,8 @@ namespace Roche_Scoreboard.Views
                 if (goalsChanged) AddSlide(goalsText, newGoals.ToString(), 0.10, altG, pop: true);
                 if (behindsChanged) AddSlide(behindsText, newBehinds.ToString(), 0.10, altB, pop: true);
 
-                double blinkTime = flipStart + 0.10 + 0.10 + 0.16 + 0.10;
-                if (goalsChanged) AddBlink(goalsText, blinkTime);
-                if (behindsChanged) AddBlink(behindsText, blinkTime);
-                AddBlink(totalText, blinkTime);
-
-                totalDur = blinkTime + 4 * (0.055 + 0.075) + 0.12;
+                double readableHoldStart = flipStart + 0.10 + 0.10 + 0.16 + 0.10;
+                totalDur = readableHoldStart + readableHoldDuration + 0.12;
             }
 
             var guard = new DispatcherTimer { Interval = TimeSpan.FromSeconds(totalDur) };
@@ -3015,6 +2996,8 @@ namespace Roche_Scoreboard.Views
         private OverlayKind? _activeOverlay;
         private bool _overlayIsExiting;
         private bool _overlayTransitionGap;
+        private int _overlayHandoffGeneration;
+        private DispatcherTimer? _overlayHandoffTimer;
         private int _overlayAutoHideGeneration;
         private bool _teamStoryVisible;
         private bool _teamStoryIsHome;
@@ -3179,6 +3162,7 @@ namespace Roche_Scoreboard.Views
 
         private void OnOverlayHidden()
         {
+            int handoffGeneration = _overlayHandoffGeneration;
             // Observers use IsOverlayActive to decide whether the output lane
             // is free. Clear the state before raising the event; previously the
             // event claimed the overlay was hidden while IsOverlayActive still
@@ -3197,10 +3181,18 @@ namespace Roche_Scoreboard.Views
                     try { ready(); } catch { /* an operator score must not break overlay recovery */ }
                 }
             }
+            // Hidden observers can reset this view and show a fresh overlay.
+            // That new lifetime must not be released by this old handoff.
+            if (handoffGeneration != _overlayHandoffGeneration || _activeOverlay is not null) return;
+            _overlayHandoffTimer?.Stop();
             DispatcherTimer handoff = new() { Interval = OverlayHandoffGap };
+            _overlayHandoffTimer = handoff;
             handoff.Tick += (_, _) =>
             {
                 handoff.Stop();
+                if (!ReferenceEquals(_overlayHandoffTimer, handoff) || handoffGeneration != _overlayHandoffGeneration) return;
+                _overlayHandoffTimer = null;
+                if (_activeOverlay is not null || !_overlayTransitionGap) return;
                 _overlayTransitionGap = false;
                 ProcessNextOverlay();
             };
@@ -4336,16 +4328,6 @@ namespace Roche_Scoreboard.Views
                 ? VerticalAlignment.Top
                 : VerticalAlignment.Bottom;
             ExpTeamStoryDirectionHost.Opacity = 1;
-
-            var flash = new DoubleAnimationUsingKeyFrames
-            {
-                Duration = TimeSpan.FromMilliseconds(720),
-                RepeatBehavior = RepeatBehavior.Forever
-            };
-            flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(1, KeyTime.FromPercent(0)));
-            flash.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromPercent(0.5)));
-            ExpTeamStoryDirectionHost.BeginAnimation(OpacityProperty, flash,
-                HandoffBehavior.SnapshotAndReplace);
         }
 
         private void StopTeamStoryDirection()
@@ -5314,18 +5296,8 @@ namespace Roche_Scoreboard.Views
             Grid.SetColumn(scoreType, 2);
             grid.Children.Add(scoreType);
 
-            if (isMostRecent)
-            {
-                // Pulse the complete event card—not just its letter—so the
-                // newest score is unmistakable at scoreboard distance.
-                box.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0.62,
-                    TimeSpan.FromMilliseconds(640))
-                {
-                    AutoReverse = true,
-                    RepeatBehavior = RepeatBehavior.Forever,
-                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-                });
-            }
+            // Newest-first order and the full-alpha team border identify the
+            // latest event. Keep score letters opaque and readable at rest.
 
             box.Child = grid;
             return box;
@@ -5475,7 +5447,51 @@ namespace Roche_Scoreboard.Views
             ApplyExpandedResponsiveProportions();
             QueueExpandedResponsiveLayout();
         }
-        public void SetWeatherLocation(string? location) => _weatherLocation = location;
+        public void SetWeatherLocation(string? location)
+        {
+            string? normalized = string.IsNullOrWhiteSpace(location) ? null : location.Trim();
+            bool changed = !string.Equals(_weatherLocation, normalized, StringComparison.OrdinalIgnoreCase);
+            _weatherLocation = normalized;
+            if (!changed) return;
+            _weatherSnapshot = null;
+            _pendingWeatherStats = _pendingForecast = _pendingRain = null;
+            ExpTopWeatherText.Text = "";
+            RetireWeatherOverlaysForVenueChange();
+        }
+
+        private static bool IsWeatherOverlay(OverlayKind? kind)
+            => kind is OverlayKind.WeatherStats or OverlayKind.Forecast or OverlayKind.RainForecast;
+
+        private void RetireWeatherOverlaysForVenueChange()
+        {
+            // Keep unrelated graphics in their existing order and leave their
+            // active hold/animation alone. Old-venue weather must not wait in
+            // this lane after its snapshot has been invalidated.
+            int queuedCount = _overlayQueue.Count;
+            for (int i = 0; i < queuedCount; i++)
+            {
+                OverlayKind queued = _overlayQueue.Dequeue();
+                if (!IsWeatherOverlay(queued)) _overlayQueue.Enqueue(queued);
+            }
+
+            _weatherStatsHideTimer?.Stop(); _weatherStatsHideTimer = null;
+            _forecastHideTimer?.Stop(); _forecastHideTimer = null;
+            _rainHideTimer?.Stop(); _rainHideTimer = null;
+            _weatherStatsVisible = _forecastVisible = _rainVisible = false;
+            ClearHeight(ExpWeatherStatsBorder);
+            ClearHeight(ExpForecastBorder);
+            ClearHeight(ExpRainBorder);
+
+            if (!IsWeatherOverlay(_activeOverlay)) return;
+            ++_overlayAutoHideGeneration;
+            ++_overlayLayoutMotionGeneration;
+            _overlayLayoutMotionActive = false;
+            _overlayResponsiveRefreshPending = false;
+            // This is invalid data, not an ordinary timed dismissal. Remove it
+            // immediately, then retain the normal lane handoff for valid cards.
+            OnOverlayHidden();
+            QueueExpandedResponsiveLayout();
+        }
 
         public void PauseScorelessForBreak() => NotifyClockStopped();
         public void ResumeScorelessFromBreak() => NotifyClockStarted();
@@ -5847,6 +5863,8 @@ namespace Roche_Scoreboard.Views
 
         public void ClearOverlayQueue()
         {
+            ++_overlayHandoffGeneration;
+            _overlayHandoffTimer?.Stop(); _overlayHandoffTimer = null;
             _overlayQueue.Clear();
             _overlayAutoHideGeneration++;
             _activeOverlay = null;

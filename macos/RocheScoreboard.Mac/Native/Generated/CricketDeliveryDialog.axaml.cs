@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketDeliveryDialog.xaml.cs; edit translator/adapters.
-// Source SHA-256: 9247270c1a9c69694ad91e4beb215facaa28b3b5baa0acbc8e91052970b04238
+// Source SHA-256: 634ac0971706333313f10aa319f6acb36d7179cb77bf38ff06bc8ce473048954
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -161,7 +161,12 @@ public partial class CricketDeliveryDialog : UserControl
         if (sender is Avalonia.Controls.Button { Tag: string value })
         { RunsBox.Text = value; RunsBox.IsVisible = false; }
     }
-    private void Details_Changed(object? sender, SelectionChangedEventArgs args) { if (!_initializing) UpdateFields(); }
+    private void Details_Changed(object? sender, SelectionChangedEventArgs args)
+    {
+        if(_initializing)return;
+        if(ReferenceEquals(sender,BowlerChoice))RestOfOverBowler.IsChecked=false;
+        UpdateFields();
+    }
     private void Runs_Changed(object? sender, TextChangedEventArgs args) { if (!_initializing) UpdateFields(); }
     private void Batter_Changed(object? sender, SelectionChangedEventArgs args)
     {
@@ -176,6 +181,13 @@ public partial class CricketDeliveryDialog : UserControl
         }
         UpdateFields();
     }
+    private void UpdateRunsAccessibility(string? problem)
+    {
+        Avalonia.Automation.AutomationProperties.SetName(RunsBox, (RunsLabel.Text ?? string.Empty));
+        Avalonia.Automation.AutomationProperties.SetName(CustomRunsButton, "Enter custom " + (RunsLabel.Text ?? string.Empty).ToLowerInvariant());
+        Avalonia.Automation.AutomationProperties.SetHelpText(RunsBox, problem ?? (RunExplanation.Text ?? string.Empty));
+    }
+
     private void UpdateFields()
     {
         if (TypeChoice.SelectedIndex < 0) return;
@@ -255,7 +267,19 @@ public partial class CricketDeliveryDialog : UserControl
         bool penalty = scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall;
         RunExplanation.Text = penalty ? "Enter only additional runs. The one-run penalty is added once. A no-ball cannot also be a wide."
             : type == CricketDeliveryType.Wicket ? "Only completed runs count on a run out. Choose which batter was dismissed." : "Enter the runs completed. Byes and leg-byes have no automatic penalty.";
-        int.TryParse((RunsBox.Text ?? string.Empty), out int additional);
+        bool parsedRuns = int.TryParse((RunsBox.Text ?? string.Empty), out int additional);
+        string? runsProblem = RunOptions.IsVisible != true ? null
+            : !parsedRuns || additional < 0 || additional > 998 ? "Enter a whole number from 0 to 998."
+            : type is CricketDeliveryType.Bye or CricketDeliveryType.LegBye && additional == 0
+                ? "Choose at least one bye/leg-bye, or use a dot ball." : null;
+        RunsValidationText.Text = runsProblem ?? "";
+        RunsValidationText.IsVisible = runsProblem is null ? false : true;
+        UpdateRunsAccessibility(runsProblem);
+        if (runsProblem is not null)
+        {
+            PreviewText.Text = "Check runs before applying.";
+            return;
+        }
         int total = type switch
         {
             CricketDeliveryType.Dot => 0,
@@ -291,12 +315,92 @@ public partial class CricketDeliveryDialog : UserControl
             PreviewText.Text += $"\nNext on strike: {nextName}";
         }
     }
+    private void RejectRunsDraft(string message)
+    {
+        ErrorText.Text = message; ErrorText.IsVisible = true;
+        RunsValidationText.Text = message; RunsValidationText.IsVisible = true;
+        UpdateRunsAccessibility(message);
+        RunsBox.IsVisible = true;
+        if (_completed || !EntryContextIsCurrent || !RunsBox.IsLoaded || !RunsBox.IsVisible) return;
+        OperatorViewport.RevealValidationError(RunsValidationText);
+        if (_completed || !EntryContextIsCurrent || !RunsBox.IsLoaded || !RunsBox.IsVisible) return;
+        RunsBox.Focus(); NativeKeyboard.Focus(RunsBox);
+        if (_completed || !RunsBox.IsKeyboardFocusWithin) return;
+        OperatorViewport.RevealValidationError(RunsBox);
+    }
+
+    private Control BowlerCorrectionContext(CricketDelivery delivery,int selectedBowler)
+    {
+        string Name(int index)=>index>=0 && index<_innings.BowlingAttack.Count?_innings.BowlingAttack[index].FullName:"Not recorded";
+        TextBlock Line(string text,int size,bool strong=false)
+        {
+            var line=new NativeTextBlock{Text=text,FontSize=size,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,6),FontWeight=strong?FontWeight.SemiBold:FontWeight.Normal};
+            line.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.TextBrush");return line;
+        }
+        var record=new StackPanel();record.Children.Add(Line("Over "+(delivery.OverNumber+1),18,true));
+        record.Children.Add(Line("Recorded bowler: "+Name(delivery.BowlerIndex),14));
+        record.Children.Add(Line("Selected bowler: "+Name(selectedBowler),16,true));
+        record.Children.Add(Line("The innings figures are recalculated from the recorded deliveries.",13));
+        var card=new NativeBorder{Tag="bowler-correction-context",Child=record,CornerRadius=new CornerRadius(16),Padding=new Thickness(14),BorderThickness=new Thickness(1)};
+        card.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush");card.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");return card;
+    }
+
+    private (int Type, int Dismissal, int WicketRuns, int NoBall, int Batter, int Bowler, int Fielder, int Victim, string Runs, bool Crossed) CaptureDeliveryDraft()
+        => (TypeChoice.SelectedIndex, DismissalChoice.SelectedIndex, RunOutChoice.SelectedIndex,
+            NoBallChoice.SelectedIndex, BatterChoice.SelectedIndex, BowlerChoice.SelectedIndex,
+            FielderChoice.SelectedIndex, DismissedChoice.SelectedIndex, (RunsBox.Text ?? string.Empty) ?? "", RunOutCrossed.IsChecked == true);
+
+    private Control BatterCorrectionContext(CricketDelivery delivery, int selectedBatter)
+    {
+        string Name(int index) => index >= 0 && index < _innings.BattingOrder.Count
+            ? _innings.BattingOrder[index].FullName : "Not recorded";
+        TextBlock Line(string text, int size, bool strong = false)
+        {
+            var line = new NativeTextBlock { Text = text, FontSize = size, TextWrapping = TextWrapping.Wrap,
+                FontWeight = strong ? FontWeight.SemiBold : FontWeight.Normal, Margin = new Thickness(0, 0, 0, 6) };
+            line.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.TextBrush");
+            return line;
+        }
+        Border Actor(string label, string name, bool selected)
+        {
+            var content = new StackPanel();
+            content.Children.Add(Line(label, 12)); content.Children.Add(Line(name, 16, true));
+            var actor = new NativeBorder { Child = content, Padding = new Thickness(12), CornerRadius = new CornerRadius(12),
+                Margin = new Thickness(selected ? 6 : 0, 0, selected ? 0 : 6, 10) };
+            actor.SetResourceReference(Border.BackgroundProperty, selected ? "ControlCentre.RaisedBrush" : "ControlCentre.SurfaceBrush");
+            return actor;
+        }
+        var pair = new Grid();
+        pair.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pair.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        var recorded = Actor("RECORDED ON STRIKE", Name(delivery.StrikerIndex), false);
+        var replacement = Actor("SELECTED ON STRIKE", Name(selectedBatter), true);
+        Grid.SetColumn(replacement, 1); pair.Children.Add(recorded); pair.Children.Add(replacement);
+        var record = new StackPanel();
+        record.Children.Add(Line($"Over {delivery.OverNumber + 1} · delivery {_innings.Deliveries.IndexOf(delivery) + 1}", 18, true));
+        record.Children.Add(pair); record.Children.Add(Line((PreviewText.Text ?? string.Empty), 15));
+        var card = new NativeBorder { Tag = "batter-correction-context", Child = record, Padding = new Thickness(12),
+            CornerRadius = new CornerRadius(16), BorderThickness = new Thickness(1) };
+        card.SetResourceReference(Border.BorderBrushProperty, "ControlCentre.BorderBrush");
+        return card;
+    }
+
+    private void RejectReviewConflict(string message)
+    {
+        RestOfOverBowler.IsChecked = false;
+        ErrorText.Text = message;
+        ErrorText.IsVisible = true;
+    }
+
     private async void Apply_Click(object? sender, RoutedEventArgs args)
     {
         if (_completed || _applying) return;
         _applying = true; ApplyButton.IsEnabled = false;
         try
         {
+            // A rejected/cancelled attempt must never lend its propagation
+            // choice to another attempt or a different selected bowler.
+            RestOfOverBowler.IsChecked=false;
             ErrorText.Text = ""; ErrorText.IsVisible = true;
             if (!EntryContextIsCurrent)
             { ErrorText.Text = "The match changed while this panel was open. Cancel and reopen it to use the current players and score."; return; }
@@ -309,24 +413,34 @@ public partial class CricketDeliveryDialog : UserControl
             var scoringType = type == CricketDeliveryType.Wicket ? CricketDelivery.WicketScoringType(wicketRuns) : type;
             bool requiresRuns = RunOptions.IsVisible == true;
             if (requiresRuns && (!int.TryParse((RunsBox.Text ?? string.Empty), out int value) || value < 0 || value > 998))
-            { ErrorText.Text = "Enter a whole number from 0 to 998."; return; }
+            { RejectRunsDraft("Enter a whole number from 0 to 998."); return; }
+            var reviewedDraft = CaptureDeliveryDraft();
             if (_delivery is not null && SelectedBatterIndex != _originalStriker)
             {
-                string? scope = await CricketPrompt.ChooseAsync(EntryLayout, "Update strike for later balls?", "Choose how far this correction should carry. Score figures are recalculated from the delivery history.", new("ball", "This delivery only"), new("over", "This and the rest of the over", true), new("innings", "This and all following deliveries"), new("cancel", "Cancel correction"));
+                var context = BatterCorrectionContext(_delivery, SelectedBatterIndex);
+                string? scope = await CricketPrompt.ChooseWithContextAsync(EntryLayout, "Apply batter to later deliveries?", "Choose how far the selected batter correction should carry. Score figures are recalculated from delivery history.", context, ApplyButton, new("ball", "This delivery only"), new("over", "This and the rest of the over", true), new("innings", "This and all following deliveries"), new("cancel", "Keep editing"));
                 if (_completed || scope is null or "cancel") return;
                 ScopeChoice.SelectedIndex = scope == "innings" ? 2 : scope == "over" ? 1 : 0;
             }
             else ScopeChoice.SelectedIndex = 0;
-            if (_delivery is not null && BowlerChoice.SelectedIndex != _delivery.BowlerIndex)
+            int reviewedBowler=BowlerChoice.SelectedIndex;
+            bool bowlerForRestOfOver=false;
+            if (_delivery is not null && reviewedBowler != _delivery.BowlerIndex)
             {
-                string? propagate = await CricketPrompt.ChooseAsync(EntryLayout, "Apply bowler to this over?", "Should the selected bowler replace the bowler on the remaining deliveries in this over?", new("yes", "Yes — rest of this over", true), new("no", "This delivery only"), new("cancel", "Cancel correction"));
+                var context=BowlerCorrectionContext(_delivery,reviewedBowler);
+                string? propagate = await CricketPrompt.ChooseWithContextAsync(EntryLayout, "Apply bowler to this over?", "Choose whether the selected bowler also replaces the bowler on the remaining deliveries in this over.", context,ApplyButton,new("yes", "Yes — rest of this over", true), new("no", "This delivery only"), new("cancel", "Keep editing"));
                 if (_completed || propagate is null or "cancel") return;
-                RestOfOverBowler.IsChecked = propagate == "yes";
+                bowlerForRestOfOver=propagate=="yes";
+                RestOfOverBowler.IsChecked = bowlerForRestOfOver;
             }
             // Prompts yield to input/remote commands. Recheck after the last
             // await so a confirmation never overwrites a newer match state.
             if (!EntryContextIsCurrent)
-            { ErrorText.Text = "The match changed during confirmation. Cancel and reopen this delivery before applying it."; return; }
+            { RejectReviewConflict("The match changed during confirmation. Cancel and reopen this delivery before applying it."); return; }
+            if(reviewedBowler!=BowlerChoice.SelectedIndex)
+            { RejectReviewConflict("The bowler selection changed during review. Review this correction again before applying it."); return; }
+            if (reviewedDraft != CaptureDeliveryDraft())
+            { RejectReviewConflict("Delivery details changed during review. Check the current values and apply again."); return; }
             int.TryParse((RunsBox.Text ?? string.Empty), out int entered);
             int runs = type switch
             {
@@ -339,7 +453,7 @@ public partial class CricketDeliveryDialog : UserControl
                 CricketDeliveryType.Wicket when scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall => entered + 1,
                 _ => entered
             };
-            if (type is CricketDeliveryType.Bye or CricketDeliveryType.LegBye && runs == 0) { ErrorText.Text = "Choose at least one bye/leg-bye, or use a dot ball."; return; }
+            if (type is CricketDeliveryType.Bye or CricketDeliveryType.LegBye && runs == 0) { RejectRunsDraft("Choose at least one bye/leg-bye, or use a dot ball."); return; }
             string? fielder = FielderOptions.IsVisible == true && FielderChoice.SelectedIndex > 0 ? _innings.BowlingAttack[FielderChoice.SelectedIndex - 1].DisplayName : null;
             int victim = DismissedChoice.SelectedIndex >= 0 ? _dismissedIndices[DismissedChoice.SelectedIndex] : SelectedBatterIndex;
             var edit = new CricketDeliveryEdit
@@ -347,7 +461,7 @@ public partial class CricketDeliveryDialog : UserControl
                 Type = type,
                 Runs = runs,
                 StrikerIndex = SelectedBatterIndex,
-                BowlerIndex = BowlerChoice.SelectedIndex,
+                BowlerIndex = reviewedBowler,
                 NoBallRuns = (CricketNoBallRuns)Math.Max(0, NoBallChoice.SelectedIndex),
                 WicketRuns = wicketRuns,
                 RunOutCrossed = RunOutCrossed.IsChecked == true && type == CricketDeliveryType.Wicket && dismissal is DismissalType.RunOut or DismissalType.ObstructingField,
@@ -357,7 +471,7 @@ public partial class CricketDeliveryDialog : UserControl
                 Fielder = fielder,
                 DismissedBatterIndex = victim,
                 StrikeScope = (CricketCorrectionScope)Math.Max(0, ScopeChoice.SelectedIndex),
-                BowlerForRestOfOver = RestOfOverBowler.IsChecked == true
+                BowlerForRestOfOver = bowlerForRestOfOver
             };
             if (_delivery is not null)
             { if (!_match.TryEditDelivery(_delivery, edit, out string error)) { ErrorText.Text = error; return; } }

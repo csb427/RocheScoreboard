@@ -1,5 +1,5 @@
 // Generated from MainWindow.OperatorSetupTransition.cs; edit translator/adapters.
-// Source SHA-256: e161417a0014c649b5957e0616571ac15054ce7e1ab5d865780bc3f957b4c28c
+// Source SHA-256: e5b23089c7f7d939f9b39573857e4608ff0158d825a3ea1e4997ea103e448790
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -9,6 +9,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using System.ComponentModel;
 using Roche_Scoreboard.Services;
 
 namespace Roche_Scoreboard;
@@ -19,15 +20,26 @@ public partial class MainWindow
     private DispatcherTimer? _aflSetupTransitionFallback;
     private int _aflSetupTransitionGeneration;
     private bool _aflSetupTransitionWatching;
+    private Action? _aflSetupTransitionPreferenceChanged;
 
     private void StopAflSetupTransition()
     {
         ++_aflSetupTransitionGeneration;
+        if (_aflSetupTransitionPreferenceChanged is not null)
+            OperatorAppearance.Changed -= _aflSetupTransitionPreferenceChanged;
+        _aflSetupTransitionPreferenceChanged = null;
+        NativeSystemPreferences.StaticPropertyChanged -= AflSetupSystemMotionChanged;
         _aflSetupTransitionFallback?.Stop(); _aflSetupTransitionFallback=null;
         _aflSetupTransition?.Remove(MainContent); _aflSetupTransition=null;
         MainContent.BeginAnimation(OpacityProperty,null); MainContent.Opacity=1;
         SetupWizardPanel.BeginAnimation(OpacityProperty,null); SetupWizardPanel.Opacity=1;
         SetupWizardPanel.IsHitTestVisible=true;
+    }
+
+    private void AflSetupSystemMotionChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == nameof(NativeSystemPreferences.ClientAreaAnimation))
+            _aflSetupTransitionPreferenceChanged?.Invoke();
     }
 
     private void BeginAflSetupTransition()
@@ -52,12 +64,28 @@ public partial class MainWindow
             if(showingMatch)SetupWizardPanel.IsVisible=false;
         }
         if(!OperatorMotion.Enabled || !IsLoaded){Finish();return;}
+        _aflSetupTransitionPreferenceChanged = () =>
+        {
+            if (OperatorMotion.Enabled) return;
+            if (Dispatcher.UIThread.CheckAccess()) Finish();
+            else Dispatcher.UIThread.Post(new Action(Finish));
+        };
+        OperatorAppearance.Changed += _aflSetupTransitionPreferenceChanged;
+        NativeSystemPreferences.StaticPropertyChanged += AflSetupSystemMotionChanged;
         var transition=new Storyboard();_aflSetupTransition=transition;
         var outgoing=new DoubleAnimation(SetupWizardPanel.Opacity,0,OperatorMotion.SurfaceOpen) {EasingFunction=OperatorMotion.SmoothOut};
         Storyboard.SetTarget(outgoing,SetupWizardPanel);Storyboard.SetTargetProperty(outgoing,new PropertyPath(OpacityProperty));transition.Children.Add(outgoing);
         var incoming=new DoubleAnimation(0,1,OperatorMotion.SurfaceOpen) {EasingFunction=OperatorMotion.SmoothOut};
         Storyboard.SetTarget(incoming,MainContent);Storyboard.SetTargetProperty(incoming,new PropertyPath(OpacityProperty));transition.Children.Add(incoming);
         transition.Completed+=(_,_)=>Finish();transition.Begin(MainContent,true);
+        // A preference observer can retire this handoff while its initial
+        // animation values are being published. Do not recreate its fallback
+        // or leave a clock started later in that retired Begin call.
+        if (generation != _aflSetupTransitionGeneration)
+        {
+            transition.Remove(MainContent);
+            return;
+        }
         // A minimized or occluded window may stop producing composition frames.
         // Retire the old input layer even when no Completed callback arrives.
         _aflSetupTransitionFallback=new DispatcherTimer() {Interval=TimeSpan.FromMilliseconds(650)};

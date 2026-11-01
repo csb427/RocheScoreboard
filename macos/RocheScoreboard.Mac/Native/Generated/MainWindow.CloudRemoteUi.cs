@@ -1,5 +1,5 @@
 // Generated from MainWindow.CloudRemoteUi.cs; edit translator/adapters.
-// Source SHA-256: 10137b5203f027924f3273e342f4376c1934eb4e149b21b69090bc1b29d9b102
+// Source SHA-256: b3034afb16a9c2e6d4e77ef0b2714af71cc763128a384bcba01053432fb64163
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using Avalonia.Media.Imaging;
 using Roche_Scoreboard.Views;
+using Roche_Scoreboard.Services;
 
 namespace Roche_Scoreboard;
 
@@ -54,9 +55,17 @@ public partial class MainWindow
         if (_cloudLaunchers.Contains(launcher)) return;
 
         launcher.StartRequested        += async (_, _) => await LauncherStartRequestedAsync(launcher).ConfigureAwait(true);
-        launcher.EndRequested          += async (_, _) => await LauncherEndRequestedAsync(launcher).ConfigureAwait(true);
-        launcher.CopyJoinCodeRequested += (_, _) => LauncherCopyJoinCode();
-        launcher.CopyJoinUrlRequested  += (_, _) => LauncherCopyJoinUrl();
+        launcher.EndRequested          += async (_, args) => await LauncherEndRequestedAsync(launcher, (args as CloudRemoteLauncher.EndRequestEventArgs)?.HostGeneration).ConfigureAwait(true);
+        launcher.CopyJoinCodeRequested += (_, args) =>
+        {
+            if (args is CloudRemoteLauncher.CopyRequestEventArgs request)
+                request.Succeeded = TryCopyLauncherValue(request.Value);
+        };
+        launcher.CopyJoinUrlRequested += (_, args) =>
+        {
+            if (args is CloudRemoteLauncher.CopyRequestEventArgs request)
+                request.Succeeded = TryCopyLauncherValue(request.Value);
+        };
 
         _cloudLaunchers.Add(launcher);
 
@@ -78,14 +87,17 @@ public partial class MainWindow
         }
     }
 
-    private async System.Threading.Tasks.Task LauncherEndRequestedAsync(CloudRemoteLauncher launcher)
+    private async System.Threading.Tasks.Task LauncherEndRequestedAsync(CloudRemoteLauncher launcher, long? expectedGeneration = null)
     {
+        if (!IsCloudSessionActive || expectedGeneration is long expected && expected != _cloudSessionGeneration)
+        { RefreshCloudRemoteUi(); return; }
+        var scope = CloudShareScope;
         NativeMessageBoxResult ok = RocheScoreboard.Mac.Native.NativeMessageBox.Show(this,
             "End the live cloud session?\n\nAll remote phones will be disconnected.",
             "Cloud Remote",
             NativeMessageBoxButton.YesNo,
-            NativeMessageBoxImage.Question);
-        if (ok != NativeMessageBoxResult.Yes)
+            NativeMessageBoxImage.Question, NativeMessageBoxResult.No);
+        if (ok != NativeMessageBoxResult.Yes || !IsCloudSessionActive || scope != CloudShareScope)
         {
             RefreshCloudRemoteUi();
             return;
@@ -101,25 +113,17 @@ public partial class MainWindow
         }
     }
 
-    private void LauncherCopyJoinCode()
+    private static bool TryCopyLauncherValue(string value)
     {
-        if (string.IsNullOrWhiteSpace(CloudJoinCode)) return;
-        try { NativeClipboard.SetText(CloudJoinCode!); }
-        catch (System.Runtime.InteropServices.ExternalException) { /* clipboard locked */ }
-    }
-
-    private void LauncherCopyJoinUrl()
-    {
-        string? url = CloudJoinUrl;
-        if (string.IsNullOrWhiteSpace(url)) return;
-        try { NativeClipboard.SetText(url!); }
-        catch (System.Runtime.InteropServices.ExternalException) { /* clipboard locked */ }
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        try { NativeClipboard.SetText(value); return true; }
+        catch (System.Runtime.InteropServices.ExternalException) { return false; }
     }
 
     private void PushStateToLauncher(CloudRemoteLauncher launcher)
     {
-        launcher.ApplyState(IsCloudConfigReady, IsCloudSessionActive, CloudJoinCode, CloudJoinUrl);
-        launcher.ApplyConnection(IsCloudSessionActive && (_cloudRemote?.IsActive ?? false), IsCloudSessionActive);
+        launcher.ApplyState(IsCloudConfigReady, IsCloudSessionActive, CloudJoinCode, CloudJoinUrl, _cloudSessionGeneration);
+        launcher.ApplyConnection(CloudUiConnected && IsCloudSessionActive, IsCloudSessionActive);
     }
 
     /// <summary>
@@ -154,12 +158,14 @@ public partial class MainWindow
     /// </summary>
     private async void EndCloudSession_Click(object? sender, RoutedEventArgs e)
     {
+        if (!IsCloudSessionActive) return;
+        var scope = CloudShareScope;
         NativeMessageBoxResult ok = RocheScoreboard.Mac.Native.NativeMessageBox.Show(this,
             "End the live cloud session?\n\nAll remote phones will be disconnected.",
             "Cloud Remote",
             NativeMessageBoxButton.YesNo,
-            NativeMessageBoxImage.Question);
-        if (ok != NativeMessageBoxResult.Yes) return;
+            NativeMessageBoxImage.Question, NativeMessageBoxResult.No);
+        if (ok != NativeMessageBoxResult.Yes || !IsCloudSessionActive || scope != CloudShareScope) return;
 
         if (CloudEndButton is not null) CloudEndButton.IsEnabled = false;
         try
@@ -172,19 +178,30 @@ public partial class MainWindow
         }
     }
 
-    /// <summary>Copies the join code to the clipboard with the standard Copied! flash.</summary>
-    private void CopyCloudJoinCode_Click(object? sender, RoutedEventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(CloudJoinCode) || CloudJoinCodeText is null) return;
-        TrySetClipboardWithFeedback(CloudJoinCode!, CloudJoinCodeText);
-    }
+    // Per-window clipboard seam: production keeps the existing Windows API;
+    // controlled UI tests need no desktop clipboard or external service.
+    internal Func<string, bool> CloudShareClipboardWriter { get; set; } = TryCopyLauncherValue;
+    private (long Generation, Guid? Session, string? Code, string? Url)? _cloudShareReceipt;
+    private (long Generation, bool Connected)? _cloudUiConnection;
+    private bool CloudUiConnected => _cloudUiConnection is { } value && value.Generation == _cloudSessionGeneration && value.Connected;
+    private (long Generation, Guid? Session, string? Code, string? Url) CloudShareScope =>
+        (_cloudSessionGeneration, CloudSessionId, CloudJoinCode, CloudJoinUrl);
 
-    /// <summary>Copies the full join URL to the clipboard.</summary>
-    private void CopyCloudJoinUrl_Click(object? sender, RoutedEventArgs e)
+    private void CopyCloudJoinCode_Click(object? sender, RoutedEventArgs e) => CopyCloudShare(false);
+    private void CopyCloudJoinUrl_Click(object? sender, RoutedEventArgs e) => CopyCloudShare(true);
+    private void CopyCloudShare(bool link)
     {
-        string? url = CloudJoinUrl;
-        if (string.IsNullOrWhiteSpace(url) || CloudJoinUrlText is null) return;
-        TrySetClipboardWithFeedback(url!, CloudJoinUrlText);
+        var scope = CloudShareScope;
+        string? value = link ? scope.Url : scope.Code;
+        if (!IsCloudSessionActive || string.IsNullOrWhiteSpace(value)) return;
+        bool copied = CloudShareClipboardWriter(value);
+        // Clipboard operations can pump messages. Never acknowledge an old
+        // session after End/replacement while copying. Share values never move.
+        if (!IsCloudSessionActive || scope != CloudShareScope) return;
+        _cloudShareReceipt = scope;
+        if (CloudCopyFeedback is not null)
+            CloudCopyFeedback.Text = copied ? (link ? "Join link copied." : "Join code copied.")
+                : "Clipboard unavailable. Select Copy again, or use the QR code.";
     }
 
     /// <summary>
@@ -207,6 +224,21 @@ public partial class MainWindow
         string? code     = CloudJoinCode;
         string? url      = CloudJoinUrl;
 
+        if (!active || _cloudShareReceipt != CloudShareScope)
+        {
+            _cloudShareReceipt = null;
+            if (CloudCopyFeedback is not null) CloudCopyFeedback.Text = "";
+        }
+        foreach (var button in new[] { CloudStartButton, CloudCopyCodeButton, CloudCopyUrlButton, CloudEndButton })
+            if (button is not null) { OperatorFeedback.SetManaged(button, true); OperatorControlMotion.SetEnabled(button, false); }
+        if (CloudCopyCodeButton is not null) CloudCopyCodeButton.IsEnabled = active && !string.IsNullOrWhiteSpace(code);
+        if (CloudConnectionDot is not null) CloudConnectionDot.Fill = CloudUiConnected ? CloudBadgeOnline : CloudBadgeOffline;
+        if (CloudConnectionLabel is not null)
+        {
+            CloudConnectionLabel.Text = CloudUiConnected ? "Cloud connected" : "Waiting for cloud connection";
+            CloudConnectionLabel.Foreground = CloudUiConnected ? CloudBadgeOnline : CloudBadgeOffline;
+        }
+
         // Show/hide the three states.
         if (CloudIdleState     is not null) CloudIdleState.IsVisible     = (!active && configReady) ? true : false;
         if (CloudLiveState     is not null) CloudLiveState.IsVisible     = active                    ? true : false;
@@ -221,12 +253,12 @@ public partial class MainWindow
         {
             if (active)
             {
-                CloudStatusText.Text = "Session live · waiting for connection…";
-                CloudStatusText.Foreground = CloudBadgeWarning;
+                CloudStatusText.Text = CloudUiConnected ? "Session open · cloud connected" : "Session open · waiting for cloud connection…";
+                CloudStatusText.Foreground = CloudUiConnected ? CloudBadgeOnline : CloudBadgeWarning;
             }
             else if (configReady)
             {
-                CloudStatusText.Text = "Ready. Click Start to open a session.";
+                CloudStatusText.Text = "Ready to invite a scorer.";
                 CloudStatusText.Foreground = CloudBadgeOffline;
             }
             else
@@ -273,6 +305,7 @@ public partial class MainWindow
     /// </summary>
     partial void OnCloudConnectedChanged(bool connected)
     {
+        _cloudUiConnection = (_cloudSessionGeneration, connected);
         foreach (CloudRemoteLauncher l in _cloudLaunchers)
         {
             l.ApplyConnection(connected, IsCloudSessionActive);
@@ -284,12 +317,12 @@ public partial class MainWindow
         }
         if (CloudConnectionLabel is not null)
         {
-            CloudConnectionLabel.Text = connected ? "Connected" : "Connecting…";
+            CloudConnectionLabel.Text = connected ? "Cloud connected" : "Waiting for cloud connection";
             CloudConnectionLabel.Foreground = connected ? CloudBadgeOnline : CloudBadgeOffline;
         }
         if (CloudStatusText is not null && IsCloudSessionActive)
         {
-            CloudStatusText.Text = connected ? "Session live · cloud connected" : "Session live · reconnecting…";
+            CloudStatusText.Text = connected ? "Session open · cloud connected" : "Session open · reconnecting to cloud…";
             CloudStatusText.Foreground = connected ? CloudBadgeOnline : CloudBadgeWarning;
         }
     }

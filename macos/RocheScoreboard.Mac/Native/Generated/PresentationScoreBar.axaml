@@ -24,7 +24,7 @@
                 </Rectangle.Fill>
             </Rectangle>
             <Grid>
-                <TextBlock x:Name="HomeTotalText" Text="0" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontStretch="Normal" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
+                <TextBlock x:Name="HomeTotalText" Text="0" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontStretch="Normal" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" FontFeatures="tnum,lnum,-kern">
                     <TextBlock.Effect>
                         <DropShadowEffect BlurRadius="6" Color="Black" Opacity="0.5" OffsetX="-3.67394039744e-16" OffsetY="2" />
                     </TextBlock.Effect>
@@ -42,7 +42,7 @@
                     <Border.RenderTransform>
                         <TranslateTransform port:ProductionNames.Id="HomeDeltaTranslate" />
                     </Border.RenderTransform>
-                    <TextBlock x:Name="HomeDeltaText" Text="+6" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="32" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                    <TextBlock x:Name="HomeDeltaText" Text="+6" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontSize="32" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                 </Border>
             </Grid>
         </Grid>
@@ -85,7 +85,7 @@
             <Grid Margin="3,2">
                 <Grid x:Name="LiveCenterPanel">
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="3,1">
-                        <TextBlock x:Name="LiveCenterText" Text="Q1 14′" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial Black'}" FontSize="31" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                        <TextBlock x:Name="LiveCenterText" Text="Q1 14′" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial Black'}" FontSize="31" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                     </Viewbox>
                 </Grid>
                 <Viewbox x:Name="BreakCenterPanel" Stretch="Uniform" StretchDirection="Both" Margin="2,0" IsVisible="False">
@@ -137,7 +137,7 @@
                 </Rectangle.Fill>
             </Rectangle>
             <Grid>
-                <TextBlock x:Name="AwayTotalText" Text="0" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontStretch="Normal" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
+                <TextBlock x:Name="AwayTotalText" Text="0" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontStretch="Normal" FontSize="30" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" FontFeatures="tnum,lnum,-kern">
                     <TextBlock.Effect>
                         <DropShadowEffect BlurRadius="6" Color="Black" Opacity="0.5" OffsetX="-3.67394039744e-16" OffsetY="2" />
                     </TextBlock.Effect>
@@ -155,7 +155,7 @@
                     <Border.RenderTransform>
                         <TranslateTransform port:ProductionNames.Id="AwayDeltaTranslate" />
                     </Border.RenderTransform>
-                    <TextBlock x:Name="AwayDeltaText" Text="+6" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="32" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                    <TextBlock x:Name="AwayDeltaText" Text="+6" FontFamily="{fonts:ProductionFont 'Arial, Helvetica Neue, Helvetica, Liberation Sans'}" FontSize="32" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                 </Border>
             </Grid>
         </Grid>

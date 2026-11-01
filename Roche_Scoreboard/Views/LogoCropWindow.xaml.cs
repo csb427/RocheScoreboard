@@ -142,7 +142,7 @@ namespace Roche_Scoreboard.Views
             SetAwaySource(image);
         }
 
-        private static string? SelectLogoFile(string? initialPath)
+        private string? SelectLogoFile(string? initialPath)
         {
             Microsoft.Win32.OpenFileDialog picker = new()
             {
@@ -158,7 +158,7 @@ namespace Roche_Scoreboard.Views
                 picker.FileName = Path.GetFileName(initialPath);
             }
 
-            return picker.ShowDialog() == true ? picker.FileName : null;
+            return picker.ShowDialog(this) == true ? picker.FileName : null;
         }
 
         private void Preview_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

@@ -19,6 +19,12 @@ public partial class CricketControlPanel
     private bool _scorecardBowling;
     private readonly StackPanel _scorecardRows = new();
     private readonly WrapPanel _scorecardInningsButtons = new(), _scorecardTeamButtons = new();
+    private readonly System.Windows.Controls.TextBlock _scorecardContext = new()
+    {
+        Tag = "scorecard-context", FontSize = 12, FontWeight = FontWeights.SemiBold,
+        TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis,
+        Margin = new Thickness(0, 0, 0, 6)
+    };
     private readonly System.Windows.Controls.TextBlock _scorecardStatus = WorkflowText("Select an innings to view its scorecard.", 13);
     private Grid? _scorecardLayout;
     private bool? _scorecardCompact;
@@ -36,13 +42,18 @@ public partial class CricketControlPanel
     private void InitializeScorecard()
     {
         var layout = new Grid { Margin = new Thickness(12) }; _scorecardLayout = layout;
-        layout.RowDefinitions.Add(new() { Height = GridLength.Auto }); layout.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) });
-        var top = new StackPanel(); layout.Children.Add(top);
+        // The selected-tab host supplies the available height. One existing
+        // page scroller keeps headings and every figure reachable at short sizes.
+        layout.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        layout.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) });
+        _scorecardContext.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
+        System.Windows.Automation.AutomationProperties.SetLiveSetting(_scorecardContext, System.Windows.Automation.AutomationLiveSetting.Polite);
+        layout.Children.Add(_scorecardContext);
+        var content = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
         System.Windows.Automation.AutomationProperties.SetLiveSetting(_scorecardStatus, System.Windows.Automation.AutomationLiveSetting.Polite);
         _scorecardInningsButtons.HorizontalAlignment = System.Windows.HorizontalAlignment.Left; _scorecardInningsButtons.Margin = new Thickness(0, 0, 0, 3);
-        top.Children.Add(_scorecardInningsButtons);
-        top.Children.Add(_scorecardStatus);
-        var content = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
+        content.Children.Add(_scorecardInningsButtons);
+        content.Children.Add(_scorecardStatus);
         var teamCaption = WorkflowText("BATTING / BOWLING", 11); teamCaption.TextAlignment = TextAlignment.Center;
         content.Children.Add(teamCaption);
         var teamNavigation = new OperatorGlassSurface
@@ -65,11 +76,11 @@ public partial class CricketControlPanel
     {
         if (_scorecardLayout is null || ActualHeight <= 0) return;
         _scorecardStatus.MinHeight = ActualWidth < 620 ? 36 : 20;
-        // Natural-height operator pages are measured without a vertical limit.
-        // Keep innings navigation and editing instructions visible above the table.
-        _scorecardLayout.Height = Math.Max(130, ActualHeight - PersistentHeader.ActualHeight - 76);
+        // Keep normal text and controls inside the tab's actual allocation.
+        // Innings and instructions precede the table in the same page scroller;
+        // the match strip and navigation dock remain outside and anchored.
     }
-    private void ResetScorecard() { _scorecardViewCache.Clear();_scorecardCachedDraft=null;_scorecardMetadata=""; _scorecardDraft = null; _scorecardDirty = false; _scorecardCommitBusy = false; _scorecardFowEditing = false; _scorecardAppliedFeedback = null; _scorecardInnings = 0; _scorecardPlayerRows.Clear(); _scorecardRows.Children.Clear(); _scorecardInningsButtons.Children.Clear(); _scorecardTeamButtons.Children.Clear(); }
+    private void ResetScorecard() { _scorecardContext.Text = ""; _scorecardContext.ToolTip = null; System.Windows.Automation.AutomationProperties.SetName(_scorecardContext, ""); _scorecardViewCache.Clear();_scorecardCachedDraft=null;_scorecardMetadata=""; _scorecardDraft = null; _scorecardDirty = false; _scorecardCommitBusy = false; _scorecardFowEditing = false; _scorecardAppliedFeedback = null; _scorecardInnings = 0; _scorecardPlayerRows.Clear(); _scorecardRows.Children.Clear(); _scorecardInningsButtons.Children.Clear(); _scorecardTeamButtons.Children.Clear(); }
     private void SizeScorecardTeamTabs()
     {
         double width = Math.Max(100, (_scorecardTeamButtons.ActualWidth - 12) / 2);
@@ -95,10 +106,36 @@ public partial class CricketControlPanel
             string ordinal = number switch { 1 => "1ST", 2 => "2ND", 3 => "3RD", _ => "4TH" };
             var button = WorkflowButton(ordinal + " INNINGS", async () =>
             {
-                if (_scorecardDirty && number != _scorecardInnings)
+                int generation=_workflowGeneration,viewed=_scorecardInnings;
+                var owner=Window.GetWindow(this);
+                bool Current()=>IsLoaded && IsVisible && owner is {IsVisible:true,IsActive:true}
+                    && ReferenceEquals(owner,Window.GetWindow(this)) && generation==_workflowGeneration
+                    && ReferenceEquals(match,_match) && MainTabControl.SelectedItem==ScorecardTab
+                    && _scorecardInnings==viewed && viewed>=1 && viewed<=match.AllInnings.Count
+                    && number<=match.AllInnings.Count && ReferenceEquals(innings,match.AllInnings[number-1]);
+                if(!Current())return;
+                if (_scorecardDirty && number != viewed)
                 {
-                    if (await ChooseAsync("Apply the pending row first?", "The current innings has an unfinished inline edit. Apply it before changing innings.", new("close", "Keep editing"), new("apply", "Apply pending edit", true)) != "apply" || _scorecardDraft is not { } pending || !await CommitScorecardEditAsync(pending)) return;
+                    if(_scorecardDraft is not { } pending || pending.InningsNumber!=viewed)return;
+                    string reviewed=System.Text.Json.JsonSerializer.Serialize(pending);
+                    var record=new StackPanel();
+                    record.Children.Add(WorkflowText($"PENDING · INNINGS {viewed}",12));
+                    record.Children.Add(WorkflowText(match.AllInnings[viewed-1].BattingTeamName,19));
+                    var figures=WorkflowText($"Runs {pending.TotalRuns} · Wickets {pending.TotalWickets} · Overs {pending.LegalBallsBowled/6}.{pending.LegalBallsBowled%6}",16);
+                    System.Windows.Documents.Typography.SetNumeralAlignment(figures,FontNumeralAlignment.Tabular);
+                    record.Children.Add(figures);
+                    record.Children.Add(WorkflowText($"THEN VIEW · INNINGS {number}",12));
+                    record.Children.Add(WorkflowText(innings.BattingTeamName,19));
+                    var context=new Border {Tag="scorecard-innings-switch-context",Child=record,Padding=new Thickness(12,6,12,12),CornerRadius=new CornerRadius(20),BorderThickness=new Thickness(1)};
+                    context.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush");context.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");
+                    if(!Current())return;
+                    if(await ContextDecisionAsync("View another innings?","Keep the current edit open, or save the reviewed figures before changing the scorecard view. This does not advance live play.",context,
+                        new("close","Keep editing"),new("apply","Apply edit and view innings",true,Detail:$"Save the pending innings {viewed} edit, then view innings {number}."))!="apply" || !Current())return;
+                    if(!ReferenceEquals(pending,_scorecardDraft) || reviewed!=System.Text.Json.JsonSerializer.Serialize(pending))
+                    {await ShowErrorAsync("Pending edit changed","The draft changed while this review was open. No edit was applied. Review the current figures before changing innings.");return;}
+                    if(!await CommitScorecardEditAsync(pending) || !Current())return;
                 }
+                if(!Current())return;
                 _scorecardInnings = number; _scorecardDirty = false; RefreshScorecard(true);
             });
             button.Tag = "scorecard-innings-" + number; button.ToolTip = innings.BattingTeamName + " batting"; button.MinWidth = 100; button.MinHeight = 40; button.FontSize = 13; button.FontWeight = FontWeights.Bold; button.Padding = new Thickness(10, 5, 10, 5);
@@ -120,6 +157,7 @@ public partial class CricketControlPanel
             var navigation = new Grid(); navigation.ColumnDefinitions.Add(new() { Width = new GridLength(30) }); navigation.ColumnDefinitions.Add(new());
             navigation.Children.Add(new OperatorSymbol { Kind = role == "BATTING" ? "Cricket" : "Teams", Width = 22, Height = 22, Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center });
             Grid.SetColumn(label, 1); navigation.Children.Add(label);
+            tab.Style = (Style)FindResource("CricketScorecardTeamButton");
             tab.Content = navigation; tab.ContentTemplate = null; tab.Height = 66; tab.HorizontalContentAlignment = System.Windows.HorizontalAlignment.Stretch;
         }
         _scorecardTeamButtons.Children.Add(batting); _scorecardTeamButtons.Children.Add(bowling);
@@ -130,7 +168,7 @@ public partial class CricketControlPanel
     {
         if(_scorecardBowling==bowling)return;
         _scorecardBowling=bowling; RenderScorecardView(true);
-        SharedSurfaceMotion.Reveal(_scorecardRows);
+        // Keep all figures fully readable; the navigation surface carries the transition.
     }
     private void UpdateScorecardStatus()
     {
@@ -144,7 +182,7 @@ public partial class CricketControlPanel
         string previousStatus = _scorecardStatus.Text;
         _scorecardStatus.Text = _scorecardDirty ? stale ? "The match changed. Reopen this edit to use current figures." : "Complete the inline row and press Apply."
             : !string.IsNullOrWhiteSpace(selectedInnings.ManualScorecardWarning) ? "Manual figures have reconciliation differences · review adjustments below."
-            : _scorecardAppliedFeedback?.Message ?? "Hover and click a figure to edit. Apply updates the match immediately.";
+            : _scorecardAppliedFeedback?.Message ?? "Select a boxed figure to edit. Apply updates the match immediately.";
         _scorecardStatus.ToolTip = selectedInnings.ManualScorecardWarning;
         _scorecardStatus.FontWeight = FontWeights.SemiBold;
         if (stale && _scorecardDirty) _scorecardStatus.Foreground = ScorecardAlertBrush(true);
@@ -161,16 +199,31 @@ public partial class CricketControlPanel
         string value = overs ? $"{read() / 6}.{read() % 6}" : read().ToString(CultureInfo.InvariantCulture);
         var button = WorkflowButton(compact ? value : label + "  " + value, async () =>
         {
-            var draft = _scorecardDraft; if (draft is null) return;
+            var draft = _scorecardDraft; var match = _match; int generation = _workflowGeneration;
+            if (draft is null || match is null) return;
+            bool Current() => generation == _workflowGeneration && ReferenceEquals(match, _match) && ReferenceEquals(draft, _scorecardDraft);
             var editor = CreateScorecardFigureEditor(label, value, overs, out var field);
-            while (ReferenceEquals(draft, _scorecardDraft))
+            var error = WorkflowText("", 14); error.Tag = "scorecard-figure-error"; error.Visibility = Visibility.Collapsed;
+            error.Foreground = ScorecardAlertBrush(true); editor.Children.Add(error);
+            System.Windows.Automation.AutomationProperties.SetLiveSetting(error, System.Windows.Automation.AutomationLiveSetting.Assertive);
+            int parsed = 0;
+            bool Validate()
             {
-                if (await FormAsync("Edit " + label.ToLowerInvariant(), overs ? "Use overs and legal balls, for example 5.3." : "Update this figure. The scorecard checks the totals before applying it.", editor, new("back", "Cancel"), new("apply", "Apply", true)) != "apply") return;
-                if (!ReferenceEquals(draft, _scorecardDraft)) return;
+                if (!Current()) return false;
                 string[] parts = field.Text.Trim().Split('.');
-                int parsed = 0; bool valid = !overs ? int.TryParse(field.Text, out parsed) : parts.Length <= 2 && int.TryParse(parts[0], out int complete) && complete >= 0 && complete <= 166666 && (parts.Length == 1 || int.TryParse(parts[1], out int balls) && balls is >= 0 and <= 5);
+                bool valid = !overs ? int.TryParse(field.Text, out parsed) : parts.Length <= 2 && int.TryParse(parts[0], out int complete) && complete >= 0 && complete <= 166666 && (parts.Length == 1 || int.TryParse(parts[1], out int balls) && balls is >= 0 and <= 5);
                 if (valid && overs) parsed = int.Parse(parts[0], CultureInfo.InvariantCulture) * 6 + (parts.Length == 2 ? int.Parse(parts[1], CultureInfo.InvariantCulture) : 0);
-                if (!valid || parsed < 0 || parsed > 1_000_000) { await ShowErrorAsync("Check the figure", "Enter a valid non-negative figure. Overs use a ball digit from 0 to 5."); continue; }
+                if (valid && parsed is >= 0 and <= 1_000_000) { error.Text = ""; error.Visibility = Visibility.Collapsed; return true; }
+                error.Text = "Enter a valid non-negative figure. Overs use a ball digit from 0 to 5.";
+                error.Visibility = Visibility.Visible;
+                field.Focus();
+                if (Current()) OperatorViewport.RevealValidationError(field);
+                return false;
+            }
+            while (Current())
+            {
+                if (await ValidatedFormAsync("Edit " + label.ToLowerInvariant(), overs ? "Use overs and legal balls, for example 5.3." : "Update this figure. The scorecard checks the totals before applying it.", editor, Validate, new("back", "Cancel"), new("apply", "Apply", true)) != "apply") return;
+                if (!Current()) return;
                 int previous = read(); bool alreadyPending = _scorecardDirty;
                 write(parsed); _scorecardDirty = true;
                 if (await CommitScorecardEditAsync(draft)) return;
@@ -179,7 +232,11 @@ public partial class CricketControlPanel
             }
         });
         button.MinWidth = compact ? 54 : 76; if (compact) { button.Width = 54; button.FontSize = 18; button.Padding = new Thickness(2, 6, 2, 6); }
-        button.Background = Brushes.Transparent; button.BorderThickness = new Thickness(0); button.ToolTip = "Edit " + label;
+        button.Style = (Style)FindResource("CricketScorecardFigureButton");
+        button.MinHeight = 40;
+        button.SetResourceReference(System.Windows.Controls.Control.BackgroundProperty, "ControlCentre.SurfaceBrush");
+        button.SetResourceReference(System.Windows.Controls.Control.BorderBrushProperty, "ControlCentre.BorderBrush");
+        button.BorderThickness = new Thickness(0); button.ToolTip = "Edit " + label;
         button.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "ControlCentre.TextBrush");
         System.Windows.Automation.AutomationProperties.SetName(button, label + ", " + value + ". Edit figure.");
         return button;
@@ -193,6 +250,13 @@ public partial class CricketControlPanel
         double scrollOffset = _scorecardScroll?.VerticalOffset ?? 0;
         int renderVersion = ++_scorecardRenderVersion;
         _scorecardRows.Children.Clear(); _scorecardPlayerRows.Clear(); if (_scorecardDraft is not { } draft || _match is null) return;
+        var viewedInnings = _match.AllInnings[draft.InningsNumber - 1];
+        string ordinal = draft.InningsNumber switch { 1 => "1st", 2 => "2nd", 3 => "3rd", _ => draft.InningsNumber + "th" };
+        // This is the viewed scorecard, which may differ from the live strip.
+        // Put the role before the ellipsized team name so it stays readable.
+        string context = $"Scorecard · {ordinal} innings · {(_scorecardBowling ? "Bowling" : "Batting")} · {(_scorecardBowling ? viewedInnings.BowlingTeamName : viewedInnings.BattingTeamName)}";
+        _scorecardContext.Text = context; _scorecardContext.ToolTip = context;
+        System.Windows.Automation.AutomationProperties.SetName(_scorecardContext, context);
         int widthClass=ActualWidth<760?0:ActualWidth<820?1:2;
         bool clean=!_scorecardDirty&&!_scorecardFowEditing;
         if(!reuseViews || !clean || !ReferenceEquals(_scorecardCachedDraft,draft) || widthClass!=_scorecardCachedWidthClass)_scorecardViewCache.Clear();
@@ -200,6 +264,7 @@ public partial class CricketControlPanel
         foreach (var tab in _scorecardTeamButtons.Children.OfType<Button>())
         {
             bool selected = Equals(tab.Tag, _scorecardBowling ? "scorecard-team-bowling" : "scorecard-team-batting");
+            OperatorChoiceMotion.SetSelected(tab, selected);
             tab.BorderBrush = selected ? Brushes.White : Brushes.Transparent;
             tab.BorderThickness = new Thickness(2); tab.Opacity = selected ? 1 : .72;
             string colour=Equals(tab.Tag,"scorecard-team-batting") ? (_match.AllInnings[draft.InningsNumber-1].BattingTeamName==_match.TeamAName?_match.TeamAPrimaryColor:_match.TeamBPrimaryColor)
@@ -240,13 +305,17 @@ public partial class CricketControlPanel
         foreach (var player in players.OrderBy(p => p.BattingPosition))
         {
             var row = new Grid { Margin = new Thickness(4, compact ? 5 : 2, 4, compact ? 5 : 2) };
-            row.SetResourceReference(System.Windows.Controls.Panel.BackgroundProperty, "ControlCentre.SurfaceBrush");
+            row.Background = Brushes.Transparent;
             int playerIndex = players.IndexOf(player); row.Tag = $"scorecard-player-{(_scorecardBowling ? "bowling" : "batting")}-{playerIndex}";
             _scorecardPlayerRows[(_scorecardBowling, playerIndex)] = row;
             row.RowDefinitions.Add(new() { Height = GridLength.Auto }); row.RowDefinitions.Add(new() { Height = GridLength.Auto });
             if (compact) row.RowDefinitions.Add(new() { Height = GridLength.Auto });
             foreach (var column in header.ColumnDefinitions) row.ColumnDefinitions.Add(new() { Width = column.Width, MinWidth = column.MinWidth });
-            var name = WorkflowText(player.FullName, 16); name.VerticalAlignment = VerticalAlignment.Center; name.Margin = new Thickness(8, 5, 6, 5); name.TextTrimming = TextTrimming.CharacterEllipsis;
+            var surface = new Border { Tag = "scorecard-player-surface", CornerRadius = new CornerRadius(14), BorderThickness = new Thickness(1), IsHitTestVisible = false };
+            surface.SetResourceReference(Border.BackgroundProperty, "ControlCentre.SurfaceBrush");
+            surface.SetResourceReference(Border.BorderBrushProperty, "ControlCentre.BorderBrush");
+            Grid.SetColumnSpan(surface, row.ColumnDefinitions.Count); Grid.SetRowSpan(surface, row.RowDefinitions.Count); row.Children.Add(surface);
+            var name = WorkflowText(player.FullName, 16); name.FontWeight = FontWeights.SemiBold; name.ToolTip = player.FullName; name.VerticalAlignment = VerticalAlignment.Center; name.Margin = new Thickness(8, 5, 6, 5); name.TextTrimming = TextTrimming.CharacterEllipsis;
             if (compact) { Grid.SetColumnSpan(name, 4); name.Margin = new Thickness(12, 12, 12, 3); name.ToolTip = player.FullName; }
             row.Children.Add(name);
             var values = new List<FrameworkElement>();

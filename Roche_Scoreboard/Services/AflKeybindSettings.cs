@@ -100,6 +100,12 @@ internal static class AflKeybindSettings
 
     public static IReadOnlyDictionary<AflAction, Key> GetDefaultBindings() => new Dictionary<AflAction, Key>(DefaultBindings);
 
+    // The normal presentation router owns these keys before scoring bindings.
+    // Keep loaded profiles untouched; this is availability for a new capture.
+    internal static bool IsPresentationShortcut(Key key) => key is
+        Key.D1 or Key.D2 or Key.D3 or Key.D4 or Key.D5 or Key.D6
+        or Key.NumPad1 or Key.NumPad2 or Key.NumPad3 or Key.NumPad4 or Key.NumPad5 or Key.NumPad6;
+
     public static string FormatKey(Key key) => key switch
     {
         Key.Space => "Space",

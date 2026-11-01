@@ -61,27 +61,6 @@
      <TextBlock.Effect><DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/></TextBlock.Effect>
     </TextBlock>
    </Grid>
-  <Grid.Triggers>
-   <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-    <BeginStoryboard>
-     <Storyboard RepeatBehavior="Forever">
-      <DoubleAnimation Storyboard.TargetName="BeamOneTranslate" Storyboard.TargetProperty="X" From="-20" To="470" Duration="0:0:18" AutoReverse="True">
-       <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-      </DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="BeamTwoTranslate" Storyboard.TargetProperty="X" From="40" To="-430" Duration="0:0:22" AutoReverse="True">
-       <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-      </DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="FieldTranslate" Storyboard.TargetProperty="X" From="-12" To="12" Duration="0:0:16" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="FieldTranslate" Storyboard.TargetProperty="Y" From="-5" To="5" Duration="0:0:21" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="ParticleOneTranslate" Storyboard.TargetProperty="X" From="0" To="310" Duration="0:0:13" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="ParticleOneTranslate" Storyboard.TargetProperty="Y" From="0" To="72" Duration="0:0:9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="ParticleTwoTranslate" Storyboard.TargetProperty="X" From="0" To="-250" Duration="0:0:17" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="ParticleTwoTranslate" Storyboard.TargetProperty="Y" From="0" To="-92" Duration="0:0:14" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="ParticleThreeTranslate" Storyboard.TargetProperty="X" From="0" To="135" Duration="0:0:11" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
-      <DoubleAnimation Storyboard.TargetName="HorizonGlow" Storyboard.TargetProperty="Opacity" From="0.16" To="0.48" Duration="0:0:4" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
-     </Storyboard>
-    </BeginStoryboard>
-   </EventTrigger>
-  </Grid.Triggers>
+
  </Grid>
 </UserControl>

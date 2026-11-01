@@ -14,7 +14,7 @@ internal static class OperatorTabMotion
     internal static void Enable(TabControl tabs)=>States.GetValue(tabs,key=>new Controller(key));
     private sealed class Controller
     {
-        private readonly TabControl _tabs;private Trail? _trail;private AdornerLayer? _layer;private bool _ready;private int _version;
+        private readonly TabControl _tabs;private Trail? _trail;private AdornerLayer? _layer;private bool _ready;private int _version;private bool _watchingPolicy;
         internal Controller(TabControl tabs)
         {
             _tabs=tabs;tabs.Loaded+=(_,_)=>Queue(false);tabs.Unloaded+=(_,_)=>Clear();tabs.SizeChanged+=(_,_)=>Queue(false);tabs.IsVisibleChanged+=(_,e)=>{if(e.NewValue is false)Clear();else Queue(false);};
@@ -30,16 +30,46 @@ internal static class OperatorTabMotion
         {
             // The new template owns its liquid lens. Never stack the legacy underline on it.
             if(_tabs.Template?.FindName("PART_OperatorLens",_tabs) is OperatorSelectionLens){Clear();return;}
-            if(!_tabs.IsLoaded||!_tabs.IsVisible||Window.GetWindow(_tabs) is not Window window||!OperatorFeedback.IsOperatorWindow(window))return;
+            if(!_tabs.IsLoaded||!_tabs.IsVisible||Window.GetWindow(_tabs) is not Window window||!OperatorFeedback.IsOperatorWindow(window)){Clear();return;}
             if(_tabs.SelectedItem is null){Clear();return;}
             var selected=_tabs.SelectedItem as TabItem ?? _tabs.ItemContainerGenerator.ContainerFromItem(_tabs.SelectedItem) as TabItem;
-            if(selected is null||!selected.IsVisible||selected.ActualWidth<1)return;
-            if(AdornerLayer.GetAdornerLayer(_tabs) is not {} layer)return;
-            _layer=layer;if(_trail is null){_trail=new Trail(_tabs);layer.Add(_trail);}
+            if(selected is null||!selected.IsVisible||selected.ActualWidth<1){Clear();return;}
+            if(AdornerLayer.GetAdornerLayer(_tabs) is not {} layer){Clear();return;}
+            _layer=layer;if(_trail is null){_trail=new Trail(_tabs);layer.Add(_trail);}WatchPolicy();
             var point=selected.TranslatePoint(new System.Windows.Point(),_tabs);
             _trail.Move(point.X+3,point.Y+selected.ActualHeight-3,Math.Max(1,selected.ActualWidth-6),animate&&_ready);_ready=true;
         }
-        private void Clear(){++_version;if(_trail is not null){_trail.Stop();_layer?.Remove(_trail);}_trail=null;_layer=null;_ready=false;}
+        private void WatchPolicy()
+        {
+            if(_watchingPolicy)return;
+            _watchingPolicy=true;
+            OperatorAppearance.Changed+=MotionPolicyChanged;
+            SystemParameters.StaticPropertyChanged+=SystemMotionChanged;
+        }
+        private void SystemMotionChanged(object? sender,System.ComponentModel.PropertyChangedEventArgs args)
+        {if(args.PropertyName==nameof(SystemParameters.ClientAreaAnimation))MotionPolicyChanged();}
+        private void MotionPolicyChanged()
+        {
+            void Apply()
+            {
+                if(!_watchingPolicy||OperatorMotion.Enabled)return;
+                ++_version;Update(false);
+            }
+            if(_tabs.Dispatcher.CheckAccess())Apply();
+            else _tabs.Dispatcher.BeginInvoke(new Action(Apply));
+        }
+        private void Clear()
+        {
+            ++_version;
+            if(_watchingPolicy)
+            {
+                _watchingPolicy=false;
+                OperatorAppearance.Changed-=MotionPolicyChanged;
+                SystemParameters.StaticPropertyChanged-=SystemMotionChanged;
+            }
+            if(_trail is not null){_trail.Stop();_layer?.Remove(_trail);}
+            _trail=null;_layer=null;_ready=false;
+        }
     }
     private sealed class Trail:Adorner
     {

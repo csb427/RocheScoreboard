@@ -16,7 +16,7 @@ namespace Roche_Scoreboard.Services.Cloud;
 /// <see cref="SupabaseRealtimeClient"/> and orchestrated by
 /// <see cref="RemoteControlService"/>.
 /// </summary>
-public sealed class CloudGameSessionService : IDisposable
+public sealed class CloudGameSessionService : IDisposable, ICloudSessionStore
 {
     private readonly SupabaseRestClient _rest;
 

@@ -47,12 +47,120 @@
                 </ControlTemplate></Setter.Value></Setter>
             </Style>
             <Style x:Key="PresentationButton" TargetType="Button" BasedOn="{StaticResource OperatorPresentationButton}"><Setter Property="Margin" Value="4"/><Setter Property="Padding" Value="12"/><Setter Property="MinHeight" Value="96"/></Style>
+            <!-- This choice keeps its hit target, labels and focus frame still. -->
+            <Style x:Key="CricketLiveScorebugButton" TargetType="Button" BasedOn="{StaticResource PresentationButton}">
+                <Setter Property="motion:OperatorControlMotion.Enabled" Value="False"/>
+                <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="False"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="AutomationProperties.Name" Value="Live scorebug"/>
+                <Setter Property="AutomationProperties.HelpText" Value="Choose the live scorebug presentation. Choosing a presentation does not open the output window."/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <local:OperatorGlassSurface CornerRadius="16" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                        <Border x:Name="CricketLiveFocusFrame" Margin="4" CornerRadius="12" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Hidden" IsHitTestVisible="False"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="CricketLiveFocusFrame" Property="Visibility" Value="Visible"/></MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
+            </Style>
+            <Style x:Key="CricketBattingScorecardButton" TargetType="Button" BasedOn="{StaticResource PresentationButton}">
+                <Setter Property="motion:OperatorControlMotion.Enabled" Value="False"/>
+                <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="False"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="AutomationProperties.Name" Value="Batting scorecard"/>
+                <Setter Property="AutomationProperties.HelpText" Value="Choose the batting scorecard presentation. Choosing a presentation does not open the output window."/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <local:OperatorGlassSurface CornerRadius="16" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                        <Border x:Name="CricketBattingFocusFrame" Margin="4" CornerRadius="12" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Hidden" IsHitTestVisible="False"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="CricketBattingFocusFrame" Property="Visibility" Value="Visible"/></MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
+            </Style>
+            <!-- Shared input/focus frame; bowling has its own passive icon anatomy. -->
+            <Style x:Key="CricketBowlingFiguresButton" TargetType="Button" BasedOn="{StaticResource CricketBattingScorecardButton}">
+                <Setter Property="AutomationProperties.Name" Value="Bowling figures"/>
+                <Setter Property="AutomationProperties.HelpText" Value="Choose the bowling figures presentation. Choosing a presentation does not open the output window."/>
+            </Style>
+            <Style x:Key="CricketMatchSummaryButton" TargetType="Button" BasedOn="{StaticResource CricketBattingScorecardButton}">
+                <Setter Property="AutomationProperties.Name" Value="Match summary"/>
+                <Setter Property="AutomationProperties.HelpText" Value="Choose the match summary presentation. Choosing a presentation does not open the output window."/>
+            </Style>
+            <Style x:Key="CricketScorewormButton" TargetType="Button" BasedOn="{StaticResource CricketBattingScorecardButton}">
+                <Setter Property="AutomationProperties.Name" Value="Scoreworm"/>
+                <Setter Property="AutomationProperties.HelpText" Value="Compare innings progress. Choosing a presentation does not open the output window."/>
+            </Style>
+            <Style x:Key="CricketManhattanButton" TargetType="Button" BasedOn="{StaticResource CricketBattingScorecardButton}">
+                <Setter Property="AutomationProperties.Name" Value="Manhattan"/>
+                <Setter Property="AutomationProperties.HelpText" Value="Compare runs and wickets per over. Choosing a presentation does not open the output window."/>
+            </Style>
+            <Style x:Key="CricketScorecardFigureButton" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+                <Setter Property="motion:OperatorControlMotion.Enabled" Value="False"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <Border x:Name="FigureWell" CornerRadius="9" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Opacity=".75"/>
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+                        <Border x:Name="FigureFocus" CornerRadius="9" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Hidden" IsHitTestVisible="False"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="FigureWell" Property="Opacity" Value="1"/><Setter TargetName="FigureWell" Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}"/></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="FigureWell" Property="Background" Value="{DynamicResource ControlCentre.SelectionBrush}"/></Trigger>
+                        <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="FigureFocus" Property="Visibility" Value="Visible"/></MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
+            </Style>
+            <Style x:Key="CricketScorecardTeamButton" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+                <Setter Property="motion:OperatorControlMotion.Enabled" Value="False"/>
+                <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <Border CornerRadius="20" Background="{TemplateBinding Background}"/>
+                        <motion:OperatorChoiceSurface OriginX=".5" FillBrush="{DynamicResource ControlCentre.SelectionBrush}" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}"/>
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="ScorecardTeamSelected" Text="✓" Foreground="White" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,8,0" Visibility="Hidden" IsHitTestVisible="False"/>
+                        <Border x:Name="ScorecardTeamFocus" CornerRadius="20" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Hidden" IsHitTestVisible="False"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="motion:OperatorChoiceMotion.Selected" Value="True"><Setter TargetName="ScorecardTeamSelected" Property="Visibility" Value="Visible"/></Trigger>
+                        <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="ScorecardTeamFocus" Property="Visibility" Value="Visible"/></MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
+            </Style>
+            <Style x:Key="CricketLineupRoleButton" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+                <Setter Property="motion:OperatorControlMotion.Enabled" Value="False"/>
+                <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <Border CornerRadius="12" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"/>
+                        <motion:OperatorChoiceSurface OriginX="0" FillBrush="White" Opacity=".16" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}"/>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="LineupRoleFocus" CornerRadius="12" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Hidden" IsHitTestVisible="False"/>
+                    </Grid>
+                    <ControlTemplate.Triggers><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="LineupRoleFocus" Property="Visibility" Value="Visible"/></MultiTrigger></ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value></Setter>
+            </Style>
             <Style x:Key="PlayerChoice" TargetType="ListBoxItem">
- <Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/><Setter Property="motion:SelectionCheckMotion.Enabled" Value="True"/>
+ <Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="False"/><Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True"/><Setter Property="motion:SelectionCheckMotion.Enabled" Value="True"/>
  <Setter Property="Padding" Value="16,14"/><Setter Property="Margin" Value="6,5"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Foreground" Value="#E6EDF3"/>
  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
   <Grid Background="Transparent"><Grid x:Name="PART_Surface" RenderTransformOrigin=".5,.5" motion:OperatorRoundedClip.Radius="15"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform>
-   <Border x:Name="Surface" CornerRadius="15" Background="#202024" Padding="{TemplateBinding Padding}"><ContentPresenter Margin="0,0,28,0"/></Border>
+   <Border x:Name="Surface" CornerRadius="15" Background="#202024"/>
+   <motion:OperatorChoiceSurface OriginX="0" FillBrush="{DynamicResource PlayerSelectionSurface}" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False"/>
+   <Border x:Name="PlayerChoiceContentLayer" Padding="{TemplateBinding Padding}"><ContentPresenter Margin="0,0,28,0"/></Border>
    <Border x:Name="ActionGlow" CornerRadius="15" Background="White" Opacity="0" IsHitTestVisible="False"/>
    <Border x:Name="PlayerSelected" Width="22" Height="22" CornerRadius="11" Background="#24925C" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" Visibility="Collapsed" RenderTransformOrigin=".5,.5" IsHitTestVisible="False">
     <Border.RenderTransform><ScaleTransform x:Name="SelectionPop"/></Border.RenderTransform><Path x:Name="SelectionStroke" Data="M2,7 L6,11 13,3" Stroke="White" StrokeThickness="2" StrokeDashArray="7 7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="15" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -61,12 +169,12 @@
   <ControlTemplate.Triggers>
    <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocusWithin" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="PlayerFocus" Property="Visibility" Value="Visible"/></MultiTrigger>
    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="Background" Value="{DynamicResource PlayerSelectionHover}"/></Trigger>
-   <Trigger Property="IsSelected" Value="True"><Setter TargetName="Surface" Property="Background" Value="{DynamicResource PlayerSelectionSurface}"/><Setter TargetName="PlayerSelected" Property="Visibility" Value="Visible"/><Setter Property="Foreground" Value="White"/></Trigger>
+   <Trigger Property="IsSelected" Value="True"><Setter Property="motion:OperatorChoiceMotion.Selected" Value="True"/><Setter TargetName="PlayerSelected" Property="Visibility" Value="Visible"/><Setter Property="Foreground" Value="White"/></Trigger>
   </ControlTemplate.Triggers>
  </ControlTemplate></Setter.Value></Setter>
 </Style>
 <SolidColorBrush x:Key="PlayerSelectionHover" Color="#243348"/><SolidColorBrush x:Key="PlayerSelectionSurface" Color="#173655"/><SolidColorBrush x:Key="PlayerSelectionAccent" Color="#79B9FF"/>
-<DataTemplate x:Key="PlayerChoiceContent"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Status}" FontSize="13" Foreground="#BBCADC" Margin="0,3,0,0" TextWrapping="Wrap"/></StackPanel><TextBlock Grid.Column="1" Text="{Binding Figures}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="12,0,0,0"/></Grid></DataTemplate>
+<DataTemplate x:Key="PlayerChoiceContent"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{Binding Name}" ToolTip="{Binding Name}" FontSize="18" FontWeight="Bold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Status}" FontSize="13" Foreground="#BBCADC" Margin="0,3,0,0" TextWrapping="Wrap"/></StackPanel><TextBlock Grid.Column="1" Text="{Binding Figures}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="12,0,0,0"/></Grid></DataTemplate>
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8B949E"/>
             <SolidColorBrush x:Key="TextMutedBrush" Color="#8291A2"/>
         </ResourceDictionary>
@@ -107,11 +215,11 @@
 
                 <!-- Over count -->
                 <Border x:Name="HeaderOversBadge" CornerRadius="10" Grid.Column="4" BorderBrush="#3A3A40" BorderThickness="1" Background="#202024" Padding="10,4">
-                    <TextBlock x:Name="HeaderOvers" Text="" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold"/>
+                    <TextBlock MinWidth="52" TextAlignment="Right" x:Name="HeaderOvers" Text="" Foreground="{StaticResource TextMidBrush}" FontSize="10" FontWeight="Bold" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
                 </Border>
 
                 <!-- Score readout -->
-                <TextBlock Grid.Column="6" x:Name="HeaderScore" Text="0/0" Foreground="White" FontSize="28" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="6" MinWidth="96" TextAlignment="Right" x:Name="HeaderScore" Text="0/0" Foreground="White" FontSize="28" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
             </Grid>
         </Border>
 
@@ -167,8 +275,8 @@
                                         <TextBlock x:Name="StrikerName" Text="Striker" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold"/>
                                         <TextBlock x:Name="StrikerStats" Text="0 (0)  SR 0.0" Foreground="{StaticResource TextMidBrush}" FontSize="11"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock x:Name="StrikerRuns" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock x:Name="StrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/></StackPanel>
-                                    <Button Grid.Column="3" Content="⋯" Click="StrikerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock x:Name="StrikerRuns" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/><TextBlock x:Name="StrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/></StackPanel>
+                                    <Button Grid.Column="3" x:Name="StrikerMenuButton" AutomationProperties.Name="Batter options" Content="⋯" Click="StrikerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
                                     </Button>
                                 </Grid>
                             </Border>
@@ -186,8 +294,8 @@
                                         <TextBlock x:Name="NonStrikerName" Text="Non-Striker" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold"/>
                                         <TextBlock x:Name="NonStrikerStats" Text="0 (0)  SR 0.0" Foreground="{StaticResource TextMidBrush}" FontSize="11"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock x:Name="NonStrikerRunsText" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock x:Name="NonStrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/></StackPanel>
-                                    <Button Grid.Column="3" Content="⋯" Click="NonStrikerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock x:Name="NonStrikerRunsText" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock x:Name="NonStrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/></StackPanel>
+                                    <Button Grid.Column="3" x:Name="NonStrikerMenuButton" AutomationProperties.Name="Batter options" Content="⋯" Click="NonStrikerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
                                     </Button>
                                 </Grid>
                             </Border>
@@ -209,10 +317,10 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock x:Name="BowlerName" Text="Bowler" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold"/>
-                                        <TextBlock x:Name="BowlerStats" Text="0-0 (0)  Econ 0.00" Foreground="{StaticResource TextMidBrush}" FontSize="11"/>
+                                        <TextBlock x:Name="BowlerStats" Text="0-0 (0)  Econ 0.00" Foreground="{StaticResource TextMidBrush}" FontSize="11" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal"><TextBlock x:Name="BowlerFigures" Text="0-0" Foreground="White" FontSize="20" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock x:Name="BowlerOverFigures" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/></StackPanel>
-                                    <Button Grid.Column="2" Content="⋯" Click="BowlerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
+                                    <Button Grid.Column="2" x:Name="BowlerMenuButton" AutomationProperties.Name="Bowler options" Content="⋯" Click="BowlerMenu_Click" Style="{StaticResource MenuBtn}" ToolTip="Options">
                                     </Button>
                                 </Grid>
                             </Border>
@@ -225,7 +333,7 @@
                         <StackPanel>
                             <DockPanel><TextBlock x:Name="OperatorFreeHitText" DockPanel.Dock="Right" Visibility="Collapsed" Text="FREE HIT" Foreground="#FFD980" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"/><TextBlock Text="SCORING" Style="{StaticResource SectionHead}"/></DockPanel>
                             <UniformGrid Columns="4" Margin="0,0,0,6">
-                                <Button Content="•" Click="Dot_Click" Style="{StaticResource RunBtn}" ToolTip="Dot ball" Background="#3A3A40" BorderBrush="#484F58"/>
+                                <Button Content="•" AutomationProperties.Name="Dot ball" Click="Dot_Click" Style="{StaticResource RunBtn}" ToolTip="Dot ball" Background="#3A3A40" BorderBrush="#484F58"/>
                                 <Button Content="1" Click="Run1_Click" Style="{StaticResource RunBtn}" ToolTip="1 run" Background="#1E40AF" BorderBrush="#3B6AE0"/>
                                 <Button Content="2" Click="Run2_Click" Style="{StaticResource RunBtn}" ToolTip="2 runs" Background="#1E40AF" BorderBrush="#3B6AE0"/>
                                 <Button Content="3" Click="Run3_Click" Style="{StaticResource RunBtn}" ToolTip="3 runs" Background="#1E40AF" BorderBrush="#3B6AE0"/>
@@ -261,7 +369,7 @@
                     </Border>
 
 <Button x:Name="ScoringLockBanner" Grid.Row="2" Grid.RowSpan="2" Panel.ZIndex="2" Visibility="Collapsed" Click="ScoringGate_Click" Background="#152B43" BorderBrush="#79B9FF" BorderThickness="2" Margin="0" MinHeight="180" HorizontalContentAlignment="Stretch" VerticalAlignment="Stretch" Style="{StaticResource CricketActionButton}"><StackPanel VerticalAlignment="Center" Margin="24"><TextBlock x:Name="ScoringReadyHint" Text="" Foreground="White" FontSize="25" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/><TextBlock x:Name="ScoringReadyDetail" Foreground="#C2D8ED" FontSize="15" TextAlignment="Center" TextWrapping="Wrap" Margin="0,12,0,0"/></StackPanel></Button>
-<Button x:Name="StartTossButton" Grid.Row="2" Grid.RowSpan="2" Content="RECORD THE TOSS" Click="OpenToss_Click" Background="#163657" BorderBrush="#79B9FF" Foreground="White" Style="{StaticResource CricketActionButton}" MinHeight="180" FontSize="25" Margin="0" Panel.ZIndex="3"/>
+<Button x:Name="StartTossButton" Grid.Row="2" Grid.RowSpan="2" Content="RECORD THE TOSS" Click="OpenToss_Click" Background="#163657" BorderBrush="#79B9FF" Foreground="White" Style="{StaticResource CricketActionButton}" MinHeight="180" FontSize="25" Margin="0,0,16,0" Panel.ZIndex="3"/>
                     <!-- EXTRAS — amber accent zone -->
                     <Border x:Name="ExtraCommands" CornerRadius="22" Grid.Row="3" Background="#19191C" BorderBrush="#3A3A40" BorderThickness="1" Padding="12" Margin="0,0,0,0">
                         <Grid>
@@ -287,8 +395,8 @@
                     </UniformGrid>
 
                     <!-- RESET — danger zone -->
-                    <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Stretch" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="13" FontWeight="SemiBold" Click="ResetMatch_Click"
-                            Style="{StaticResource ToolBtn}" ToolTip="Reset the entire match and return to setup"
+                    <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Stretch" Margin="0,12,16,0" MinWidth="0" Height="44" FontSize="13" FontWeight="SemiBold" Click="ResetMatch_Click"
+                            Style="{StaticResource ToolBtn}" ToolTip="Review resetting and leaving the current match"
                             Background="#2A1416" BorderBrush="#6B3A3E" Foreground="#FF6B6B"/>
                                 </Grid>
                         </ScrollViewer>
@@ -301,7 +409,7 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <StackPanel><TextBlock Text="DELIVERY LOG" Style="{StaticResource SectionHead}"/>
-<ComboBox x:Name="DeliveryOverChoice" Style="{StaticResource SettingsChoice}" MinHeight="32" FontSize="12" Margin="0,4,0,8" SelectionChanged="DeliveryOverChoice_Changed"/>
+<ComboBox x:Name="DeliveryOverChoice" AutomationProperties.Name="Filter delivery log by over" AutomationProperties.HelpText="Show all deliveries or a single over. Changing this filter does not change the score." ToolTip="Show all deliveries or a single over. The score stays unchanged." Style="{StaticResource SettingsChoice}" MinHeight="32" FontSize="12" Margin="0,4,0,8" SelectionChanged="DeliveryOverChoice_Changed"/>
 </StackPanel>
                                 <ScrollViewer x:Name="DeliveryLogScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto">
                                     <StackPanel x:Name="EventLog"/>
@@ -315,22 +423,88 @@
             <!-- ══════════════════════════════════════════ -->
             <!-- TAB 2: DISPLAY &amp; MESSAGES — cinematic  -->
             <!-- ══════════════════════════════════════════ -->
-            <TabItem x:Name="ScorecardTab" Header="2  SCORECARD" Tag="BATTING &amp; BOWLING"><ContentControl x:Name="ScorecardHost"/></TabItem>
+            <TabItem x:Name="ScorecardTab" Header="2  SCORECARD" Tag="BATTING &amp; BOWLING"><ContentControl x:Name="ScorecardHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" ClipToBounds="True"/></TabItem>
             <TabItem x:Name="OutputTab" Header="3  OUTPUT" Tag="PRESENTATIONS">
 <ScrollViewer x:Name="CricketOutputPageViewport" SizeChanged="Console_SizeChanged" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Border Background="#09090B" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="20,16">
 <Grid x:Name="DisplayColumns"><Grid.ColumnDefinitions><ColumnDefinition Width="1.65*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-<ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+<ScrollViewer x:Name="CricketPresentationViewport" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><!-- Keep action edges clear of overlay scrollbar chrome. --><StackPanel Margin="0,0,12,0">
 <StackPanel Margin="0,0,0,12"><TextBlock Text="LIVE OUTPUT ROUTER" FontSize="16" FontWeight="SemiBold" Foreground="White"/>
 <TextBlock Text="One click changes the public screen · active output is highlighted" FontSize="12" Foreground="#9BB0C6" TextWrapping="Wrap"/></StackPanel>
 <Border Background="#142236" BorderBrush="#3D5F85" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,0,10"><TextBlock x:Name="CricketOnAirText" Text="ON AIR · LIVE SCOREBUG" Foreground="#9CCBFF" FontSize="11" FontWeight="SemiBold"/></Border>
+<UniformGrid Columns="2" Margin="0,0,0,10">
+ <Button x:Name="CricketExtrasOverlayButton" Content="EXTRAS" Click="ExtrasOverlay_Click" IsEnabled="False" Style="{StaticResource ToolBtn}" MinHeight="48" Margin="4" ToolTip="Show wides, no-balls, byes and leg-byes"/>
+ <Button x:Name="CricketBoundariesOverlayButton" Content="INNINGS BOUNDARIES" Click="BoundariesOverlay_Click" IsEnabled="False" Style="{StaticResource ToolBtn}" MinHeight="48" Margin="4" ToolTip="Show this innings' fours and sixes"/>
+</UniformGrid>
 <UniformGrid x:Name="CricketPresentationGrid" Columns="2" Margin="0,0,0,18">
-<Button x:Name="Presentationscorebug" Tag="scorebug" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="LIVE" FontSize="11" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,7"/><TextBlock Text="SCOREBUG" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Live scoring" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Button>
-<Button x:Name="Presentationbatting" Tag="batting" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="BAT" FontSize="11" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,7"/><TextBlock Text="BATTING" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Batting scorecard" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Button>
-<Button x:Name="Presentationbowling" Tag="bowling" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="BOWL" FontSize="11" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,7"/><TextBlock Text="BOWLING" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Bowling figures" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Button>
-<Button x:Name="Presentationwindow" Tag="window" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="OUTPUT" FontSize="11" FontWeight="SemiBold" Foreground="#67D17B" HorizontalAlignment="Center" Margin="0,0,0,7"/><TextBlock Text="SHOW WINDOW" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Restore output" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Button>
-<Button x:Name="Presentationsummary" Tag="summary" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="MATCH" FontSize="11" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" Margin="0,0,0,7"/><TextBlock Text="SUMMARY" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Score and leading players" FontSize="12" Foreground="#B6B6C0" TextWrapping="Wrap" TextAlignment="Center"/></StackPanel></Button>
-<Button x:Name="Presentationworm" Tag="worm" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="SCOREWORM" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Compare innings progress" FontSize="12" Foreground="#B6B6C0" TextAlignment="Center" TextWrapping="Wrap"/></StackPanel></Button>
-<Button x:Name="Presentationmanhattan" Tag="manhattan" Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><TextBlock Text="MANHATTAN" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Runs and wickets per over" FontSize="12" Foreground="#B6B6C0" TextAlignment="Center" TextWrapping="Wrap"/></StackPanel></Button>
+<Button x:Name="Presentationscorebug" Tag="scorebug" Style="{StaticResource CricketLiveScorebugButton}" Click="PresentationButton_Click">
+    <Grid IsHitTestVisible="False">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/></Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,4">
+            <local:CricketLiveScorebugGlyph x:Name="CricketLiveScorebugGlyphView" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+            <TextBlock x:Name="CricketLiveScorebugEyebrow" Text="LIVE" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="CricketLiveScorebugTitle" Text="SCOREBUG" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="Live scoring" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+        </StackPanel>
+        <TextBlock x:Name="CricketLiveScorebugCheck" Grid.Column="2" Text="✓" Opacity="0" FontSize="14" FontWeight="Bold" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+    </Grid>
+</Button>
+<Button x:Name="Presentationbatting" Tag="batting" Style="{StaticResource CricketBattingScorecardButton}" Click="PresentationButton_Click">
+    <Grid IsHitTestVisible="False">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/></Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,4">
+            <local:CricketBattingScorecardGlyph x:Name="CricketBattingGlyphView" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+            <TextBlock x:Name="CricketBattingEyebrow" Text="BAT" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="CricketBattingTitle" Text="BATTING" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="Batting scorecard" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+        </StackPanel>
+        <TextBlock x:Name="CricketBattingCheck" Grid.Column="2" Text="✓" Opacity="0" FontSize="14" FontWeight="Bold" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+    </Grid>
+</Button>
+<Button x:Name="Presentationbowling" Tag="bowling" Style="{StaticResource CricketBowlingFiguresButton}" Click="PresentationButton_Click">
+    <Grid IsHitTestVisible="False">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/></Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,4">
+            <local:CricketBowlingFiguresGlyph x:Name="CricketBowlingGlyphView" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+            <TextBlock Text="BOWLING" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="Bowling figures" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+        </StackPanel>
+        <TextBlock x:Name="CricketBowlingCheck" Grid.Column="2" Text="✓" Opacity="0" FontSize="14" FontWeight="Bold" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+    </Grid>
+</Button>
+<Button x:Name="Presentationwindow" Tag="window" AutomationProperties.Name="Show scoreboard output" AutomationProperties.HelpText="Shows the scoreboard output window without changing the selected presentation." Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><motion:OperatorSymbol x:Name="CricketOutputRestoreGlyph" Kind="display" Width="30" Height="26" Foreground="#67D17B" HorizontalAlignment="Center" Margin="0,0,0,6"/><TextBlock Text="SHOW WINDOW" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Restore output" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Button>
+<Button x:Name="Presentationsummary" Tag="summary" Style="{StaticResource CricketMatchSummaryButton}" Click="PresentationButton_Click">
+    <Grid IsHitTestVisible="False">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/></Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,4">
+            <local:CricketMatchSummaryGlyph x:Name="CricketMatchSummaryGlyphView" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+            <TextBlock Text="SUMMARY" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="Score and leading players" FontSize="12" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+        </StackPanel>
+        <TextBlock x:Name="CricketMatchSummaryCheck" Grid.Column="2" Text="✓" Opacity="0" FontSize="14" FontWeight="Bold" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+    </Grid>
+</Button>
+<Button x:Name="Presentationworm" Tag="worm" Style="{StaticResource CricketScorewormButton}" Click="PresentationButton_Click">
+    <Grid IsHitTestVisible="False">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/></Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,4">
+            <local:CricketScorewormGlyph x:Name="CricketScorewormGlyphView" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+            <TextBlock Text="SCOREWORM" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="Compare innings progress" FontSize="12" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+        </StackPanel>
+        <TextBlock x:Name="CricketScorewormCheck" Grid.Column="2" Text="✓" Opacity="0" FontSize="14" FontWeight="Bold" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+    </Grid>
+</Button>
+<Button x:Name="Presentationmanhattan" Tag="manhattan" Style="{StaticResource CricketManhattanButton}" Click="PresentationButton_Click">
+    <Grid IsHitTestVisible="False">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/></Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,4">
+            <local:CricketManhattanGlyph x:Name="CricketManhattanGlyphView" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+            <TextBlock Text="MANHATTAN" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="Runs and wickets per over" FontSize="12" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+        </StackPanel>
+        <TextBlock x:Name="CricketManhattanCheck" Grid.Column="2" Text="✓" Opacity="0" FontSize="14" FontWeight="Bold" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+    </Grid>
+</Button>
 </UniformGrid>
 <TextBlock Text="CRICKET OVERLAYS" Style="{StaticResource SectionHead}" FontSize="14"/>
 <TextBlock x:Name="OverlayStatusText" Text="NO OVERLAY ON AIR" Foreground="#9CCBFF" FontWeight="Bold" FontSize="11" Margin="0,4,0,8"/>
@@ -338,10 +512,13 @@
 <Button Content="CANCEL CURRENT OVERLAY" Click="CancelCricketOverlay_Click" Style="{StaticResource ToolBtn}" Height="42" Margin="4,10,4,8"/>
 </StackPanel></ScrollViewer>
 <StackPanel Grid.Column="2"><TextBlock Text="VENUE WEATHER" Style="{StaticResource SectionHead}" FontSize="14"/><local:OperatorGlassSurface Material="Regular" Style="{StaticResource Card}" Background="{DynamicResource ControlCentre.GlassBrush}"><StackPanel>
+<TextBlock x:Name="CricketWeatherDataVenue" Text="No weather data loaded" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap"/>
 <TextBlock x:Name="CricketWeatherTemperature" Text="—" FontSize="38" FontWeight="Bold" Foreground="{DynamicResource ControlCentre.TextBrush}"/>
 <TextBlock x:Name="CricketWeatherDescription" Text="Waiting for weather" FontSize="15" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap"/>
-<TextBox x:Name="CricketWeatherLocation" Text="Melbourne" Margin="0,14,0,0" FontSize="16" Style="{StaticResource SettingsInput}"/>
+<TextBlock x:Name="CricketWeatherVenueLabel" Text="Weather venue" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,14,0,6"/>
+<TextBox x:Name="CricketWeatherLocation" Text="Melbourne" FontSize="16" Style="{StaticResource SettingsInput}" TextChanged="CricketWeatherLocation_TextChanged" AutomationProperties.Name="Weather venue" AutomationProperties.HelpText="Enter a town or venue location, then choose Update weather to apply it."/>
 <Button Content="Update weather" Click="UpdateCricketWeather_Click" Style="{StaticResource ToolBtn}" Height="50" Margin="0,12,0,0"/>
+<TextBlock x:Name="CricketWeatherStatus" Text="Choose Update weather to load this venue." FontSize="13" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0" AutomationProperties.LiveSetting="Polite"/>
 </StackPanel></local:OperatorGlassSurface></StackPanel>
 </Grid></Border></ScrollViewer></TabItem>
 
@@ -401,32 +578,44 @@
         </Grid>
     </layout:OperatorViewport>
 <Border x:Name="BatterSelectionOverlay" KeyboardNavigation.TabNavigation="Cycle" Visibility="Collapsed" Panel.ZIndex="50" Background="#B8000000" Grid.RowSpan="2" Padding="24">
-<Border x:Name="BatterSelectionCard" ClipToBounds="True" CornerRadius="26" MaxWidth="600" MaxHeight="680" Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" Padding="24" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-<Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Image x:Name="BatterSelectionLogo" Grid.RowSpan="4" Stretch="UniformToFill" Opacity=".08" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality"/>
-<TextBlock x:Name="BatterSelectionTitle" Text="SELECT BATTER" FontSize="25" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap"/>
-<TextBlock x:Name="BatterSelectionTeamText" Grid.Row="1" Foreground="#DCE8F5" FontSize="16" FontWeight="Bold" Margin="0,7,0,16" TextWrapping="Wrap"/>
-<ListBox Grid.Row="2" x:Name="BatterSelectionList" FocusVisualStyle="{x:Null}" Background="Transparent" Foreground="White" BorderThickness="0" MinHeight="0" MaxHeight="440" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemContainerStyle="{StaticResource PlayerChoice}" ItemTemplate="{StaticResource PlayerChoiceContent}"/>
-<StackPanel Grid.Row="3"><Button MinHeight="0" Content="SKIP FOR NOW" Click="SkipPlayerSelection_Click" Style="{StaticResource ToolBtn}" Height="36" Margin="0,8,0,0"/><Button x:Name="ConfirmBatterButton" Grid.Row="3" Content="CONFIRM BATTER" Height="48" FontSize="16" FontWeight="Bold" Margin="0,16,0,0" Click="ConfirmBatterSelection_Click" Style="{StaticResource ToolBtn}" Background="#173655" BorderBrush="#79B9FF"/></StackPanel>
-</Grid></Border></Border>
+<local:OperatorGlassSurface x:Name="BatterSelectionCard" ClipToBounds="True" Material="Regular" CornerRadius="26" MaxWidth="600" MaxHeight="680" Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" Padding="24" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+<Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+<Image x:Name="BatterSelectionLogo" Grid.RowSpan="4" Stretch="UniformToFill" Opacity=".04" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality"/>
+<Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+<Border Width="36" Height="36" CornerRadius="12" Background="#24FFFFFF" VerticalAlignment="Center"><motion:OperatorSymbol Kind="cricket" Width="24" Height="24" Foreground="White" IsHitTestVisible="False"/></Border>
+<StackPanel Grid.Column="1"><TextBlock Text="AT THE CREASE" FontSize="12" Foreground="#BBCADC" FontWeight="SemiBold"/><TextBlock x:Name="BatterSelectionTitle" Text="SELECT BATTER" FontSize="25" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap"/></StackPanel></Grid>
+<StackPanel Grid.Row="1" Margin="0,0,0,10"><TextBlock x:Name="BatterSelectionTeamText" Foreground="#DCE8F5" FontSize="15" FontWeight="Bold" TextWrapping="Wrap"/></StackPanel>
+<ListBox Grid.Row="2" x:Name="BatterSelectionList" AutomationProperties.Name="Available batters" AutomationProperties.HelpText="Choose a player, then confirm. Selecting a row does not commit the change." Focusable="True" FocusVisualStyle="{x:Null}" Background="Transparent" Foreground="White" BorderThickness="0" MinHeight="0" MaxHeight="440" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemContainerStyle="{StaticResource PlayerChoice}" ItemTemplate="{StaticResource PlayerChoiceContent}"/>
+<Grid Grid.Row="3" Margin="0,10,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="144"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+<Grid Grid.ColumnSpan="2" Margin="4,0,4,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Selected: " FontSize="13" Foreground="#BBCADC"/><TextBlock x:Name="BatterSelectedName" Grid.Column="1" Text="{Binding SelectedItem.Name, ElementName=BatterSelectionList}" FontSize="13" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/></Grid>
+<Button Grid.Row="1" MinHeight="0" Content="SKIP FOR NOW" Click="SkipPlayerSelection_Click" Style="{StaticResource ToolBtn}" Height="44" Margin="0,0,8,0" FontSize="12"/>
+<Button x:Name="ConfirmBatterButton" Grid.Row="1" Grid.Column="1" Content="CONFIRM BATTER" Height="48" FontSize="14" FontWeight="Bold" Margin="0" Click="ConfirmBatterSelection_Click" Style="{StaticResource ToolBtn}" Background="#173655" BorderBrush="#79B9FF"/>
+</Grid></Grid></local:OperatorGlassSurface></Border>
 <Border x:Name="BowlerSelectionOverlay" KeyboardNavigation.TabNavigation="Cycle" Visibility="Collapsed" Panel.ZIndex="50" Background="#B8000000" Grid.RowSpan="2" Padding="24">
-<Border x:Name="BowlerSelectionCard" ClipToBounds="True" CornerRadius="26" MaxWidth="600" MaxHeight="680" Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" Padding="24" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-<Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Image x:Name="BowlerSelectionLogo" Grid.RowSpan="4" Stretch="UniformToFill" Opacity=".08" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality"/>
-<TextBlock  Text="SELECT BOWLER" FontSize="25" FontWeight="SemiBold" Foreground="White"/>
-<StackPanel Grid.Row="1"><TextBlock x:Name="BowlerSelectionTeamText" Foreground="#DCE8F5" FontSize="16" FontWeight="Bold" Margin="0,7,0,0"/><TextBlock x:Name="BowlerSelectionHint" Text="Choose the bowler for this over." Foreground="#BBCADC" FontSize="14" Margin="0,4,0,16" TextWrapping="Wrap"/></StackPanel>
-<ListBox Grid.Row="2" x:Name="BowlerSelectionList" FocusVisualStyle="{x:Null}" Background="Transparent" Foreground="White" BorderThickness="0" MinHeight="0" MaxHeight="440" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemContainerStyle="{StaticResource PlayerChoice}" ItemTemplate="{StaticResource PlayerChoiceContent}"/>
-<StackPanel Grid.Row="3"><Button MinHeight="0" Content="SKIP FOR NOW" Click="SkipPlayerSelection_Click" Style="{StaticResource ToolBtn}" Height="36" Margin="0,8,0,0"/><Button x:Name="ConfirmBowlerButton" Grid.Row="3" Content="CONFIRM BOWLER" Height="48" FontSize="16" FontWeight="Bold" Margin="0,16,0,0" Click="ConfirmBowlerSelection_Click" Style="{StaticResource ToolBtn}" Background="#173655" BorderBrush="#79B9FF"/></StackPanel>
-</Grid></Border></Border>
+<local:OperatorGlassSurface x:Name="BowlerSelectionCard" ClipToBounds="True" Material="Regular" CornerRadius="26" MaxWidth="600" MaxHeight="680" Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" Padding="24" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+<Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+<Image x:Name="BowlerSelectionLogo" Grid.RowSpan="4" Stretch="UniformToFill" Opacity=".04" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality"/>
+<Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+<Border Width="36" Height="36" CornerRadius="12" Background="#24FFFFFF" VerticalAlignment="Center"><motion:OperatorSymbol Kind="ball" Width="24" Height="24" Foreground="White" IsHitTestVisible="False"/></Border>
+<StackPanel Grid.Column="1"><TextBlock Text="BOWLING ATTACK" FontSize="12" Foreground="#BBCADC" FontWeight="SemiBold"/><TextBlock Text="SELECT BOWLER" FontSize="25" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap"/></StackPanel></Grid>
+<StackPanel Grid.Row="1" Margin="0,0,0,10"><TextBlock x:Name="BowlerSelectionTeamText" Foreground="#DCE8F5" FontSize="15" FontWeight="Bold" TextWrapping="Wrap"/><TextBlock x:Name="BowlerSelectionHint" Text="Choose the bowler for this over." Foreground="#BBCADC" FontSize="13" Margin="0,4,0,0" TextWrapping="Wrap"/></StackPanel>
+<ListBox Grid.Row="2" x:Name="BowlerSelectionList" AutomationProperties.Name="Available bowlers" AutomationProperties.HelpText="Choose a player, then confirm. Selecting a row does not commit the change." Focusable="True" FocusVisualStyle="{x:Null}" Background="Transparent" Foreground="White" BorderThickness="0" MinHeight="0" MaxHeight="440" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemContainerStyle="{StaticResource PlayerChoice}" ItemTemplate="{StaticResource PlayerChoiceContent}"/>
+<Grid Grid.Row="3" Margin="0,10,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="144"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+<Grid Grid.ColumnSpan="2" Margin="4,0,4,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Selected: " FontSize="13" Foreground="#BBCADC"/><TextBlock x:Name="BowlerSelectedName" Grid.Column="1" Text="{Binding SelectedItem.Name, ElementName=BowlerSelectionList}" FontSize="13" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/></Grid>
+<Button Grid.Row="1" MinHeight="0" Content="SKIP FOR NOW" Click="SkipPlayerSelection_Click" Style="{StaticResource ToolBtn}" Height="44" Margin="0,0,8,0" FontSize="12"/>
+<Button x:Name="ConfirmBowlerButton" Grid.Row="1" Grid.Column="1" Content="CONFIRM BOWLER" Height="48" FontSize="14" FontWeight="Bold" Margin="0" Click="ConfirmBowlerSelection_Click" Style="{StaticResource ToolBtn}" Background="#173655" BorderBrush="#79B9FF"/>
+</Grid></Grid></local:OperatorGlassSurface></Border>
 
 <Border x:Name="DeliveryEntryOverlay" Visibility="Collapsed" Panel.ZIndex="90" Background="#B8000000" Padding="12">
 <Border CornerRadius="26" motion:OperatorRoundedClip.Radius="26" Background="#202024" BorderBrush="#52647A" BorderThickness="1" MaxWidth="620" MaxHeight="710" ClipToBounds="True"><ContentControl x:Name="DeliveryEntryContent" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/></Border>
 </Border>
 <Border x:Name="TossOverlay" KeyboardNavigation.TabNavigation="Cycle" PreviewKeyDown="Toss_PreviewKeyDown" Visibility="Collapsed" Panel.ZIndex="80" Background="#A0000000" Padding="16">
 <local:OperatorGlassSurface x:Name="TossSheet" CornerRadius="32" MaxWidth="620" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="#68FFFFFF" BorderThickness="1" Padding="24" VerticalAlignment="Center">
-<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
-<Grid><TextBlock Text="Record the toss" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" Margin="0,0,46,0"/><Button Padding="0" MinHeight="0" ToolTip="Close toss" Click="CloseToss_Click" Style="{StaticResource ToolBtn}" HorizontalAlignment="Right" Width="34" Height="34"><motion:OperatorSymbol Kind="close" Width="22" Height="22" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/></Button></Grid>
+<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,0,16,0">
+<Grid><TextBlock Text="Record the toss" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" Margin="0,0,46,0"/><Button x:Name="TossCloseButton" AutomationProperties.Name="Close toss without confirming" Padding="0" MinHeight="0" ToolTip="Close toss" Click="CloseToss_Click" Style="{StaticResource ToolBtn}" HorizontalAlignment="Right" Width="44" Height="44"><motion:OperatorSymbol Kind="close" Width="22" Height="22" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/></Button></Grid>
 <TextBlock Text="Choose the winner, then their decision." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,6,0,20"/>
 <TextBlock Text="Toss winner" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" Margin="4,0,0,7"/>
-<UniformGrid Columns="2"><RadioButton x:Name="TossHomeChoice" GroupName="TossTeam" Checked="TossChoice_Checked" Style="{StaticResource TossChoice}" MinHeight="82" HorizontalContentAlignment="Stretch"/><RadioButton x:Name="TossAwayChoice" GroupName="TossTeam" Checked="TossChoice_Checked" Style="{StaticResource TossChoice}" MinHeight="82" HorizontalContentAlignment="Stretch"/></UniformGrid>
+<UniformGrid x:Name="TossTeamChoices" Columns="2"><RadioButton x:Name="TossHomeChoice" GroupName="TossTeam" Checked="TossChoice_Checked" Style="{StaticResource TossChoice}" MinHeight="82" HorizontalContentAlignment="Stretch"/><RadioButton x:Name="TossAwayChoice" GroupName="TossTeam" Checked="TossChoice_Checked" Style="{StaticResource TossChoice}" MinHeight="82" HorizontalContentAlignment="Stretch"/></UniformGrid>
 <TextBlock Text="Decision" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" Margin="4,18,0,7"/>
 <UniformGrid Columns="2"><RadioButton x:Name="TossBatChoice" GroupName="TossDecision" Checked="TossChoice_Checked" Style="{StaticResource TossChoice}" MinHeight="70"><StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="bat" Width="24" Height="24" Margin="0,0,8,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/><TextBlock Text="Bat" VerticalAlignment="Center"/></StackPanel></RadioButton><RadioButton x:Name="TossBowlChoice" GroupName="TossDecision" Checked="TossChoice_Checked" Style="{StaticResource TossChoice}" MinHeight="70"><StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="ball" Width="24" Height="24" Margin="0,0,8,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/><TextBlock Text="Bowl" VerticalAlignment="Center"/></StackPanel></RadioButton></UniformGrid>
 <TextBlock x:Name="TossSelectionSummary" Text="Choose the toss winner and their decision." Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" Margin="4,20,4,0"/>

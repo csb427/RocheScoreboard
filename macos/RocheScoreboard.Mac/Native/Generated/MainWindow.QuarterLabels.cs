@@ -1,5 +1,5 @@
 // Generated from MainWindow.QuarterLabels.cs; edit translator/adapters.
-// Source SHA-256: 598538888a9380c74407efc601418bd9ce384d16621ada797daf236b968529e7
+// Source SHA-256: 61a876228cfeebe4bbd8eb0fb5a35e086468a6ac156cf3bb0c5d65c754b365e1
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -19,6 +19,7 @@ public partial class MainWindow
 {
     private bool _suppressQuarterLabelTextChanged;
     private bool _quarterLabelHandlerHooked;
+    private volatile bool _quarterLabelOwnerClosed;
 
     /// <summary>
     /// Populates the live quarter-label textbox in settings from the
@@ -28,17 +29,33 @@ public partial class MainWindow
     /// </summary>
     private void LoadQuarterLabelsToSettings()
     {
+        if (_quarterLabelOwnerClosed) return;
         if (!_quarterLabelHandlerHooked)
         {
             QuarterLabelService.LabelsChanged += OnQuarterLabelServiceChanged;
+            Closed += OnQuarterLabelOwnerClosed;
             _quarterLabelHandlerHooked = true;
         }
 
         RefreshQuarterLabelSettingsUI();
     }
 
+    private void OnQuarterLabelOwnerClosed(object? sender, System.EventArgs e)
+    {
+        _quarterLabelOwnerClosed = true;
+        if (_quarterLabelHandlerHooked)
+        {
+            QuarterLabelService.LabelsChanged -= OnQuarterLabelServiceChanged;
+            _quarterLabelHandlerHooked = false;
+        }
+        Closed -= OnQuarterLabelOwnerClosed;
+    }
+
     private void OnQuarterLabelServiceChanged()
     {
+        // A copied event invocation or previously queued UI callback can outlive
+        // unsubscription. Recheck the same retired owner on either thread.
+        if (_quarterLabelOwnerClosed) return;
         if (!Dispatcher.UIThread.CheckAccess())
         {
             Dispatcher.UIThread.Post(new System.Action(OnQuarterLabelServiceChanged));

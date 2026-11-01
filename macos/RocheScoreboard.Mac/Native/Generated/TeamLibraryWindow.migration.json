@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml",
-  "source_sha256": "4d925a11f5a58047407315b55299bc6bc8c8aae195f9c85c870d6eab5c701f77",
+  "source_sha256": "3f99d05708a8f3c8db918894f99dc49be12343022ed0cc607a7d674692e66660",
   "names": [
     {
       "name": "LibrarySurface",
@@ -28,13 +28,28 @@
       "object": false
     },
     {
+      "name": "LeagueFilterLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "LeagueFilter",
       "type": "ComboBox",
       "object": false
     },
     {
+      "name": "StateFilterLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "StateFilter",
       "type": "ComboBox",
+      "object": false
+    },
+    {
+      "name": "SortFilterLabel",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -152,6 +167,11 @@
       "object": false
     },
     {
+      "name": "PresetStatus",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "UseButton",
       "type": "Button",
       "object": false
@@ -167,7 +187,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "25cdd4a1a725ae7696d28b4182f21e4baca71139d3cb1db845e1b06820456380",
+  "code_source_sha256": "6483b35b8c4e8785313f2f633f64e0e347b5b78bfcd0e3de489eb3cd7963f9d4",
   "native_events": [
     {
       "name": "SearchBox",

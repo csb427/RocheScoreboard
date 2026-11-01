@@ -1,7 +1,31 @@
 {
   "source": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml",
-  "source_sha256": "2f7018bd51a373b0eeb8ea63a32b96ac0a3b78cfc6b820518136c764f6ff91ce",
+  "source_sha256": "a96d6214502dea856146c72809e73767f339e5c9dc3606e7aed75d9bf0e5a6a4",
   "names": [
+    {
+      "name": "ScoreChoiceMaterial",
+      "type": "OperatorGlassSurface",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "ScoreChoiceLens",
+      "type": "OperatorChoiceSurface",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "ScoreSelectionMark",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "ScoreChoiceFocus",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
     {
       "name": "DialogHeading",
       "type": "TextBlock",
@@ -48,8 +72,18 @@
       "object": false
     },
     {
+      "name": "ValidationText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "HomeTeamBtn",
-      "type": "Border",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "HomeTeamSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -59,7 +93,12 @@
     },
     {
       "name": "AwayTeamBtn",
-      "type": "Border",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AwayTeamSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -69,12 +108,32 @@
     },
     {
       "name": "GoalBtn",
-      "type": "Border",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "GoalIconFrame",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "GoalScoreSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
       "name": "BehindBtn",
-      "type": "Border",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "BehindIconFrame",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "BehindScoreSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -88,7 +147,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "905009d604b53b3eb04cccaec52917d1f753c3bbbb70ef6c47cb5c3c1deb18f3",
+  "code_source_sha256": "f2755bf0945e066b81216bb5b7a7fde9a9c66a592b5e1150342bc864b4c7f385",
   "native_events": [
     {
       "name": "UseCurrentQuarterBox",
@@ -116,26 +175,26 @@
     },
     {
       "name": "HomeTeamBtn",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
       "handler": "HomeTeam_Click"
     },
     {
       "name": "AwayTeamBtn",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
       "handler": "AwayTeam_Click"
     },
     {
       "name": "GoalBtn",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
       "handler": "Goal_Click"
     },
     {
       "name": "BehindBtn",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
       "handler": "Behind_Click"
     }
   ],
@@ -156,18 +215,6 @@
       "name": "SecondsBox",
       "property": "FontFamily",
       "source": "Segoe UI Variable, Segoe UI",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Segoe MDL2 Assets",
-      "native_fallback": "Inter"
-    },
-    {
-      "name": null,
-      "property": "FontFamily",
-      "source": "Segoe MDL2 Assets",
       "native_fallback": "Inter"
     }
   ],

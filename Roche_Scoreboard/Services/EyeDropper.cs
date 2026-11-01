@@ -46,6 +46,8 @@ internal static class EyeDropper
     public static Color? Pick()
     {
         Color? result = null;
+        const string pickHint = "Click to sample · Esc or right-click to cancel";
+        const string retryHint = "Could not sample this colour. Move or click to retry · Esc or right-click to cancel";
 
         // Full-screen transparent window
         var overlay = new Window
@@ -83,7 +85,7 @@ internal static class EyeDropper
         // Instruction hint
         var hint = new TextBlock
         {
-            Text = "Click to sample · Esc to cancel",
+            Text = pickHint,
             Foreground = HintFg,
             FontSize = 13,
             FontWeight = FontWeights.Bold,
@@ -91,7 +93,10 @@ internal static class EyeDropper
             Background = HintBg,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(0, 40, 0, 0)
+            Margin = new Thickness(24, 40, 24, 0),
+            MaxWidth = Math.Max(1, overlay.Width - 48),
+            TextWrapping = TextWrapping.Wrap,
+            TextAlignment = TextAlignment.Center
         };
         grid.Children.Add(hint);
         overlay.Content = grid;
@@ -102,17 +107,34 @@ internal static class EyeDropper
 
         overlay.MouseMove += (_, args) =>
         {
-            previewBorder.Visibility = Visibility.Visible;
             var pos = args.GetPosition(canvas);
             Canvas.SetLeft(previewBorder, pos.X + 16);
             Canvas.SetTop(previewBorder, pos.Y + 16);
 
-            previewFill.Color = GetScreenPixel();
+            Color? sample = GetScreenPixel();
+            if (sample is null)
+            {
+                previewBorder.Visibility = Visibility.Hidden;
+                hint.Text = retryHint;
+                return;
+            }
+
+            previewFill.Color = sample.Value;
+            previewBorder.Visibility = Visibility.Visible;
+            hint.Text = pickHint;
         };
 
         overlay.MouseLeftButtonDown += (_, _) =>
         {
-            result = GetScreenPixel();
+            Color? sample = GetScreenPixel();
+            if (sample is null)
+            {
+                previewBorder.Visibility = Visibility.Hidden;
+                hint.Text = retryHint;
+                return;
+            }
+
+            result = sample;
             overlay.Close();
         };
 
@@ -135,27 +157,33 @@ internal static class EyeDropper
         return result;
     }
 
-    private static Color GetScreenPixel()
+    private static Color? GetScreenPixel()
     {
         if (!GetCursorPos(out var pt))
-            return Colors.Black;
+            return null;
 
         IntPtr hdc = GetDC(IntPtr.Zero);
         if (hdc == IntPtr.Zero)
-            return Colors.Black;
+            return null;
 
         try
         {
-            uint pixel = GetPixel(hdc, pt.X, pt.Y);
-            byte r = (byte)(pixel & 0xFF);
-            byte g = (byte)((pixel >> 8) & 0xFF);
-            byte b = (byte)((pixel >> 16) & 0xFF);
-            return Color.FromRgb(r, g, b);
+            return DecodeColorRef(GetPixel(hdc, pt.X, pt.Y));
         }
         finally
         {
             _ = ReleaseDC(IntPtr.Zero, hdc);
         }
+    }
+
+    internal static Color? DecodeColorRef(uint pixel)
+    {
+        // CLR_INVALID is not the valid white COLORREF (0x00FFFFFF).
+        if (pixel == uint.MaxValue) return null;
+        byte r = (byte)(pixel & 0xFF);
+        byte g = (byte)((pixel >> 8) & 0xFF);
+        byte b = (byte)((pixel >> 16) & 0xFF);
+        return Color.FromRgb(r, g, b);
     }
 
     private static SolidColorBrush CreateFrozenBrush(Color color)

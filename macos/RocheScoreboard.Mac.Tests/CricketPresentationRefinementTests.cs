@@ -35,8 +35,8 @@ public sealed class CricketPresentationRefinementTests
             await Settle();
             var buttons=panel.GetVisualDescendants().OfType<Button>().Where(b=>b.Tag is CricketOverlayKind).ToArray();
             // Controls are also discoverable before mounting through their registered panel.
-            if(buttons.Length==0)buttons=panel.FindControl<StackPanel>("CricketOverlayButtons")!.GetLogicalDescendants().OfType<Button>().Where(b=>b.Tag is CricketOverlayKind).ToArray();
-            var captions=buttons.ToDictionary(b=>(CricketOverlayKind)b.Tag!,b=>string.Join(" ",((StackPanel)b.Content!).Children.OfType<TextBlock>().Select(t=>t.Text)));
+            if(buttons.Length==0)buttons=panel.GetLogicalDescendants().OfType<Button>().Where(b=>b.Tag is CricketOverlayKind).ToArray();
+            var captions=buttons.ToDictionary(b=>(CricketOverlayKind)b.Tag!,b=>b.Content is StackPanel content ? string.Join(" ",content.Children.OfType<TextBlock>().Select(t=>t.Text)) : b.Content?.ToString() ?? "");
             Assert.Contains("INNINGS BOUNDARIES",captions[CricketOverlayKind.Boundaries]);
             Assert.Contains("EXTRAS",captions[CricketOverlayKind.Extras]);Assert.DoesNotContain("BOUNDARIES",captions[CricketOverlayKind.Extras]);
             buttons.Single(b=>Equals(b.Tag,CricketOverlayKind.Extras)).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));

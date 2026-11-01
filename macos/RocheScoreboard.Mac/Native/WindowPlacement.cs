@@ -28,10 +28,10 @@ internal sealed class NativeAccessibleWindowContent:ScrollViewer
     private readonly Control _body;
     private readonly bool _operator;
     private readonly double _minimumWidth;
-    public NativeAccessibleWindowContent(Control body,bool isOperator)
+    public NativeAccessibleWindowContent(Control body,bool isOperator,double minimumWidth=320)
     {
         _body=body;_operator=isOperator;
-        _minimumWidth=Math.Max(double.IsFinite(body.Width)?body.Width:0,Math.Max(body.MinWidth,isOperator?420:320));
+        _minimumWidth=Math.Max(double.IsFinite(body.Width)?body.Width:0,Math.Max(body.MinWidth,isOperator?420:minimumWidth));
         Content=body;HorizontalScrollBarVisibility=ScrollBarVisibility.Auto;VerticalScrollBarVisibility=ScrollBarVisibility.Auto;
         HorizontalContentAlignment=Avalonia.Layout.HorizontalAlignment.Stretch;
         VerticalContentAlignment=Avalonia.Layout.VerticalAlignment.Stretch;

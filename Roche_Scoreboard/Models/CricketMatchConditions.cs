@@ -8,13 +8,20 @@ public sealed partial class CricketMatchManager
     public int CurrentOverLimit => CurrentInnings?.OverLimitOverride ?? TotalOvers;
     public bool HasRainAdjustment => !string.IsNullOrEmpty(CurrentInnings?.AdjustmentNote);
 
-    public bool TryUpdateMatchConditions(CricketFormat format, int overs, string expectedToken, out string error)
+    /// <summary>Checks the current conditions draft without changing score, revisions or events.</summary>
+    public bool CanUpdateMatchConditions(CricketFormat format, int overs, string expectedToken, out string error)
     {
         if (!ValidateConditionsEdit(expectedToken, out error)) return false;
         if (!Enum.IsDefined(format) || overs is < 1 or > 1000)
         { error = "Select a match format and an over limit from 1 to 1,000."; return false; }
         if (format == CricketFormat.LimitedOvers && CurrentInnings!.LegalBallsBowled > overs * 6)
         { error = "The over limit cannot be lower than the legal balls already bowled."; return false; }
+        return true;
+    }
+
+    public bool TryUpdateMatchConditions(CricketFormat format, int overs, string expectedToken, out string error)
+    {
+        if (!CanUpdateMatchConditions(format, overs, expectedToken, out error)) return false;
         bool reopen = NaturallyCompleted(CurrentInnings!);
         foreach (var innings in AllInnings.Where(innings => !ReferenceEquals(innings, CurrentInnings)))
             innings.OverLimitOverride ??= TotalOvers;
@@ -26,7 +33,8 @@ public sealed partial class CricketMatchManager
         DeliveryRevision++; _conditionsVersion++; MatchChanged?.Invoke(); return true;
     }
 
-    public bool TryApplyRainAdjustment(int revisedOvers, int? revisedTarget, string expectedToken, out string error)
+    /// <summary>Checks the current conditions draft without changing score, revisions or events.</summary>
+    public bool CanApplyRainAdjustment(int revisedOvers, int? revisedTarget, string expectedToken, out string error)
     {
         if (!ValidateConditionsEdit(expectedToken, out error)) return false;
         if (Format != CricketFormat.LimitedOvers || TossPending)
@@ -36,6 +44,12 @@ public sealed partial class CricketMatchManager
         bool chase = CurrentInningsNumber > 1;
         if (chase ? revisedTarget is null or < 1 or > 1_000_000 : revisedTarget is not null)
         { error = chase ? "Enter the externally supplied target, from 1 to 1,000,000." : "A first-innings adjustment changes overs only; the chase target is set in its innings."; return false; }
+        return true;
+    }
+
+    public bool TryApplyRainAdjustment(int revisedOvers, int? revisedTarget, string expectedToken, out string error)
+    {
+        if (!CanApplyRainAdjustment(revisedOvers, revisedTarget, expectedToken, out error)) return false;
         bool reopen = NaturallyCompleted(CurrentInnings!);
         CurrentInnings!.OverLimitOverride = revisedOvers; CurrentInnings.TargetOverride = revisedTarget;
         CurrentInnings.AdjustmentNote = "Externally supplied rain adjustment";

@@ -3,6 +3,7 @@
                     xmlns:services="clr-namespace:Roche_Scoreboard.Services">
     <Style TargetType="ScrollViewer"><Setter Property="services:ScrollActivity.Enabled" Value="True"/></Style>
     <Style TargetType="ScrollBar">
+        <Setter Property="services:ScrollActivity.FadeEnabled" Value="True"/>
         <Setter Property="Width" Value="10"/><Setter Property="Background" Value="Transparent"/>
         <Setter Property="Opacity" Value="0"/><Setter Property="MinWidth" Value="0"/><Setter Property="MinHeight" Value="0"/>
         <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar">
@@ -19,8 +20,7 @@
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Horizontal"><Setter Property="Width" Value="Auto"/><Setter Property="Height" Value="10"/></Trigger>
             <Trigger Property="services:ScrollActivity.Active" Value="True">
-                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="Opacity" To=".85" Duration="0:0:0.12"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
-                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
+                <Setter Property="Opacity" Value=".85"/>
             </Trigger>
         </Style.Triggers>
     </Style>

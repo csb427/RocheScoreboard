@@ -10,6 +10,7 @@ namespace Roche_Scoreboard.Views;
 /// <summary>Retains existing tile layout/events while adding native keyboard and Invoke semantics.</summary>
 public class OperatorActionBorder:Border
 {
+    public Action? ActivationAction { get; set; }
     public OperatorActionBorder(){Focusable=true;SetBinding(ToolTipService.IsEnabledProperty,new System.Windows.Data.Binding{Source=this,Path=new PropertyPath(Roche_Scoreboard.Services.OperatorGuidance.ShowHintsProperty)});}
     protected override void OnKeyDown(System.Windows.Input.KeyEventArgs args)
     {
@@ -18,6 +19,7 @@ public class OperatorActionBorder:Border
     internal void Activate()
     {
         if(!IsEnabled||!IsVisible)return;
+        if(ActivationAction is { } action){action();return;}
         RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice,Environment.TickCount,MouseButton.Left){RoutedEvent=MouseLeftButtonUpEvent,Source=this});
     }
     protected override AutomationPeer OnCreateAutomationPeer()=>new ActionPeer(this);
@@ -35,6 +37,10 @@ public class OperatorActionBorder:Border
         private static IEnumerable<TextBlock> Labels(DependencyObject root)
         {for(int i=0;i<VisualTreeHelper.GetChildrenCount(root);i++){var child=VisualTreeHelper.GetChild(root,i);if(child is TextBlock text)yield return text;foreach(var label in Labels(child))yield return label;}}
         public void Invoke()
-        {if(!owner.IsEnabled)throw new System.Windows.Automation.ElementNotEnabledException();owner.Dispatcher.BeginInvoke(new Action(owner.Activate));}
+        {
+            if(!owner.IsEnabled)throw new System.Windows.Automation.ElementNotEnabledException();
+            Action? callback=owner.ActivationAction;
+            owner.Dispatcher.BeginInvoke(new Action(()=>{if(ReferenceEquals(callback,owner.ActivationAction))owner.Activate();}));
+        }
     }
 }

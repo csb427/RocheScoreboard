@@ -18,7 +18,7 @@ namespace Roche_Scoreboard.Services.Cloud;
 /// A tiny heartbeat task pings the server every 25 seconds, which is the
 /// upstream-recommended cadence for keeping the channel alive.
 /// </summary>
-public sealed class SupabaseRealtimeClient : IAsyncDisposable
+public sealed class SupabaseRealtimeClient : IAsyncDisposable, ICloudRealtimeTransport
 {
     private readonly Uri _socketUri;
     private readonly string _apiKey;

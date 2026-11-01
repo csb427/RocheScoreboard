@@ -3,49 +3,64 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:Roche_Scoreboard.Views"
              xmlns:motion="clr-namespace:Roche_Scoreboard.Services" motion:OperatorDesign.IsEnabled="True"
              FontFamily="Segoe UI Variable, Segoe UI" mc:Ignorable="d"
              d:DesignWidth="300" d:DesignHeight="80">
-
     <UserControl.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceDictionary Source="../Resources/ControlCentre.xaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary></UserControl.Resources>
-    <!-- Compact reusable cloud remote launcher. Collapsed shows a single
-         "📱 Cloud Remote" button. Expanded shows status, join code, QR,
-         copy buttons, and start/end controls. Used in: AFL Scoring &
-         Clock tab and Training Mode header. The full settings card stays
-         the source of truth in MainWindow.xaml. -->
-    <Border Background="#19191C" BorderBrush="#44444B" BorderThickness="1" CornerRadius="16">
-        <StackPanel>
-
-            <!-- ── COLLAPSED: single button ── -->
-            <Button x:Name="CollapsedButton"
-                    Click="CollapsedButton_Click"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Cursor="Hand"
-                    Padding="10,8"
+    <Grid>
+        <!-- The live-console header keeps its size while details use an owned popup. -->
+        <Border x:Name="HeaderSurface" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="16">
+            <Button x:Name="CollapsedButton" Click="CollapsedButton_Click"
+                    Style="{StaticResource ControlCentre.Button}" Background="Transparent"
+                    BorderThickness="0" Cursor="Hand" Padding="10,8"
+                    AutomationProperties.Name="Expand cloud remote" AutomationProperties.ItemStatus="Collapsed"
                     HorizontalContentAlignment="Stretch">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <motion:OperatorSymbol Kind="Remote" Width="22" Height="22" Foreground="#A9D3FF" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <motion:OperatorSymbol x:Name="LauncherRemoteSymbol" Kind="Remote" Width="22" Height="22" Foreground="{DynamicResource ControlCentre.AccentBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="Cloud remote" FontSize="15" FontWeight="SemiBold" Foreground="#78B7FF"/>
-                        <TextBlock x:Name="CollapsedStatusText" Text="Tap to start" FontSize="13" FontWeight="SemiBold" Foreground="#B6B6C0"/>
+                        <TextBlock Text="Cloud remote" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.AccentBrush}"/>
+                        <TextBlock x:Name="CollapsedStatusText" Text="Tap to start" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}"/>
                     </StackPanel>
-                    <TextBlock x:Name="CollapsedChevron" Grid.Column="2" Text="▾" FontSize="12" FontWeight="SemiBold" Foreground="#58A6FF" VerticalAlignment="Center"/>
+                    <Path x:Name="CollapsedChevron" Grid.Column="2" Width="12" Height="8" Stretch="Fill"
+                          Data="M1,1 L6,6 L11,1" Stroke="{DynamicResource ControlCentre.AccentBrush}" StrokeThickness="1.8" VerticalAlignment="Center"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform><RotateTransform x:Name="ChevronRotate"/></Path.RenderTransform>
+                    </Path>
                 </Grid>
             </Button>
+        </Border>
+        <Popup x:Name="DetailsPopup" PlacementTarget="{Binding ElementName=CollapsedButton}" Placement="Bottom"
+               VerticalOffset="6" StaysOpen="False" AllowsTransparency="True" PopupAnimation="None"
+               Closed="DetailsPopup_Closed">
+            <views:OperatorGlassSurface x:Name="DetailsSurface" Material="Regular" Width="300" MaxHeight="560"
+                   Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}"
+                   BorderThickness="1" CornerRadius="20" RenderTransformOrigin="0.5,0.5"
+                   PreviewKeyDown="DetailsPreviewKeyDown" KeyboardNavigation.TabNavigation="Cycle">
+                <views:OperatorGlassSurface.RenderTransform><TransformGroup>
+                    <ScaleTransform x:Name="DetailsScale"/><TranslateTransform x:Name="DetailsTravel"/>
+                </TransformGroup></views:OperatorGlassSurface.RenderTransform>
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid x:Name="DetailsHeader" Margin="14,10,10,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Cloud remote" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}"/>
+                            <TextBlock Text="Join with your phone" FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}"/>
+                        </StackPanel>
+                        <Button x:Name="DetailsCloseButton" Grid.Column="1" Width="40" Height="40" MinHeight="40"
+                                Style="{StaticResource ControlCentre.Button}" Content="×" FontSize="22" Padding="0"
+                                AutomationProperties.Name="Close cloud remote" ToolTip="Close cloud remote (Esc)" Click="DetailsClose_Click"/>
+                    </Grid>
+                    <ScrollViewer x:Name="DetailsScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled" Focusable="False" KeyboardNavigation.IsTabStop="False">
+            <StackPanel x:Name="ExpandedPanel" Visibility="Collapsed" Margin="14,10,14,14">
 
-            <!-- ── EXPANDED: full controls ── -->
-            <StackPanel x:Name="ExpandedPanel" Visibility="Collapsed" Margin="10,2,10,10">
-
-                <Border Height="1" Background="#44444B" Margin="0,0,0,8"/>
+                <Border Height="1" Background="{DynamicResource ControlCentre.BorderBrush}" Margin="0,0,0,8"/>
 
                 <TextBlock x:Name="StatusText" Text="Checking configuration…"
-                           FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0"
+                           FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}"
                            HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
                            Margin="0,0,0,8"/>
 
@@ -53,23 +68,23 @@
                 <StackPanel x:Name="IdleState" Visibility="Collapsed">
                     <Button x:Name="StartButton" Content="Start cloud session"
                             Height="42" MinHeight="0" Padding="8,0" FontSize="14" FontWeight="SemiBold"
-                            Background="#29292D" BorderBrush="#44444B" BorderThickness="1"
-                            Foreground="#58A6FF" Cursor="Hand"
+                            Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1"
+                            Foreground="{DynamicResource ControlCentre.TextBrush}" Cursor="Hand"
                             Click="StartButton_Click"/>
                     <TextBlock Text="A new join code is created each time."
-                               FontSize="12" Foreground="#B6B6C0"
+                               FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}"
                                TextWrapping="Wrap" HorizontalAlignment="Center"
                                TextAlignment="Center" Margin="0,6,0,0"/>
                 </StackPanel>
 
                 <!-- DISABLED STATE -->
                 <StackPanel x:Name="DisabledState" Visibility="Collapsed">
-                    <Border Background="#1C140A" BorderBrush="#4A3A1A" BorderThickness="1" Padding="8">
+                    <Border Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Padding="8">
                         <StackPanel>
-                            <TextBlock Text="Setup required" FontSize="13" FontWeight="SemiBold" Foreground="#E7B94F"
+                            <TextBlock Text="Setup required" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}"
                                        HorizontalAlignment="Center" Margin="0,0,0,4"/>
                             <TextBlock Text="Add supabase.config.json next to the executable."
-                                       FontSize="12" FontWeight="SemiBold" Foreground="#D8C483" TextWrapping="Wrap" TextAlignment="Center"/>
+                                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" TextAlignment="Center"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -80,43 +95,49 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
                         <Ellipse x:Name="ConnectionDot" Width="8" Height="8" Fill="#6E7681" VerticalAlignment="Center"/>
                         <TextBlock x:Name="ConnectionLabel" Text="Connecting…" FontSize="12" FontWeight="Bold"
-                                   Foreground="#6E7681" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                   Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
 
-                    <TextBlock Text="JOIN CODE" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center"/>
-                    <Border Background="#111113" BorderBrush="#44444B" BorderThickness="1"
+                    <TextBlock Text="JOIN CODE" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" HorizontalAlignment="Center"/>
+                    <Button x:Name="CopyCodeButton" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1"
+                            Style="{StaticResource ControlCentre.Button}" AutomationProperties.Name="Copy join code" MinHeight="44"
                             Padding="10,6" Margin="0,4,0,4" Cursor="Hand"
-                            MouseLeftButtonUp="JoinCodeBox_Click" ToolTip="Click to copy">
+                            Click="JoinCodeBox_Click" ToolTip="Copy join code">
                         <TextBlock x:Name="JoinCodeText" Text="—" FontSize="22" FontWeight="SemiBold"
-                                   FontFamily="Consolas" Foreground="#58A6FF"
+                                   FontFamily="Consolas" Foreground="{DynamicResource ControlCentre.TextBrush}"
                                    HorizontalAlignment="Center" TextAlignment="Center"/>
-                    </Border>
+                    </Button>
 
-                    <Border Background="#19191C" BorderBrush="#44444B" BorderThickness="1"
+                    <Border Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1"
                             Padding="6" HorizontalAlignment="Center" Margin="0,6,0,6">
                         <Image x:Name="QrImage" Width="140" Height="140" Stretch="Uniform"
                                SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                     </Border>
 
                     <StackPanel x:Name="JoinUrlPanel" Visibility="Collapsed">
-                        <TextBlock Text="OR OPEN" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0"
+                        <TextBlock Text="OR OPEN" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}"
                                    HorizontalAlignment="Center" Margin="0,2,0,2"/>
                         <TextBlock x:Name="JoinUrlText" Text="" FontSize="12" FontWeight="SemiBold"
-                                   Foreground="#B6B6C0" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-                        <Button x:Name="CopyUrlButton" Content="Copy URL" Height="30" FontSize="12" FontWeight="Bold"
-                                Background="#29292D" BorderBrush="#44444B" BorderThickness="1"
-                                Foreground="#58A6FF" Cursor="Hand" Margin="0,4,0,0"
+                                   Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                        <Button x:Name="CopyUrlButton" Content="Copy URL" Height="40" MinHeight="40" Style="{StaticResource ControlCentre.Button}" AutomationProperties.Name="Copy join URL" FontSize="13" FontWeight="Bold"
+                                Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1"
+                                Foreground="{DynamicResource ControlCentre.TextBrush}" Cursor="Hand" Margin="0,4,0,0"
                                 Click="CopyUrlButton_Click"/>
                     </StackPanel>
 
-                    <Button x:Name="EndButton" Content="End session" Height="32" FontSize="12" FontWeight="Bold"
-                            Background="Transparent" BorderBrush="#3A2020" BorderThickness="1"
-                            Foreground="#FF6B6B" Cursor="Hand" Margin="0,10,0,0"
+                    <Button x:Name="EndButton" Content="End session" Height="40" MinHeight="40" Style="{StaticResource ControlCentre.Button}" FontSize="13" FontWeight="Bold"
+                            Background="Transparent" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1"
+                            Foreground="{DynamicResource ControlCentre.TextBrush}" Cursor="Hand" Margin="0,10,0,0"
                             Click="EndButton_Click"/>
                 </StackPanel>
+                <TextBlock x:Name="CopyFeedbackText" Text="" MinHeight="18"
+                           Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="13" TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite" Margin="0,8,0,0"/>
 
             </StackPanel>
-
-        </StackPanel>
-    </Border>
+                    </ScrollViewer>
+                </Grid>
+            </views:OperatorGlassSurface>
+        </Popup>
+    </Grid>
 </UserControl>

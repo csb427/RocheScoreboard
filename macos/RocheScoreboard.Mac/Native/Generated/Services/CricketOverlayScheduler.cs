@@ -1,5 +1,5 @@
 // Generated from Services/CricketOverlayScheduler.cs; edit translator/adapters.
-// Source SHA-256: f8c9e5412ae60c71935295c57892106fbe7d6b0ccb3e405d59ebe47794dec586
+// Source SHA-256: 01256a970785cd14506e6c2965632ce7510c76a27cf92e05708a592c79e3c666
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -73,7 +73,9 @@ public sealed class CricketOverlayScheduler
         if(fact.Kind==CricketOverlayKind.Boundaries && (now-_lastBoundaryAt<8 || now-_lastBoundaryAt>40))return false;
         if (_groups.TryGetValue(fact.Group,out double time) && now-time < 100) return false;
         if (!_shown.TryGetValue(fact.Kind,out var previous)) return true;
-        if (fact.Kind is CricketOverlayKind.LastWicket or CricketOverlayKind.LastOver or CricketOverlayKind.Boundaries && fact.Fingerprint == previous.Fingerprint) return false;
+        if (fact.Kind is CricketOverlayKind.LastWicket or CricketOverlayKind.LastOver or CricketOverlayKind.Boundaries
+            or CricketOverlayKind.Partnership or CricketOverlayKind.MatchState or CricketOverlayKind.InningsRecap
+            && fact.Fingerprint == previous.Fingerprint) return false;
         double cooldown = fact.Kind switch { CricketOverlayKind.Toss => fact.Priority >= 70 ? 180 : fact.Priority >= 40 ? 300 : 480,
             CricketOverlayKind.ScoringWindow => 360, CricketOverlayKind.LastWicket => 180, CricketOverlayKind.LastOver => 240, _ => 240 };
         return now-previous.Time >= cooldown;

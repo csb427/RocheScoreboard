@@ -1,5 +1,5 @@
 // Generated from Services/OperatorLiquidSelection.cs; edit translator/adapters.
-// Source SHA-256: 0b6f697a0a1c4da8b3206d462ae46a70b0dd938d219b699646c364e051cc0edf
+// Source SHA-256: a3f867b443678d60e5519c73700ba3f399ac34aae5febd5bf27083c09b28aff1
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -80,12 +80,12 @@ internal static class OperatorLiquidSelection
         geometry.Freeze();return geometry;
     }
 
-    internal static void Draw(NativeDrawingContext context,Control owner,Shape shape,bool segmented)
+    internal static void Draw(NativeDrawingContext context,Control owner,Shape shape,bool segmented,Brush? fillOverride=null)
     {
         if((shape.Bounds.Width<=0 || shape.Bounds.Height<=0) || shape.Bounds.Width<1)return;
         bool light=owner.GetValue(ContextProperty) is SolidColorBrush canvas && canvas.Color.R>150;
         bool contrast=NativeSystemPreferences.HighContrast;
-        Brush fill=contrast?SystemColors.HighlightBrush:segmented?(OperatorAppearance.GlassEnabled?SegmentGlass:SegmentSolid):OperatorAppearance.GlassEnabled?(light?LightGlass:DarkGlass):(light?LightSolid:DarkSolid);
+        Brush fill=contrast?SystemColors.HighlightBrush:fillOverride??(segmented?(OperatorAppearance.GlassEnabled?SegmentGlass:SegmentSolid):OperatorAppearance.GlassEnabled?(light?LightGlass:DarkGlass):(light?LightSolid:DarkSolid));
         var pen=contrast?new Pen(SystemColors.HighlightTextBrush,1):OperatorAppearance.GlassEnabled?GlassRim:SolidRim;
         context.DrawGeometry(fill,pen,Geometry(shape));
     }

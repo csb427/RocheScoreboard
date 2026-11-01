@@ -12,6 +12,10 @@ public partial class MainWindow
     internal async Task<Dictionary<string, bool>> RunCricketTargetedWorkflowChecksAsync(string directory)
     {
         var checks = await RunSetupReflowChecksAsync(directory);
+        foreach (var check in await RunUnifiedSetupChecksAsync()) checks[check.Key] = check.Value;
+        foreach (var check in await RunPresentationLifetimeChecksAsync()) checks[check.Key] = check.Value;
+        foreach (var check in RunHomeCommandChecks()) checks[check.Key] = check.Value;
+        foreach (var check in RunAflEditorInterruptionChecks()) checks[check.Key] = check.Value;
         foreach (var check in await Services.CricketWorkflowUiChecks.RunAsync(directory)) checks[check.Key] = check.Value;
         foreach (var check in Services.CricketOutputChecks.Run()) checks[check.Key] = check.Value;
         foreach (var check in await RunCricketReviewChecksAsync(directory)) checks[check.Key]=check.Value;

@@ -16,6 +16,47 @@
           <ResourceDictionary Source="Resources/OperatorControls.xaml"/>
         <ResourceDictionary Source="Resources/ControlCentre.xaml"/></ResourceDictionary.MergedDictionaries>
             <operator:OperatorScorePartConverter x:Key="OperatorScorePart"/><operator:OperatorLogoConverter x:Key="OperatorLogo"/>
+            <!-- The four colour previews keep their original Border-based
+                 live paint while gaining one named native keyboard action. -->
+            <Style x:Key="TeamColourSwatch" TargetType="{x:Type views:OperatorActionBorder}">
+                <Setter Property="BorderBrush" Value="#7DA0CA"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Style.Triggers>
+                    <MultiTrigger><MultiTrigger.Conditions>
+                        <Condition Property="IsKeyboardFocusWithin" Value="True"/>
+                        <Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/>
+                    </MultiTrigger.Conditions>
+                        <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/>
+                        <Setter Property="BorderThickness" Value="2"/>
+                    </MultiTrigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="QuarterDurationStepper" TargetType="{x:Type views:OperatorActionBorder}">
+                <Setter Property="BorderBrush" Value="#C9B070"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Style.Triggers>
+                    <MultiTrigger><MultiTrigger.Conditions>
+                        <Condition Property="IsKeyboardFocusWithin" Value="True"/>
+                        <Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/>
+                    </MultiTrigger.Conditions>
+                        <Setter Property="BorderBrush" Value="#F7F9FC"/>
+                        <Setter Property="BorderThickness" Value="2"/>
+                    </MultiTrigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="WindowDimensionStepper" TargetType="{x:Type views:OperatorActionBorder}" BasedOn="{StaticResource QuarterDurationStepper}">
+                <Setter Property="BorderBrush" Value="#40668C"/>
+            </Style>
+            <DataTemplate x:Key="LiveLogoBrowseContent">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <motion:OperatorSymbol Kind="image" Width="18" Height="18" Margin="0,0,6,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
+                    <TextBlock Text="Logo" FontWeight="SemiBold" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DataTemplate>
+            <DataTemplate x:Key="LiveLogoClearContent">
+                <motion:OperatorSymbol Kind="close" Width="18" Height="18" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </DataTemplate>
             <SolidColorBrush x:Key="ShellBrush" Color="#09090B"/>
             <SolidColorBrush x:Key="RegionBrush" Color="#09090B"/>
             <SolidColorBrush x:Key="RegionAltBrush" Color="#19191C"/>
@@ -161,17 +202,17 @@
                     <Border x:Name="StatusBadge" Background="#10281B" Padding="10,6" CornerRadius="12" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal"><Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="#4CD582" Margin="0,0,7,0" VerticalAlignment="Center"/><TextBlock x:Name="StatusText" Text="READY" Foreground="#74E3A0" FontSize="11" FontWeight="SemiBold"/></StackPanel>
                     </Border>
-                    <TextBlock Grid.Column="1" x:Name="HeaderQuarterClock" Text="Q1  00:00" Foreground="White" FontSize="27" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,0"/>
+                    <TextBlock Grid.Column="1" x:Name="HeaderQuarterClock" Text="Q1  00:00" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="27" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,0" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock x:Name="HeaderHomeAbbr" Text="HOM" Foreground="{StaticResource HomeAccentBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBlock x:Name="HeaderScore" Text="0 – 0" Foreground="White" FontSize="27" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="HeaderAwayAbbr" Text="AWA" Foreground="{StaticResource AwayAccentBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <TextBlock x:Name="HeaderHomeAbbr" Text="HOM" Foreground="{DynamicResource ControlCentre.HeaderHomeInkBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="HeaderScore" Text="0 – 0" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="27" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="HeaderAwayAbbr" Text="AWA" Foreground="{DynamicResource ControlCentre.HeaderAwayInkBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0"/>
                         <Border x:Name="AflHeaderMarginSurface" Background="#242428" CornerRadius="8" Padding="8,4" Margin="10,0,0,0"><TextBlock x:Name="HeaderMarginText" Text="" Foreground="#D6E3EF" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/></Border>
                     </StackPanel>
                     <Border x:Name="HeaderOutputBadge" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,8,0,0" Background="Transparent">
-                        <StackPanel Orientation="Horizontal"><Ellipse Width="5" Height="5" Fill="#7BB8FF" Margin="0,0,7,0" VerticalAlignment="Center"/><TextBlock Text="Output · " Foreground="#B6B6C0" FontSize="12"/><TextBlock x:Name="HeaderOutputText" Text="Live Scorebug" Foreground="#DBDBE4" FontSize="12" FontWeight="SemiBold"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><Ellipse Width="5" Height="5" Fill="#7BB8FF" Margin="0,0,7,0" VerticalAlignment="Center"/><TextBlock Text="Output · " Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12"/><TextBlock x:Name="HeaderOutputText" Text="Live Scorebug" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" FontWeight="SemiBold"/></StackPanel>
                     </Border>
-                    <TextBlock x:Name="LastEventText" Grid.Row="1" Grid.Column="1" Text="" Foreground="#B6B6C0" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="10,8,10,0"/>
+                    <TextBlock x:Name="LastEventText" Grid.Row="1" Grid.Column="1" Text="" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="10,8,10,0"/>
                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,7,0,0">
                         <TextBlock x:Name="HeaderShortcutText" Visibility="Collapsed"/>
                         <Border x:Name="EssentialsModeBadge" Background="Transparent" CornerRadius="8" Padding="8,4" VerticalAlignment="Center"><TextBlock x:Name="OperatorModeBadgeText" Text="ESSENTIALS" Foreground="#B6B6C0" FontSize="10" FontWeight="SemiBold"/></Border>
@@ -263,22 +304,26 @@
                                     </views:OperatorGlassSurface>
 
                                     <Popup x:Name="ControlPanelCountdownEditPopupHost"
-                                           PlacementTarget="{Binding ElementName=ControlPanelCountdownPanel}"
-                                           Placement="Bottom"
+                                           PlacementTarget="{Binding ElementName=ControlPanelCountdownEditButton}"
+                                           Placement="Center"
                                            HorizontalOffset="0"
-                                           VerticalOffset="4"
+                                           VerticalOffset="0"
                                            AllowsTransparency="True"
                                            StaysOpen="False"
-                                           PopupAnimation="Fade">
-                                        <views:OperatorGlassSurface Material="Regular" x:Name="ControlPanelCountdownEditPopup" Width="330" Background="#202024" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="16,14" Visibility="Collapsed" Opacity="0" RenderTransformOrigin="1,0">
+                                           PopupAnimation="None">
+                                        <views:OperatorGlassSurface Material="Regular" x:Name="ControlPanelCountdownEditPopup" Width="330" Background="#202024" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="18" Padding="16,14" Visibility="Collapsed" Opacity="1" RenderTransformOrigin="0.5,0.5" PreviewKeyDown="StoppageEditor_KeyDown">
                                             <Border.RenderTransform>
-                                                <ScaleTransform x:Name="ControlPanelCountdownEditPopupScale" ScaleX="0.96" ScaleY="0.96"/>
+                                                <TransformGroup><ScaleTransform x:Name="ControlPanelCountdownEditPopupScale"/><TranslateTransform x:Name="ControlPanelCountdownEditPopupTravel"/></TransformGroup>
                                             </Border.RenderTransform>
 
                                             <StackPanel>
-                                                <TextBlock Text="SET STOPPAGE CLOCK" Foreground="#58A6FF" FontSize="13" FontWeight="SemiBold"/>
-                                                <TextBlock Text="Updates only the operator stoppage clock. The scoreboard match clock is unchanged."
-                                                           Foreground="#AAB8CA" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,10"/>
+                                                <Grid x:Name="ControlPanelCountdownEditHeader" Margin="0,0,0,10">
+                                                    <Grid.RenderTransform><TranslateTransform x:Name="ControlPanelCountdownHeaderTravel"/></Grid.RenderTransform>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="30"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                    <motion:OperatorSymbol x:Name="ControlPanelCountdownEditSymbol" Kind="clock-down" Width="24" Height="24" Foreground="#58A6FF" VerticalAlignment="Top"/>
+                                                    <StackPanel Grid.Column="1"><TextBlock Text="SET STOPPAGE CLOCK" Foreground="#58A6FF" FontSize="13" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="Changes the operator stoppage clock. The scoreboard match clock stays unchanged." Foreground="#AAB8CA" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/></StackPanel>
+                                                </Grid>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                     <Border Background="#0A1224" BorderBrush="#2A4F8A" BorderThickness="1" CornerRadius="5" Padding="6,3">
                                                         <TextBox x:Name="ControlPanelCountdownEditMinutesBox" AutomationProperties.Name="Stoppage minutes" ToolTip="Minutes: Up/Down adjusts by 1; Shift adjusts by 10. Enter applies, Escape cancels." Width="56" MaxLength="2" Text="20" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#E6EDF3" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" KeyDown="ControlPanelCountdownEditBox_KeyDown"/>
@@ -590,7 +635,7 @@
                                                                 </Border.RenderTransform>
                                                             </Border>
                                                         </Grid>
-                                                        <TextBlock x:Name="WindowToggleLabel" Text="Open" FontSize="10" FontWeight="SemiBold" Foreground="#A8B8C9" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                                        <TextBlock x:Name="WindowToggleLabel" Text="Open" MinWidth="40" TextAlignment="Center" FontSize="10" FontWeight="SemiBold" Foreground="#A8B8C9" HorizontalAlignment="Center" Margin="0,3,0,0"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </views:OperatorActionBorder>
@@ -736,7 +781,7 @@
 
                                         <Button x:Name="CancelOverlayButton" Content="CANCEL CURRENT OVERLAY"
                                                 Style="{StaticResource ToolBtn}"
-                                                Height="42" Margin="4,14,4,8" Cursor="Hand"
+                                                Height="42" Margin="4,14,14,8" Cursor="Hand"
                                                 FontSize="11" FontWeight="SemiBold" Foreground="#FFD8D8"
                                                 Background="#241014" BorderBrush="#A83D4C" BorderThickness="1"
                                                 Click="CancelCurrentOverlay_Click"/>
@@ -827,25 +872,25 @@
                                                                                  TextChanged="MessageItem_TextChanged"/>
 
                                                                         <StackPanel Grid.Column="2" Orientation="Vertical" Margin="0,0,4,0" VerticalAlignment="Center">
-                                                                            <Button MinHeight="0" Width="32" Height="30" Padding="0" BorderBrush="#1E3050" BorderThickness="1"
-                                                                                    Click="PickItemTextColor_Click" Tag="{Binding}"
+                                                                            <Button MinHeight="0" Width="40" Height="40" Padding="0" BorderBrush="#1E3050" BorderThickness="1"
+                                                                                    Click="PickItemTextColor_Click" AutomationProperties.Name="{Binding Text, StringFormat='Saved message text colour: {0}'}" Tag="{Binding}"
                                                                                     ToolTip="Text colour"
                                                                                     Background="{Binding TextBrush}"/>
                                                                         </StackPanel>
 
                                                                         <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                                            <Button MinHeight="0" Width="42" Height="30" Padding="0" BorderBrush="#1E3050" BorderThickness="1"
-                                                                                    Click="PickItemHighlightColor_Click" Tag="{Binding}"
-                                                                                    ToolTip="Highlight colour · right-click to remove"
-                                                                                    MouseRightButtonUp="ClearItemHighlightColor_Click"
+                                                                            <Button MinHeight="0" Width="48" Height="40" Padding="0" BorderBrush="#1E3050" BorderThickness="1"
+                                                                                    Click="PickItemHighlightColor_Click" AutomationProperties.Name="{Binding Text, StringFormat='Saved message highlight colour: {0}'}" Tag="{Binding}"
+                                                                                    ToolTip="Highlight colour · right-click or press Delete to remove"
+                                                                                    MouseRightButtonUp="ClearItemHighlightColor_Click" KeyDown="TickerItemHighlightColor_KeyDown" AutomationProperties.HelpText="Press Delete to clear the highlight."
                                                                                     Background="{Binding HighlightBrush}"/>
                                                                         </StackPanel>
 
                                                                         <Button Padding="0" MinHeight="0" Grid.Column="4"
-                                                                                Content="×" Width="34" Height="34" FontSize="16" FontWeight="SemiBold"
-                                                                                Click="RemoveMessageItem_Click" Tag="{Binding}"
+                                                                                Content="×" Width="40" Height="40" FontSize="16" FontWeight="SemiBold"
+                                                                                Click="RemoveMessageItem_Click" AutomationProperties.Name="{Binding Text, StringFormat='Clear saved message: {0}'}" Tag="{Binding}"
                                                                                 Style="{StaticResource ToolBtn}" BorderBrush="#3A1A1A"
-                                                                                VerticalAlignment="Center"
+                                                                                VerticalAlignment="Center" Margin="0,0,6,0"
                                                                                 ToolTip="Clear this preset slot"/>
                                                                     </Grid>
                                                                 </Border>
@@ -926,18 +971,15 @@
                                     <TextBlock Text="VIDEO PLAYBACK" FontSize="18" FontWeight="SemiBold" Foreground="#58A6FF">
 
                                     </TextBlock>
-                                    <TextBlock Text="Upload, preview and broadcast custom video clips to the scoreboard window." TextWrapping="Wrap" FontSize="12" FontWeight="SemiBold" Foreground="#A9CCF2" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Choose media, select the output, then press Play when you are ready." TextWrapping="Wrap" FontSize="12" FontWeight="SemiBold" Foreground="#A9CCF2" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <!-- LEFT: Controls -->
                                 <Border x:Name="AflMediaControlsCard" CornerRadius="22" Grid.Row="1" Grid.Column="0" Background="#19191C" BorderBrush="#303035" BorderThickness="1" Padding="18">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                                         <StackPanel>
-                                            <!-- Media Control Centre — single, linear workflow:
-                                                 Browse loads the file into the scoreboard player (paused on
-                                                 frame 0), then Show on Scoreboard hands the output over to
-                                                 the LibVLC surface. Play/Restart drive both the preview and
-                                                 the scoreboard simultaneously. -->
+                                            <!-- Browse cues the one player without auto-playing. Show selects
+                                                 its output surface; Play/Restart explicitly begin playback. -->
                                             <TextBlock Text="MEDIA · CONTROL CENTRE" Foreground="#78B7FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                             <Border Background="#09090B" BorderBrush="#6F86A8" BorderThickness="1" Padding="14" Margin="0,0,0,18">
                                                 <StackPanel>
@@ -953,8 +995,8 @@
 
                                                     <Button MinHeight="0" x:Name="VideoTabShowOnScoreboardButton" Content="🖥  Show on Scoreboard" Height="38" FontSize="13" FontWeight="SemiBold" Click="VideoTabShowOnScoreboard_Click" Style="{StaticResource ToolBtn}" IsEnabled="False" BorderBrush="#6F86A8" Margin="0,0,0,8" ToolTip="Take over the scoreboard output with this video."/>
                                                     <Button MinHeight="0" x:Name="VideoTabPlayPauseButton" Content="▶  Play" Height="40" FontSize="13" FontWeight="SemiBold" Click="VideoTabPlayPause_Click" Style="{StaticResource ToolBtn}" IsEnabled="False" BorderBrush="#1F7A3F" Background="#0E2A18" Foreground="#7FE0A0"/>
-                                                    <Button MinHeight="0" x:Name="VideoTabRestartButton" Content="⟲  Restart" Height="30" FontSize="11" FontWeight="Bold" Click="VideoTabRestart_Click" Style="{StaticResource ToolBtn}" Margin="0,8,0,0" IsEnabled="False" BorderBrush="#6F86A8"/>
-                                                    <Button MinHeight="0" x:Name="VideoTabUnloadButton" Content="✕  Unload Video" Height="30" FontSize="11" FontWeight="Bold" Click="VideoTabUnload_Click" Style="{StaticResource ToolBtn}" Margin="0,8,0,0" IsEnabled="False" BorderBrush="#5A2A2A" Background="#2A1212" Foreground="#E08080" ToolTip="Stop playback, clear the current video, and return the scoreboard to its previous screen."/>
+                                                    <Button MinHeight="40" x:Name="VideoTabRestartButton" Content="⟲  Restart" Height="40" FontSize="13" FontWeight="Bold" Click="VideoTabRestart_Click" Style="{StaticResource ToolBtn}" Margin="0,8,0,0" IsEnabled="False" BorderBrush="#6F86A8"/>
+                                                    <Button MinHeight="40" x:Name="VideoTabUnloadButton" Content="✕  Unload Video" Height="40" FontSize="13" FontWeight="Bold" Click="VideoTabUnload_Click" Style="{StaticResource ToolBtn}" Margin="0,8,0,0" IsEnabled="False" BorderBrush="#5A2A2A" Background="#2A1212" Foreground="#E08080" ToolTip="Stop playback, clear the current video, and return the scoreboard to its previous screen."/>
                                                     <TextBlock x:Name="VideoTabStatusText" Text="No video loaded." Foreground="#7FE0A0" FontSize="12" FontWeight="SemiBold" Margin="0,10,0,0" TextWrapping="Wrap"/>
                                                 </StackPanel>
                                             </Border>
@@ -966,42 +1008,31 @@
                                 </Border>
 
                                 <!-- RIGHT: Preview -->
-                                <Border x:Name="AflMediaPreviewCard" CornerRadius="22" Grid.Row="1" Grid.Column="2" Background="#000000" BorderBrush="#303035" BorderThickness="1">
+                                <Border x:Name="AflMediaPreviewCard" MinHeight="300" CornerRadius="22" Grid.Row="1" Grid.Column="2" Background="#000000" BorderBrush="#303035" BorderThickness="1">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <!-- Video surface -->
+                                        <!-- One decoder; managed output mirror or an explicit unavailable notice. -->
                                         <Grid Grid.Row="0">
-                                            <!-- Live mirror of the actual scoreboard output window. Bound at
-                                                 runtime to a VisualBrush of _displayContainer so this preview
-                                                 always shows whatever is currently on the scoreboard (scorebug,
-                                                 break, scoreworm, stats, weather). LibVLC's native HWND is the
-                                                 only surface a VisualBrush can't capture, so during video
-                                                 takeover we fall back to the local MediaElement layered on top. -->
-                                            <Rectangle x:Name="VideoTabLiveMirror" Stretch="Uniform"/>
-
-                                            <!-- Checkerboard placeholder (shown only when the scoreboard window
-                                                 isn't open yet — nothing to mirror). -->
-                                            <Grid x:Name="VideoTabPreviewPlaceholder">
-                                                <Border Background="#19191C"/>
-                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <TextBlock Text="🎬" FontSize="56" HorizontalAlignment="Center" Foreground="#6F86A8"/>
-                                                    <TextBlock Text="PREVIEW" FontSize="14" FontWeight="SemiBold" Foreground="#8FB8E8" HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                                                    <TextBlock Text="Open the scoreboard window to see a live mirror here." FontSize="12" Foreground="#A9CCF2" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <Rectangle x:Name="VideoTabLiveMirror" Grid.RowSpan="2" Stretch="Uniform"/>
+                                            <Grid x:Name="VideoTabPreviewPlaceholder" Grid.Row="1" Background="#19191C">
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="20,12" MaxWidth="360">
+                                                    <motion:OperatorSymbol Kind="media" Width="32" Height="32" Foreground="#8FB8E8" HorizontalAlignment="Center"/>
+                                                    <TextBlock x:Name="VideoTabPreviewHeading" Text="Output not visible" FontSize="16" FontWeight="SemiBold" Foreground="#E6EDF3" TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                                    <TextBlock x:Name="VideoTabPreviewDetail" Text="Open or restore the output window to preview it here. Your match stays unchanged." FontSize="12" Foreground="#A9CCF2" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0"/>
                                                 </StackPanel>
                                             </Grid>
-                                            <!-- The local MediaElement preview was retired: it ran a second
-                                                 decoder in parallel with LibVLC and was the last remaining
-                                                 source of double-decode lag. The live VisualBrush mirror
-                                                 above now shows the actual scoreboard output, and seek /
-                                                 time / speed controls drive the LibVLC surface directly. -->
-                                            <!-- Preview overlay info -->
-                                            <Border VerticalAlignment="Top" HorizontalAlignment="Right" Background="#A0000000" Padding="8,4" Margin="8">
+                                            <!-- Status occupies its own row so it cannot cover the guidance. -->
+                                            <Border Grid.Row="0" HorizontalAlignment="Right" Background="#A0000000" Padding="8,4" Margin="8">
                                                 <StackPanel>
-                                                    <TextBlock x:Name="VideoTabPreviewBadge" Text="LIVE · MIRRORING SCOREBOARD" Foreground="#78B7FF" FontSize="11" FontWeight="SemiBold"/>
+                                                    <TextBlock x:Name="VideoTabPreviewBadge" Text="OUTPUT NOT VISIBLE" Foreground="#78B7FF" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                                     <TextBlock x:Name="VideoTabTelemetryText" Text="" Foreground="#7FE0A0" FontSize="11" FontWeight="SemiBold" Margin="0,2,0,0"/>
                                                     <TextBlock x:Name="VideoTabDiagnosticText" Text="" Foreground="#E8D08A" FontSize="11" Margin="0,2,0,0" TextWrapping="Wrap" MaxWidth="320"/>
                                                 </StackPanel>
@@ -1018,28 +1049,22 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock x:Name="VideoTabCurrentTimeText" Grid.Column="0" Text="0:00" Foreground="#E6EDF3" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="42"/>
-                                                    <Slider x:Name="VideoTabSeekSlider" Grid.Column="1" Minimum="0" Maximum="1" Value="0" SmallChange="1" LargeChange="5" IsMoveToPointEnabled="True" Margin="8,0,8,0" VerticalAlignment="Center" Foreground="#FF0000" Background="#2A2A40" Thumb.DragStarted="VideoTabSeek_DragStarted" Thumb.DragCompleted="VideoTabSeek_DragCompleted" PreviewMouseLeftButtonUp="VideoTabSeek_PreviewMouseLeftButtonUp" ValueChanged="VideoTabSeek_ValueChanged"/>
-                                                    <TextBlock x:Name="VideoTabDurationText" Grid.Column="2" Text="0:00" Foreground="#8B97A8" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="42" TextAlignment="Right"/>
+                                                    <TextBlock x:Name="VideoTabCurrentTimeText" Grid.Column="0" Text="0:00" Foreground="#E6EDF3" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="42" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
+                                                    <Slider x:Name="VideoTabSeekSlider" Height="46" AutomationProperties.Name="Video playback position" AutomationProperties.HelpText="Position in seconds. Drag to choose, release to seek. Arrow keys seek directly." Grid.Column="1" Minimum="0" Maximum="1" Value="0" SmallChange="1" LargeChange="5" IsMoveToPointEnabled="True" Margin="8,0,8,0" VerticalAlignment="Center" Foreground="#FF0000" Background="#2A2A40" Thumb.DragStarted="VideoTabSeek_DragStarted" Thumb.DragCompleted="VideoTabSeek_DragCompleted" PreviewMouseLeftButtonUp="VideoTabSeek_PreviewMouseLeftButtonUp" ValueChanged="VideoTabSeek_ValueChanged"/>
+                                                    <TextBlock x:Name="VideoTabDurationText" Grid.Column="2" Text="0:00" Foreground="#8B97A8" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="42" TextAlignment="Right"/>
                                                 </Grid>
 
                                                 <!-- Bottom row: speed + volume -->
-                                                <Grid Margin="0,8,0,0">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
+                                                <WrapPanel Margin="0,8,0,0">
 
                                                     <!-- Speed dropdown -->
-                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <TextBlock Text="SPEED" Foreground="#B8D7F6" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                                        <ComboBox x:Name="VideoTabSpeedCombo" Padding="8,4" Width="112" Height="26" SelectionChanged="VideoTabSpeed_Changed" Background="#19191C" BorderBrush="#6F86A8" Foreground="#E6EDF3">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,8">
+                                                        <TextBlock Text="SPEED" Foreground="#B8D7F6" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                        <ComboBox x:Name="VideoTabSpeedCombo" SelectedIndex="3" Padding="8,4" Width="112" Height="40" AutomationProperties.Name="Video playback speed" AutomationProperties.HelpText="Choose from one quarter to twice normal playback speed." SelectionChanged="VideoTabSpeed_Changed" Background="#19191C" BorderBrush="#6F86A8" Foreground="#E6EDF3">
                                                             <ComboBoxItem Content="0.25x" Tag="0.25"/>
                                                             <ComboBoxItem Content="0.5x"  Tag="0.5"/>
                                                             <ComboBoxItem Content="0.75x" Tag="0.75"/>
-                                                            <ComboBoxItem Content="Normal" Tag="1.0" IsSelected="True"/>
+                                                            <ComboBoxItem Content="Normal" Tag="1.0"/>
                                                             <ComboBoxItem Content="1.25x" Tag="1.25"/>
                                                             <ComboBoxItem Content="1.5x"  Tag="1.5"/>
                                                             <ComboBoxItem Content="1.75x" Tag="1.75"/>
@@ -1047,15 +1072,14 @@
                                                         </ComboBox>
                                                     </StackPanel>
 
-                                                    <!-- Spacer -->
-                                                    <Border Grid.Column="1"/>
-
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
                                                     <!-- Mute -->
-                                                    <Button Padding="0" MinHeight="0" x:Name="VideoTabMuteButton" Grid.Column="2" Content="🔊" Width="34" Height="26" FontSize="14" Click="VideoTabMute_Click" Style="{StaticResource ToolBtn}" BorderBrush="#6F86A8" ToolTip="Mute / unmute scoreboard audio"/>
+                                                    <Button Padding="0" MinHeight="0" x:Name="VideoTabMuteButton" Width="44" Height="44" Click="VideoTabMute_Click" Style="{StaticResource ToolBtn}" BorderBrush="#6F86A8" ToolTip="Mute scoreboard audio" AutomationProperties.Name="Mute scoreboard audio"><motion:OperatorSymbol x:Name="VideoTabAudioSymbol" Kind="audio" Width="24" Height="24" Foreground="{DynamicResource ControlCentre.TextBrush}"/></Button>
 
                                                     <!-- Volume -->
-                                                    <Slider x:Name="VideoTabVolumeSlider" Grid.Column="3" Minimum="0" Maximum="1" Value="1" Width="100" Margin="8,0,0,0" VerticalAlignment="Center" ValueChanged="VideoTabVolume_Changed" ToolTip="Scoreboard volume"/>
-                                                </Grid>
+                                                    <Slider x:Name="VideoTabVolumeSlider" Height="46" AutomationProperties.Name="Scoreboard video volume" AutomationProperties.HelpText="Video audio level from zero to one. Zero is silent; one is full volume. Muting preserves this level." Minimum="0" Maximum="1" Value="1" Width="100" Margin="8,0,0,0" VerticalAlignment="Center" ValueChanged="VideoTabVolume_Changed" ToolTip="Scoreboard volume"/>
+                                                    </StackPanel>
+                                                </WrapPanel>
                                             </StackPanel>
                                         </Border>
                                     </Grid>
@@ -1096,7 +1120,6 @@
                             <RadioButton x:Name="AnimClassicRadio" GroupName="AnimChoice" Checked="AnimationRadio_Changed" Visibility="Collapsed"/>
                             <RadioButton x:Name="AnimCustomVideoRadio" GroupName="AnimChoice" Checked="AnimationRadio_Changed" Visibility="Collapsed"/>
                             <!-- Hidden backing controls -->
-                            <CheckBox x:Name="SettingsShowControlPanelCountdown" IsChecked="True" Visibility="Collapsed"/>
                             <TextBlock x:Name="HomeLogoPathText" Visibility="Collapsed"/>
                             <TextBlock x:Name="AwayLogoPathText" Visibility="Collapsed"/>
 
@@ -1205,21 +1228,21 @@
                                                             </Grid>
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="HomeColorBox" Width="66" Text="#0A2A6A" FontSize="10" VerticalContentAlignment="Center" Margin="0,0,3,0" Visibility="Collapsed"/>
-                                                                <Border x:Name="HomeColorPreview" Width="30" Height="28" Background="#0A2A6A" BorderBrush="#7DA0CA" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickHomeColor_Click"/>
-                                                                <views:OperatorActionBorder Width="28" Height="28" Background="#141C2A" BorderBrush="#6F86A8" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OperatorTile_DropperHomeColor_Click" Margin="3,0,0,0">
-                                                                    <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                <views:OperatorActionBorder x:Name="HomeColorPreview" Width="30" Height="28" Background="#0A2A6A" Style="{StaticResource TeamColourSwatch}" AutomationProperties.Name="Choose home primary colour" ToolTip="Choose home primary colour" Cursor="Hand" MouseLeftButtonUp="PickHomeColor_Click"/>
+                                                                <views:OperatorActionBorder x:Name="HomePrimaryScreenSampler" Width="40" Height="40" CornerRadius="12" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OperatorTile_DropperHomeColor_Click" Margin="3,0,0,0" AutomationProperties.Name="Sample home primary colour from screen" ToolTip="Sample home primary colour from screen" AutomationProperties.HelpText="Escape cancels screen sampling.">
+                                                                    <motion:OperatorSymbol Kind="eyedropper" Width="18" Height="18" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </views:OperatorActionBorder>
                                                                 <TextBox x:Name="HomeSecondaryColorBox" Width="66" Text="#FFFFFF" FontSize="10" VerticalContentAlignment="Center" Visibility="Collapsed"/>
-                                                                <Border x:Name="HomeSecondaryColorPreview" Width="30" Height="28" Background="#FFFFFF" BorderBrush="#7DA0CA" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickHomeSecondaryColor_Click" Margin="8,0,0,0"/>
-                                                                <views:OperatorActionBorder Width="28" Height="28" Background="#141C2A" BorderBrush="#6F86A8" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OperatorTile_DropperHomeSecondaryColor_Click" Margin="3,0,0,0">
-                                                                    <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                <views:OperatorActionBorder x:Name="HomeSecondaryColorPreview" Width="30" Height="28" Background="#FFFFFF" Style="{StaticResource TeamColourSwatch}" AutomationProperties.Name="Choose home secondary colour" ToolTip="Choose home secondary colour" Cursor="Hand" MouseLeftButtonUp="PickHomeSecondaryColor_Click" Margin="8,0,0,0"/>
+                                                                <views:OperatorActionBorder x:Name="HomeSecondaryScreenSampler" Width="40" Height="40" CornerRadius="12" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OperatorTile_DropperHomeSecondaryColor_Click" Margin="3,0,0,0" AutomationProperties.Name="Sample home secondary colour from screen" ToolTip="Sample home secondary colour from screen" AutomationProperties.HelpText="Escape cancels screen sampling.">
+                                                                    <motion:OperatorSymbol Kind="eyedropper" Width="18" Height="18" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </views:OperatorActionBorder>
                                                                 <TextBlock Text="Primary" Foreground="#7DA0CA" FontSize="8" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                                                 <TextBlock Text="/ Text" Foreground="#7DA0CA" FontSize="8" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                                             </StackPanel>
                                                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                                                <Button MinHeight="0" Content="📂 Logo" Height="26" FontSize="10" FontWeight="Bold" Click="BrowseHomeLogo_Click" Style="{StaticResource ToolBtn}" BorderBrush="#1A3A6A" Padding="8,0"/>
-                                                                <Button Padding="0" MinHeight="0" Content="✕" Width="26" Height="26" FontSize="10" FontWeight="Bold" Click="ClearHomeLogo_Click" Style="{StaticResource ToolBtn}" BorderBrush="#3A2020" Margin="4,0,0,0" ToolTip="Remove logo"/>
+                                                                <Button x:Name="HomeLogoBrowseAction" MinHeight="0" Content="📂 Logo" ContentTemplate="{StaticResource LiveLogoBrowseContent}" Height="40" MinWidth="40" FontSize="14" FontWeight="SemiBold" Click="BrowseHomeLogo_Click" Style="{StaticResource ToolBtn}" BorderBrush="#1A3A6A" Padding="8,0" AutomationProperties.Name="Choose home team logo"/>
+                                                                <Button x:Name="HomeLogoClearAction" Padding="0" MinHeight="0" Content="✕" ContentTemplate="{StaticResource LiveLogoClearContent}" Width="40" Height="40" FontSize="14" FontWeight="SemiBold" Click="ClearHomeLogo_Click" Style="{StaticResource ToolBtn}" BorderBrush="#3A2020" Margin="4,0,0,0" ToolTip="Remove logo" AutomationProperties.Name="Remove home team logo"/>
                                                                 <TextBlock x:Name="HomeLogoStatusText" Text="" Foreground="#7DA0CA" FontSize="9" VerticalAlignment="Center" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" MaxWidth="200"/>
                                                             </StackPanel>
                                                         </StackPanel>
@@ -1245,21 +1268,21 @@
                                                             </Grid>
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBox x:Name="AwayColorBox" Width="66" Text="#7A1A1A" FontSize="10" VerticalContentAlignment="Center" Margin="0,0,3,0" Visibility="Collapsed"/>
-                                                                <Border x:Name="AwayColorPreview" Width="30" Height="28" Background="#7A1A1A" BorderBrush="#7DA0CA" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickAwayColor_Click"/>
-                                                                <views:OperatorActionBorder Width="28" Height="28" Background="#141C2A" BorderBrush="#6F86A8" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OperatorTile_DropperAwayColor_Click" Margin="3,0,0,0">
-                                                                    <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                <views:OperatorActionBorder x:Name="AwayColorPreview" Width="30" Height="28" Background="#7A1A1A" Style="{StaticResource TeamColourSwatch}" AutomationProperties.Name="Choose away primary colour" ToolTip="Choose away primary colour" Cursor="Hand" MouseLeftButtonUp="PickAwayColor_Click"/>
+                                                                <views:OperatorActionBorder x:Name="AwayPrimaryScreenSampler" Width="40" Height="40" CornerRadius="12" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OperatorTile_DropperAwayColor_Click" Margin="3,0,0,0" AutomationProperties.Name="Sample away primary colour from screen" ToolTip="Sample away primary colour from screen" AutomationProperties.HelpText="Escape cancels screen sampling.">
+                                                                    <motion:OperatorSymbol Kind="eyedropper" Width="18" Height="18" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </views:OperatorActionBorder>
                                                                 <TextBox x:Name="AwaySecondaryColorBox" Width="66" Text="#FFFFFF" FontSize="10" VerticalContentAlignment="Center" Visibility="Collapsed"/>
-                                                                <Border x:Name="AwaySecondaryColorPreview" Width="30" Height="28" Background="#FFFFFF" BorderBrush="#7DA0CA" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="PickAwaySecondaryColor_Click" Margin="8,0,0,0"/>
-                                                                <views:OperatorActionBorder Width="28" Height="28" Background="#141C2A" BorderBrush="#6F86A8" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OperatorTile_DropperAwaySecondaryColor_Click" Margin="3,0,0,0">
-                                                                    <TextBlock Text="💧" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                <views:OperatorActionBorder x:Name="AwaySecondaryColorPreview" Width="30" Height="28" Background="#FFFFFF" Style="{StaticResource TeamColourSwatch}" AutomationProperties.Name="Choose away secondary colour" ToolTip="Choose away secondary colour" Cursor="Hand" MouseLeftButtonUp="PickAwaySecondaryColor_Click" Margin="8,0,0,0"/>
+                                                                <views:OperatorActionBorder x:Name="AwaySecondaryScreenSampler" Width="40" Height="40" CornerRadius="12" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OperatorTile_DropperAwaySecondaryColor_Click" Margin="3,0,0,0" AutomationProperties.Name="Sample away secondary colour from screen" ToolTip="Sample away secondary colour from screen" AutomationProperties.HelpText="Escape cancels screen sampling.">
+                                                                    <motion:OperatorSymbol Kind="eyedropper" Width="18" Height="18" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </views:OperatorActionBorder>
                                                                 <TextBlock Text="Primary" Foreground="#523030" FontSize="8" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                                                 <TextBlock Text="/ Text" Foreground="#523030" FontSize="8" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                                             </StackPanel>
                                                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                                                <Button MinHeight="0" Content="📂 Logo" Height="26" FontSize="10" FontWeight="Bold" Click="BrowseAwayLogo_Click" Style="{StaticResource ToolBtn}" BorderBrush="#4A1A1A" Padding="8,0"/>
-                                                                <Button Padding="0" MinHeight="0" Content="✕" Width="26" Height="26" FontSize="10" FontWeight="Bold" Click="ClearAwayLogo_Click" Style="{StaticResource ToolBtn}" BorderBrush="#3A2020" Margin="4,0,0,0" ToolTip="Remove logo"/>
+                                                                <Button x:Name="AwayLogoBrowseAction" MinHeight="0" Content="📂 Logo" ContentTemplate="{StaticResource LiveLogoBrowseContent}" Height="40" MinWidth="40" FontSize="14" FontWeight="SemiBold" Click="BrowseAwayLogo_Click" Style="{StaticResource ToolBtn}" BorderBrush="#4A1A1A" Padding="8,0" AutomationProperties.Name="Choose away team logo"/>
+                                                                <Button x:Name="AwayLogoClearAction" Padding="0" MinHeight="0" Content="✕" ContentTemplate="{StaticResource LiveLogoClearContent}" Width="40" Height="40" FontSize="14" FontWeight="SemiBold" Click="ClearAwayLogo_Click" Style="{StaticResource ToolBtn}" BorderBrush="#3A2020" Margin="4,0,0,0" ToolTip="Remove logo" AutomationProperties.Name="Remove away team logo"/>
                                                                 <TextBlock x:Name="AwayLogoStatusText" Text="" Foreground="#523030" FontSize="9" VerticalAlignment="Center" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" MaxWidth="200"/>
                                                             </StackPanel>
                                                         </StackPanel>
@@ -1300,7 +1323,14 @@
                                                 </Grid.ColumnDefinitions>
 
                                                 <!-- Count Up card -->
-                                                <views:OperatorActionBorder x:Name="SettingsCountUpCard" Grid.Column="0" Cursor="Hand" Background="#0A1628" BorderBrush="#58A6FF" BorderThickness="2" MouseLeftButtonUp="OperatorTile_SettingsCountUpCard_Click">
+                                                <Border x:Name="SettingsCountUpCard" Grid.Column="0" Background="#0A1628" BorderBrush="#58A6FF" BorderThickness="2">
+                                                    <Border.Resources>
+                                                        <ResourceDictionary>
+                                                            <ResourceDictionary.MergedDictionaries>
+                                                                <ResourceDictionary Source="Resources/SettingsControls.xaml"/>
+                                                            </ResourceDictionary.MergedDictionaries>
+                                                        </ResourceDictionary>
+                                                    </Border.Resources>
                                                     <Grid>
                                                         <Border x:Name="SettingsCountUpGlow" Opacity="0.12" IsHitTestVisible="False">
                                                             <Border.Background>
@@ -1320,10 +1350,17 @@
                                                             <TextBlock Text="✓" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
                                                         </Border>
                                                     </Grid>
-                                                </views:OperatorActionBorder>
+                                                </Border>
 
                                                 <!-- Countdown card -->
-                                                <views:OperatorActionBorder x:Name="SettingsCountdownCard" Grid.Column="2" Cursor="Hand" Background="#0E0C08" BorderBrush="#C9B070" BorderThickness="1" MouseLeftButtonUp="OperatorTile_SettingsCountdownCard_Click">
+                                                <Border x:Name="SettingsCountdownCard" Grid.Column="2" Background="#0E0C08" BorderBrush="#C9B070" BorderThickness="1">
+                                                    <Border.Resources>
+                                                        <ResourceDictionary>
+                                                            <ResourceDictionary.MergedDictionaries>
+                                                                <ResourceDictionary Source="Resources/SettingsControls.xaml"/>
+                                                            </ResourceDictionary.MergedDictionaries>
+                                                        </ResourceDictionary>
+                                                    </Border.Resources>
                                                     <Grid>
                                                         <Border x:Name="SettingsCountdownGlow" Opacity="0" IsHitTestVisible="False">
                                                             <Border.Background>
@@ -1341,97 +1378,82 @@
                                                             <TextBlock Text="✓" FontSize="9" FontWeight="SemiBold" Foreground="#1A1400"/>
                                                         </Border>
                                                     </Grid>
-                                                </views:OperatorActionBorder>
+                                                </Border>
                                             </Grid>
 
-                                            <views:OperatorActionBorder x:Name="SettingsControlPanelCountdownOptionCard"
-                                                    Margin="0,0,0,8" Padding="14,10"
-                                                    Background="#19191C" BorderBrush="#3A3A40" BorderThickness="1"
-                                                    CornerRadius="12" Cursor="Hand" Visibility="Collapsed" Opacity="0"
-                                                    RenderTransformOrigin="0.5,0.5"
-                                                    MouseLeftButtonUp="OperatorTile_SettingsControlPanelCountdownOptionCard_Click">
-                                                <Border.RenderTransform>
-                                                    <TransformGroup>
-                                                        <TranslateTransform x:Name="SettingsControlPanelCountdownCardTranslate" Y="18"/>
-                                                        <ScaleTransform x:Name="SettingsControlPanelCountdownCardScale" ScaleX="0.97" ScaleY="0.97"/>
-                                                    </TransformGroup>
-                                                </Border.RenderTransform>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel VerticalAlignment="Center">
-                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                                            <TextBlock Text="&#x23F1;" FontSize="16" Foreground="#58A6FF" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                            <TextBlock Text="Show stoppage clock in Match tab" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                                        </StackPanel>
-                                                        <TextBlock Text="Independent operator countdown for count-up games. It never changes the scoreboard clock." Foreground="#C9D1D9" FontSize="10" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,0,0" HorizontalAlignment="Center">
-                                                        <Border x:Name="SettingsControlPanelCountdownToggleTrack" Width="50" Height="26" CornerRadius="13" Background="#1F6FEB">
-                                                            <Ellipse x:Name="SettingsControlPanelCountdownToggleThumb" Width="20" Height="20" Fill="White" Margin="3,3,0,3" HorizontalAlignment="Left">
-                                                                <Ellipse.RenderTransform>
-                                                                    <TranslateTransform x:Name="SettingsControlPanelCountdownThumbTranslate" X="24"/>
-                                                                </Ellipse.RenderTransform>
-                                                            </Ellipse>
-                                                        </Border>
-                                                        <TextBlock x:Name="SettingsControlPanelCountdownToggleLabel" Text="ON" Foreground="#58A6FF" FontSize="9" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </views:OperatorActionBorder>
+                                            <Border x:Name="SettingsControlPanelCountdownOptionCard" Margin="0,0,0,8" Padding="0"
+                                                    Background="Transparent" Focusable="False" Visibility="Collapsed" Opacity="1" RenderTransformOrigin="0.5,0">
+                                                <Border.RenderTransform><TransformGroup>
+                                                    <TranslateTransform x:Name="SettingsControlPanelCountdownCardTranslate"/>
+                                                    <ScaleTransform x:Name="SettingsControlPanelCountdownCardScale"/>
+                                                </TransformGroup></Border.RenderTransform>
+                                                <CheckBox x:Name="SettingsShowControlPanelCountdown" IsChecked="True"
+                                                          Style="{StaticResource ControlCentre.StoppageToggle}"
+                                                          Checked="SettingsShowControlPanelCountdown_Changed" Unchecked="SettingsShowControlPanelCountdown_Changed"
+                                                          AutomationProperties.Name="Show stoppage clock in Match tab"
+                                                          AutomationProperties.HelpText="Local countdown for count-up games. At zero, it pauses the match clock."/>
+                                            </Border>
 
                                             <!-- Quarter duration panel -->
                                             <StackPanel x:Name="QuarterDurationPanel" Visibility="Collapsed" Margin="0,0,0,8">
-                                                <Border Background="#0C0A04" BorderBrush="#C9B070" BorderThickness="1" Padding="14">
-                                                    <StackPanel HorizontalAlignment="Center">
-                                                        <TextBlock Text="SCOREBOARD COUNTDOWN START" FontSize="9" FontWeight="SemiBold" Foreground="#8A7A40" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <views:OperatorActionBorder Background="#141008" BorderBrush="#C9B070" BorderThickness="1" Width="36" Height="36" Cursor="Hand" MouseLeftButtonUp="OperatorTile_SettingsMinutesMinus_Click">
-                                                                <TextBlock Text="−" FontSize="18" FontWeight="SemiBold" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </views:OperatorActionBorder>
-                                                            <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" MinWidth="56" Height="52" Padding="0" Margin="6,0">
-                                                                <TextBox x:Name="QuarterMinutesBox" Text="20" FontSize="30" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#D29922" Background="Transparent" BorderThickness="0" CaretBrush="#D29922" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="3" KeyDown="QuarterDurationBox_KeyDown">
-                                                                    <TextBox.Effect>
-                                                                        <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#D29922" Opacity="0.3"/>
-                                                                    </TextBox.Effect>
-                                                                </TextBox>
-                                                            </Border>
-                                                            <views:OperatorActionBorder Background="#141008" BorderBrush="#C9B070" BorderThickness="1" Width="36" Height="36" Cursor="Hand" MouseLeftButtonUp="OperatorTile_SettingsMinutesPlus_Click">
-                                                                <TextBlock Text="+" FontSize="18" FontWeight="SemiBold" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </views:OperatorActionBorder>
-                                                            <TextBlock Text=":" FontSize="30" FontWeight="SemiBold" Foreground="#6B5A00" VerticalAlignment="Center" Margin="8,0"/>
-                                                            <views:OperatorActionBorder Background="#141008" BorderBrush="#C9B070" BorderThickness="1" Width="36" Height="36" Cursor="Hand" MouseLeftButtonUp="OperatorTile_SettingsSecondsMinus_Click">
-                                                                <TextBlock Text="−" FontSize="18" FontWeight="SemiBold" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </views:OperatorActionBorder>
-                                                            <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" MinWidth="56" Height="52" Padding="0" Margin="6,0">
-                                                                <TextBox x:Name="QuarterSecondsBox" Text="00" FontSize="30" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#D29922" Background="Transparent" BorderThickness="0" CaretBrush="#D29922" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="2" KeyDown="QuarterDurationBox_KeyDown">
-                                                                    <TextBox.Effect>
-                                                                        <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#D29922" Opacity="0.3"/>
-                                                                    </TextBox.Effect>
-                                                                </TextBox>
-                                                            </Border>
-                                                            <views:OperatorActionBorder Background="#141008" BorderBrush="#C9B070" BorderThickness="1" Width="36" Height="36" Cursor="Hand" MouseLeftButtonUp="OperatorTile_SettingsSecondsPlus_Click">
-                                                                <TextBlock Text="+" FontSize="18" FontWeight="SemiBold" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </views:OperatorActionBorder>
-                                                        </StackPanel>
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
-                                                            <TextBlock Text="MINUTES" FontSize="8" FontWeight="SemiBold" Foreground="#6B5A00" Width="128" TextAlignment="Center"/>
-                                                            <TextBlock Text="SECONDS" FontSize="8" FontWeight="SemiBold" Foreground="#6B5A00" Width="128" TextAlignment="Center" Margin="16,0,0,0"/>
-                                                        </StackPanel>
+                                                <Border Background="#0C0A04" BorderBrush="#C9B070" BorderThickness="1" CornerRadius="12" Padding="8,12">
+                                                    <StackPanel>
+                                                        <TextBlock Text="SCOREBOARD COUNTDOWN START" FontSize="12" FontWeight="SemiBold" Foreground="#C9B070" TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                                        <WrapPanel HorizontalAlignment="Center">
+                                                            <StackPanel Margin="0,0,4,8">
+                                                                <TextBlock Text="MINUTES" FontSize="12" FontWeight="SemiBold" Foreground="#C9B070" TextAlignment="Center" Margin="0,0,0,4"/>
+                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                    <views:OperatorActionBorder Background="#141008" Style="{StaticResource QuarterDurationStepper}" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Center" Cursor="Hand" AutomationProperties.Name="Decrease quarter duration minutes" AutomationProperties.HelpText="Changes the minutes field by one; seconds stay unchanged. The duration must remain greater than zero." MouseLeftButtonUp="OperatorTile_SettingsMinutesMinus_Click">
+                                                                        <TextBlock Text="−" FontSize="18" FontWeight="SemiBold" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </views:OperatorActionBorder>
+                                                                    <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" CornerRadius="10" Width="80" Height="52" Padding="0" Margin="4,0">
+                                                                        <TextBox x:Name="QuarterMinutesBox" Text="20" FontSize="30" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#D29922" Background="Transparent" BorderThickness="0" CaretBrush="#D29922" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="3" KeyDown="QuarterDurationBox_KeyDown" AutomationProperties.Name="Quarter duration minutes">
+                                                                            <TextBox.Effect>
+                                                                                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#D29922" Opacity="0.3"/>
+                                                                            </TextBox.Effect>
+                                                                        </TextBox>
+                                                                    </Border>
+                                                                    <views:OperatorActionBorder Background="#141008" Style="{StaticResource QuarterDurationStepper}" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Center" Cursor="Hand" AutomationProperties.Name="Increase quarter duration minutes" AutomationProperties.HelpText="Changes the minutes field by one; seconds stay unchanged. The duration must remain greater than zero." MouseLeftButtonUp="OperatorTile_SettingsMinutesPlus_Click">
+                                                                        <TextBlock Text="+" FontSize="18" FontWeight="SemiBold" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </views:OperatorActionBorder>
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                            <StackPanel Margin="0,0,4,8">
+                                                                <TextBlock Text="SECONDS" FontSize="12" FontWeight="SemiBold" Foreground="#C9B070" TextAlignment="Center" Margin="0,0,0,4"/>
+                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                    <views:OperatorActionBorder Background="#141008" Style="{StaticResource QuarterDurationStepper}" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Center" Cursor="Hand" AutomationProperties.Name="Decrease quarter duration seconds by five" AutomationProperties.HelpText="Changes the seconds field by five; wraps between zero and fifty-five without carrying minutes." MouseLeftButtonUp="OperatorTile_SettingsSecondsMinus_Click">
+                                                                        <TextBlock Text="−" FontSize="18" FontWeight="SemiBold" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </views:OperatorActionBorder>
+                                                                    <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" CornerRadius="10" Width="64" Height="52" Padding="0" Margin="4,0">
+                                                                        <TextBox x:Name="QuarterSecondsBox" Text="00" FontSize="30" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#D29922" Background="Transparent" BorderThickness="0" CaretBrush="#D29922" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="2" KeyDown="QuarterDurationBox_KeyDown" AutomationProperties.Name="Quarter duration seconds">
+                                                                            <TextBox.Effect>
+                                                                                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#D29922" Opacity="0.3"/>
+                                                                            </TextBox.Effect>
+                                                                        </TextBox>
+                                                                    </Border>
+                                                                    <views:OperatorActionBorder Background="#141008" Style="{StaticResource QuarterDurationStepper}" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Center" Cursor="Hand" AutomationProperties.Name="Increase quarter duration seconds by five" AutomationProperties.HelpText="Changes the seconds field by five; wraps between zero and fifty-five without carrying minutes." MouseLeftButtonUp="OperatorTile_SettingsSecondsPlus_Click">
+                                                                        <TextBlock Text="+" FontSize="18" FontWeight="SemiBold" Foreground="#D29922" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </views:OperatorActionBorder>
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                        </WrapPanel>
                                                     </StackPanel>
                                                 </Border>
+                                                <TextBlock x:Name="QuarterDurationError" Visibility="Collapsed" MaxWidth="340" HorizontalAlignment="Center"
+                                                    FontSize="13" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                                    AutomationProperties.LiveSetting="Polite"/>
                                             </StackPanel>
                                             <TextBlock x:Name="ClockStatusText" Text="Count Up · Stopped · 00:00" Foreground="#D29922" FontSize="10" Margin="0,0,0,8"/>
 
 											<Border Visibility="Collapsed" Height="0" Margin="0" Opacity="0" IsHitTestVisible="False"/>
-                                            <!-- Live clock adjustment -->
+                                            
+<!-- Live clock adjustment -->
                                             <Expander Style="{StaticResource SettingsExpander}" Header="CORRECT SCOREBOARD CLOCK">
                                             <Border Background="#0C0A04" BorderBrush="#C9B070" BorderThickness="1" Padding="10" Margin="0,0,0,8">
                                                 <StackPanel>
-                                                    <TextBlock Text="LIVE SCOREBOARD CLOCK" FontSize="9" FontWeight="SemiBold" Foreground="#8A7A40" HorizontalAlignment="Center" Margin="0,0,0,3"/>
+                                                    <TextBlock Text="LIVE SCOREBOARD CLOCK" FontSize="12" FontWeight="SemiBold" Foreground="#C9B070" HorizontalAlignment="Center" Margin="0,0,0,3"/>
                                                     <TextBlock Text="Only changes the quarter clock shown on the scoreboard. Edit stoppage time from STOPPAGE CLOCK in the Match tab."
-                                                               FontSize="9" Foreground="#A68F56" TextWrapping="Wrap" TextAlignment="Center" Margin="4,0,4,8"/>
+                                                               FontSize="12" Foreground="#C9B070" TextWrapping="Wrap" TextAlignment="Center" Margin="4,0,4,8"/>
                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                         <Button Padding="0" MinHeight="0" Content="−10s" Width="46" Height="28" FontSize="10" FontWeight="Bold" Click="ClockMinus10_Click" Style="{StaticResource ToolBtn}" BorderBrush="#C9B070" Margin="0,0,4,0"/>
                                                         <Button Padding="0" MinHeight="0" Content="−1s" Width="40" Height="28" FontSize="10" FontWeight="Bold" Click="ClockMinus1_Click" Style="{StaticResource ToolBtn}" BorderBrush="#C9B070" Margin="0,0,8,0"/>
@@ -1439,68 +1461,36 @@
                                                         <Button Padding="0" MinHeight="0" Content="+10s" Width="46" Height="28" FontSize="10" FontWeight="Bold" Click="ClockPlus10_Click" Style="{StaticResource ToolBtn}" BorderBrush="#C9B070"/>
                                                     </StackPanel>
                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
-                                                        <TextBlock Text="SET:" FontSize="9" FontWeight="SemiBold" Foreground="#6B5A00" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                                        <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" Width="40" Height="28" Padding="0">
-                                                            <TextBox x:Name="ClockSetMinutesBox" Text="00" FontSize="14" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#D29922" Background="Transparent" BorderThickness="0" CaretBrush="#D29922" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="3"/>
+                                                        <TextBlock Text="SET:" FontSize="12" FontWeight="SemiBold" Foreground="#C9B070" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                        <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" Width="80" Height="44" Padding="0">
+                                                            <TextBox x:Name="ClockSetMinutesBox" Text="00" FontSize="18" AutomationProperties.Name="Scoreboard clock minutes" AutomationProperties.HelpText="Whole minutes from zero to 999. Applied with Set scoreboard clock." FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#D29922" Background="Transparent" BorderThickness="0" CaretBrush="#D29922" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="3"/>
                                                         </Border>
                                                         <TextBlock Text=":" FontSize="14" FontWeight="SemiBold" Foreground="#6B5A00" VerticalAlignment="Center" Margin="2,0"/>
-                                                        <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" Width="34" Height="28" Padding="0">
-                                                            <TextBox x:Name="ClockSetSecondsBox" Text="00" FontSize="14" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#D29922" Background="Transparent" BorderThickness="0" CaretBrush="#D29922" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="2"/>
+                                                        <Border Background="#0A0804" BorderBrush="#6B5A00" BorderThickness="1" Width="64" Height="44" Padding="0">
+                                                            <TextBox x:Name="ClockSetSecondsBox" Text="00" FontSize="18" AutomationProperties.Name="Scoreboard clock seconds" AutomationProperties.HelpText="Whole seconds from zero to 59. Applied with Set scoreboard clock." FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#D29922" Background="Transparent" BorderThickness="0" CaretBrush="#D29922" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="2"/>
                                                         </Border>
-                                                        <Button Padding="0" MinHeight="0" Content="SET" Width="36" Height="28" FontSize="9" FontWeight="SemiBold" Click="ClockSet_Click" Style="{StaticResource ToolBtn}" BorderBrush="#6B5A00" Foreground="#D29922" Margin="6,0,0,0"/>
+                                                        <Button Padding="0" MinHeight="0" Content="SET" Width="64" Height="40" FontSize="14" AutomationProperties.Name="Set scoreboard clock" AutomationProperties.HelpText="Applies the entered scoreboard time. Does not edit the stoppage clock." FontWeight="SemiBold" Click="ClockSet_Click" Style="{StaticResource ToolBtn}" BorderBrush="#6B5A00" Foreground="#D29922" Margin="6,0,0,0"/>
                                                     </StackPanel>
+                                                    <TextBlock x:Name="ClockSetError" Visibility="Collapsed" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
                                                 </StackPanel>
                                             </Border>
                                             </Expander>
 
-                                            <!-- Finals mode -->
-                                            <CheckBox x:Name="SettingsFinalsToggle" Checked="SettingsFinalsToggle_Changed" Unchecked="SettingsFinalsToggle_Changed" Visibility="Collapsed"/>
-                                            <views:OperatorActionBorder x:Name="SettingsFinalsCard" Background="#0A0806" BorderBrush="#2A2020" BorderThickness="1" Padding="14" Margin="0,0,0,8" Cursor="Hand" MouseLeftButtonUp="OperatorTile_SettingsFinalsCard_Click">
-                                                <Grid>
-                                                    <Border x:Name="SettingsFinalsGlow" Opacity="0" IsHitTestVisible="False">
-                                                        <Border.Background>
-                                                            <RadialGradientBrush Center="0.5,0.5" RadiusX="0.6" RadiusY="0.6">
-                                                                <GradientStop Color="#D4A017" Offset="0"/>
-                                                                <GradientStop Color="#00000000" Offset="1"/>
-                                                            </RadialGradientBrush>
-                                                        </Border.Background>
-                                                    </Border>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="★" FontSize="22" FontFamily="{DynamicResource ControlCentre.Font}" FontWeight="SemiBold"
-                                                                   Foreground="#D8B84F" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                                        <StackPanel VerticalAlignment="Center">
-                                                            <TextBlock x:Name="SettingsFinalsTitle" Text="FINALS MODE" FontSize="13" FontWeight="SemiBold" Foreground="#5A4A20" Margin="0,0,0,2"/>
-                                                            <TextBlock Text="Golden bar styling and time-on after siren in final quarter" FontSize="9" FontWeight="SemiBold" Foreground="#C9B070" TextWrapping="Wrap"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-                                                    <Border HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
-                                                        <Grid Width="44" Height="24">
-                                                            <Border x:Name="SettingsFinalsTrack" CornerRadius="12" Background="#1A1610" BorderBrush="#C9B070" BorderThickness="1"/>
-                                                            <Border x:Name="SettingsFinalsThumb" Width="18" Height="18" CornerRadius="9" Background="#5A4A20" HorizontalAlignment="Left" Margin="3,0,0,0"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </Grid>
-                                            </views:OperatorActionBorder>
+                                            <!-- Finals mode: original native toggle owns the entire card. -->
+                                            <Border x:Name="SettingsFinalsCard" Background="Transparent" Padding="0" Margin="0,0,0,8" Focusable="False">
+                                                <CheckBox x:Name="SettingsFinalsToggle" Style="{StaticResource ControlCentre.FinalsToggle}"
+                                                          Checked="SettingsFinalsToggle_Changed" Unchecked="SettingsFinalsToggle_Changed"
+                                                          AutomationProperties.Name="Finals mode"
+                                                          AutomationProperties.HelpText="Golden bar styling and time-on after siren in final quarter"/>
+                                            </Border>
 
                                             <!-- Hide team name panels -->
-                                            <CheckBox x:Name="SettingsHideTeamNamesToggle" Checked="SettingsHideTeamNamesToggle_Changed" Unchecked="SettingsHideTeamNamesToggle_Changed" Visibility="Collapsed"/>
-                                            <views:OperatorActionBorder x:Name="SettingsHideTeamNamesCard" Background="#080A12" BorderBrush="#1C2030" BorderThickness="1" Padding="14" Margin="0,0,0,8" Cursor="Hand" MouseLeftButtonUp="OperatorTile_SettingsHideTeamNamesCard_Click">
-                                                <Grid>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="🔠" FontSize="22" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                                        <StackPanel VerticalAlignment="Center">
-                                                            <TextBlock x:Name="SettingsHideTeamNamesTitle" Text="HIDE TEAM NAMES" FontSize="13" FontWeight="SemiBold" Foreground="#4A5A70" Margin="0,0,0,2"/>
-                                                            <TextBlock Text="Removes name panels while keeping professional, digit-safe score sizing" FontSize="9" FontWeight="SemiBold" Foreground="#A8B8CC" TextWrapping="Wrap"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-                                                    <Border HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
-                                                        <Grid Width="44" Height="24">
-                                                            <Border x:Name="SettingsHideTeamNamesTrack" CornerRadius="12" Background="#131620" BorderBrush="#2A3040" BorderThickness="1"/>
-                                                            <Border x:Name="SettingsHideTeamNamesThumb" Width="18" Height="18" CornerRadius="9" Background="#3A4050" HorizontalAlignment="Left" Margin="3,0,0,0"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </Grid>
-                                            </views:OperatorActionBorder>
+                                            <Border x:Name="SettingsHideTeamNamesCard" Background="Transparent" Padding="0" Margin="0,0,0,8" Focusable="False">
+                                                <CheckBox x:Name="SettingsHideTeamNamesToggle" Style="{StaticResource ControlCentre.NamesToggle}"
+                                                          Checked="SettingsHideTeamNamesToggle_Changed" Unchecked="SettingsHideTeamNamesToggle_Changed"
+                                                          AutomationProperties.Name="Hide team names"
+                                                          AutomationProperties.HelpText="Removes name panels while keeping professional, digit-safe score sizing"/>
+                                            </Border>
 
                                             <!-- Custom current-label override -->
                                             <Border Background="#0A0806" BorderBrush="#2A2020" BorderThickness="1" Padding="14" Margin="0,0,0,8">
@@ -1602,7 +1592,7 @@
                                                         <Button MinHeight="0" x:Name="KeybindEndQuarterButton" Grid.Column="1" Content="N" Height="28" FontSize="11" FontWeight="Bold" Click="KeybindEndQuarterButton_Click" Style="{StaticResource ToolBtn}" BorderBrush="#7C3AED" Foreground="#C4B5FD"/>
                                                     </Grid>
 
-                                                    <TextBlock x:Name="KeybindHintText" Text="Click a keybind, then press any key. Esc cancels." Foreground="#A8B0BA" FontSize="10" FontWeight="SemiBold" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                                    <TextBlock x:Name="KeybindHintText" Text="Click a keybind, then press a key. Esc cancels." Foreground="#A8B0BA" FontSize="10" FontWeight="SemiBold" Margin="0,10,0,0" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>
@@ -1838,57 +1828,23 @@
                                                 <TextBlock Text="Automatic overlays, break screen, and weather" FontSize="9" FontWeight="SemiBold" Foreground="#2A6030"/>
                                             </StackPanel>
 
-                                            <!-- Auto overlays -->
-                                            <CheckBox x:Name="AutoOverlaysToggle" IsChecked="True" Checked="AutoOverlaysToggle_Changed" Unchecked="AutoOverlaysToggle_Changed" Visibility="Collapsed"/>
-                                            <views:OperatorActionBorder x:Name="AutoOverlaysCard" Background="#0A1410" BorderBrush="#3FB950" BorderThickness="2" Padding="14" Margin="0,0,0,8" Cursor="Hand" MouseLeftButtonUp="OperatorTile_AutoOverlaysCard_Click">
-                                                <Grid>
-                                                    <Border x:Name="AutoOverlaysGlow" Opacity="0.12" IsHitTestVisible="False">
-                                                        <Border.Background>
-                                                            <RadialGradientBrush Center="0.5,0.5" RadiusX="0.6" RadiusY="0.6">
-                                                                <GradientStop Color="#3FB950" Offset="0"/>
-                                                                <GradientStop Color="#00000000" Offset="1"/>
-                                                            </RadialGradientBrush>
-                                                        </Border.Background>
-                                                    </Border>
-                                                    <StackPanel>
-                                                        <TextBlock Text="AUTOMATIC OVERLAYS" FontSize="13" FontWeight="SemiBold" Foreground="#3FB950" Margin="0,0,0,4">
-
-                                                        </TextBlock>
-                                                        <TextBlock Text="Periodic stats, win probability, weather, and scoring run overlays on the scorebug" FontSize="9" FontWeight="SemiBold" Foreground="#2A6030" TextWrapping="Wrap"/>
-                                                    </StackPanel>
-                                                    <Border x:Name="AutoOverlaysCheck" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#3FB950" Padding="6,3">
-                                                        <TextBlock Text="✓" FontSize="9" FontWeight="SemiBold" Foreground="White"/>
-                                                    </Border>
-                                                </Grid>
-                                            </views:OperatorActionBorder>
+                                            <!-- The original preference is the sole visible input. -->
+                                            <Border x:Name="AutoOverlaysCard" Background="Transparent" Padding="0" Margin="0,0,0,8" Focusable="False">
+                                                <CheckBox x:Name="AutoOverlaysToggle" IsChecked="True"
+                                                          Style="{StaticResource ControlCentre.AutomaticOverlaysToggle}"
+                                                          Checked="AutoOverlaysToggle_Changed" Unchecked="AutoOverlaysToggle_Changed"
+                                                          AutomationProperties.Name="Automatic AFL overlays"
+                                                          AutomationProperties.HelpText="Allow scheduled AFL statistics and weather on the live scorebug. Turning this off cancels pending automatic overlays; it does not start output or change the score."/>
+                                            </Border>
 
                                             <!-- Break screen -->
-                                            <CheckBox x:Name="SettingsBreakScreenToggle" IsChecked="True" Checked="SettingsBreakScreenToggle_Changed" Unchecked="SettingsBreakScreenToggle_Changed" Visibility="Collapsed"/>
-                                            <views:OperatorActionBorder x:Name="SettingsBreakScreenCard" Background="#060A14" BorderBrush="#1A2A50" BorderThickness="1" Padding="14" Margin="0,0,0,8" Cursor="Hand" MouseLeftButtonUp="OperatorTile_SettingsBreakScreenCard_Click">
-                                                <Grid>
-                                                    <Border x:Name="SettingsBreakScreenGlow" Opacity="0.10" IsHitTestVisible="False">
-                                                        <Border.Background>
-                                                            <RadialGradientBrush Center="0.5,0.5" RadiusX="0.6" RadiusY="0.6">
-                                                                <GradientStop Color="#58A6FF" Offset="0"/>
-                                                                <GradientStop Color="#00000000" Offset="1"/>
-                                                            </RadialGradientBrush>
-                                                        </Border.Background>
-                                                    </Border>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="⏸" FontSize="22" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                                        <StackPanel VerticalAlignment="Center">
-                                                            <TextBlock x:Name="SettingsBreakScreenTitle" Text="QUARTER BREAK SCREEN" FontSize="13" FontWeight="SemiBold" Foreground="#58A6FF" Margin="0,0,0,2"/>
-                                                            <TextBlock Text="Auto-show summary screen at quarter breaks" FontSize="9" FontWeight="SemiBold" Foreground="#2A4A70" TextWrapping="Wrap"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-                                                    <Border HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
-                                                        <Grid Width="44" Height="24">
-                                                            <Border x:Name="SettingsBreakScreenTrack" CornerRadius="12" Background="#0A1628" BorderBrush="#58A6FF" BorderThickness="1"/>
-                                                            <Border x:Name="SettingsBreakScreenThumb" Width="18" Height="18" CornerRadius="9" Background="#58A6FF" HorizontalAlignment="Right" Margin="0,0,3,0"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </Grid>
-                                            </views:OperatorActionBorder>
+                                            <Border x:Name="SettingsBreakScreenCard" Background="Transparent" Padding="0" Margin="0,0,0,8" Focusable="False">
+                                                <CheckBox x:Name="SettingsBreakScreenToggle" IsChecked="True"
+                                                          Style="{StaticResource ControlCentre.QuarterBreakToggle}"
+                                                          Checked="SettingsBreakScreenToggle_Changed" Unchecked="SettingsBreakScreenToggle_Changed"
+                                                          AutomationProperties.Name="Automatic quarter-break screens"
+                                                          AutomationProperties.HelpText="Auto-show summary screen at quarter breaks. Applies at the next quarter end; changing this preference does not start a break or stop an existing rotation."/>
+                                            </Border>
 
                                             <!-- Shared operator weather controls. -->
                                             <views:OperatorGlassSurface Material="Regular" CornerRadius="26" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Padding="22" Margin="0,0,0,4">
@@ -1896,10 +1852,10 @@
                                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8"><motion:OperatorSymbol Kind="weather" Width="24" Height="24" Foreground="{DynamicResource ControlCentre.AccentBrush}" Margin="0,0,10,0"/><TextBlock Text="Venue weather" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Center"/></StackPanel>
                                                     <TextBlock Text="Use the town or suburb nearest your ground." FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,0,0,14"/>
                                                     <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                        <ComboBox x:Name="SettingsWeatherLocation" Style="{StaticResource SettingsChoice}" IsEditable="True" IsTextSearchEnabled="False" MaxDropDownHeight="200" StaysOpenOnEdit="True" FontSize="15" MinHeight="42" VerticalContentAlignment="Center"/>
-                                                        <Button Grid.Column="2" Content="Update" MinWidth="86" MinHeight="42" FontSize="14" Click="ApplyWeatherLocation_Click" Style="{StaticResource ToolBtn}"/>
+                                                        <ComboBox x:Name="SettingsWeatherLocation" AutomationProperties.Name="Weather location" Style="{StaticResource SettingsChoice}" IsEditable="True" IsTextSearchEnabled="False" MaxDropDownHeight="200" StaysOpenOnEdit="True" FontSize="15" MinHeight="42" VerticalContentAlignment="Center"/>
+                                                        <Button Grid.Column="2" Content="Update" AutomationProperties.Name="Update weather location" AutomationProperties.HelpText="Applies this location and cancels an older pending weather overlay." MinWidth="86" MinHeight="42" FontSize="14" Click="ApplyWeatherLocation_Click" Style="{StaticResource ToolBtn}"/>
                                                     </Grid>
-                                                    <TextBlock x:Name="WeatherLocationStatus" Text="" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                                    <TextBlock x:Name="WeatherLocationStatus" Text="" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,8,0,0"/>
                                                 </StackPanel>
                                             </views:OperatorGlassSurface>
                                         </StackPanel>
@@ -1936,36 +1892,36 @@
 
                                                 <Border Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1" Padding="8">
                                                     <StackPanel>
-                                                        <TextBlock Text="HOME" Foreground="#7EB4FF" FontSize="9" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                                        <TextBlock Text="HOME" Foreground="#7EB4FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                                         <Border Height="70" Margin="0,0,0,6" BorderBrush="#1A3A6A" BorderThickness="1" Background="#060A10" ClipToBounds="True">
                                                             <Grid>
                                                                 <Image x:Name="HomeLogoCropPreviewImage" Stretch="Uniform" RenderTransformOrigin="0.5,0.5"/>
                                                             </Grid>
                                                         </Border>
-                                                        <TextBlock Text="Zoom" Foreground="#7DA0CA" FontSize="8"/>
-                                                        <Slider x:Name="HomeLogoZoomSlider" Minimum="0.8" Maximum="3.0" Value="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="LogoCropSlider_ValueChanged"/>
-                                                        <TextBlock Text="X" Foreground="#7DA0CA" FontSize="8" Margin="0,2,0,0"/>
-                                                        <Slider x:Name="HomeLogoXSlider" Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
-                                                        <TextBlock Text="Y" Foreground="#7DA0CA" FontSize="8" Margin="0,2,0,0"/>
-                                                        <Slider x:Name="HomeLogoYSlider" Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                                        <TextBlock Text="Zoom (×)" Foreground="#7EB4FF" FontSize="12" TextWrapping="Wrap"/>
+                                                        <Slider x:Name="HomeLogoZoomSlider" AutomationProperties.Name="Home logo zoom" AutomationProperties.HelpText="Scale multiplier; one is original size. Range 0.8 to 3." Minimum="0.8" Maximum="3.0" Value="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                                        <TextBlock Text="Horizontal offset" Foreground="#7EB4FF" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                        <Slider x:Name="HomeLogoXSlider" AutomationProperties.Name="Home logo horizontal offset" AutomationProperties.HelpText="Horizontal offset in layout units; negative moves left and positive moves right." Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                                        <TextBlock Text="Vertical offset" Foreground="#7EB4FF" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                        <Slider x:Name="HomeLogoYSlider" AutomationProperties.Name="Home logo vertical offset" AutomationProperties.HelpText="Vertical offset in layout units; negative moves up and positive moves down." Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
                                                         <Button MinHeight="0" Content="Reset Home" Height="24" Margin="0,4,0,0" Click="ResetHomeCrop_Click" Style="{StaticResource ToolBtn}" FontSize="10" BorderBrush="#1A3A6A"/>
                                                     </StackPanel>
                                                 </Border>
 
                                                 <Border Grid.Column="2" Background="#1A0A0A" BorderBrush="#4A1A1A" BorderThickness="1" Padding="8">
                                                     <StackPanel>
-                                                        <TextBlock Text="AWAY" Foreground="#FF9A9A" FontSize="9" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                                        <TextBlock Text="AWAY" Foreground="#FF9A9A" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                                         <Border Height="70" Margin="0,0,0,6" BorderBrush="#4A1A1A" BorderThickness="1" Background="#060A10" ClipToBounds="True">
                                                             <Grid>
                                                                 <Image x:Name="AwayLogoCropPreviewImage" Stretch="Uniform" RenderTransformOrigin="0.5,0.5"/>
                                                             </Grid>
                                                         </Border>
-                                                        <TextBlock Text="Zoom" Foreground="#523030" FontSize="8"/>
-                                                        <Slider x:Name="AwayLogoZoomSlider" Minimum="0.8" Maximum="3.0" Value="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="LogoCropSlider_ValueChanged"/>
-                                                        <TextBlock Text="X" Foreground="#523030" FontSize="8" Margin="0,2,0,0"/>
-                                                        <Slider x:Name="AwayLogoXSlider" Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
-                                                        <TextBlock Text="Y" Foreground="#523030" FontSize="8" Margin="0,2,0,0"/>
-                                                        <Slider x:Name="AwayLogoYSlider" Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                                        <TextBlock Text="Zoom (×)" Foreground="#FF9A9A" FontSize="12" TextWrapping="Wrap"/>
+                                                        <Slider x:Name="AwayLogoZoomSlider" AutomationProperties.Name="Away logo zoom" AutomationProperties.HelpText="Scale multiplier; one is original size. Range 0.8 to 3." Minimum="0.8" Maximum="3.0" Value="1.0" TickFrequency="0.05" IsSnapToTickEnabled="True" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                                        <TextBlock Text="Horizontal offset" Foreground="#FF9A9A" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                        <Slider x:Name="AwayLogoXSlider" AutomationProperties.Name="Away logo horizontal offset" AutomationProperties.HelpText="Horizontal offset in layout units; negative moves left and positive moves right." Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
+                                                        <TextBlock Text="Vertical offset" Foreground="#FF9A9A" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                        <Slider x:Name="AwayLogoYSlider" AutomationProperties.Name="Away logo vertical offset" AutomationProperties.HelpText="Vertical offset in layout units; negative moves up and positive moves down." Minimum="-50" Maximum="50" Value="0" ValueChanged="LogoCropSlider_ValueChanged"/>
                                                         <Button MinHeight="0" Content="Reset Away" Height="24" Margin="0,4,0,0" Click="ResetAwayCrop_Click" Style="{StaticResource ToolBtn}" FontSize="10" BorderBrush="#4A1A1A"/>
                                                     </StackPanel>
                                                 </Border>
@@ -2000,119 +1956,103 @@
                                             <Expander Style="{StaticResource SettingsExpander}" Header="WINDOW DIMENSIONS">
                                             <StackPanel>
                                             <Border Background="#09090B" BorderBrush="#1A2A40" BorderThickness="1" Padding="14" Margin="0,0,0,4">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="20"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
+                                                <WrapPanel HorizontalAlignment="Center">
 
-                                                    <StackPanel HorizontalAlignment="Center">
-                                                        <TextBlock Text="WIDTH" FontSize="8" FontWeight="SemiBold" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                                    <StackPanel MinWidth="168" Margin="0,0,12,12">
+                                                        <TextBlock Text="WIDTH" FontSize="12" FontWeight="SemiBold" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <views:OperatorActionBorder Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1" Width="32" Height="32" Cursor="Hand" MouseLeftButtonUp="OperatorTile_WidthMinus_Click">
+                                                            <views:OperatorActionBorder Background="#0A1628" Style="{StaticResource WindowDimensionStepper}" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Center" Cursor="Hand" AutomationProperties.Name="Decrease output width" AutomationProperties.HelpText="Changes the draft width by one pixel. Use Apply size to resize outputs." MouseLeftButtonUp="OperatorTile_WidthMinus_Click">
                                                                 <TextBlock Text="−" FontSize="16" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </views:OperatorActionBorder>
-                                                            <Border Background="#060A10" BorderBrush="#2A4A70" BorderThickness="1" MinWidth="60" Height="44" Padding="0" Margin="4,0">
-                                                                <TextBox x:Name="WindowWidthBox" Text="386" FontSize="22" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#58A6FF" Background="Transparent" BorderThickness="0" CaretBrush="#58A6FF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="5"/>
+                                                            <Border Background="#060A10" BorderBrush="#2A4A70" BorderThickness="1" Width="80" Height="44" Padding="0" Margin="4,0">
+                                                                <TextBox x:Name="WindowWidthBox" AutomationProperties.Name="Output width in pixels" AutomationProperties.HelpText="Draft only. Apply to resize outputs; 50–7680 physical pixels." Text="386" FontSize="22" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#58A6FF" Background="Transparent" BorderThickness="0" CaretBrush="#58A6FF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="5"/>
                                                             </Border>
-                                                            <views:OperatorActionBorder Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1" Width="32" Height="32" Cursor="Hand" MouseLeftButtonUp="OperatorTile_WidthPlus_Click">
+                                                            <views:OperatorActionBorder Background="#0A1628" Style="{StaticResource WindowDimensionStepper}" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Center" Cursor="Hand" AutomationProperties.Name="Increase output width" AutomationProperties.HelpText="Changes the draft width by one pixel. Use Apply size to resize outputs." MouseLeftButtonUp="OperatorTile_WidthPlus_Click">
                                                                 <TextBlock Text="+" FontSize="16" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </views:OperatorActionBorder>
                                                         </StackPanel>
-                                                        <TextBlock Text="px" FontSize="8" Foreground="#7DA0CA" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                                        <TextBlock Text="px" FontSize="12" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,3,0,0"/>
                                                     </StackPanel>
 
-                                                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                                        <TextBlock Text="HEIGHT" FontSize="8" FontWeight="BLACK" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                                    <StackPanel MinWidth="168" Margin="0,0,0,12">
+                                                        <TextBlock Text="HEIGHT" FontSize="12" FontWeight="BLACK" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <views:OperatorActionBorder Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1" Width="32" Height="32" Cursor="Hand" MouseLeftButtonUp="OperatorTile_HeightMinus_Click">
+                                                            <views:OperatorActionBorder Background="#0A1628" Style="{StaticResource WindowDimensionStepper}" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Center" Cursor="Hand" AutomationProperties.Name="Decrease output height" AutomationProperties.HelpText="Changes the draft height by one pixel. Use Apply size to resize outputs." MouseLeftButtonUp="OperatorTile_HeightMinus_Click">
                                                                 <TextBlock Text="−" FontSize="16" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </views:OperatorActionBorder>
-                                                            <Border Background="#060A10" BorderBrush="#2A4A70" BorderThickness="1" MinWidth="60" Height="44" Padding="0" Margin="4,0">
-                                                                <TextBox x:Name="WindowHeightBox" Text="193" FontSize="22" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#58A6FF" Background="Transparent" BorderThickness="0" CaretBrush="#58A6FF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="5"/>
+                                                            <Border Background="#060A10" BorderBrush="#2A4A70" BorderThickness="1" Width="80" Height="44" Padding="0" Margin="4,0">
+                                                                <TextBox x:Name="WindowHeightBox" AutomationProperties.Name="Output height in pixels" AutomationProperties.HelpText="Draft only. Apply to resize outputs; 50–4320 physical pixels." Text="193" FontSize="22" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#58A6FF" Background="Transparent" BorderThickness="0" CaretBrush="#58A6FF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" MaxLength="5"/>
                                                             </Border>
-                                                            <views:OperatorActionBorder Background="#0A1628" BorderBrush="#1A3A6A" BorderThickness="1" Width="32" Height="32" Cursor="Hand" MouseLeftButtonUp="OperatorTile_HeightPlus_Click">
+                                                            <views:OperatorActionBorder Background="#0A1628" Style="{StaticResource WindowDimensionStepper}" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Center" Cursor="Hand" AutomationProperties.Name="Increase output height" AutomationProperties.HelpText="Changes the draft height by one pixel. Use Apply size to resize outputs." MouseLeftButtonUp="OperatorTile_HeightPlus_Click">
                                                                 <TextBlock Text="+" FontSize="16" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </views:OperatorActionBorder>
                                                         </StackPanel>
-                                                        <TextBlock Text="px" FontSize="8" Foreground="#7DA0CA" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                                        <TextBlock Text="px" FontSize="12" Foreground="#9CC4F0" HorizontalAlignment="Center" Margin="0,3,0,0"/>
                                                     </StackPanel>
-                                                </Grid>
+                                                </WrapPanel>
                                             </Border>
-                                            <Button MinHeight="0" Content="APPLY SIZE" Height="32" FontSize="11" FontWeight="SemiBold" Click="ApplyWindowDimensions_Click" Style="{StaticResource ToolBtn}" BorderBrush="#1A3A6A" Foreground="#58A6FF" Margin="0,4,0,2"/>
-                                            <Button MinHeight="0" Content="RESET TO 386 × 193" Height="30" FontSize="10" FontWeight="SemiBold" Click="ResetWindowDimensions_Click" Style="{StaticResource ToolBtn}" BorderBrush="#344A64" Foreground="#C5D6E8" Margin="0,2,0,4"/>
-                                            <TextBlock x:Name="WindowDimensionsStatus" Text="" Foreground="#8FB8E8" FontSize="10" Margin="0,0,0,12"/>
+                                            <Button MinHeight="0" Content="APPLY SIZE" Height="40" FontSize="14" AutomationProperties.Name="Apply output dimensions" AutomationProperties.HelpText="Applies both draft dimensions to all output windows." FontWeight="SemiBold" Click="ApplyWindowDimensions_Click" Style="{StaticResource ToolBtn}" BorderBrush="#1A3A6A" Foreground="#58A6FF" Margin="0,4,0,2"/>
+                                            <Button MinHeight="0" Content="RESET TO 386 × 193" Height="40" FontSize="14" AutomationProperties.Name="Reset output dimensions to 386 by 193" AutomationProperties.HelpText="Immediately resets all output windows to 386 by 193 physical pixels." FontWeight="SemiBold" Click="ResetWindowDimensions_Click" Style="{StaticResource ToolBtn}" BorderBrush="#344A64" Foreground="#C5D6E8" Margin="0,2,0,4"/>
+                                            <TextBlock x:Name="WindowDimensionsStatus" Text="" Foreground="#9CC4F0" FontSize="12" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,0,0,12"/>
                                             </StackPanel>
                                             </Expander>
 
                                             <!-- ═══════════════════════════════════ -->
                                             <!-- CLOUD REMOTE                        -->
                                             <!-- ═══════════════════════════════════ -->
-                                            <Border x:Name="CloudRemoteCard" Background="#0A1620" BorderBrush="#1A3A6A" BorderThickness="1" Padding="14" Margin="0,0,0,12">
+                                            <Border x:Name="CloudRemoteCard" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="26" Padding="16" Margin="0,0,0,12">
                                                 <StackPanel>
-                                                    <TextBlock Text="📱" FontSize="28" HorizontalAlignment="Center" Foreground="#58A6FF" Margin="0,0,0,4"/>
-                                                    <TextBlock Text="CLOUD REMOTE" FontSize="14" FontWeight="SemiBold" Foreground="#58A6FF" HorizontalAlignment="Center"/>
-                                                    <TextBlock Text="Score from any phone, tablet, or laptop" FontSize="9" Foreground="#6E7B8A" HorizontalAlignment="Center" Margin="0,2,0,8"/>
-                                                    <TextBlock x:Name="CloudStatusText" Text="Checking configuration…" FontSize="10" FontWeight="SemiBold" Foreground="#B1BAC4" HorizontalAlignment="Center" Margin="0,0,0,10" TextWrapping="Wrap" TextAlignment="Center"/>
-
-                                                    <!-- IDLE STATE -->
+                                                    <Grid Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="44"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                        <Border Background="#253F75B8" CornerRadius="14" Width="36" Height="36" VerticalAlignment="Top"><motion:OperatorSymbol Kind="remote" Width="22" Height="22" Foreground="{DynamicResource ControlCentre.AccentBrush}"/></Border>
+                                                        <StackPanel Grid.Column="1"><TextBlock Text="Cloud remote" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/><TextBlock Text="Invite a scorer on another device." FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/></StackPanel>
+                                                    </Grid>
+                                                    <TextBlock x:Name="CloudStatusText" Text="Checking configuration…" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,12" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                                                     <StackPanel x:Name="CloudIdleState" Visibility="Collapsed">
-                                                        <Button MinHeight="0" x:Name="CloudStartButton" Content="Start cloud session" Height="32" FontSize="11" FontWeight="SemiBold" Click="StartCloudSession_Click" Style="{StaticResource ToolBtn}" BorderBrush="#1A3A6A" Foreground="#58A6FF"/>
-                                                        <TextBlock Text="A new join code is created each time. Existing sessions stay independent." FontSize="9" Foreground="#6E7B8A" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,8,0,0"/>
+                                                        <Button x:Name="CloudStartButton" Content="Start cloud session" MinHeight="44" FontSize="14" Click="StartCloudSession_Click" Style="{StaticResource ToolBtn}" AutomationProperties.Name="Start cloud session"/>
+                                                        <TextBlock Text="Start creates a new join code. Your match stays open here." FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                                                     </StackPanel>
-
-                                                    <!-- DISABLED STATE -->
                                                     <StackPanel x:Name="CloudDisabledState" Visibility="Collapsed">
-                                                        <Border Background="#1C140A" BorderBrush="#4A3A1A" BorderThickness="1" Padding="10">
-                                                            <StackPanel>
-                                                                <TextBlock Text="Setup required" FontSize="11" FontWeight="Bold" Foreground="#D29922" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                                                                <TextBlock Text="Place a 'supabase.config.json' file next to the executable, or under %LOCALAPPDATA%\RocheScoreboard\." FontSize="9" Foreground="#C9B070" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,4"/>
-                                                                <TextBlock Text="See supabase\README.md for the 10-minute setup." FontSize="9" Foreground="#A89060" TextWrapping="Wrap" TextAlignment="Center"/>
-                                                            </StackPanel>
-                                                        </Border>
+                                                        <Border Background="#1C140A" BorderBrush="#4A3A1A" BorderThickness="1" CornerRadius="16" Padding="12"><StackPanel>
+                                                            <TextBlock Text="Setup required" FontSize="15" FontWeight="SemiBold" Foreground="#F1C97B" Margin="0,0,0,6"/>
+                                                            <TextBlock Text="No session is open. Add the host configuration before inviting a scorer." FontSize="13" Foreground="#E3CC9F" TextWrapping="Wrap"/>
+                                                            <Expander Header="Configuration details" Foreground="#E3CC9F" Margin="0,8,0,0"><TextBlock Text="Place supabase.config.json next to the executable, or under %LOCALAPPDATA%\RocheScoreboard\. See supabase\README.md for setup." FontSize="13" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
+                                                        </StackPanel></Border>
                                                     </StackPanel>
-
-                                                    <!-- LIVE STATE -->
                                                     <StackPanel x:Name="CloudLiveState" Visibility="Collapsed">
-                                                        <!-- Connection badge -->
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
-                                                            <Ellipse x:Name="CloudConnectionDot" Width="8" Height="8" Fill="#B1BAC4" VerticalAlignment="Center"/>
-                                                            <TextBlock x:Name="CloudConnectionLabel" Text="Connecting…" FontSize="10" FontWeight="Bold" Foreground="#B1BAC4" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                                        </StackPanel>
-
-                                                        <!-- Join code: massive, readable from a projector -->
-                                                        <TextBlock Text="JOIN CODE" FontSize="9" FontWeight="SemiBold" Foreground="#7DA0CA" HorizontalAlignment="Center"/>
-                                                        <views:OperatorActionBorder Background="#060A10" BorderBrush="#2A4A70" BorderThickness="1" Padding="14,10" Margin="0,4,0,4" Cursor="Hand" MouseLeftButtonUp="OperatorTile_CopyCloudJoinCode_Click" ToolTip="Click to copy">
-                                                            <TextBlock x:Name="CloudJoinCodeText" Text="—" FontSize="32" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" Foreground="#58A6FF" HorizontalAlignment="Center" TextAlignment="Center"/>
-                                                        </views:OperatorActionBorder>
-
-                                                        <!-- QR code -->
-                                                        <Border Background="#09090B" BorderBrush="#1A3A6A" BorderThickness="1" Padding="8" HorizontalAlignment="Center" Margin="0,8,0,8">
-                                                            <Image x:Name="CloudQrImage" Width="180" Height="180" Stretch="Uniform" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-                                                        </Border>
-
-                                                        <!-- Join URL row (only shown when remoteAppBaseUrl is set) -->
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12"><Ellipse x:Name="CloudConnectionDot" Width="8" Height="8" Fill="#B1BAC4" VerticalAlignment="Center"/><TextBlock x:Name="CloudConnectionLabel" Text="Waiting for connection" FontSize="13" Foreground="#B1BAC4" Margin="8,0,0,0" VerticalAlignment="Center"/></StackPanel>
+                                                        <TextBlock Text="JOIN CODE" FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,6"/>
+                                                        <Button x:Name="CloudCopyCodeButton" MinHeight="68" Padding="12,8" Click="CopyCloudJoinCode_Click" Style="{StaticResource ToolBtn}" AutomationProperties.Name="Copy cloud join code" AutomationProperties.HelpText="Copies the current session code. The displayed code stays visible.">
+                                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="32"/></Grid.ColumnDefinitions><TextBlock x:Name="CloudJoinCodeText" Text="—" FontSize="26" FontWeight="SemiBold" Typography.NumeralAlignment="Tabular" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Center"/><motion:OperatorSymbol Grid.Column="1" Kind="share-copy" Width="22" Height="22" Foreground="{DynamicResource ControlCentre.AccentBrush}"/></Grid>
+                                                        </Button>
+                                                        <TextBlock Text="Select the code to copy it, or scan the QR code." FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                                                        <Border Background="#09090B" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="12" HorizontalAlignment="Center" Margin="0,12,0,12"><Image x:Name="CloudQrImage" Width="168" Height="168" Stretch="Uniform" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="NearestNeighbor" AutomationProperties.Name="Current cloud session QR code"/></Border>
                                                         <StackPanel x:Name="CloudJoinUrlPanel" Visibility="Collapsed">
-                                                            <TextBlock Text="OR OPEN" FontSize="9" FontWeight="SemiBold" Foreground="#7DA0CA" HorizontalAlignment="Center" Margin="0,4,0,2"/>
-                                                            <TextBlock x:Name="CloudJoinUrlText" Text="" FontSize="11" FontWeight="SemiBold" Foreground="#9CC4F0" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-                                                            <Button MinHeight="0" x:Name="CloudCopyUrlButton" Content="Copy URL" Height="26" FontSize="10" FontWeight="Bold" Click="CopyCloudJoinUrl_Click" Style="{StaticResource ToolBtn}" BorderBrush="#1A3A6A" Foreground="#58A6FF" Margin="0,6,0,0"/>
+                                                            <TextBlock Text="JOIN LINK" FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,6"/>
+                                                            <TextBlock x:Name="CloudJoinUrlText" Text="" FontSize="13" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                                                            <Button x:Name="CloudCopyUrlButton" MinHeight="44" FontSize="14" Click="CopyCloudJoinUrl_Click" Style="{StaticResource ToolBtn}" Margin="0,8,0,0" AutomationProperties.Name="Copy cloud join link"><StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="share-copy" Width="20" Height="20" Margin="0,0,8,0"/><TextBlock Text="Copy join link" VerticalAlignment="Center"/></StackPanel></Button>
                                                         </StackPanel>
-
-                                                        <!-- End session -->
-                                                        <Button MinHeight="0" x:Name="CloudEndButton" Content="End session" Height="30" FontSize="11" FontWeight="Bold" Click="EndCloudSession_Click" Style="{StaticResource ToolBtn}" BorderBrush="#3A2020" Foreground="#FF6B6B" Margin="0,12,0,0"/>
+                                                        <TextBlock x:Name="CloudCopyFeedback" Text="" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" AutomationProperties.LiveSetting="Polite" MinHeight="20" Margin="0,8,0,0"/>
+                                                        <Button x:Name="CloudEndButton" Content="End session…" MinHeight="44" FontSize="14" Click="EndCloudSession_Click" Style="{StaticResource ToolBtn}" BorderBrush="#874C52" Foreground="#FFB5BB" Margin="0,8,0,0" AutomationProperties.Name="End cloud session" AutomationProperties.HelpText="Asks for confirmation before disconnecting remote scorers."/>
                                                     </StackPanel>
                                                 </StackPanel>
                                             </Border>
 
-                                            <!-- Reset -->
-                                            <views:OperatorActionBorder Background="#1C0A0A" BorderBrush="#4A2020" BorderThickness="1" Padding="14" Cursor="Hand" MouseLeftButtonUp="OperatorTile_ResetCardSettings_Click">
-                                                <StackPanel HorizontalAlignment="Center">
-                                                    <TextBlock Text="⟲" FontSize="28" HorizontalAlignment="Center" Foreground="#FF6B6B" Margin="0,0,0,4"/>
-                                                    <TextBlock Text="RESET MATCH" FontSize="14" FontWeight="SemiBold" Foreground="#FF6B6B" HorizontalAlignment="Center"/>
-                                                    <TextBlock Text="Clear all and start over" FontSize="9" Foreground="#E08A8F" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                                </StackPanel>
-                                            </views:OperatorActionBorder>
+                                            <!-- This entry opens the existing owned decision; it never clears on press. -->
+                                            <Button x:Name="SettingsResetMatchButton" Style="{StaticResource ToolBtn}" HorizontalContentAlignment="Stretch" Background="#1C0A0A" BorderBrush="#4A2020" BorderThickness="1" MinHeight="88" Padding="16" Cursor="Hand" Click="ResetMatch_Click"
+                                                AutomationProperties.Name="Reset match"
+                                                AutomationProperties.HelpText="Opens a confirmation to review scores, time and saved recovery. Nothing is cleared until you confirm.">
+                                                <DockPanel LastChildFill="True">
+                                                    <Grid DockPanel.Dock="Left" Width="34" Height="34" Margin="0,0,16,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                                                        <Path Data="M8,7 A13,13 0 1 1 3,18 M8,2 L8,8 2,8" Stroke="{DynamicResource ScoreGrid.Brush.DangerForeground}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                        <Path Data="M17,10 L25,24 9,24 Z" Stroke="{DynamicResource ScoreGrid.Brush.DangerForeground}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                        <Path Data="M17,15 L17,19 M17,21 L17,21.5" Stroke="{DynamicResource ScoreGrid.Brush.DangerForeground}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                    </Grid>
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="Reset match" FontSize="16" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="Opens a confirmation. Nothing is cleared yet." FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                            </Button>
 
                                             <!-- ═══════════════════════════════════ -->
                                             <!-- APP UPDATE                          -->
@@ -2151,57 +2091,55 @@
         </views:OperatorViewport>
 
         <!-- ══════════════════════════════════════════ -->
-        <!-- RESET CONFIRMATION OVERLAY — cinematic     -->
+        <!-- RESET CONFIRMATION — owned AFL decision    -->
         <!-- ══════════════════════════════════════════ -->
-        <Border x:Name="ResetOverlay" Panel.ZIndex="50" Visibility="Collapsed" Background="#CC000000" Opacity="0">
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Background="#09090B" BorderBrush="#E08A8F" BorderThickness="2" Padding="0" MinWidth="500" MaxWidth="560">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Top danger stripe -->
-                        <Border Grid.Row="0" Background="#F85149" Height="4"/>
-
-                        <!-- Warning icon + title -->
-                        <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="40,32,40,0">
-                            <TextBlock Text="⚠" FontSize="48" HorizontalAlignment="Center" Foreground="#F85149" Margin="0,0,0,12"/>
-                            <TextBlock Text="RESET MATCH" FontSize="22" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/>
-                        </StackPanel>
-
-                        <!-- Description -->
-                        <TextBlock Grid.Row="2" TextAlignment="Center" Margin="40,14,40,0" FontSize="13" Foreground="#C9D1D9" TextWrapping="Wrap"
-                                   LineHeight="20">
-                            All scores, events, and clock data will be permanently cleared. You'll return to the sport selection screen to start a new match.
-                        </TextBlock>
-
-                        <!-- Danger highlight -->
-                        <Border Grid.Row="3" Margin="40,18,40,0" Background="#1C0A0A" BorderBrush="#4A2020" BorderThickness="1" Padding="14,10">
-                            <TextBlock Text="This action cannot be undone." FontSize="12" FontWeight="Bold" Foreground="#FF9A9A" HorizontalAlignment="Center"/>
-                        </Border>
-
-                        <!-- Buttons -->
-                        <Grid Grid.Row="4" Margin="40,24,40,32">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Grid.Column="0" x:Name="CancelResetBtn" Content="CANCEL" Height="46" FontSize="14" FontWeight="SemiBold"
-                                    Click="CancelReset_Click" Style="{StaticResource ToolBtn}"
+        <Border x:Name="ResetOverlay" Panel.ZIndex="50" Visibility="Collapsed" Background="Transparent" Opacity="1" IsHitTestVisible="False"
+                KeyboardNavigation.TabNavigation="Cycle" SizeChanged="ResetOverlay_SizeChanged"
+                Unloaded="ResetOverlay_Unloaded">
+            <Grid>
+                <Border x:Name="ResetBackdrop" Background="#C9080C12" IsHitTestVisible="False"/>
+                <Grid x:Name="ResetHost" MaxWidth="560" MaxHeight="430" Margin="12" VerticalAlignment="Center">
+                    <!-- Only the material grows from its source. Foreground and
+                         button hit regions keep their final, readable geometry. -->
+                    <views:OperatorGlassSurface x:Name="ResetSurface" Material="Regular" CornerRadius="28"
+                        Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="#B3E08A8F" BorderThickness="1"
+                        IsHitTestVisible="False"/>
+                    <Grid x:Name="ResetContent" Margin="20">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <Grid x:Name="ResetHeader">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="46"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Grid Width="34" Height="34" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,2,0,0" IsHitTestVisible="False">
+                                <Path x:Name="ResetArrow" Data="M8,7 A13,13 0 1 1 3,18 M8,2 L8,8 2,8" Stroke="{DynamicResource ScoreGrid.Brush.DangerForeground}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                <Path Data="M17,10 L25,24 9,24 Z" Stroke="{DynamicResource ScoreGrid.Brush.DangerForeground}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                <Path x:Name="ResetWarningMark" Data="M17,15 L17,19 M17,21 L17,21.5" Stroke="{DynamicResource ScoreGrid.Brush.DangerForeground}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                            </Grid>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Reset this match?" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock Text="Start again from Home" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
+                        <ScrollViewer x:Name="ResetDetails" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False" Margin="0,14,0,16">
+                            <StackPanel>
+                                <TextBlock x:Name="ResetMatchContext" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="ResetPhaseText" FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,5,0,14" TextWrapping="Wrap"/>
+                                <TextBlock Text="Scores, match events and elapsed time will be cleared, together with this saved recovery. You'll return to Home to start a new match."
+                                    FontSize="14" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap"/>
+                                <TextBlock Text="This action cannot be undone." FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ScoreGrid.Brush.DangerForeground}" Margin="0,12,0,0" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="ResetContextNotice" Visibility="Collapsed" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ScoreGrid.Brush.DangerForeground}" Margin="0,12,0,0" TextWrapping="Wrap"
+                                    Text="The match changed while this decision was open. Cancel and open Reset again to review the current match."/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid x:Name="ResetActions" Grid.Row="2">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" x:Name="CancelResetBtn" Content="CANCEL" Height="46" MinHeight="46" FontSize="14" FontWeight="SemiBold"
+                                    Click="CancelReset_Click" Style="{StaticResource ToolBtn}" AutomationProperties.Name="Cancel match reset"
                                     Background="#303035" BorderBrush="#A8B0BA" Foreground="White" Cursor="Hand"/>
-                            <Button Grid.Column="2" x:Name="ConfirmResetBtn" Content="RESET" Height="46" FontSize="14" FontWeight="SemiBold"
-                                    Click="ConfirmReset_Click" Style="{StaticResource PrimaryCommandButton}"
+                            <Button Grid.Column="2" x:Name="ConfirmResetBtn" Content="RESET" Height="46" MinHeight="46" FontSize="14" FontWeight="SemiBold"
+                                    Click="ConfirmReset_Click" Style="{StaticResource PrimaryCommandButton}" AutomationProperties.Name="Reset this match and return Home"
                                     Background="#9B2C2C" BorderBrush="#F85149" Foreground="White" Cursor="Hand"/>
                         </Grid>
                     </Grid>
-                </Border>
+                </Grid>
             </Grid>
         </Border>
 
@@ -2237,6 +2175,17 @@
         <views:GlobalSettingsScreen x:Name="GlobalSettingsPanel" Panel.ZIndex="150" Visibility="Collapsed"/>
         <views:SportSelectionScreen x:Name="SportSelectionPanel" Panel.ZIndex="200"/>
         <views:MatchLoadingScreen x:Name="MatchLoadingPanel" Panel.ZIndex="300" Visibility="Collapsed"/>
+        <Grid x:Name="CommandOverlay" SizeChanged="CommandOverlay_SizeChanged" Panel.ZIndex="900" Visibility="Collapsed" Background="#B5080C12" KeyboardNavigation.TabNavigation="Cycle" PreviewKeyDown="CommandOverlay_KeyDown">
+         <Border Background="Transparent" MouseLeftButtonUp="CommandBackdrop_Click"/>
+         <Border x:Name="CommandSurface" MaxWidth="650" Margin="18" Padding="22" CornerRadius="24" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="#6073B9FF" BorderThickness="1" VerticalAlignment="Top">
+          <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+           <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="Close · Esc" Click="CommandClose_Click" MinHeight="38" Padding="12,6"/><TextBlock Text="Find a command" TextWrapping="Wrap" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" VerticalAlignment="Center"/></DockPanel>
+           <TextBox x:Name="CommandSearch" Grid.Row="1" MinHeight="44" Padding="12,9" FontSize="16" TextChanged="CommandSearch_TextChanged" AutomationProperties.Name="Search commands"/>
+           <ListBox x:Name="CommandResults" Grid.Row="2" SelectionChanged="CommandResults_SelectionChanged" Margin="0,12,0,8" MaxHeight="350" MinHeight="70" Background="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+           <TextBlock x:Name="CommandHint" Grid.Row="3" Text="↑ ↓ to choose · Enter to run · Esc to close" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+          </Grid>
+         </Border>
+        </Grid>
         <Grid x:Name="RecoveryOverlay" Panel.ZIndex="1000" Background="#D9080C12" Visibility="Collapsed" KeyboardNavigation.TabNavigation="Cycle"/>
     </Grid>
 </Window>

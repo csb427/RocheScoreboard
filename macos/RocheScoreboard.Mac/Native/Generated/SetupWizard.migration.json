@@ -1,7 +1,13 @@
 {
   "source": "Roche_Scoreboard/Views/SetupWizard.xaml",
-  "source_sha256": "10610789550af8352158fc9f0a8ceb3bef3bad8829f916d96c73be2d64825833",
+  "source_sha256": "109a94f85ab98a995dca3f2bf3e52690ffec71be6c27cfa43ce483a4879a3d8f",
   "names": [
+    {
+      "name": "FinalsFocusFrame",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
     {
       "name": "ResponsiveScrollHost",
       "type": "WizardViewport",
@@ -10,6 +16,61 @@
     {
       "name": "WizardBody",
       "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "SportStepContainer",
+      "type": "StackPanel",
+      "object": false
+    },
+    {
+      "name": "SportQuestion",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SportDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AflSportChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "AflSportSymbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "AflSportLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "AflSportDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketSportChoice",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
+      "name": "CricketSportSymbol",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "CricketSportLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CricketSportDescription",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -84,7 +145,7 @@
     },
     {
       "name": "SetupHomeColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -94,7 +155,7 @@
     },
     {
       "name": "SetupHomeSecondaryPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -184,7 +245,7 @@
     },
     {
       "name": "SetupAwayColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -194,7 +255,7 @@
     },
     {
       "name": "SetupAwaySecondaryPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -243,6 +304,11 @@
       "object": true
     },
     {
+      "name": "SetupValidationMessage",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "ClockHeaderGroup",
       "type": "StackPanel",
       "object": false
@@ -255,6 +321,11 @@
     {
       "name": "CountUpCard",
       "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "CountUpActionSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -275,6 +346,11 @@
     {
       "name": "CountdownCard",
       "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "CountdownActionSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -433,6 +509,21 @@
       "object": false
     },
     {
+      "name": "SetupFinalsMode",
+      "type": "CheckBox",
+      "object": false
+    },
+    {
+      "name": "SetupFinalsTitle",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SetupFinalsDescription",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "FinalsSelectedBadge",
       "type": "Border",
       "object": false
@@ -478,13 +569,13 @@
       "object": false
     },
     {
-      "name": "MsgGlow",
-      "type": "Border",
+      "name": "SetupMessageFeedback",
+      "type": "TextBlock",
       "object": false
     },
     {
-      "name": "SetupFinalsMode",
-      "type": "CheckBox",
+      "name": "MsgGlow",
+      "type": "Border",
       "object": false
     },
     {
@@ -546,6 +637,11 @@
       "name": "StepIndicatorTranslate",
       "type": "TranslateTransform",
       "object": true
+    },
+    {
+      "name": "SportStepNavigation",
+      "type": "RadioButton",
+      "object": false
     },
     {
       "name": "Step1Navigation",
@@ -613,6 +709,11 @@
       "object": false
     },
     {
+      "name": "SportOptionsPreview",
+      "type": "RadioButton",
+      "object": false
+    },
+    {
       "name": "NavBar",
       "type": "Grid",
       "object": false
@@ -628,6 +729,11 @@
       "object": false
     },
     {
+      "name": "CancelSetupButton",
+      "type": "Button",
+      "object": false
+    },
+    {
       "name": "NextButton",
       "type": "Button",
       "object": false
@@ -638,13 +744,43 @@
       "object": false
     }
   ],
-  "code_source_sha256": "0af6808dbcf7fcc8f1cd50372fba394722561e1b065b77f6357d596059bde04d",
+  "code_source_sha256": "e29c567e320b9d0ce4b607898e454654eb0755b7128c09ed29bf3553ee3f4fb8",
   "native_events": [
+    {
+      "name": null,
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "UnifiedSetup_KeyDown"
+    },
     {
       "name": "ResponsiveScrollHost",
       "source": "PreviewMouseWheel",
       "native": "PointerWheelChanged",
       "handler": "ResponsiveScrollHost_PreviewMouseWheel"
+    },
+    {
+      "name": "AflSportChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SportChoice_Changed"
+    },
+    {
+      "name": "AflSportChoice",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SportChoice_Changed"
+    },
+    {
+      "name": "CricketSportChoice",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SportChoice_Changed"
+    },
+    {
+      "name": "CricketSportChoice",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SportChoice_Changed"
     },
     {
       "name": "SetupHomeColorBox",
@@ -785,16 +921,28 @@
       "handler": "SetupQuarterDuration_TextChanged"
     },
     {
-      "name": "FinalsCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "FinalsCard_Click"
+      "name": "SetupFinalsMode",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SetupFinalsMode_Changed"
+    },
+    {
+      "name": "SetupFinalsMode",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SetupFinalsMode_Changed"
     },
     {
       "name": null,
       "source": "MouseRightButtonUp",
       "native": "PointerReleased",
       "handler": "SetupClearItemHighlightColor_Click"
+    },
+    {
+      "name": "SetupNewMessageBox",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "SetupMessageDraft_TextChanged"
     },
     {
       "name": "SetupNewMessageHighlightColorBtn",

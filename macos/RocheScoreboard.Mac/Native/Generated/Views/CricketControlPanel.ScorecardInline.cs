@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.ScorecardInline.cs; edit translator/adapters.
-// Source SHA-256: 35b14d341c83b8250b0fe8bb297b32e0b591c6563d046ea5397ac5d0a95d2d7b
+// Source SHA-256: 40ed45c0390802ac6f6436893dfad83e2e82f47b5d2e40d3b7ec7f18b9fe6e1d
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -20,6 +20,7 @@ namespace Roche_Scoreboard.Views;
 
 public partial class CricketControlPanel
 {
+    private int _scorecardPlayerFocusRequest;
     private StackPanel CreateScorecardFigureEditor(string label, string value, bool overs, out TextBox field)
     {
         var form = new StackPanel { Tag = "scorecard-figure-editor", MinWidth = 0, Margin = new Thickness(0, 4, 0, 8) };
@@ -93,16 +94,38 @@ public partial class CricketControlPanel
             if (!ReferenceEquals(match, _match) || !ReferenceEquals(innings, match.CurrentInnings)) return;
             _scorecardDirty = false;
         }
-        _scorecardInnings = innings.InningsNumber; _scorecardBowling = bowling;
+        int request=++_scorecardPlayerFocusRequest;
+        var previousFocus=NativeKeyboard.FocusedElement;
+        var owner=NativeWindow.GetWindow(this);
+        _scorecardInnings = innings.InningsNumber;
         MainTabControl.SelectedItem = ScorecardTab;
         RefreshScorecard(_scorecardDraft?.InningsNumber != innings.InningsNumber);
+        // Refresh may retain unchanged data. Use the same view switch as the
+        // team tabs so a bowler request cannot leave the batting rows displayed.
+        SelectScorecardTeam(bowling);
+        var draft=_scorecardDraft;
+        bool Current()
+        {
+            if(request!=_scorecardPlayerFocusRequest || draft is null || !ReferenceEquals(draft,_scorecardDraft)
+                || !ReferenceEquals(match,_match) || !ReferenceEquals(innings,match.CurrentInnings)
+                || _scorecardInnings!=innings.InningsNumber || _scorecardBowling!=bowling
+                || MainTabControl.SelectedItem!=ScorecardTab || !IsLoaded || !IsVisible
+                || owner is not {IsActive:true} || !ReferenceEquals(owner,NativeWindow.GetWindow(this)))return false;
+            var current=NativeKeyboard.FocusedElement;
+            return current is not Control {IsLoaded:true,IsVisible:true,IsEnabled:true,Focusable:true}
+                || ReferenceEquals(current,previousFocus) || current is Window
+                || ReferenceEquals(current,this) || ReferenceEquals(current,ScorecardHost);
+        }
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            if (!ReferenceEquals(match, _match) || !_scorecardPlayerRows.TryGetValue((bowling, playerIndex), out var row)) return;
+            if(!Current())return;
             _scorecardScroll?.UpdateLayout();
-            row.BringIntoView();
+            if(!Current() || !_scorecardPlayerRows.TryGetValue((bowling,playerIndex),out var row))return;
             var cell = row.Children.OfType<Button>().FirstOrDefault(button => Avalonia.Controls.ToolTip.GetTip(button) is string tip && tip.StartsWith("Edit ", StringComparison.Ordinal));
-            cell?.BringIntoView(); if (cell is not null) NativeKeyboard.Focus(cell);
+            if(cell is null)return;
+            bool CellCurrent()=>Current() && cell.IsLoaded && cell.IsVisible && _scorecardRows.IsAncestorOf(cell);
+            OperatorViewport.RevealOperatorTarget(cell,CellCurrent);
+            if(CellCurrent())NativeKeyboard.Focus(cell);
         }, Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
@@ -133,6 +156,10 @@ public partial class CricketControlPanel
         Avalonia.Controls.ToolTip.SetTip(extras, "View extras breakdown");
         summary.Children.Add(ScorecardSummaryCard(extras, "Extras", (draft.Wides + draft.NoBalls + draft.Byes + draft.LegByes).ToString()));
         _scorecardRows.Children.Add(summary);
+        var editTotals = WorkflowButton("Edit runs & extras together", async () => await EditScorecardTotalsAsync(), "scorecard-edit-totals");
+        // Reserve a gutter for the overlay scrollbar and keyboard focus.
+        editTotals.Margin = new Thickness(3,3,16,3);editTotals.MinHeight = 44;
+        _scorecardRows.Children.Add(editTotals);
     }
 
     private void AddInlineFallOfWickets(CricketScorecardDraft draft)
@@ -142,13 +169,32 @@ public partial class CricketControlPanel
         heading.Children.Add(WorkflowText("Fall of wickets", 17));
         var add = WorkflowButton("+ Add", () =>
         {
+            if(!ReferenceEquals(draft,_scorecardDraft) || !IsLoaded || !IsVisible
+                || MainTabControl.SelectedItem!=ScorecardTab || !_scorecardRows.IsAncestorOf(region)
+                || draft.FallOfWickets.Count>=draft.TotalWickets)return;
+            var previousFocus=NativeKeyboard.FocusedElement;
+            var owner=NativeWindow.GetWindow(this);
             draft.FallOfWickets.Add(""); _scorecardDirty = true; RenderScorecard();
+            int renderVersion=_scorecardRenderVersion;
+            var inlineRegion=_scorecardRows.Children.OfType<StackPanel>().FirstOrDefault(panel=>Equals(panel.Tag,"scorecard-inline-fow"));
+            var field=inlineRegion?.Children.OfType<Grid>().SelectMany(row=>row.Children.OfType<TextBox>()).LastOrDefault();
+            if(field is null)return;
+            bool Current()
+            {
+                if(!ReferenceEquals(draft,_scorecardDraft) || renderVersion!=_scorecardRenderVersion
+                    || !IsLoaded || !IsVisible || MainTabControl.SelectedItem!=ScorecardTab
+                    || !field.IsLoaded || !field.IsVisible || !_scorecardRows.IsAncestorOf(field)
+                    || owner is not {IsActive:true} || !ReferenceEquals(owner,NativeWindow.GetWindow(this)))return false;
+                var current=NativeKeyboard.FocusedElement;
+                return current is not Control {IsLoaded:true,IsVisible:true,IsEnabled:true,Focusable:true}
+                    || ReferenceEquals(current,previousFocus) || ReferenceEquals(current,field)
+                    || current is Window || ReferenceEquals(current,this) || ReferenceEquals(current,ScorecardHost);
+            }
             Dispatcher.UIThread.Post(Avalonia.Threading.DispatcherPriority.Loaded, new Action(() =>
             {
-                if (!ReferenceEquals(draft, _scorecardDraft)) return;
-                _scorecardScroll?.ScrollToEnd();
-                var inlineRegion = _scorecardRows.Children.OfType<StackPanel>().FirstOrDefault(panel => Equals(panel.Tag, "scorecard-inline-fow"));
-                var field = inlineRegion?.Children.OfType<Grid>().SelectMany(row => row.Children.OfType<TextBox>()).LastOrDefault(); field?.Focus();
+                if(!Current())return;
+                OperatorViewport.RevealOperatorTarget(field,Current);
+                if(Current())field.Focus();
             }));
         }, "scorecard-fow-add");
         add.IsEnabled = draft.FallOfWickets.Count < draft.TotalWickets; Avalonia.Controls.ToolTip.SetTip(add, add.IsEnabled ? "Add a fall-of-wicket entry" : "Mark a wicket in the scorecard before adding another entry");
@@ -168,10 +214,16 @@ public partial class CricketControlPanel
             entry.LostFocus += (_, _) => { _scorecardFowEditing = false; if (ReferenceEquals(draft, _scorecardDraft)) UpdateScorecardStatus(); };
             entry.TextChanged += (_, _) =>
             {
-                if (!ReferenceEquals(draft, _scorecardDraft)) return;
-                draft.FallOfWickets[i] = (entry.Text ?? string.Empty).Trim();
+                if (!ReferenceEquals(draft, _scorecardDraft) || i >= draft.FallOfWickets.Count || !_scorecardRows.IsAncestorOf(entry)) return;
+                string normalized = (entry.Text ?? string.Empty).Trim();
+                // Keep empty-entry feedback even when the current draft is
+                // already pending; a semantic no-op must not clear that state.
                 if (string.IsNullOrWhiteSpace((entry.Text ?? string.Empty))) entry.BorderBrush = ScorecardAlertBrush(true);
                 else entry.SetResourceReference(Avalonia.Controls.Primitives.TemplatedControl.BorderBrushProperty, "ControlCentre.BorderBrush");
+                // Avalonia can deliver the initial TextChanged after the row is
+                // rebuilt. Re-loading identical text is not a pending edit.
+                if (string.Equals(draft.FallOfWickets[i], normalized, StringComparison.Ordinal)) return;
+                draft.FallOfWickets[i] = normalized;
                 _scorecardDirty = true; UpdateScorecardStatus();
             };
             Grid.SetColumn(entry, 1); row.Children.Add(entry);

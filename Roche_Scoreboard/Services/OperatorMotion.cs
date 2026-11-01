@@ -8,18 +8,26 @@ public static class OperatorMotion
 {
     public static bool Enabled => AnimationOverride ?? (!OperatorAppearance.ReduceMotion && SystemParameters.ClientAreaAnimation);
     internal static bool? AnimationOverride { get; set; }
-    public static TimeSpan HoverIn => TimeSpan.FromMilliseconds(150);
-    public static TimeSpan HoverOut => TimeSpan.FromMilliseconds(250);
-    public static TimeSpan Press => TimeSpan.FromMilliseconds(80);
-    public static TimeSpan SurfaceOpen => TimeSpan.FromMilliseconds(250);
-    public static TimeSpan SurfaceClose => TimeSpan.FromMilliseconds(150);
-    public static TimeSpan PanelOpen => TimeSpan.FromMilliseconds(400);
-    public static TimeSpan PanelClose => TimeSpan.FromMilliseconds(350);
-    public static TimeSpan Page => TimeSpan.FromMilliseconds(250);
-    public static TimeSpan Stagger => TimeSpan.FromMilliseconds(40);
-    public static TimeSpan Toggle => TimeSpan.FromMilliseconds(350);
-    public static TimeSpan CheckDraw => TimeSpan.FromMilliseconds(350);
-    public static TimeSpan MaterialArrival => TimeSpan.FromMilliseconds(500);
-    public static TimeSpan ChoiceArrival => TimeSpan.FromMilliseconds(440);
+    // Public output pacing remains in BroadcastMotion. These preferences only
+    // adjust operator feedback, and never postpone an action's acceptance.
+    public static double TravelScale => OperatorAppearance.MotionStyle == OperatorMotionStyle.Calm ? .4 : 1;
+    public static double SpringResponse => OperatorAppearance.MotionStyle == OperatorMotionStyle.Calm ? 1.5 : 1;
+    private static TimeSpan Timing(double milliseconds) => TimeSpan.FromMilliseconds(milliseconds * (OperatorAppearance.MotionStyle == OperatorMotionStyle.Calm ? .65 : 1));
+    public static TimeSpan HoverIn => Timing(150);
+    public static TimeSpan HoverOut => Timing(250);
+    public static TimeSpan Press => Timing(80);
+    public static TimeSpan SurfaceOpen => Timing(250);
+    public static TimeSpan SurfaceClose => Timing(150);
+    public static TimeSpan PanelOpen => Timing(400);
+    public static TimeSpan PanelClose => Timing(350);
+    public static TimeSpan Page => Timing(250);
+    public static TimeSpan Stagger => Timing(40);
+    public static TimeSpan Toggle => Timing(350);
+    public static TimeSpan CheckDraw => Timing(350);
+    public static TimeSpan MaterialArrival => Timing(500);
+    public static TimeSpan ChoiceArrival => Timing(440);
+    public static TimeSpan SymbolArrival => Timing(580);
+    public static TimeSpan SymbolAccent => Timing(140);
+    public static TimeSpan SymbolFill => Timing(320);
     public static IEasingFunction SmoothOut => new CubicEase { EasingMode = EasingMode.EaseOut };
 }

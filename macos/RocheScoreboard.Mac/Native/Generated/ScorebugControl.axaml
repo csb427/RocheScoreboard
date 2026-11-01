@@ -36,7 +36,7 @@
                         <GradientStop Color="#0A1648" Offset="1.0" />
                     </LinearGradientBrush>
                 </Border.Background>
-                <TextBlock x:Name="TopTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBlock x:Name="TopTimeText" Text="1:26 PM" Foreground="White" FontWeight="Black" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" FontFeatures="tnum,lnum,-kern" />
             </Border>
             <Border x:Name="StatsBarBorder" Grid.Row="1" Height="0" ClipToBounds="True">
                 <Border.Background>
@@ -102,7 +102,7 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" x:Name="ScorelessLabelText" Text="TIME SINCE LAST SCORE" Foreground="#CBD5E1" FontSize="15" FontWeight="Black" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" x:Name="ScorelessTimeText" Text="10:00" Foreground="White" FontSize="26" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" Width="88" TextAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" x:Name="ScorelessTimeText" Text="10:00" Foreground="White" FontSize="26" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" Width="88" TextAlignment="Right" VerticalAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                 </Grid>
             </Border>
             <Border x:Name="ScoringRunBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" ZIndex="6">
@@ -139,7 +139,7 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" x:Name="TeamDroughtLabelText" Text="HOME SCORELESS" Foreground="#F59E0B" FontSize="15" FontWeight="Black" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" x:Name="TeamDroughtTimeText" Text="08:30" Foreground="White" FontSize="26" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" x:Name="TeamDroughtTimeText" Text="08:30" Foreground="White" FontSize="26" FontWeight="Black" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" VerticalAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                 </Grid>
             </Border>
             <Border x:Name="LeadChangesBarBorder" Grid.Row="1" Height="0" ClipToBounds="True" ZIndex="8">
@@ -217,7 +217,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0" x:Name="HomeLogoContainer" Width="{Binding ActualHeight, ElementName=HomeRowGrid}" ClipToBounds="True">
+                    <Grid Grid.Column="0" x:Name="HomeLogoContainer" Width="{Binding Bounds.Height, ElementName=HomeRowGrid}" ClipToBounds="True">
                         <Border x:Name="HomeLogoSquare" Background="Transparent" />
                         <Image x:Name="HomeLogoImage" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False" />
                         <TextBlock x:Name="HomeLogoFallbackText" Text="HOM" Foreground="#DADADA" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -340,7 +340,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0" x:Name="AwayLogoContainer" Width="{Binding ActualHeight, ElementName=AwayRowGrid}" ClipToBounds="True">
+                    <Grid Grid.Column="0" x:Name="AwayLogoContainer" Width="{Binding Bounds.Height, ElementName=AwayRowGrid}" ClipToBounds="True">
                         <Border x:Name="AwayLogoSquare" Background="Transparent" />
                         <Image x:Name="AwayLogoImage" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False" />
                         <TextBlock x:Name="AwayLogoFallbackText" Text="AWA" Foreground="#DADADA" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -486,7 +486,7 @@
                             <Border Grid.Column="1" Width="1" Background="#3355AAFF" VerticalAlignment="Stretch" Margin="0,8" />
                             <Viewbox Grid.Column="2" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,8">
                                 <Grid Width="130">
-                                    <TextBlock x:Name="ClockText" Text="12:36" Foreground="White" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontWeight="Bold" FontSize="52" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" RenderTransformOrigin="50%,50%">
+                                    <TextBlock x:Name="ClockText" Text="12:36" Foreground="White" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontWeight="Bold" FontSize="52" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" RenderTransformOrigin="50%,50%" FontFeatures="tnum,lnum,-kern">
                                         <TextBlock.RenderTransform>
                                             <ScaleTransform ScaleX="1" ScaleY="1" port:ProductionNames.Id="ClockTextScale" />
                                         </TextBlock.RenderTransform>
@@ -605,7 +605,7 @@
                         <TextBlock x:Name="ExpTopWeatherText" Text="--°C" Foreground="White" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontSize="52" FontWeight="Black" HorizontalAlignment="Left" TextAlignment="Left" />
                     </Viewbox>
                     <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2">
-                        <TextBlock x:Name="ExpTopClockText" Text="--:--" Foreground="#FFFFFF" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontSize="52" FontWeight="Black" HorizontalAlignment="Center" TextAlignment="Center" />
+                        <TextBlock x:Name="ExpTopClockText" Text="--:--" Foreground="#FFFFFF" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontSize="52" FontWeight="Black" HorizontalAlignment="Center" TextAlignment="Center" FontFeatures="tnum,lnum,-kern" />
                     </Viewbox>
                     <Viewbox x:Name="ExpTopDateHost" Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,2,8,2">
                         <TextBlock x:Name="ExpTopDateText" Text="---" Foreground="White" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontSize="52" FontWeight="Black" HorizontalAlignment="Right" TextAlignment="Right" />
@@ -1279,7 +1279,9 @@
                                     </LinearGradientBrush>
                                 </Border.Background>
                             </Border>
-                            <TextBlock x:Name="ExpHomeLogoFallback" Text="HOM" Foreground="#EEEEEE" FontWeight="Black" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <TextBlock x:Name="ExpHomeLogoFallback" Text="HOM" Foreground="#EEEEEE" FontWeight="Black" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Viewbox>
                             <Image x:Name="ExpHomeLogoImage" Stretch="Uniform" IsVisible="False" />
                         </Grid>
                     </Border>
@@ -1305,7 +1307,9 @@
                                     </LinearGradientBrush>
                                 </Border.Background>
                             </Border>
-                            <TextBlock x:Name="ExpAwayLogoFallback" Text="AWA" Foreground="#EEEEEE" FontWeight="Black" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <TextBlock x:Name="ExpAwayLogoFallback" Text="AWA" Foreground="#EEEEEE" FontWeight="Black" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Viewbox>
                             <Image x:Name="ExpAwayLogoImage" Stretch="Uniform" IsVisible="False" />
                         </Grid>
                     </Border>

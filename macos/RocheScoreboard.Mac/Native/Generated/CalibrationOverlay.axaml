@@ -21,22 +21,31 @@
                 <ScaleTransform ScaleX="-1" ScaleY="-1" />
             </Path.RenderTransform>
         </Path>
-        <Border Background="#C0000000" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,40,0,0">
-            <TextBlock x:Name="SizeReadout" Foreground="#FF00FF00" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="16" FontWeight="Bold" Text="0 x 0" />
-        </Border>
-        <Border Background="#E6080B10" BorderBrush="#FF58A6FF" BorderThickness="2" CornerRadius="12" Padding="20,12" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <StackPanel>
-                <TextBlock Text="DISTANCE READABILITY TEST" Foreground="#FF9CCBFF" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="16" FontWeight="Black" HorizontalAlignment="Center" />
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,2">
-                    <TextBlock Text="88" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="72" FontWeight="Bold" />
-                    <Border Width="2" Background="#FF304055" Margin="20,5" />
-                    <TextBlock Text="888" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="96" FontWeight="Black" />
-                </StackPanel>
-                <TextBlock Text="GOALS / BEHINDS · TOTAL" Foreground="#FFC6D1DE" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" />
-            </StackPanel>
-        </Border>
-        <Border Background="#C0000000" Padding="10,5" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40">
-            <TextBlock Foreground="White" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="14" Text="Calibration Mode  —  Ctrl+Shift+C to exit" />
-        </Border>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Background="#E6000000" Padding="8,4" HorizontalAlignment="Left" Margin="8">
+                <TextBlock x:Name="SizeReadout" Foreground="#FF00FF00" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="16" FontWeight="Bold" TextWrapping="Wrap" Text="0 x 0" />
+            </Border>
+            <Viewbox Grid.Row="1" Margin="8,0" Stretch="Uniform" StretchDirection="DownOnly">
+                <Border Background="#E6080B10" BorderBrush="#FF58A6FF" BorderThickness="2" CornerRadius="12" Padding="20,12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="NUMERAL FIT SAMPLE" Foreground="#FF9CCBFF" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="16" FontWeight="Black" HorizontalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,2">
+                            <TextBlock Text="88" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="72" FontWeight="Bold" />
+                            <Border Width="2" Background="#FF304055" Margin="20,5" />
+                            <TextBlock Text="888" Foreground="White" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="96" FontWeight="Black" />
+                        </StackPanel>
+                        <TextBlock Text="GOALS / BEHINDS · TOTAL" Foreground="#FFC6D1DE" FontFamily="{fonts:ProductionFont 'Arial'}" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </Viewbox>
+            <Border Grid.Row="2" Background="#E6000000" Padding="10,5" HorizontalAlignment="Center" Margin="8">
+                <TextBlock Foreground="White" FontFamily="{fonts:ProductionFont 'Consolas'}" FontSize="14" TextWrapping="Wrap" TextAlignment="Center" Text="Ctrl+Shift+C to exit" />
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

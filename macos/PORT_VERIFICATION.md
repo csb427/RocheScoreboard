@@ -1,5 +1,52 @@
 # Windows 5.0 Mac port verification
 
+> Local Windows-first [batch 11](../docs/refinement/2026-10-29-batch-11.md):
+> Five sequential operator refinements: saved interface feel, segment scrubbing,
+> command selection, source-based detail/icon choreography and a cricket
+> correction workspace with safe invalid-field focus. **352/352 Linux headless
+> tests**, **46/46 focused checks**, Windows Release/Debug 0 warnings/errors,
+> both Mac cross-builds successful (194 compatibility warnings; no added warnings).
+> All 636 frozen source/test/tool inputs unchanged during final verification.
+> Native WPF/Mac desktop acceptance remains pending. Batches 5–11 are local and
+> unpublished; the last verified preview download commit remains `e2e9de6`.
+
+> Local Windows-first [batch 10](../docs/refinement/2026-10-28-batch-10.md):
+> Presentation/output lifetime fixes, explicit reactivation after close, saved
+> bounds, clean cricket overlays and faithful AFL presentation reopening.
+> **324/324 Linux headless tests**, **27/27 focused checks**, Windows Release/Debug
+> 0 warnings/errors, both Mac cross-builds successful (196 existing warnings).
+> Native desktop/physical-monitor acceptance remains pending. Batches 5–10 are
+> local and unpublished; existing preview downloads remain at `e2e9de6`.
+
+> Local Windows-first [batch 9](../docs/refinement/2026-10-28-batch-9.md):
+> One Home with Start Game opening sport selection inside the wizard, direct
+> Training, safe Back/Cancel and guarded completion. **301/301 Linux headless
+> tests**, **71/71 focused checks**, Windows Release/Debug 0 warnings/errors,
+> both Mac cross-builds successful (196 existing warnings). Native desktop
+> acceptance remains pending. Batches 5–9 are local and unpublished.
+
+> Local Windows-first [batch 8](../docs/refinement/2026-10-28-batch-8.md):
+> Home/Resume and contextual local command search; **275/275 Linux headless
+> tests** with LibVLC, Windows Release/Debug builds with no warnings/errors,
+> and both Mac architecture cross-builds (196 existing warnings, no errors).
+> Native desktop acceptance is pending. Batches 5–8 remain local and unpublished.
+
+> Local bug-fix-only [batch 7](../docs/refinement/2026-10-28-batch-7.md):
+> **231/231 Linux headless tests**, clean Windows compilation, and an identity-
+> based AFL editor guard against replacement events. Batches 5–7 remain local;
+> native WPF GUI validation is pending. No new preview or feature was published.
+
+> Local Windows-first [batch 6](../docs/refinement/2026-10-28-batch-6.md):
+> **218/218 Linux headless tests**, clean Windows compilation, recovery/undo fixes
+> and a compile-time build identifier. Batches 5/6 remain local; no new preview
+> was published. Native Windows WPF GUI acceptance is still pending.
+
+> Local Windows-focused [batch 5](../docs/refinement/2026-10-28-batch-5.md):
+> **200/200 Linux headless tests**, Windows build 0 warnings/errors, and both Mac
+> architecture cross-builds succeeded. This batch is uncommitted/unpublished;
+> existing preview downloads remain at `e2e9de6`. Native Windows WPF GUI behavior
+> has not been exercised here. Mac cross-builds retain 196 compatibility warnings.
+
 > The [28 October refresh](../docs/refinement/2026-10-28-preview-refresh.md)
 > includes batches 1–4 and the imported project skills. Final local verification:
 > **182/182 Linux headless tests**, clean Windows build and both Mac cross-builds.

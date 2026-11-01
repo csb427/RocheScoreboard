@@ -15,6 +15,7 @@ public partial class CricketControlPanel
     private CricketBreakKind _observedPresentationBreak;
     private double _nextBreakPresentationAt;
     private bool _automaticBreakSwitch, _breakPresentationInitialized, _breakRotationEnabled = true;
+    private bool _breakPresentationOutputVisible;
 
     public bool BreakPresentationRotationEnabled
     {
@@ -32,7 +33,8 @@ public partial class CricketControlPanel
     {
         if (_breakPresentationInitialized) return;
         _breakPresentationInitialized = true;
-        _breakRotationEnabled = OperatorWorkflowPreferences.Load().AflBreakScreenEnabled;
+        var preferences = OperatorWorkflowPreferences.Load();
+        _breakRotationEnabled = preferences.CricketBreakPresentationRotation ?? preferences.AflBreakScreenEnabled;
         _breakPresentationTimer.Tick += (_, _) => TickBreakPresentations();
         PresentationChanged += target =>
         {
@@ -54,15 +56,18 @@ public partial class CricketControlPanel
         _observedPresentationBreak = CricketBreakKind.None;
         _nextBreakPresentationAt = 0;
         _automaticBreakSwitch = false;
+        _breakPresentationOutputVisible = false;
     }
 
     private void UpdateBreakPresentations()
     {
         bool changedMatch = !ReferenceEquals(_breakPresentationMatch, _match);
         var previous = _observedPresentationBreak;
+        bool changedOutput = _breakPresentationOutputVisible != _operatorOutputVisible;
+        _breakPresentationOutputVisible = _operatorOutputVisible;
         _breakPresentationMatch = _match;
         _observedPresentationBreak = _match?.BreakKind ?? CricketBreakKind.None;
-        if (changedMatch || previous != _observedPresentationBreak)
+        if (changedMatch || previous != _observedPresentationBreak || changedOutput)
             _nextBreakPresentationAt = _breakPresentationClock.Elapsed.TotalSeconds + BreakPresentationDwellSeconds;
         if (_match is null || _observedPresentationBreak == CricketBreakKind.None || _match.IsMatchFinalized || _match.TossPending)
         {
@@ -73,14 +78,17 @@ public partial class CricketControlPanel
                 SwitchBreakPresentation("scorebug");
             return;
         }
-        if (_breakRotationEnabled) _breakPresentationTimer.Start();
+        // The output's canonical activity owns broadcast rotation. Opening
+        // operator Settings may hide this panel while output stays on air;
+        // that legitimate rotation continues. Home/off-air pauses it.
+        if (_breakRotationEnabled && _operatorOutputVisible) _breakPresentationTimer.Start();
         else _breakPresentationTimer.Stop();
     }
 
     private void TickBreakPresentations()
     {
         UpdateBreakPresentations();
-        if (!_breakPresentationTimer.IsEnabled || _match?.CurrentInnings is not CricketInnings innings
+        if (!_operatorOutputVisible || !_breakPresentationTimer.IsEnabled || _match?.CurrentInnings is not CricketInnings innings
             || _summaryControl is null || _scorebug is null || _breakPresentationClock.Elapsed.TotalSeconds < _nextBreakPresentationAt) return;
         var modes = new List<string> { "scorebug" };
         if (innings.BattingOrder.Any(player => player.BallsFaced > 0 || player.Runs > 0 || player.IsOut)) modes.Add("batting");

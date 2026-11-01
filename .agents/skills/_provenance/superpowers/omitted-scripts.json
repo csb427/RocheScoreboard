@@ -1,0 +1,52 @@
+[
+  {
+    "path": "skills/brainstorming/scripts/frame-template.html",
+    "bytes": 8094,
+    "sha256": "6a8a4e58bd6a44b904e2e3c57de774481d909204597e1498de53f1b2fecc4c4e"
+  },
+  {
+    "path": "skills/brainstorming/scripts/helper.js",
+    "bytes": 5615,
+    "sha256": "43c6d69954a46ec34a2a262bcc62a9a7e83e839c739f199cb72646d397c686e3"
+  },
+  {
+    "path": "skills/brainstorming/scripts/server.cjs",
+    "bytes": 25699,
+    "sha256": "763abf96510e0b892a1141397b31aa82ef900cf87ed34dde94bc8782baf4a7ca"
+  },
+  {
+    "path": "skills/brainstorming/scripts/start-server.sh",
+    "bytes": 6908,
+    "sha256": "a4e5ae84275bcaacd2f84345afeabe59cf7b00ba080e123da7cc1fb226f12847"
+  },
+  {
+    "path": "skills/brainstorming/scripts/stop-server.sh",
+    "bytes": 3263,
+    "sha256": "0b5ccbbd57f62d3ed88993f7940b5ee0e5c0fc9b21c550c623da4f6292e47daf"
+  },
+  {
+    "path": "skills/executing-plans/scripts/task-done",
+    "bytes": 1692,
+    "sha256": "d0d4f2397c85a4426443ea955e699ef12568b41b408ec6122d4ec2433ee3a5f6"
+  },
+  {
+    "path": "skills/executing-plans/scripts/task-start",
+    "bytes": 963,
+    "sha256": "f833693c8fce3700fc9f841562d80f8015cd40f652c168a3405ac3e46947a1fe"
+  },
+  {
+    "path": "skills/subagent-driven-development/scripts/review-package",
+    "bytes": 2029,
+    "sha256": "f9275175b2276b1d5fdb1bae0bedaadd2a950659b7c6f311ea37ff85e1861b1f"
+  },
+  {
+    "path": "skills/subagent-driven-development/scripts/sdd-workspace",
+    "bytes": 3684,
+    "sha256": "4fd9770e7a49b6bde488c0e92bac1b3bd01fcbdaf8f06b6c4efbe3a1abd99f86"
+  },
+  {
+    "path": "skills/subagent-driven-development/scripts/task-brief",
+    "bytes": 1322,
+    "sha256": "cc563538e09abf719b34ddf4b2fa7a65cf3b301729039dbfa923cb060f729146"
+  }
+]

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Roche_Scoreboard.Models;
+using Roche_Scoreboard.Services;
 using Button = System.Windows.Controls.Button;
 using TextBlock = System.Windows.Controls.TextBlock;
 
@@ -18,10 +19,38 @@ public partial class CricketControlPanel
         string message = $"Record the umpire's Out decision for {innings.NonStriker!.FullName}. The ball was not delivered.\n\n"
             + "One wicket is added. Runs, ball counts, strike, bowler wickets and any pending free hit stay unchanged. The incoming batter takes the non-striker's end.\n\n"
             + "Undo reverses this action before earlier deliveries can be changed.";
-        if (await ChooseAsync("Non-striker run out before delivery", message,
-            new("cancel", "Cancel"), new("record-before-delivery", "Record run-out", true)) != "record-before-delivery"
+        var victim = innings.NonStriker!;
+        var identity = new StackPanel(); identity.Children.Add(WorkflowText("NON-STRIKER AT OPENING",12));
+        identity.Children.Add(WorkflowText(victim.FullName,19));
+        identity.Children.Add(WorkflowText("The ball has not been delivered.",13));
+        var contextRow = new Grid(); contextRow.ColumnDefinitions.Add(new ColumnDefinition()); contextRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); contextRow.Children.Add(identity);
+        var figures = new StackPanel { MinWidth = 100, VerticalAlignment = System.Windows.VerticalAlignment.Center };
+        var number = WorkflowText($"{victim.Runs} ({victim.BallsFaced})",22); number.TextAlignment = TextAlignment.Right;
+        System.Windows.Documents.Typography.SetNumeralAlignment(number,FontNumeralAlignment.Tabular);
+        number.ToolTip = $"{victim.FullName}: {victim.Runs} runs, {victim.BallsFaced} balls faced";
+        figures.Children.Add(number); var figureLabel = WorkflowText("runs (balls faced)",12); figureLabel.TextAlignment = TextAlignment.Right; figures.Children.Add(figureLabel);
+        Grid.SetColumn(figures,1); contextRow.Children.Add(figures);
+        var context = new Border { Tag = "undelivered-runout-context", Child = contextRow, CornerRadius = new CornerRadius(20), Padding = new Thickness(12,6,12,10), BorderThickness = new Thickness(1) };
+        context.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush"); context.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");
+        if (await ContextDecisionAsync("Non-striker run out before delivery", message, context,
+            new("cancel", "Cancel"), new("record-before-delivery", "Record run-out", true,
+                Detail: $"For {victim.DisplayName}: adds one wicket. Runs, ball counts, strike, bowler wickets and any pending free hit stay unchanged. The incoming batter takes the non-striker's end. Undo reverses this action.")) != "record-before-delivery"
             || !ReferenceEquals(match, _match)) return;
         if (!match.TryRecordNonStrikerRunOutBeforeDelivery(token, out string error)) await ShowErrorAsync("Run-out was not recorded", error);
+    }
+
+    private async Task<string?> ContextDecisionAsync(string title,string message,FrameworkElement context,params CricketPrompt.Choice[] choices)
+    {
+        if (_workflowBusy) return null;
+        _workflowBusy = true; int generation = _workflowGeneration;
+        var source = System.Windows.Input.Keyboard.FocusedElement as FrameworkElement;
+        if (source is not { IsLoaded:true, IsVisible:true } || !CricketRoot.IsAncestorOf(source)) source = MatchOptionsButton;
+        try
+        {
+            var answer = await CricketPrompt.ChooseWithContextAsync(CricketRoot,title,message,context,source,choices);
+            return generation == _workflowGeneration ? answer : null;
+        }
+        finally { ReleaseWorkflow(generation); }
     }
 
     private async Task OpenMatchOutcomeAsync()
@@ -31,29 +60,54 @@ public partial class CricketControlPanel
         string token = match.WorkflowToken;
         if (match.IsMatchFinalized)
         {
-            string summary = (match.MatchResult ?? "Match ended") + (string.IsNullOrWhiteSpace(match.ResultNote) ? "" : "\n\n" + match.ResultNote);
+            string recordedOutcome = match.MatchResult ?? "Match ended"; string recordedNote = match.ResultNote ?? "";
+            string summary = recordedOutcome + (string.IsNullOrWhiteSpace(recordedNote) ? "" : "\n\n" + recordedNote);
             var choices = new List<CricketPrompt.Choice> { new("close", "Close") };
             if (match.ClosureBefore is not null) choices.Add(new("reopen", "Reopen match"));
             else summary += "\n\nThis older save has no reopening checkpoint. Figures remain available in the scorecard.";
             if (await ChooseAsync("Recorded outcome", summary, choices.ToArray()) != "reopen" || !ReferenceEquals(match, _match)) return;
-            if (await ChooseAsync("Reopen this match?", "The recorded outcome will be cleared. Corrected figures are retained. The previous break and selection state are restored; a completed innings still needs the next-innings decision.",
-                new("cancel", "Keep outcome"), new("confirm-reopen", "Reopen match", true)) != "confirm-reopen" || !ReferenceEquals(match, _match)) return;
+            var recorded = new StackPanel(); recorded.Children.Add(WorkflowText("RECORDED OUTCOME UNDER REVIEW",12));
+            recorded.Children.Add(WorkflowText(recordedOutcome,22));
+            if(!string.IsNullOrWhiteSpace(recordedNote)) recorded.Children.Add(WorkflowText(recordedNote,14));
+            var context = new Border { Tag = "reopen-outcome-context", Child = recorded, CornerRadius = new CornerRadius(20), Padding = new Thickness(12,6,12,12), BorderThickness = new Thickness(1) };
+            context.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush"); context.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");
+            if (await ContextDecisionAsync("Reopen this match?", "The recorded outcome will be cleared. Corrected figures are retained. The previous break and selection state are restored; a completed innings still needs the next-innings decision.", context,
+                new("cancel", "Keep outcome"), new("confirm-reopen", "Reopen match", true,
+                    Detail: "Clears this recorded outcome and keeps corrected figures. Restores the previous break and selection state; a completed innings still needs the next-innings decision.")) != "confirm-reopen" || !ReferenceEquals(match, _match)) return;
             if (!match.TryReopenMatch(token, out string error)) await ShowErrorAsync("Match was not reopened", error);
             else ResumePendingSelection();
             return;
         }
-        var body = new StackPanel();
+        var body = new StackPanel { Tag = "match-outcome-review", Margin = new Thickness(0,0,12,0) };
+        var innings = match.CurrentInnings;
+        var record = new Grid { IsHitTestVisible = false };
+        record.ColumnDefinitions.Add(new ColumnDefinition()); record.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
+        var identity = new StackPanel();
+        identity.Children.Add(WorkflowText("AT OPENING",12));
+        identity.Children.Add(WorkflowText(innings.BattingTeamName,18));
+        identity.Children.Add(WorkflowText($"Innings {innings.InningsNumber} · {innings.OversDisplay} overs",13)); record.Children.Add(identity);
+        var score = WorkflowText($"{innings.TotalWickets}/{innings.TotalRuns}",28); score.HorizontalAlignment = System.Windows.HorizontalAlignment.Right; score.VerticalAlignment = System.Windows.VerticalAlignment.Center;
+        System.Windows.Documents.Typography.SetNumeralAlignment(score,FontNumeralAlignment.Tabular);
+        score.ToolTip = $"{innings.TotalRuns} runs, {innings.TotalWickets} wickets";
+        System.Windows.Automation.AutomationProperties.SetName(score,$"{innings.TotalRuns} runs, {innings.TotalWickets} wickets");
+        Grid.SetColumn(score,1); record.Children.Add(score);
+        var recordCard = new Border { Child = record, Tag = "outcome-opening-record", Padding = new Thickness(12,4,12,8), Margin = new Thickness(3,0,3,12), CornerRadius = new CornerRadius(20), BorderThickness = new Thickness(1) };
+        recordCard.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush"); recordCard.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush"); body.Children.Add(recordCard);
         body.Children.Add(WorkflowText("Scoring will stop; scores and history stay saved for review or reopening. Use the outcome supplied by officials or the competition. No minimum-overs rule, tie-break or DLS result is inferred.", 14));
-        body.Children.Add(WorkflowText("Result note (optional)", 14));
         var note = WorkflowInput(""); note.Tag = "outcome-note"; note.MaxLength = 500;
         note.AcceptsReturn = true; note.TextWrapping = TextWrapping.Wrap; note.MinHeight = 70;
         System.Windows.Automation.AutomationProperties.SetName(note, "Result note, optional, up to 500 characters");
-        body.Children.Add(note);
+        var noteFields = new StackPanel();
+        var noteLabel = new System.Windows.Controls.Label { Content = "Result _note · optional", Target = note, FontSize = 14, Padding = new Thickness(3,4,3,6) };
+        noteLabel.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty,"ControlCentre.TextBrush"); noteFields.Children.Add(noteLabel); noteFields.Children.Add(note);
+        var noteCard = new Border { Child = noteFields, Padding = new Thickness(10,6,10,10), Margin = new Thickness(3,8,3,8), CornerRadius = new CornerRadius(16), BorderThickness = new Thickness(1) };
+        noteCard.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush"); noteCard.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush"); body.Children.Add(noteCard);
         var actions = new List<CricketPrompt.Choice> { new("cancel", "Keep match open") };
         if (!match.TossPending)
-            actions.Add(new("score-result", match.MatchResult is { } result ? "Record result: " + result : "End without a recorded result", match.MatchResult is not null));
-        actions.Add(new("abandoned", "Match abandoned"));
-        actions.Add(new("no-result", "No result — official decision"));
+            actions.Add(new("score-result", match.MatchResult is { } result ? "Record result: " + result : "End without a recorded result", match.MatchResult is not null,
+                Detail: match.MatchResult is not null ? "Record the available score-based result and stop scoring. A reopening checkpoint is kept." : "Stop scoring without assigning a result. Figures stay available for review or reopening."));
+        actions.Add(new("abandoned", "Match abandoned", Detail: "Record abandonment as the outcome and stop scoring. Figures and history are kept."));
+        actions.Add(new("no-result", "No result — official decision", Detail: "Record the officials' No result decision. No minimum-overs or DLS outcome is calculated."));
         string? answer = await FormAsync("End match / record outcome",
             "", body, actions.ToArray());
         if (!ReferenceEquals(match, _match) || answer is null or "cancel") return;

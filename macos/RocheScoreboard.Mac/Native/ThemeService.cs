@@ -26,6 +26,8 @@ public sealed class ThemeService
         }
         CurrentTheme = theme; CurrentDensity = density;
         app.RequestedThemeVariant = theme == AppTheme.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
+        OperatorDesign.UpdateTheme(theme);
+        OperatorDesign.UpdateDensity(density);
     }
     public void SetTheme(AppTheme theme)
     {
@@ -36,6 +38,7 @@ public sealed class ThemeService
         if (index < 0) throw new InvalidOperationException("The active source theme dictionary is missing.");
         app.Resources.MergedDictionaries[index] = next; _theme = next; CurrentTheme = theme;
         app.RequestedThemeVariant = theme == AppTheme.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
+        OperatorDesign.UpdateTheme(theme);
     }
     public void SetDensity(UiDensity density)
     {
@@ -45,5 +48,6 @@ public sealed class ThemeService
         if (index < 0) throw new InvalidOperationException("The active source density dictionary is missing.");
         var next = Load(density == UiDensity.Compact ? "CompactDensity" : "ComfortableDensity");
         resources[index] = next; _density = next; CurrentDensity = density;
+        OperatorDesign.UpdateDensity(density);
     }
 }

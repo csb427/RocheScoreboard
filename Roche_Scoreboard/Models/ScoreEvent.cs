@@ -23,6 +23,13 @@ namespace Roche_Scoreboard.Models
         public int AwayTotal => AwayGoals * 6 + AwayBehinds;
         public int Margin => HomeTotal - AwayTotal;
 
+        internal ScoreEvent Clone() => new()
+        {
+            Timestamp = Timestamp, Quarter = Quarter, GameTime = GameTime,
+            Team = Team, Type = Type, HomeGoals = HomeGoals, HomeBehinds = HomeBehinds,
+            AwayGoals = AwayGoals, AwayBehinds = AwayBehinds
+        };
+
         public string Description =>
             $"{(Team == TeamSide.Home ? "Home" : "Away")} {(Type == ScoreType.Goal ? "Goal" : "Behind")}";
 

@@ -1,5 +1,5 @@
 // Generated from Services/Cloud/RemoteControlService.cs; edit translator/adapters.
-// Source SHA-256: 33f482768f22b53ceec5aa3a8b5be20cda5a28bfde906e7d35aa0422d6c0a4cc
+// Source SHA-256: f40b30d6e0832b578486e2f537df904904135d21f20bfe90f53c27e3f973aba0
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -8,11 +8,39 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Roche_Scoreboard.Services.Cloud;
+
+// Host lifetime seam. Production still creates the exact transport service;
+// local tests can control completion without connecting to Supabase.
+internal interface ICloudRemoteSession : IAsyncDisposable
+{
+    bool IsActive { get; }
+    string? JoinCode { get; }
+    Guid? SessionId { get; }
+    event Action<bool>? ConnectedChanged;
+    Task StartAsync(string sport, string homeName, string awayName, LiveStateSnapshot initialState, CancellationToken ct);
+    void PublishSnapshot(LiveStateSnapshot snapshot);
+}
+
+// Narrow provider contracts; the public constructor still uses the real clients.
+internal interface ICloudSessionStore : IDisposable
+{
+    Task<GameSessionRow> CreateAsync(string sport, string homeName, string awayName, CancellationToken ct);
+    Task PublishStateAsync(Guid sessionId, LiveStateSnapshot snapshot, CancellationToken ct);
+    Task EndAsync(Guid sessionId, CancellationToken ct);
+}
+
+internal interface ICloudRealtimeTransport : IAsyncDisposable
+{
+    event Action<JsonElement>? EventReceived;
+    event Action<bool>? ConnectedChanged;
+    Task SubscribeToSessionEventsAsync(Guid sessionId, CancellationToken ct);
+}
 
 /// <summary>
 /// Top-level orchestrator for the Supabase-backed cloud remote session.
@@ -26,16 +54,19 @@ namespace Roche_Scoreboard.Services.Cloud;
 ///   - Publish the rolling <see cref="LiveStateSnapshot"/> on every match
 ///     change, throttled to ~10/second to avoid flooding the REST endpoint.
 /// </summary>
-public sealed class RemoteControlService : IAsyncDisposable
+public sealed class RemoteControlService : IAsyncDisposable, ICloudRemoteSession
 {
     private readonly SupabaseConfig _config;
     private readonly IRemoteCommandTarget _target;
     private readonly Dispatcher _uiDispatcher;
 
     private SupabaseRestClient? _rest;
-    private CloudGameSessionService? _sessions;
-    private SupabaseRealtimeClient? _realtime;
+    private ICloudSessionStore? _sessions;
+    private ICloudRealtimeTransport? _realtime;
     private RemoteCommandDispatcher? _dispatcher;
+
+    private readonly Func<SupabaseConfig, ICloudSessionStore> _sessionFactory;
+    private readonly Func<SupabaseConfig, ICloudRealtimeTransport> _realtimeFactory;
 
     private GameSessionRow? _session;
     private DateTime _lastPublishUtc = DateTime.MinValue;
@@ -45,6 +76,9 @@ public sealed class RemoteControlService : IAsyncDisposable
     private LiveStateSnapshot? _pendingSnapshot;
     private Task? _publishLoop;
     private bool _disposed;
+    private Task? _startupTask;
+    private Task? _disposeTask;
+    private GameSessionRow? _startupSession;
 
     public RemoteControlService(SupabaseConfig config, IRemoteCommandTarget target, Dispatcher uiDispatcher)
     {
@@ -62,15 +96,32 @@ public sealed class RemoteControlService : IAsyncDisposable
         _config = config;
         _target = target;
         _uiDispatcher = uiDispatcher;
+        _sessionFactory = settings =>
+        {
+            _rest = new SupabaseRestClient(settings);
+            return new CloudGameSessionService(_rest);
+        };
+        _realtimeFactory = static settings => new SupabaseRealtimeClient(settings);
     }
 
-    public bool IsActive => _session is not null;
+    internal RemoteControlService(SupabaseConfig config, IRemoteCommandTarget target, Dispatcher uiDispatcher,
+        Func<SupabaseConfig, ICloudSessionStore> sessionFactory,
+        Func<SupabaseConfig, ICloudRealtimeTransport> realtimeFactory)
+        : this(config, target, uiDispatcher)
+    {
+        ArgumentNullException.ThrowIfNull(sessionFactory);
+        ArgumentNullException.ThrowIfNull(realtimeFactory);
+        _sessionFactory = sessionFactory;
+        _realtimeFactory = realtimeFactory;
+    }
+
+    public bool IsActive { get { lock (_publishGate) return !_disposed && _session is not null; } }
 
     /// <summary>Join code shown to the operator (e.g. <c>K7HM-2QPR</c>).</summary>
-    public string? JoinCode => _session?.JoinCode;
+    public string? JoinCode { get { lock (_publishGate) return _disposed ? null : _session?.JoinCode; } }
 
     /// <summary>Server-assigned game id.</summary>
-    public Guid? SessionId => _session?.Id;
+    public Guid? SessionId { get { lock (_publishGate) return _disposed ? null : _session?.Id; } }
 
     public event Action<bool>? ConnectedChanged;
 
@@ -78,23 +129,106 @@ public sealed class RemoteControlService : IAsyncDisposable
     /// Boots a fresh session: creates the row, subscribes to events, and
     /// publishes the initial snapshot.
     /// </summary>
-    public async Task StartAsync(string sport, string homeName, string awayName, LiveStateSnapshot initialState, CancellationToken ct)
+    public Task StartAsync(string sport, string homeName, string awayName, LiveStateSnapshot initialState, CancellationToken ct)
     {
-        if (_session is not null) return;
+        TaskCompletionSource completion;
+        lock (_publishGate)
+        {
+            if (_disposed) return Task.FromException(new ObjectDisposedException(nameof(RemoteControlService)));
+            if (_startupTask is not null) return _startupTask;
+            completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            // Publish the receipt before a synchronous factory/event can reenter.
+            _startupTask = completion.Task;
+        }
+        _ = CompleteStartupAsync(sport, homeName, awayName, initialState, ct, completion);
+        return completion.Task;
+    }
 
-        _rest = new SupabaseRestClient(_config);
-        _sessions = new CloudGameSessionService(_rest);
-        _dispatcher = new RemoteCommandDispatcher(_target, _uiDispatcher);
+    private async Task CompleteStartupAsync(string sport, string homeName, string awayName,
+        LiveStateSnapshot initialState, CancellationToken ct, TaskCompletionSource completion)
+    {
+        try
+        {
+            await StartCoreAsync(sport, homeName, awayName, initialState, ct).ConfigureAwait(false);
+            lock (_publishGate)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (_disposed) throw new OperationCanceledException(_lifetimeCts.Token);
+                completion.TrySetResult();
+                // Scores may change while subscribe/initial lobby publish is
+                // pending. Flush their newest state only after startup has
+                // finished writing, so the lobby snapshot cannot overwrite it.
+                if (_pendingSnapshot is not null && (_publishLoop is null || _publishLoop.IsCompleted))
+                    _publishLoop = Task.Run(PublishLoopAsync);
+            }
+        }
+        catch (OperationCanceledException error) { completion.TrySetCanceled(error.CancellationToken); }
+        catch (Exception error) { completion.TrySetException(error); }
+    }
 
-        _session = await _sessions.CreateAsync(sport, homeName, awayName, ct).ConfigureAwait(false);
+    private async Task StartCoreAsync(string sport, string homeName, string awayName,
+        LiveStateSnapshot initialState, CancellationToken ct)
+    {
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _lifetimeCts.Token);
+        CancellationToken owned = linked.Token;
+        ICloudSessionStore sessions;
+        Task<GameSessionRow> creating;
+        lock (_publishGate)
+        {
+            ThrowIfStartupRetired(owned);
+            sessions = _sessionFactory(_config);
+            _sessions = sessions; // Retain every acquired resource for terminal disposal.
+            ThrowIfStartupRetired(owned);
+            _dispatcher = CreateOwnedDispatcher();
+            creating = sessions.CreateAsync(sport, homeName, awayName, owned);
+        }
+        GameSessionRow created = await creating.ConfigureAwait(false);
+        Task subscribing;
+        lock (_publishGate)
+        {
+            // Even a provider ignoring cancellation can return a created row.
+            // Keep its identity for End, without exposing a retired session.
+            _startupSession = created;
+            ThrowIfStartupRetired(owned);
+            _session = created;
+            ICloudRealtimeTransport realtime = _realtimeFactory(_config);
+            _realtime = realtime;
+            ThrowIfStartupRetired(owned);
+            realtime.ConnectedChanged += ForwardConnected;
+            realtime.EventReceived += OnRealtimeEvent;
+            subscribing = realtime.SubscribeToSessionEventsAsync(created.Id, owned);
+        }
+        await subscribing.ConfigureAwait(false);
+        Task publishing;
+        lock (_publishGate)
+        {
+            ThrowIfStartupRetired(owned);
+            publishing = sessions.PublishStateAsync(created.Id, initialState with { SessionStatus = "lobby" }, owned);
+        }
+        await publishing.ConfigureAwait(false);
+        lock (_publishGate) ThrowIfStartupRetired(owned);
+    }
 
-        _realtime = new SupabaseRealtimeClient(_config);
-        _realtime.ConnectedChanged += ForwardConnected;
-        _realtime.EventReceived += OnRealtimeEvent;
-        await _realtime.SubscribeToSessionEventsAsync(_session.Id, ct).ConfigureAwait(false);
+    // Called under the same gate as resource publication and retirement.
+    private void ThrowIfStartupRetired(CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (_disposed) throw new OperationCanceledException(ct);
+    }
 
-        await _sessions.PublishStateAsync(_session.Id, initialState with { SessionStatus = "lobby" }, ct)
-            .ConfigureAwait(false);
+    private RemoteCommandDispatcher CreateOwnedDispatcher()
+    {
+        RemoteCommandDispatcher? receipt = null;
+        receipt = new RemoteCommandDispatcher(_target, callback =>
+        {
+            _ = _uiDispatcher.InvokeAsync(() =>
+            {
+                lock (_publishGate)
+                    if (_disposed || !ReferenceEquals(_dispatcher, receipt)) return;
+                callback();
+            });
+        });
+        return receipt;
     }
 
     /// <summary>
@@ -111,7 +245,7 @@ public sealed class RemoteControlService : IAsyncDisposable
             // dropped, so the remote cannot remain on an intermediate score
             // merely because the final event landed inside the throttle window.
             _pendingSnapshot = snapshot;
-            if (_publishLoop is null || _publishLoop.IsCompleted)
+            if (_startupTask?.IsCompletedSuccessfully == true && (_publishLoop is null || _publishLoop.IsCompleted))
                 _publishLoop = Task.Run(PublishLoopAsync);
         }
     }
@@ -121,7 +255,7 @@ public sealed class RemoteControlService : IAsyncDisposable
         while (!_lifetimeCts.IsCancellationRequested)
         {
             LiveStateSnapshot? snapshot;
-            CloudGameSessionService? sessions;
+            ICloudSessionStore? sessions;
             Guid sessionId;
             lock (_publishGate)
             {
@@ -149,8 +283,14 @@ public sealed class RemoteControlService : IAsyncDisposable
                 {
                     using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token);
                     timeout.CancelAfter(TimeSpan.FromSeconds(5));
-                    await sessions.PublishStateAsync(sessionId, snapshot, timeout.Token).ConfigureAwait(false);
-                    _lastPublishUtc = DateTime.UtcNow;
+                    Task publishing;
+                    lock (_publishGate)
+                    {
+                        if (_disposed || !ReferenceEquals(_sessions, sessions) || _session?.Id != sessionId) return;
+                        publishing = sessions.PublishStateAsync(sessionId, snapshot, timeout.Token);
+                    }
+                    await publishing.ConfigureAwait(false);
+                    lock (_publishGate) if (!_disposed) _lastPublishUtc = DateTime.UtcNow;
                     break;
                 }
                 catch (OperationCanceledException) when (_lifetimeCts.IsCancellationRequested)
@@ -172,6 +312,7 @@ public sealed class RemoteControlService : IAsyncDisposable
 
     private void OnRealtimeEvent(JsonElement record)
     {
+        lock (_publishGate) if (_disposed) return;
         try
         {
             // record shape:
@@ -188,7 +329,7 @@ public sealed class RemoteControlService : IAsyncDisposable
                 CreatedAt   = TryGetDateTime(record, "created_at") ?? DateTimeOffset.UtcNow,
             };
 
-            _dispatcher?.Dispatch(ev);
+            lock (_publishGate) if (!_disposed) _dispatcher?.Dispatch(ev);
         }
         catch (Exception ex)
         {
@@ -196,47 +337,79 @@ public sealed class RemoteControlService : IAsyncDisposable
         }
     }
 
-    private void ForwardConnected(bool connected) => ConnectedChanged?.Invoke(connected);
-
-    public async ValueTask DisposeAsync()
+    private void ForwardConnected(bool connected)
     {
-        Task? pendingPublish;
+        lock (_publishGate) if (!_disposed) ConnectedChanged?.Invoke(connected);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        TaskCompletionSource completion;
+        Task? startup, pendingPublish;
         lock (_publishGate)
         {
-            if (_disposed) return;
+            if (_disposeTask is not null) return new ValueTask(_disposeTask);
             _disposed = true;
             _pendingSnapshot = null;
+            startup = _startupTask;
             pendingPublish = _publishLoop;
+            completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            // Every caller observes the same actual terminal cleanup, including
+            // callers reentering through cancellation or client callbacks.
+            _disposeTask = completion.Task;
         }
-        try { _lifetimeCts.Cancel(); } catch { }
-        try { if (pendingPublish is not null) await pendingPublish.ConfigureAwait(false); } catch { }
+        _ = CompleteDisposalAsync(startup, pendingPublish, completion);
+        return new ValueTask(completion.Task);
+    }
 
-        if (_session is not null && _sessions is not null)
+    private async Task CompleteDisposalAsync(Task? startup, Task? pendingPublish, TaskCompletionSource completion)
+    {
+        var errors = new List<Exception>();
+        try
         {
-            try
+            try { _lifetimeCts.Cancel(); } catch (Exception error) { errors.Add(error); }
+            // Startup owns its public failure/cancellation receipt. Observe it
+            // here to join ownership, then close all resources it acquired.
+            try { if (startup is not null) await startup.ConfigureAwait(false); } catch (Exception) { }
+            try { if (pendingPublish is not null) await pendingPublish.ConfigureAwait(false); }
+            catch (Exception error) { errors.Add(error); }
+
+            ICloudSessionStore? sessions;
+            ICloudRealtimeTransport? realtime;
+            SupabaseRestClient? rest;
+            GameSessionRow? created;
+            lock (_publishGate)
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-                await _sessions.EndAsync(_session.Id, cts.Token).ConfigureAwait(false);
+                sessions = _sessions; realtime = _realtime; rest = _rest;
+                created = _startupSession;
             }
-            catch { /* best effort on shutdown */ }
+            if (created is not null && sessions is not null)
+            {
+                try
+                {
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    await sessions.EndAsync(created.Id, timeout.Token).ConfigureAwait(false);
+                }
+                catch (Exception error) { errors.Add(error); }
+            }
+            if (realtime is not null)
+            {
+                try { realtime.EventReceived -= OnRealtimeEvent; } catch (Exception error) { errors.Add(error); }
+                try { realtime.ConnectedChanged -= ForwardConnected; } catch (Exception error) { errors.Add(error); }
+                try { await realtime.DisposeAsync().ConfigureAwait(false); } catch (Exception error) { errors.Add(error); }
+            }
+            try { sessions?.Dispose(); } catch (Exception error) { errors.Add(error); }
+            try { rest?.Dispose(); } catch (Exception error) { errors.Add(error); }
+            lock (_publishGate)
+            {
+                _session = null; _startupSession = null; _sessions = null;
+                _rest = null; _realtime = null; _dispatcher = null;
+            }
+            try { _lifetimeCts.Dispose(); } catch (Exception error) { errors.Add(error); }
+            if (errors.Count > 0) throw new AggregateException("Cloud provider cleanup failed.", errors);
+            completion.TrySetResult();
         }
-
-        if (_realtime is not null)
-        {
-            _realtime.EventReceived -= OnRealtimeEvent;
-            _realtime.ConnectedChanged -= ForwardConnected;
-            await _realtime.DisposeAsync().ConfigureAwait(false);
-        }
-
-        _sessions?.Dispose();
-        _rest?.Dispose();
-
-        _session = null;
-        _sessions = null;
-        _rest = null;
-        _realtime = null;
-        _dispatcher = null;
-        _lifetimeCts.Dispose();
+        catch (Exception error) { completion.TrySetException(error); }
     }
 
     // ── JSON helpers ──

@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/PresentationScoreBar.xaml.cs; edit translator/adapters.
-// Source SHA-256: 2c9ae555242f08a65521837db42fe706c7788443a9bc315e170fd429ddd80bcb
+// Source SHA-256: d02e164e9a5e36385122ad2f3d5f1822781fa982b9ee7905d76ca3f6b885287f
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -27,6 +27,8 @@ namespace Roche_Scoreboard.Views;
 public partial class PresentationScoreBar : UserControl
 {
     private MatchManager? _match;
+    private long _scoreDeltaSourceLifetime;
+    private int _homeDeltaVersion, _awayDeltaVersion;
     private bool _timerAllowed = true;
     private readonly DispatcherTimer _clockTimer;
     private DispatcherTimer? _homeDeltaTimer;
@@ -35,6 +37,7 @@ public partial class PresentationScoreBar : UserControl
     private bool _breakCentreActive;
     private bool _showingBreakClock;
     private bool _breakCentreTransitioning;
+    private int _breakCentreTransitionVersion;
     private string _breakLabel = "QT";
     private Color _homeSecondary = Colors.White;
     private Color _awaySecondary = Colors.White;
@@ -48,28 +51,40 @@ public partial class PresentationScoreBar : UserControl
         _breakCentreTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(17) };
         _breakCentreTimer.Tick += (_, _) => TransitionBreakCentre();
 
-        Loaded += (_, _) =>
-        {
-            ApplyLiveMatchState();
-            Dispatcher.UIThread.Post(UpdateResponsiveTypography, DispatcherPriority.Loaded);
-            _clockTimer.Start();
-            if (_breakCentreActive) _breakCentreTimer.Start();
-        };
-        Unloaded += (_, _) =>
-        {
-            _clockTimer.Stop();
-            _breakCentreTimer.Stop();
-        };
+        Loaded += (_, _) => ResumeVisiblePresentation();
+        Unloaded += (_, _) => RetireVisiblePresentation();
         SizeChanged += (_, _) => Dispatcher.UIThread.Post(UpdateResponsiveTypography, DispatcherPriority.Loaded);
-        NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, e) =>
+        NativeEffectiveVisibility.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, e) =>
         {
             if (e.NewValue is true)
-                Dispatcher.UIThread.Post(UpdateResponsiveTypography, DispatcherPriority.Loaded);
+                ResumeVisiblePresentation();
+            else
+                RetireVisiblePresentation();
         });
+    }
+
+    private void ResumeVisiblePresentation()
+    {
+        if (!IsLoaded || !NativeEffectiveVisibility.IsVisible(this)) return;
+        ApplyLiveMatchState();
+        // Text notifications can synchronously hide or unload this owner.
+        if (!IsLoaded || !NativeEffectiveVisibility.IsVisible(this)) return;
+        Dispatcher.UIThread.Post(UpdateResponsiveTypography, DispatcherPriority.Loaded);
+        _clockTimer.Start();
+        if (_breakCentreActive) _breakCentreTimer.Start();
+    }
+
+    private void RetireVisiblePresentation()
+    {
+        _clockTimer.Stop();
+        _breakCentreTimer.Stop();
+        RetireScoreDeltas();
+        RetireBreakCentreTransition(resetPhase: true);
     }
 
     private void OnClockTick(object? sender, EventArgs e)
     {
+        if (!IsLoaded || !NativeEffectiveVisibility.IsVisible(this)) return;
         ApplyLiveMatchState();
     }
 
@@ -86,6 +101,15 @@ public partial class PresentationScoreBar : UserControl
         bool showTimer = true)
     {
         ArgumentNullException.ThrowIfNull(match);
+        bool sourceChanged = !ReferenceEquals(_match, match);
+        long sourceLifetime = match.LifecycleVersion;
+        if (sourceChanged || sourceLifetime != _scoreDeltaSourceLifetime)
+            RetireScoreDeltas();
+        _scoreDeltaSourceLifetime = sourceLifetime;
+        if (sourceChanged) _breakCentreTimer.Stop();
+        // Populate is an explicit binding boundary. Keep a same-source cadence
+        // and current phase, but no earlier fade may finish over this refresh.
+        RetireBreakCentreTransition(resetPhase: sourceChanged);
         _match = match;
 
         Color homeColor = SafeColor(homeColorHex, "#C9483B");
@@ -139,6 +163,8 @@ public partial class PresentationScoreBar : UserControl
         // during the same window the break screen suppresses it.
         _timerAllowed = showTimer;
         ApplyLiveMatchState();
+        if (sourceChanged && _breakCentreActive && IsLoaded && NativeEffectiveVisibility.IsVisible(this))
+            _breakCentreTimer.Start();
 
         // Each side falls back independently to its abbreviation. One missing
         // logo must never erase both team identities from the persistent bar.
@@ -154,6 +180,10 @@ public partial class PresentationScoreBar : UserControl
     /// </summary>
     public void PlayScoreAnimation(ScoreEvent scoreEvent)
     {
+        // A copied presentation callback must not revive decoration after its
+        // output has hidden or detached. Scoring is accepted by the model first.
+        if (!IsLoaded || !NativeEffectiveVisibility.IsVisible(this)) return;
+        if (!RefreshBoundMatchLifetime()) return;
         bool home = scoreEvent.Team == TeamSide.Home;
         bool goal = scoreEvent.Type == ScoreType.Goal;
         Border overlay = home ? HomeDeltaOverlay : AwayDeltaOverlay;
@@ -162,24 +192,31 @@ public partial class PresentationScoreBar : UserControl
         Rectangle flash = home ? HomeGoalFlash : AwayGoalFlash;
         TextBlock total = home ? HomeTotalText : AwayTotalText;
 
+        int version = home ? ++_homeDeltaVersion : ++_awayDeltaVersion;
+        MatchManager? source = _match;
+        long sourceLifetime = source?.LifecycleVersion ?? 0;
         DispatcherTimer? previous = home ? _homeDeltaTimer : _awayDeltaTimer;
         previous?.Stop();
         overlay.BeginAnimation(OpacityProperty, null);
         translate.BeginAnimation(TranslateTransform.YProperty, null);
         flash.BeginAnimation(OpacityProperty, null);
         total.BeginAnimation(OpacityProperty, null);
+        if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
 
         deltaText.Text = goal ? "+6" : "+1";
+        if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
         double height = Math.Max(Bounds.Height, 32);
         deltaText.FontSize = Math.Max(22, height * 0.72);
         translate.Y = height;
         overlay.Opacity = 1;
+        if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
 
         var enter = new DoubleAnimation(height, 0, TimeSpan.FromMilliseconds(goal ? 360 : 320))
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
         translate.BeginAnimation(TranslateTransform.YProperty, enter);
+        if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
 
         if (goal)
         {
@@ -192,29 +229,90 @@ public partial class PresentationScoreBar : UserControl
             flash.BeginAnimation(OpacityProperty, beats);
         }
 
+        if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(goal ? 1350 : 1050) };
         if (home) _homeDeltaTimer = timer; else _awayDeltaTimer = timer;
         timer.Tick += (_, _) =>
         {
             timer.Stop();
+            if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
+            if (home) _homeDeltaTimer = null; else _awayDeltaTimer = null;
             var exitEase = new CubicEase { EasingMode = EasingMode.EaseIn };
             var exit = new DoubleAnimation(0, -height, TimeSpan.FromMilliseconds(340)) { EasingFunction = exitEase };
             var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = exitEase };
             exit.Completed += (_, _) =>
             {
+                if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
                 overlay.Opacity = 0;
+                if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
                 translate.BeginAnimation(TranslateTransform.YProperty, null);
+                if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
                 translate.Y = height;
             };
             translate.BeginAnimation(TranslateTransform.YProperty, exit);
+            if (!OwnsScoreDelta(home, version, source, sourceLifetime)) return;
             overlay.BeginAnimation(OpacityProperty, fade);
         };
         timer.Start();
     }
 
+    // Public Populate retires score feedback only when its actual model owner
+    // changes. Normal same-source refreshes and score bursts keep their pacing.
+    private void RetireScoreDeltas()
+    {
+        RetireScoreDelta(true);
+        RetireScoreDelta(false);
+    }
+
+    private void RetireScoreDelta(bool home)
+    {
+        if (home) ++_homeDeltaVersion; else ++_awayDeltaVersion;
+        DispatcherTimer? timer = home ? _homeDeltaTimer : _awayDeltaTimer;
+        timer?.Stop();
+        if (home) _homeDeltaTimer = null; else _awayDeltaTimer = null;
+        Border overlay = home ? HomeDeltaOverlay : AwayDeltaOverlay;
+        TranslateTransform translate = home ? HomeDeltaTranslate : AwayDeltaTranslate;
+        Rectangle flash = home ? HomeGoalFlash : AwayGoalFlash;
+        TextBlock total = home ? HomeTotalText : AwayTotalText;
+        overlay.BeginAnimation(OpacityProperty, null);
+        translate.BeginAnimation(TranslateTransform.YProperty, null);
+        flash.BeginAnimation(OpacityProperty, null);
+        total.BeginAnimation(OpacityProperty, null);
+        overlay.Opacity = 0;
+        flash.Opacity = 0;
+        total.Opacity = 1;
+        translate.Y = Math.Max(Bounds.Height, 32);
+    }
+
+    private bool OwnsScoreDelta(bool home, int version, MatchManager? source, long sourceLifetime)
+        => IsLoaded && NativeEffectiveVisibility.IsVisible(this)
+           && version == (home ? _homeDeltaVersion : _awayDeltaVersion)
+           && ReferenceEquals(_match, source)
+           && (source is null || source.LifecycleVersion == sourceLifetime);
+
+    // The bar also refreshes from its bound model without another Populate.
+    // A reset must retire the old cue/phase before publishing new totals, and
+    // a fresh cue before that refresh must already belong to the new lifetime.
+    private bool RefreshBoundMatchLifetime()
+    {
+        var source = _match;
+        if (source is null) return true; // Preserve the unbound preview contract.
+        long lifetime = source.LifecycleVersion;
+        if (_scoreDeltaSourceLifetime == lifetime) return true;
+        _scoreDeltaSourceLifetime = lifetime;
+        RetireScoreDeltas();
+        if (!ReferenceEquals(_match, source) || source.LifecycleVersion != lifetime) return false;
+        _breakCentreTimer.Stop();
+        RetireBreakCentreTransition(resetPhase: true);
+        if (!ReferenceEquals(_match, source) || source.LifecycleVersion != lifetime) return false;
+        if (_breakCentreActive && IsLoaded && NativeEffectiveVisibility.IsVisible(this)) _breakCentreTimer.Start();
+        return true;
+    }
+
     private void ApplyLiveMatchState()
     {
         if (_match is null) return;
+        if (!RefreshBoundMatchLifetime()) return;
 
         HomeTotalText.Text = _match.HomeTotal.ToString();
         AwayTotalText.Text = _match.AwayTotal.ToString();
@@ -253,16 +351,14 @@ public partial class PresentationScoreBar : UserControl
     {
         if (_breakCentreActive == active) return;
         _breakCentreActive = active;
-        _breakCentreTransitioning = false;
-        BreakCenterText.BeginAnimation(OpacityProperty, null);
-        BreakCenterText.Opacity = 1;
+        RetireBreakCentreTransition(resetPhase: true);
 
         if (active)
         {
             _showingBreakClock = false;
             BreakCenterText.Text = _breakLabel;
             _breakCentreTimer.Stop();
-            _breakCentreTimer.Start();
+            if (IsLoaded && NativeEffectiveVisibility.IsVisible(this)) _breakCentreTimer.Start();
         }
         else
         {
@@ -273,10 +369,29 @@ public partial class PresentationScoreBar : UserControl
         Dispatcher.UIThread.Post(UpdateResponsiveTypography, DispatcherPriority.Loaded);
     }
 
+    private void RetireBreakCentreTransition(bool resetPhase)
+    {
+        ++_breakCentreTransitionVersion;
+        _breakCentreTransitioning = false;
+        BreakCenterText.BeginAnimation(OpacityProperty, null);
+        BreakCenterText.Opacity = 1;
+        if (resetPhase)
+        {
+            _showingBreakClock = false;
+            BreakCenterText.Text = _breakLabel;
+        }
+    }
+
+    private bool OwnsBreakCentreTransition(int version, MatchManager? source)
+        => version == _breakCentreTransitionVersion && IsLoaded && NativeEffectiveVisibility.IsVisible(this)
+           && _breakCentreActive && ReferenceEquals(_match, source);
+
     private void TransitionBreakCentre()
     {
-        if (!_breakCentreActive || _breakCentreTransitioning) return;
+        if (!IsLoaded || !NativeEffectiveVisibility.IsVisible(this) || !_breakCentreActive || _breakCentreTransitioning) return;
         _breakCentreTransitioning = true;
+        int version = ++_breakCentreTransitionVersion;
+        MatchManager? source = _match;
 
         var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(300))
         {
@@ -284,13 +399,20 @@ public partial class PresentationScoreBar : UserControl
         };
         fadeOut.Completed += (_, _) =>
         {
+            if (!OwnsBreakCentreTransition(version, source)) return;
             _showingBreakClock = !_showingBreakClock;
             BreakCenterText.Text = _showingBreakClock ? DateTime.Now.ToString("h:mm tt") : _breakLabel;
+            // A text notification can synchronously unload or rebind this bar.
+            if (!OwnsBreakCentreTransition(version, source)) return;
             var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(380))
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
-            fadeIn.Completed += (_, _) => _breakCentreTransitioning = false;
+            fadeIn.Completed += (_, _) =>
+            {
+                if (OwnsBreakCentreTransition(version, source))
+                    _breakCentreTransitioning = false;
+            };
             BreakCenterText.BeginAnimation(OpacityProperty, fadeIn, HandoffBehavior.SnapshotAndReplace);
         };
         BreakCenterText.BeginAnimation(OpacityProperty, fadeOut, HandoffBehavior.SnapshotAndReplace);

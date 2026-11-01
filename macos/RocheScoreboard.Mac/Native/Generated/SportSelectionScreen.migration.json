@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
-  "source_sha256": "03acd7d12767f2d4a4924c9297a11dec2b245567a19cf6351d541610cd8454a2",
+  "source_sha256": "b208ad2136895e53b8f26b8948a2e464ac7fa7189ceb90237fb7c56adb075863",
   "names": [
     {
       "name": "PART_Surface",
@@ -94,6 +94,11 @@
       "object": false
     },
     {
+      "name": "HomeCommandsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
       "name": "ResumeUtilitySurface",
       "type": "OperatorGlassSurface",
       "object": false
@@ -136,6 +141,26 @@
     {
       "name": "HomeSubtitle",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ResumeSessionSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "SessionHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SessionDetail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "HomeResumeButton",
+      "type": "Button",
       "object": false
     },
     {
@@ -465,22 +490,22 @@
     },
     {
       "name": "ReleaseFilters",
-      "type": "WrapPanel",
+      "type": "OperatorSegmentedPanel",
       "object": false
     },
     {
       "name": "AllReleaseFilter",
-      "type": "Button",
+      "type": "RadioButton",
       "object": false
     },
     {
       "name": "NewReleaseFilter",
-      "type": "Button",
+      "type": "RadioButton",
       "object": false
     },
     {
       "name": "FixedReleaseFilter",
-      "type": "Button",
+      "type": "RadioButton",
       "object": false
     },
     {
@@ -524,7 +549,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "0e1373748244eb938fbfc82b677ac01690a0fcf41896868c3adc9e58e66959d7",
+  "code_source_sha256": "23bbe07f69bbeda04edadcc80473691fa4bd3fcdd2eb8a5171e5e73202b78b8e",
   "native_events": [
     {
       "name": "ResponsiveScrollHost",
@@ -627,6 +652,30 @@
       "source": "TextChanged",
       "native": "TextChanged",
       "handler": "ChangelogSearch_TextChanged"
+    },
+    {
+      "name": "ReleaseFilters",
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "ReleaseFilters_PreviewKeyDown"
+    },
+    {
+      "name": "AllReleaseFilter",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "ChangelogFilter_Click"
+    },
+    {
+      "name": "NewReleaseFilter",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "ChangelogFilter_Click"
+    },
+    {
+      "name": "FixedReleaseFilter",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "ChangelogFilter_Click"
     }
   ],
   "platform_translations": [

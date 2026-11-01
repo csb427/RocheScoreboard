@@ -50,14 +50,14 @@
                         <ns4:OperatorSearchBox x:Name="SearchBox" Placeholder="Search clubs" AutomationProperties.Name="Search clubs" TextChanged="Native_Search_Changed" ToolTip.Tip="Search clubs" />
                     </StackPanel>
                     <StackPanel Width="205" Margin="0,0,10,10">
-                        <TextBlock Text="Competition" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,5" />
-                        <ComboBox x:Name="LeagueFilter" SelectionChanged="Native_Filter_Changed">
+                        <TextBlock x:Name="LeagueFilterLabel" Text="Competition" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,5" />
+                        <ComboBox x:Name="LeagueFilter" AutomationProperties.Name="Competition" AutomationProperties.LabeledBy="{Binding ElementName=LeagueFilterLabel}" SelectionChanged="Native_Filter_Changed">
                             <ComboBoxItem Content="All leagues" IsSelected="True" />
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Width="125" Margin="0,0,10,10">
-                        <TextBlock Text="State" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,5" />
-                        <ComboBox x:Name="StateFilter" SelectionChanged="Native_Filter_Changed">
+                        <TextBlock x:Name="StateFilterLabel" Text="State" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,5" />
+                        <ComboBox x:Name="StateFilter" AutomationProperties.Name="State" AutomationProperties.LabeledBy="{Binding ElementName=StateFilterLabel}" SelectionChanged="Native_Filter_Changed">
                             <ComboBoxItem Content="All states" IsSelected="True" />
                             <ComboBoxItem Content="VIC" />
                             <ComboBoxItem Content="NSW" />
@@ -67,8 +67,8 @@
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Width="145" Margin="0,0,10,10">
-                        <TextBlock Text="Sort clubs" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,5" />
-                        <ComboBox x:Name="SortFilter" SelectionChanged="Native_Filter_Changed">
+                        <TextBlock x:Name="SortFilterLabel" Text="Sort clubs" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,0,0,5" />
+                        <ComboBox x:Name="SortFilter" AutomationProperties.Name="Sort clubs" AutomationProperties.LabeledBy="{Binding ElementName=SortFilterLabel}" SelectionChanged="Native_Filter_Changed">
                             <ComboBoxItem Content="A–Z" IsSelected="True" />
                             <ComboBoxItem Content="Favourites" />
                             <ComboBoxItem Content="League" />
@@ -157,7 +157,7 @@
                                     <TranslateTransform port:ProductionNames.Id="DetailTranslate" />
                                 </StackPanel.RenderTransform>
                                 <Grid Height="126">
-                                    <TextBlock x:Name="LogoPlaceholder" Text="Choose a club to preview its crest and colours" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="LogoPlaceholder" TextWrapping="Wrap" TextAlignment="Center" Text="Choose a club to preview its crest and colours" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     <Image x:Name="LogoPreview" Stretch="Uniform" RenderOptions.BitmapInterpolationMode="HighQuality" />
                                 </Grid>
                                 <TextBlock x:Name="SelectedName" Text="Your club, ready to score" FontSize="23" FontWeight="Bold" TextAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap" />
@@ -166,11 +166,12 @@
                                     <Border x:Name="PrimarySwatch" Width="64" Height="8" />
                                     <Border x:Name="SecondarySwatch" Width="64" Height="8" Margin="6,0,0,0" />
                                 </StackPanel>
-                                <TextBlock x:Name="StatusText" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextAlignment="Center" Margin="0,10,0,10" TextWrapping="Wrap" />
+                                <TextBlock x:Name="StatusText" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextAlignment="Center" Margin="0,10,0,10" TextWrapping="Wrap" />
+                                <TextBlock x:Name="PresetStatus" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextAlignment="Center" Margin="0,0,0,10" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" IsVisible="False" />
                             </StackPanel>
                             <StackPanel Grid.Row="1" Margin="0,12,0,0">
                                 <Button x:Name="UseButton" Content="Use this team" Click="Use_Click" IsEnabled="False" Margin="0,0,0,8" Theme="{StaticResource ControlCentre.PrimaryButton}" />
-                                <Button x:Name="FavouriteButton" Content="Save to presets" Tag="False" Click="Favourite_Click" IsEnabled="False" Theme="{StaticResource LibraryButton}">
+                                <Button x:Name="FavouriteButton" Content="Save to presets" Tag="False" Click="Favourite_Click" IsEnabled="False" Theme="{StaticResource SettingsSavedAction}">
                                     <Button.ContentTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">

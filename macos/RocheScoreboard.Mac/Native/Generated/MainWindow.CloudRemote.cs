@@ -1,5 +1,5 @@
 // Generated from MainWindow.CloudRemote.cs; edit translator/adapters.
-// Source SHA-256: bb71d5893fb12588197c64b047092cdc04f6a3a74d5ceffb709e4af05ac05946
+// Source SHA-256: e3ea4684e469995bf92632e4e81f573881483ff04dceb32ff3f6db3876463b1e
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -28,10 +28,32 @@ using Roche_Scoreboard.Services.Cloud;
 
 namespace Roche_Scoreboard;
 
-public partial class MainWindow : IRemoteCommandTarget
+public partial class MainWindow : IRemoteCommandTarget, IRemoteCommandScope
 {
-    private RemoteControlService? _cloudRemote;
+    private ICloudRemoteSession? _cloudRemote;
     private SupabaseConfig? _cloudConfig;
+    private bool _remoteCommandOwnerClosed;
+    private Task _cloudOwnerShutdownTask = Task.CompletedTask;
+    private long _cloudSessionGeneration;
+    private Action<bool>? _cloudConnectedChangedHandler;
+
+    internal Func<SupabaseConfig, IRemoteCommandTarget, Avalonia.Threading.Dispatcher, ICloudRemoteSession>
+        CloudSessionFactory { get; set; } = static (config, target, dispatcher) => new RemoteControlService(config, target, dispatcher);
+    internal Action<Exception>? CloudSessionFailureSink { get; set; }
+
+    internal void SetCloudSessionTestConfiguration(SupabaseConfig configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        if (_cloudRemote is not null) throw new InvalidOperationException("Configure only an idle window.");
+        _cloudConfig = configuration;
+    }
+
+    private void ReportCloudSessionStartFailure(Exception error)
+    {
+        string message = $"Could not start cloud session:\n{error.Message}";
+        if (CloudSessionFailureSink is { } sink) { sink(error); return; }
+        RocheScoreboard.Mac.Native.NativeMessageBox.Show(this, message, "Cloud Remote", NativeMessageBoxButton.OK, NativeMessageBoxImage.Error);
+    }
 
     /// <summary>True while a cloud session has been created.</summary>
     public bool IsCloudSessionActive => _cloudRemote?.IsActive == true;
@@ -117,7 +139,7 @@ public partial class MainWindow : IRemoteCommandTarget
     /// </summary>
     public async Task StartCloudSessionAsync()
     {
-        if (_cloudRemote is not null) return;
+        if (_cloudRemote is not null || _remoteCommandOwnerClosed) return;
 
         SupabaseConfig? cfg = _cloudConfig ??= SupabaseConfig.TryLoad();
         if (cfg is null || !cfg.IsValid)
@@ -141,10 +163,16 @@ public partial class MainWindow : IRemoteCommandTarget
             return;
         }
 
+        ICloudRemoteSession? service = null;
+        long generation = ++_cloudSessionGeneration;
         try
         {
-            _cloudRemote = new RemoteControlService(cfg, this, Dispatcher.UIThread);
-            _cloudRemote.ConnectedChanged += HandleCloudConnectedChanged;
+            ICloudRemoteSession created = CloudSessionFactory(cfg, this, Dispatcher.UIThread);
+            service = created;
+            _cloudRemote = created;
+            Action<bool> connection = connected => HandleCloudConnectedChanged(created, generation, connected);
+            _cloudConnectedChangedHandler = connection;
+            created.ConnectedChanged += connection;
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
             bool isTraining = _trainingSession is not null;
@@ -154,53 +182,99 @@ public partial class MainWindow : IRemoteCommandTarget
             string sessionAway = isTraining ? "Session" : isCricket ? _cricketMatch!.TeamBName : _match.AwayName;
 
             LiveStateSnapshot initial = BuildLiveStateSnapshot() with { SessionStatus = "lobby" };
-            await _cloudRemote.StartAsync(
-                sport: sport,
-                homeName: sessionHome,
-                awayName: sessionAway,
-                initialState: initial,
-                ct: cts.Token).ConfigureAwait(true);
+            await created.StartAsync(sport, sessionHome, sessionAway, initial, cts.Token).ConfigureAwait(true);
 
-            CloudSessionStarted?.Invoke(_cloudRemote.JoinCode ?? "");
-            RefreshCloudRemoteUi();
+            if (!OwnsCloudSession(created, generation))
+            {
+                await DisposeRetiredCloudServiceAsync(created).ConfigureAwait(true);
+                return;
+            }
+            if (_remoteCommandOwnerClosed)
+            {
+                await SafeDisposeCloudAsync(created, generation).ConfigureAwait(true);
+                return;
+            }
+            // Scoring can continue while the row/connection is being created,
+            // before IsActive allows normal change-driven publication. Catch
+            // the current session up after its initial lobby snapshot settles.
+            PublishCloudSnapshot();
+            CloudSessionStarted?.Invoke(created.JoinCode ?? "");
+            if (OwnsCloudSession(created, generation) && !_remoteCommandOwnerClosed)
+                RefreshCloudRemoteUi();
         }
         catch (Exception ex)
         {
-            await SafeDisposeCloudAsync().ConfigureAwait(true);
-            RocheScoreboard.Mac.Native.NativeMessageBox.Show(this,
-                $"Could not start cloud session:\n{ex.Message}",
-                "Cloud Remote",
-                NativeMessageBoxButton.OK, NativeMessageBoxImage.Error);
+            if (!OwnsCloudSession(service, generation))
+            {
+                if (service is not null) await DisposeRetiredCloudServiceAsync(service).ConfigureAwait(true);
+                return;
+            }
+            long failureGeneration = generation;
+            if (service is not null)
+            {
+                long? retired = await SafeDisposeCloudAsync(service, generation).ConfigureAwait(true);
+                if (retired is null) return;
+                failureGeneration = retired.Value;
+            }
+            if (_cloudSessionGeneration == failureGeneration && _cloudRemote is null && !_remoteCommandOwnerClosed)
+                ReportCloudSessionStartFailure(ex);
         }
+    }
+
+    private void RetireCloudRemoteOwner()
+    {
+        if (_remoteCommandOwnerClosed) return;
+        _remoteCommandOwnerClosed = true;
+        // Retire/unsubscribe synchronously, then retain the actual cleanup
+        // receipt. The native process shutdown policy remains independent;
+        // a Closed event cannot promise a remote End acknowledgement.
+        _cloudOwnerShutdownTask = EndCloudSessionAsync();
     }
 
     /// <summary>Operator action: ends the live cloud session.</summary>
     public async Task EndCloudSessionAsync()
     {
-        await SafeDisposeCloudAsync().ConfigureAwait(true);
+        ICloudRemoteSession? service = _cloudRemote;
+        long generation = _cloudSessionGeneration;
+        long? retired = await SafeDisposeCloudAsync(service, generation).ConfigureAwait(true);
+        if (retired is null || _cloudSessionGeneration != retired.Value || _cloudRemote is not null || _remoteCommandOwnerClosed) return;
         CloudSessionEnded?.Invoke();
-        RefreshCloudRemoteUi();
+        if (_cloudSessionGeneration == retired.Value && _cloudRemote is null && !_remoteCommandOwnerClosed)
+            RefreshCloudRemoteUi();
     }
 
-    private async Task SafeDisposeCloudAsync()
+    private bool OwnsCloudSession(ICloudRemoteSession? service, long generation)
+        => generation == _cloudSessionGeneration && ReferenceEquals(_cloudRemote, service);
+
+    private async Task<long?> SafeDisposeCloudAsync(ICloudRemoteSession? expected, long generation)
     {
-        if (_cloudRemote is null) return;
-        _cloudRemote.ConnectedChanged -= HandleCloudConnectedChanged;
-        try { await _cloudRemote.DisposeAsync().ConfigureAwait(true); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[CloudRemote] dispose: {ex.Message}"); }
+        if (expected is null || !OwnsCloudSession(expected, generation)) return null;
+        // Retire before awaiting. Another Start can install a new owner, but
+        // no old cleanup continuation may clear it or announce it ended.
         _cloudRemote = null;
+        long retired = ++_cloudSessionGeneration;
+        Action<bool>? connection = _cloudConnectedChangedHandler;
+        _cloudConnectedChangedHandler = null;
+        if (connection is not null) expected.ConnectedChanged -= connection;
+        await DisposeRetiredCloudServiceAsync(expected).ConfigureAwait(true);
+        return retired;
     }
 
-    private void HandleCloudConnectedChanged(bool connected)
+    private static async Task DisposeRetiredCloudServiceAsync(ICloudRemoteSession service)
     {
-        if (Dispatcher.UIThread.CheckAccess())
+        try { await service.DisposeAsync().ConfigureAwait(true); }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[CloudRemote] dispose: {ex.Message}"); }
+    }
+
+    private void HandleCloudConnectedChanged(ICloudRemoteSession service, long generation, bool connected)
+    {
+        void NotifyCurrent()
         {
-            OnCloudConnectedChanged(connected);
+            if (OwnsCloudSession(service, generation) && !_remoteCommandOwnerClosed)
+                OnCloudConnectedChanged(connected);
         }
-        else
-        {
-            Dispatcher.UIThread.Post(new Action(() => OnCloudConnectedChanged(connected)));
-        }
+        if (Dispatcher.UIThread.CheckAccess()) NotifyCurrent();
+        else Dispatcher.UIThread.Post(new Action(NotifyCurrent));
     }
 
     /// <summary>
@@ -366,6 +440,40 @@ public partial class MainWindow : IRemoteCommandTarget
     // ── IRemoteCommandTarget — every cloud event presses an existing local
     //    handler so animations / validation / snapshots keep working. ──
 
+    Func<bool>? IRemoteCommandScope.CaptureExecutionGuard(string eventType)
+    {
+        if (eventType is RemoteEventTypes.TrainingStartPause or RemoteEventTypes.TrainingSkip
+            or RemoteEventTypes.TrainingResetActive or RemoteEventTypes.TrainingAddTimer
+            or RemoteEventTypes.TrainingUpdateTimer or RemoteEventTypes.TrainingRemoveTimer
+            or RemoteEventTypes.TrainingClearQueue or RemoteEventTypes.TrainingSetAutoAdvance
+            or RemoteEventTypes.TrainingReorder or RemoteEventTypes.TrainingAdjustActive or RemoteEventTypes.TrainingExit)
+        {
+            // Capture only the atomic runtime owner on the receive thread.
+            // Mode/window checks stay on actual UI execution; Home, settings
+            // and output-off may retain this same live Training session.
+            var training = Volatile.Read(ref _trainingSession);
+            return () => training is not null && OwnsTrainingRemoteCommand(training);
+        }
+        if (eventType is RemoteEventTypes.ClockToggle or RemoteEventTypes.ClockSet or RemoteEventTypes.ClockModeSet)
+        {
+            long clockLifetime = _match.LifecycleVersion;
+            // Clock configuration is available on AFL Home before setup too.
+            // Capture model identity, then check mode/owner only on the UI;
+            // presentation visibility and match readiness are not authority.
+            return () => _match.LifecycleVersion == clockLifetime
+                && !_remoteCommandOwnerClosed && _sportMode == SportMode.AFL;
+        }
+        if (eventType is not (RemoteEventTypes.HomeGoal or RemoteEventTypes.HomeBehind
+            or RemoteEventTypes.AwayGoal or RemoteEventTypes.AwayBehind or RemoteEventTypes.Undo))
+            return null;
+        // Only the atomic model token is read on a possible receive thread.
+        // Window and mode eligibility are deliberately evaluated on the UI.
+        long lifetime = _match.LifecycleVersion;
+        // Home, preferences and minimization may retain this same live session.
+        // Presentation visibility is not match authority.
+        return () => _match.LifecycleVersion == lifetime && !_remoteCommandOwnerClosed && _aflMatchReady;
+    }
+
     void IRemoteCommandTarget.HomeGoal()    => HomeGoal_Click(this, new RoutedEventArgs());
     void IRemoteCommandTarget.HomeBehind()  => HomeBehind_Click(this, new RoutedEventArgs());
     void IRemoteCommandTarget.AwayGoal()    => AwayGoal_Click(this, new RoutedEventArgs());
@@ -451,7 +559,7 @@ public partial class MainWindow : IRemoteCommandTarget
     void IRemoteCommandTarget.SetWeatherLocation(string location)
     {
         _weatherLocation = string.IsNullOrWhiteSpace(location) ? null : location.Trim();
-        if (SettingsWeatherLocation is not null) SettingsWeatherLocation.Text = _weatherLocation ?? "";
+        RestoreSettingsWeatherLocation(_weatherLocation);
         _scorebug?.SetWeatherLocation(_weatherLocation);
         _ = StartOrUpdateWeatherServiceAsync(_weatherLocation);
     }

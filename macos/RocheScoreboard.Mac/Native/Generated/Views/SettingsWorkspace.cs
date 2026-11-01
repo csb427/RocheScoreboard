@@ -1,5 +1,5 @@
 // Generated from Views/SettingsWorkspace.cs; edit translator/adapters.
-// Source SHA-256: c21fa21fc712cd48233c7180f13e618441cf3f7c6ce6094effe64e1d18acc965
+// Source SHA-256: 3eb2bb80c441ba8d49167947d23f4c705f813326e4d01df7a790ad69659e9ba8
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -26,6 +26,22 @@ public sealed class SettingsWorkspace : UserControl
 {
     internal event Action<string>? CategoryChanged;
     internal void NavigateCategory(string category) => SelectCategory(category.ToUpperInvariant());
+    internal bool FocusSearch()
+    {
+        if (!IsVisible || !IsEnabled || !_search.Focus()) return false;
+        _search.SelectAll();
+        return true;
+    }
+    private string? _scope;
+    public void SelectScope(string scope)
+    {
+        if (_scope == scope) return;
+        _scope = scope; _category = "ALL"; _search.Clear(); _compactMenu.IsOpen = false;
+        ++_navigationGeneration; BuildNavigation(); Scroller.ScrollToVerticalOffset(0);
+        SharedSurfaceMotion.Reveal(Scroller);
+    }
+    private bool InScope(Control section)
+        => _scope is null || ((section.Tag as string)?.Split('|').FirstOrDefault(part => part.StartsWith("scope:")) ?? "scope:general") == "scope:" + _scope;
     private readonly Grid _layout = new();
     private readonly OperatorGlassSurface _navigation = new() { Material = GlassMaterial.Regular, CornerRadius = new CornerRadius(28), Padding = new Thickness(12), Margin = new Thickness(14,14,8,14) };
     private readonly StackPanel _categories = new();
@@ -46,7 +62,9 @@ public sealed class SettingsWorkspace : UserControl
     private readonly StackPanel _compactItems = new();
     private readonly Dictionary<string, Button> _compactButtons = new();
     private bool? _compact;
-    private int _navigationGeneration;
+    private int _navigationGeneration, _compactFocusGeneration;
+    private readonly List<Control> _compactAvailabilityOwners = new();
+    private Window? _compactMenuOwner;
     private bool _materialSectionAdded;
     private string _category = "ALL";
     public ScrollViewer Scroller { get; } = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new Thickness(8,0,18,18) };
@@ -78,11 +96,20 @@ public sealed class SettingsWorkspace : UserControl
         _compactChoice.SetResourceReference(ThemeProperty,"ToolBtn"); _compactChoice.HorizontalContentAlignment = HorizontalAlignment.Left; _compactChoice.Height = 44; _compactChoice.MinHeight = 0; _compactChoice.Padding = new Thickness(12,8,12,8);
         var compactContent = new DockPanel(); var chevron = new NativeTextBlock { Text = "⌄", FontSize = 18, Margin = new Thickness(12,0,0,0), VerticalAlignment = VerticalAlignment.Center }; DockPanel.SetDock(chevron,Dock.Right); compactContent.Children.Add(chevron); _compactLabel.FontSize = 15; _compactLabel.FontWeight = FontWeight.SemiBold; compactContent.Children.Add(_compactLabel); _compactChoice.Content = compactContent; _header.Children.Add(_compactChoice);
         _layout.Children.Add(_compactMenu); _compactMenu.PlacementTarget = _compactChoice; _compactMenu.Child = new OperatorGlassSurface { Material = GlassMaterial.Regular, CornerRadius = new CornerRadius(22), Padding = new Thickness(8), Width = 270, Child = new ScrollViewer { Content = _compactItems, MaxHeight = 360, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
-        _compactChoice.Click += (_,_) => { _compactMenu.IsOpen = !_compactMenu.IsOpen; if (_compactMenu.IsOpen) SharedSurfaceMotion.Reveal((Control)_compactMenu.Child); };
-        _compactMenu.Opened += (_,_) => Dispatcher.UIThread.Post(DispatcherPriority.Input,new Action(() => { if (_compactMenu.IsOpen && _compactButtons.TryGetValue(_category,out var selected)) selected.Focus(); }));
+        _compactChoice.Click += (_,_) => { if (!CanUseCompactMenu()) return; _compactMenu.IsOpen = !_compactMenu.IsOpen; if (_compactMenu.IsOpen) SharedSurfaceMotion.Reveal((Control)_compactMenu.Child); };
+        _compactMenu.Opened += (_,_) =>
+        {
+            int generation = ++_compactFocusGeneration;
+            Dispatcher.UIThread.Post(DispatcherPriority.Input,new Action(() =>
+            {
+                if (generation != _compactFocusGeneration || !_compactMenu.IsOpen || !CanUseCompactMenu()) return;
+                if (_compactButtons.TryGetValue(_category,out var selected)) selected.Focus();
+            }));
+        };
+        _compactMenu.Closed += (_,_) => ++_compactFocusGeneration;
         _compactItems.KeyDown += (_,e) =>
         {
-            if (e.Key == Key.Escape) { _compactMenu.IsOpen = false; _compactChoice.Focus(); e.Handled = true; return; }
+            if (e.Key == Key.Escape) { _compactMenu.IsOpen = false; if (CanUseCompactMenu()) _compactChoice.Focus(); e.Handled = true; return; }
             if (e.Key is not (Key.Up or Key.Down or Key.Home or Key.End)) return;
             var choices = _compactButtons.Values.ToArray(); if (choices.Length == 0) return;
             int current = Array.IndexOf(choices,NativeKeyboard.FocusedElement as Button);
@@ -92,17 +119,70 @@ public sealed class SettingsWorkspace : UserControl
         Avalonia.Automation.AutomationProperties.SetName(_compactChoice,"Settings categories");
         content.Children.Add(_header); var body = new StackPanel(); body.Children.Add(_sections); body.Children.Add(_empty); Scroller.Content = body; Grid.SetRow(Scroller,1); content.Children.Add(Scroller); Content = _layout;
         _search.TextChanged += (_,_) => Filter();
-        KeyDown += (_,e) => { if (e.Key == Key.F && NativeKeyboard.Modifiers == KeyModifiers.Control) { _search.Focus(); _search.SelectAll(); e.Handled = true; } };
+        KeyDown += (_,e) => { if (e.Key == Key.F && NativeKeyboard.Modifiers == KeyModifiers.Control && FocusSearch()) e.Handled = true; };
         SharedSurfaceMotion.Attach(Scroller);
-        Loaded += (_,_) => { EnsureMaterialPreferences(); BuildNavigation(); Reflow(); if(railHeading.Children[0] is Border { Child: Roche_Scoreboard.Services.OperatorSymbol symbol })symbol.Activate(); };
-        Unloaded += (_,_) => { _compactMenu.IsOpen = false; ++_navigationGeneration; };
+        Loaded += (_,_) => { EnsureMaterialPreferences(); BuildNavigation(); Reflow(); ObserveCompactMenuOwners(); if(railHeading.Children[0] is Border { Child: Roche_Scoreboard.Services.OperatorSymbol symbol })symbol.Activate(); };
+        Unloaded += (_,_) => { RetireCompactMenu(); ++_navigationGeneration; DetachCompactMenuOwners(); };
         SizeChanged += (_,_) => Reflow();
+    }
+
+    // A retained workspace can be hidden/disabled without Unloaded. Observe
+    // only this menu's current visual ownership; do not poll or change values.
+    private void ObserveCompactMenuOwners()
+    {
+        DetachCompactMenuOwners();
+        for (AvaloniaObject? current = this; current is not null; current = VisualTreeHelper.GetParent(current))
+        {
+            if (current is not Control owner) continue;
+            _compactAvailabilityOwners.Add(owner);
+            NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsVisibleProperty,true,CompactMenuAvailabilityChanged);
+            NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsEnabledProperty,true,CompactMenuAvailabilityChanged);
+        }
+        _compactMenuOwner = NativeWindow.GetWindow(this);
+        if (_compactMenuOwner is not null) _compactMenuOwner.Closed += CompactMenuOwnerClosed;
+        if (!CanUseCompactMenu()) RetireCompactMenu();
+    }
+    private void DetachCompactMenuOwners()
+    {
+        foreach (var owner in _compactAvailabilityOwners)
+        {
+            NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsVisibleProperty,false,CompactMenuAvailabilityChanged);
+            NativeEvents.WatchProperty(owner,Avalonia.Controls.Control.IsEnabledProperty,false,CompactMenuAvailabilityChanged);
+        }
+        _compactAvailabilityOwners.Clear();
+        if (_compactMenuOwner is not null) _compactMenuOwner.Closed -= CompactMenuOwnerClosed;
+        _compactMenuOwner = null;
+    }
+    private bool CanUseCompactMenu()
+    {
+        if (!IsLoaded) return false;
+        for (AvaloniaObject? current = this; current is not null; current = VisualTreeHelper.GetParent(current))
+            if (current is Control owner && (!owner.IsVisible || !owner.IsEnabled)) return false;
+        return NativeWindow.GetWindow(this) is { IsVisible: true, IsEnabled: true } window
+            && ReferenceEquals(window,_compactMenuOwner);
+    }
+    private void CompactMenuAvailabilityChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
+    {
+        if (args.Property.Name is not (nameof(IsVisible) or nameof(IsEnabled))
+            || sender is not Control owner || !_compactAvailabilityOwners.Contains(owner)) return;
+        if (!CanUseCompactMenu()) RetireCompactMenu();
+    }
+    private void CompactMenuOwnerClosed(object? sender, EventArgs args)
+    {
+        if (!ReferenceEquals(sender,_compactMenuOwner)) return;
+        RetireCompactMenu(); DetachCompactMenuOwners();
+    }
+    private void RetireCompactMenu()
+    {
+        ++_compactFocusGeneration;
+        _compactMenu.IsOpen = false;
+        // Hidden/disabled retirement deliberately does not restore focus.
     }
 
     private void EnsureMaterialPreferences()
     {
         if(_materialSectionAdded)return;_materialSectionAdded=true;
-        var section=new NativeBorder{Tag="APPEARANCE|glass intensity soft balanced vivid backdrop black colour neutral",Child=new OperatorMaterialPreferences()};
+        var section=new NativeBorder{Tag="APPEARANCE|glass intensity soft balanced vivid backdrop black colour neutral interface feel motion calm expressive preview",Child=new OperatorMaterialPreferences()};
         section.SetResourceReference(ThemeProperty,"SettingsSectionSurface");
         int index=0;for(int i=0;i<Sections.Count;i++)if(Sections[i] is Control item && Category(item)=="APPEARANCE")index=i+1;
         Sections.Insert(index,section);
@@ -117,7 +197,7 @@ public sealed class SettingsWorkspace : UserControl
     private void BuildNavigation()
     {
         _categories.Children.Clear(); _compactItems.Children.Clear(); _buttons.Clear(); _compactButtons.Clear();
-        var categories = new[] { "ALL" }.Concat(Sections.OfType<Control>().Select(Category).Distinct().OrderBy(c => c switch { "APPEARANCE" => 0, "MATCH" => 1, "CONTROLS" => 2, "SCOREBOARD" => 3, "AUTOMATION" => 4, _ => 5 })).ToArray();
+        var categories = new[] { "ALL" }.Concat(Sections.OfType<Control>().Where(InScope).Select(Category).Distinct().OrderBy(c => c switch { "APPEARANCE" => 0, "MATCH" => 1, "CONTROLS" => 2, "SCOREBOARD" => 3, "AUTOMATION" => 4, _ => 5 })).ToArray();
         if (!categories.Contains(_category)) _category = "ALL";
         foreach (string category in categories)
         {
@@ -135,7 +215,7 @@ public sealed class SettingsWorkspace : UserControl
     private void SelectCategory(string category)
     {
         _compactMenu.IsOpen = false;
-        if (_compact == true) _compactChoice.Focus();
+        if (_compact == true && CanUseCompactMenu()) _compactChoice.Focus();
         if (_category == category && (_search.Text ?? string.Empty).Length == 0) return;
         _scrollPositions[_category] = Scroller.Offset.Y; _category = category;
         CategoryChanged?.Invoke(category);
@@ -148,7 +228,7 @@ public sealed class SettingsWorkspace : UserControl
     private void Filter()
     {
         string query = (_search.Text ?? string.Empty).Trim(); int visible = 0;
-        foreach (var section in Sections.OfType<Control>()) { bool show = query.Length > 0 ? Matches(section,query) : _category == "ALL" || Category(section) == _category; section.IsVisible = show ? true : false; if (show) visible++; }
+        foreach (var section in Sections.OfType<Control>()) { bool show = InScope(section) && (query.Length > 0 ? Matches(section,query) : _category == "ALL" || Category(section) == _category); section.IsVisible = show ? true : false; if (show) visible++; }
         _empty.IsVisible = visible == 0 ? true : false;
         _contextHeading.Text = query.Length > 0 ? "Search results" : CategoryLabel(_category); _compactLabel.Text = query.Length > 0 ? "Search results" : CategoryLabel(_category);
         foreach (var pair in _buttons.Concat(_compactButtons))
@@ -161,6 +241,13 @@ public sealed class SettingsWorkspace : UserControl
     }
     private static bool Matches(AvaloniaObject root,string query)
     {
+        // Template text is not a logical child. Authored accessibility labels
+        // keep the same control discoverable before or after template mounting.
+        if (root is Control element)
+        {
+            if (Avalonia.Automation.AutomationProperties.GetName(element)?.Contains(query,StringComparison.OrdinalIgnoreCase) == true) return true;
+            if (Avalonia.Automation.AutomationProperties.GetHelpText(element)?.Contains(query,StringComparison.OrdinalIgnoreCase) == true) return true;
+        }
         if (root is Control { Tag: string tag } && tag.Contains(query,StringComparison.OrdinalIgnoreCase)) return true;
         if (root is TextBlock text && (text.Text ?? string.Empty).Contains(query,StringComparison.OrdinalIgnoreCase)) return true;
         if (root is ContentControl { Content: string caption } && caption.Contains(query,StringComparison.OrdinalIgnoreCase)) return true;

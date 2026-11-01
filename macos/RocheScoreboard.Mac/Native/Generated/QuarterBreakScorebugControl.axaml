@@ -23,7 +23,7 @@
                     <TextBlock x:Name="TopWeatherText" Text="--°" Foreground="White" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontSize="52" FontWeight="Black" />
                 </Viewbox>
                 <Viewbox Grid.Column="1" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2">
-                    <TextBlock x:Name="TopTimeText" Text="8:05 AM" Foreground="White" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontSize="52" FontWeight="Black" />
+                    <TextBlock x:Name="TopTimeText" Text="8:05 AM" Foreground="White" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontSize="52" FontWeight="Black" FontFeatures="tnum,lnum,-kern" />
                 </Viewbox>
                 <Viewbox Grid.Column="2" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,2,8,2">
                     <TextBlock x:Name="TopDateText" Text="Sun 30 Aug" Foreground="White" FontFamily="{fonts:ProductionFont 'Stolzl Bold'}" FontSize="52" FontWeight="Black" />

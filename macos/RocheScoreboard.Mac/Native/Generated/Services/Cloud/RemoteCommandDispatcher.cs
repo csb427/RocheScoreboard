@@ -1,5 +1,5 @@
 // Generated from Services/Cloud/RemoteCommandDispatcher.cs; edit translator/adapters.
-// Source SHA-256: eec8864021d547c650db86d18ba7ab9e859bb16eeceb5dc03b3237a8733dd3ca
+// Source SHA-256: 8eebf7d64526a60796bfaedb66889dbd29e7f9a68ec3e6b38283ab7c41d27a7a
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -83,12 +83,34 @@ public interface IRemoteCommandTarget
     void CricketNextInnings();
 }
 
+// Optional local execution authority. Capture may run on the receive thread;
+// the returned predicate is evaluated only on the actual UI dispatch path.
+internal interface IRemoteCommandScope
+{
+    Func<bool>? CaptureExecutionGuard(string eventType);
+}
+
 /// <summary>
 /// Interval-builder payload accepted by
 /// <see cref="IRemoteCommandTarget.TrainingAddTimer"/>. When non-null,
 /// the host should expand it into N pairs of work + rest timers.
 /// </summary>
 public sealed record TrainingIntervalSpec(int Rounds, int WorkSeconds, int RestSeconds, string TitlePrefix);
+
+// Existing desktop builder/client limits, shared with direct host commands.
+// Duration fields remain positive int32 seconds, as supported by the host UI.
+internal static class TrainingRemoteValidation
+{
+    internal const int MaximumRounds = 100, MaximumTitleLength = 64, MaximumPrefixLength = 32;
+    internal static bool ValidTimer(string? title, int seconds)
+        => seconds > 0 && (title?.Length ?? 0) <= MaximumTitleLength;
+    internal static bool ValidDirection(string? direction)
+        => string.Equals(direction, "up", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(direction, "down", StringComparison.OrdinalIgnoreCase);
+    internal static bool ValidInterval(TrainingIntervalSpec interval)
+        => interval.Rounds is >= 1 and <= MaximumRounds && interval.WorkSeconds > 0
+            && interval.RestSeconds >= 0 && (interval.TitlePrefix?.Length ?? 0) <= MaximumPrefixLength;
+}
 
 /// <summary>
 /// Marshals incoming <see cref="RemoteEvent"/> envelopes onto the WPF UI
@@ -99,7 +121,7 @@ public sealed record TrainingIntervalSpec(int Rounds, int WorkSeconds, int RestS
 public sealed class RemoteCommandDispatcher
 {
     private readonly IRemoteCommandTarget _target;
-    private readonly Dispatcher _uiDispatcher;
+    private readonly Action<Action> _enqueue;
     private readonly LruIdCache _processed = new(capacity: 512);
 
     public RemoteCommandDispatcher(IRemoteCommandTarget target, Dispatcher uiDispatcher)
@@ -107,7 +129,18 @@ public sealed class RemoteCommandDispatcher
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(uiDispatcher);
         _target = target;
-        _uiDispatcher = uiDispatcher;
+        _enqueue = callback => { _ = uiDispatcher.InvokeAsync(callback); };
+    }
+
+    // Tests may hold the actual dispatch closure across a public UI boundary.
+    // The caller must drain it on the UI thread; command application and
+    // deduplication stay owned by this same production dispatcher.
+    internal RemoteCommandDispatcher(IRemoteCommandTarget target, Action<Action> enqueue)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(enqueue);
+        _target = target;
+        _enqueue = enqueue;
     }
 
     /// <summary>
@@ -119,13 +152,15 @@ public sealed class RemoteCommandDispatcher
         if (string.IsNullOrEmpty(ev.EventType)) return;
         if (!_processed.TryAdd(ev.Id)) return;
 
-        _ = _uiDispatcher.InvokeAsync(() => ApplyOnUiThread(ev));
+        var guard = (_target as IRemoteCommandScope)?.CaptureExecutionGuard(ev.EventType);
+        _enqueue(() => ApplyOnUiThread(ev, guard));
     }
 
-    private void ApplyOnUiThread(RemoteEvent ev)
+    private void ApplyOnUiThread(RemoteEvent ev, Func<bool>? guard)
     {
         try
         {
+            if (guard is not null && !guard()) return;
             switch (ev.EventType)
             {
                 // Scoring
@@ -232,28 +267,48 @@ public sealed class RemoteCommandDispatcher
                 case RemoteEventTypes.TrainingResetActive: _target.TrainingResetActive(); break;
                 case RemoteEventTypes.TrainingClearQueue:  _target.TrainingClearQueue(); break;
                 case RemoteEventTypes.TrainingSetAutoAdvance:
-                    _target.TrainingSetAutoAdvance(GetBool(ev.Payload, "enabled", true));
+                {
+                    if (ev.Payload.ValueKind == JsonValueKind.Object
+                        && ev.Payload.TryGetProperty("enabled", out var enabled)
+                        && enabled.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        _target.TrainingSetAutoAdvance(enabled.GetBoolean());
                     break;
+                }
                 case RemoteEventTypes.TrainingAddTimer:
-                    _target.TrainingAddTimer(
-                        GetString(ev.Payload, "title", "Timer"),
-                        GetInt(ev.Payload, "seconds", 0),
-                        TryGetInterval(ev.Payload));
+                {
+                    if (ev.Payload.ValueKind != JsonValueKind.Object) break;
+                    bool intervalRequested = ev.Payload.TryGetProperty("interval", out _);
+                    var interval = TryGetInterval(ev.Payload);
+                    string title = GetString(ev.Payload, "title", "Timer");
+                    int seconds = GetInt(ev.Payload, "seconds", 0);
+                    // An invalid requested interval must never become a single timer.
+                    if (intervalRequested ? interval is null
+                        : !ValidOptionalTrainingText(ev.Payload, "title", TrainingRemoteValidation.MaximumTitleLength)
+                            || !TrainingRemoteValidation.ValidTimer(title, seconds)) break;
+                    _target.TrainingAddTimer(title, seconds, interval);
                     break;
+                }
                 case RemoteEventTypes.TrainingUpdateTimer:
-                    _target.TrainingUpdateTimer(
-                        GetGuid(ev.Payload, "id"),
-                        GetString(ev.Payload, "title", "Timer"),
-                        GetInt(ev.Payload, "seconds", 0));
+                {
+                    Guid id = GetGuid(ev.Payload, "id");
+                    string title = GetString(ev.Payload, "title", "Timer");
+                    int seconds = GetInt(ev.Payload, "seconds", 0);
+                    if (id == Guid.Empty || !ValidOptionalTrainingText(ev.Payload, "title", TrainingRemoteValidation.MaximumTitleLength)
+                        || !TrainingRemoteValidation.ValidTimer(title, seconds)) break;
+                    _target.TrainingUpdateTimer(id, title, seconds);
                     break;
+                }
                 case RemoteEventTypes.TrainingRemoveTimer:
                     _target.TrainingRemoveTimer(GetGuid(ev.Payload, "id"));
                     break;
                 case RemoteEventTypes.TrainingReorder:
-                    _target.TrainingReorder(
-                        GetGuid(ev.Payload, "id"),
-                        GetString(ev.Payload, "direction", "down"));
+                {
+                    Guid id = GetGuid(ev.Payload, "id");
+                    string direction = GetString(ev.Payload, "direction", "");
+                    if (id != Guid.Empty && TrainingRemoteValidation.ValidDirection(direction))
+                        _target.TrainingReorder(id, direction);
                     break;
+                }
                 case RemoteEventTypes.TrainingAdjustActive:
                     _target.TrainingAdjustActive(GetInt(ev.Payload, "seconds", 0));
                     break;
@@ -330,6 +385,13 @@ public sealed class RemoteCommandDispatcher
         return Guid.TryParse(el.GetString(), out var g) ? g : Guid.Empty;
     }
 
+    private static bool ValidOptionalTrainingText(JsonElement payload, string name, int maximumLength)
+    {
+        if (payload.ValueKind != JsonValueKind.Object) return false;
+        return !payload.TryGetProperty(name, out var value)
+            || value.ValueKind == JsonValueKind.String && (value.GetString()?.Length ?? 0) <= maximumLength;
+    }
+
     private static TrainingIntervalSpec? TryGetInterval(JsonElement payload)
     {
         if (payload.ValueKind != JsonValueKind.Object) return null;
@@ -340,8 +402,11 @@ public sealed class RemoteCommandDispatcher
         int work   = GetInt(spec, "workSeconds", 0);
         int rest   = GetInt(spec, "restSeconds", 0);
         string prefix = GetString(spec, "titlePrefix", "Set");
-        if (rounds <= 0 || work <= 0) return null;
-        return new TrainingIntervalSpec(rounds, work, rest, prefix);
+        if (spec.TryGetProperty("restSeconds", out var restValue)
+            && (restValue.ValueKind != JsonValueKind.Number || !restValue.TryGetInt32(out _))) return null;
+        if (!ValidOptionalTrainingText(spec, "titlePrefix", TrainingRemoteValidation.MaximumPrefixLength)) return null;
+        var interval = new TrainingIntervalSpec(rounds, work, rest, prefix);
+        return TrainingRemoteValidation.ValidInterval(interval) ? interval : null;
     }
 
     /// <summary>

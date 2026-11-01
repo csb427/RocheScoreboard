@@ -128,16 +128,17 @@ public sealed record QuarterSnapshotDto
 /// Snapshot of a <see cref="Roche_Scoreboard.Models.TrainingSession"/> in
 /// a form the phone client can render directly.
 /// </summary>
+// TimeSpan/queue totals exceed Int32. JSON stays numeric; the phone uses Number.
 public sealed record TrainingSnapshotDto
 {
     public bool   IsRunning              { get; init; }
     public bool   AutoAdvance            { get; init; } = true;
     public int    ActiveIndex            { get; init; } = -1;
     public string ActiveTitle            { get; init; } = "";
-    public int    ActiveTotalSeconds     { get; init; }
-    public int    ActiveRemainingSeconds { get; init; }
-    public int    SessionTotalSeconds    { get; init; }
-    public int    SessionRemainingSeconds { get; init; }
+    public long    ActiveTotalSeconds     { get; init; }
+    public long    ActiveRemainingSeconds { get; init; }
+    public long    SessionTotalSeconds    { get; init; }
+    public long    SessionRemainingSeconds { get; init; }
 
     public IReadOnlyList<TrainingTimerDto> Timers { get; init; } =
         Array.Empty<TrainingTimerDto>();
@@ -147,7 +148,7 @@ public sealed record TrainingTimerDto
 {
     public string Id               { get; init; } = "";
     public string Title            { get; init; } = "";
-    public int    TotalSeconds     { get; init; }
-    public int    RemainingSeconds { get; init; }
+    public long    TotalSeconds     { get; init; }
+    public long    RemainingSeconds { get; init; }
     public bool   HasFinished      { get; init; }
 }

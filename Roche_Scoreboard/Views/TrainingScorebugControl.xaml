@@ -11,13 +11,13 @@
     <Viewbox Stretch="Uniform" StretchDirection="Both">
         <Grid x:Name="RootGrid" Width="960" Height="540" ClipToBounds="True">
         <Grid.Background>
-            <!-- Solid base colour we animate to red during finish flashes
-                 (no overlay element — the background itself swaps colour). -->
+            <!-- A steady success accent acknowledges completion without a
+                 repeating full-field flash. -->
             <SolidColorBrush x:Name="RootBg" Color="#080C12"/>
         </Grid.Background>
 
-        <!-- Background gradient — sits over the solid root colour but uses
-             alpha so the red flash bleeds through cleanly when active. -->
+        <!-- The ambient gradient softens the steady completion accent while
+             leaving the live title and numerical readout sharp. -->
         <Border x:Name="GradientBg">
             <Border.Background>
                 <RadialGradientBrush Center="0.5,0.45" RadiusX="0.7" RadiusY="0.7">
@@ -81,6 +81,7 @@
                          clip, the text-block is translated back and forth. When
                          it fits, the translate stays at 0 and centring is done
                          by the host border. -->
+                    <Grid Width="1380" Height="140">
                     <Canvas x:Name="TitleClip" Height="140" Width="1380" ClipToBounds="True">
                         <TextBlock x:Name="TitleText" Text="WARM-UP"
                                    FontSize="110" FontWeight="Black" FontFamily="Bahnschrift"
@@ -94,6 +95,18 @@
                             </TextBlock.Effect>
                         </TextBlock>
                     </Canvas>
+                    <!-- This single check draws in the existing left padding;
+                         the interval name keeps its full, unchanged clip. -->
+                    <Path x:Name="CompletionMark" Width="40" Height="36"
+                          HorizontalAlignment="Left" VerticalAlignment="Center"
+                          Data="M4,18 L15,29 L36,5" Stretch="Uniform"
+                          Stroke="#3FB950" StrokeThickness="8"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          StrokeDashArray="6,6" StrokeDashOffset="6"
+                          Opacity="0" IsHitTestVisible="False" Focusable="False">
+                        <Path.RenderTransform><TranslateTransform X="-50"/></Path.RenderTransform>
+                    </Path>
+                    </Grid>
                 </Border>
 
                 <!-- Big timer block (auto-sized so spacer rows centre it) -->
@@ -105,16 +118,38 @@
                             <TranslateTransform x:Name="TimerTranslate" X="0" Y="0"/>
                         </TransformGroup>
                     </StackPanel.RenderTransform>
-                    <TextBlock x:Name="TimerText" Text="05:00"
-                               FontSize="420" FontWeight="Black"
-                               FontFamily="Bahnschrift"
-                               Foreground="#FFFFFF"
-                               TextAlignment="Center"
-                               HorizontalAlignment="Center">
-                        <TextBlock.Effect>
-                            <DropShadowEffect x:Name="TimerGlow" BlurRadius="55" ShadowDepth="0" Color="#58A6FF" Opacity="0.75"/>
-                        </TextBlock.Effect>
-                    </TextBlock>
+                    <!-- A fixed semantic hours lane keeps every accepted duration
+                         readable without reducing the primary MM:SS type size.
+                         Hour-sized intervals retain the lane down to zero, so
+                         the main digits do not jump at the hour boundary. -->
+                    <Grid x:Name="TimerReadout" Width="1880" HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel x:Name="TimerHoursLane" Grid.Column="0" Width="560"
+                                    VerticalAlignment="Center" Visibility="Collapsed">
+                            <TextBlock x:Name="TimerHoursText" Text="0" Width="560"
+                                       FontSize="88" FontWeight="Black" FontFamily="Bahnschrift"
+                                       Foreground="White" TextAlignment="Center"
+                                       TextWrapping="NoWrap" TextTrimming="None"
+                                       Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
+                            <TextBlock Text="HOURS" FontSize="72" FontWeight="Black"
+                                       FontFamily="Bahnschrift" Foreground="#58A6FF" TextAlignment="Center"/>
+                        </StackPanel>
+                        <Border x:Name="TimerHoursSpacer" Grid.Column="1" Width="32" Visibility="Collapsed"/>
+                        <TextBlock x:Name="TimerText" Grid.Column="2" Text="05:00" Width="1288"
+                                   FontSize="420" FontWeight="Black"
+                                   FontFamily="Bahnschrift"
+                                   Foreground="#FFFFFF"
+                                   TextAlignment="Center" TextWrapping="NoWrap" TextTrimming="None"
+                                   HorizontalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False">
+                            <TextBlock.Effect>
+                                <DropShadowEffect x:Name="TimerGlow" BlurRadius="55" ShadowDepth="0" Color="#58A6FF" Opacity="0.75"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
 
                     <!-- Progress: segmented tick row. 20 segments fill left-to-right
                          as time elapses. Code-behind toggles each segment's
@@ -146,22 +181,22 @@
                         <DropShadowEffect BlurRadius="26" ShadowDepth="0" Color="#58A6FF" Opacity="0.45"/>
                     </Border.Effect>
                     <Grid Margin="80,28,80,28" MinHeight="160">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" x:Name="UpNextLabel" Text="UP NEXT"
-                                   Foreground="#FFFFFF" FontSize="96" FontWeight="Black"
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <!-- Status is a caption above the actual interval name;
+                             long numeric durations keep a separate, fixed-size lane. -->
+                        <StackPanel Grid.Column="0" Margin="0,0,32,0" VerticalAlignment="Center">
+                            <TextBlock x:Name="UpNextLabel" Text="UP NEXT"
+                                   Foreground="#FFFFFF" FontSize="56" FontWeight="Black"
                                    FontFamily="Bahnschrift" VerticalAlignment="Center"
-                                   Margin="0,0,40,0"/>
-                        <TextBlock Grid.Column="1" x:Name="UpNextTitle" Text=""
+                                   Margin="0,0,0,4"/>
+                            <TextBlock x:Name="UpNextTitle" Text=""
                                    Foreground="White" FontSize="96" FontWeight="Black"
                                    FontFamily="Bahnschrift"
-                                   VerticalAlignment="Center" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" HorizontalAlignment="Stretch"
                                    TextTrimming="CharacterEllipsis"
-                                   Margin="0,0,40,0"/>
-                        <TextBlock Grid.Column="2" x:Name="UpNextDuration" Text="00:00"
+                                   Margin="0"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" x:Name="UpNextDuration" Text="00:00"
                                    Foreground="#FF9100" FontSize="112" FontWeight="Black"
                                    FontFamily="Bahnschrift" VerticalAlignment="Center">
                             <TextBlock.Effect>
@@ -188,32 +223,32 @@
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="30" ShadowDepth="0" Color="#3FB950" Opacity="0.55"/>
                         </Border.Effect>
-                        <Grid Margin="80,28,80,28">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" x:Name="StagedLabel" Text="NOW STARTING"
+                        <Grid Margin="80,28,80,28" MinHeight="160">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <!-- Status is a caption above the actual interval name;
+                             long numeric durations keep a separate, fixed-size lane. -->
+                        <StackPanel Grid.Column="0" Margin="0,0,32,0" VerticalAlignment="Center">
+                            <TextBlock x:Name="StagedLabel" Text="NOW STARTING"
                                        Foreground="#3FB950" FontSize="56" FontWeight="Black"
                                        FontFamily="Bahnschrift" VerticalAlignment="Center"
-                                       Margin="0,0,40,0">
+                                       Margin="0,0,0,4">
                                 <TextBlock.Effect>
                                     <DropShadowEffect BlurRadius="18" ShadowDepth="0" Color="#3FB950" Opacity="0.7"/>
                                 </TextBlock.Effect>
                             </TextBlock>
-                            <TextBlock Grid.Column="1" x:Name="StagedTitleText" Text=""
+                            <TextBlock x:Name="StagedTitleText" Text=""
                                        Foreground="White" FontSize="100" FontWeight="Black"
                                        FontFamily="Bahnschrift" VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Grid.Column="2" x:Name="StagedTimerText" Text="00:00"
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" x:Name="StagedTimerText" Text="00:00"
                                        Foreground="#FFFFFF" FontSize="120" FontWeight="Black"
-                                       FontFamily="Bahnschrift" VerticalAlignment="Center">
+                                       FontFamily="Bahnschrift" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False">
                                 <TextBlock.Effect>
                                     <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="#3FB950" Opacity="0.8"/>
                                 </TextBlock.Effect>
                             </TextBlock>
-                        </Grid>
+                    </Grid>
                     </Border>
                 </Grid>
             </Grid>
@@ -232,12 +267,12 @@
                                    FontSize="160" FontWeight="Black" FontFamily="Bahnschrift"
                                    Foreground="White" TextAlignment="Center">
                             <TextBlock.Effect>
-                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Color="#FF0000" Opacity="0.9"/>
+                                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Color="#3FB950" Opacity="0.9"/>
                             </TextBlock.Effect>
                         </TextBlock>
                         <TextBlock Text="ALL TIMERS FINISHED"
                                    FontSize="42" FontWeight="Black" FontFamily="Bahnschrift"
-                                   Foreground="#FFD1D1" TextAlignment="Center" Margin="0,12,0,0"/>
+                                   Foreground="#D5F3DD" TextAlignment="Center" Margin="0,12,0,0"/>
                     </StackPanel>
                 </Viewbox>
             </Grid>

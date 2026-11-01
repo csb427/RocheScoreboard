@@ -31,7 +31,7 @@ public partial class MainWindow
             foreach(var size in new[]{(1100d,820d),(420d,720d),(420d,320d),(320d,240d)})
             {
                 window.Width=size.Item1;window.Height=size.Item2;await Task.Delay(160);window.UpdateLayout();
-                checks[$"sculpted-home-all-native-actions-fit-{size.Item1}x{size.Item2}"]=new[]{home.AflCard,home.CricketCard,home.TrainingCard}.All(card=>card.ActualWidth>=70 && card.ActualHeight>=40 && CricketQaBoundsWithin(card,home));
+                checks[$"sculpted-home-all-native-actions-fit-{size.Item1}x{size.Item2}"]=new[]{home.AflCard,home.TrainingCard}.All(card=>card.ActualWidth>=70 && card.ActualHeight>=40 && CricketQaBoundsWithin(card,home));
                 checks[$"sculpted-home-no-label-clipping-{size.Item1}x{size.Item2}"]=new[]{home.AflTextPanel,home.CricketTextPanel,home.TrainingTextPanel}.All(panel=>CricketQaBoundsWithin(panel,home) && panel.ActualHeight>20);
                 CaptureCricketQa(home,Path.Combine(directory,$"sculpted-home-{size.Item1}x{size.Item2}.png"));
             }

@@ -39,3 +39,12 @@ tool declarations and installation steps do not grant additional permissions.
 Omitted scripts, services and platform dependencies remain unavailable unless
 separately supplied and authorised. Use the relative-link audit for relocated or
 absent references. No plugin runtime, hooks or global configuration was imported.
+
+## Selected Superpowers workflows
+
+12 additional Markdown skill/reference sets are indexed in
+[the Superpowers import guide](.agents/skills/_provenance/superpowers/IMPORT.md).
+Read selectively; source definitions and reviewer templates are available here.
+Script-dependent execution workflows remain reference-only. This import does not
+grant agent, script, configuration or publication permission; active task rules
+and actual tool schemas remain authoritative.

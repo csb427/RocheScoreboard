@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml",
-  "source_sha256": "e029f88be2c1b9c96ab7ba5b5a1144e44db7491dc9dfcd193bdfa88202f7d2b7",
+  "source_sha256": "49c72a284cdb82f19d4ae32ed54b48bc9f7648ff492b3b52ffe5b92b4d1e95f6",
   "names": [
     {
       "name": "PART_Track",
@@ -20,8 +20,18 @@
       "object": false
     },
     {
+      "name": "DialogHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "CloseButton",
       "type": "Button",
+      "object": false
+    },
+    {
+      "name": "UpdateDetailsViewport",
+      "type": "ScrollViewer",
       "object": false
     },
     {
@@ -75,6 +85,11 @@
       "object": false
     },
     {
+      "name": "UpdateActions",
+      "type": "Grid",
+      "object": false
+    },
+    {
       "name": "ViewReleaseButton",
       "type": "Button",
       "object": false
@@ -90,7 +105,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "48d02d26f7a96c36dc2f8804c697e815485007b7e6bcffd4a7ab96f8a06da9e4",
+  "code_source_sha256": "a0594990606b9e60a5459446b999d7aa2b8eb353270117e403da14d426d89a1e",
   "native_events": [
     {
       "name": null,
@@ -124,7 +139,7 @@
       "native_fallback": "Inter"
     },
     {
-      "name": null,
+      "name": "DialogHeading",
       "property": "FontFamily",
       "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
@@ -146,6 +161,12 @@
       "property": "FontFamily",
       "source": "Segoe UI Variable, Segoe UI",
       "native_fallback": "Inter"
+    },
+    {
+      "name": "DialogShell",
+      "property": "Height",
+      "source": "{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Window}}",
+      "translation": "Arranged control Bounds dimension binding"
     }
   ],
   "visual_parity_verified": false,

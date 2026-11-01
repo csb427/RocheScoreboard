@@ -24,11 +24,11 @@ public partial class MainWindow
         {
             OperatorMotion.AnimationOverride=true;OperatorDesign.UpdateGuidance(false);
             var home=new SportSelectionScreen();window.Content=home;await Wait();
-            checks["landing-uses-three-full-scene-illustrations"]=QaDescendants(home).OfType<OperatorSportArtwork>().Count()==3;
+            checks["landing-has-one-game-entry-and-direct-training"]=home.CricketCard.Visibility==Visibility.Collapsed && new[]{home.AflCard,home.TrainingCard}.All(card=>QaDescendants(card).OfType<OperatorSportArtwork>().Count()==1);
             checks["landing-loads-all-three-bundled-generated-images"]=QaDescendants(home).OfType<OperatorSportArtwork>().All(art=>art.HasGeneratedArtwork);
             var sportSlot=System.Windows.Controls.Primitives.LayoutInformation.GetLayoutSlot(home.SportCardsGrid);
             checks["sports-grid-fits-real-remaining-height-without-cropping-training"]=home.SportCardsGrid.ActualHeight<=sportSlot.Height+1;
-            var sportCards=new[]{home.AflCard,home.CricketCard,home.TrainingCard};
+            var sportCards=new[]{home.AflCard,home.TrainingCard};
             checks["sport-hover-content-clips-to-rounded-boundaries"]=sportCards.All(card=>card.Clip is RectangleGeometry shape && shape.RadiusX==28 && !shape.FillContains(new System.Windows.Point(1,1)));
             foreach(var card in sportCards)
             {
@@ -39,7 +39,7 @@ public partial class MainWindow
                 InvokeCricketQa(home,"EngageHomeTile",card,false);
             }
             for(int i=0;i<24;i++)
-            {foreach(var card in sportCards)InvokeCricketQa(home,"EngageHomeTile",card,false);InvokeCricketQa(home,"EngageHomeTile",sportCards[i%3],true);await Wait(8);}
+            {foreach(var card in sportCards)InvokeCricketQa(home,"EngageHomeTile",card,false);InvokeCricketQa(home,"EngageHomeTile",sportCards[i%sportCards.Length],true);await Wait(8);}
             foreach(var card in sportCards)InvokeCricketQa(home,"EngageHomeTile",card,false);
             await Wait(800);
             var motions=(System.Collections.IDictionary)typeof(SportSelectionScreen).GetField("_homeTiles",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(home)!;
@@ -51,7 +51,7 @@ public partial class MainWindow
             OperatorDesign.UpdateGuidance(false);
             checks["new-preferences-default-navigation-hints-off"]=!new UxPreferencesData().EnableQuickStartupHints;
             int selections=0;home.SportSelected+=_=>selections++;
-            for(int i=0;i<15;i++){InvokeCricketQa(home,"ActivateSport",SportMode.Cricket);window.Content=new Grid();window.Content=home;home.PrepareForDisplay();await Wait(10);}
+            for(int i=0;i<15;i++){InvokeCricketQa(home,"ActivateSport",SportMode.AFL);window.Content=new Grid();window.Content=home;home.PrepareForDisplay();await Wait(10);}
             checks["landing-rapid-reentry-never-latches-input"]=selections==15 && home.IsHitTestVisible;
             CaptureCricketQa(home,Path.Combine(directory,"illustrated-home.png"));
 

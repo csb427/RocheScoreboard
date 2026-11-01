@@ -273,7 +273,7 @@ public partial class MainWindow
             {
                 window.Width = size.Item1; window.Height = size.Item2;
                 await Task.Delay(180); sport.UpdateLayout();
-                checks[$"sport-choices-fit-{size.Item1}x{size.Item2}"] = new[] { sport.AflCard, sport.CricketCard, sport.TrainingCard }
+                checks[$"sport-choices-fit-{size.Item1}x{size.Item2}"] = new[] { sport.AflCard, sport.TrainingCard }
                     .All(card => CricketQaBoundsWithin(card, sport) && card.ActualWidth > 20 && card.ActualHeight > 20);
                 CaptureCricketQa(sport, Path.Combine(directory, $"sport-selection-{size.Item1}x{size.Item2}.png"));
             }

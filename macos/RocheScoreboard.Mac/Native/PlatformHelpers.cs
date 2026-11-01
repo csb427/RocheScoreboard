@@ -90,7 +90,11 @@ public sealed class NativeFormattedText
     private readonly FormattedText _text;
     public NativeFormattedText(string text, System.Globalization.CultureInfo culture, FlowDirection flow, Typeface face,
         double size, IBrush brush, double pixelsPerDip = 1)
-        => _text = new(text, culture, flow, face, size, brush);
+    {
+        _text = new(text, culture, flow, face, size, brush);
+        if (text.All(character => char.IsDigit(character) || char.IsWhiteSpace(character) || "./-+:()%".Contains(character)))
+            _text.SetFontFeatures(new FontFeatureCollection { FontFeature.Parse("tnum"), FontFeature.Parse("lnum"), FontFeature.Parse("-kern") });
+    }
     internal FormattedText Text => _text;
     public double MaxTextWidth{get=>_text.MaxTextWidth;set=>_text.MaxTextWidth=value;}
     public int MaxLineCount{get=>_text.MaxLineCount;set=>_text.MaxLineCount=value;}

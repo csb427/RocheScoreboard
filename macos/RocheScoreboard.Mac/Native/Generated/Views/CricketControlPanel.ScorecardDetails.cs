@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.ScorecardDetails.cs; edit translator/adapters.
-// Source SHA-256: d9d0b5ff39df019a2fccac0a7f591ab6e4271f67f8a46dbf81a88dea37d2bf73
+// Source SHA-256: 11460813cc1cfd46f033e4452071acdc6228daa247c688a27f5c1a517730a80f
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -32,8 +32,32 @@ public partial class CricketControlPanel
             ("HitBallTwice", "Hit the ball twice", DismissalType.HitBallTwice), ("Other", "Other dismissal", DismissalType.Other)
         };
         string selected = player.IsRetired ? player.IsOut ? "RetiredOut" : player.RetiredReason == "retired not out" ? "RetiredNotOut" : "RetiredHurt" : player.IsOut ? player.HowOut.ToString() : "NotOut";
-        var body = new StackPanel { Tag = "scorecard-dismissal-editor", MinWidth = 0 }; var choices = new WrapPanel();
-        body.Children.Add(WorkflowText("Dismissal", 15)); body.Children.Add(choices);
+        var source = NativeKeyboard.FocusedElement as Control;
+        var body = new StackPanel { Tag = "scorecard-dismissal-editor", MinWidth = 0, Margin = new Thickness(0,0,12,0) };
+        var context = new StackPanel();
+        context.Children.Add(WorkflowText(player.FullName, 19));
+        var figures = WorkflowText($"{player.Runs} runs · {player.BallsFaced} balls", 16);
+        figures.FontFeatures=new FontFeatureCollection { FontFeature.Parse("tnum"), FontFeature.Parse("lnum"), FontFeature.Parse("-kern") };
+        context.Children.Add(figures);
+        context.Children.Add(WorkflowText("Current record: " + player.DismissalSummary, 13));
+        var contextCard = new NativeBorder { Child = context, CornerRadius = new CornerRadius(16), Padding = new Thickness(12,4,12,8), Margin = new Thickness(3,0,3,12), BorderThickness = new Thickness(1) };
+        contextCard.SetResourceReference(Border.BackgroundProperty, "ControlCentre.SurfaceBrush");
+        contextCard.SetResourceReference(Border.BorderBrushProperty, "ControlCentre.BorderBrush");
+        body.Children.Add(contextCard); body.Children.Add(WorkflowText("Choose the recorded outcome", 15));
+        var choices = new WrapPanel(); body.Children.Add(choices);
+        var proposed = WorkflowText("", 15); proposed.Tag = "scorecard-dismissal-proposed";
+        Avalonia.Automation.AutomationProperties.SetLiveSetting(proposed, Avalonia.Automation.AutomationLiveSetting.Polite);
+        var marks = new Dictionary<Button, TextBlock>();
+        void SizeChoices()
+        {
+            double width = Math.Max(1, body.NativeWidth()); int columns = width >= 460 ? 2 : 1;
+            foreach (var tile in choices.Children.OfType<Button>())
+            {
+                tile.Width = Math.Max(1, (width - 6) / columns - 6);
+                if (tile.Content is Grid content) content.Width = Math.Max(1,tile.Width-24);
+            }
+        }
+        body.SizeChanged += (_,_) => SizeChoices();
         var bowlerSection = new StackPanel(); var fielderSection = new StackPanel();
         var bowler = new ComboBox { Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "SettingsChoice"), MinHeight = 42, Margin = new Thickness(3) };
         var fielder = new ComboBox { Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "SettingsChoice"), MinHeight = 42, Margin = new Thickness(3) };
@@ -62,12 +86,16 @@ public partial class CricketControlPanel
             foreach (var tile in choices.Children.OfType<Button>())
             {
                 bool active = Equals(tile.Tag, selected);
-                tile.SetResourceReference(Avalonia.Controls.Primitives.TemplatedControl.BackgroundProperty, active ? "ControlCentre.SelectionBrush" : "ControlCentre.SurfaceBrush");
+                tile.SetResourceReference(Avalonia.Controls.Primitives.TemplatedControl.BackgroundProperty, "ControlCentre.SurfaceBrush");
+                OperatorChoiceMotion.SetSelected(tile, active);
+                marks[tile].IsVisible = active ? true : false;
                 tile.SetResourceReference(Avalonia.Controls.TextBlock.ForegroundProperty, "ControlCentre.TextBrush");
                 tile.SetResourceReference(Avalonia.Controls.Primitives.TemplatedControl.BorderBrushProperty, active ? "ControlCentre.AccentBrush" : "ControlCentre.BorderBrush");
                 tile.BorderThickness = new Thickness(1);
                 Avalonia.Automation.AutomationProperties.SetItemStatus(tile, active ? "Selected" : "");
             }
+            proposed.Text = player.DisplayName + " · Proposed: " + options.First(option => option.Key == selected).Caption;
+            Avalonia.Controls.ToolTip.SetTip(proposed, player.FullName + " · " + (proposed.Text ?? string.Empty));
             bowlerSection.IsVisible = RequiresBowler(selected) || selected == "Other" ? true : false;
             fielderSection.IsVisible = selected is "Caught" or "Stumped" or "RunOut" ? true : false;
             noteSection.IsVisible = selected == "Other" ? true : false;
@@ -75,14 +103,49 @@ public partial class CricketControlPanel
         foreach (var option in options)
         {
             var key = option.Key; var tile = WorkflowButton(option.Caption, () => { selected = key; errorText.Text = ""; RefreshChoices(); }, key);
-            tile.MinWidth = 132; tile.MinHeight = 48;
+            tile.Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "CricketLineupRoleButton");
+            tile.ContentTemplate = null; tile.MinWidth = 0; tile.MinHeight = 76; tile.Padding = new Thickness(0);
+            var content = new Grid { IsHitTestVisible = false };
+            content.ColumnDefinitions.Add(new ColumnDefinition()); content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
+            var captions = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            var caption = WorkflowText(option.Caption, 15); caption.Margin = new Thickness(0); caption.FontWeight = FontWeight.SemiBold;
+            var consequence = WorkflowText(key is "NotOut" or "RetiredHurt" or "RetiredNotOut" ? "No team wicket" : "Team wicket", 12); consequence.Margin = new Thickness(0,4,0,0);
+            consequence.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
+            captions.Children.Add(caption); captions.Children.Add(consequence); content.Children.Add(captions);
+            var mark = WorkflowText("✓", 16); mark.Margin = new Thickness(6,0,0,0); mark.VerticalAlignment = VerticalAlignment.Center;
+            mark.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.AccentBrush"); Grid.SetColumn(mark,1); content.Children.Add(mark);
+            tile.Content = content; marks.Add(tile,mark);
             Avalonia.Automation.AutomationProperties.SetName(tile, option.Caption);
+            Avalonia.Automation.AutomationProperties.SetHelpText(tile, (consequence.Text ?? string.Empty) + ". This selection is a draft until Apply dismissal.");
             choices.Children.Add(tile);
         }
         RefreshChoices();
+        bool Reject(Avalonia.Controls.Control target, string message)
+        {
+            errorText.Text = message;
+            int generation = _workflowGeneration; string rejectedSelection = selected;
+            var rejectedFocus = NativeKeyboard.FocusedElement;
+            Dispatcher.UIThread.Post(Avalonia.Threading.DispatcherPriority.Input, new Action(() =>
+            {
+                if (generation != _workflowGeneration || selected != rejectedSelection || (errorText.Text ?? string.Empty) != message
+                    || !ReferenceEquals(rejectedFocus, NativeKeyboard.FocusedElement) || !ReferenceEquals(draft, _scorecardDraft) || !ReferenceEquals(match, _match)
+                    || !body.IsLoaded || !body.IsVisible || !target.IsVisible || !target.IsEnabled
+                    || NativeWindow.GetWindow(body) is not { IsActive: true }) return;
+                target.BringIntoView(); NativeKeyboard.Focus(target);
+            }));
+            return false;
+        }
+        bool ValidateDismissal()
+        {
+            if (!ReferenceEquals(draft, _scorecardDraft) || !ReferenceEquals(match, _match)) return false;
+            if (RequiresBowler(selected) && bowler.SelectedIndex <= 0) return Reject(bowler, "Choose the bowler to receive this wicket.");
+            if (selected is "Caught" or "Stumped" && fielder.SelectedIndex <= 0) return Reject(fielder, "Choose the fielder for this dismissal.");
+            if (selected == "Other" && (note.Text ?? string.Empty).Trim().Length > 120) return Reject(note, "Keep the dismissal note within 120 characters.");
+            errorText.Text = ""; return true;
+        }
         while (ReferenceEquals(draft, _scorecardDraft) && ReferenceEquals(match, _match))
         {
-            if (await FormAsync(player.FullName + " · dismissal", "Choose the dismissal and fielding players. Apply updates team wickets and the bowler's credit together.", body, new("back", "Cancel"), new("apply", "Apply dismissal", true)) != "apply") return;
+            if (await CorrectionFormAsync("Edit dismissal", "Review this scorecard correction before applying it.", body, proposed, source, ValidateDismissal, new("back", "Cancel"), new("apply", "Apply dismissal", true)) != "apply") return;
             if (!ReferenceEquals(draft, _scorecardDraft) || !ReferenceEquals(match, _match)) return;
             if (RequiresBowler(selected) && bowler.SelectedIndex <= 0) { errorText.Text = "Choose the bowler to receive this wicket."; continue; }
             if (selected is "Caught" or "Stumped" && fielder.SelectedIndex <= 0) { errorText.Text = "Choose the fielder for this dismissal."; continue; }

@@ -1,10 +1,20 @@
 {
   "source": "Roche_Scoreboard/Views/ResumeMatchPrompt.xaml",
-  "source_sha256": "6e730729b18f86492c6ce412b5eaa256a88b5dd24d4229c91bcc30513bd39f69",
+  "source_sha256": "952389cce031445126d57cb11805e1f0fd42b61aace497f36e4e2319f90c4e46",
   "names": [
     {
       "name": "DialogShell",
       "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "RecoveryHeader",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "RecoverySymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -15,6 +25,11 @@
     {
       "name": "PhaseText",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "RecoveryDetails",
+      "type": "ScrollViewer",
       "object": false
     },
     {
@@ -45,6 +60,11 @@
     {
       "name": "AwayNameText",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "RecoveryActions",
+      "type": "StackPanel",
       "object": false
     },
     {
@@ -80,7 +100,7 @@
       "template": true
     }
   ],
-  "code_source_sha256": "38f4d7623ca17f54f466fedd9af868526cad13fa27229fec3a7c63657685cf04",
+  "code_source_sha256": "ca40687107ac71a5b81dc0318252d43dee678b5c2bbd66bae50e0f05996b99ab",
   "native_events": [
     {
       "name": null,

@@ -97,7 +97,11 @@ public static class NativeObjectGraph
             if (!seen.Add(next)) continue;
             yield return next;
             if (next is Visual visual) foreach (var child in visual.GetVisualChildren()) queue.Enqueue(child);
-            foreach (string name in new[] { "RenderTransform", "LayoutTransform", "Effect", "Background", "Fill", "Stroke", "Children", "GradientStops", "ColumnDefinitions", "RowDefinitions" })
+            // Grid definition getters create Avalonia's extended layout data.
+            // Reading them after an optimized measure poisons the next arrange.
+            // Named production definitions already belong to ProductionNames;
+            // this traversal discovers existing visual/paint objects only.
+            foreach (string name in new[] { "RenderTransform", "LayoutTransform", "Effect", "Background", "Fill", "Stroke", "Children", "GradientStops" })
             {
                 object? value = next.GetType().GetProperty(name)?.GetValue(next);
                 if (value is AvaloniaObject item) queue.Enqueue(item);
@@ -115,6 +119,7 @@ public static class NativePointer
     }
     public static void EnsureInitialized() => NativeKeyboard.EnsureInitialized();
     public static void Capture(Control target) => (_pointer ?? throw new InvalidOperationException("No active pointer to capture.")).Capture(target);
+    public static void Capture(Control target,PointerEventArgs args) { _pointer=args.Pointer;_pointer.Capture(target); }
     public static bool IsCaptureWithin(Control root)=>_pointer?.Captured is Avalonia.Visual visual&&(ReferenceEquals(visual,root)||Avalonia.VisualTree.VisualExtensions.GetVisualAncestors(visual).Contains(root));
     public static bool IsCaptured(Control? target) => target is not null && ReferenceEquals(_pointer?.Captured, target);
     public static void Release(Control? target) { if (target is not null && _pointer is not null && ReferenceEquals(_pointer.Captured, target)) _pointer.Capture(null); }

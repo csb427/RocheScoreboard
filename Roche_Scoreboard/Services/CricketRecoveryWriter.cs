@@ -65,6 +65,14 @@ internal sealed class CricketRecoveryWriter
             catch (Exception error) { lock (_gate) _lastError = error; Report(error); }
         }
     }
+    /// <summary>Retire this session's writes without deleting its last committed recovery.</summary>
+    internal void InvalidatePending()
+    {
+        lock (_gate) { ++_generation; _pending = null; }
+        // Wait only for an atomic commit already in progress. Once this returns,
+        // an old session cannot overwrite the replacement session's next save.
+        lock (_commitGate) { }
+    }
     internal bool Flush(TimeSpan timeout)
     {
         Task? worker;

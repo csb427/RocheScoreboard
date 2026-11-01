@@ -35,6 +35,8 @@ namespace Roche_Scoreboard.Views
             host.SetPresentation(_currentPresentation);
             host.AutomaticEnabled = CricketAutomaticOverlays.IsChecked == true;
             CricketOverlayButtons.Children.Clear(); _overlayButtons.Clear();
+            RegisterOverlayButton(CricketOverlayKind.Extras, CricketExtrasOverlayButton);
+            RegisterOverlayButton(CricketOverlayKind.Boundaries, CricketBoundariesOverlayButton);
             foreach (CricketOverlayGroup group in Enum.GetValues<CricketOverlayGroup>())
             {
                 var colour = group switch { CricketOverlayGroup.Review => "#75D286", CricketOverlayGroup.Pressure => "#E7B94F", CricketOverlayGroup.Context => "#8FC5FF", _ => "#B9A1FA" };
@@ -49,11 +51,17 @@ namespace Roche_Scoreboard.Views
                 });
                 var cards = new System.Windows.Controls.Primitives.UniformGrid { Columns = 2, Margin = new Thickness(0, 0, 0, 10) };
                 CricketOverlayButtons.Children.Add(cards);
-                foreach (var fact in host.Facts.Where(f => f.Group == group))
+                foreach (var fact in host.Facts.Where(f => f.Group == group && f.Kind is not (CricketOverlayKind.Extras or CricketOverlayKind.Boundaries)))
                 {
                     CricketOverlayKind kind = fact.Kind;
                     var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(4, 10, 4, 10) };
-                    content.Children.Add(new TextBlock
+                    bool situation=kind is CricketOverlayKind.Partnership or CricketOverlayKind.MatchState or CricketOverlayKind.InningsRecap;
+                    if(situation)content.Children.Add(new OperatorSymbol
+                    {
+                        Kind=kind switch {CricketOverlayKind.Partnership=>"partnership",CricketOverlayKind.MatchState=>"equation",_=>"innings-recap"},
+                        Width=24,Height=24,Foreground=new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour)),Margin=new Thickness(0,0,0,3)
+                    });
+                    else content.Children.Add(new TextBlock
                     {
                         Text = group switch { CricketOverlayGroup.Review => "↶", CricketOverlayGroup.Pressure => "◷", CricketOverlayGroup.Context => "≡", _ => "↗" },
                         FontSize = 18,
@@ -61,7 +69,7 @@ namespace Roche_Scoreboard.Views
                         HorizontalAlignment = HorizontalAlignment.Center,
                         Margin = new Thickness(0, 0, 0, 3)
                     });
-                    content.Children.Add(new TextBlock { Text = OverlayCaption(kind), FontSize = 11, FontWeight = FontWeights.Black, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour)), HorizontalAlignment = HorizontalAlignment.Center });
+                    content.Children.Add(new TextBlock { Text = OverlayCaption(kind), FontSize = 11, FontWeight = FontWeights.Black, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colour)), HorizontalAlignment = HorizontalAlignment.Center,TextWrapping=TextWrapping.Wrap,TextAlignment=TextAlignment.Center });
                     var button = new Button
                     {
                         Tag = kind,
@@ -72,11 +80,20 @@ namespace Roche_Scoreboard.Views
                         Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(background))
                     };
                     button.Click += (_, _) => _overlayHost?.Request(kind);
-                    _overlayButtons[kind] = button; cards.Children.Add(button);
+                    if(situation){OperatorFeedback.SetManaged(button,true);CricketActionMotion.SetEnabled(button,false);}
+                    RegisterOverlayButton(kind,button);cards.Children.Add(button);
                 }
             }
             RefreshOverlayControls();
         }
+        private void RegisterOverlayButton(CricketOverlayKind kind, Button button)
+        {
+            button.Tag = kind; _overlayButtons[kind] = button;
+            System.Windows.Automation.AutomationProperties.SetName(button, OverlayCaption(kind));
+            System.Windows.Controls.ToolTipService.SetShowOnDisabled(button,true);
+        }
+        private void ExtrasOverlay_Click(object sender, RoutedEventArgs args) => _overlayHost?.Request(CricketOverlayKind.Extras);
+        private void BoundariesOverlay_Click(object sender, RoutedEventArgs args) => _overlayHost?.Request(CricketOverlayKind.Boundaries);
         private static string OverlayCaption(CricketOverlayKind kind) => kind switch
         {
             CricketOverlayKind.LastOver => "LAST OVER",
@@ -89,8 +106,22 @@ namespace Roche_Scoreboard.Views
             CricketOverlayKind.Projection => "PROJECTED SCORE",
             CricketOverlayKind.Toss => "TOSS RESULT",
             CricketOverlayKind.Boundaries => "INNINGS BOUNDARIES",
-            _ => "EXTRAS"
+            CricketOverlayKind.Extras => "EXTRAS",
+            CricketOverlayKind.Partnership => "CURRENT PARTNERSHIP",
+            CricketOverlayKind.MatchState => "MATCH STATE",
+            CricketOverlayKind.InningsRecap => "INNINGS RECAP",
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown cricket overlay")
         };
+        internal void ClearOverlayHost(CricketOverlayHost host)
+        {
+            if (!ReferenceEquals(_overlayHost, host)) return;
+            host.SetOutputActive(false);
+            host.StateChanged -= RefreshOverlayControls;
+            _overlayHost = null;
+            OverlayStatusText.Text = "OUTPUT OFF · OVERLAYS PAUSED";
+            foreach (var button in _overlayButtons.Values) { button.IsEnabled = false; button.Opacity = .45; }
+        }
+
         private void RefreshOverlayControls()
         {
             if (_overlayHost is null) return;
@@ -98,13 +129,22 @@ namespace Roche_Scoreboard.Views
             foreach (var button in _overlayButtons.Values)
             {
                 var fact = _overlayHost.Facts.FirstOrDefault(f => f.Kind == (CricketOverlayKind)button.Tag);
-                button.IsEnabled = _overlayHost.AllowsOverlays && fact?.Available == true;
+                button.IsEnabled = _overlayHost.OutputActive && _overlayHost.AllowsOverlays && fact?.Available == true;
                 button.Opacity = button.IsEnabled ? 1 : .45;
-                button.ToolTip = !_overlayHost.AllowsOverlays ? "Return to the live scorebug to show overlays" : fact?.Available == true ? fact.Title : fact?.UnavailableReason;
+                button.ToolTip = !_overlayHost.OutputActive ? "Show the output window before showing an overlay" : !_overlayHost.AllowsOverlays ? "Return to the live scorebug to show overlays" : fact?.Available == true ? fact.Title : fact?.UnavailableReason;
+                if(_overlayHost.OutputActive && _overlayHost.AllowsOverlays && fact?.Available==true)
+                {
+                    if(fact.Kind==CricketOverlayKind.Partnership)button.ToolTip=fact.Title+"\n"+CricketPartnershipAnalysis.DeliveryConvention;
+                    else if(!string.IsNullOrWhiteSpace(fact.UnavailableReason))button.ToolTip=fact.Title+"\n"+fact.UnavailableReason;
+                }
             }
         }
         private void AutoOverlays_Changed(object sender, RoutedEventArgs args)
-        { if (_overlayHost != null) _overlayHost.AutomaticEnabled = CricketAutomaticOverlays.IsChecked == true; }
+        {
+            if (_overlayHost != null) _overlayHost.AutomaticEnabled = CricketAutomaticOverlays.IsChecked == true;
+            if (!_loadingPresentationPreferences && System.Windows.Application.Current is not App { IsSelfTestMode: true })
+                OperatorWorkflowPreferences.Update(p => p.CricketAutomaticOverlays = CricketAutomaticOverlays.IsChecked == true);
+        }
         private void CancelCricketOverlay_Click(object sender, RoutedEventArgs args) => _overlayHost?.Cancel();
 
         private CricketMatchManager? _match;
@@ -144,9 +184,18 @@ namespace Roche_Scoreboard.Views
         public CricketControlPanel()
         {
             InitializeComponent();
+            System.Windows.Automation.AutomationProperties.SetLabeledBy(CricketWeatherLocation,CricketWeatherVenueLabel);
+            InitializeLiveScorebugCard();
             PreviewMouseDown += (_, args) => { if (DateTime.UtcNow < _deliveryPointerGuardUntil) args.Handled = true; };
             PreviewKeyDown += (_, args) =>
             {
+                if (args.Key == Key.Escape && _deliveryEntry is null
+                    && (BatterSelectionOverlay.Visibility == Visibility.Visible || BowlerSelectionOverlay.Visibility == Visibility.Visible))
+                {
+                    args.Handled = true;
+                    CancelPlayerSelection();
+                    return;
+                }
                 if (_deliveryEntry is null || args.OriginalSource is not UIElement source || !ConsoleViewport.IsAncestorOf(source)) return;
                 args.Handled = true; _deliveryEntry.ApplyButton.Focus();
             };
@@ -155,9 +204,8 @@ namespace Roche_Scoreboard.Views
                 if (_deliveryEntry is null || args.NewFocus is not UIElement destination || !ConsoleViewport.IsAncestorOf(destination)) return;
                 args.Handled = true; _deliveryEntry.ApplyButton.Focus();
             };
-            CricketAutomaticOverlays.IsChecked = OperatorWorkflowPreferences.Load().AflAutoOverlaysEnabled;
             var preferences = OperatorWorkflowPreferences.Load();
-            CricketEventAnimations.IsChecked = preferences.CricketEventAnimations; CricketRollingFigures.IsChecked = preferences.CricketRollingFigures; CricketBowlerDetails.IsChecked = preferences.CricketBowlerDetails;
+            CricketAutomaticOverlays.IsChecked = preferences.CricketAutomaticOverlays; CricketEventAnimations.IsChecked = preferences.CricketEventAnimations; CricketRollingFigures.IsChecked = preferences.CricketRollingFigures; CricketBowlerDetails.IsChecked = preferences.CricketBowlerDetails;
             _loadingPresentationPreferences = false;
             CricketSettingsColumns.SizeChanged += (_, _) => ReflowSettingsColumns();
             InitializeWorkflowControls();
@@ -219,6 +267,14 @@ namespace Roche_Scoreboard.Views
             PersistentHeader.ColumnDefinitions[1].Width = new GridLength(ActualWidth < 430 ? 0 : 18);
             InningsLabel.FontSize = narrow ? 20 : 24;
             bool shortWindow = ActualHeight < 500;
+            TossTeamChoices.Columns = tiny ? 1 : 2;
+            StartTossButton.MinHeight = shortWindow ? 128 : 180;
+            // Keep the compact sheet above the existing floating navigation
+            // dock. Its scroll viewport, not a target behind the dock, owns
+            // access to all toss choices and the final confirmation.
+            double tossBottomInset = shortWindow && MainTabControl.Template?.FindName("PART_OperatorDock",MainTabControl) is FrameworkElement dock
+                ? dock.ActualHeight + 16 : 0;
+            TossSheet.Margin = new Thickness(0,0,0,tossBottomInset);
             foreach (Border card in new[] { BatterSelectionCard, BowlerSelectionCard })
                 card.Padding = new Thickness(shortWindow ? 14 : 24);
             BatterSelectionTitle.FontSize = shortWindow ? 20 : 25;
@@ -265,7 +321,11 @@ namespace Roche_Scoreboard.Views
 
         public void SetMatch(CricketMatchManager match)
         {
+            int clearedGeneration = unchecked(_selectorGeneration + 1);
             ClearMatch();
+            // Naming the cleared sources can synchronously bind another game.
+            // Do not let this older clear-and-bind continuation replace it.
+            if (_selectorGeneration != clearedGeneration) return;
             _match = match;
             _match.MatchChanged += UpdateUI;
             _match.DeliveryAdded += OnDeliveryAdded;
@@ -274,6 +334,9 @@ namespace Roche_Scoreboard.Views
             CricketWeatherLocation.Text = match.WeatherLocation;
             CricketWeatherTemperature.Text = "—";
             CricketWeatherDescription.Text = "Weather will update for your selected venue.";
+            if (_selectorGeneration != clearedGeneration || !ReferenceEquals(_match,match)) return;
+            ResetCricketWeatherFeedback();
+            if (_selectorGeneration != clearedGeneration || !ReferenceEquals(_match,match)) return;
             UpdateUI();
 
             RebuildDeliveryLog();
@@ -282,6 +345,7 @@ namespace Roche_Scoreboard.Views
         /// <summary>Detach the previous game before resetting or binding another.</summary>
         public void ClearMatch()
         {
+            SettleLiveScorebugCard();
             ClosePlayerMenu();
             ResetBreakPresentations();
             if (_match != null)
@@ -295,8 +359,10 @@ namespace Roche_Scoreboard.Views
             TossOverlay.Visibility = Visibility.Collapsed;
             TossHomeChoice.IsChecked = TossAwayChoice.IsChecked = TossBatChoice.IsChecked = TossBowlChoice.IsChecked = false;
             _selectorGeneration++;
+            ClearSelectorReturnContext();
             _cpBatLogo = _cpBowlLogo = _cpThemeSignature = null;
             _match = null;
+            ++_weatherStatusRevision;
             ResetWorkflowControls();
             _deliveryEntry?.Cancel();
             _deliveryEntry = null; DeliveryEntryContent.Content = null; DeliveryEntryOverlay.Visibility = Visibility.Collapsed; ConsoleViewport.IsEnabled = true; ConsoleViewport.IsHitTestVisible = true;
@@ -304,6 +370,7 @@ namespace Roche_Scoreboard.Views
             _summaryControl = null;
             _displayWindow = null;
             _cpTopBatterIndex = _cpBottomBatterIndex = -1;
+            if (!UpdatePlayerMenuNames()) return;
             _currentPresentation = "scorebug";
             _batterSelectionMode = "striker";
             BatterSelectionOverlay.Visibility = BowlerSelectionOverlay.Visibility =
@@ -319,6 +386,10 @@ namespace Roche_Scoreboard.Views
             _loggedDeliveryCount = 0;
             MainTabControl.SelectedIndex = 0;
             UpdatePresentationSelection();
+            // New weather visuals can notify observers. Publish their cleanup
+            // after the old match's other teardown, so a nested SetMatch owns
+            // all subsequent UI instead of having its fresh log cleared.
+            if(_match is null)ClearWeatherSnapshot();
         }
 
         public void SetScorebug(CricketScorebugControl scorebug)
@@ -350,7 +421,9 @@ namespace Roche_Scoreboard.Views
             ShowBatterSelection("SELECT OPENING STRIKER");
         }
 
-        public void ResumePendingSelection()
+        public void ResumePendingSelection() => ResumePendingSelection(continueSelectionFlow: false);
+
+        private void ResumePendingSelection(bool continueSelectionFlow)
         {
             var innings = _match?.CurrentInnings;
             if (innings == null || innings.IsComplete || _match?.IsMatchFinalized == true || _match?.TossPending == true || _deliveryEntry != null) return;
@@ -359,12 +432,14 @@ namespace Roche_Scoreboard.Views
                 _batterSelectionMode = innings.Striker is null ? "striker"
                     : innings.NonStriker is null ? "nonstriker" : "wicket";
                 ShowBatterSelection(_batterSelectionMode == "striker" ? "SELECT OPENING STRIKER"
-                    : _batterSelectionMode == "nonstriker" ? "SELECT OPENING NON-STRIKER" : "SELECT NEW BATTER");
+                    : _batterSelectionMode == "nonstriker" ? "SELECT OPENING NON-STRIKER" : "SELECT NEW BATTER",
+                    continueSelectionFlow: continueSelectionFlow);
             }
             else if (innings.NeedsBowlerSelection)
             {
-                ShowBowlerSelection(innings.LegalBallsBowled > 0);
+                ShowBowlerSelection(innings.LegalBallsBowled > 0, continueSelectionFlow: continueSelectionFlow);
             }
+            else ClearSelectorReturnContext();
         }
 
         private void PresentationsbattingGuard(bool waiting)
@@ -373,8 +448,11 @@ namespace Roche_Scoreboard.Views
         private void OpenToss_Click(object sender, RoutedEventArgs args)
         {
             if (_match?.TossPending != true) return;
+            AdaptConsole();
             TossHomeChoice.Content = TossTeamCard(_match.TeamAName, _match.TeamAAbbr, _match.TeamALogoPath);
             TossAwayChoice.Content = TossTeamCard(_match.TeamBName, _match.TeamBAbbr, _match.TeamBLogoPath);
+            System.Windows.Automation.AutomationProperties.SetName(TossHomeChoice,"Toss winner: " + _match.TeamAName);
+            System.Windows.Automation.AutomationProperties.SetName(TossAwayChoice,"Toss winner: " + _match.TeamBName);
             TossHomeChoice.Background = TossTeamTint(_match.TeamAPrimaryColor);
             TossAwayChoice.Background = TossTeamTint(_match.TeamBPrimaryColor);
             TossError.Text = ""; TossChoice_Checked(this, new RoutedEventArgs()); TossOverlay.Visibility = Visibility.Visible; SharedSurfaceMotion.Reveal(TossSheet); TossHomeChoice.Focus();
@@ -396,7 +474,7 @@ namespace Roche_Scoreboard.Views
                 monogram.SetBinding(TextBlock.ForegroundProperty,new System.Windows.Data.Binding("Foreground"){RelativeSource=new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.FindAncestor,typeof(System.Windows.Controls.RadioButton),1)});
                 content.Children.Add(new Border {Width=36,Height=36,CornerRadius=new CornerRadius(10),Background=new SolidColorBrush(Color.FromArgb(30,128,150,175)),Child=monogram});
             }
-            var title = new TextBlock { Text = name, TextTrimming=TextTrimming.CharacterEllipsis, ToolTip=name, FontSize = 17, FontWeight = FontWeights.Bold, Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            var title = new TextBlock { Text = name, TextWrapping=TextWrapping.Wrap, ToolTip=name, FontSize = 17, FontWeight = FontWeights.Bold, Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
             title.SetBinding(TextBlock.ForegroundProperty,new System.Windows.Data.Binding("Foreground"){RelativeSource=new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.FindAncestor,typeof(System.Windows.Controls.RadioButton),1)});
             Grid.SetColumn(title, 1); content.Children.Add(title); card.Children.Add(content); return card;
         }
@@ -426,18 +504,99 @@ namespace Roche_Scoreboard.Views
             _cpTopBatterIndex = _cpBottomBatterIndex = -1;
             TossOverlay.Visibility = Visibility.Collapsed; UpdateUI(); TriggerInitialSelection();
         }
-        private void SkipPlayerSelection_Click(object sender, RoutedEventArgs args)
+        private void SkipPlayerSelection_Click(object sender, RoutedEventArgs args) => CancelPlayerSelection();
+
+        private FrameworkElement? _selectorReturnSource;
+        private CricketMatchManager? _selectorReturnMatch;
+        private CricketInnings? _selectorReturnInnings;
+        private Window? _selectorReturnOwner;
+
+        private bool IsSelectorChild(UIElement element) => ReferenceEquals(element, BatterSelectionOverlay)
+            || ReferenceEquals(element, BowlerSelectionOverlay) || BatterSelectionOverlay.IsAncestorOf(element)
+            || BowlerSelectionOverlay.IsAncestorOf(element);
+
+        private static bool IsVisibleEnabledToOwner(FrameworkElement source, Window owner)
         {
-            _selectorGeneration++; BatterSelectionOverlay.Visibility = BowlerSelectionOverlay.Visibility = Visibility.Collapsed;
+            // WPF inherits IsEnabled; the translated control's local value is
+            // not sufficient when its scoring group has just become disabled.
+            for (DependencyObject? current = source; current is not null; current = VisualTreeHelper.GetParent(current))
+            {
+                if (current is UIElement element && (!element.IsVisible || !element.IsEnabled)) return false;
+                if (ReferenceEquals(current, owner)) return true;
+            }
+            return false;
+        }
+
+        private bool IsLiveSelectorSource(FrameworkElement? source, Window? owner) => owner is not null
+            && source is { IsLoaded: true, Focusable: true } && IsVisibleEnabledToOwner(source, owner)
+            && this.IsAncestorOf(source) && !IsSelectorChild(source) && ReferenceEquals(Window.GetWindow(source), owner);
+
+        private void ClearSelectorReturnContext()
+        {
+            _selectorReturnSource = null; _selectorReturnMatch = null;
+            _selectorReturnInnings = null; _selectorReturnOwner = null;
+        }
+
+        private void CaptureSelectorReturnContext(FrameworkElement? source, bool continueSelectionFlow)
+        {
+            var owner = Window.GetWindow(this);
+            if (continueSelectionFlow && ReferenceEquals(_selectorReturnMatch, _match)
+                && ReferenceEquals(_selectorReturnInnings, _match?.CurrentInnings)
+                && ReferenceEquals(_selectorReturnOwner, owner)) return;
+            _selectorReturnMatch = _match; _selectorReturnInnings = _match?.CurrentInnings;
+            _selectorReturnOwner = owner;
+            _selectorReturnSource = IsLiveSelectorSource(source, owner) ? source
+                : Keyboard.FocusedElement is FrameworkElement focused && IsLiveSelectorSource(focused, owner) ? focused : null;
+        }
+
+        private void CancelPlayerSelection()
+        {
+            if (BatterSelectionOverlay.Visibility != Visibility.Visible && BowlerSelectionOverlay.Visibility != Visibility.Visible) return;
+            bool bowling = BowlerSelectionOverlay.Visibility == Visibility.Visible;
+            var closingOverlay = bowling ? BowlerSelectionOverlay : BatterSelectionOverlay;
+            var otherOverlay = bowling ? BatterSelectionOverlay : BowlerSelectionOverlay;
+            bool closeOther = otherOverlay.Visibility == Visibility.Visible;
+            var match = _match; var innings = match?.CurrentInnings; var owner = Window.GetWindow(this);
+            var source = ReferenceEquals(_selectorReturnMatch, match) && ReferenceEquals(_selectorReturnInnings, innings)
+                && ReferenceEquals(_selectorReturnOwner, owner) ? _selectorReturnSource : null;
+            int generation = ++_selectorGeneration;
+            ClearSelectorReturnContext(); // No queued focus authority survives this Cancel.
+            bool StillCurrent() => generation == _selectorGeneration && ReferenceEquals(_match, match)
+                && ReferenceEquals(_match?.CurrentInnings, innings) && ReferenceEquals(Window.GetWindow(this), owner);
+            // Each visibility write can synchronously open a replacement flow.
+            // Retire only this entry's overlays, never one opened by its observer.
+            closingOverlay.Visibility = Visibility.Collapsed;
+            if (!StillCurrent()) return;
+            if (closeOther)
+            {
+                otherOverlay.Visibility = Visibility.Collapsed;
+                if (!StillCurrent()) return;
+            }
+            if (!IsLoaded || !IsVisible || owner is not { IsActive: true }) return;
+            if (!IsLiveSelectorSource(source, owner)) source = IsLiveSelectorSource(ScoringLockBanner, owner) ? ScoringLockBanner
+                : bowling ? SelectOpeningBowler : SelectOpeningBatters;
+            if (source is null || !IsLiveSelectorSource(source, owner)) return;
+            // Collapsing a picker can synchronously notify other UI owners. A
+            // live focus claim outside it belongs to that owner, not this exit.
+            if (Keyboard.FocusedElement is FrameworkElement focused && !ReferenceEquals(focused, source)
+                && focused is { IsLoaded: true, Focusable: true } && IsVisibleEnabledToOwner(focused, owner)
+                && !IsSelectorChild(focused) && ReferenceEquals(Window.GetWindow(focused), owner)) return;
+            Keyboard.Focus(source);
+            OperatorViewport.RevealOperatorTarget(source, () => StillCurrent()
+                && ReferenceEquals(Keyboard.FocusedElement, source) && IsLiveSelectorSource(source, owner)
+                && IsLoaded && IsVisible && owner.IsActive);
         }
         private void SelectOpeningBatters_Click(object sender, RoutedEventArgs args)
         {
             if (_match?.TossPending != false) return;
             _batterSelectionMode = _match.CurrentInnings?.Striker is null ? "striker" : _match.CurrentInnings?.NonStriker is null ? "nonstriker" : "wicket";
-            ShowBatterSelection(_batterSelectionMode == "striker" ? "SELECT OPENING STRIKER" : _batterSelectionMode == "nonstriker" ? "SELECT NON-STRIKER" : "SELECT NEW BATTER");
+            ShowBatterSelection(_batterSelectionMode == "striker" ? "SELECT OPENING STRIKER" : _batterSelectionMode == "nonstriker" ? "SELECT NON-STRIKER" : "SELECT NEW BATTER", sender as FrameworkElement);
         }
+        internal bool HasPendingOperatorEdits => _scorecardDirty || _scorecardFowEditing;
+        internal void OpenCommandBowler() => SelectOpeningBowler_Click(this, new RoutedEventArgs());
+
         private void SelectOpeningBowler_Click(object sender, RoutedEventArgs args)
-        { if (_match?.TossPending == false) ShowBowlerSelection(false); }
+        { if (_match?.TossPending == false) ShowBowlerSelection(false, sender as FrameworkElement); }
 
         // ---- Scoring ----
 
@@ -501,18 +660,18 @@ namespace Roche_Scoreboard.Views
         private void ChangeStriker_Click(object sender, RoutedEventArgs e)
         {
             _batterSelectionMode = "striker";
-            ShowBatterSelection("SELECT STRIKER");
+            ShowBatterSelection("SELECT STRIKER", sender as FrameworkElement);
         }
 
         private void ChangeNonStriker_Click(object sender, RoutedEventArgs e)
         {
             _batterSelectionMode = "nonstriker";
-            ShowBatterSelection("SELECT NON-STRIKER");
+            ShowBatterSelection("SELECT NON-STRIKER", sender as FrameworkElement);
         }
 
         private void ChangeBowlerMenu_Click(object sender, RoutedEventArgs e)
         {
-            ShowBowlerSelection(false);
+            ShowBowlerSelection(false, sender as FrameworkElement);
         }
 
         private void SwapStrike_Click(object sender, RoutedEventArgs e)
@@ -531,7 +690,7 @@ namespace Roche_Scoreboard.Views
             var logo = batting ? BatterSelectionLogo : BowlerSelectionLogo;
             var list = batting ? BatterSelectionList : BowlerSelectionList;
             var accent = TeamVisuals.Accent(primary);
-            card.Background = TeamVisuals.Panel(primary, primary);
+            card.Background = TeamVisuals.Panel(primary, primary, .16);
             card.BorderBrush = accent;
             var confirm = batting ? ConfirmBatterButton : ConfirmBowlerButton;
             confirm.Background = TeamVisuals.Panel(primary, primary, .4);
@@ -552,11 +711,12 @@ namespace Roche_Scoreboard.Views
             ShowBatterSelection("SELECT NEW BATTER");
         }
 
-        private void ShowBatterSelection(string title)
+        private void ShowBatterSelection(string title, FrameworkElement? source = null, bool continueSelectionFlow = false)
         {
             _batterWasRequired=_match?.CurrentInnings?.NeedsBatterSelection==true;
             if (_match?.CurrentInnings == null || _match.TossPending || _deliveryEntry != null) return;
             var inn = _match.CurrentInnings;
+            CaptureSelectorReturnContext(source, continueSelectionFlow);
 
             ApplySelectionTheme(batting: true);
             BatterSelectionTitle.Text = title;
@@ -588,33 +748,54 @@ namespace Roche_Scoreboard.Views
                 BatterSelectionList.SelectedIndex = 0;
 
             BatterSelectionOverlay.Visibility = Visibility.Visible;
-            AnimateSelector(BatterSelectionCard); BatterSelectionList.Focus();
-            ResetPlayerSelectorScroll(BatterSelectionList);
+            AnimateSelector(BatterSelectionCard);
+            int scrollGeneration = _selectorGeneration;
+            BatterSelectionList.Focus();
+            ResetPlayerSelectorScroll(BatterSelectionList, scrollGeneration);
 
         }
 
+        private bool IsCurrentSelectorContext(CricketMatchManager match, CricketInnings innings, Window? owner,
+            object? batterChoices, object? bowlerChoices) => ReferenceEquals(_match, match)
+            && ReferenceEquals(match.CurrentInnings, innings) && ReferenceEquals(Window.GetWindow(this), owner)
+            && ReferenceEquals(_selectorReturnMatch, match) && ReferenceEquals(_selectorReturnInnings, innings)
+            && ReferenceEquals(_selectorReturnOwner, owner) && ReferenceEquals(BatterSelectionList.Tag, batterChoices)
+            && ReferenceEquals(BowlerSelectionList.Tag, bowlerChoices);
+
         private void ConfirmBatterSelection_Click(object sender, RoutedEventArgs e)
         {
-            if (BatterSelectionList.SelectedIndex < 0 || _match == null) return;
+            if (BatterSelectionList.SelectedIndex < 0 || _match is not CricketMatchManager match
+                || match.CurrentInnings is not CricketInnings innings) return;
             var indexList = BatterSelectionList.Tag as List<int>;
             if (indexList == null || BatterSelectionList.SelectedIndex >= indexList.Count) return;
 
             int playerIndex = indexList[BatterSelectionList.SelectedIndex];
+            string mode = _batterSelectionMode;
+            int generation = _selectorGeneration;
+            var owner = Window.GetWindow(this);
+            var bowlerChoices = BowlerSelectionList.Tag;
             BatterSelectionOverlay.Visibility = Visibility.Collapsed;
+            // A visibility observer may replace the game or open a new chooser.
+            // Never apply an old list's player index or selection mode to it.
+            if (generation != _selectorGeneration || !IsCurrentSelectorContext(match, innings, owner, indexList, bowlerChoices)) return;
 
-            switch (_batterSelectionMode)
+            switch (mode)
             {
                 case "wicket":
-                    _match.SelectNewBatter(playerIndex);
+                    match.SelectNewBatter(playerIndex);
                     break;
                 case "striker":
-                    _match.SetStriker(playerIndex);
+                    match.SetStriker(playerIndex);
                     break;
                 case "nonstriker":
-                    _match.SetNonStriker(playerIndex);
+                    match.SetNonStriker(playerIndex);
                     break;
             }
-            ResumePendingSelection();
+            // A normal required-selection resolution may advance the animation
+            // generation. New chooser list identities or retired ownership still
+            // invalidate this continuation after synchronous model callbacks.
+            if (!IsCurrentSelectorContext(match, innings, owner, indexList, bowlerChoices)) return;
+            ResumePendingSelection(continueSelectionFlow: true);
         }
 
         // ---- Bowler selection ----
@@ -624,11 +805,12 @@ namespace Roche_Scoreboard.Views
             if (_deliveryEntry == null) ShowBowlerSelection(true);
         }
 
-        private void ShowBowlerSelection(bool isOverEnd)
+        private void ShowBowlerSelection(bool isOverEnd, FrameworkElement? source = null, bool continueSelectionFlow = false)
         {
             _bowlerWasRequired=_match?.CurrentInnings?.NeedsBowlerSelection==true;
             if (_match?.CurrentInnings == null) return;
             var inn = _match.CurrentInnings;
+            CaptureSelectorReturnContext(source, continueSelectionFlow);
 
             ApplySelectionTheme(batting: false);
             isOverEnd |= inn.NeedsBowlerSelection && inn.LegalBallsBowled > 0;
@@ -671,21 +853,46 @@ namespace Roche_Scoreboard.Views
                 BowlerSelectionList.SelectedIndex = 0;
 
             BowlerSelectionOverlay.Visibility = Visibility.Visible;
-            AnimateSelector(BowlerSelectionCard); BowlerSelectionList.Focus();
-            ResetPlayerSelectorScroll(BowlerSelectionList);
+            AnimateSelector(BowlerSelectionCard);
+            int scrollGeneration = _selectorGeneration;
+            BowlerSelectionList.Focus();
+            ResetPlayerSelectorScroll(BowlerSelectionList, scrollGeneration);
         }
 
-        private static void ResetPlayerSelectorScroll(System.Windows.Controls.ListBox list)
+        private void ResetPlayerSelectorScroll(System.Windows.Controls.ListBox list, int openingGeneration)
         {
+            var match = _match;
+            var innings = match?.CurrentInnings;
+            var owner = Window.GetWindow(this);
+            var choices = list.Tag;
+            object? selected = list.SelectedItem;
+            bool Current() => owner is not null && openingGeneration == _selectorGeneration
+                && ReferenceEquals(_match, match) && ReferenceEquals(match?.CurrentInnings, innings)
+                && ReferenceEquals(list.Tag, choices) && ReferenceEquals(Window.GetWindow(this), owner)
+                && this.IsAncestorOf(list) && IsVisibleEnabledToOwner(list, owner)
+                && ReferenceEquals(list.SelectedItem, selected);
+            if (!Current()) return;
             list.UpdateLayout();
-            var scroll=FindSelectorScroll(list);
+            if (!Current()) return;
+            var scroll = FindSelectorScroll(list);
             scroll?.ScrollToTop();
-            if(list.SelectedItem is object selected)list.ScrollIntoView(selected);
+            if (!Current()) return;
+            // Keep the selected-item reveal inside the guarded Loaded work.
+            // ScrollIntoView can itself defer native layout; issuing it here
+            // would leave an unowned request ahead of later viewport intent.
+            double? preparedOffset = scroll?.VerticalOffset;
             list.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,new Action(()=>
             {
-                if(!list.IsVisible)return;
-                FindSelectorScroll(list)?.ScrollToTop();
-                if(list.SelectedItem is object current)list.ScrollIntoView(current);
+                if (!Current() || !list.IsLoaded) return;
+                var current = FindSelectorScroll(list);
+                // Native selection/layout can finish the initial reveal on
+                // its own; later scrolling and a new template belong to that
+                // current intent, not this older opening callback.
+                if (scroll is not null && (!ReferenceEquals(current, scroll)
+                    || Math.Abs(scroll.VerticalOffset - preparedOffset.GetValueOrDefault()) > .1)) return;
+                current?.ScrollToTop();
+                if (!Current()) return;
+                if (selected is not null) list.ScrollIntoView(selected);
             }));
         }
         private static System.Windows.Controls.ScrollViewer? FindSelectorScroll(DependencyObject root)
@@ -698,14 +905,23 @@ namespace Roche_Scoreboard.Views
 
         private void ConfirmBowlerSelection_Click(object sender, RoutedEventArgs e)
         {
-            if (BowlerSelectionList.SelectedIndex < 0 || _match == null) return;
+            if (BowlerSelectionList.SelectedIndex < 0 || _match is not CricketMatchManager match
+                || match.CurrentInnings is not CricketInnings innings) return;
             var indexList = BowlerSelectionList.Tag as List<int>;
             if (indexList == null || BowlerSelectionList.SelectedIndex >= indexList.Count) return;
 
             int bowlerIndex = indexList[BowlerSelectionList.SelectedIndex];
-            _match.ConfirmBowler(bowlerIndex);
-            if (_match.CurrentInnings?.NeedsBowlerSelection == true) return;
-            CloseSelector(BowlerSelectionOverlay, BowlerSelectionCard, () => { if (_match?.CurrentInnings?.NeedsBatterSelection == true) ResumePendingSelection(); });
+            var owner = Window.GetWindow(this);
+            var batterChoices = BatterSelectionList.Tag;
+            if (!IsCurrentSelectorContext(match, innings, owner, batterChoices, indexList)) return;
+            match.ConfirmBowler(bowlerIndex);
+            if (!IsCurrentSelectorContext(match, innings, owner, batterChoices, indexList) || innings.NeedsBowlerSelection) return;
+            CloseSelector(BowlerSelectionOverlay, BowlerSelectionCard, () =>
+            {
+                if (!IsCurrentSelectorContext(match, innings, owner, batterChoices, indexList)) return;
+                if (innings.NeedsBatterSelection) ResumePendingSelection(continueSelectionFlow: true);
+                else ClearSelectorReturnContext();
+            });
 
         }
 
@@ -715,14 +931,9 @@ namespace Roche_Scoreboard.Views
             if (ReferenceEquals(card, BatterSelectionCard)) BowlerSelectionOverlay.Visibility = Visibility.Collapsed;
             else if (ReferenceEquals(card, BowlerSelectionCard)) BatterSelectionOverlay.Visibility = Visibility.Collapsed;
             card.IsHitTestVisible = true;
-            card.RenderTransformOrigin = new System.Windows.Point(.5, .5);
-            if (card.RenderTransform is not TranslateTransform) card.RenderTransform = new TranslateTransform();
-            var translate = (TranslateTransform)card.RenderTransform;
-            translate.BeginAnimation(TranslateTransform.YProperty, null); translate.Y = 0;
-            card.BeginAnimation(OpacityProperty, null); card.Opacity = 1;
-            if (!OperatorMotion.Enabled) return;
-            translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(8, 0, OperatorMotion.SurfaceOpen) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            card.BeginAnimation(OpacityProperty, new DoubleAnimation(.3, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
+            var source = IsLiveSelectorSource(_selectorReturnSource, Window.GetWindow(this)) ? _selectorReturnSource : null;
+            SharedSurfaceMotion.AttachFrom(card, source);
+            SharedSurfaceMotion.Reveal(card, animate: !OperatorInputFocus.GetIsKeyboardMode(this));
         }
         private int _selectorGeneration;
         private void CloseSelector(Border overlay, Border card, Action? next = null)
@@ -732,7 +943,14 @@ namespace Roche_Scoreboard.Views
             void Complete()
             {
                 if (generation != _selectorGeneration) return;
-                overlay.Visibility = Visibility.Collapsed; card.BeginAnimation(OpacityProperty, null); card.Opacity = 1; card.IsHitTestVisible = true;
+                overlay.Visibility = Visibility.Collapsed;
+                if (generation != _selectorGeneration) return;
+                card.BeginAnimation(OpacityProperty, null);
+                if (generation != _selectorGeneration) return;
+                card.Opacity = 1;
+                if (generation != _selectorGeneration) return;
+                card.IsHitTestVisible = true;
+                if (generation != _selectorGeneration) return;
                 next?.Invoke();
             }
             if (!OperatorMotion.Enabled || !overlay.IsLoaded) { Complete(); return; }
@@ -872,7 +1090,7 @@ namespace Roche_Scoreboard.Views
             else return;
 
 
-            UpdatePresentationSelection();
+            UpdatePresentationSelection(animateLiveTransition: true);
             PresentationChanged?.Invoke(target);
         }
 
@@ -883,9 +1101,18 @@ namespace Roche_Scoreboard.Views
             else SwitchPresentation(target);
         }
 
-        private void UpdatePresentationSelection()
+        private bool _operatorOutputVisible = true;
+        internal void SetOperatorOutputVisible(bool visible)
         {
-            CricketOnAirText.Text = "ON AIR · " + (_currentPresentation == "scorebug" ? "LIVE SCOREBUG" : _currentPresentation == "summary" ? "MATCH SUMMARY" : _currentPresentation=="worm"?"SCOREWORM":_currentPresentation=="manhattan"?"MANHATTAN":_currentPresentation.ToUpperInvariant() + " SCORECARD");
+            bool changed = _operatorOutputVisible != visible;
+            _operatorOutputVisible = visible;
+            UpdatePresentationSelection();
+            if (changed && _breakPresentationInitialized) UpdateBreakPresentations();
+        }
+
+        private void UpdatePresentationSelection(bool animateLiveTransition = false)
+        {
+            CricketOnAirText.Text = (_operatorOutputVisible ? "ON AIR · " : "OUTPUT OFF · PREVIEW · ") + (_currentPresentation == "scorebug" ? "LIVE SCOREBUG" : _currentPresentation == "summary" ? "MATCH SUMMARY" : _currentPresentation=="worm"?"SCOREWORM":_currentPresentation=="manhattan"?"MANHATTAN":_currentPresentation.ToUpperInvariant() + " SCORECARD");
             foreach (var button in new[] { Presentationscorebug, Presentationbatting, Presentationbowling, Presentationsummary,Presentationworm,Presentationmanhattan })
             {
                 if (button is null) continue;
@@ -894,6 +1121,7 @@ namespace Roche_Scoreboard.Views
                 button.Background = new SolidColorBrush(selected ? Color.FromRgb(0x16, 0x2B, 0x47) : Color.FromRgb(0x0A, 0x16, 0x28));
                 System.Windows.Automation.AutomationProperties.SetItemStatus(button, selected ? "Selected" : "");
             }
+            RefreshLiveScorebugCard(animateLiveTransition);
         }
 
         /// <summary>Refreshes the current summary card if one is showing (called after score updates).</summary>
@@ -912,26 +1140,122 @@ namespace Roche_Scoreboard.Views
 
         // ---- Shared venue weather ----
         public event Action<string>? WeatherLocationChanged;
+        private long _weatherStatusRevision;
+        private string _weatherDraftVenue="";
+        private static string NormalizeCricketVenue(string? location)=>location?.Trim()??"";
+        private long SetCricketWeatherFeedback(string text)
+        {
+            long revision=++_weatherStatusRevision;
+            if(CricketWeatherStatus is not null)CricketWeatherStatus.Text=text;
+            return revision;
+        }
+        private void ResetCricketWeatherFeedback()
+        {
+            var match=_match;int generation=_selectorGeneration;
+            _weatherDraftVenue=NormalizeCricketVenue(CricketWeatherLocation.Text);
+            CricketWeatherDataVenue.Text="No weather data loaded";
+            if(generation!=_selectorGeneration || !ReferenceEquals(match,_match))return;
+            SetCricketWeatherFeedback(_match is null?"Start or resume a match to update venue weather."
+                :_weatherDraftVenue.Length==0?"Enter a venue, then choose Update weather."
+                :!string.Equals(_weatherDraftVenue,NormalizeCricketVenue(_match.WeatherLocation),StringComparison.OrdinalIgnoreCase)
+                    ?"Venue changed. Choose Update weather to apply it."
+                    :"Choose Update weather to load or refresh this venue.");
+        }
+        private void CricketWeatherLocation_TextChanged(object sender,TextChangedEventArgs args)
+        {
+            if(CricketWeatherStatus is null || _match is null)return;
+            string draft=NormalizeCricketVenue(CricketWeatherLocation.Text);
+            if(string.Equals(draft,_weatherDraftVenue,StringComparison.OrdinalIgnoreCase))return;
+            _weatherDraftVenue=draft;
+            SetCricketWeatherFeedback(draft.Length==0?"Enter a venue, then choose Update weather."
+                :string.Equals(draft,NormalizeCricketVenue(_match.WeatherLocation),StringComparison.OrdinalIgnoreCase)
+                    ?"Choose Update weather to load or refresh this venue."
+                    :"Venue changed. Choose Update weather to apply it.");
+        }
+        internal bool IsWeatherVenueCurrent(CricketMatchManager? match,string? location)=>match is not null && ReferenceEquals(match,_match)
+            && string.Equals(NormalizeCricketVenue(location),NormalizeCricketVenue(match.WeatherLocation),StringComparison.OrdinalIgnoreCase);
+        internal bool IsWeatherStatusCurrent(long revision,CricketMatchManager? match,string location)=>revision==_weatherStatusRevision
+            && IsWeatherVenueCurrent(match,location)
+            && string.Equals(NormalizeCricketVenue(CricketWeatherLocation.Text),NormalizeCricketVenue(location),StringComparison.OrdinalIgnoreCase);
+        internal long? BeginWeatherStatus(CricketMatchManager? match,string location,bool available)
+        {
+            if(!IsWeatherVenueCurrent(match,location)
+                || !string.Equals(NormalizeCricketVenue(CricketWeatherLocation.Text),NormalizeCricketVenue(location),StringComparison.OrdinalIgnoreCase))return null;
+            return SetCricketWeatherFeedback(available?$"Weather data available for {location}":$"Loading weather for {location}…");
+        }
+        internal void CompleteWeatherStatus(long revision,CricketMatchManager? match,string location,bool available)
+        {
+            if(!IsWeatherStatusCurrent(revision,match,location))return;
+            // Keep the request revision valid for later same-venue refreshes.
+            CricketWeatherStatus.Text=available?$"Weather data available for {location}"
+                :$"Weather unavailable for {location}. Check the venue or try Update again.";
+        }
 
         private void UpdateCricketWeather_Click(object sender, RoutedEventArgs e)
         {
             string location = CricketWeatherLocation.Text.Trim();
-            if (_match is null || string.IsNullOrWhiteSpace(location)) return;
-            _match.WeatherLocation = location;
-            _match.RaiseMatchChanged();
-            WeatherLocationChanged?.Invoke(location);
+            if (_match is not { } match)return;
+            if(string.IsNullOrWhiteSpace(location))
+            {
+                SetCricketWeatherFeedback("Enter a venue, then choose Update weather.");
+                CricketWeatherLocation.Focus();OperatorViewport.RevealValidationError(CricketWeatherLocation);return;
+            }
+            match.WeatherLocation = location;
+            match.RaiseMatchChanged();
+            if(IsWeatherVenueCurrent(match,location)
+                && string.Equals(NormalizeCricketVenue(CricketWeatherLocation.Text),location,StringComparison.OrdinalIgnoreCase))WeatherLocationChanged?.Invoke(location);
         }
 
+        public void ClearWeatherSnapshot()
+        {
+            var match=_match;int generation=_selectorGeneration;++_weatherStatusRevision;
+            CricketWeatherTemperature.Text = "";
+            if(generation!=_selectorGeneration || !ReferenceEquals(match,_match))return;
+            CricketWeatherDescription.Text = "";
+            if(generation!=_selectorGeneration || !ReferenceEquals(match,_match))return;
+            ResetCricketWeatherFeedback();
+        }
         public void UpdateWeatherSnapshot(Roche_Scoreboard.Services.WeatherSnapshot snapshot)
         {
+            if(_match is not { } match)return;
+            int generation=_selectorGeneration;string venue=NormalizeCricketVenue(match.WeatherLocation);
             CricketWeatherTemperature.Text = $"{snapshot.Icon} {Math.Round(snapshot.CurrentTemp)}°";
+            if(generation!=_selectorGeneration || !IsWeatherVenueCurrent(match,venue))return;
             CricketWeatherDescription.Text = $"{snapshot.Description}\nFeels like {Math.Round(snapshot.FeelsLike)}° · {Math.Round(snapshot.DayMin)}°–{Math.Round(snapshot.DayMax)}°";
+            if(generation!=_selectorGeneration || !IsWeatherVenueCurrent(match,venue))return;
+            CricketWeatherDataVenue.Text=venue.Length>0?"Weather for "+venue:"Weather data";
         }
 
         // ---- Reset ----
 
         private async void ResetMatch_Click(object sender, RoutedEventArgs e)
-        { if(await ChooseAsync("Reset this match?","This clears the current match and returns to sports selection. Save any scorecard changes first.",new("cancel","Keep this match",true),new("reset","Reset and set up a new match",false,true))=="reset") ResetRequested?.Invoke(); }
+        {
+            if(!IsLoaded || !IsVisible || _match is not { } match)return;
+            var owner=Window.GetWindow(this);if(owner is not {IsVisible:true})return;
+            string token=match.WorkflowToken;
+            var record=new StackPanel();record.Children.Add(WorkflowText("MATCH UNDER RESET REVIEW",12));
+            var teams=WorkflowText(match.TeamAName+" · "+match.TeamBName,19);teams.FontWeight=FontWeights.SemiBold;record.Children.Add(teams);
+            if(match.CurrentInnings is { } innings)
+            {
+                var figures=WorkflowText($"Innings {innings.InningsNumber} · {innings.BattingTeamName} · {innings.TotalWickets}/{innings.TotalRuns}",16);
+                System.Windows.Documents.Typography.SetNumeralAlignment(figures,FontNumeralAlignment.Tabular);record.Children.Add(figures);
+            }
+            record.Children.Add(WorkflowText($"Stored innings: {match.AllInnings.Count} · Delivery records: {match.AllInnings.Sum(innings=>(long)innings.Deliveries.Count)}",13));
+            if(_scorecardDirty)record.Children.Add(WorkflowText("There are unapplied scorecard edits. Reset discards them.",14));
+            var context=new Border {Tag="cricket-reset-context",Child=record,CornerRadius=new CornerRadius(20),Padding=new Thickness(12,8,12,12),BorderThickness=new Thickness(1)};
+            context.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush");context.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");
+            const string consequence="Discard this match and any unapplied scorecard edits. Keep the match if you still need its record.";
+            if(await ContextDecisionAsync("Reset this match?",consequence,context,
+                new("cancel","Keep this match"),new("keep","Keep this match",true,Detail:"Return to the current match without changing figures."),
+                new("reset","Reset and leave this match",false,true,Detail:consequence))!="reset")return;
+            if(!IsLoaded || !IsVisible || !owner.IsVisible || !ReferenceEquals(owner,Window.GetWindow(this)))return;
+            if(!ReferenceEquals(match,_match) || token!=match.WorkflowToken)
+            {
+                await ShowErrorAsync("Match was not reset","The match changed while this reset review was open. Reopen Reset match to review the current record. No reset was requested.");
+                return;
+            }
+            ResetRequested?.Invoke();
+        }
 
         // ---- Delivery log grouped by over ----
 
@@ -1030,18 +1354,12 @@ namespace Roche_Scoreboard.Views
             }
 
             // Add delivery bar into the current over group
-            var bar = CreateDeliveryBar(delivery);
+            var bar = CreateDeliveryBar(delivery, triggerPresentation);
             _logCurrentOverPanel?.Children.Insert(0,bar);
-            if (triggerPresentation && SystemParameters.ClientAreaAnimation)
-            {
-                var slide = new TranslateTransform(); bar.RenderTransform = slide;
-                slide.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(18, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }, FillBehavior = FillBehavior.Stop });
-                bar.BeginAnimation(OpacityProperty, new DoubleAnimation(.15, 1, TimeSpan.FromMilliseconds(260)) { FillBehavior = FillBehavior.Stop });
-            }
             if (!_rebuildingLog) RefreshOverChoices();
         }
 
-        private Border CreateDeliveryBar(CricketDelivery delivery)
+        private Border CreateDeliveryBar(CricketDelivery delivery, bool animateArrival)
         {
             Color badgeColour = delivery.Type switch
             {
@@ -1063,18 +1381,18 @@ namespace Roche_Scoreboard.Views
                 CricketDeliveryType.Dot => "•",
                 _ => delivery.Runs.ToString()
             };
-            var border = new Border
+            var historyMatch=_match;
+            var historyInnings=_match?.CurrentInnings;
+            var border = new OperatorActionBorder
             {
                 Tag = delivery,
-                CornerRadius = new CornerRadius(4),
-                Margin = new Thickness(0, 0, 0, 3),
-                Padding = new Thickness(7, 4, 7, 4),
+                CornerRadius = new CornerRadius(12),
+                Margin = new Thickness(0, 0, 16, 6),
+                Padding = new Thickness(9, 6, 9, 6),
                 BorderThickness = new Thickness(1),
                 BorderBrush = TeamVisuals.Accent(_match?.BattingTeamPrimaryColor),
                 Background = TeamVisuals.Panel(_match?.BattingTeamPrimaryColor, _match?.BattingTeamPrimaryColor, .2),
-                Cursor = System.Windows.Input.Cursors.Hand,
-                Focusable = true,
-                ToolTip = $"Edit ball · {delivery.BatsmanName} facing {delivery.BowlerName}"
+                Cursor = System.Windows.Input.Cursors.Hand
             };
             var body = new StackPanel();
             var header = new Grid(); header.ColumnDefinitions.Add(new() { Width = new GridLength(34) }); header.ColumnDefinitions.Add(new()); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
@@ -1087,7 +1405,7 @@ namespace Roche_Scoreboard.Views
                 Child = new TextBlock { Text = symbol, FontSize = 12, FontWeight = FontWeights.Bold, Foreground = ContrastHelper.GetContrastBrush(badgeColour), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
             };
             header.Children.Add(code);
-            var description = new TextBlock { Text = delivery.Description, FontSize = 12, FontWeight = FontWeights.Bold, Foreground = Brushes.White, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 8, 0) };
+            var description = new TextBlock { Text = delivery.Description, FontSize = 12, FontWeight = FontWeights.Bold, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 8, 0) };
             Grid.SetColumn(description, 1); header.Children.Add(description);
             bool legal = CricketOverlayAnalysis.IsLegal(delivery);
             int ballNumber = legal && delivery.BallInOver > 0 ? delivery.BallInOver : (delivery.StateBefore?.LegalBallsBowled ?? delivery.OverNumber * 6) % 6 + 1;
@@ -1110,28 +1428,75 @@ namespace Roche_Scoreboard.Views
                 Tag = "edit-ball",
                 Content = actionContent,
                 Style = (Style)FindResource("ToolBtn"),
-                Height = 24,
+                Height = 32,
                 FontSize = 12,
+                Focusable = false,
+                IsTabStop = false,
                 Padding = new Thickness(0),
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
                 HorizontalContentAlignment = HorizontalAlignment.Left
             };
-            System.Windows.Automation.AutomationProperties.SetName(editAction, "Edit ball");
-            editAction.Click += (_, args) => { args.Handled = true; OpenDeliveryDialog(delivery.Type, delivery); };
-            var reveal = new Border { Height = 0, ClipToBounds = true, Child = editAction }; body.Children.Add(reveal); border.Child = body;
-            void Reveal(bool show)
+            string identity=$"Edit ball {delivery.OverNumber}.{ballNumber} · {delivery.Description} · {delivery.BatsmanName} facing {delivery.BowlerName}";
+            border.ToolTip = identity;
+            System.Windows.Automation.AutomationProperties.SetName(border,identity);
+            System.Windows.Automation.AutomationProperties.SetHelpText(border,"Enter or Space opens this delivery for review. The match changes only after a valid edit is applied.");
+            System.Windows.Automation.AutomationProperties.SetName(editAction,identity);
+            System.Windows.Documents.Typography.SetNumeralAlignment(total,FontNumeralAlignment.Tabular);
+            void OpenHistoryDelivery()
             {
-                double from = reveal.ActualHeight; reveal.BeginAnimation(HeightProperty, null); reveal.Height = show ? 28 : 0;
-                if (SystemParameters.ClientAreaAnimation) reveal.BeginAnimation(HeightProperty, new DoubleAnimation(from, reveal.Height, TimeSpan.FromMilliseconds(180)) { FillBehavior = FillBehavior.Stop, EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-                editAction.BeginAnimation(OpacityProperty, new DoubleAnimation(show ? 0 : 1, show ? 1 : 0, TimeSpan.FromMilliseconds(160)) { FillBehavior = FillBehavior.HoldEnd });
+                if(!border.IsLoaded || !border.IsVisible || Window.GetWindow(this) is not {IsVisible:true}
+                    || !ReferenceEquals(_match,historyMatch) || !ReferenceEquals(_match?.CurrentInnings,historyInnings)
+                    || historyInnings?.Deliveries.Contains(delivery)!=true || !ConsoleViewport.IsHitTestVisible || HasActiveDecision)return;
+                OpenDeliveryDialog(delivery.Type,delivery);
             }
-            var rest = border.BorderBrush;
-            border.MouseEnter += (_, _) => { Reveal(true); border.BorderBrush = new SolidColorBrush(Color.FromRgb(121, 185, 255)); };
-            border.MouseLeave += (_, _) => { if (!border.IsKeyboardFocusWithin) Reveal(false); border.BorderBrush = rest; };
-            border.GotKeyboardFocus += (_, _) => Reveal(true); border.LostKeyboardFocus += (_, _) => { if (!border.IsKeyboardFocusWithin && !border.IsMouseOver) Reveal(false); };
-            border.KeyDown += (_, args) => { if (args.OriginalSource is not Button && args.Key is Key.Enter or Key.Space) { args.Handled = true; OpenDeliveryDialog(delivery.Type, delivery); } };
-            border.MouseLeftButtonUp += (_, args) => { args.Handled = true; OpenDeliveryDialog(delivery.Type, delivery); };
+            editAction.Click += (_, args) => { args.Handled = true; OpenHistoryDelivery(); };
+            var affordance=new Border {Tag="delivery-edit-affordance",Child=editAction,Margin=new Thickness(0,4,0,0),BorderThickness=new Thickness(0,1,0,0)};
+            affordance.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");body.Children.Add(affordance);
+            var focusRing=new Border {Tag="delivery-keyboard-focus",CornerRadius=new CornerRadius(10),BorderThickness=new Thickness(2),IsHitTestVisible=false,Visibility=Visibility.Collapsed};
+            focusRing.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.AccentBrush");
+            var layer=new Grid();layer.Children.Add(body);layer.Children.Add(focusRing);border.Child=layer;
+            var rest=border.BorderBrush;
+            bool observing=false,spaceArmed=false;
+            void UpdateAffordance(bool animate)
+            {
+                bool active=border.IsMouseOver || border.IsKeyboardFocusWithin;
+                bool keyboard=border.IsKeyboardFocusWithin && OperatorInputFocus.GetIsKeyboardMode(border);
+                border.BorderBrush=active?TeamVisuals.Accent(historyMatch?.BattingTeamPrimaryColor):rest;
+                focusRing.Visibility=keyboard?Visibility.Visible:Visibility.Collapsed;
+                double from=actionContent.Opacity,target=active?1:.72;
+                actionContent.BeginAnimation(OpacityProperty,null);actionContent.Opacity=target;
+                if(animate && OperatorMotion.Enabled && border.IsLoaded && border.IsVisible && !OperatorInputFocus.GetIsKeyboardMode(border))
+                    actionContent.BeginAnimation(OpacityProperty,new DoubleAnimation(from,target,OperatorMotion.Press){FillBehavior=FillBehavior.Stop,EasingFunction=OperatorMotion.SmoothOut});
+            }
+            void AppearanceChanged(){code.BeginAnimation(OpacityProperty,null);code.Opacity=1;UpdateAffordance(false);}
+            border.MouseEnter += (_,_)=>UpdateAffordance(true);border.MouseLeave += (_,_)=>UpdateAffordance(true);
+            border.GotKeyboardFocus += (_,_)=>UpdateAffordance(false);border.LostKeyboardFocus += (_,_)=>{spaceArmed=false;UpdateAffordance(false);};
+            border.Loaded += (_,_)=>
+            {
+                if(!observing){OperatorAppearance.Changed+=AppearanceChanged;observing=true;}UpdateAffordance(false);
+                // New-ball feedback stays inside its outcome badge; no history-list travel or delayed input.
+                if(animateArrival && OperatorMotion.Enabled && border.IsVisible && !OperatorInputFocus.GetIsKeyboardMode(border))
+                    code.BeginAnimation(OpacityProperty,new DoubleAnimation(.65,1,OperatorMotion.HoverIn){FillBehavior=FillBehavior.Stop,EasingFunction=OperatorMotion.SmoothOut});
+            };
+            border.Unloaded += (_,_)=>
+            {
+                spaceArmed=false;if(observing){OperatorAppearance.Changed-=AppearanceChanged;observing=false;}
+                code.BeginAnimation(OpacityProperty,null);code.Opacity=1;actionContent.BeginAnimation(OpacityProperty,null);actionContent.Opacity=.72;focusRing.Visibility=Visibility.Collapsed;
+            };
+            // Match native button Space semantics: transfer focus only after release,
+            // so the opening key-up cannot activate Apply in the new editor.
+            border.ActivationAction=()=>
+            {
+                if(border.IsKeyboardFocusWithin && System.Windows.Input.Keyboard.IsKeyDown(Key.Space)){spaceArmed=true;return;}
+                OpenHistoryDelivery();
+            };
+            border.PreviewKeyUp += (_,args)=>
+            {
+                if(args.Key!=Key.Space || !spaceArmed)return;
+                args.Handled=true;spaceArmed=false;if(border.IsKeyboardFocusWithin)OpenHistoryDelivery();
+            };
+            border.MouseLeftButtonUp += (_,args)=>{args.Handled=true;OpenHistoryDelivery();};
             return border;
         }
 
@@ -1196,7 +1561,8 @@ namespace Roche_Scoreboard.Views
         {
             ClosePlayerMenu();
             if (_match == null) return;
-            var inn = _match.CurrentInnings;
+            var match = _match;
+            var inn = match.CurrentInnings;
             if (inn == null) return;
 
             if (!ReferenceEquals(inn, _loggedInnings) || _loggedDeliveryCount != inn.Deliveries.Count || _loggedRevision != _match.DeliveryRevision)
@@ -1209,7 +1575,7 @@ namespace Roche_Scoreboard.Views
             bool bowlingReady = inn.CurrentBowler is not null;
             bool battingNeeded = (inn.NeedsBatterSelection || !battingReady) && !inn.IsComplete;
             bool bowlingNeeded = (inn.NeedsBowlerSelection || !bowlingReady) && !inn.IsComplete;
-            CloseResolvedSelections(battingNeeded,bowlingNeeded);
+            if (!CloseResolvedSelections(battingNeeded, bowlingNeeded, match, inn)) return;
             BattingStartHint.Visibility = waiting || battingNeeded ? Visibility.Visible : Visibility.Collapsed;
             BowlingStartHint.Visibility = waiting || bowlingNeeded ? Visibility.Visible : Visibility.Collapsed;
             BattingStartHint.Text = waiting ? "Record the toss before selecting batters." : "Select the batters when you are ready.";
@@ -1340,6 +1706,8 @@ namespace Roche_Scoreboard.Views
                 BowlerStats.Text = ""; BowlerOverFigures.Text = "";
                 BowlerFigures.Text = "0-0";
             }
+
+            if (!UpdatePlayerMenuNames()) return;
 
             OverDisplay.Text = $"This over: {string.Join("  ", inn.CurrentOverBalls)}";
 

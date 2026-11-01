@@ -1,5 +1,5 @@
 // Generated from Services/WeatherService.cs; edit translator/adapters.
-// Source SHA-256: db2d03e67afd1ff63bb7c291c6a7ff6bc6662b8ee2793ffd99ddd981eb634b91
+// Source SHA-256: 0645cfe83d73273a4892cdcd9b9c4a76955554aab8a82044f293b3a9bbf29177
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -69,8 +69,16 @@ internal sealed class WeatherService : IDisposable
     /// <summary>Latest structured forecast data, or null if not yet fetched.</summary>
     public WeatherSnapshot? LatestSnapshot { get; private set; }
 
-    public WeatherService()
+    private readonly HttpClient _http;
+
+    public WeatherService() : this(s_http) { }
+
+    // Borrowed client permits deterministic local transport tests. The default
+    // constructor retains the existing shared production HTTP client.
+    internal WeatherService(HttpClient http)
     {
+        ArgumentNullException.ThrowIfNull(http);
+        _http = http;
         _refreshTimer = new Avalonia.Threading.DispatcherTimer
         {
             Interval = TimeSpan.FromMinutes(15)
@@ -97,7 +105,8 @@ internal sealed class WeatherService : IDisposable
         if (string.IsNullOrWhiteSpace(cityName))
             return;
 
-        _requestCancellation?.Cancel();
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        Stop();
         _requestCancellation?.Dispose();
         _requestCancellation = new CancellationTokenSource();
         CancellationToken token = _requestCancellation.Token;
@@ -124,6 +133,7 @@ internal sealed class WeatherService : IDisposable
         _requestCancellation?.Cancel();
         _resolved = false;
         CurrentWeather = "";
+        LatestSnapshot = null;
     }
 
     public void Dispose()
@@ -143,12 +153,13 @@ internal sealed class WeatherService : IDisposable
         try
         {
             string url = $"https://geocoding-api.open-meteo.com/v1/search?name={Uri.EscapeDataString(city)}&count=1&language=en&format=json";
-            string json = await s_http.GetStringAsync(url, cancellationToken);
+            string json = await _http.GetStringAsync(url, cancellationToken);
 
             using JsonDocument doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("results", out JsonElement results) || results.GetArrayLength() == 0)
                 return false;
 
+            if (cancellationToken.IsCancellationRequested || _disposed) return false;
             JsonElement first = results[0];
             _latitude = first.GetProperty("latitude").GetDouble();
             _longitude = first.GetProperty("longitude").GetDouble();
@@ -173,7 +184,7 @@ internal sealed class WeatherService : IDisposable
                        + "&hourly=temperature_2m,weather_code,precipitation,precipitation_probability"
                        + "&daily=temperature_2m_max,temperature_2m_min"
                        + "&forecast_hours=8&forecast_days=1&timezone=auto";
-            string json = await s_http.GetStringAsync(url, cancellationToken);
+            string json = await _http.GetStringAsync(url, cancellationToken);
 
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement current = doc.RootElement.GetProperty("current");
@@ -183,9 +194,6 @@ internal sealed class WeatherService : IDisposable
 
             string icon = WeatherCodeToIcon(code);
             string desc = WeatherCodeToDescription(code);
-
-            CurrentWeather = $"{temp:0}°C  {icon} {desc}";
-            WeatherUpdated?.Invoke(CurrentWeather);
 
             // Parse daily min/max
             JsonElement daily = doc.RootElement.GetProperty("daily");
@@ -225,8 +233,14 @@ internal sealed class WeatherService : IDisposable
                     hProb[i].GetInt32()));
             }
 
-            LatestSnapshot = new WeatherSnapshot(temp, feelsLike, dayMin, dayMax, code, icon, desc, hours);
-            ForecastUpdated?.Invoke(LatestSnapshot);
+            if (cancellationToken.IsCancellationRequested || _disposed) return;
+            var snapshot = new WeatherSnapshot(temp, feelsLike, dayMin, dayMax, code, icon, desc, hours);
+            LatestSnapshot = snapshot;
+            CurrentWeather = $"{temp:0}°C  {icon} {desc}";
+            WeatherUpdated?.Invoke(CurrentWeather);
+            // An observer may stop or replace the request synchronously.
+            if (!cancellationToken.IsCancellationRequested && !_disposed)
+                ForecastUpdated?.Invoke(snapshot);
         }
         catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException or TaskCanceledException)
         {

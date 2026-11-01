@@ -21,8 +21,10 @@ public partial class ResumeMatchPrompt : UserControl
     {
         if (_completionRaised) return;
         _completionRaised = true;
+        StopRecoveryMotion();
         BeginAnimation(OpacityProperty, null);
         Completed?.Invoke();
+        RestoreRecoveryFocus();
     }
     private void Finish()
     {
@@ -30,17 +32,7 @@ public partial class ResumeMatchPrompt : UserControl
         _completed = true; _discardConfirmationTimer.Stop(); IsHitTestVisible = false;
         DiscardConfirmationProgress.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, null);
         if (!OperatorMotion.Enabled || !IsLoaded || !IsVisible) { Complete(); return; }
-        var scale = new ScaleTransform(1, 1);
-        var travel = new TranslateTransform();
-        var transform = new TransformGroup(); transform.Children.Add(RenderTransform); transform.Children.Add(scale); transform.Children.Add(travel);
-        RenderTransformOrigin = new System.Windows.Point(.5, .5); RenderTransform = transform;
-        var duration = TimeSpan.FromMilliseconds(150);
-        scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.97, duration) { EasingFunction = OperatorMotion.SmoothOut });
-        scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.97, duration) { EasingFunction = OperatorMotion.SmoothOut });
-        travel.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(8, duration) { EasingFunction = OperatorMotion.SmoothOut });
-        var fade = new DoubleAnimation(Opacity, 0, duration) { EasingFunction = OperatorMotion.SmoothOut };
-        fade.Completed += (_, _) => Complete();
-        BeginAnimation(OpacityProperty, fade);
+        CloseRecoveryMotion();
     }
     public bool ResumeChosen { get; private set; }
     public bool DiscardChosen { get; private set; }
@@ -50,7 +42,7 @@ public partial class ResumeMatchPrompt : UserControl
     {
         ArgumentNullException.ThrowIfNull(saved);
         InitializeComponent(); InteractionMotion.Enable(this);
-        SharedSurfaceMotion.Attach(DialogShell);
+        InitializeRecoveryMotion();
         bool cricket = saved.Sport?.Equals("cricket", StringComparison.OrdinalIgnoreCase) == true && saved.CricketMatchState != null;
         HomeNameText.Text = cricket ? saved.CricketMatchState!.TeamAName : saved.MatchState?.HomeName ?? "HOME";
         AwayNameText.Text = cricket ? saved.CricketMatchState!.TeamBName : saved.MatchState?.AwayName ?? "AWAY";
@@ -66,7 +58,19 @@ public partial class ResumeMatchPrompt : UserControl
         HomeTeamCard.Background = TeamVisuals.Panel(home, home, .35); HomeTeamCard.BorderBrush = TeamVisuals.Accent(home);
         AwayTeamCard.Background = TeamVisuals.Panel(away, away, .35); AwayTeamCard.BorderBrush = TeamVisuals.Accent(away);
         _discardConfirmationTimer.Tick += (_,_) => ResetDiscardConfirmation();
-        Unloaded += (_,_) => { ResetDiscardConfirmation(); if (_completed) Complete(); };
+        // Settling shell motion must not stop observing later confirmations.
+        Loaded += (_,_) =>
+        {
+            OperatorAppearance.Changed -= DiscardPreferencesChanged;
+            OperatorAppearance.Changed += DiscardPreferencesChanged;
+            DiscardPreferencesChanged();
+        };
+        Unloaded += (_,_) =>
+        {
+            OperatorAppearance.Changed -= DiscardPreferencesChanged;
+            ResetDiscardConfirmation();
+            if (_completed) Complete();
+        };
     }
     private void Prompt_SizeChanged(object sender,SizeChangedEventArgs args)
     {
@@ -92,12 +96,23 @@ public partial class ResumeMatchPrompt : UserControl
             DiscardButton.Background=new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(94,29,43));
             DiscardButton.BorderBrush=new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255,155,163));
             DiscardConfirmationProgress.Visibility = Visibility.Visible;
-            DiscardConfirmationProgress.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty,
-                new DoubleAnimation(1, 0, TimeSpan.FromSeconds(5)) { FillBehavior = FillBehavior.Stop });
+            DiscardConfirmationProgress.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, null);
+            DiscardConfirmationProgress.Value = 1;
+            if (OperatorMotion.Enabled)
+                DiscardConfirmationProgress.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty,
+                    new DoubleAnimation(1, 0, TimeSpan.FromSeconds(5)) { FillBehavior = FillBehavior.Stop });
             System.Windows.Automation.AutomationProperties.SetHelpText(DiscardButton, "Press again within five seconds to discard the saved match.");
             _discardConfirmationTimer.Stop(); _discardConfirmationTimer.Start(); return;
         }
         DiscardChosen = true; Finish();
+    }
+    private void DiscardPreferencesChanged()
+    {
+        if (!_discardArmed || OperatorMotion.Enabled) return;
+        // The original timer still owns the five-second deadline. With motion
+        // disabled, the steady full indicator means that confirmation is armed.
+        DiscardConfirmationProgress.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, null);
+        DiscardConfirmationProgress.Value = 1;
     }
     private void ResetDiscardConfirmation()
     {

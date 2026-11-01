@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -10,6 +11,7 @@ namespace Roche_Scoreboard.Services;
 /// <summary>Animate the surface inside a stable hit target; hidden controls always return to rest.</summary>
 public static class CricketActionMotion
 {
+    private static readonly ConditionalWeakTable<ButtonBase, PreferenceWatch> Preferences = new();
     public static readonly DependencyProperty EnabledProperty = DependencyProperty.RegisterAttached("Enabled", typeof(bool), typeof(CricketActionMotion), new PropertyMetadata(false, Changed));
     public static bool GetEnabled(DependencyObject value) => (bool)value.GetValue(EnabledProperty);
     public static void SetEnabled(DependencyObject value, bool enabled) => value.SetValue(EnabledProperty, enabled);
@@ -20,14 +22,23 @@ public static class CricketActionMotion
         button.GotKeyboardFocus -= Focus; button.LostKeyboardFocus -= Blur;
         button.PreviewMouseLeftButtonDown -= Press; button.PreviewMouseLeftButtonUp -= Release;
         button.Loaded -= Load; button.Unloaded -= Unload; button.IsVisibleChanged -= VisibilityChanged;
+        button.IsEnabledChanged -= VisibilityChanged;
         if (args.NewValue is true)
         {
             button.MouseEnter += Enter; button.MouseLeave += Leave; button.Click += Click;
             button.GotKeyboardFocus += Focus; button.LostKeyboardFocus += Blur;
             button.PreviewMouseLeftButtonDown += Press; button.PreviewMouseLeftButtonUp += Release;
             button.Loaded += Load; button.Unloaded += Unload; button.IsVisibleChanged += VisibilityChanged;
+            button.IsEnabledChanged += VisibilityChanged;
+            Preferences.GetValue(button, target => new PreferenceWatch(target)).Update();
+            if(button.IsLoaded)Reset(button);
         }
-        else Reset(button);
+        else
+        {
+            if(Preferences.TryGetValue(button,out var watch))watch.Stop();
+            Preferences.Remove(button);
+            Reset(button);
+        }
     }
     private static T? Part<T>(ButtonBase button, string name) where T : class
     {
@@ -38,9 +49,26 @@ public static class CricketActionMotion
     private static void Leave(object sender, System.Windows.Input.MouseEventArgs args) => Hover((ButtonBase)sender);
     private static void Focus(object sender, KeyboardFocusChangedEventArgs args) => Hover((ButtonBase)sender);
     private static void Blur(object sender, KeyboardFocusChangedEventArgs args) => Hover((ButtonBase)sender);
-    private static void Load(object sender, RoutedEventArgs args) => Reset((ButtonBase)sender);
-    private static void Unload(object sender, RoutedEventArgs args) => Reset((ButtonBase)sender);
-    private static void VisibilityChanged(object sender, DependencyPropertyChangedEventArgs args) { if (args.NewValue is false) Reset((ButtonBase)sender); }
+    private static void Load(object sender, RoutedEventArgs args)
+    {
+        var button=(ButtonBase)sender;
+        Preferences.GetValue(button,target=>new PreferenceWatch(target)).Update();
+        Reset(button);
+    }
+    private static void Unload(object sender, RoutedEventArgs args)
+    {
+        var button=(ButtonBase)sender;
+        if(Preferences.TryGetValue(button,out var watch))watch.Stop();
+        Reset(button);
+    }
+    private static void VisibilityChanged(object sender, DependencyPropertyChangedEventArgs args)
+    {
+        // Native adapters may forward general property notifications here.
+        if(args.Property.Name is not ("IsVisible" or "IsEnabled"))return;
+        var button=(ButtonBase)sender;
+        if(Preferences.TryGetValue(button,out var watch))watch.Update();
+        if(!button.IsLoaded || !button.IsVisible || !button.IsEnabled)Reset(button);
+    }
     private static void Press(object sender, MouseButtonEventArgs args)
     {
         var button = (ButtonBase)sender;
@@ -63,6 +91,7 @@ public static class CricketActionMotion
     }
     private static void Paint(ButtonBase button, double scale, double lift, double glow, TimeSpan duration, IEasingFunction? easing = null)
     {
+        if(!OperatorMotion.Enabled){Settle(button,glow);return;}
         if (Part<ScaleTransform>(button, "TbSc") is { } transform)
         {
             Animate(transform, ScaleTransform.ScaleXProperty, scale, duration, easing);
@@ -80,6 +109,37 @@ public static class CricketActionMotion
     {
         if (!OperatorMotion.Enabled) { target.BeginAnimation(property, null); target.SetValue(property, value); return; }
         target.BeginAnimation(property, new DoubleAnimation(value, duration) { EasingFunction = easing ?? OperatorMotion.SmoothOut });
+    }
+    private sealed class PreferenceWatch
+    {
+        private readonly ButtonBase _button;
+        private bool _watching;
+        internal PreferenceWatch(ButtonBase button)=>_button=button;
+        internal void Update()
+        {
+            bool watch=GetEnabled(_button) && _button.IsLoaded && _button.IsVisible && _button.IsEnabled;
+            if(watch==_watching)return;
+            if(watch){_watching=true;OperatorAppearance.Changed+=Changed;}
+            else Stop();
+        }
+        internal void Stop()
+        {
+            if(!_watching)return;
+            _watching=false;OperatorAppearance.Changed-=Changed;
+        }
+        private void Changed()
+        {
+            if(!_watching)return;
+            Update();
+            if(!_watching){Reset(_button);return;}
+            if(OperatorMotion.Enabled)return;
+            Settle(_button,_button.IsPressed ? .25 : (_button.IsMouseOver || _button.IsKeyboardFocusWithin) ? .20 : 0);
+        }
+    }
+    private static void Settle(ButtonBase button,double glow)
+    {
+        Reset(button);
+        if(Part<UIElement>(button,"ActionGlow") is { } highlight)highlight.Opacity=glow;
     }
     private static void Reset(ButtonBase button)
     {

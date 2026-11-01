@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/MainWindow.xaml",
-  "source_sha256": "d25e0b56c0677a65641868d2b7a9e257b188845125614548b35b80e4b35d3264",
+  "source_sha256": "cabafada59153bec3d33fb06e90ea62c44670b25d152bd540cee7dcd2821d79d",
   "names": [
     {
       "name": "HeaderToggle",
@@ -223,6 +223,26 @@
       "name": "ControlPanelCountdownEditPopupScale",
       "type": "ScaleTransform",
       "object": true
+    },
+    {
+      "name": "ControlPanelCountdownEditPopupTravel",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ControlPanelCountdownEditHeader",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ControlPanelCountdownHeaderTravel",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "ControlPanelCountdownEditSymbol",
+      "type": "OperatorSymbol",
+      "object": false
     },
     {
       "name": "ControlPanelCountdownEditMinutesBox",
@@ -665,6 +685,16 @@
       "object": false
     },
     {
+      "name": "VideoTabPreviewHeading",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "VideoTabPreviewDetail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "VideoTabPreviewBadge",
       "type": "TextBlock",
       "object": false
@@ -702,6 +732,11 @@
     {
       "name": "VideoTabMuteButton",
       "type": "Button",
+      "object": false
+    },
+    {
+      "name": "VideoTabAudioSymbol",
+      "type": "OperatorSymbol",
       "object": false
     },
     {
@@ -777,11 +812,6 @@
     {
       "name": "AnimCustomVideoRadio",
       "type": "RadioButton",
-      "object": false
-    },
-    {
-      "name": "SettingsShowControlPanelCountdown",
-      "type": "CheckBox",
       "object": false
     },
     {
@@ -931,7 +961,12 @@
     },
     {
       "name": "HomeColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
+      "object": false
+    },
+    {
+      "name": "HomePrimaryScreenSampler",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -941,7 +976,22 @@
     },
     {
       "name": "HomeSecondaryColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
+      "object": false
+    },
+    {
+      "name": "HomeSecondaryScreenSampler",
+      "type": "OperatorActionBorder",
+      "object": false
+    },
+    {
+      "name": "HomeLogoBrowseAction",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "HomeLogoClearAction",
+      "type": "Button",
       "object": false
     },
     {
@@ -966,7 +1016,12 @@
     },
     {
       "name": "AwayColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
+      "object": false
+    },
+    {
+      "name": "AwayPrimaryScreenSampler",
+      "type": "OperatorActionBorder",
       "object": false
     },
     {
@@ -976,7 +1031,22 @@
     },
     {
       "name": "AwaySecondaryColorPreview",
-      "type": "Border",
+      "type": "OperatorActionBorder",
+      "object": false
+    },
+    {
+      "name": "AwaySecondaryScreenSampler",
+      "type": "OperatorActionBorder",
+      "object": false
+    },
+    {
+      "name": "AwayLogoBrowseAction",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AwayLogoClearAction",
+      "type": "Button",
       "object": false
     },
     {
@@ -991,7 +1061,7 @@
     },
     {
       "name": "SettingsCountUpCard",
-      "type": "OperatorActionBorder",
+      "type": "Border",
       "object": false
     },
     {
@@ -1006,7 +1076,7 @@
     },
     {
       "name": "SettingsCountdownCard",
-      "type": "OperatorActionBorder",
+      "type": "Border",
       "object": false
     },
     {
@@ -1021,7 +1091,7 @@
     },
     {
       "name": "SettingsControlPanelCountdownOptionCard",
-      "type": "OperatorActionBorder",
+      "type": "Border",
       "object": false
     },
     {
@@ -1035,23 +1105,8 @@
       "object": true
     },
     {
-      "name": "SettingsControlPanelCountdownToggleTrack",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "SettingsControlPanelCountdownToggleThumb",
-      "type": "Ellipse",
-      "object": false
-    },
-    {
-      "name": "SettingsControlPanelCountdownThumbTranslate",
-      "type": "TranslateTransform",
-      "object": true
-    },
-    {
-      "name": "SettingsControlPanelCountdownToggleLabel",
-      "type": "TextBlock",
+      "name": "SettingsShowControlPanelCountdown",
+      "type": "CheckBox",
       "object": false
     },
     {
@@ -1070,6 +1125,11 @@
       "object": false
     },
     {
+      "name": "QuarterDurationError",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "ClockStatusText",
       "type": "TextBlock",
       "object": false
@@ -1085,58 +1145,28 @@
       "object": false
     },
     {
+      "name": "ClockSetError",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SettingsFinalsCard",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "SettingsFinalsToggle",
       "type": "CheckBox",
       "object": false
     },
     {
-      "name": "SettingsFinalsCard",
-      "type": "OperatorActionBorder",
-      "object": false
-    },
-    {
-      "name": "SettingsFinalsGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "SettingsFinalsTitle",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "SettingsFinalsTrack",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "SettingsFinalsThumb",
+      "name": "SettingsHideTeamNamesCard",
       "type": "Border",
       "object": false
     },
     {
       "name": "SettingsHideTeamNamesToggle",
       "type": "CheckBox",
-      "object": false
-    },
-    {
-      "name": "SettingsHideTeamNamesCard",
-      "type": "OperatorActionBorder",
-      "object": false
-    },
-    {
-      "name": "SettingsHideTeamNamesTitle",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "SettingsHideTeamNamesTrack",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "SettingsHideTeamNamesThumb",
-      "type": "Border",
       "object": false
     },
     {
@@ -1345,53 +1375,23 @@
       "object": false
     },
     {
+      "name": "AutoOverlaysCard",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "AutoOverlaysToggle",
       "type": "CheckBox",
       "object": false
     },
     {
-      "name": "AutoOverlaysCard",
-      "type": "OperatorActionBorder",
-      "object": false
-    },
-    {
-      "name": "AutoOverlaysGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "AutoOverlaysCheck",
+      "name": "SettingsBreakScreenCard",
       "type": "Border",
       "object": false
     },
     {
       "name": "SettingsBreakScreenToggle",
       "type": "CheckBox",
-      "object": false
-    },
-    {
-      "name": "SettingsBreakScreenCard",
-      "type": "OperatorActionBorder",
-      "object": false
-    },
-    {
-      "name": "SettingsBreakScreenGlow",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "SettingsBreakScreenTitle",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "SettingsBreakScreenTrack",
-      "type": "Border",
-      "object": false
-    },
-    {
-      "name": "SettingsBreakScreenThumb",
-      "type": "Border",
       "object": false
     },
     {
@@ -1515,6 +1515,11 @@
       "object": false
     },
     {
+      "name": "CloudCopyCodeButton",
+      "type": "Button",
+      "object": false
+    },
+    {
       "name": "CloudJoinCodeText",
       "type": "TextBlock",
       "object": false
@@ -1540,7 +1545,17 @@
       "object": false
     },
     {
+      "name": "CloudCopyFeedback",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "CloudEndButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "SettingsResetMatchButton",
       "type": "Button",
       "object": false
     },
@@ -1572,6 +1587,66 @@
     {
       "name": "ResetOverlay",
       "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ResetBackdrop",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "ResetHost",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ResetSurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "ResetContent",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ResetHeader",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "ResetArrow",
+      "type": "Path",
+      "object": false
+    },
+    {
+      "name": "ResetWarningMark",
+      "type": "Path",
+      "object": false
+    },
+    {
+      "name": "ResetDetails",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
+      "name": "ResetMatchContext",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ResetPhaseText",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ResetContextNotice",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ResetActions",
+      "type": "Grid",
       "object": false
     },
     {
@@ -1625,18 +1700,49 @@
       "object": false
     },
     {
+      "name": "CommandOverlay",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "CommandSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
+      "name": "CommandSearch",
+      "type": "TextBox",
+      "object": false
+    },
+    {
+      "name": "CommandResults",
+      "type": "ListBox",
+      "object": false
+    },
+    {
+      "name": "CommandHint",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "RecoveryOverlay",
       "type": "Grid",
       "object": false
     }
   ],
-  "code_source_sha256": "703df122a5eeaaa8cdd287a7b5645184327799ecc6915b6796e17588bb198ad1",
+  "code_source_sha256": "349efb3b7f57673778cc08e229d0085390fbe08732348e7abce08d9ae9087609",
   "native_events": [
     {
       "name": "MainTabControl",
       "source": "SelectionChanged",
       "native": "SelectionChanged",
       "handler": "MainTabControl_SelectionChanged"
+    },
+    {
+      "name": "ControlPanelCountdownEditPopup",
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "StoppageEditor_KeyDown"
     },
     {
       "name": "PresCardScorebug",
@@ -1951,7 +2057,7 @@
       "handler": "PickHomeColor_Click"
     },
     {
-      "name": null,
+      "name": "HomePrimaryScreenSampler",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
       "handler": "OperatorTile_DropperHomeColor_Click"
@@ -1963,7 +2069,7 @@
       "handler": "PickHomeSecondaryColor_Click"
     },
     {
-      "name": null,
+      "name": "HomeSecondaryScreenSampler",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
       "handler": "OperatorTile_DropperHomeSecondaryColor_Click"
@@ -1987,7 +2093,7 @@
       "handler": "PickAwayColor_Click"
     },
     {
-      "name": null,
+      "name": "AwayPrimaryScreenSampler",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
       "handler": "OperatorTile_DropperAwayColor_Click"
@@ -1999,28 +2105,22 @@
       "handler": "PickAwaySecondaryColor_Click"
     },
     {
-      "name": null,
+      "name": "AwaySecondaryScreenSampler",
       "source": "MouseLeftButtonUp",
       "native": "PointerReleased",
       "handler": "OperatorTile_DropperAwaySecondaryColor_Click"
     },
     {
-      "name": "SettingsCountUpCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_SettingsCountUpCard_Click"
+      "name": "SettingsShowControlPanelCountdown",
+      "source": "Checked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsShowControlPanelCountdown_Changed"
     },
     {
-      "name": "SettingsCountdownCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_SettingsCountdownCard_Click"
-    },
-    {
-      "name": "SettingsControlPanelCountdownOptionCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_SettingsControlPanelCountdownOptionCard_Click"
+      "name": "SettingsShowControlPanelCountdown",
+      "source": "Unchecked",
+      "native": "IsCheckedChanged",
+      "handler": "SettingsShowControlPanelCountdown_Changed"
     },
     {
       "name": null,
@@ -2059,12 +2159,6 @@
       "handler": "SettingsFinalsToggle_Changed"
     },
     {
-      "name": "SettingsFinalsCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_SettingsFinalsCard_Click"
-    },
-    {
       "name": "SettingsHideTeamNamesToggle",
       "source": "Checked",
       "native": "IsCheckedChanged",
@@ -2075,12 +2169,6 @@
       "source": "Unchecked",
       "native": "IsCheckedChanged",
       "handler": "SettingsHideTeamNamesToggle_Changed"
-    },
-    {
-      "name": "SettingsHideTeamNamesCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_SettingsHideTeamNamesCard_Click"
     },
     {
       "name": "QuarterLabelCurrentBox",
@@ -2149,12 +2237,6 @@
       "handler": "AutoOverlaysToggle_Changed"
     },
     {
-      "name": "AutoOverlaysCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_AutoOverlaysCard_Click"
-    },
-    {
       "name": "SettingsBreakScreenToggle",
       "source": "Checked",
       "native": "IsCheckedChanged",
@@ -2165,12 +2247,6 @@
       "source": "Unchecked",
       "native": "IsCheckedChanged",
       "handler": "SettingsBreakScreenToggle_Changed"
-    },
-    {
-      "name": "SettingsBreakScreenCard",
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_SettingsBreakScreenCard_Click"
     },
     {
       "name": null,
@@ -2197,22 +2273,34 @@
       "handler": "OperatorTile_HeightPlus_Click"
     },
     {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_CopyCloudJoinCode_Click"
-    },
-    {
-      "name": null,
-      "source": "MouseLeftButtonUp",
-      "native": "PointerReleased",
-      "handler": "OperatorTile_ResetCardSettings_Click"
-    },
-    {
       "name": "ResizeGripVisual",
       "source": "MouseLeftButtonDown",
       "native": "PointerPressed",
       "handler": "ResizeGrip_MouseDown"
+    },
+    {
+      "name": "CommandOverlay",
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "CommandOverlay_KeyDown"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "CommandBackdrop_Click"
+    },
+    {
+      "name": "CommandSearch",
+      "source": "TextChanged",
+      "native": "TextChanged",
+      "handler": "CommandSearch_TextChanged"
+    },
+    {
+      "name": "CommandResults",
+      "source": "SelectionChanged",
+      "native": "SelectionChanged",
+      "handler": "CommandResults_SelectionChanged"
     }
   ],
   "platform_translations": [

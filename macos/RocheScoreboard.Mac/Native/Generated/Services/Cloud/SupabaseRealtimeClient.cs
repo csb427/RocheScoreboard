@@ -1,5 +1,5 @@
 // Generated from Services/Cloud/SupabaseRealtimeClient.cs; edit translator/adapters.
-// Source SHA-256: 24be856340a1a03acf6ea45005fa9971a7bf705125a7d417e1c4251c1dfba71d
+// Source SHA-256: 28f508b991e3eeb6fd4a3cd3c6f47862856ae39e7aa2a19aa3113fa99f7068a6
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -27,7 +27,7 @@ namespace Roche_Scoreboard.Services.Cloud;
 /// A tiny heartbeat task pings the server every 25 seconds, which is the
 /// upstream-recommended cadence for keeping the channel alive.
 /// </summary>
-public sealed class SupabaseRealtimeClient : IAsyncDisposable
+public sealed class SupabaseRealtimeClient : IAsyncDisposable, ICloudRealtimeTransport
 {
     private readonly Uri _socketUri;
     private readonly string _apiKey;

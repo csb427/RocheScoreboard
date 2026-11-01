@@ -59,6 +59,23 @@ internal static class OperatorSetupTrainingChecks
             var toggle = new System.Windows.Automation.Peers.CheckBoxAutomationPeer(training.AutoAdvanceToggle);
             ((System.Windows.Automation.Provider.IToggleProvider)toggle).Toggle();
             checks["training-auto-advance-retains-native-check-semantics"] = !session.AutoAdvance && !session.IsRunning;
+            var retainedRows = training.QueueItems.Items.Cast<object>().ToArray();
+            int policyChanges = 0, structureChanges = 0;
+            session.Changed += () => policyChanges++;
+            session.StructuralChanged += () => structureChanges++;
+            session.AutoAdvance = true;
+            session.AutoAdvance = true;
+            await Pump();
+            checks["training-public-policy-refreshes-checkbox-once-without-rebuilding-queue"] =
+                training.AutoAdvanceToggle.IsChecked == true && policyChanges == 1 && structureChanges == 0
+                && retainedRows.SequenceEqual(training.QueueItems.Items.Cast<object>());
+            training.NewTitleBox.Text = "Retained correction title";
+            bool movedTitleFocus = training.NewMinutesBox.Focus() && !training.NewTitleBox.IsKeyboardFocusWithin;
+            var pointer = new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
+            { RoutedEvent = UIElement.PreviewMouseLeftButtonDownEvent, Source = training.NewTitleBox };
+            training.NewTitleBox.RaiseEvent(pointer);
+            checks["training-wpf-preview-pointer-never-clears-an-edited-title"] =
+                movedTitleFocus && training.NewTitleBox.Text == "Retained correction title" && session.Timers.Count == 2 && !session.IsRunning;
             OperatorMotion.AnimationOverride = true;
             typeof(TrainingControlPanel).GetMethod("RebuildQueueList", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(training, null);
             await Pump();

@@ -133,13 +133,13 @@ public partial class DesignSystemGalleryWindow : Window
         double finalComboBoxHeight = ComboBoxSample.ActualHeight;
         double finalMargin = GetNamedFrameworkElement("GalleryContentPanel")?.Margin.Left ?? 0;
 
-        bool keyboardFocusVisible = VerifyKeyboardOrder(tabControls, notes);
-        bool radioArrowWorked = VerifyRadioKeyboard(notes);
-        bool comboKeyboardWorked = VerifyComboKeyboard(notes);
+        bool tabIndicesOrdered = ObserveTabIndexOrder(tabControls, notes);
+        bool syntheticRadioSelected = ObserveSyntheticRadioSelection(notes);
+        bool programmaticComboSelected = ObserveProgrammaticComboSelection(notes);
         bool tooltipOpened = VerifyTooltip(notes);
         bool disabledStatesOk = VerifyDisabledStates(notes);
 
-        bool closeBehaviorOk = true;
+        const string closeBehavior = "unverified";
 
         string themeAndVisuals = themeRoundTrip && finalTheme == initialTheme
             ? "pass"
@@ -157,9 +157,11 @@ public partial class DesignSystemGalleryWindow : Window
 
         notes.Append($"Compact metrics: density={compactDensity}, button={compactButtonHeight:N0}, textbox={compactTextBoxHeight:N0}, combo={compactComboBoxHeight:N0}, padding={compactPadding}, margin={compactMargin:N0}. ");
 
-        string keyboard = keyboardFocusVisible && radioArrowWorked && comboKeyboardWorked
-            ? "pass"
-            : "fail";
+        const string keyboard = "unverified";
+        notes.Append($"Keyboard observations only: sampled TabIndex values ordered={tabIndicesOrdered}, synthetic Right event left RadioOptionB selected={syntheticRadioSelected}, programmatic ComboBox open/select/close={programmaticComboSelected}. ");
+        notes.Append("Keyboard unverified: no actual Tab/Shift+Tab traversal, focus trace, rendered focus cue or ComboBox key input was measured. ");
+        notes.Append("Close behavior unverified: this report does not attempt Close or observe Closing/Closed; caller cleanup happens after reporting. ");
+        notes.Append("Theme/visual checks cover theme/resource/text roundtrip, not rendered contrast. Density/layout checks cover sampled metrics/token changes, not supported work-area layouts. Tooltip checks programmatic IsOpen only; disabled-state checks sample three IsEnabled flags, not activation rejection. ");
 
         string tooltip = tooltipOpened
             ? "pass"
@@ -170,7 +172,7 @@ public partial class DesignSystemGalleryWindow : Window
             : "fail";
 
         if (GetNamedTextBlock("SelfTestStatusText") is { } selfTestStatusText)
-            selfTestStatusText.Text = $"Self-test: theme={themeAndVisuals}, density={densityAndLayout}, keyboard={keyboard}, tooltip={tooltip}, disabled={disabledStates}";
+            selfTestStatusText.Text = $"Self-test: theme={themeAndVisuals}, density={densityAndLayout}, keyboard={keyboard}, tooltip={tooltip}, disabled={disabledStates}, close={closeBehavior}";
 
         return new GallerySelfTestResult(
             Theme: finalTheme,
@@ -188,7 +190,7 @@ public partial class DesignSystemGalleryWindow : Window
             Keyboard: keyboard,
             Tooltip: tooltip,
             DisabledStates: disabledStates,
-            CloseBehavior: closeBehaviorOk ? "pass" : "fail",
+            CloseBehavior: closeBehavior,
             Notes: notes.ToString());
     }
 
@@ -215,14 +217,14 @@ public partial class DesignSystemGalleryWindow : Window
         return app.ThemeService.CurrentDensity != previousDensity || PrimaryButtonSample.ActualHeight != before;
     }
 
-    private static bool VerifyKeyboardOrder(IReadOnlyList<WpfControl> controls, StringBuilder notes)
+    private static bool ObserveTabIndexOrder(IReadOnlyList<WpfControl> controls, StringBuilder notes)
     {
         int previousTabIndex = -1;
         foreach (WpfControl control in controls)
         {
             if (control.TabIndex < previousTabIndex)
             {
-                notes.Append($"Tab order regression at {control.Name}. ");
+                notes.Append($"Sampled TabIndex values decrease at {control.Name}. ");
                 return false;
             }
 
@@ -232,7 +234,7 @@ public partial class DesignSystemGalleryWindow : Window
         return true;
     }
 
-    private bool VerifyRadioKeyboard(StringBuilder notes)
+    private bool ObserveSyntheticRadioSelection(StringBuilder notes)
     {
         RadioOptionA.Focus();
         RadioOptionA.RaiseEvent(new WpfKeyEventArgs(System.Windows.Input.Keyboard.PrimaryDevice, PresentationSource.FromVisual(this)!, 0, System.Windows.Input.Key.Right)
@@ -243,14 +245,14 @@ public partial class DesignSystemGalleryWindow : Window
 
         if (RadioOptionB.IsChecked != true)
         {
-            notes.Append("Radio arrow navigation did not retain the expected selection. ");
+            notes.Append("Synthetic Right-event observation did not leave RadioOptionB selected. ");
             return false;
         }
 
         return true;
     }
 
-    private bool VerifyComboKeyboard(StringBuilder notes)
+    private bool ObserveProgrammaticComboSelection(StringBuilder notes)
     {
         ComboBoxSample.Focus();
         ComboBoxSample.IsDropDownOpen = true;
@@ -258,7 +260,7 @@ public partial class DesignSystemGalleryWindow : Window
 
         if (!ComboBoxSample.IsDropDownOpen)
         {
-            notes.Append("ComboBox did not open during keyboard verification. ");
+            notes.Append("ComboBox did not retain programmatic IsDropDownOpen=true. ");
             return false;
         }
 
@@ -268,7 +270,7 @@ public partial class DesignSystemGalleryWindow : Window
 
         if (ComboBoxSample.SelectedIndex != 1 || ComboBoxSample.IsDropDownOpen)
         {
-            notes.Append("ComboBox selection/close verification failed. ");
+            notes.Append("ComboBox did not retain the programmatic selection/close state. ");
             return false;
         }
 

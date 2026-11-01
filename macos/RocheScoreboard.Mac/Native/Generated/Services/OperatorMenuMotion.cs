@@ -1,5 +1,5 @@
 // Generated from Services/OperatorMenuMotion.cs; edit translator/adapters.
-// Source SHA-256: 67eb1987719c777147ebc83ae383be5c290186b0eda763ceed59dd9321cb6b15
+// Source SHA-256: abc378bf20963d84eff833653c79f1cb8b352c79ce8f23bf0e757030658f61f8
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -19,6 +19,15 @@ public static class OperatorMenuMotion
     public static void SetEnabled(AvaloniaObject target, bool value) => target.SetValue(EnabledProperty, value);
     public static bool GetEnabled(AvaloniaObject target) => (bool)target.GetValue(EnabledProperty);
     private static readonly ConditionalWeakTable<ContextMenu, State> States = new();
+    // A class Opened handler runs before the instance handler. Resolve the
+    // actual styled part here rather than relying on State.Open having run.
+    internal static bool OwnsArrival(ContextMenu menu)
+        => GetEnabled(menu) && States.TryGetValue(menu, out _) && Surface(menu) is not null;
+    private static Control? Surface(ContextMenu menu)
+    {
+        menu.ApplyTemplate();
+        return NativeTemplates.FindObject(menu,"PART_MenuSurface") as Control;
+    }
     private static void Changed(AvaloniaObject target, AvaloniaPropertyChangedEventArgs args)
     {
         if (target is not ContextMenu menu) return;
@@ -33,13 +42,14 @@ public static class OperatorMenuMotion
         internal State(ContextMenu menu) { _menu = menu; menu.Opened += Open; menu.Closed += Close; }
         private void Open(object? sender, RoutedEventArgs args)
         {
-            Reset(); _menu.ApplyTemplate(); _surface = NativeTemplates.FindObject(_menu,"PART_MenuSurface") as Control;
+            Reset(); _surface = Surface(_menu);
             if (_surface is null) return;
             OperatorAppearance.Changed += PreferenceChanged;
+            NativeSystemPreferences.StaticPropertyChanged += SystemPreferenceChanged;
             _surface.RenderTransformOrigin = new RelativePoint(Origin(),RelativeUnit.Relative); _surface.RenderTransform = _scale;
             if (!OperatorMotion.Enabled) return;
-            _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(.94, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
-            _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(.68, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            _scale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1-.06*OperatorMotion.TravelScale, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
+            _scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1-.32*OperatorMotion.TravelScale, 1, OperatorMotion.MaterialArrival) { EasingFunction = OperatorMotion.SmoothOut, FillBehavior = FillBehavior.Stop });
             _surface.BeginAnimation(Control.OpacityProperty, new DoubleAnimation(.65, 1, OperatorMotion.SurfaceOpen) { FillBehavior = FillBehavior.Stop });
         }
         private Avalonia.Point Origin()
@@ -53,11 +63,18 @@ public static class OperatorMenuMotion
             }
             catch(InvalidOperationException){return new(.5,0);}
         }
-        private void PreferenceChanged() { if (!OperatorMotion.Enabled) Reset(); }
+        private void SystemPreferenceChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs args)
+        { if (args.PropertyName == nameof(NativeSystemPreferences.ClientAreaAnimation)) PreferenceChanged(); }
+        private void PreferenceChanged()
+        {
+            if (!Dispatcher.UIThread.CheckAccess()) { Dispatcher.UIThread.InvokeAsync(new Action(PreferenceChanged)); return; }
+            if (!OperatorMotion.Enabled) Reset();
+        }
         private void Close(object? sender, RoutedEventArgs args) => Reset();
         private void Reset()
         {
             OperatorAppearance.Changed -= PreferenceChanged;
+            NativeSystemPreferences.StaticPropertyChanged -= SystemPreferenceChanged;
             _scale.BeginAnimation(ScaleTransform.ScaleXProperty, null); _scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
             if (_surface is not null) { _surface.BeginAnimation(Control.OpacityProperty, null); _surface.RenderTransform = new MatrixTransform(Matrix.Identity); }
             _surface = null;
