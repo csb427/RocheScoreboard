@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/TrainingControlPanel.xaml.cs; edit translator/adapters.
-// Source SHA-256: 5b00158eec8dbcaafc1cd29f03a5158294382cf4a0d67fac552c2bd1a205eec2
+// Source SHA-256: d3532acbbeb10ee28a675ecd8caf61bdad9b7f39ca2b14459d5541551c31d325
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -358,7 +358,7 @@ public partial class TrainingControlPanel : UserControl
         ActiveRemainingText.Text = active is null
             ? "00:00"
             : FormatTime(_session.ActiveRemaining);
-        SessionTotalText.Text = $"Total: {FormatTime(_session.TotalRemaining)}";
+        SessionTotalText.Text = FormatTime(_session.TotalRemaining);
 
         // Status colour
         if (active is null)
@@ -1283,6 +1283,7 @@ public partial class TrainingControlPanel : UserControl
         if (!CurrentRefresh()) return;
 
         var entries = RecentTrainingTimerStorage.Load();
+        RecentTimersCard.IsVisible = entries.Count == 0 ? false : true;
         if (entries.Count == 0)
         {
             RecentTimersEmptyText.IsVisible = true;

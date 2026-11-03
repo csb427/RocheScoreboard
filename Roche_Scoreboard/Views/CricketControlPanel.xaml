@@ -255,6 +255,7 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
+                    <Grid x:Name="CurrentPlayers" Grid.Row="0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <!-- BATTING — team-coloured accent zone -->
                     <Border Grid.Row="0" x:Name="BattingZone" BorderBrush="#4D3D8F" CornerRadius="22" BorderThickness="1" Background="#0D0A28" Margin="0,0,0,8">
                         <Grid ClipToBounds="True"><Canvas IsHitTestVisible="False" ClipToBounds="True"><Image x:Name="BattingZoneLogo" Stretch="UniformToFill" Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Canvas}}" Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Canvas}}" Opacity=".06"/></Canvas><StackPanel Margin="12">
@@ -303,7 +304,7 @@
                     </Border>
 
                     <!-- BOWLING — green accent zone -->
-                    <Border Grid.Row="1" x:Name="BowlingZone" BorderBrush="#1A6040" CornerRadius="22" BorderThickness="1" Background="#0D1E14" Margin="0,0,0,8">
+                    <Border Grid.Row="0" Grid.Column="2" x:Name="BowlingZone" BorderBrush="#1A6040" CornerRadius="22" BorderThickness="1" Background="#0D1E14" Margin="0,0,0,8">
                         <Grid ClipToBounds="True"><Canvas IsHitTestVisible="False" ClipToBounds="True"><Image x:Name="BowlingZoneLogo" Stretch="UniformToFill" Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Canvas}}" Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Canvas}}" Opacity=".06"/></Canvas><StackPanel Margin="12">
                             <TextBlock x:Name="BowlingStartHint" Text="Complete the toss before selecting players." Foreground="#F0C96A" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,8"/>
 <Button x:Name="SelectOpeningBowler" Content="SELECT BOWLER" Click="SelectOpeningBowler_Click" Style="{StaticResource ToolBtn}" Height="44" Margin="0,0,0,8"/>
@@ -328,6 +329,7 @@
                         </StackPanel></Grid>
                     </Border>
 
+                    </Grid>
                     <!-- SCORING GRID — run buttons with gradient accents -->
                     <Border x:Name="ScoringCommands" CornerRadius="22" Grid.Row="2" Background="{StaticResource RegionAltBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="1" Padding="12" Margin="0,0,0,8">
                         <StackPanel>
@@ -395,9 +397,9 @@
                     </UniformGrid>
 
                     <!-- RESET — danger zone -->
-                    <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Stretch" Margin="0,12,16,0" MinWidth="0" Height="44" FontSize="13" FontWeight="SemiBold" Click="ResetMatch_Click"
+                    <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Right" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="13" FontWeight="SemiBold" Click="ResetMatch_Click"
                             Style="{StaticResource ToolBtn}" ToolTip="Review resetting and leaving the current match"
-                            Background="#2A1416" BorderBrush="#6B3A3E" Foreground="#FF6B6B"/>
+                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Foreground="#FF6B6B"/>
                                 </Grid>
                         </ScrollViewer>
 
@@ -426,11 +428,14 @@
             <TabItem x:Name="ScorecardTab" Header="2  SCORECARD" Tag="BATTING &amp; BOWLING"><ContentControl x:Name="ScorecardHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" ClipToBounds="True"/></TabItem>
             <TabItem x:Name="OutputTab" Header="3  OUTPUT" Tag="PRESENTATIONS">
 <ScrollViewer x:Name="CricketOutputPageViewport" SizeChanged="Console_SizeChanged" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Border Background="#09090B" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="20,16">
-<Grid x:Name="DisplayColumns"><Grid.ColumnDefinitions><ColumnDefinition Width="1.65*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+<Grid x:Name="DisplayColumns"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*" MinHeight="100"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="1.1*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
 <ScrollViewer x:Name="CricketPresentationViewport" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><!-- Keep action edges clear of overlay scrollbar chrome. --><StackPanel Margin="0,0,12,0">
-<StackPanel Margin="0,0,0,12"><TextBlock Text="LIVE OUTPUT ROUTER" FontSize="16" FontWeight="SemiBold" Foreground="White"/>
-<TextBlock Text="One click changes the public screen · active output is highlighted" FontSize="12" Foreground="#9BB0C6" TextWrapping="Wrap"/></StackPanel>
-<Border Background="#142236" BorderBrush="#3D5F85" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,0,10"><TextBlock x:Name="CricketOnAirText" Text="ON AIR · LIVE SCOREBUG" Foreground="#9CCBFF" FontSize="11" FontWeight="SemiBold"/></Border>
+<StackPanel Margin="0,0,0,12"><TextBlock Text="Presentation" FontSize="16" FontWeight="SemiBold" Foreground="White"/>
+<TextBlock Text="Changes appear on the public display." FontSize="12" Foreground="#9BB0C6" TextWrapping="Wrap"/></StackPanel>
+<Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+<Border Background="#142236" BorderBrush="#3D5F85" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,8,0"><TextBlock x:Name="CricketOnAirText" Text="ON AIR · LIVE SCOREBUG" Foreground="#9CCBFF" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/></Border>
+<Button x:Name="Presentationwindow" Grid.Column="1" Tag="window" AutomationProperties.Name="Show scoreboard output" AutomationProperties.HelpText="Shows the scoreboard output window without changing the selected presentation." Style="{StaticResource ToolBtn}" MinHeight="42" Padding="12,0" Click="PresentationButton_Click"><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><motion:OperatorSymbol x:Name="CricketOutputRestoreGlyph" Kind="display" Width="22" Height="22" Foreground="#67D17B" VerticalAlignment="Center" Margin="0,0,8,0"/><TextBlock Text="Show output" FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/></StackPanel></Button>
+</Grid>
 
 <UniformGrid x:Name="CricketPresentationGrid" Columns="2" Margin="0,0,0,18">
 <Button x:Name="Presentationscorebug" Tag="scorebug" Style="{StaticResource CricketLiveScorebugButton}" Click="PresentationButton_Click">
@@ -468,7 +473,7 @@
         <TextBlock x:Name="CricketBowlingCheck" Grid.Column="2" Text="✓" Opacity="0" FontSize="14" FontWeight="Bold" VerticalAlignment="Top" HorizontalAlignment="Center"/>
     </Grid>
 </Button>
-<Button x:Name="Presentationwindow" Tag="window" AutomationProperties.Name="Show scoreboard output" AutomationProperties.HelpText="Shows the scoreboard output window without changing the selected presentation." Style="{StaticResource PresentationButton}" Click="PresentationButton_Click"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4"><motion:OperatorSymbol x:Name="CricketOutputRestoreGlyph" Kind="display" Width="30" Height="26" Foreground="#67D17B" HorizontalAlignment="Center" Margin="0,0,0,6"/><TextBlock Text="SHOW WINDOW" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/><TextBlock Text="Restore output" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Button>
+
 <Button x:Name="Presentationsummary" Tag="summary" Style="{StaticResource CricketMatchSummaryButton}" Click="PresentationButton_Click">
     <Grid IsHitTestVisible="False">
         <Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/></Grid.ColumnDefinitions>
@@ -503,14 +508,15 @@
     </Grid>
 </Button>
 </UniformGrid>
-<TextBlock Text="CRICKET OVERLAYS" Style="{StaticResource SectionHead}" FontSize="14"/>
+</StackPanel></ScrollViewer>
+<ScrollViewer x:Name="CricketOverlaysViewport" Grid.Column="2" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,0,12,0"><TextBlock Text="CRICKET OVERLAYS" Style="{StaticResource SectionHead}" FontSize="14"/>
 <TextBlock x:Name="OverlayStatusText" Text="NO OVERLAY ON AIR" Foreground="#9CCBFF" FontWeight="Bold" FontSize="11" Margin="0,4,0,8"/>
 <StackPanel x:Name="CricketOverlayButtons"> <Button x:Name="CricketExtrasOverlayButton" Content="EXTRAS" Click="ExtrasOverlay_Click" IsEnabled="False" Style="{StaticResource ToolBtn}" MinHeight="48" Margin="4" ToolTip="Show wides, no-balls, byes and leg-byes"/>
  <Button x:Name="CricketBoundariesOverlayButton" Content="INNINGS BOUNDARIES" Click="BoundariesOverlay_Click" IsEnabled="False" Style="{StaticResource ToolBtn}" MinHeight="48" Margin="4" ToolTip="Show this innings' fours and sixes"/>
 </StackPanel>
 <Button Content="CANCEL CURRENT OVERLAY" Click="CancelCricketOverlay_Click" Style="{StaticResource ToolBtn}" Height="42" Margin="4,10,4,8"/>
 </StackPanel></ScrollViewer>
-<StackPanel Grid.Column="2"><TextBlock Text="VENUE WEATHER" Style="{StaticResource SectionHead}" FontSize="14"/><local:OperatorGlassSurface Material="Regular" Style="{StaticResource Card}" Background="{DynamicResource ControlCentre.GlassBrush}"><StackPanel>
+<ScrollViewer x:Name="CricketWeatherViewport" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,12,12,0"><StackPanel><TextBlock Text="VENUE WEATHER" Style="{StaticResource SectionHead}" FontSize="14"/><local:OperatorGlassSurface Material="Regular" Style="{StaticResource Card}" Background="{DynamicResource ControlCentre.GlassBrush}"><StackPanel>
 <TextBlock x:Name="CricketWeatherDataVenue" Text="No weather data loaded" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap"/>
 <TextBlock x:Name="CricketWeatherTemperature" Text="—" FontSize="38" FontWeight="Bold" Foreground="{DynamicResource ControlCentre.TextBrush}"/>
 <TextBlock x:Name="CricketWeatherDescription" Text="Waiting for weather" FontSize="15" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap"/>
@@ -518,14 +524,14 @@
 <TextBox x:Name="CricketWeatherLocation" Text="Melbourne" FontSize="16" Style="{StaticResource SettingsInput}" TextChanged="CricketWeatherLocation_TextChanged" AutomationProperties.Name="Weather venue" AutomationProperties.HelpText="Enter a town or venue location, then choose Update weather to apply it."/>
 <Button Content="Update weather" Click="UpdateCricketWeather_Click" Style="{StaticResource ToolBtn}" Height="50" Margin="0,12,0,0"/>
 <TextBlock x:Name="CricketWeatherStatus" Text="Choose Update weather to load this venue." FontSize="13" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0" AutomationProperties.LiveSetting="Polite"/>
-</StackPanel></local:OperatorGlassSurface></StackPanel>
+</StackPanel></local:OperatorGlassSurface></StackPanel></ScrollViewer>
 </Grid></Border></ScrollViewer></TabItem>
 
             <!-- ══════════════════════════════════════════ -->
             <!-- TAB 3: SETTINGS — team management          -->
             <!-- ══════════════════════════════════════════ -->
             <TabItem x:Name="CricketSettingsTab" Header="4  SETTINGS" Tag="MATCH OPTIONS">
-<local:SettingsWorkspace Heading="CRICKET SETTINGS" Subtitle="Match, controls and output">
+<local:SettingsWorkspace Heading="CRICKET SETTINGS">
 <Grid x:Name="CricketSettingsColumns" Tag="MATCH|innings format bowler players recovery selections">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="1.05*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="1.4*"/></Grid.ColumnDefinitions>
 

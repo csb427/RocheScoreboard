@@ -687,6 +687,16 @@ namespace Roche_Scoreboard.Models
             if (type is CricketDeliveryType.Wide or CricketDeliveryType.NoBall)
                 runs = Math.Max(1, runs);
 
+            if (dismissalText?.StartsWith("run out", StringComparison.OrdinalIgnoreCase) == true) dismissal = DismissalType.RunOut;
+            if (type == CricketDeliveryType.Wicket && !IsDismissalAllowedForDelivery(dismissal, wicketRuns, FreeHitsEnabled && inn.FreeHitPending))
+            {
+                LastOperationError = FreeHitsEnabled && inn.FreeHitPending && !IsDismissalAllowedOnFreeHit(dismissal)
+                    ? "That dismissal is not allowed on a free hit. Record the delivery outcome without a wicket."
+                    : "That dismissal is not allowed for this delivery outcome. Choose the correct outcome, or record a retirement from the player menu.";
+                return;
+            }
+            if (type == CricketDeliveryType.Wicket && WicketScoreProblem(dismissal,wicketRuns,runs,runOutCrossed) is { } wicketProblem)
+            { LastOperationError=wicketProblem; return; }
             // Block scoring if batsmen or bowler not yet selected
             RepairBowlerSelection(inn);
             if (TossPending || inn.Striker is null || inn.NonStriker is null || inn.CurrentBowler is null
@@ -696,18 +706,10 @@ namespace Roche_Scoreboard.Models
 
             if (type == CricketDeliveryType.Wicket && dismissedBatterIndex is int outIndex
                 && outIndex != inn.StrikerIndex && outIndex != inn.NonStrikerIndex) return;
-            if (dismissalText?.StartsWith("run out", StringComparison.OrdinalIgnoreCase) == true) dismissal = DismissalType.RunOut;
-            if (type == CricketDeliveryType.Wicket && !IsDismissalAllowedForDelivery(dismissal, wicketRuns, FreeHitsEnabled && inn.FreeHitPending))
-            {
-                LastOperationError = FreeHitsEnabled && inn.FreeHitPending && !IsDismissalAllowedOnFreeHit(dismissal)
-                    ? "That dismissal is not allowed on a free hit. Record the delivery outcome without a wicket."
-                    : "That dismissal is not allowed for this delivery outcome. Choose the correct outcome, or record a retirement from the player menu.";
-                return;
-            }
             if (type == CricketDeliveryType.Wicket && dismissal is not DismissalType.RunOut and not DismissalType.Other and not DismissalType.ObstructingField
                 && dismissedBatterIndex is int victimIndex && victimIndex != inn.StrikerIndex) return;
-            // Stumping/hit wicket on a wide retains its penalty; a caught or
-            // bowled wicket has no running runs. Run-outs/obstruction retain
+            // Validated penalty-only dismissals retain their automatic penalty;
+            // contradictory running runs have already been rejected. Run-outs/obstruction retain
             // the completed runs supplied by the operator.
             if (type == CricketDeliveryType.Wicket && dismissal is not DismissalType.RunOut and not DismissalType.ObstructingField)
                 runs = wicketRuns is CricketWicketRuns.Wide or CricketWicketRuns.NoBall ? 1 : 0;

@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.Workflows.cs; edit translator/adapters.
-// Source SHA-256: 8135ad933a99241790272b8c0a40e12a0f5d5afcb2a108e96c811126dad4efda
+// Source SHA-256: d31c880bf0ca9fd6120c028901320cb8f086449f34dc5041c9820e1390db9357
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -31,6 +31,8 @@ public partial class CricketControlPanel
     {
         ClosePlayerMenu();
         _workflowGeneration++; _completionShown = null; _workflowBusy = false;
+        _deliveryPointerGuardUntil = DateTime.MinValue; _lastOperatorInputWasKeyboard = true;
+        _lastPointerDownPosition = _closingPointerPosition = null;
         CricketPrompt.CancelAll(CricketRoot); ResetScorecard();
     }
     internal void PrepareForScenarioReload()
@@ -67,7 +69,7 @@ public partial class CricketControlPanel
     private void ReleaseWorkflow(int generation)
     {
         if (generation != _workflowGeneration) return;
-        _workflowBusy = false; _deliveryPointerGuardUntil = DateTime.UtcNow.AddMilliseconds(220);
+        _workflowBusy = false; GuardPointerContinuation(220);
         Dispatcher.UIThread.Post(Avalonia.Threading.DispatcherPriority.Background, new Action(() =>
         { if (generation == _workflowGeneration) UpdateWorkflowState(); }));
     }
@@ -175,29 +177,29 @@ public partial class CricketControlPanel
         if (_match is not { } match) return;
         Control MatchContext(string tag)
         {
-            var record = new StackPanel();record.Children.Add(WorkflowText("MATCH AT OPENING",12));
+            var record = new StackPanel();
             var teams=WorkflowText(match.TeamAName+" · "+match.TeamBName,19);teams.FontWeight=FontWeight.SemiBold;record.Children.Add(teams);
             if(match.TossPending)record.Children.Add(WorkflowText("Complete the toss before innings actions.",14));
             else if(match.CurrentInnings is { } innings)
             {
-                var state=WorkflowText($"Innings {innings.InningsNumber} · {innings.BattingTeamName} batting · {innings.TotalWickets}/{innings.TotalRuns}",14);
+                var state=WorkflowText($"Innings {innings.InningsNumber} · {innings.BattingTeamName} batting · {innings.TotalWickets}/{innings.TotalRuns} · at opening",14);
                 state.FontFeatures=new FontFeatureCollection { FontFeature.Parse("tnum"), FontFeature.Parse("lnum"), FontFeature.Parse("-kern") };record.Children.Add(state);
             }
             string status=match.IsMatchFinalized?match.MatchResult ?? "Match ended":match.BreakKind==CricketBreakKind.None?"No break recorded.":"Break: "+match.BreakKind+(string.IsNullOrWhiteSpace(match.BreakNote)?"":" · "+match.BreakNote);
-            record.Children.Add(WorkflowText(status,13));
+            if(match.IsMatchFinalized || match.BreakKind!=CricketBreakKind.None)record.Children.Add(WorkflowText(status,13));
             var card=new NativeBorder {Tag=tag,Child=record,CornerRadius=new CornerRadius(20),Padding=new Thickness(12,8,12,10),BorderThickness=new Thickness(1)};
             card.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush");card.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");return card;
         }
         while (ReferenceEquals(match, _match))
         {
-            var actions = new List<CricketPrompt.Choice> { new("close", "Close"), new("teams", "Edit teams", Detail:"Names, batting order, captain and wicketkeepers. Both teams stay in one draft until saved.") };
-            if (!match.IsMatchFinalized) actions.Add(new("break", match.BreakKind == CricketBreakKind.None ? "Take a break / rain delay" : "Change the break", Detail:"Choose the pause status. Resume play from the break panel."));
-            if (!match.IsMatchFinalized) actions.Add(new("conditions", "Format and over limit", Detail:"Review the match format and total over limit."));
-            if (!match.TossPending && !match.IsMatchFinalized && match.Format == CricketFormat.LimitedOvers) actions.Add(new("rain", "Revised overs / target", Detail:"Enter supplied revised overs and any chase target. No DLS calculation is performed."));
-            if (!match.TossPending && !match.IsMatchFinalized) actions.Add(new("innings", "Innings and game options", Detail:"Review innings completion and the next batting team. Choices depend on the match."));
-            if (!match.TossPending && !match.IsMatchFinalized) actions.Add(new("before-delivery", "Non-striker run out before delivery", Detail:"Check eligibility and review the umpire’s Out decision. No delivery is added."));
-            actions.Add(new("outcome", match.IsMatchFinalized ? "Review outcome / reopen match" : "End match / record outcome", Detail:match.IsMatchFinalized?"Inspect the recorded result and reopening availability.":"Review the ending decision and any official result or note before recording it."));
-            string? answer = await ContextDecisionAsync("Match options", "Manage breaks, teams and playing conditions.", MatchContext("match-options-context"), actions.ToArray());
+            var actions = new List<CricketPrompt.Choice> { new("close", "Close"), new("teams", "Edit teams") };
+            if (!match.IsMatchFinalized) actions.Add(new("break", match.BreakKind == CricketBreakKind.None ? "Take a break / rain delay" : "Change the break", Detail:"Scoring pauses until resumed."));
+            if (!match.IsMatchFinalized) actions.Add(new("conditions", "Format and over limit"));
+            if (!match.TossPending && !match.IsMatchFinalized && match.Format == CricketFormat.LimitedOvers) actions.Add(new("rain", "Revised overs / target", Detail:"Official revised values only. No DLS calculation."));
+            if (!match.TossPending && !match.IsMatchFinalized) actions.Add(new("innings", "Innings and game options"));
+            if (match.CanRecordNonDeliveryRunOut) actions.Add(new("before-delivery", "Non-striker run out before delivery", Detail:"No delivery is added."));
+            actions.Add(new("outcome", match.IsMatchFinalized ? "Review outcome / reopen match" : "End match / record outcome"));
+            string? answer = await ContextDecisionAsync("Match options", "", MatchContext("match-options-context"), actions.ToArray());
             if (!ReferenceEquals(match, _match)) return;
             if (answer == "break")
             {

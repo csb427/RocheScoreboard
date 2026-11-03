@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml",
-  "source_sha256": "ecf6c7493a1399d9e982897e7e1faed6474774a50d63d3614933135295877ded",
+  "source_sha256": "0f709c0c1739a710f2ba155ff69e4278d75a664299344a3477c8e92940fe9c9e",
   "names": [
     {
       "name": "TrainingClearDecisionHost",
@@ -13,13 +13,28 @@
       "object": false
     },
     {
+      "name": "TrainingHeaderSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "TrainingHeaderGrid",
       "type": "Grid",
       "object": false
     },
     {
+      "name": "TrainingTitleSurface",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "TrainingEntrySymbol",
       "type": "OperatorSymbol",
+      "object": false
+    },
+    {
+      "name": "TrainingTitleText",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -43,11 +58,6 @@
       "object": false
     },
     {
-      "name": "TrainingCloudLauncher",
-      "type": "CloudRemoteLauncher",
-      "object": false
-    },
-    {
       "name": "ExitButton",
       "type": "Button",
       "object": false
@@ -65,6 +75,11 @@
     {
       "name": "TrainingActiveColumn",
       "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "TrainingActiveSurface",
+      "type": "Border",
       "object": false
     },
     {
@@ -90,6 +105,11 @@
     {
       "name": "ActiveRemainingText",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "TrainingTransportSurface",
+      "type": "Border",
       "object": false
     },
     {
@@ -213,6 +233,11 @@
       "object": false
     },
     {
+      "name": "RecentTimersCard",
+      "type": "Border",
+      "object": false
+    },
+    {
       "name": "RecentTimersPanel",
       "type": "WrapPanel",
       "object": false
@@ -245,6 +270,11 @@
     {
       "name": "BuildIntervalButton",
       "type": "Button",
+      "object": false
+    },
+    {
+      "name": "TrainingCloudLauncher",
+      "type": "CloudRemoteLauncher",
       "object": false
     },
     {
@@ -323,7 +353,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "5b00158eec8dbcaafc1cd29f03a5158294382cf4a0d67fac552c2bd1a205eec2",
+  "code_source_sha256": "d3532acbbeb10ee28a675ecd8caf61bdad9b7f39ca2b14459d5541551c31d325",
   "native_events": [
     {
       "name": "AutoAdvanceToggle",

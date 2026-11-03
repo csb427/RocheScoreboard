@@ -1,5 +1,5 @@
 // Generated from MainWindow.RestoreMembers.cs; edit translator/adapters.
-// Source SHA-256: 193c8a3d53235df9d203d61d8016b4ea1954fa93c6efcc113b040382eb71fb96
+// Source SHA-256: d738226a56abafc5251a2f115779ba6a48525564e883e85703e793e926c8019a
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -682,7 +682,7 @@ public partial class MainWindow
         TextBlock teamLabel = new()
         {
             Text = teamName.ToUpper(),
-            TextWrapping = TextWrapping.Wrap,
+            TextTrimming = TextTrimming.CharacterEllipsis,
             Foreground = new SolidColorBrush(cardInk),
             FontSize = 13,
             FontWeight = FontWeight.Bold,
@@ -717,8 +717,8 @@ public partial class MainWindow
 
         TextBlock homeNameScore = new()
         {
-            Text = _match.HomeName.ToUpper(),
-            TextWrapping = TextWrapping.Wrap,
+            Text = string.IsNullOrWhiteSpace(_match.HomeAbbr) ? "HOME" : _match.HomeAbbr.ToUpper(),
+            TextTrimming = TextTrimming.CharacterEllipsis,
             Foreground = isHome ? brightBrush : dimBrush,
             FontSize = 12,
             FontWeight = isHome ? FontWeight.Bold : FontWeight.Normal,
@@ -758,8 +758,8 @@ public partial class MainWindow
 
         TextBlock awayNameScore = new()
         {
-            Text = _match.AwayName.ToUpper(),
-            TextWrapping = TextWrapping.Wrap,
+            Text = string.IsNullOrWhiteSpace(_match.AwayAbbr) ? "AWAY" : _match.AwayAbbr.ToUpper(),
+            TextTrimming = TextTrimming.CharacterEllipsis,
             Foreground = !isHome ? brightBrush : dimBrush,
             FontSize = 12,
             FontWeight = !isHome ? FontWeight.Bold : FontWeight.Normal,
@@ -779,7 +779,7 @@ public partial class MainWindow
         // ── Stable, discoverable editor affordance; never grows the history list ──
         TextBlock editHint = new()
         {
-            Text = "Edit score event",
+            Text = "Edit",
             Foreground = new SolidColorBrush(cardInk),
             FontSize = 12,
             FontWeight = FontWeight.SemiBold,
@@ -792,15 +792,18 @@ public partial class MainWindow
         Border editHintBar = new NativeBorder()
         {
             Tag = "score-log-edit-hint",
-            BorderBrush = new SolidColorBrush(restBorder), BorderThickness = new Thickness(0,1,0,0),
-            Padding = new Thickness(0,6,0,0), Margin = new Thickness(0,6,0,0), Child = editHint
+            BorderThickness = new Thickness(0),
+            Padding = new Thickness(4,0,0,0), Margin = new Thickness(10,0,0,0), Child = editHint
         };
 
         // ── Assemble content ──
         StackPanel content = new() { Margin = new Thickness(10, 0, 0, 0) };
         content.Children.Add(headerRow);
         content.Children.Add(scoreLine);
-        content.Children.Add(editHintBar);
+        // The editor cue belongs to the scoreline rather than a third footer.
+        // Its stable slot never changes row height on hover or keyboard focus.
+        scoreLine.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(editHintBar,5);scoreLine.Children.Add(editHintBar);
 
         Grid inner = new();
         inner.Children.Add(accentStripe);
@@ -816,9 +819,12 @@ public partial class MainWindow
             BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(16),
             Margin = new Thickness(0,0,0,8), Child = row, Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand), Tag = ev,
         };
-        Avalonia.Controls.ToolTip.SetTip(bar, "Edit this score event — Enter or Space when focused");
+        Avalonia.Controls.ToolTip.SetTip(teamLabel, teamName);
+        Avalonia.Controls.ToolTip.SetTip(homeNameScore, _match.HomeName);
+        Avalonia.Controls.ToolTip.SetTip(awayNameScore, _match.AwayName);
+        Avalonia.Controls.ToolTip.SetTip(bar, $"{teamName} {type.ToLowerInvariant()}, {clock}\n{_match.HomeName} {ev.HomeGoals}.{ev.HomeBehinds}.{ev.HomeTotal} — {_match.AwayName} {ev.AwayGoals}.{ev.AwayBehinds}.{ev.AwayTotal}\nEdit — Enter or Space when focused");
         Avalonia.Automation.AutomationProperties.SetName(bar,$"Edit {type.ToLowerInvariant()} for {teamName}, {clock}");
-        Avalonia.Automation.AutomationProperties.SetHelpText(bar,"Opens the score event editor. The match stays unchanged until an edit is saved.");
+        Avalonia.Automation.AutomationProperties.SetHelpText(bar,$"{_match.HomeName} {ev.HomeGoals}.{ev.HomeBehinds}.{ev.HomeTotal}; {_match.AwayName} {ev.AwayGoals}.{ev.AwayBehinds}.{ev.AwayTotal}. Opens the score event editor. The match stays unchanged until an edit is saved.");
         bool observing = false;
         void UpdateAffordance(bool animate)
         {

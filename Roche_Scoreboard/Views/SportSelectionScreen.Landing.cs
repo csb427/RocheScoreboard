@@ -41,7 +41,7 @@ public partial class SportSelectionScreen
         foreach(var layer in new[]{AflHover,CricketHover,TrainingHover,AflFlash,CricketFlash,TrainingFlash})layer.CornerRadius=new CornerRadius(28);
         foreach(var edge in new[]{AflGlow,CricketGlow,TrainingGlassEdge})System.Windows.Controls.Panel.SetZIndex(edge,2);
         AflDescription.Text="AFL (footy) or cricket";
-        HomeHeading.Text="Home";HomeSubtitle.Text="Resume a match, or start something new.  ·  Ctrl+K for commands";
+        HomeHeading.Text="Home";HomeSubtitle.Text="Ctrl+K for commands";
         HomeHeading.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.TextBrush");HomeSubtitle.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");
         SettingsActionCaption.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.TextBrush");SettingsSubtitle.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");
         AflGlow.CornerRadius=CricketGlow.CornerRadius=TrainingGlassEdge.CornerRadius=HomeInteractionLens.CornerRadius=new CornerRadius(28);

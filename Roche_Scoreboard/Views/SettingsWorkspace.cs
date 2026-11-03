@@ -44,7 +44,7 @@ public sealed class SettingsWorkspace : UserControl
     private readonly StackPanel _categories = new();
     private readonly StackPanel _sections = new();
     private readonly TextBlock _heading = new() { FontSize = 20, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
-    private readonly TextBlock _subtitle = new() { FontSize = 14, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,5,0,0) };
+    private readonly TextBlock _subtitle = new() { Visibility=Visibility.Collapsed, FontSize = 14, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,5,0,0) };
     private readonly TextBlock _contextHeading = new() { FontSize = 30, FontWeight = FontWeights.SemiBold };
     private readonly OperatorSearchBox _search = new() { Placeholder = "Search settings", ToolTip = "Search settings", Height = 44, MinHeight = 0 };
     private readonly TextBlock _empty = new() { Text = "No matching settings", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(20), Visibility = Visibility.Collapsed };
@@ -67,7 +67,7 @@ public sealed class SettingsWorkspace : UserControl
     public ScrollViewer Scroller { get; } = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new Thickness(8,0,18,18) };
     public UIElementCollection Sections => _sections.Children;
     public string Heading { get => _heading.Text; set => _heading.Text = value; }
-    public string Subtitle { get => _subtitle.Text; set => _subtitle.Text = value; }
+    public string Subtitle { get => _subtitle.Text; set { _subtitle.Text=value;_subtitle.Visibility=string.IsNullOrWhiteSpace(value)?Visibility.Collapsed:Visibility.Visible; } }
 
     public SettingsWorkspace()
     {

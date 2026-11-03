@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/MainWindow.xaml",
-  "source_sha256": "cabafada59153bec3d33fb06e90ea62c44670b25d152bd540cee7dcd2821d79d",
+  "source_sha256": "286a88552bd271764280dc40ddb9b3033196a0797db041cc0ee132246e3657f4",
   "names": [
     {
       "name": "HeaderToggle",
@@ -1730,7 +1730,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "349efb3b7f57673778cc08e229d0085390fbe08732348e7abce08d9ae9087609",
+  "code_source_sha256": "07403e11ea5a3a7e1890a9ee0625b0b05e737ba1bb314887b2e9ca66f582030d",
   "native_events": [
     {
       "name": "MainTabControl",

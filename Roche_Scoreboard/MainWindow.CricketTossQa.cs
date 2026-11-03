@@ -31,7 +31,9 @@ public partial class MainWindow
         InvokeCricketQa(prompt,"KeepSaved_Click",this,new RoutedEventArgs());
         await WaitCricketQaStateAsync(this,()=>!_recoveryPromptActive && RecoveryOverlay.Visibility==Visibility.Collapsed);
         checks["recovery-continue-later-restores-background-interaction"]=!_recoveryPromptActive && SportSelectionPanel.IsEnabled && RecoveryOverlay.Visibility==Visibility.Collapsed;
-        checks["recovery-dismissal-guards-against-trailing-double-clicks"]=_navigationPointerGuardUntilUtc>DateTime.UtcNow;
+        // This QA closes programmatically; it does not simulate a double click.
+        checks["recovery-dismissal-guard-matches-current-input-modality"]=_navigationLastInputWasKeyboard
+            ? _navigationPointerGuardUntilUtc<=DateTime.UtcNow : _navigationPointerGuardUntilUtc>DateTime.UtcNow;
 
         var match=CricketReliabilityChecks.CreateMatch(); match.TossPending=true;
         match.TeamALogoPath=Path.Combine(directory,"fixture-logo-A.png"); match.TeamBLogoPath=Path.Combine(directory,"fixture-logo-B.png");

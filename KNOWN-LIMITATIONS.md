@@ -1,6 +1,6 @@
-# Revised preview: first-use motion remains open
+# Windows refinement preview: native animation acceptance remains open
 
-**Intermittent first-use animation skipping reported on native Windows/Visual Studio has not been reproduced or resolved here.** First and repeated pointer selections had intermediate animation progress in Linux translated tests; that does not establish a native fix. Other Windows layout fixes are implemented and cross-built, but still need your native appearance/input checks.
+**Intermittent first-use animation skipping reported on native Windows/Visual Studio has not been reproduced or resolved here.** First and repeated pointer selections had intermediate animation progress in Linux translated tests; that does not establish a native fix. Two concrete fresh-input suppression causes have been fixed and regression-tested. Other native animation skips still need a current-build recording and Windows appearance/input checks.
 
 # Test preview limitations
 

@@ -19,6 +19,27 @@ namespace Roche_Scoreboard.Views;
 internal static class WizardTeamEditor
 {
     private static readonly DependencyProperty InstalledProperty=DependencyProperty.RegisterAttached("Installed",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
+    private static readonly DependencyProperty HomeSavedProperty=DependencyProperty.RegisterAttached("HomeSaved",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
+    private static readonly DependencyProperty AwaySavedProperty=DependencyProperty.RegisterAttached("AwaySaved",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
+    private static readonly DependencyProperty HasClubsProperty=DependencyProperty.RegisterAttached("HasClubs",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
+    internal static void SetPresetAvailability(UserControl wizard,bool homeSaved,bool awaySaved,bool hasClubs)
+    {
+        wizard.SetValue(HomeSavedProperty,homeSaved);wizard.SetValue(AwaySavedProperty,awaySaved);wizard.SetValue(HasClubsProperty,hasClubs);
+        RefreshPresetAvailability(wizard);
+    }
+    private static void RefreshPresetAvailability(UserControl wizard)
+    {
+        foreach(string side in new[]{"Home","Away"})
+        {
+            bool selected=(bool)wizard.GetValue(side=="Home"?HomeSavedProperty:AwaySavedProperty);
+            if(wizard.FindName(side+"PresetCard") is Border saved)saved.Visibility=(bool)wizard.GetValue(HasClubsProperty)?Visibility.Visible:Visibility.Collapsed;
+            if(wizard.FindName(side+"TeamCard") is not Border card)continue;
+            foreach(var action in Descendants(card).OfType<Button>().Where(button=>button.Content is string text && text=="Delete preset"))
+                action.Visibility=selected?Visibility.Visible:Visibility.Collapsed;
+            foreach(var options in Descendants(card).OfType<Expander>().Where(item=>Equals(item.Tag,"team-goal-video:"+side)))
+                if(wizard.FindName("Setup"+side+"VideoText") is TextBlock video && !string.IsNullOrWhiteSpace(video.Text) && video.Text!="(none)")options.IsExpanded=true;
+        }
+    }
     internal static void Install(UserControl wizard)
     {
         if((bool)wizard.GetValue(InstalledProperty) || wizard.FindName("TeamsStepContainer") is not Grid stage)return;
@@ -71,7 +92,12 @@ internal static class WizardTeamEditor
             preview.MaxHeight=64;preview.MaxWidth=64;preview.Margin=new Thickness(6);Grid.SetColumn(preview,1);crest.Children.Add(preview);
             form.Children.Add(Field("Club crest",crest));
             if(wizard.FindName($"Setup{side}VideoText") is TextBlock video)
-            {var videoActions=(FrameworkElement)video.Parent;Detach(videoActions);form.Children.Add(Field("Custom goal video",videoActions));}
+            {
+                var videoActions=(FrameworkElement)video.Parent;Detach(videoActions);
+                var options=new Expander{Tag="team-goal-video:"+side,Header="Goal video (optional)",Content=videoActions,Margin=new Thickness(0,2,0,12),FontSize=14};
+                options.SetResourceReference(Control.ForegroundProperty,"ControlCentre.TextBrush");
+                System.Windows.Automation.AutomationProperties.SetName(options,(home?"Home":"Away")+" team goal video");form.Children.Add(options);
+            }
             var actions=new WrapPanel{Margin=new Thickness(0,18,0,0)};
             foreach(var button in ownButtons.Where(b=>b.Content is string caption && (caption=="Save Current" || caption=="Delete")))
             {Detach(button);button.Content=(string)button.Content=="Delete"?"Delete preset":"Save as preset";button.Height=double.NaN;button.MinHeight=38;button.Margin=new Thickness(0,0,8,6);actions.Children.Add(button);}
@@ -83,6 +109,7 @@ internal static class WizardTeamEditor
             var surface=new OperatorGlassSurface{Material=GlassMaterial.Regular,CornerRadius=new CornerRadius(30),Padding=new Thickness(24),BorderThickness=new Thickness(1),VerticalAlignment=VerticalAlignment.Top,Child=body};surface.SetResourceReference(Border.BackgroundProperty,"ControlCentre.GlassBrush");surface.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");Grid.SetColumn(surface,home?0:2);pair.Children.Add(surface);
         }
         stage.Children.Clear();stage.Children.Add(pair);
+        RefreshPresetAvailability(wizard);
         RestyleWeather(wizard);
     }
     internal static void SetPresetStatus(UserControl wizard,string side,string message,bool pending=false)

@@ -677,7 +677,7 @@ public partial class MainWindow
         TextBlock teamLabel = new()
         {
             Text = teamName.ToUpper(),
-            TextWrapping = TextWrapping.Wrap,
+            TextTrimming = TextTrimming.CharacterEllipsis,
             Foreground = new SolidColorBrush(cardInk),
             FontSize = 13,
             FontWeight = FontWeights.Bold,
@@ -712,8 +712,8 @@ public partial class MainWindow
 
         TextBlock homeNameScore = new()
         {
-            Text = _match.HomeName.ToUpper(),
-            TextWrapping = TextWrapping.Wrap,
+            Text = string.IsNullOrWhiteSpace(_match.HomeAbbr) ? "HOME" : _match.HomeAbbr.ToUpper(),
+            TextTrimming = TextTrimming.CharacterEllipsis,
             Foreground = isHome ? brightBrush : dimBrush,
             FontSize = 12,
             FontWeight = isHome ? FontWeights.Bold : FontWeights.Normal,
@@ -753,8 +753,8 @@ public partial class MainWindow
 
         TextBlock awayNameScore = new()
         {
-            Text = _match.AwayName.ToUpper(),
-            TextWrapping = TextWrapping.Wrap,
+            Text = string.IsNullOrWhiteSpace(_match.AwayAbbr) ? "AWAY" : _match.AwayAbbr.ToUpper(),
+            TextTrimming = TextTrimming.CharacterEllipsis,
             Foreground = !isHome ? brightBrush : dimBrush,
             FontSize = 12,
             FontWeight = !isHome ? FontWeights.Bold : FontWeights.Normal,
@@ -774,7 +774,7 @@ public partial class MainWindow
         // ── Stable, discoverable editor affordance; never grows the history list ──
         TextBlock editHint = new()
         {
-            Text = "Edit score event",
+            Text = "Edit",
             Foreground = new SolidColorBrush(cardInk),
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
@@ -787,15 +787,18 @@ public partial class MainWindow
         Border editHintBar = new()
         {
             Tag = "score-log-edit-hint",
-            BorderBrush = new SolidColorBrush(restBorder), BorderThickness = new Thickness(0,1,0,0),
-            Padding = new Thickness(0,6,0,0), Margin = new Thickness(0,6,0,0), Child = editHint
+            BorderThickness = new Thickness(0),
+            Padding = new Thickness(4,0,0,0), Margin = new Thickness(10,0,0,0), Child = editHint
         };
 
         // ── Assemble content ──
         StackPanel content = new() { Margin = new Thickness(10, 0, 0, 0) };
         content.Children.Add(headerRow);
         content.Children.Add(scoreLine);
-        content.Children.Add(editHintBar);
+        // The editor cue belongs to the scoreline rather than a third footer.
+        // Its stable slot never changes row height on hover or keyboard focus.
+        scoreLine.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(editHintBar,5);scoreLine.Children.Add(editHintBar);
 
         Grid inner = new();
         inner.Children.Add(accentStripe);
@@ -811,9 +814,12 @@ public partial class MainWindow
             BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(16),
             Margin = new Thickness(0,0,0,8), Child = row, Cursor = System.Windows.Input.Cursors.Hand, Tag = ev,
         };
-        bar.ToolTip = "Edit this score event — Enter or Space when focused";
+        teamLabel.ToolTip = teamName;
+        homeNameScore.ToolTip = _match.HomeName;
+        awayNameScore.ToolTip = _match.AwayName;
+        bar.ToolTip = $"{teamName} {type.ToLowerInvariant()}, {clock}\n{_match.HomeName} {ev.HomeGoals}.{ev.HomeBehinds}.{ev.HomeTotal} — {_match.AwayName} {ev.AwayGoals}.{ev.AwayBehinds}.{ev.AwayTotal}\nEdit — Enter or Space when focused";
         System.Windows.Automation.AutomationProperties.SetName(bar,$"Edit {type.ToLowerInvariant()} for {teamName}, {clock}");
-        System.Windows.Automation.AutomationProperties.SetHelpText(bar,"Opens the score event editor. The match stays unchanged until an edit is saved.");
+        System.Windows.Automation.AutomationProperties.SetHelpText(bar,$"{_match.HomeName} {ev.HomeGoals}.{ev.HomeBehinds}.{ev.HomeTotal}; {_match.AwayName} {ev.AwayGoals}.{ev.AwayBehinds}.{ev.AwayTotal}. Opens the score event editor. The match stays unchanged until an edit is saved.");
         bool observing = false;
         void UpdateAffordance(bool animate)
         {

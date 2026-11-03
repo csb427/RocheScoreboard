@@ -21,7 +21,7 @@ namespace RocheScoreboard.Mac.Tests;
 public sealed class CricketDeliveryD23DraftCollection { }
 
 [Collection("Cricket delivery D2 D3 draft")]
-public sealed class CricketDeliveryD23RegressionDraftTests
+public sealed partial class CricketDeliveryD23RegressionDraftTests
 {
     private static T Named<T>(Control root, string name) where T : Control =>
         Assert.Single(root.GetVisualDescendants().OfType<T>(), control => control.Name == name);
@@ -342,7 +342,7 @@ public sealed class CricketDeliveryD23RegressionDraftTests
         internal int ModelChanges { get; private set; }
         internal int EditorClosures { get; private set; }
 
-        internal static async Task<DeliveryFixture> OpenActual(string source, int width, int height)
+        internal static async Task<DeliveryFixture> OpenActual(string source, int width, int height, bool longNames = false)
         {
             var f = new DeliveryFixture {Source=source};
             try
@@ -358,6 +358,11 @@ public sealed class CricketDeliveryD23RegressionDraftTests
                 Environment.SetEnvironmentVariable("ROCHE_DATA_HOME", f.dataHome); Directory.CreateDirectory(f.dataHome);
                 f.app.IsSelfTestMode = true; OperatorMotion.AnimationOverride = false;
                 f.Match = CricketReliabilityChecks.CreateMatch(ready: true);
+                if(longNames)
+                {
+                    f.Match.CurrentInnings!.Striker!.LastName="Alexandra Montgomery Williamson from North West District Cricket Club";
+                    f.Match.CurrentInnings.NonStriker!.LastName="Benjamin Christopher Taylor from Southern District Cricket Club";
+                }
                 Assert.False(f.Match.TossPending); Assert.False(f.Match.CurrentInnings!.NeedsBatterSelection); Assert.False(f.Match.CurrentInnings.NeedsBowlerSelection);
                 // Public model fixture setup only; correction is entered through a real history row key below.
                 if (source == "Correction") { f.Match.RecordDelivery(0,CricketDeliveryType.Dot); Assert.Single(f.Match.CurrentInnings.Deliveries); }

@@ -1317,6 +1317,7 @@ namespace Roche_Scoreboard.Views
         {
             BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
             BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+            WizardTeamEditor.SetPresetAvailability(this,_selectedHomePreset is not null && _presets.Contains(_selectedHomePreset),_selectedAwayPreset is not null && _presets.Contains(_selectedAwayPreset),_presets.Count>0);
         }
 
         private void BuildPresetTiles(System.Windows.Controls.WrapPanel panel, TextBlock emptyLabel, bool isHome)
@@ -1730,6 +1731,7 @@ namespace Roche_Scoreboard.Views
 
             BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
             BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+            WizardTeamEditor.SetPresetAvailability(this,_selectedHomePreset is not null && _presets.Contains(_selectedHomePreset),_selectedAwayPreset is not null && _presets.Contains(_selectedAwayPreset),_presets.Count>0);
         }
 
         private void ApplyPresetToAway(TeamPreset p)
@@ -1768,6 +1770,7 @@ namespace Roche_Scoreboard.Views
 
             BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
             BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+            WizardTeamEditor.SetPresetAvailability(this,_selectedHomePreset is not null && _presets.Contains(_selectedHomePreset),_selectedAwayPreset is not null && _presets.Contains(_selectedAwayPreset),_presets.Count>0);
         }
 
         private async void DeletePreset(TeamPreset? preset, bool isHome)

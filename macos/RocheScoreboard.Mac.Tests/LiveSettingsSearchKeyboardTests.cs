@@ -25,7 +25,7 @@ namespace RocheScoreboard.Mac.Tests;
 /// state is forced. Only fixture storage and read-only model observation use
 /// reflection. Linux headless routing is not native WPF keyboard acceptance.
 /// </summary>
-public sealed class LiveSettingsSearchKeyboardTests
+public sealed partial class LiveSettingsSearchKeyboardTests
 {
     private const BindingFlags HiddenInstance = BindingFlags.Instance | BindingFlags.NonPublic;
 
@@ -53,6 +53,14 @@ public sealed class LiveSettingsSearchKeyboardTests
 
     private static async Task Tap(Window owner, Control target)
     {
+        // This setup/helper interaction is deliberately independent of the
+        // previous navigation gesture. Fresh-input regressions use RawNavTap
+        // instead, with no wait or private state mutation.
+        if (owner.GetType().GetField("_navigationPointerGuardUntilUtc", HiddenInstance)?.GetValue(owner) is DateTime deadline)
+        {
+            var remaining = deadline - DateTime.UtcNow;
+            if (remaining > TimeSpan.Zero) await Settle((int)Math.Ceiling(remaining.TotalMilliseconds) + 10);
+        }
         target.BringIntoView();
         await Settle();
         Assert.True(target.IsEffectivelyVisible, target.Name + " must be visible before pointer activation.");

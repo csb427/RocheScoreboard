@@ -47,11 +47,14 @@ public sealed class HomeCommandTests
         {
             await Settle(550);home.PrepareForDisplay();
             Assert.False(home.FindControl<Button>("HomeResumeButton")!.IsVisible);
+            Assert.False(home.FindControl<Control>("ResumeSessionSurface")!.IsVisible);
+            Assert.False(home.FindControl<Control>("HomeSubtitle")!.IsVisible);Assert.False(home.FindControl<Control>("SettingsSubtitle")!.IsVisible);Assert.False(home.FindControl<Control>("TrainingDescription")!.IsVisible);
             Assert.Contains("No recoverable",home.FindControl<TextBlock>("SessionDetail")!.Text);
             Capture(window,$"home-empty-{width}x{height}");
             var match=new MatchManager();match.SetTeams("Roche with a very long club name","RCH","Visitors with a very long club name","VIS");match.AddGoal(TeamSide.Home);
             GameStateService.Save(new GameState{MatchState=match.ToState()});home.PrepareForDisplay();await Settle();
             Assert.True(home.FindControl<Button>("HomeResumeButton")!.IsVisible);
+            Assert.True(home.FindControl<Control>("ResumeSessionSurface")!.IsVisible);Assert.True(home.FindControl<Control>("ResumeOutputHint")!.IsVisible);
             Assert.Contains("6–0",home.FindControl<TextBlock>("SessionDetail")!.Text);
             Assert.Contains("Roche",home.FindControl<TextBlock>("SessionHeading")!.Text);
             Capture(window,$"home-saved-{width}x{height}");

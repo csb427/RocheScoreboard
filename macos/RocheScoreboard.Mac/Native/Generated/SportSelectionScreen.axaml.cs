@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/SportSelectionScreen.xaml.cs; edit translator/adapters.
-// Source SHA-256: 23bbe07f69bbeda04edadcc80473691fa4bd3fcdd2eb8a5171e5e73202b78b8e
+// Source SHA-256: 96db9f355ac4050e9407cadc5f928a7153425964ddc0607c1e0b9fd3d84b6e1e
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -44,12 +44,12 @@ public partial class SportSelectionScreen : UserControl
         for(int row=0;row<SportCardsGrid.RowDefinitions.Count;row++)SportCardsGrid.RowDefinitions[row].Height=new GridLength(shortWindow?1:row==1?.8:1,GridUnitType.Star);
         HomeLayout.Margin=new Thickness(compact?12:30,shortWindow?10:22,compact?12:30,shortWindow?10:22);
         HomeCommandsButton.Content = size.Width < 620 ? "Ctrl+K" : "Commands · Ctrl+K";
-        SettingsSubtitle.IsVisible=width>=900 && !shortWindow?true:false;
+        SettingsSubtitle.IsVisible=false;
         SettingsActionCaption.IsVisible=width<390?false:true;UpdatesActionIcon.IsVisible=width<390?false:true;
         SettingsTile.Padding=new Thickness(width<390?10:14,8,width<390?2:14,8);
         VersionLabel.IsVisible=width>=700 && !shortWindow?true:false;ResumeSavedMatchButton.Content=width<600?"Continue":"Continue match";
         HeaderPanel.IsVisible=height<340?false:true;HeaderPanel.Margin=new Thickness(0,shortWindow?12:22,0,shortWindow?12:20);
-        HomeHeading.FontSize=compact?27:34;HomeSubtitle.IsVisible=shortWindow?false:true;
+        HomeHeading.FontSize=compact?27:34;HomeSubtitle.IsVisible=false;
         // The star row owns the actual remaining space. Estimating header
         // height clipped Training's lower corners as text/density changed.
         SportCardsGrid.MaxWidth=1120;SportCardsGrid.Height=double.NaN;SportCardsGrid.VerticalAlignment=VerticalAlignment.Stretch;
@@ -60,6 +60,7 @@ public partial class SportSelectionScreen : UserControl
             if(text.Children[0] is TextBlock title)title.FontSize=height<340?20:compact?25:34;
         }
         foreach(var description in new[]{AflDescription,CricketDescription,TrainingDescription})description.IsVisible=height>=520?true:false;
+        TrainingDescription.IsVisible=false;
         foreach(var cta in _landingCtas)if(cta.Parent is Border pill)pill.IsVisible=height>=650?true:false;
         ChangelogPanel.Width=double.NaN;ChangelogPanel.Height=double.NaN;ChangelogPanel.MaxWidth=1120;ChangelogPanel.MaxHeight=Math.Max(180,height-24);ChangelogPanel.Margin=new Thickness(compact?10:22);
         ReleaseSheetSubtitle.IsVisible=height<380?false:true;ReleaseResultCount.IsVisible=width<520?false:true;
@@ -117,6 +118,10 @@ public partial class SportSelectionScreen : UserControl
                 : "No recoverable match saved. Start a new match below.");
         HomeResumeButton.Content = current ? "Return to current session" : "Resume saved match";
         HomeResumeButton.IsVisible = available ? true : false;
+        // Empty Home needs no recovery panel. A malformed saved file still
+        // keeps its actionable recovery explanation; a valid session keeps Resume.
+        ResumeSessionSurface.IsVisible=available || GameStateService.HasSavedState()?true:false;
+        ResumeOutputHint.IsVisible=available && !current?true:false;
         ResumeSavedMatchButton.IsVisible = false;
     }
     public void SetDeferredResumeAvailable(bool available)

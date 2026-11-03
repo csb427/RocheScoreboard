@@ -157,6 +157,8 @@ namespace Roche_Scoreboard
         private bool _suppressNavigationPersistence = true;
         private bool _initializingGoalAnimation = true;
         private DateTime _navigationPointerGuardUntilUtc = DateTime.MinValue;
+        private bool _navigationLastInputWasKeyboard = true;
+        private System.Windows.Point? _navigationLastPressPosition, _navigationGuardPosition;
         private DispatcherTimer? _uxPreferencesSaveTimer;
         private DispatcherTimer? _outputDimensionsSaveTimer;
         private int _pendingOutputWidth;
@@ -434,6 +436,7 @@ namespace Roche_Scoreboard
             Closing += MainWindow_Closing;
             Closed += (_, _) => RetireCloudRemoteOwner();
             Loaded += MainWindow_Loaded;
+            PreviewKeyDown += TrackNavigationKeyDown;
             PreviewKeyDown += MainWindow_PreviewKeyDown;
 #if DEBUG
             PreviewKeyDown += CricketDiagnostics_KeyDown;
@@ -543,22 +546,41 @@ namespace Roche_Scoreboard
         {
             // A tab/category swap can move a live control underneath the
             // pointer before the user's release or touchpad inertia finishes.
-            // Briefly absorb that trailing input so navigation can never score,
-            // start a clock or trigger an output action accidentally.
-            _navigationPointerGuardUntilUtc = DateTime.UtcNow.AddMilliseconds(450);
-            Keyboard.ClearFocus();
+            // Protect the closing/navigation gesture, not a subsequent fresh
+            // scoring press elsewhere. Keyboard navigation has no pointer tail.
+            bool pointer = !_navigationLastInputWasKeyboard && _navigationLastPressPosition is not null;
+            _navigationPointerGuardUntilUtc = pointer ? DateTime.UtcNow.AddMilliseconds(450) : DateTime.MinValue;
+            _navigationGuardPosition = pointer ? _navigationLastPressPosition : null;
+            if (pointer) Keyboard.ClearFocus();
         }
 
         private void MainWindow_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (DateTime.UtcNow < _navigationPointerGuardUntilUtc)
+            if (DateTime.UtcNow < _navigationPointerGuardUntilUtc && AtNavigationGuardPosition(e.GetPosition(this)))
                 e.Handled = true;
         }
 
         private void MainWindow_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (DateTime.UtcNow < _navigationPointerGuardUntilUtc)
-                e.Handled = true;
+            _navigationLastInputWasKeyboard = false;
+            var point = e.GetPosition(this);
+            if (DateTime.UtcNow < _navigationPointerGuardUntilUtc && (e.ClickCount > 1 || AtNavigationGuardPosition(point)))
+            { e.Handled = true; return; }
+            _navigationPointerGuardUntilUtc = DateTime.MinValue;
+            _navigationGuardPosition = null;
+            _navigationLastPressPosition = point;
+        }
+
+        private bool AtNavigationGuardPosition(System.Windows.Point point)
+            => _navigationGuardPosition is System.Windows.Point origin
+                && Math.Abs(point.X-origin.X) <= SystemParameters.MinimumHorizontalDragDistance
+                && Math.Abs(point.Y-origin.Y) <= SystemParameters.MinimumVerticalDragDistance;
+
+        private void TrackNavigationKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            _navigationLastInputWasKeyboard = true;
+            _navigationPointerGuardUntilUtc = DateTime.MinValue;
+            _navigationGuardPosition = null;
         }
 
         private void MainWindow_PreviewMouseWheelGuard(object sender, MouseWheelEventArgs e)

@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
-  "source_sha256": "b208ad2136895e53b8f26b8948a2e464ac7fa7189ceb90237fb7c56adb075863",
+  "source_sha256": "b422a985af9f2686e7d7456e6d9da5a1dc2ca221f3013723adb735178f78827e",
   "names": [
     {
       "name": "PART_Surface",
@@ -155,6 +155,11 @@
     },
     {
       "name": "SessionDetail",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "ResumeOutputHint",
       "type": "TextBlock",
       "object": false
     },
@@ -549,7 +554,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "23bbe07f69bbeda04edadcc80473691fa4bd3fcdd2eb8a5171e5e73202b78b8e",
+  "code_source_sha256": "96db9f355ac4050e9407cadc5f928a7153425964ddc0607c1e0b9fd3d84b6e1e",
   "native_events": [
     {
       "name": "ResponsiveScrollHost",

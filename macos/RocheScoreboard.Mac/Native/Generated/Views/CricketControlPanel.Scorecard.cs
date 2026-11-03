@@ -1,5 +1,5 @@
 // Generated from Views/CricketControlPanel.Scorecard.cs; edit translator/adapters.
-// Source SHA-256: 2f8ca7340ef305d84a8e036d395ce35e8114fc78cb5bf7887d5cc5315a622487
+// Source SHA-256: 035462b9c5b68ec269eb14358480e6577cfef8cd51b3349ac93ce8e843e1a50c
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -31,6 +31,13 @@ public partial class CricketControlPanel
         TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis,
         Margin = new Thickness(0, 0, 0, 6)
     };
+    private readonly Avalonia.Controls.TextBlock _scorecardFocusContext = new()
+    {
+        Tag = "scorecard-focus-context", FontSize = 14, FontWeight = FontWeight.SemiBold,
+        TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis,
+        Margin = new Thickness(0,0,0,6), IsVisible = false
+    };
+    private Button? _scorecardFocusedFigure;
     private readonly Avalonia.Controls.TextBlock _scorecardStatus = WorkflowText("Select an innings to view its scorecard.", 13);
     private Grid? _scorecardLayout;
     private bool? _scorecardCompact;
@@ -54,7 +61,10 @@ public partial class CricketControlPanel
         layout.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) });
         _scorecardContext.SetResourceReference(Avalonia.Controls.TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
         Avalonia.Automation.AutomationProperties.SetLiveSetting(_scorecardContext, Avalonia.Automation.AutomationLiveSetting.Polite);
-        layout.Children.Add(_scorecardContext);
+        _scorecardFocusContext.SetResourceReference(Avalonia.Controls.TextBlock.ForegroundProperty,"ControlCentre.TextBrush");
+        var contextHeader = new StackPanel();contextHeader.Children.Add(_scorecardContext);contextHeader.Children.Add(_scorecardFocusContext);
+        layout.Children.Add(contextHeader);
+        MainTabControl.SelectionChanged += (_,_) => { if(MainTabControl.SelectedItem != ScorecardTab)ClearScorecardFigureFocus(); };
         var content = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
         Avalonia.Automation.AutomationProperties.SetLiveSetting(_scorecardStatus, Avalonia.Automation.AutomationLiveSetting.Polite);
         _scorecardInningsButtons.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left; _scorecardInningsButtons.Margin = new Thickness(0, 0, 0, 3);
@@ -86,7 +96,7 @@ public partial class CricketControlPanel
         // Innings and instructions precede the table in the same page scroller;
         // the match strip and navigation dock remain outside and anchored.
     }
-    private void ResetScorecard() { _scorecardContext.Text = ""; Avalonia.Controls.ToolTip.SetTip(_scorecardContext, null); Avalonia.Automation.AutomationProperties.SetName(_scorecardContext, ""); _scorecardViewCache.Clear();_scorecardCachedDraft=null;_scorecardMetadata=""; _scorecardDraft = null; _scorecardDirty = false; _scorecardCommitBusy = false; _scorecardFowEditing = false; _scorecardAppliedFeedback = null; _scorecardInnings = 0; _scorecardPlayerRows.Clear(); _scorecardRows.Children.Clear(); _scorecardInningsButtons.Children.Clear(); _scorecardTeamButtons.Children.Clear(); }
+    private void ResetScorecard() { ClearScorecardFigureFocus(); _scorecardContext.Text = ""; Avalonia.Controls.ToolTip.SetTip(_scorecardContext, null); Avalonia.Automation.AutomationProperties.SetName(_scorecardContext, ""); _scorecardViewCache.Clear();_scorecardCachedDraft=null;_scorecardMetadata=""; _scorecardDraft = null; _scorecardDirty = false; _scorecardCommitBusy = false; _scorecardFowEditing = false; _scorecardAppliedFeedback = null; _scorecardInnings = 0; _scorecardPlayerRows.Clear(); _scorecardRows.Children.Clear(); _scorecardInningsButtons.Children.Clear(); _scorecardTeamButtons.Children.Clear(); }
     private void SizeScorecardTeamTabs()
     {
         double width = Math.Max(100, (_scorecardTeamButtons.NativeWidth() - 12) / 2);
@@ -196,15 +206,49 @@ public partial class CricketControlPanel
         else _scorecardStatus.SetResourceReference(Avalonia.Controls.TextBlock.ForegroundProperty, "ControlCentre.AccentBrush");
         Avalonia.Automation.AutomationProperties.SetLiveSetting(_scorecardStatus,Avalonia.Automation.AutomationLiveSetting.Polite);
     }
-    private Button Figure(string label, Func<int> read, Action<int> write, bool overs = false, bool compact = false)
+    private void ClearScorecardFigureFocus()
+    {
+        _scorecardFocusedFigure=null;_scorecardFocusContext.Text="";Avalonia.Controls.ToolTip.SetTip(_scorecardFocusContext,null);
+        _scorecardFocusContext.IsVisible=false;
+    }
+    private void TrackScorecardFigureFocus(Button button,string metric,string playerName,CricketScorecardDraft draft,(bool Bowling,int Index) key,Grid row)
+    {
+        string? name=Avalonia.Automation.AutomationProperties.GetName(button);
+        Avalonia.Automation.AutomationProperties.SetName(button,$"{playerName}, {(string.IsNullOrWhiteSpace(name)?metric:name)}");
+        button.GotFocus += (_,_) =>
+        {
+            if(!ReferenceEquals(_scorecardDraft,draft) || MainTabControl.SelectedItem!=ScorecardTab
+                || !_scorecardPlayerRows.TryGetValue(key,out var current) || !ReferenceEquals(current,row))return;
+            _scorecardFocusedFigure=button;
+            _scorecardFocusContext.Text=$"{metric} · {playerName}";
+            Avalonia.Controls.ToolTip.SetTip(_scorecardFocusContext,(_scorecardFocusContext.Text ?? string.Empty)+"\n"+(_scorecardContext.Text ?? string.Empty));
+            _scorecardFocusContext.IsVisible=true;
+        };
+        void Retire(){if(ReferenceEquals(_scorecardFocusedFigure,button))ClearScorecardFigureFocus();}
+        button.LostFocus += (_,_) => Retire();
+        button.Unloaded += (_,_) => Retire();
+    }
+    private Button Figure(string label, Func<int> read, Action<int> write, bool overs = false, bool compact = false, string? context = null)
     {
         string value = overs ? $"{read() / 6}.{read() % 6}" : read().ToString(CultureInfo.InvariantCulture);
-        var button = WorkflowButton(compact ? value : label + "  " + value, async () =>
+        var draft = _scorecardDraft; var match = _match; int generation = _workflowGeneration;
+        bool bowling = _scorecardBowling;
+        bool Current() => draft is not null && match is not null && generation == _workflowGeneration
+            && ReferenceEquals(match, _match) && ReferenceEquals(draft, _scorecardDraft);
+        Button? button = null;
+        button = WorkflowButton(compact ? value : label + "  " + value, async () =>
         {
-            var draft = _scorecardDraft; var match = _match; int generation = _workflowGeneration;
-            if (draft is null || match is null) return;
-            bool Current() => generation == _workflowGeneration && ReferenceEquals(match, _match) && ReferenceEquals(draft, _scorecardDraft);
+            // A retained automation/click callback still closes over the old
+            // player's read/write delegates. It cannot borrow a new draft/view.
+            if (draft is null || match is null || !Current() || button is not { IsLoaded: true, IsVisible: true, IsEnabled: true }
+                || MainTabControl.SelectedItem != ScorecardTab || bowling != _scorecardBowling) return;
             var editor = CreateScorecardFigureEditor(label, value, overs, out var field);
+            if (!string.IsNullOrWhiteSpace(context))
+            {
+                var identity = WorkflowText(context,14);identity.Tag="scorecard-figure-context";
+                identity.FontWeight=FontWeight.SemiBold;identity.Margin=new Thickness(0,0,0,10);
+                editor.Children.Insert(0,identity);
+            }
             var error = WorkflowText("", 14); error.Tag = "scorecard-figure-error"; error.IsVisible = false;
             error.Foreground = ScorecardAlertBrush(true); editor.Children.Add(error);
             Avalonia.Automation.AutomationProperties.SetLiveSetting(error, Avalonia.Automation.AutomationLiveSetting.Assertive);
@@ -250,6 +294,7 @@ public partial class CricketControlPanel
         string? focusedUid = previousField is { Tag: "scorecard-fow-entry" } ? (previousField.Name ?? string.Empty) : null;
         int selectionStart = previousField?.SelectionStart ?? 0, selectionLength = (previousField is null?0:previousField.SelectionEnd-previousField.SelectionStart);
         double scrollOffset = _scorecardScroll?.Offset.Y ?? 0;
+        ClearScorecardFigureFocus();
         int renderVersion = ++_scorecardRenderVersion;
         _scorecardRows.Children.Clear(); _scorecardPlayerRows.Clear(); if (_scorecardDraft is not { } draft || _match is null) return;
         var viewedInnings = _match.AllInnings[draft.InningsNumber - 1];
@@ -306,6 +351,7 @@ public partial class CricketControlPanel
         var players = _scorecardBowling ? draft.Bowlers : draft.Batters;
         foreach (var player in players.OrderBy(p => p.BattingPosition))
         {
+            bool rowBowling = _scorecardBowling;
             var row = new Grid { Margin = new Thickness(4, compact ? 5 : 2, 4, compact ? 5 : 2) };
             row.Background = Brushes.Transparent;
             int playerIndex = players.IndexOf(player); row.Tag = $"scorecard-player-{(_scorecardBowling ? "bowling" : "batting")}-{playerIndex}";
@@ -320,22 +366,26 @@ public partial class CricketControlPanel
             var name = WorkflowText(player.FullName, 16); name.FontWeight = FontWeight.SemiBold; Avalonia.Controls.ToolTip.SetTip(name, player.FullName); name.VerticalAlignment = VerticalAlignment.Center; name.Margin = new Thickness(8, 5, 6, 5); name.TextTrimming = TextTrimming.CharacterEllipsis;
             if (compact) { Grid.SetColumnSpan(name, 4); name.Margin = new Thickness(12, 12, 12, 3); Avalonia.Controls.ToolTip.SetTip(name, player.FullName); }
             row.Children.Add(name);
+            string playerContext=$"{player.FullName} · {(_scorecardBowling ? "Bowling" : "Batting")} · {ordinal} innings · {(_scorecardBowling ? viewedInnings.BowlingTeamName : viewedInnings.BattingTeamName)}";
             var values = new List<Control>();
             if (_scorecardBowling)
             {
-                values.Add(Figure("Overs", () => player.BallsBowled, v => player.BallsBowled = v, true, true)); values.Add(Figure("Maidens", () => player.Maidens, v => player.Maidens = v, compact: true)); values.Add(Figure("Runs conceded", () => player.RunsConceded, v => player.RunsConceded = v, compact: true)); values.Add(Figure("Bowler wickets", () => player.Wickets, v => player.Wickets = v, compact: true)); values.Add(Figure("Bowler wides", () => player.Wides, v => player.Wides = v, compact: true)); values.Add(Figure("Bowler no-balls", () => player.NoBalls, v => player.NoBalls = v, compact: true));
+                values.Add(Figure("Overs", () => player.BallsBowled, v => player.BallsBowled = v, true, true, context: playerContext)); values.Add(Figure("Maidens", () => player.Maidens, v => player.Maidens = v, compact: true, context: playerContext)); values.Add(Figure("Runs conceded", () => player.RunsConceded, v => player.RunsConceded = v, compact: true, context: playerContext)); values.Add(Figure("Bowler wickets", () => player.Wickets, v => player.Wickets = v, compact: true, context: playerContext)); values.Add(Figure("Bowler wides", () => player.Wides, v => player.Wides = v, compact: true, context: playerContext)); values.Add(Figure("Bowler no-balls", () => player.NoBalls, v => player.NoBalls = v, compact: true, context: playerContext));
                 var econ = WorkflowText($"{player.Economy:0.00}", 15); econ.TextAlignment = TextAlignment.Center; econ.VerticalAlignment = VerticalAlignment.Center; Avalonia.Controls.ToolTip.SetTip(econ, "Economy · calculated from balls and runs"); values.Add(econ);
             }
             else
             {
-                values.Add(Figure("Runs", () => player.Runs, v => player.Runs = v, compact: true)); values.Add(Figure("Balls", () => player.BallsFaced, v => player.BallsFaced = v, compact: true)); values.Add(Figure("4s", () => player.Fours, v => player.Fours = v, compact: true)); values.Add(Figure("6s", () => player.Sixes, v => player.Sixes = v, compact: true));
+                values.Add(Figure("Runs", () => player.Runs, v => player.Runs = v, compact: true, context: playerContext)); values.Add(Figure("Balls", () => player.BallsFaced, v => player.BallsFaced = v, compact: true, context: playerContext)); values.Add(Figure("4s", () => player.Fours, v => player.Fours = v, compact: true, context: playerContext)); values.Add(Figure("6s", () => player.Sixes, v => player.Sixes = v, compact: true, context: playerContext));
                 var dismissal = WorkflowButton(player.DismissalSummary, async () => await EditScorecardDismissalAsync(player), "scorecard-dismissal"); dismissal.Background = Brushes.Transparent; dismissal.BorderThickness = new Thickness(0); dismissal.MinHeight = compact ? 30 : 40; dismissal.FontSize = 13; dismissal.Margin = new Thickness(4, 0, 4, 2);
                 dismissal.SetResourceReference(Avalonia.Controls.TextBlock.ForegroundProperty, "ControlCentre.TextBrush");
+                TrackScorecardFigureFocus(dismissal,"Dismissal",player.FullName,draft,(rowBowling,playerIndex),row);
                 Grid.SetRow(dismissal, compact ? 2 : 0); Grid.SetColumn(dismissal, compact ? 0 : row.ColumnDefinitions.Count - 1); if (compact) Grid.SetColumnSpan(dismissal, row.ColumnDefinitions.Count); row.Children.Add(dismissal);
             }
             for (int i = 0; i < values.Count; i++)
             {
                 var value = values[i];
+                if(value is Button figure)
+                    TrackScorecardFigureFocus(figure,Avalonia.Controls.ToolTip.GetTip(figure)?.ToString()?.Replace("Edit ","") ?? headings[i],player.FullName,draft,(rowBowling,playerIndex),row);
                 if (compact)
                 {
                     ConfigureScorecardMetric(value, headings[i]);

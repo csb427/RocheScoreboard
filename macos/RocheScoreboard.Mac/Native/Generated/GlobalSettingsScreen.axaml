@@ -54,7 +54,7 @@
                 <RadioButton x:Name="AflSettingsTab" Content="AFL" Tag="afl" GroupName="SettingsScope" Theme="{StaticResource SettingsSegment}" IsCheckedChanged="Native_SettingsScope_Checked_Checked" />
             </ns4:OperatorSegmentedPanel>
         </ns4:OperatorGlassSurface>
-        <ns4:SettingsWorkspace x:Name="SettingsWorkspace" Grid.Row="1" Heading="Settings" Subtitle="Set up the operator interface and shared output defaults.">
+        <ns4:SettingsWorkspace x:Name="SettingsWorkspace" Grid.Row="1" Heading="Settings">
             <Border x:Name="AppearanceSection" Tag="APPEARANCE|theme light dark density compact comfortable" Theme="{StaticResource GlobalSettingsCard}">
                 <StackPanel>
                     <TextBlock Text="Appearance" Theme="{StaticResource GroupCaption}" />

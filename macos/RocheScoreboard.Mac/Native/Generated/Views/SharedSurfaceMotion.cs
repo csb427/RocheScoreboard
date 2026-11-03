@@ -1,5 +1,5 @@
 // Generated from Views/SharedSurfaceMotion.cs; edit translator/adapters.
-// Source SHA-256: f565ba106935b2f81ce4f073e61e97ef0bc015bddb5ca9bc05eeff99854f3342
+// Source SHA-256: 5a9e5bd33c87a2f873f4c750f1575a407dc96d3e688a41f86cbc2635ed7eac06
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -38,11 +38,11 @@ internal static class SharedSurfaceMotion
     private sealed class Surface
     {
         private readonly Control _target;
-        private readonly TranslateTransform _travel = new();
-        private readonly ScaleTransform _morph=new(1,1);
-        private readonly Avalonia.RelativePoint _originalOrigin;
-        private readonly ITransform? _original;
-        private readonly TransformGroup _transforms = new();
+        private TranslateTransform _travel = new();
+        private ScaleTransform _morph=new(1,1);
+        private Avalonia.RelativePoint _originalOrigin;
+        private ITransform? _original;
+        private TransformGroup _transforms = new();
         private bool _revealing;
         private NativeCacheMode? _originalCache;
         private int _generation;
@@ -76,8 +76,12 @@ internal static class SharedSurfaceMotion
             _travel.BeginAnimation(TranslateTransform.XProperty, null);
             _target.Opacity = 1;
             _travel.X=_travel.Y = 0;
-            _morph.BeginAnimation(ScaleTransform.ScaleXProperty,null);_morph.BeginAnimation(ScaleTransform.ScaleYProperty,null);_morph.ScaleX=_morph.ScaleY=1;_target.RenderTransformOrigin=_originalOrigin;
-            _target.RenderTransform = _original;
+            _morph.BeginAnimation(ScaleTransform.ScaleXProperty,null);_morph.BeginAnimation(ScaleTransform.ScaleYProperty,null);_morph.ScaleX=_morph.ScaleY=1;
+            // Another controller may have replaced the root transform while
+            // this arrival was running. Its newer state must survive completion,
+            // reduced motion and unload rather than being reset by an old owner.
+            if(ReferenceEquals(_target.RenderTransform,_transforms))
+            { _target.RenderTransform = _original;_target.RenderTransformOrigin=_originalOrigin; }
             if(_content is not null){_content.BeginAnimation(Control.OpacityProperty,null);_content.Opacity=_contentOpacity;_content=null;}
             if(_revealing)NativeCache.Set(_target, _originalCache);
             _revealing = false;
@@ -87,8 +91,18 @@ internal static class SharedSurfaceMotion
         {
             if (!animate || !OperatorMotion.Enabled) { Reset(); return; }
             if (!_target.IsLoaded || !_target.IsVisible) return;
+            if(_revealing && !ReferenceEquals(_target.RenderTransform,_transforms))Reset();
             if (!_revealing)
             {
+                if(!ReferenceEquals(_target.RenderTransform,_transforms))
+                {
+                    _original=_target.RenderTransform;_originalOrigin=_target.RenderTransformOrigin;
+                    // The replacement may compose our old, now settled group.
+                    // A fresh lease avoids mutating that borrowed group or making
+                    // it a child of itself during interrupted re-entry.
+                    _travel=new TranslateTransform();_morph=new ScaleTransform(1,1);_transforms=new TransformGroup();
+                    _transforms.Children.Add(_original as Transform??new MatrixTransform(_original?.Value??Matrix.Identity));_transforms.Children.Add(_travel);_transforms.Children.Add(_morph);
+                }
                 _target.UpdateLayout();
                 var origin=(Sequence?new ExpansionOrigin(1,1,0,8):ExpansionOrigin.From(_target,Source)).WithTravel(OperatorMotion.TravelScale);
                 _originalCache=NativeCache.Get(_target);NativeCache.Set(_target, new NativeBitmapCache());_target.Opacity=.72;

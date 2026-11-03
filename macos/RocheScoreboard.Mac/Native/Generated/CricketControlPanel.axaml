@@ -344,92 +344,103 @@
                                                 <RowDefinition Height="10" />
                                                 <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
-                                            <Border Grid.Row="0" x:Name="BattingZone" BorderBrush="#4D3D8F" CornerRadius="22" BorderThickness="1" Background="#0D0A28" Margin="0,0,0,8">
-                                                <Grid ClipToBounds="True">
-                                                    <Canvas IsHitTestVisible="False" ClipToBounds="True">
-                                                        <Image x:Name="BattingZoneLogo" Stretch="UniformToFill" Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Canvas}}" Height="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=Canvas}}" Opacity=".06" />
-                                                    </Canvas>
-                                                    <StackPanel Margin="12">
-                                                        <TextBlock x:Name="BattingStartHint" Text="Complete the toss before selecting players." Foreground="#F0C96A" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                                        <Button x:Name="SelectOpeningBatters" Content="SELECT BATTERS" Click="SelectOpeningBatters_Click" Height="44" Margin="0,0,0,8" Theme="{StaticResource ToolBtn}" />
-                                                        <TextBlock x:Name="BattingTeamHeading" Text="BATTING" Foreground="White" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8" />
-                                                        <Border x:Name="StrikerBar" CornerRadius="14" Background="#242428" BorderBrush="#3A3A40" BorderThickness="1" Padding="12,10" Margin="0,0,0,4">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <TextBlock x:Name="TopBatterIndicator" Text="▶" Foreground="#58A6FF" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                                    <TextBlock x:Name="StrikerName" Text="Striker" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold" />
-                                                                    <TextBlock x:Name="StrikerStats" Text="0 (0)  SR 0.0" Foreground="{StaticResource TextMidBrush}" FontSize="11" />
-                                                                </StackPanel>
-                                                                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                                                    <TextBlock x:Name="StrikerRuns" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0" FontFeatures="tnum,lnum,-kern" />
-                                                                    <TextBlock x:Name="StrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" FontFeatures="tnum,lnum,-kern" />
-                                                                </StackPanel>
-                                                                <Button Grid.Column="3" x:Name="StrikerMenuButton" AutomationProperties.Name="Batter options" Content="⋯" Click="StrikerMenu_Click" Theme="{StaticResource MenuBtn}" ToolTip.Tip="Options">
+                                            <Grid x:Name="CurrentPlayers" Grid.Row="0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="12" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Border Grid.Row="0" x:Name="BattingZone" BorderBrush="#4D3D8F" CornerRadius="22" BorderThickness="1" Background="#0D0A28" Margin="0,0,0,8">
+                                                    <Grid ClipToBounds="True">
+                                                        <Canvas IsHitTestVisible="False" ClipToBounds="True">
+                                                            <Image x:Name="BattingZoneLogo" Stretch="UniformToFill" Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Canvas}}" Height="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=Canvas}}" Opacity=".06" />
+                                                        </Canvas>
+                                                        <StackPanel Margin="12">
+                                                            <TextBlock x:Name="BattingStartHint" Text="Complete the toss before selecting players." Foreground="#F0C96A" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                                            <Button x:Name="SelectOpeningBatters" Content="SELECT BATTERS" Click="SelectOpeningBatters_Click" Height="44" Margin="0,0,0,8" Theme="{StaticResource ToolBtn}" />
+                                                            <TextBlock x:Name="BattingTeamHeading" Text="BATTING" Foreground="White" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                                            <Border x:Name="StrikerBar" CornerRadius="14" Background="#242428" BorderBrush="#3A3A40" BorderThickness="1" Padding="12,10" Margin="0,0,0,4">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock x:Name="TopBatterIndicator" Text="▶" Foreground="#58A6FF" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                        <TextBlock x:Name="StrikerName" Text="Striker" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold" />
+                                                                        <TextBlock x:Name="StrikerStats" Text="0 (0)  SR 0.0" Foreground="{StaticResource TextMidBrush}" FontSize="11" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                                        <TextBlock x:Name="StrikerRuns" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0" FontFeatures="tnum,lnum,-kern" />
+                                                                        <TextBlock x:Name="StrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" FontFeatures="tnum,lnum,-kern" />
+                                                                    </StackPanel>
+                                                                    <Button Grid.Column="3" x:Name="StrikerMenuButton" AutomationProperties.Name="Batter options" Content="⋯" Click="StrikerMenu_Click" Theme="{StaticResource MenuBtn}" ToolTip.Tip="Options">
                                     </Button>
-                                                            </Grid>
-                                                        </Border>
-                                                        <Border x:Name="NonStrikerBar" CornerRadius="14" Background="#242428" BorderBrush="#3A3A40" BorderThickness="1" Padding="12,10">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <TextBlock x:Name="BottomBatterIndicator" Text="  " Foreground="#58A6FF" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                                    <TextBlock x:Name="NonStrikerName" Text="Non-Striker" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold" />
-                                                                    <TextBlock x:Name="NonStrikerStats" Text="0 (0)  SR 0.0" Foreground="{StaticResource TextMidBrush}" FontSize="11" />
-                                                                </StackPanel>
-                                                                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                                                    <TextBlock x:Name="NonStrikerRunsText" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                                    <TextBlock x:Name="NonStrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" FontFeatures="tnum,lnum,-kern" />
-                                                                </StackPanel>
-                                                                <Button Grid.Column="3" x:Name="NonStrikerMenuButton" AutomationProperties.Name="Batter options" Content="⋯" Click="NonStrikerMenu_Click" Theme="{StaticResource MenuBtn}" ToolTip.Tip="Options">
+                                                                </Grid>
+                                                            </Border>
+                                                            <Border x:Name="NonStrikerBar" CornerRadius="14" Background="#242428" BorderBrush="#3A3A40" BorderThickness="1" Padding="12,10">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock x:Name="BottomBatterIndicator" Text="  " Foreground="#58A6FF" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                        <TextBlock x:Name="NonStrikerName" Text="Non-Striker" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold" />
+                                                                        <TextBlock x:Name="NonStrikerStats" Text="0 (0)  SR 0.0" Foreground="{StaticResource TextMidBrush}" FontSize="11" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                                        <TextBlock x:Name="NonStrikerRunsText" Text="0" Foreground="White" FontSize="24" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                        <TextBlock x:Name="NonStrikerBallsFaced" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" FontFeatures="tnum,lnum,-kern" />
+                                                                    </StackPanel>
+                                                                    <Button Grid.Column="3" x:Name="NonStrikerMenuButton" AutomationProperties.Name="Batter options" Content="⋯" Click="NonStrikerMenu_Click" Theme="{StaticResource MenuBtn}" ToolTip.Tip="Options">
                                     </Button>
-                                                            </Grid>
-                                                        </Border>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                            <Border Grid.Row="1" x:Name="BowlingZone" BorderBrush="#1A6040" CornerRadius="22" BorderThickness="1" Background="#0D1E14" Margin="0,0,0,8">
-                                                <Grid ClipToBounds="True">
-                                                    <Canvas IsHitTestVisible="False" ClipToBounds="True">
-                                                        <Image x:Name="BowlingZoneLogo" Stretch="UniformToFill" Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Canvas}}" Height="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=Canvas}}" Opacity=".06" />
-                                                    </Canvas>
-                                                    <StackPanel Margin="12">
-                                                        <TextBlock x:Name="BowlingStartHint" Text="Complete the toss before selecting players." Foreground="#F0C96A" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                                        <Button x:Name="SelectOpeningBowler" Content="SELECT BOWLER" Click="SelectOpeningBowler_Click" Height="44" Margin="0,0,0,8" Theme="{StaticResource ToolBtn}" />
-                                                        <TextBlock x:Name="BowlingTeamHeading" Text="BOWLING" Foreground="White" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8" />
-                                                        <Border x:Name="BowlerBar" CornerRadius="14" Background="#242428" BorderBrush="#3A3A40" BorderThickness="1" Padding="12,10">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <StackPanel VerticalAlignment="Center">
-                                                                    <TextBlock x:Name="BowlerName" Text="Bowler" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold" />
-                                                                    <TextBlock x:Name="BowlerStats" Text="0-0 (0)  Econ 0.00" Foreground="{StaticResource TextMidBrush}" FontSize="11" FontFeatures="tnum,lnum,-kern" />
-                                                                </StackPanel>
-                                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                                                    <TextBlock x:Name="BowlerFigures" Text="0-0" Foreground="White" FontSize="20" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                                    <TextBlock x:Name="BowlerOverFigures" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                                </StackPanel>
-                                                                <Button Grid.Column="2" x:Name="BowlerMenuButton" AutomationProperties.Name="Bowler options" Content="⋯" Click="BowlerMenu_Click" Theme="{StaticResource MenuBtn}" ToolTip.Tip="Options">
+                                                                </Grid>
+                                                            </Border>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                                <Border Grid.Row="0" Grid.Column="2" x:Name="BowlingZone" BorderBrush="#1A6040" CornerRadius="22" BorderThickness="1" Background="#0D1E14" Margin="0,0,0,8">
+                                                    <Grid ClipToBounds="True">
+                                                        <Canvas IsHitTestVisible="False" ClipToBounds="True">
+                                                            <Image x:Name="BowlingZoneLogo" Stretch="UniformToFill" Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Canvas}}" Height="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=Canvas}}" Opacity=".06" />
+                                                        </Canvas>
+                                                        <StackPanel Margin="12">
+                                                            <TextBlock x:Name="BowlingStartHint" Text="Complete the toss before selecting players." Foreground="#F0C96A" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                                            <Button x:Name="SelectOpeningBowler" Content="SELECT BOWLER" Click="SelectOpeningBowler_Click" Height="44" Margin="0,0,0,8" Theme="{StaticResource ToolBtn}" />
+                                                            <TextBlock x:Name="BowlingTeamHeading" Text="BOWLING" Foreground="White" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                                            <Border x:Name="BowlerBar" CornerRadius="14" Background="#242428" BorderBrush="#3A3A40" BorderThickness="1" Padding="12,10">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel VerticalAlignment="Center">
+                                                                        <TextBlock x:Name="BowlerName" Text="Bowler" TextTrimming="CharacterEllipsis" Foreground="White" FontSize="15" FontWeight="Bold" />
+                                                                        <TextBlock x:Name="BowlerStats" Text="0-0 (0)  Econ 0.00" Foreground="{StaticResource TextMidBrush}" FontSize="11" FontFeatures="tnum,lnum,-kern" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                                        <TextBlock x:Name="BowlerFigures" Text="0-0" Foreground="White" FontSize="20" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                        <TextBlock x:Name="BowlerOverFigures" Text="" Foreground="#B9C9DC" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    </StackPanel>
+                                                                    <Button Grid.Column="2" x:Name="BowlerMenuButton" AutomationProperties.Name="Bowler options" Content="⋯" Click="BowlerMenu_Click" Theme="{StaticResource MenuBtn}" ToolTip.Tip="Options">
                                     </Button>
-                                                            </Grid>
-                                                        </Border>
-                                                        <TextBlock x:Name="OverDisplay" Text="This over: " Foreground="{StaticResource TextDimBrush}" FontSize="11" Margin="4,6,0,0" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
+                                                                </Grid>
+                                                            </Border>
+                                                            <TextBlock x:Name="OverDisplay" Text="This over: " Foreground="{StaticResource TextDimBrush}" FontSize="11" Margin="4,6,0,0" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
                                             <Border x:Name="ScoringCommands" CornerRadius="22" Grid.Row="2" Background="{StaticResource RegionAltBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="1" Padding="12" Margin="0,0,0,8">
                                                 <StackPanel>
                                                     <DockPanel>
@@ -496,7 +507,7 @@
                                                 <Button x:Name="UndoDeliveryButton" Content="↩ Undo" Height="42" Margin="0,0,6,0" Click="Undo_Click" Background="#303035" BorderBrush="#6B3A3E" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Undo last delivery" />
                                                 <Button x:Name="EndInningsButton" Content="End innings" MinHeight="42" Click="EndInnings_Click" Foreground="White" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Innings and match options" />
                                             </UniformGrid>
-                                            <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Stretch" Margin="0,12,16,0" MinWidth="0" Height="44" FontSize="13" FontWeight="SemiBold" Click="ResetMatch_Click" Background="#2A1416" BorderBrush="#6B3A3E" Foreground="#FF6B6B" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Review resetting and leaving the current match" />
+                                            <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Right" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="13" FontWeight="SemiBold" Click="ResetMatch_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Foreground="#FF6B6B" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Review resetting and leaving the current match" />
                                         </Grid>
                                     </ScrollViewer>
                                     <Border Grid.Column="2" CornerRadius="22" Background="#19191C" BorderBrush="#303035" BorderThickness="1" Padding="16">
@@ -525,20 +536,36 @@
                         <ScrollViewer x:Name="CricketOutputPageViewport" SizeChanged="Console_SizeChanged" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <Border Background="#09090B" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="20,16">
                                 <Grid x:Name="DisplayColumns">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" MinHeight="100" />
+                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1.65*" />
+                                        <ColumnDefinition Width="1.1*" />
                                         <ColumnDefinition Width="16" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <ScrollViewer x:Name="CricketPresentationViewport" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                         <StackPanel Margin="0,0,12,0">
                                             <StackPanel Margin="0,0,0,12">
-                                                <TextBlock Text="LIVE OUTPUT ROUTER" FontSize="16" FontWeight="SemiBold" Foreground="White" />
-                                                <TextBlock Text="One click changes the public screen · active output is highlighted" FontSize="12" Foreground="#9BB0C6" TextWrapping="Wrap" />
+                                                <TextBlock Text="Presentation" FontSize="16" FontWeight="SemiBold" Foreground="White" />
+                                                <TextBlock Text="Changes appear on the public display." FontSize="12" Foreground="#9BB0C6" TextWrapping="Wrap" />
                                             </StackPanel>
-                                            <Border Background="#142236" BorderBrush="#3D5F85" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,0,10">
-                                                <TextBlock x:Name="CricketOnAirText" Text="ON AIR · LIVE SCOREBUG" Foreground="#9CCBFF" FontSize="11" FontWeight="SemiBold" />
-                                            </Border>
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border Background="#142236" BorderBrush="#3D5F85" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,8,0">
+                                                    <TextBlock x:Name="CricketOnAirText" Text="ON AIR · LIVE SCOREBUG" Foreground="#9CCBFF" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                                </Border>
+                                                <Button x:Name="Presentationwindow" Grid.Column="1" Tag="window" AutomationProperties.Name="Show scoreboard output" AutomationProperties.HelpText="Shows the scoreboard output window without changing the selected presentation." MinHeight="42" Padding="12,0" Click="PresentationButton_Click" Theme="{StaticResource ToolBtn}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <ns2:OperatorSymbol x:Name="CricketOutputRestoreGlyph" Kind="display" Width="22" Height="22" Foreground="#67D17B" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                        <TextBlock Text="Show output" FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </Grid>
                                             <UniformGrid x:Name="CricketPresentationGrid" Columns="2" Margin="0,0,0,18">
                                                 <Button x:Name="Presentationscorebug" Tag="scorebug" Click="PresentationButton_Click" Theme="{StaticResource CricketLiveScorebugButton}">
                                                     <Grid IsHitTestVisible="False">
@@ -587,13 +614,6 @@
                                                         <TextBlock x:Name="CricketBowlingCheck" Grid.Column="2" Text="✓" Opacity="0" FontSize="14" FontWeight="Bold" VerticalAlignment="Top" HorizontalAlignment="Center" />
                                                     </Grid>
                                                 </Button>
-                                                <Button x:Name="Presentationwindow" Tag="window" AutomationProperties.Name="Show scoreboard output" AutomationProperties.HelpText="Shows the scoreboard output window without changing the selected presentation." Click="PresentationButton_Click" Theme="{StaticResource PresentationButton}">
-                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4">
-                                                        <ns2:OperatorSymbol x:Name="CricketOutputRestoreGlyph" Kind="display" Width="30" Height="26" Foreground="#67D17B" HorizontalAlignment="Center" Margin="0,0,0,6" />
-                                                        <TextBlock Text="SHOW WINDOW" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" />
-                                                        <TextBlock Text="Restore output" FontSize="12" FontWeight="SemiBold" Foreground="#B6B6C0" HorizontalAlignment="Center" Margin="0,2,0,0" />
-                                                    </StackPanel>
-                                                </Button>
                                                 <Button x:Name="Presentationsummary" Tag="summary" Click="PresentationButton_Click" Theme="{StaticResource CricketMatchSummaryButton}">
                                                     <Grid IsHitTestVisible="False">
                                                         <Grid.ColumnDefinitions>
@@ -640,6 +660,10 @@
                                                     </Grid>
                                                 </Button>
                                             </UniformGrid>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                    <ScrollViewer x:Name="CricketOverlaysViewport" Grid.Column="2" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <StackPanel Margin="0,0,12,0">
                                             <TextBlock Text="CRICKET OVERLAYS" FontSize="14" Theme="{StaticResource SectionHead}" />
                                             <TextBlock x:Name="OverlayStatusText" Text="NO OVERLAY ON AIR" Foreground="#9CCBFF" FontWeight="Bold" FontSize="11" Margin="0,4,0,8" />
                                             <StackPanel x:Name="CricketOverlayButtons">
@@ -649,26 +673,28 @@
                                             <Button Content="CANCEL CURRENT OVERLAY" Click="CancelCricketOverlay_Click" Height="42" Margin="4,10,4,8" Theme="{StaticResource ToolBtn}" />
                                         </StackPanel>
                                     </ScrollViewer>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Text="VENUE WEATHER" FontSize="14" Theme="{StaticResource SectionHead}" />
-                                        <ns4:OperatorGlassSurface Material="Regular" Background="{DynamicResource ControlCentre.GlassBrush}" Theme="{StaticResource Card}">
-                                            <StackPanel>
-                                                <TextBlock x:Name="CricketWeatherDataVenue" Text="No weather data loaded" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" />
-                                                <TextBlock x:Name="CricketWeatherTemperature" Text="—" FontSize="38" FontWeight="Bold" Foreground="{DynamicResource ControlCentre.TextBrush}" />
-                                                <TextBlock x:Name="CricketWeatherDescription" Text="Waiting for weather" FontSize="15" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" />
-                                                <TextBlock x:Name="CricketWeatherVenueLabel" Text="Weather venue" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,14,0,6" />
-                                                <TextBox x:Name="CricketWeatherLocation" Text="Melbourne" FontSize="16" AutomationProperties.Name="Weather venue" AutomationProperties.HelpText="Enter a town or venue location, then choose Update weather to apply it." Theme="{StaticResource SettingsInput}" TextChanged="Native_CricketWeatherLocation_TextChanged" />
-                                                <Button Content="Update weather" Click="UpdateCricketWeather_Click" Height="50" Margin="0,12,0,0" Theme="{StaticResource ToolBtn}" />
-                                                <TextBlock x:Name="CricketWeatherStatus" Text="Choose Update weather to load this venue." FontSize="13" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0" AutomationProperties.LiveSetting="Polite" />
-                                            </StackPanel>
-                                        </ns4:OperatorGlassSurface>
-                                    </StackPanel>
+                                    <ScrollViewer x:Name="CricketWeatherViewport" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,12,12,0">
+                                        <StackPanel>
+                                            <TextBlock Text="VENUE WEATHER" FontSize="14" Theme="{StaticResource SectionHead}" />
+                                            <ns4:OperatorGlassSurface Material="Regular" Background="{DynamicResource ControlCentre.GlassBrush}" Theme="{StaticResource Card}">
+                                                <StackPanel>
+                                                    <TextBlock x:Name="CricketWeatherDataVenue" Text="No weather data loaded" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" />
+                                                    <TextBlock x:Name="CricketWeatherTemperature" Text="—" FontSize="38" FontWeight="Bold" Foreground="{DynamicResource ControlCentre.TextBrush}" />
+                                                    <TextBlock x:Name="CricketWeatherDescription" Text="Waiting for weather" FontSize="15" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" />
+                                                    <TextBlock x:Name="CricketWeatherVenueLabel" Text="Weather venue" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,14,0,6" />
+                                                    <TextBox x:Name="CricketWeatherLocation" Text="Melbourne" FontSize="16" AutomationProperties.Name="Weather venue" AutomationProperties.HelpText="Enter a town or venue location, then choose Update weather to apply it." Theme="{StaticResource SettingsInput}" TextChanged="Native_CricketWeatherLocation_TextChanged" />
+                                                    <Button Content="Update weather" Click="UpdateCricketWeather_Click" Height="50" Margin="0,12,0,0" Theme="{StaticResource ToolBtn}" />
+                                                    <TextBlock x:Name="CricketWeatherStatus" Text="Choose Update weather to load this venue." FontSize="13" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0" AutomationProperties.LiveSetting="Polite" />
+                                                </StackPanel>
+                                            </ns4:OperatorGlassSurface>
+                                        </StackPanel>
+                                    </ScrollViewer>
                                 </Grid>
                             </Border>
                         </ScrollViewer>
                     </TabItem>
                     <TabItem x:Name="CricketSettingsTab" Header="4  SETTINGS" Tag="MATCH OPTIONS">
-                        <ns4:SettingsWorkspace Heading="CRICKET SETTINGS" Subtitle="Match, controls and output">
+                        <ns4:SettingsWorkspace Heading="CRICKET SETTINGS">
                             <Grid x:Name="CricketSettingsColumns" Tag="MATCH|innings format bowler players recovery selections">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1.05*" />

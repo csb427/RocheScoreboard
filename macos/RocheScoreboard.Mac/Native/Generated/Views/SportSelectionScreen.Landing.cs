@@ -1,5 +1,5 @@
 // Generated from Views/SportSelectionScreen.Landing.cs; edit translator/adapters.
-// Source SHA-256: 0c5154a921bf660a0046170328aafe51118ea90275f4893e08747bd4f47d176d
+// Source SHA-256: 38b141f207e5c9a622954602c6446d1600dafb2224ce295689a269fbc5cc8c32
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -47,7 +47,7 @@ public partial class SportSelectionScreen
         foreach(var layer in new[]{AflHover,CricketHover,TrainingHover,AflFlash,CricketFlash,TrainingFlash})layer.CornerRadius=new CornerRadius(28);
         foreach(var edge in new[]{AflGlow,CricketGlow,TrainingGlassEdge})NativePanel.SetZIndex(edge,2);
         AflDescription.Text="AFL (footy) or cricket";
-        HomeHeading.Text="Home";HomeSubtitle.Text="Resume a match, or start something new.  ·  Ctrl+K for commands";
+        HomeHeading.Text="Home";HomeSubtitle.Text="Ctrl+K for commands";
         HomeHeading.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.TextBrush");HomeSubtitle.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");
         SettingsActionCaption.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.TextBrush");SettingsSubtitle.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");
         AflGlow.CornerRadius=CricketGlow.CornerRadius=TrainingGlassEdge.CornerRadius=HomeInteractionLens.CornerRadius=new CornerRadius(28);

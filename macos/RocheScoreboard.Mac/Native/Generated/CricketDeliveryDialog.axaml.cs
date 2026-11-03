@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketDeliveryDialog.xaml.cs; edit translator/adapters.
-// Source SHA-256: 634ac0971706333313f10aa319f6acb36d7179cb77bf38ff06bc8ce473048954
+// Source SHA-256: 438e4af35f04fa071424598c4a14d1fb9207b6df27c47ed68f1368ef68a0abbf
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -23,7 +23,8 @@ public partial class CricketDeliveryDialog : UserControl
     private readonly CricketDelivery? _delivery;
     private readonly List<int> _dismissedIndices = new();
     private readonly List<int> _batterIndices = new();
-    private bool _applying;
+    private bool _applying, _updatingFields;
+    private string? _wicketDraftNotice;
     private string EntryColour => TypeChoice?.SelectedIndex == (int)CricketDeliveryType.Wicket ? "#48617A" : _match.BattingTeamPrimaryColor;
     private readonly DismissalType[] _dismissals = [DismissalType.Bowled, DismissalType.Caught, DismissalType.LBW,
         DismissalType.RunOut, DismissalType.Stumped, DismissalType.CaughtAndBowled, DismissalType.HitWicket, DismissalType.Other,
@@ -145,6 +146,7 @@ public partial class CricketDeliveryDialog : UserControl
         ContextText.IsVisible = shortEntry ? false : true;
         ContextText.FontSize = compact ? 12 : 14;
         PreviewText.FontSize = compact ? 15 : 18; PreviewPanel.Padding = new Thickness(compact ? 8 : 12);
+        PreviewScroll.MaxHeight = shortEntry ? 54 : compact ? 76 : 110;
         ApplyButton.Height = CancelButton.Height = compact ? 38 : 48;
     }
     private void Source_Click(object? sender, RoutedEventArgs args)
@@ -164,6 +166,8 @@ public partial class CricketDeliveryDialog : UserControl
     private void Details_Changed(object? sender, SelectionChangedEventArgs args)
     {
         if(_initializing)return;
+        if(_updatingFields)return;
+        _wicketDraftNotice=null;
         if(ReferenceEquals(sender,BowlerChoice))RestOfOverBowler.IsChecked=false;
         UpdateFields();
     }
@@ -188,9 +192,37 @@ public partial class CricketDeliveryDialog : UserControl
         Avalonia.Automation.AutomationProperties.SetHelpText(RunsBox, problem ?? (RunExplanation.Text ?? string.Empty));
     }
 
+    private void NormalizeWicketDraft()
+    {
+        if ((CricketDeliveryType)TypeChoice.SelectedIndex!=CricketDeliveryType.Wicket) return;
+        var dismissal=_dismissals[Math.Max(0,DismissalChoice.SelectedIndex)];
+        var source=(CricketWicketRuns)Math.Max(0,RunOutChoice.SelectedIndex);
+        if (!CricketMatchManager.IsDismissalAllowedForDelivery(dismissal,source,EntryIsFreeHit)
+            && CricketMatchManager.IsDismissalAllowedForDelivery(dismissal,CricketWicketRuns.Bat,EntryIsFreeHit))
+        {
+            RunOutChoice.SelectedIndex=(int)CricketWicketRuns.Bat;
+            _wicketDraftNotice="Delivery outcome reset: this dismissal requires a fair delivery.";
+        }
+        if (!CricketMatchManager.DismissalAllowsCompletedRuns(dismissal))
+        {
+            if ((RunsBox.Text ?? string.Empty)!="0")
+            { RunsBox.Text="0";RunsBox.IsVisible=false;_wicketDraftNotice="Completed runs cleared: they do not count for this dismissal. Any wide/no-ball penalty is automatic."; }
+            NoBallChoice.SelectedIndex=0;
+            RunOutNotCrossed.IsChecked=true;
+        }
+    }
+
     private void UpdateFields()
     {
+        if (_updatingFields || TypeChoice.SelectedIndex<0) return;
+        _updatingFields=true;
+        try { NormalizeWicketDraft();UpdateFieldsCore(); }
+        finally { _updatingFields=false; }
+    }
+    private void UpdateFieldsCore()
+    {
         if (TypeChoice.SelectedIndex < 0) return;
+        Avalonia.Controls.ToolTip.SetTip(PreviewText, null);
         ErrorText.Text = ""; ErrorText.IsVisible = false;
         foreach (var tile in new[] { BatRunsTile, ByesTile, LegByesTile })
         {
@@ -221,19 +253,26 @@ public partial class CricketDeliveryDialog : UserControl
         ApplyButton.Background = TeamVisuals.Panel(neutral ? "#48617A" : EntryColour, neutral ? "#48617A" : EntryColour, .4);
         var dismissal = DismissalChoice.SelectedIndex >= 0 ? _dismissals[DismissalChoice.SelectedIndex] : DismissalType.Bowled;
         bool runOut = type == CricketDeliveryType.Wicket && dismissal == DismissalType.RunOut;
-        bool runningDismissal = type == CricketDeliveryType.Wicket && dismissal is DismissalType.RunOut or DismissalType.ObstructingField;
+        bool runningDismissal = type == CricketDeliveryType.Wicket && CricketMatchManager.DismissalAllowsCompletedRuns(dismissal);
         var scoringType = type == CricketDeliveryType.Wicket ? CricketDelivery.WicketScoringType((CricketWicketRuns)Math.Max(0, RunOutChoice.SelectedIndex)) : type;
-        RunOutOptions.IsVisible = type == CricketDeliveryType.Wicket ? true : false;
+        int availableOutcomes=Enum.GetValues<CricketWicketRuns>().Count(source=>CricketMatchManager.IsDismissalAllowedForDelivery(dismissal,source,EntryIsFreeHit));
+        RunOutSourceTiles.Columns=Math.Min(3,Math.Max(1,availableOutcomes));
+        RunOutOptions.IsVisible = type == CricketDeliveryType.Wicket && availableOutcomes>1 ? true : false;
         RunOutCrossingOptions.IsVisible = runningDismissal ? true : false;
         foreach (var tile in RunOutSourceTiles.Children.OfType<Avalonia.Controls.Button>())
         {
+            var outcome=(CricketWicketRuns)int.Parse(tile.Tag!.ToString()!);
+            bool available=CricketMatchManager.IsDismissalAllowedForDelivery(dismissal,outcome,EntryIsFreeHit);
+            tile.IsVisible=available?true:false;
+            tile.IsEnabled=available;
+            if(outcome==CricketWicketRuns.Bat)tile.Content=runningDismissal?"OFF THE BAT":"FAIR DELIVERY";
             bool selected = tile.Tag?.ToString() == RunOutChoice.SelectedIndex.ToString();
             tile.BorderThickness = new Thickness(selected ? 2 : 1);
             tile.Background = TeamVisuals.Panel(EntryColour, EntryColour, selected ? .55 : .15);
             tile.BorderBrush = selected ? TeamVisuals.Accent(EntryColour) : Avalonia.Media.Brushes.SlateGray;
             Avalonia.Automation.AutomationProperties.SetItemStatus(tile, selected ? "Selected" : "Not selected");
         }
-        NoBallOptions.IsVisible = scoringType == CricketDeliveryType.NoBall ? true : false;
+        NoBallOptions.IsVisible = scoringType == CricketDeliveryType.NoBall && (type!=CricketDeliveryType.Wicket || runningDismissal) ? true : false;
         WicketOptions.IsVisible = type == CricketDeliveryType.Wicket ? true : false;
         RunOptions.IsVisible = type is CricketDeliveryType.Dot or CricketDeliveryType.Four or CricketDeliveryType.Six ? false : true;
         if (type == CricketDeliveryType.Wicket)
@@ -249,11 +288,13 @@ public partial class CricketDeliveryDialog : UserControl
         foreach(var tile in DismissalTiles.Children.OfType<Avalonia.Controls.Button>())
         {
             int choice=((ValueTuple<Avalonia.Controls.ComboBox,int>)tile.Tag).Item2;
-            bool allowed=CricketMatchManager.IsDismissalAllowedForDelivery(_dismissals[choice], (CricketWicketRuns)Math.Max(0,RunOutChoice.SelectedIndex), EntryIsFreeHit);
+            bool allowed=!EntryIsFreeHit || CricketMatchManager.IsDismissalAllowedOnFreeHit(_dismissals[choice]);
+            tile.IsVisible=allowed?true:false;
             tile.IsEnabled=allowed;Avalonia.Controls.ToolTip.SetTip(tile,allowed?null:"Choose a different delivery outcome. This dismissal is not available for the selected outcome or free hit.");
         }
         FreeHitEntryHint.IsVisible=EntryIsFreeHit && type==CricketDeliveryType.Wicket ? true : false;
-        WicketRuleHint.IsVisible=type==CricketDeliveryType.Wicket && !SelectedWicketIsAllowed ? true : false;
+        WicketRuleHint.Text=!SelectedWicketIsAllowed?"This dismissal is not allowed for the delivery or free-hit status.":_wicketDraftNotice ?? "";
+        WicketRuleHint.IsVisible=type==CricketDeliveryType.Wicket && (!SelectedWicketIsAllowed || _wicketDraftNotice is not null) ? true : false;
         ApplyButton.IsEnabled=!_applying && !_completed && (type!=CricketDeliveryType.Wicket || SelectedWicketIsAllowed);
         foreach (var tile in DismissedTiles.Children.OfType<Avalonia.Controls.Button>())
         {
@@ -262,11 +303,16 @@ public partial class CricketDeliveryDialog : UserControl
             tile.IsEnabled = eligible; tile.Opacity = eligible ? 1 : .18;
             Avalonia.Controls.ToolTip.SetTip(tile, eligible ? null : "Only the striker can be dismissed this way.");
         }
+        DismissedTiles.IsVisible=DismissedChoice.IsEnabled?true:false;
+        DismissedBatterHint.Text=SelectedBatterIndex>=0 && SelectedBatterIndex<_innings.BattingOrder.Count?_innings.BattingOrder[SelectedBatterIndex].FullName:"Select the striker";
         DismissedBatterHint.IsVisible = DismissedChoice.IsEnabled ? false : true;
         FielderOptions.IsVisible = dismissal is DismissalType.Caught or DismissalType.RunOut or DismissalType.Stumped ? true : false;
         bool penalty = scoringType is CricketDeliveryType.Wide or CricketDeliveryType.NoBall;
         RunExplanation.Text = penalty ? "Enter only additional runs. The one-run penalty is added once. A no-ball cannot also be a wide."
-            : type == CricketDeliveryType.Wicket ? "Only completed runs count on a run out. Choose which batter was dismissed." : "Enter the runs completed. Byes and leg-byes have no automatic penalty.";
+            : type == CricketDeliveryType.Wicket ? dismissal == DismissalType.ObstructingField
+                ? "Use umpire-confirmed runs. If obstruction prevented a catch, completed runs do not count."
+                : "Only completed runs count on a run out. Choose which batter was dismissed."
+            : "Enter the runs completed. Byes and leg-byes have no automatic penalty.";
         bool parsedRuns = int.TryParse((RunsBox.Text ?? string.Empty), out int additional);
         string? runsProblem = RunOptions.IsVisible != true ? null
             : !parsedRuns || additional < 0 || additional > 998 ? "Enter a whole number from 0 to 998."
@@ -292,10 +338,29 @@ public partial class CricketDeliveryDialog : UserControl
         string composition = scoringType == CricketDeliveryType.NoBall ? additional==0?"1 no-ball = 1 run":$"1 no-ball + {additional} {extraSource} = {total} runs"
             : scoringType == CricketDeliveryType.Wide ? additional==0?"1 wide = 1 run":$"1 wide + {additional} completed = {total} wides"
             : $"{additional} {(scoringType == CricketDeliveryType.Bye ? "byes" : scoringType == CricketDeliveryType.LegBye ? "leg-byes" : "runs off bat")}";
-        PreviewText.Text = type == CricketDeliveryType.Wicket ? runningDismissal ? $"{(runOut ? "RUN OUT" : "OBSTRUCTING FIELD")} · {composition}" : CricketMatchManager.DismissalLabel(dismissal, FielderChoice.SelectedIndex > 0 ? _innings.BowlingAttack[FielderChoice.SelectedIndex - 1].DisplayName : null, _innings.CurrentBowler?.DisplayName)
-                + (penalty ? $" · +1 {(scoringType == CricketDeliveryType.Wide ? "wide" : "no-ball")}" : "")
-            : type is CricketDeliveryType.NoBall or CricketDeliveryType.Wide ? composition
-            : $"{TypeChoice.SelectedItem} · +{total} to the total";
+        if (type == CricketDeliveryType.Wicket)
+        {
+            int victim = DismissedChoice.SelectedIndex >= 0 && DismissedChoice.SelectedIndex < _dismissedIndices.Count
+                ? _dismissedIndices[DismissedChoice.SelectedIndex] : SelectedBatterIndex;
+            string victimName = victim >= 0 && victim < _innings.BattingOrder.Count ? _innings.BattingOrder[victim].FullName : "Select dismissed batter";
+            string dismissalName = DismissalChoice.SelectedItem?.ToString() ?? "Wicket";
+            // A compact pinned confirmation must identify the actual victim,
+            // even when the chooser is scrolled away. Scorecard shorthand alone
+            // describes the dismissal/bowler and can omit the dismissed player.
+            PreviewText.Text = $"{dismissalName} · {victimName}"
+                + (runningDismissal ? $" · {composition}" : penalty ? $" · +1 {(scoringType == CricketDeliveryType.Wide ? "wide" : "no-ball")}" : "");
+            if (FielderOptions.IsVisible == true && FielderChoice.SelectedIndex > 0)
+                PreviewText.Text += $"\nFielder: {_innings.BowlingAttack[FielderChoice.SelectedIndex - 1].FullName}";
+            Avalonia.Controls.ToolTip.SetTip(PreviewText, CricketMatchManager.DismissalLabel(dismissal,
+                FielderChoice.SelectedIndex > 0 ? _innings.BowlingAttack[FielderChoice.SelectedIndex - 1].DisplayName : null,
+                BowlerChoice.SelectedIndex >= 0 && BowlerChoice.SelectedIndex < _innings.BowlingAttack.Count ? _innings.BowlingAttack[BowlerChoice.SelectedIndex].DisplayName : _innings.CurrentBowler?.DisplayName));
+        }
+        else
+        {
+            PreviewText.Text = type is CricketDeliveryType.NoBall or CricketDeliveryType.Wide ? composition
+                : $"{TypeChoice.SelectedItem} · +{total} to the total";
+            Avalonia.Controls.ToolTip.SetTip(PreviewText, null);
+        }
         if (runningDismissal)
         {
             int start = SelectedBatterIndex, other = _batterIndices.FirstOrDefault(index => index != start, -1);
@@ -501,7 +566,10 @@ public partial class CricketDeliveryDialog : UserControl
         {
             int selected = index;
             var tile = new Avalonia.Controls.Button { Tag = (choice, index), Content = choice.Items[index]?.ToString(), ContentTemplate = CricketPrompt.ButtonContent, Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "CricketActionButton"), MinHeight = 42, MinWidth = 128, MaxWidth = 240, Margin = new Thickness(0, 0, 6, 6), Padding = new Thickness(12, 7, 12, 7), FontSize = 14 };
-            tile.Click += (_, _) => { choice.SelectedIndex = selected; UpdateFields(); }; panel.Children.Add(tile);
+            // SelectionChanged owns draft normalization and visual refresh.
+            // A second refresh here repainted every tile again for one click;
+            // reselecting the current value should leave the draft untouched.
+            tile.Click += (_, _) => { if (choice.SelectedIndex != selected) choice.SelectedIndex = selected; }; panel.Children.Add(tile);
         }
     }
     private void RefreshChoiceTiles()

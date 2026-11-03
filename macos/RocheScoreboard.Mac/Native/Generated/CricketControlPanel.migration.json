@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-  "source_sha256": "be42de13333985d461ff102befe5f6ca57d8553c47270fc484f394702802d981",
+  "source_sha256": "f97668b9a9a074f68e665722a9663a318be76838579f9a772435e17d432683e2",
   "names": [
     {
       "name": "PART_Surface",
@@ -184,6 +184,11 @@
     },
     {
       "name": "ScoringColumns",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "CurrentPlayers",
       "type": "Grid",
       "object": false
     },
@@ -443,6 +448,16 @@
       "object": false
     },
     {
+      "name": "Presentationwindow",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CricketOutputRestoreGlyph",
+      "type": "OperatorSymbol",
+      "object": false
+    },
+    {
       "name": "CricketPresentationGrid",
       "type": "UniformGrid",
       "object": false
@@ -513,16 +528,6 @@
       "object": false
     },
     {
-      "name": "Presentationwindow",
-      "type": "Button",
-      "object": false
-    },
-    {
-      "name": "CricketOutputRestoreGlyph",
-      "type": "OperatorSymbol",
-      "object": false
-    },
-    {
       "name": "Presentationsummary",
       "type": "Button",
       "object": false
@@ -568,6 +573,11 @@
       "object": false
     },
     {
+      "name": "CricketOverlaysViewport",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
       "name": "OverlayStatusText",
       "type": "TextBlock",
       "object": false
@@ -585,6 +595,11 @@
     {
       "name": "CricketBoundariesOverlayButton",
       "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CricketWeatherViewport",
+      "type": "ScrollViewer",
       "object": false
     },
     {
@@ -813,7 +828,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "efb099ff76da5c5cc29c19bddc17d98b9668645a5013c10f91feab445bdab935",
+  "code_source_sha256": "876c629581e4e295514ea143988e7a1e9110f727bd2d40ba9c99fa8fdad85c23",
   "native_events": [
     {
       "name": "MainTabControl",

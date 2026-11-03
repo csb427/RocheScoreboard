@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketSetupWizard.xaml.cs; edit translator/adapters.
-// Source SHA-256: 77c4b876f7db298c07cd37396ac1f3279f4f7a7e91d2ff47994f224f61eae29f
+// Source SHA-256: 92d7ea102e4054c54beb7181deb19efa387d3bdc3ea76557a0ddcbb3d2177f40
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -1052,6 +1052,7 @@ namespace Roche_Scoreboard.Views
         {
             BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
             BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+            WizardTeamEditor.SetPresetAvailability(this,_selectedHomePreset is not null && _presets.Contains(_selectedHomePreset),_selectedAwayPreset is not null && _presets.Contains(_selectedAwayPreset),_presets.Count>0);
         }
 
         private void BuildPresetTiles(Avalonia.Controls.WrapPanel panel, TextBlock emptyLabel, bool isHome)
@@ -1405,6 +1406,7 @@ namespace Roche_Scoreboard.Views
 
             BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
             BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+            WizardTeamEditor.SetPresetAvailability(this,_selectedHomePreset is not null && _presets.Contains(_selectedHomePreset),_selectedAwayPreset is not null && _presets.Contains(_selectedAwayPreset),_presets.Count>0);
         }
 
         private void ApplyPresetToAway(TeamPreset p)
@@ -1432,6 +1434,7 @@ namespace Roche_Scoreboard.Views
 
             BuildPresetTiles(HomePresetPanel, HomePresetEmpty, true);
             BuildPresetTiles(AwayPresetPanel, AwayPresetEmpty, false);
+            WizardTeamEditor.SetPresetAvailability(this,_selectedHomePreset is not null && _presets.Contains(_selectedHomePreset),_selectedAwayPreset is not null && _presets.Contains(_selectedAwayPreset),_presets.Count>0);
         }
 
         private async void DeletePreset(TeamPreset? preset, bool isHome)

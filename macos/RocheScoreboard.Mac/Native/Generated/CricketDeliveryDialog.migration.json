@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
-  "source_sha256": "6cf0059982ac85b661e7c5db89ad207a5fa857d38bbd5c2874a1820663ce4de9",
+  "source_sha256": "2fb956fe389e9ad343e3fbfb8f51320ae553dc5553441dfbf8dd52c4d815cef6",
   "names": [
     {
       "name": "EntryLayout",
@@ -238,6 +238,11 @@
       "object": false
     },
     {
+      "name": "PreviewScroll",
+      "type": "ScrollViewer",
+      "object": false
+    },
+    {
       "name": "PreviewText",
       "type": "TextBlock",
       "object": false
@@ -258,7 +263,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "634ac0971706333313f10aa319f6acb36d7179cb77bf38ff06bc8ce473048954",
+  "code_source_sha256": "438e4af35f04fa071424598c4a14d1fb9207b6df27c47ed68f1368ef68a0abbf",
   "native_events": [
     {
       "name": "TypeChoice",

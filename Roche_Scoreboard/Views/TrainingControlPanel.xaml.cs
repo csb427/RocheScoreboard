@@ -354,7 +354,7 @@ public partial class TrainingControlPanel : UserControl
         ActiveRemainingText.Text = active is null
             ? "00:00"
             : FormatTime(_session.ActiveRemaining);
-        SessionTotalText.Text = $"Total: {FormatTime(_session.TotalRemaining)}";
+        SessionTotalText.Text = FormatTime(_session.TotalRemaining);
 
         // Status colour
         if (active is null)
@@ -1279,6 +1279,7 @@ public partial class TrainingControlPanel : UserControl
         if (!CurrentRefresh()) return;
 
         var entries = RecentTrainingTimerStorage.Load();
+        RecentTimersCard.Visibility = entries.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         if (entries.Count == 0)
         {
             RecentTimersEmptyText.Visibility = Visibility.Visible;

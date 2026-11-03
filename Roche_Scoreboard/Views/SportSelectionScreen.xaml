@@ -40,7 +40,7 @@
     <local:OperatorGlassSurface x:Name="SettingsTile" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" HorizontalAlignment="Left" Padding="14,9" Cursor="Hand" BorderBrush="#60FFFFFF" BorderThickness="1" MouseLeftButtonUp="Settings_Click" MouseEnter="SettingsTile_MouseEnter" MouseLeave="SettingsTile_MouseLeave">
      <Border.RenderTransform><TransformGroup><ScaleTransform x:Name="SettingsTileScale"/><TranslateTransform x:Name="SettingsTileTranslate"/></TransformGroup></Border.RenderTransform>
      <Border.Effect><DropShadowEffect x:Name="SettingsTileGlow" BlurRadius="18" ShadowDepth="4" Color="Black" Opacity=".18"/></Border.Effect>
-     <StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="Settings" Width="22" Height="22" Margin="0,0,9,0" Foreground="White"/><StackPanel VerticalAlignment="Center"><TextBlock x:Name="SettingsActionCaption" Text="Settings" Foreground="White" FontSize="14" FontWeight="SemiBold"/><TextBlock x:Name="SettingsSubtitle" Text="Application preferences" Foreground="#B9C4D4" FontSize="12" Margin="0,2,0,0"/></StackPanel></StackPanel>
+     <StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="Settings" Width="22" Height="22" Margin="0,0,9,0" Foreground="White"/><StackPanel VerticalAlignment="Center"><TextBlock x:Name="SettingsActionCaption" Text="Settings" Foreground="White" FontSize="14" FontWeight="SemiBold"/><TextBlock x:Name="SettingsSubtitle" Visibility="Collapsed" Text="Application preferences" Foreground="#B9C4D4" FontSize="12" Margin="0,2,0,0"/></StackPanel></StackPanel>
     </local:OperatorGlassSurface>
     <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" Style="{StaticResource HomeUtility}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K"/>
     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
@@ -60,7 +60,7 @@
     <StackPanel>
      <TextBlock x:Name="SessionHeading" Text="Ready for your next session" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
      <TextBlock x:Name="SessionDetail" Text="No recoverable match saved. Start a new match below." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,6,0,0"/>
-     <TextBlock Text="Output stays off when resuming. Use Show output window (Ctrl+K) when ready." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,7,0,0"/>
+     <TextBlock x:Name="ResumeOutputHint" Text="Output stays off when resuming. Use Show output window (Ctrl+K) when ready." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,7,0,0"/>
      <Button x:Name="HomeResumeButton" Content="Resume saved match" ContentTemplate="{StaticResource HomeResumeLabel}" Visibility="Collapsed" Click="ResumeSavedMatch_Click" Style="{StaticResource HomeUtility}" HorizontalAlignment="Left" Background="#284E739D" Margin="0,12,0,0"/>
     </StackPanel>
    </Border>
@@ -106,7 +106,7 @@
       <Border x:Name="TrainingGlassEdge" CornerRadius="36" BorderBrush="#CFFFFFFF" BorderThickness="2" Opacity=".12" IsHitTestVisible="False"/>
       <Grid x:Name="TrainingTileBody" Margin="20,18,20,20"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
        <Viewbox x:Name="TrainingContentFit" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="165" Margin="0,0,0,12"><Canvas Width="145" Height="155" RenderTransformOrigin=".5,.5"><Canvas.RenderTransform><TransformGroup><ScaleTransform x:Name="TrainingIconMotionScale"/><TranslateTransform x:Name="TrainingIconMotionShift"/></TransformGroup></Canvas.RenderTransform><motion:OperatorSymbol Kind="training" Width="124" Height="124" Foreground="#73B9FF" Canvas.Left="10" Canvas.Top="10"/></Canvas></Viewbox>
-       <StackPanel x:Name="TrainingTextPanel" Grid.Row="1"><TextBlock Text="Training" FontSize="26" FontWeight="SemiBold" Foreground="White" TextAlignment="Center"/><TextBlock x:Name="TrainingDescription" Text="Sessions and drills" FontSize="14" Foreground="#D8E2EC" TextAlignment="Center" Margin="0,5,0,0"/></StackPanel>
+       <StackPanel x:Name="TrainingTextPanel" Grid.Row="1"><TextBlock Text="Training" FontSize="26" FontWeight="SemiBold" Foreground="White" TextAlignment="Center"/><TextBlock x:Name="TrainingDescription" Visibility="Collapsed" Text="Sessions and drills" FontSize="14" Foreground="#D8E2EC" TextAlignment="Center" Margin="0,5,0,0"/></StackPanel>
       </Grid><Border x:Name="TrainingHover" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False"/><Border x:Name="TrainingFlash" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False"/>
      </Grid>
     </local:OperatorGlassSurface>

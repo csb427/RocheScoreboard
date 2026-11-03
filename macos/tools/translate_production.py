@@ -658,6 +658,28 @@ def translate_code(name, fields):
     code = code.replace('VisualTreeHelper.GetDpi(sample).PixelsPerDip', '1')
 
     code = map_native_api(code)
+    if name == 'MainWindow':
+        # These navigation guards must run before child input, as in WPF.
+        for event, handler in [('PointerPressed', 'MainWindow_PreviewMouseLeftButtonDown'), ('PointerReleased', 'MainWindow_PreviewMouseLeftButtonUp'), ('PointerWheelChanged', 'MainWindow_PreviewMouseWheelGuard')]:
+            registration = f'{event} += {handler};'
+            assert registration in code, f'Navigation guard registration changed: {handler}'
+            code = code.replace(registration, f'AddHandler(Avalonia.Input.InputElement.{event}Event, {handler}, Avalonia.Interactivity.RoutingStrategies.Tunnel);')
+        code = re.sub(r'(MainWindow_PreviewMouseLeftButtonDown\(object\?? sender, )PointerEventArgs', r'\1PointerPressedEventArgs', code)
+        code = re.sub(r'(MainWindow_PreviewMouseLeftButtonUp\(object\?? sender, )PointerEventArgs', r'\1PointerReleasedEventArgs', code)
+        code = re.sub(r'(MainWindow_PreviewMouseLeftButtonDown\([^\n]+\)\s*\{)', r'\1\n            if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;', code)
+        code = re.sub(r'(MainWindow_PreviewMouseLeftButtonUp\([^\n]+\)\s*\{)', r'\1\n            if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return;', code)
+        registration = 'KeyDown += TrackNavigationKeyDown;'
+        assert registration in code, 'Navigation modality tracking registration changed.'
+        code = code.replace(registration, 'AddHandler(Avalonia.Input.InputElement.KeyDownEvent, TrackNavigationKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);')
+    if name == 'CricketControlPanel':
+        # Keep this guard before the child button, matching WPF preview input.
+        registration = 'PointerPressed += ControlPanel_PreviewMouseDown;'
+        assert registration in code, 'Cricket pointer-guard source registration changed.'
+        code = code.replace(registration, 'AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, ControlPanel_PreviewMouseDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);')
+        code = re.sub(r'(ControlPanel_PreviewMouseDown\(object\?? sender, )PointerEventArgs', r'\1PointerPressedEventArgs', code)
+        key_registration = 'KeyDown += TrackOperatorKeyDown;'
+        assert key_registration in code, 'Cricket input-modality source registration changed.'
+        code = code.replace(key_registration, 'AddHandler(Avalonia.Input.InputElement.KeyDownEvent, TrackOperatorKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);')
     if name in {'AflPresentationGalleryWindow', 'DesignSystemGalleryWindow'}:
         code = native_gallery(code)
     if name == 'VideoPlayerControl':
@@ -1173,6 +1195,7 @@ def map_native_api(code):
     code = code.replace('IsOperatorWindow(ownerWindow)','ownerWindow is Window owningWindow && IsOperatorWindow(owningWindow)')
     code = re.sub(r'(?:Native){2,}Window','NativeWindow',code)
     code = code.replace('private readonly Transform _original;', 'private readonly ITransform? _original;')
+    code = code.replace('private Transform _original;', 'private ITransform? _original;')
     code = code.replace('new ResourceDictionary { Source = new Uri("/Roche Scoreboard;component/Resources/OperatorControls.xaml", UriKind.Relative) }','NativeAssets.Dictionary("OperatorControls")')
     code = code.replace('surface.RenderTransformOrigin=new Avalonia.Point(Math.Clamp(origin.X/surface.NativeWidth(),.12,.88),Math.Clamp(origin.Y/surface.NativeHeight(),.08,.92))','surface.RenderTransformOrigin=new RelativePoint(Math.Clamp(origin.X/surface.NativeWidth(),.12,.88),Math.Clamp(origin.Y/surface.NativeHeight(),.08,.92),RelativeUnit.Relative)')
     code = code.replace('_surface.RenderTransformOrigin = Origin()', '_surface.RenderTransformOrigin = new RelativePoint(Origin(),RelativeUnit.Relative)')

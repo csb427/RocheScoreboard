@@ -452,9 +452,9 @@
                                 </Grid>
 
                                 <!-- Reset Match — danger zone, prominent but not dominant -->
-                                <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Stretch" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="14" FontWeight="SemiBold" Click="ResetMatch_Click"
+                                <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Right" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="14" FontWeight="SemiBold" Click="ResetMatch_Click"
                                         Style="{StaticResource ToolBtn}" ToolTip="Reset the entire match and return to setup"
-                                        Background="#2A1416" BorderBrush="#E08A8F" Foreground="#FF6B6B"/>
+                                        Background="Transparent" BorderThickness="0" Foreground="#FF6B6B"/>
                             </Grid></ScrollViewer>
 
                             <!-- RIGHT: cloud remote launcher + event log -->

@@ -21,7 +21,7 @@
   <RadioButton x:Name="CricketSettingsScopeTab" Content="Cricket" Tag="cricket" GroupName="SettingsScope" Style="{StaticResource SettingsSegment}" Checked="SettingsScope_Checked"/>
   <RadioButton x:Name="AflSettingsTab" Content="AFL" Tag="afl" GroupName="SettingsScope" Style="{StaticResource SettingsSegment}" Checked="SettingsScope_Checked"/>
  </local:OperatorSegmentedPanel></local:OperatorGlassSurface>
- <local:SettingsWorkspace x:Name="SettingsWorkspace" Grid.Row="1" Heading="Settings" Subtitle="Set up the operator interface and shared output defaults.">
+ <local:SettingsWorkspace x:Name="SettingsWorkspace" Grid.Row="1" Heading="Settings">
   <Border x:Name="AppearanceSection" Tag="APPEARANCE|theme light dark density compact comfortable" Style="{StaticResource GlobalSettingsCard}"><StackPanel>
    <TextBlock Text="Appearance" Style="{StaticResource GroupCaption}"/>
    <Grid x:Name="AppearanceFieldsGrid" Margin="20,12,20,18"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>

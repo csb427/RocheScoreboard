@@ -58,7 +58,7 @@
                     <TextBlock Text="DISMISSED BATTER" Theme="{StaticResource FieldTitle}" />
                     <ComboBox x:Name="DismissedChoice" IsVisible="False" SelectionChanged="Native_Details_Changed" />
                     <WrapPanel x:Name="DismissedTiles" Margin="0,6,0,4" />
-                    <TextBlock x:Name="DismissedBatterHint" Text="Only the striker can be dismissed this way." Foreground="#F0CB78" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,14" />
+                    <TextBlock x:Name="DismissedBatterHint" Text="" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,14" />
                     <StackPanel x:Name="FielderOptions">
                         <TextBlock Text="FIELDER (OPTIONAL)" Theme="{StaticResource FieldTitle}" />
                         <ComboBox x:Name="FielderChoice" AutomationProperties.Name="Fielder (optional)" AutomationProperties.HelpText="Choose a fielder, or leave Not recorded." SelectionChanged="Native_Details_Changed" />
@@ -79,7 +79,7 @@
                         <TextBlock Text="ON THE UNFINISHED RUN" Margin="0,4,0,6" Theme="{StaticResource FieldTitle}" />
                         <RadioButton x:Name="RunOutNotCrossed" Content="Batters had not crossed" IsChecked="True" GroupName="RunOutCrossing" MinHeight="36" IsCheckedChanged="Native_RunOutCrossing_Changed_Checked" />
                         <RadioButton x:Name="RunOutCrossed" Content="Batters had crossed" GroupName="RunOutCrossing" MinHeight="36" IsCheckedChanged="Native_RunOutCrossing_Changed_Checked" />
-                        <TextBlock Text="Use umpire-confirmed runs and positions. If obstruction prevented a catch, use original ends and no completed runs. Otherwise choose whether the batters crossed. The preview includes the end of the over." TextWrapping="Wrap" Foreground="#B6B6C0" FontSize="13" Margin="0,4,0,12" />
+                        <TextBlock Text="Use umpire-confirmed completed runs and positions. If obstruction prevented a catch, completed runs do not count. The preview includes the end of the over." TextWrapping="Wrap" Foreground="#B6B6C0" FontSize="13" Margin="0,4,0,12" />
                     </StackPanel>
                 </StackPanel>
                 <StackPanel x:Name="NoBallOptions">
@@ -124,7 +124,9 @@
         </ScrollViewer>
         <StackPanel x:Name="EntryFooter" Grid.Row="2">
             <Border CornerRadius="18" x:Name="PreviewPanel" Background="#222226" BorderBrush="#44444B" BorderThickness="1" Padding="14,10" Margin="0,10,0,10">
-                <TextBlock x:Name="PreviewText" TextWrapping="Wrap" FontSize="18" FontWeight="Bold" />
+                <ScrollViewer x:Name="PreviewScroll" Focusable="True" AutomationProperties.Name="Delivery confirmation summary" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="110">
+                    <TextBlock x:Name="PreviewText" TextWrapping="Wrap" FontSize="18" FontWeight="Bold" />
+                </ScrollViewer>
             </Border>
             <TextBlock x:Name="ErrorText" AutomationProperties.LiveSetting="Polite" Foreground="#FFB1B1" TextWrapping="Wrap" Margin="0,6" IsVisible="False" />
             <Grid>

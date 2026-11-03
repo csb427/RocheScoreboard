@@ -203,7 +203,7 @@ public sealed class RefinementRulesTests
                 match.SelectNewBatter(innings.BattingOrder.FindIndex(player => !player.IsOut
                     && !ReferenceEquals(player, innings.Striker) && !ReferenceEquals(player, innings.NonStriker)));
             if (innings.NeedsBowlerSelection) match.ConfirmBowler(match.SuggestedNextBowler());
-            string before = Snapshot(match);
+            string before = Snapshot(match);int deliveryCount=innings.Deliveries.Count;
             var type = (CricketDeliveryType)random.Next(9);
             int runs = random.Next(4);
             var origin = (CricketNoBallRuns)random.Next(3);
@@ -211,11 +211,15 @@ public sealed class RefinementRulesTests
             {
                 var source = (CricketWicketRuns)random.Next(5);
                 var dismissal = source == CricketWicketRuns.Wide && random.Next(2) == 0 ? DismissalType.Stumped : DismissalType.RunOut;
+                // This is a valid-delivery/undo stress test. Contradictory
+                // wicket runs are now separately tested as rejected no-ops.
+                if(dismissal==DismissalType.Stumped)runs=1;
                 match.RecordDelivery(runs, type, noBallRuns: origin, dismissal: dismissal,
                     dismissedBatterIndex: dismissal == DismissalType.Stumped || random.Next(2) == 0 ? innings.StrikerIndex : innings.NonStrikerIndex,
-                    wicketRuns: source, runOutCrossed: random.Next(2) == 0);
+                    wicketRuns: source, runOutCrossed: dismissal==DismissalType.RunOut && random.Next(2)==0);
             }
             else match.RecordDelivery(runs, type, noBallRuns: origin);
+            Assert.Equal(deliveryCount+1,innings.Deliveries.Count);
             Assert.Equal(innings.TotalRuns, innings.BattingOrder.Sum(player => player.Runs) + innings.TotalExtras);
             Assert.Equal(innings.TotalExtras, innings.Wides + innings.NoBalls + innings.Byes + innings.LegByes);
             Assert.Equal(innings.LegalBallsBowled, innings.BowlingAttack.Sum(player => player.BallsBowled));

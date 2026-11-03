@@ -40,12 +40,12 @@ public partial class SportSelectionScreen : UserControl
         for(int row=0;row<SportCardsGrid.RowDefinitions.Count;row++)SportCardsGrid.RowDefinitions[row].Height=new GridLength(shortWindow?1:row==1?.8:1,GridUnitType.Star);
         HomeLayout.Margin=new Thickness(compact?12:30,shortWindow?10:22,compact?12:30,shortWindow?10:22);
         HomeCommandsButton.Content = size.Width < 620 ? "Ctrl+K" : "Commands · Ctrl+K";
-        SettingsSubtitle.Visibility=width>=900 && !shortWindow?Visibility.Visible:Visibility.Collapsed;
+        SettingsSubtitle.Visibility=Visibility.Collapsed;
         SettingsActionCaption.Visibility=width<390?Visibility.Collapsed:Visibility.Visible;UpdatesActionIcon.Visibility=width<390?Visibility.Collapsed:Visibility.Visible;
         SettingsTile.Padding=new Thickness(width<390?10:14,8,width<390?2:14,8);
         VersionLabel.Visibility=width>=700 && !shortWindow?Visibility.Visible:Visibility.Collapsed;ResumeSavedMatchButton.Content=width<600?"Continue":"Continue match";
         HeaderPanel.Visibility=height<340?Visibility.Collapsed:Visibility.Visible;HeaderPanel.Margin=new Thickness(0,shortWindow?12:22,0,shortWindow?12:20);
-        HomeHeading.FontSize=compact?27:34;HomeSubtitle.Visibility=shortWindow?Visibility.Collapsed:Visibility.Visible;
+        HomeHeading.FontSize=compact?27:34;HomeSubtitle.Visibility=Visibility.Collapsed;
         // The star row owns the actual remaining space. Estimating header
         // height clipped Training's lower corners as text/density changed.
         SportCardsGrid.MaxWidth=1120;SportCardsGrid.Height=double.NaN;SportCardsGrid.VerticalAlignment=VerticalAlignment.Stretch;
@@ -56,6 +56,7 @@ public partial class SportSelectionScreen : UserControl
             if(text.Children[0] is TextBlock title)title.FontSize=height<340?20:compact?25:34;
         }
         foreach(var description in new[]{AflDescription,CricketDescription,TrainingDescription})description.Visibility=height>=520?Visibility.Visible:Visibility.Collapsed;
+        TrainingDescription.Visibility=Visibility.Collapsed;
         foreach(var cta in _landingCtas)if(cta.Parent is Border pill)pill.Visibility=height>=650?Visibility.Visible:Visibility.Collapsed;
         ChangelogPanel.Width=double.NaN;ChangelogPanel.Height=double.NaN;ChangelogPanel.MaxWidth=1120;ChangelogPanel.MaxHeight=Math.Max(180,height-24);ChangelogPanel.Margin=new Thickness(compact?10:22);
         ReleaseSheetSubtitle.Visibility=height<380?Visibility.Collapsed:Visibility.Visible;ReleaseResultCount.Visibility=width<520?Visibility.Collapsed:Visibility.Visible;
@@ -113,6 +114,10 @@ public partial class SportSelectionScreen : UserControl
                 : "No recoverable match saved. Start a new match below.");
         HomeResumeButton.Content = current ? "Return to current session" : "Resume saved match";
         HomeResumeButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+        // Empty Home needs no recovery panel. A malformed saved file still
+        // keeps its actionable recovery explanation; a valid session keeps Resume.
+        ResumeSessionSurface.Visibility=available || GameStateService.HasSavedState()?Visibility.Visible:Visibility.Collapsed;
+        ResumeOutputHint.Visibility=available && !current?Visibility.Visible:Visibility.Collapsed;
         ResumeSavedMatchButton.Visibility = Visibility.Collapsed;
     }
     public void SetDeferredResumeAvailable(bool available)

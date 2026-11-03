@@ -1,5 +1,5 @@
 // Generated from Views/SettingsWorkspace.cs; edit translator/adapters.
-// Source SHA-256: 3eb2bb80c441ba8d49167947d23f4c705f813326e4d01df7a790ad69659e9ba8
+// Source SHA-256: c7775b10424267bf1284aec3be65194ae8ffa19e403e626afcba42a0b87d3604
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -47,7 +47,7 @@ public sealed class SettingsWorkspace : UserControl
     private readonly StackPanel _categories = new();
     private readonly StackPanel _sections = new();
     private readonly TextBlock _heading = new() { FontSize = 20, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
-    private readonly TextBlock _subtitle = new() { FontSize = 14, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,5,0,0) };
+    private readonly TextBlock _subtitle = new() { IsVisible=false, FontSize = 14, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,5,0,0) };
     private readonly TextBlock _contextHeading = new() { FontSize = 30, FontWeight = FontWeight.SemiBold };
     private readonly OperatorSearchBox _search = new() { Placeholder = "Search settings", ToolTip = "Search settings", Height = 44, MinHeight = 0 };
     private readonly TextBlock _empty = new() { Text = "No matching settings", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(20), IsVisible = false };
@@ -70,7 +70,7 @@ public sealed class SettingsWorkspace : UserControl
     public ScrollViewer Scroller { get; } = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new Thickness(8,0,18,18) };
     [Avalonia.Metadata.Content] public Avalonia.Controls.Controls Sections => _sections.Children;
     public string Heading { get => (_heading.Text ?? string.Empty); set => _heading.Text = value; }
-    public string Subtitle { get => (_subtitle.Text ?? string.Empty); set => _subtitle.Text = value; }
+    public string Subtitle { get => (_subtitle.Text ?? string.Empty); set { _subtitle.Text=value;_subtitle.IsVisible=string.IsNullOrWhiteSpace(value)?false:true; } }
 
     public SettingsWorkspace()
     {

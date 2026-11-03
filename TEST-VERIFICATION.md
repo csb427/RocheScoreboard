@@ -1,20 +1,21 @@
-# Revised Windows preview verification
+# Windows refinement preview verification
 
-This is the first-feedback revision of the261db075 Windows preview, not a native desktop certification.
+Final Windows source/assets match the locally cross-built working revision. No app/test source changed after final verification. Publication adds documentation/manifest only.
 
-| Check | Result |
+| Scope / source epoch | Result |
 | --- | --- |
-| Combined affected-workflow Linux/Avalonia run |45 passed,0 failed/skipped;1m12s |
-| Final activation follow-up |5 passed,0 failed/skipped;10s; adds actual revealed-Edit pointer activation |
-| Distinct cases across both runs |46 (four overlap; not a single46-case run) |
-| Windows Release cross-build |0 warnings/errors;25.40s |
-| Windows Debug cross-build |0 warnings/errors;25.55s |
-| Native translated test-project build |0 errors;190 existing warnings, unchanged count from before this pass |
-| Test-only final rebuild |0 warnings/errors |
-| Source translation/parity |49 XAML surfaces,307 C# files,575 UI event bindings |
+| Final navigation/input affected suite |79 passed,0failed/skipped/aborted;4m06s |
+| Final Windows Release / Debug |0warnings/errors;24.31s /25.07s |
+| Earlier scorecard/wicket/history continuation |76passed; separate earlier epoch |
+| Earlier workflow refinement |104passed; separate earlier epoch |
+| Earlier contextual wicket/rules/ownership pass |106distinct passing cases across3invocations |
+| Native translated product/test build |190inherited warnings,0errors;30.78s |
+| Translation/parity |49XAML /307C# /575declared UI bindings |
 
-Coverage: shape geometry and actual sport choices, footer/back/cancel, Training pointer hover, delivery-row height/full-width/header separation/hover/reduced motion/keyboard, active and stale editor guards/cancel, separate overlay content/grouping/rebind/presentation eligibility, compact/large output typography, four actual player-picker flows, existing combined scorecard corrections/reload/rejected operations/settings/saved selection/tabular/large corrected figures/AFL scoring-undo-reload invariants. Product source did not change after the Windows builds and45-case run; the final follow-up added one test input.
+Counts overlap and must not be added together or presented as one full-suite result. Final79 scopes: Home20, unified setup18, recovery9, clock choices12, settings keyboard4, navigation3, AFL history6, post-dialog input7. The Windows-only programmatic QA assertion compiles but was not executed as a native GUI test.
 
-Native Windows WPF appearance, cold-start timing, physical input/UIA/DPI/audio/video/monitor and OS behavior are unrun here. Native Mac desktop acceptance is unrun. First-use animation skipping remains unresolved. Historical font-host/selector/Mac-freeze limitations are retained in KNOWN-LIMITATIONS.md. No broad/global suite or fresh Mac CI/package run is claimed for this publication.
+Input baselines reproduced fresh scoring loss under WPF-equivalent preview order: AFL pointer/Ctrl+1 navigation2fail, cricket dialog close6fail. Scoped native translation now preserves preview order for the tested guard handlers. Physical OS input, Windows compositor/UIA/DPI and cold-first-open timing still need native acceptance. Explicit routed repeat/position metadata checks do not prove OS double-click/touch classification.
 
-SOURCE-SNAPSHOT.json records exact included bytes, source baseline and protected previous snapshots. All425 Windows project source/assets match the tested working revision. Publication-only documentation and manifest do not change application source. No private test captures/logs, operator saves, credentials or generated build archives are included.
+A first oversized follow-up filter selected unrelated tests from partial classes; it was intentionally stopped and receives no aggregate pass credit. Final79 uses exact workflow method selectors/small traits. Failed baselines, fixture corrections and private diagnostics were retained locally; assertions were not weakened to force a pass.
+
+No new complete historical regression suite, native Windows GUI certification, Mac CI/package acceptance, release or deployment is claimed. SOURCE-SNAPSHOT.json records byte hashes of included files; local source provenance does not fabricate a clean-commit identity for earlier dirty builds.

@@ -34,7 +34,7 @@ public sealed partial class AflResetScopeTests
         f.Window.MouseMove(PaintedBounds(f.Window,row).Center);await Settle(350);HistoryFrame(f,$"history-hover-{width}");
         Assert.Equal(heightBefore,row.Bounds.Height);Assert.Equal(before,Snapshot(f.Match));
         var hint=Assert.Single(row.GetVisualDescendants().OfType<Border>(),x=>Equals(x.Tag,"score-log-edit-hint"));
-        Assert.True(hint.Bounds.Height>0);Assert.Contains(hint.GetVisualDescendants().OfType<TextBlock>(),x=>x.Text=="Edit score event");
+        Assert.True(hint.Bounds.Height>0);Assert.InRange(row.Bounds.Height,40,80);Assert.Contains(hint.GetVisualDescendants().OfType<TextBlock>(),x=>x.Text=="Edit");
         var ring=Assert.Single(row.GetVisualDescendants().OfType<Border>(),x=>Equals(x.Tag,"score-log-keyboard-focus"));Assert.True(ring.IsVisible);
         for(int i=0;i<3;i++){f.Window.MouseMove(new Avalonia.Point(1,1));await Settle(20);f.Window.MouseMove(PaintedBounds(f.Window,row).Center);await Settle(20);}
         OperatorAppearance.Configure(glass,true);await Settle(120);Assert.Equal(heightBefore,row.Bounds.Height);Assert.Equal(before,Snapshot(f.Match));

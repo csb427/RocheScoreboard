@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from MainWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 349efb3b7f57673778cc08e229d0085390fbe08732348e7abce08d9ae9087609
+// Source SHA-256: 07403e11ea5a3a7e1890a9ee0625b0b05e737ba1bb314887b2e9ca66f582030d
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -162,6 +162,8 @@ namespace Roche_Scoreboard
         private bool _suppressNavigationPersistence = true;
         private bool _initializingGoalAnimation = true;
         private DateTime _navigationPointerGuardUntilUtc = DateTime.MinValue;
+        private bool _navigationLastInputWasKeyboard = true;
+        private Avalonia.Point? _navigationLastPressPosition, _navigationGuardPosition;
         private DispatcherTimer? _uxPreferencesSaveTimer;
         private DispatcherTimer? _outputDimensionsSaveTimer;
         private int _pendingOutputWidth;
@@ -439,13 +441,14 @@ namespace Roche_Scoreboard
             Closing += MainWindow_Closing;
             Closed += (_, _) => RetireCloudRemoteOwner();
             Loaded += MainWindow_Loaded;
+            AddHandler(Avalonia.Input.InputElement.KeyDownEvent, TrackNavigationKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
             KeyDown += MainWindow_PreviewKeyDown;
 #if DEBUG
             KeyDown += CricketDiagnostics_KeyDown;
 #endif
-            PointerPressed += MainWindow_PreviewMouseLeftButtonDown;
-            PointerReleased += MainWindow_PreviewMouseLeftButtonUp;
-            PointerWheelChanged += MainWindow_PreviewMouseWheelGuard;
+            AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, MainWindow_PreviewMouseLeftButtonDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+            AddHandler(Avalonia.Input.InputElement.PointerReleasedEvent, MainWindow_PreviewMouseLeftButtonUp, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+            AddHandler(Avalonia.Input.InputElement.PointerWheelChangedEvent, MainWindow_PreviewMouseWheelGuard, Avalonia.Interactivity.RoutingStrategies.Tunnel);
             UpdateLogoCropSummaryText();
             UpdateHoverPreviewVisual(_selectedPreviewKey);
             InitSettingsWeatherLocation();
@@ -548,22 +551,43 @@ namespace Roche_Scoreboard
         {
             // A tab/category swap can move a live control underneath the
             // pointer before the user's release or touchpad inertia finishes.
-            // Briefly absorb that trailing input so navigation can never score,
-            // start a clock or trigger an output action accidentally.
-            _navigationPointerGuardUntilUtc = DateTime.UtcNow.AddMilliseconds(450);
-            NativeKeyboard.ClearFocus();
+            // Protect the closing/navigation gesture, not a subsequent fresh
+            // scoring press elsewhere. Keyboard navigation has no pointer tail.
+            bool pointer = !_navigationLastInputWasKeyboard && _navigationLastPressPosition is not null;
+            _navigationPointerGuardUntilUtc = pointer ? DateTime.UtcNow.AddMilliseconds(450) : DateTime.MinValue;
+            _navigationGuardPosition = pointer ? _navigationLastPressPosition : null;
+            if (pointer) NativeKeyboard.ClearFocus();
         }
 
-        private void MainWindow_PreviewMouseLeftButtonUp(object? sender, PointerEventArgs e)
+        private void MainWindow_PreviewMouseLeftButtonUp(object? sender, PointerReleasedEventArgs e)
         {
-            if (DateTime.UtcNow < _navigationPointerGuardUntilUtc)
+            if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return;
+            if (DateTime.UtcNow < _navigationPointerGuardUntilUtc && AtNavigationGuardPosition(e.GetPosition(this)))
                 e.Handled = true;
         }
 
-        private void MainWindow_PreviewMouseLeftButtonDown(object? sender, PointerEventArgs e)
+        private void MainWindow_PreviewMouseLeftButtonDown(object? sender, PointerPressedEventArgs e)
         {
-            if (DateTime.UtcNow < _navigationPointerGuardUntilUtc)
-                e.Handled = true;
+            if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+            _navigationLastInputWasKeyboard = false;
+            var point = e.GetPosition(this);
+            if (DateTime.UtcNow < _navigationPointerGuardUntilUtc && (e.ClickCount > 1 || AtNavigationGuardPosition(point)))
+            { e.Handled = true; return; }
+            _navigationPointerGuardUntilUtc = DateTime.MinValue;
+            _navigationGuardPosition = null;
+            _navigationLastPressPosition = point;
+        }
+
+        private bool AtNavigationGuardPosition(Avalonia.Point point)
+            => _navigationGuardPosition is Avalonia.Point origin
+                && Math.Abs(point.X-origin.X) <= 4d
+                && Math.Abs(point.Y-origin.Y) <= 4d;
+
+        private void TrackNavigationKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+        {
+            _navigationLastInputWasKeyboard = true;
+            _navigationPointerGuardUntilUtc = DateTime.MinValue;
+            _navigationGuardPosition = null;
         }
 
         private void MainWindow_PreviewMouseWheelGuard(object? sender, PointerWheelEventArgs e)

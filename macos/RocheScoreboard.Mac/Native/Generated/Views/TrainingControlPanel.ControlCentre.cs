@@ -1,5 +1,5 @@
 // Generated from Views/TrainingControlPanel.ControlCentre.cs; edit translator/adapters.
-// Source SHA-256: 3a7fe3e9c4468eb4a5df2fa64167fd99db05f2a5ad1c461649752dd812a79794
+// Source SHA-256: 01645154e6098803eafba8c4666010d70ff839efdfb509a24c54b8b9f516a419
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -33,7 +33,8 @@ public partial class TrainingControlPanel
     private void ArrangeControlCentre()
     {
         if (TrainingBodyColumns is null || TrainingViewport is null) return;
-        bool stacked = Bounds.Width < 1000;
+        bool shortWindow = Bounds.Height < 500;
+        bool stacked = Bounds.Width < 1000 || Bounds.Height < 600;
         TrainingViewport.MinimumCanvasWidth = 380;
         TrainingViewport.MinimumCanvasHeight = 0;
         TrainingViewport.NaturalHeight = false;
@@ -58,16 +59,30 @@ public partial class TrainingControlPanel
         TrainingBodyColumns.Height = stacked ? double.NaN : Math.Max(260, TrainingPageViewport.NativeHeight() - 30);
 
         bool narrow = Bounds.Width < 720;
-        TrainingSubtitle.IsVisible = TrainingTitleDivider.IsVisible = Bounds.Width < 1200 ? false : true;
+        TrainingSubtitle.IsVisible = TrainingTitleDivider.IsVisible = false;
+        TrainingSessionReadout.IsVisible = shortWindow ? false : true;
+        TrainingHeaderSurface.Padding = shortWindow ? new Thickness(8,6,8,6) : new Thickness(16,12,16,12);
+        TrainingTitleSurface.Padding = shortWindow ? new Thickness(8,4,8,4) : new Thickness(12,8,12,8);
+        TrainingTitleText.FontSize = shortWindow ? 18 : 22;
+        TrainingEntrySymbol.Width = TrainingEntrySymbol.Height = shortWindow ? 22 : 28;
+        TrainingEntrySymbol.Margin = new Thickness(0,0,shortWindow ? 6 : 10,0);
+        ExitButton.Padding = shortWindow ? new Thickness(8,6,8,6) : new Thickness(16,10,16,10);
+        TrainingActiveSurface.Padding = shortWindow ? new Thickness(12) : new Thickness(24);
+        TrainingTransportSurface.Padding = shortWindow ? new Thickness(10,8,10,0) : new Thickness(16);
+        TrainingTransportSurface.Margin = new Thickness(0,shortWindow ? 8 : 12,0,0);
+        ActiveStatusPill.Padding = shortWindow ? new Thickness(8,2,8,2) : new Thickness(12,4,12,4);
+        ActiveStatusPill.Margin = new Thickness(0,shortWindow ? 4 : 8,0,0);
+        foreach(var button in new[]{StartPauseButton,ResetActiveButton,SkipButton,AddOneMinButton,AddTenSecButton})
+        {
+            button.Height = shortWindow ? 36 : 46;
+            button.Padding = shortWindow ? new Thickness(10,6,10,6) : ReferenceEquals(button,StartPauseButton) ? new Thickness(16,8,16,8) : new Thickness(16,10,16,10);
+            button.FontSize = shortWindow ? 14 : ReferenceEquals(button,StartPauseButton) ? 18 : 14;
+        }
+        StartPauseButton.Width = shortWindow ? double.NaN : 152;
         Grid.SetRow(TrainingSessionReadout, narrow ? 1 : 0);
         Grid.SetColumn(TrainingSessionReadout, narrow ? 0 : 2);
         Grid.SetColumnSpan(TrainingSessionReadout, narrow ? 5 : 1);
         TrainingSessionReadout.Margin = new Thickness(0, narrow ? 10 : 0, 18, 0);
-        Grid.SetRow(TrainingCloudLauncher, Bounds.Width < 1400 ? narrow ? 2 : 1 : 0);
-        Grid.SetColumn(TrainingCloudLauncher, Bounds.Width < 1400 ? 0 : 3);
-        Grid.SetColumnSpan(TrainingCloudLauncher, Bounds.Width < 1400 ? 5 : 1);
-        TrainingCloudLauncher.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
-        TrainingCloudLauncher.Margin = new Thickness(0, Bounds.Width < 1400 ? 10 : 0, 18, 0);
         TrainingQueueHint.IsVisible = Bounds.Width < 1400 ? false : true;
         Grid.SetRow(TrainingQueueActions, narrow ? 1 : 0);
         Grid.SetColumn(TrainingQueueActions, narrow ? 0 : 3);
@@ -75,13 +90,13 @@ public partial class TrainingControlPanel
         TrainingQueueActions.Margin = new Thickness(narrow ? 10 : 0, 0, 8, narrow ? 8 : 0);
 
         // The large active timer gets its own row rather than squeezing the title.
-        Grid.SetRow(ActiveRemainingText, narrow ? 1 : 0);
-        Grid.SetColumn(ActiveRemainingText, narrow ? 0 : 1);
-        Grid.SetColumnSpan(ActiveRemainingText, narrow ? 2 : 1);
-        ActiveRemainingText.Margin = new Thickness(0, narrow ? 10 : 0, 0, 0);
-        ActiveRemainingText.HorizontalAlignment = narrow ? Avalonia.Layout.HorizontalAlignment.Left : Avalonia.Layout.HorizontalAlignment.Right;
-        ActiveRemainingText.FontSize = narrow ? 64 : 84;
-        ActiveTitleText.FontSize = narrow ? 28 : 42;
+        Grid.SetRow(ActiveRemainingText, narrow && !shortWindow ? 1 : 0);
+        Grid.SetColumn(ActiveRemainingText, narrow && !shortWindow ? 0 : 1);
+        Grid.SetColumnSpan(ActiveRemainingText, narrow && !shortWindow ? 2 : 1);
+        ActiveRemainingText.Margin = new Thickness(0, narrow && !shortWindow ? 10 : 0, 0, 0);
+        ActiveRemainingText.HorizontalAlignment = narrow && !shortWindow ? Avalonia.Layout.HorizontalAlignment.Left : Avalonia.Layout.HorizontalAlignment.Right;
+        ActiveRemainingText.FontSize = shortWindow ? 44 : narrow ? 64 : 84;
+        ActiveTitleText.FontSize = shortWindow ? 20 : narrow ? 28 : 42;
         TrainingViewport.RefreshViewport();
     }
 }

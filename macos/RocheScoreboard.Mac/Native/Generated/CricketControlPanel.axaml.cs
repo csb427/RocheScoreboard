@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketControlPanel.xaml.cs; edit translator/adapters.
-// Source SHA-256: efb099ff76da5c5cc29c19bddc17d98b9668645a5013c10f91feab445bdab935
+// Source SHA-256: 876c629581e4e295514ea143988e7a1e9110f727bd2d40ba9c99fa8fdad85c23
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -58,7 +58,7 @@ namespace Roche_Scoreboard.Views
                 foreach (var fact in host.Facts.Where(f => f.Group == group))
                 {
                     CricketOverlayKind kind = fact.Kind;
-                    var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(4, 10, 4, 10) };
+                    var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(4, 6, 4, 6) };
                     bool situation=kind is CricketOverlayKind.Partnership or CricketOverlayKind.MatchState or CricketOverlayKind.InningsRecap;
                     if(situation)content.Children.Add(new OperatorSymbol
                     {
@@ -87,7 +87,7 @@ namespace Roche_Scoreboard.Views
                     button.Tag = kind;
                     button.Content = content;
                     button.Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "OperatorPresentationButton");
-                    button.MinHeight = 72;
+                    button.MinHeight = 60;
                     button.Margin = new Thickness(4);
                     button.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(background));
                     if (!retained) button.Click += (_, _) => _overlayHost?.Request(kind);
@@ -164,6 +164,8 @@ namespace Roche_Scoreboard.Views
 
         private CricketDeliveryDialog? _deliveryEntry;
         private DateTime _deliveryPointerGuardUntil;
+        private bool _lastOperatorInputWasKeyboard = true;
+        private Avalonia.Point? _lastPointerDownPosition, _closingPointerPosition;
         private bool _loadingPresentationPreferences = true;
         private void CricketPresentationPreference_Changed(object? sender, RoutedEventArgs args)
         {
@@ -197,7 +199,8 @@ namespace Roche_Scoreboard.Views
             NativePointer.EnsureInitialized(); ProductionNames.BeginLoad(this); try { InitializeComponent(); } finally { ProductionNames.CompleteLoad(this); }
             Avalonia.Automation.AutomationProperties.SetLabeledBy(CricketWeatherLocation,CricketWeatherVenueLabel);
             InitializeLiveScorebugCard();
-            PointerPressed += (_, args) => { if (DateTime.UtcNow < _deliveryPointerGuardUntil) args.Handled = true; };
+            AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, ControlPanel_PreviewMouseDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+            AddHandler(Avalonia.Input.InputElement.KeyDownEvent, TrackOperatorKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
             KeyDown += (_, args) =>
             {
                 if (args.Key == Key.Escape && _deliveryEntry is null
@@ -223,6 +226,31 @@ namespace Roche_Scoreboard.Views
             InitializeBreakPresentations();
         }
 
+        private void ControlPanel_PreviewMouseDown(object? sender, PointerPressedEventArgs args)
+        {
+            _lastOperatorInputWasKeyboard = false;
+            var point = args.GetPosition(this);
+            bool atClosingPosition = _closingPointerPosition is Avalonia.Point closing
+                && Math.Abs(point.X-closing.X) <= 4d
+                && Math.Abs(point.Y-closing.Y) <= 4d;
+            if (DateTime.UtcNow < _deliveryPointerGuardUntil && (args.ClickCount > 1 || atClosingPosition))
+            { args.Handled = true; return; }
+            // A distinct fresh press ends the closing gesture. Subsequent rapid
+            // scores are ordinary input, rather than a timed blanket debounce.
+            _deliveryPointerGuardUntil = DateTime.MinValue; _closingPointerPosition = null;
+            _lastPointerDownPosition = point;
+        }
+        private void TrackOperatorKeyDown(object? sender, Avalonia.Input.KeyEventArgs args)
+        {
+            _lastOperatorInputWasKeyboard = true;
+            _deliveryPointerGuardUntil = DateTime.MinValue; _closingPointerPosition = null;
+        }
+        private void GuardPointerContinuation(int milliseconds)
+        {
+            _deliveryPointerGuardUntil = _lastOperatorInputWasKeyboard ? DateTime.MinValue : DateTime.UtcNow.AddMilliseconds(milliseconds);
+            _closingPointerPosition = _lastOperatorInputWasKeyboard ? null : _lastPointerDownPosition;
+        }
+
         private bool? _narrowConsole;
         private readonly Dictionary<Grid, (GridLength[] Columns, (Control Element, int Column)[] Children)> _consoleLayouts = new();
         private void Console_SizeChanged(object? sender, SizeChangedEventArgs e) => AdaptConsole();
@@ -230,7 +258,7 @@ namespace Roche_Scoreboard.Views
         private void AdaptConsole()
         {
             if (ConsoleViewport is null || ScoringColumns is null) return;
-            bool narrow = Bounds.Width < 900;
+            bool narrow = Bounds.Width < 900 || Bounds.Height < 520;
             ConsoleViewport.MinimumCanvasWidth = 320;
             ConsoleViewport.NaturalHeight = false;
             ConsoleViewport.MinimumCanvasHeight = 0;
@@ -247,6 +275,12 @@ namespace Roche_Scoreboard.Views
                     {
                         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                         grid.RowDefinitions.Add(new RowDefinition { Height = grid == ScoringColumns ? new GridLength(320) : GridLength.Auto });
+                        if(grid==DisplayColumns)grid.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});
+                    }
+                    else if(grid==DisplayColumns)
+                    {
+                        grid.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});
+                        grid.RowDefinitions.Add(new RowDefinition{Height=new GridLength(1,GridUnitType.Star),MinHeight=100});
                     }
                     for (int i = 0; i < 3; i++) grid.ColumnDefinitions[i].Width = narrow
                         ? new GridLength(i == 0 ? 1 : 0, GridUnitType.Star) : saved.Columns[i];
@@ -255,7 +289,8 @@ namespace Roche_Scoreboard.Views
                     foreach (var child in saved.Children)
                     {
                         Grid.SetColumn(child.Element, narrow ? 0 : child.Column);
-                        Grid.SetRow(child.Element, narrow && child.Column == 2 ? 1 : 0);
+                        Grid.SetRow(child.Element, grid==DisplayColumns && ReferenceEquals(child.Element,CricketWeatherViewport)?narrow?2:1:narrow && child.Column==2?1:0);
+                        Grid.SetRowSpan(child.Element,grid==DisplayColumns && child.Column==2 && !narrow?2:1);
                         if(grid==ScoringColumns && child.Column==0 && child.Element is ScrollViewer scorer) scorer.VerticalScrollBarVisibility=narrow ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto;
                     }
                 }
@@ -263,13 +298,17 @@ namespace Roche_Scoreboard.Views
             }
             // Pages scroll independently while the navigation dock remains anchored.
             double scoringHeight = narrow ? double.NaN : Math.Max(260, CricketMatchPageViewport.NativeHeight() - 24);
-            double outputHeight = narrow ? double.NaN : Math.Max(260, CricketOutputPageViewport.NativeHeight() - 32);
+            double outputHeight = narrow ? double.NaN : Math.Max(500, CricketOutputPageViewport.NativeHeight() - 32);
             if (narrow) { ScoringColumns.Height = double.NaN; DisplayColumns.Height = double.NaN; }
             else
             {
                 if (!double.IsFinite(ScoringColumns.Height) || Math.Abs(ScoringColumns.Height - scoringHeight) > .5) ScoringColumns.Height = scoringHeight;
                 if (!double.IsFinite(DisplayColumns.Height) || Math.Abs(DisplayColumns.Height - outputHeight) > .5) DisplayColumns.Height = outputHeight;
             }
+            bool pairPlayers=!narrow && Bounds.Width>=1150;
+            CurrentPlayers.ColumnDefinitions[1].Width=new GridLength(pairPlayers?12:0);
+            CurrentPlayers.ColumnDefinitions[2].Width=pairPlayers?new GridLength(1,GridUnitType.Star):new GridLength(0);
+            Grid.SetColumn(BowlingZone,pairPlayers?2:0);Grid.SetRow(BowlingZone,pairPlayers?0:1);
             CricketPresentationGrid.Columns = Bounds.Width < 650 ? 2 : 3;
             HeaderOversBadge.IsVisible = narrow ? false : true;
             bool tiny = Bounds.Width < 560;
@@ -642,7 +681,7 @@ namespace Roche_Scoreboard.Views
             DeliveryEntryContent.Content = entry.Embed(applied =>
             {
                 if (!ReferenceEquals(_deliveryEntry, entry)) return;
-                _deliveryPointerGuardUntil = DateTime.UtcNow.AddMilliseconds(250);
+                GuardPointerContinuation(250);
                 _deliveryEntry = null; DeliveryEntryOverlay.IsVisible = false; DeliveryEntryContent.Content = null; ConsoleViewport.IsEnabled = true; ConsoleViewport.IsHitTestVisible = true;
                 RefreshPlayerCardOpacity();
                 if (applied) ResumePendingSelection();

@@ -24,7 +24,8 @@ public sealed partial class CricketPlayerMenuPreferencesBaselineTests
         var sheet=await OpenOptionsDesk(panel,window);
         if(Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR") is {Length:>0} directory)Directory.CreateDirectory(directory);
         Assert.Contains(sheet.GetVisualDescendants().OfType<Border>(),x=>Equals(x.Tag,"match-options-context"));
-        Assert.Contains(sheet.GetVisualDescendants().OfType<TextBlock>(),x=>x.Text=="MATCH AT OPENING");
+        Assert.DoesNotContain(sheet.GetVisualDescendants().OfType<TextBlock>(),x=>x.Text=="MATCH AT OPENING" || x.Text=="Manage breaks, teams and playing conditions.");
+        Assert.Contains(sheet.GetVisualDescendants().OfType<TextBlock>(),x=>x.Text?.EndsWith("at opening")==true);
         Assert.Contains(PromptAction(sheet,"rain").GetVisualDescendants().OfType<TextBlock>(),x=>x.Text!.Contains("No DLS calculation"));
         PromptCapture(window,$"options-desk-{width}");
         sheet=await ReplacementNext(panel,window,sheet,"break");
@@ -53,6 +54,19 @@ public sealed partial class CricketPlayerMenuPreferencesBaselineTests
         Assert.Contains(sheet.GetVisualDescendants().OfType<TextBlock>(),x=>x.Text=="No result");
         foreach(string absent in new[]{"break","conditions","rain","innings","before-delivery"})Assert.DoesNotContain(sheet.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Tag,absent));
         foreach(string present in new[]{"teams","outcome"}){var action=PromptAction(sheet,present);await Reveal(window,action);await StableReachable(window,action);}
+        KeyNow(window,PhysicalKey.Escape);await PromptRetired(panel,sheet);Assert.Equal(before,State(match));
+    }
+
+    [AvaloniaTheory] [InlineData(false)] [InlineData(true)]
+    [Trait("Evidence","CricketMatchOptionsDesk")]
+    public async Task InapplicablePreDeliveryActionIsNotOffered(bool paused)
+    {
+        using var scope=new Scope();var match=CricketReliabilityChecks.CreateMatch(paused);
+        if(paused)match.SetBreak(CricketBreakKind.Rain);
+        var panel=new CricketControlPanel();panel.SetMatch(match);var window=scope.Window(panel,1280,850);await Settle(550);string before=State(match);
+        var sheet=await OpenOptionsDesk(panel,window);Assert.False(match.CanRecordNonDeliveryRunOut);
+        Assert.DoesNotContain(sheet.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Tag,"before-delivery"));
+        Assert.DoesNotContain(sheet.GetVisualDescendants().OfType<TextBlock>(),x=>x.Text=="Review the match format and total over limit." || x.Text=="Manage breaks, teams and playing conditions.");
         KeyNow(window,PhysicalKey.Escape);await PromptRetired(panel,sheet);Assert.Equal(before,State(match));
     }
 

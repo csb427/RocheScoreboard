@@ -25,6 +25,13 @@ public partial class CricketControlPanel
         TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis,
         Margin = new Thickness(0, 0, 0, 6)
     };
+    private readonly System.Windows.Controls.TextBlock _scorecardFocusContext = new()
+    {
+        Tag = "scorecard-focus-context", FontSize = 14, FontWeight = FontWeights.SemiBold,
+        TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis,
+        Margin = new Thickness(0,0,0,6), Visibility = Visibility.Collapsed
+    };
+    private Button? _scorecardFocusedFigure;
     private readonly System.Windows.Controls.TextBlock _scorecardStatus = WorkflowText("Select an innings to view its scorecard.", 13);
     private Grid? _scorecardLayout;
     private bool? _scorecardCompact;
@@ -48,7 +55,10 @@ public partial class CricketControlPanel
         layout.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) });
         _scorecardContext.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
         System.Windows.Automation.AutomationProperties.SetLiveSetting(_scorecardContext, System.Windows.Automation.AutomationLiveSetting.Polite);
-        layout.Children.Add(_scorecardContext);
+        _scorecardFocusContext.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,"ControlCentre.TextBrush");
+        var contextHeader = new StackPanel();contextHeader.Children.Add(_scorecardContext);contextHeader.Children.Add(_scorecardFocusContext);
+        layout.Children.Add(contextHeader);
+        MainTabControl.SelectionChanged += (_,_) => { if(MainTabControl.SelectedItem != ScorecardTab)ClearScorecardFigureFocus(); };
         var content = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
         System.Windows.Automation.AutomationProperties.SetLiveSetting(_scorecardStatus, System.Windows.Automation.AutomationLiveSetting.Polite);
         _scorecardInningsButtons.HorizontalAlignment = System.Windows.HorizontalAlignment.Left; _scorecardInningsButtons.Margin = new Thickness(0, 0, 0, 3);
@@ -80,7 +90,7 @@ public partial class CricketControlPanel
         // Innings and instructions precede the table in the same page scroller;
         // the match strip and navigation dock remain outside and anchored.
     }
-    private void ResetScorecard() { _scorecardContext.Text = ""; _scorecardContext.ToolTip = null; System.Windows.Automation.AutomationProperties.SetName(_scorecardContext, ""); _scorecardViewCache.Clear();_scorecardCachedDraft=null;_scorecardMetadata=""; _scorecardDraft = null; _scorecardDirty = false; _scorecardCommitBusy = false; _scorecardFowEditing = false; _scorecardAppliedFeedback = null; _scorecardInnings = 0; _scorecardPlayerRows.Clear(); _scorecardRows.Children.Clear(); _scorecardInningsButtons.Children.Clear(); _scorecardTeamButtons.Children.Clear(); }
+    private void ResetScorecard() { ClearScorecardFigureFocus(); _scorecardContext.Text = ""; _scorecardContext.ToolTip = null; System.Windows.Automation.AutomationProperties.SetName(_scorecardContext, ""); _scorecardViewCache.Clear();_scorecardCachedDraft=null;_scorecardMetadata=""; _scorecardDraft = null; _scorecardDirty = false; _scorecardCommitBusy = false; _scorecardFowEditing = false; _scorecardAppliedFeedback = null; _scorecardInnings = 0; _scorecardPlayerRows.Clear(); _scorecardRows.Children.Clear(); _scorecardInningsButtons.Children.Clear(); _scorecardTeamButtons.Children.Clear(); }
     private void SizeScorecardTeamTabs()
     {
         double width = Math.Max(100, (_scorecardTeamButtons.ActualWidth - 12) / 2);
@@ -194,15 +204,49 @@ public partial class CricketControlPanel
             peer?.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
         }
     }
-    private Button Figure(string label, Func<int> read, Action<int> write, bool overs = false, bool compact = false)
+    private void ClearScorecardFigureFocus()
+    {
+        _scorecardFocusedFigure=null;_scorecardFocusContext.Text="";_scorecardFocusContext.ToolTip=null;
+        _scorecardFocusContext.Visibility=Visibility.Collapsed;
+    }
+    private void TrackScorecardFigureFocus(Button button,string metric,string playerName,CricketScorecardDraft draft,(bool Bowling,int Index) key,Grid row)
+    {
+        string? name=System.Windows.Automation.AutomationProperties.GetName(button);
+        System.Windows.Automation.AutomationProperties.SetName(button,$"{playerName}, {(string.IsNullOrWhiteSpace(name)?metric:name)}");
+        button.GotKeyboardFocus += (_,_) =>
+        {
+            if(!ReferenceEquals(_scorecardDraft,draft) || MainTabControl.SelectedItem!=ScorecardTab
+                || !_scorecardPlayerRows.TryGetValue(key,out var current) || !ReferenceEquals(current,row))return;
+            _scorecardFocusedFigure=button;
+            _scorecardFocusContext.Text=$"{metric} · {playerName}";
+            _scorecardFocusContext.ToolTip=_scorecardFocusContext.Text+"\n"+_scorecardContext.Text;
+            _scorecardFocusContext.Visibility=Visibility.Visible;
+        };
+        void Retire(){if(ReferenceEquals(_scorecardFocusedFigure,button))ClearScorecardFigureFocus();}
+        button.LostKeyboardFocus += (_,_) => Retire();
+        button.Unloaded += (_,_) => Retire();
+    }
+    private Button Figure(string label, Func<int> read, Action<int> write, bool overs = false, bool compact = false, string? context = null)
     {
         string value = overs ? $"{read() / 6}.{read() % 6}" : read().ToString(CultureInfo.InvariantCulture);
-        var button = WorkflowButton(compact ? value : label + "  " + value, async () =>
+        var draft = _scorecardDraft; var match = _match; int generation = _workflowGeneration;
+        bool bowling = _scorecardBowling;
+        bool Current() => draft is not null && match is not null && generation == _workflowGeneration
+            && ReferenceEquals(match, _match) && ReferenceEquals(draft, _scorecardDraft);
+        Button? button = null;
+        button = WorkflowButton(compact ? value : label + "  " + value, async () =>
         {
-            var draft = _scorecardDraft; var match = _match; int generation = _workflowGeneration;
-            if (draft is null || match is null) return;
-            bool Current() => generation == _workflowGeneration && ReferenceEquals(match, _match) && ReferenceEquals(draft, _scorecardDraft);
+            // A retained automation/click callback still closes over the old
+            // player's read/write delegates. It cannot borrow a new draft/view.
+            if (draft is null || match is null || !Current() || button is not { IsLoaded: true, IsVisible: true, IsEnabled: true }
+                || MainTabControl.SelectedItem != ScorecardTab || bowling != _scorecardBowling) return;
             var editor = CreateScorecardFigureEditor(label, value, overs, out var field);
+            if (!string.IsNullOrWhiteSpace(context))
+            {
+                var identity = WorkflowText(context,14);identity.Tag="scorecard-figure-context";
+                identity.FontWeight=FontWeights.SemiBold;identity.Margin=new Thickness(0,0,0,10);
+                editor.Children.Insert(0,identity);
+            }
             var error = WorkflowText("", 14); error.Tag = "scorecard-figure-error"; error.Visibility = Visibility.Collapsed;
             error.Foreground = ScorecardAlertBrush(true); editor.Children.Add(error);
             System.Windows.Automation.AutomationProperties.SetLiveSetting(error, System.Windows.Automation.AutomationLiveSetting.Assertive);
@@ -248,6 +292,7 @@ public partial class CricketControlPanel
         string? focusedUid = previousField is { Tag: "scorecard-fow-entry" } ? previousField.Uid : null;
         int selectionStart = previousField?.SelectionStart ?? 0, selectionLength = previousField?.SelectionLength ?? 0;
         double scrollOffset = _scorecardScroll?.VerticalOffset ?? 0;
+        ClearScorecardFigureFocus();
         int renderVersion = ++_scorecardRenderVersion;
         _scorecardRows.Children.Clear(); _scorecardPlayerRows.Clear(); if (_scorecardDraft is not { } draft || _match is null) return;
         var viewedInnings = _match.AllInnings[draft.InningsNumber - 1];
@@ -304,6 +349,7 @@ public partial class CricketControlPanel
         var players = _scorecardBowling ? draft.Bowlers : draft.Batters;
         foreach (var player in players.OrderBy(p => p.BattingPosition))
         {
+            bool rowBowling = _scorecardBowling;
             var row = new Grid { Margin = new Thickness(4, compact ? 5 : 2, 4, compact ? 5 : 2) };
             row.Background = Brushes.Transparent;
             int playerIndex = players.IndexOf(player); row.Tag = $"scorecard-player-{(_scorecardBowling ? "bowling" : "batting")}-{playerIndex}";
@@ -318,22 +364,26 @@ public partial class CricketControlPanel
             var name = WorkflowText(player.FullName, 16); name.FontWeight = FontWeights.SemiBold; name.ToolTip = player.FullName; name.VerticalAlignment = VerticalAlignment.Center; name.Margin = new Thickness(8, 5, 6, 5); name.TextTrimming = TextTrimming.CharacterEllipsis;
             if (compact) { Grid.SetColumnSpan(name, 4); name.Margin = new Thickness(12, 12, 12, 3); name.ToolTip = player.FullName; }
             row.Children.Add(name);
+            string playerContext=$"{player.FullName} · {(_scorecardBowling ? "Bowling" : "Batting")} · {ordinal} innings · {(_scorecardBowling ? viewedInnings.BowlingTeamName : viewedInnings.BattingTeamName)}";
             var values = new List<FrameworkElement>();
             if (_scorecardBowling)
             {
-                values.Add(Figure("Overs", () => player.BallsBowled, v => player.BallsBowled = v, true, true)); values.Add(Figure("Maidens", () => player.Maidens, v => player.Maidens = v, compact: true)); values.Add(Figure("Runs conceded", () => player.RunsConceded, v => player.RunsConceded = v, compact: true)); values.Add(Figure("Bowler wickets", () => player.Wickets, v => player.Wickets = v, compact: true)); values.Add(Figure("Bowler wides", () => player.Wides, v => player.Wides = v, compact: true)); values.Add(Figure("Bowler no-balls", () => player.NoBalls, v => player.NoBalls = v, compact: true));
+                values.Add(Figure("Overs", () => player.BallsBowled, v => player.BallsBowled = v, true, true, context: playerContext)); values.Add(Figure("Maidens", () => player.Maidens, v => player.Maidens = v, compact: true, context: playerContext)); values.Add(Figure("Runs conceded", () => player.RunsConceded, v => player.RunsConceded = v, compact: true, context: playerContext)); values.Add(Figure("Bowler wickets", () => player.Wickets, v => player.Wickets = v, compact: true, context: playerContext)); values.Add(Figure("Bowler wides", () => player.Wides, v => player.Wides = v, compact: true, context: playerContext)); values.Add(Figure("Bowler no-balls", () => player.NoBalls, v => player.NoBalls = v, compact: true, context: playerContext));
                 var econ = WorkflowText($"{player.Economy:0.00}", 15); econ.TextAlignment = TextAlignment.Center; econ.VerticalAlignment = VerticalAlignment.Center; econ.ToolTip = "Economy · calculated from balls and runs"; values.Add(econ);
             }
             else
             {
-                values.Add(Figure("Runs", () => player.Runs, v => player.Runs = v, compact: true)); values.Add(Figure("Balls", () => player.BallsFaced, v => player.BallsFaced = v, compact: true)); values.Add(Figure("4s", () => player.Fours, v => player.Fours = v, compact: true)); values.Add(Figure("6s", () => player.Sixes, v => player.Sixes = v, compact: true));
+                values.Add(Figure("Runs", () => player.Runs, v => player.Runs = v, compact: true, context: playerContext)); values.Add(Figure("Balls", () => player.BallsFaced, v => player.BallsFaced = v, compact: true, context: playerContext)); values.Add(Figure("4s", () => player.Fours, v => player.Fours = v, compact: true, context: playerContext)); values.Add(Figure("6s", () => player.Sixes, v => player.Sixes = v, compact: true, context: playerContext));
                 var dismissal = WorkflowButton(player.DismissalSummary, async () => await EditScorecardDismissalAsync(player), "scorecard-dismissal"); dismissal.Background = Brushes.Transparent; dismissal.BorderThickness = new Thickness(0); dismissal.MinHeight = compact ? 30 : 40; dismissal.FontSize = 13; dismissal.Margin = new Thickness(4, 0, 4, 2);
                 dismissal.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "ControlCentre.TextBrush");
+                TrackScorecardFigureFocus(dismissal,"Dismissal",player.FullName,draft,(rowBowling,playerIndex),row);
                 Grid.SetRow(dismissal, compact ? 2 : 0); Grid.SetColumn(dismissal, compact ? 0 : row.ColumnDefinitions.Count - 1); if (compact) Grid.SetColumnSpan(dismissal, row.ColumnDefinitions.Count); row.Children.Add(dismissal);
             }
             for (int i = 0; i < values.Count; i++)
             {
                 var value = values[i];
+                if(value is Button figure)
+                    TrackScorecardFigureFocus(figure,figure.ToolTip?.ToString()?.Replace("Edit ","") ?? headings[i],player.FullName,draft,(rowBowling,playerIndex),row);
                 if (compact)
                 {
                     ConfigureScorecardMetric(value, headings[i]);

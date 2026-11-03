@@ -493,7 +493,7 @@
                                                 <Button Grid.Column="2" x:Name="ContinueQtrButton" Content="↩ Resume Q" Height="60" FontSize="11" FontWeight="Bold" Click="ContinueQuarter_Click" Background="#1A2A14" BorderBrush="#3A6030" Foreground="#7EE068" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Resume the previous quarter from where it left off — does NOT start the next quarter" IsVisible="False" />
                                                 <Button Grid.Column="4" x:Name="UndoButton" Content="UNDO" Height="60" FontSize="12" FontWeight="Bold" Click="Undo_Click" Background="#2A1416" BorderBrush="#E08A8F" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Undo the last score — Ctrl+Z" />
                                             </Grid>
-                                            <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Stretch" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="14" FontWeight="SemiBold" Click="ResetMatch_Click" Background="#2A1416" BorderBrush="#E08A8F" Foreground="#FF6B6B" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Reset the entire match and return to setup" />
+                                            <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Right" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="14" FontWeight="SemiBold" Click="ResetMatch_Click" Background="Transparent" BorderThickness="0" Foreground="#FF6B6B" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Reset the entire match and return to setup" />
                                         </Grid>
                                     </ScrollViewer>
                                     <Grid Grid.Column="2">
