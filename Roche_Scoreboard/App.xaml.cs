@@ -122,6 +122,7 @@ public partial class App : Application
 
         // Initialize theme service with persisted preferences
         ThemeService.Initialize(UxPreferences.Theme, UxPreferences.Density);
+        OperatorAccentPreferences.ApplyAccentResources();
 
         // Validate LibVLC native runtime up-front. A missing or broken VLC
         // install should surface as a clear startup diagnostic instead of

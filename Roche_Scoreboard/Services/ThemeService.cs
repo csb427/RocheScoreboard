@@ -146,6 +146,7 @@ public sealed class ThemeService
             _activeThemeDictionary = newDict;
             _currentTheme = newTheme;
             OperatorDesign.UpdateTheme(newTheme);
+            Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources();
         }
         catch
         {

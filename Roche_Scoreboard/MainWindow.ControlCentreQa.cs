@@ -11,6 +11,7 @@ using CheckBox = System.Windows.Controls.CheckBox;
 using TabControl = System.Windows.Controls.TabControl;
 using TextBox = System.Windows.Controls.TextBox;
 using Orientation = System.Windows.Controls.Orientation;
+using Color = System.Windows.Media.Color;
 
 namespace Roche_Scoreboard;
 
@@ -21,6 +22,8 @@ public partial class MainWindow
         Directory.CreateDirectory(directory);
         var checks = new Dictionary<string, bool>();
         var originalDensity = ((App)System.Windows.Application.Current).ThemeService.CurrentDensity;
+        var originalTheme = ((App)System.Windows.Application.Current).ThemeService.CurrentTheme;
+        var originalAccent = OperatorAppearance.AccentPalette;
         var root = new Grid { Background = Brushes.Black, Margin = new Thickness(16) };
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition());
@@ -44,6 +47,23 @@ public partial class MainWindow
         try
         {
             fixture.Show(); await Pause(); root.UpdateLayout();
+            OperatorAppearance.ConfigureAccentPalette(OperatorAccentPalette.Teal); await Pause();
+            checks["accent-choice-updates-global-tokens"] = System.Windows.Application.Current.Resources["Operator.CustomAccentColor"] is Color teal && teal == Color.FromRgb(93,224,199)
+                && System.Windows.Application.Current.Resources["Operator.CustomSelectionColor"] is Color tealSelection && tealSelection == Color.FromRgb(27,67,61);
+            using(var savedAccent=System.Text.Json.JsonDocument.Parse(File.ReadAllText(OperatorAppearance.StoragePath)))
+                checks["accent-choice-persists"] = savedAccent.RootElement.GetProperty("AccentPalette").GetInt32()==(int)OperatorAccentPalette.Teal;
+            var accentSettings=new Roche_Scoreboard.Views.OperatorAccentPreferences();
+            var accentHost=new Window{Width=460,Height=320,ShowInTaskbar=false,Content=accentSettings};accentHost.Show();await Pause();accentSettings.UpdateLayout();
+            checks["accent-preview-visible"] = accentSettings.Visibility==Visibility.Visible && accentSettings.ActualHeight>0;
+            var restoreAccent=((StackPanel)accentSettings.Content).Children.OfType<Button>().Single(candidate=>candidate.Content as string=="Restore Sky accent");restoreAccent.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));await Pause();
+            checks["accent-preview-restores-default"] = OperatorAppearance.AccentPalette==OperatorAccentPalette.Sky;
+            OperatorAppearance.ConfigureAccentPalette(OperatorAccentPalette.Teal);await Pause();
+            accentHost.Close();
+            ((App)System.Windows.Application.Current).ThemeService.SetTheme(AppTheme.Dark); await Pause();
+            ((App)System.Windows.Application.Current).ThemeService.SetTheme(AppTheme.Light); await Pause();
+            checks["accent-remains-readable-after-theme-change"] = System.Windows.Application.Current.Resources["Operator.CustomAccentColor"] is Color lightTeal && lightTeal == Color.FromRgb(0,112,101);
+            ((App)System.Windows.Application.Current).ThemeService.SetTheme(AppTheme.Dark); await Pause();
+            ((App)System.Windows.Application.Current).ThemeService.SetTheme(originalTheme);OperatorAppearance.ConfigureAccentPalette(originalAccent);Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources();await Pause();
             checks["local-button-template"] = button.Template.FindName("PART_Surface", button) is Grid;
             checks["one-motion-owner"] = OperatorControlMotion.GetEnabled(button) && !CricketActionMotion.GetEnabled(button);
             checks["floating-dock"] = tabs.Template.FindName("PART_OperatorDock", tabs) is Border;
@@ -86,7 +106,7 @@ public partial class MainWindow
             }
             finally { output.Close(); }
         }
-        finally { fixture.Close(); OperatorDesign.UpdateDensity(originalDensity); }
+        finally { fixture.Close(); OperatorDesign.UpdateDensity(originalDensity); ((App)System.Windows.Application.Current).ThemeService.SetTheme(originalTheme); OperatorAppearance.ConfigureAccentPalette(originalAccent); Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources(); }
         foreach (var check in await RunOperatorViewportChecksAsync(directory)) checks[check.Key] = check.Value;
         foreach (var check in await RunSetupReflowChecksAsync(directory)) checks[check.Key] = check.Value;
         foreach (var check in await RunSettingsVisualChecksAsync(directory)) checks[check.Key] = check.Value;
@@ -153,6 +173,15 @@ public partial class MainWindow
             }
             var cricket = new Roche_Scoreboard.Views.CricketControlPanel();
             var match = CricketReliabilityChecks.CreateMatch(true); cricket.SetMatch(match); host.Content = cricket;
+            var originalAccent=OperatorAppearance.AccentPalette;
+            try
+            {
+                OperatorAppearance.ConfigureAccentPalette(OperatorAccentPalette.Teal);Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources();
+                var expectedAccent=(Color)System.Windows.Application.Current.Resources["Operator.CustomAccentColor"];
+                checks["afl-accent-resource-applies"] = this.TryFindResource("ControlCentre.AccentBrush") is SolidColorBrush aflAccent && aflAccent.Color==expectedAccent;
+                checks["cricket-accent-resource-applies"] = cricket.TryFindResource("ControlCentre.AccentBrush") is SolidColorBrush cricketAccent && cricketAccent.Color==expectedAccent;
+            }
+            finally { OperatorAppearance.ConfigureAccentPalette(originalAccent);Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources(); }
             foreach (var size in new[] { (420d, 600d), (1000d, 820d), (1550d, 1000d) })
             {
                 host.Width = size.Item1; host.Height = size.Item2;

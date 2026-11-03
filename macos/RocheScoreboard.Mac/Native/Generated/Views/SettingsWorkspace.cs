@@ -1,5 +1,5 @@
 // Generated from Views/SettingsWorkspace.cs; edit translator/adapters.
-// Source SHA-256: c7775b10424267bf1284aec3be65194ae8ffa19e403e626afcba42a0b87d3604
+// Source SHA-256: 1de2af24c0267e6bc158ca2e6a372a0ddd6558f148847d514454e37629bbc944
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -66,6 +66,7 @@ public sealed class SettingsWorkspace : UserControl
     private readonly List<Control> _compactAvailabilityOwners = new();
     private Window? _compactMenuOwner;
     private bool _materialSectionAdded;
+    private bool _accentSectionAdded;
     private string _category = "ALL";
     public ScrollViewer Scroller { get; } = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new Thickness(8,0,18,18) };
     [Avalonia.Metadata.Content] public Avalonia.Controls.Controls Sections => _sections.Children;
@@ -121,7 +122,7 @@ public sealed class SettingsWorkspace : UserControl
         _search.TextChanged += (_,_) => Filter();
         KeyDown += (_,e) => { if (e.Key == Key.F && NativeKeyboard.Modifiers == KeyModifiers.Control && FocusSearch()) e.Handled = true; };
         SharedSurfaceMotion.Attach(Scroller);
-        Loaded += (_,_) => { EnsureMaterialPreferences(); BuildNavigation(); Reflow(); ObserveCompactMenuOwners(); if(railHeading.Children[0] is Border { Child: Roche_Scoreboard.Services.OperatorSymbol symbol })symbol.Activate(); };
+        Loaded += (_,_) => { EnsureMaterialPreferences(); EnsureAccentPreferences(); BuildNavigation(); Reflow(); ObserveCompactMenuOwners(); if(railHeading.Children[0] is Border { Child: Roche_Scoreboard.Services.OperatorSymbol symbol })symbol.Activate(); };
         Unloaded += (_,_) => { RetireCompactMenu(); ++_navigationGeneration; DetachCompactMenuOwners(); };
         SizeChanged += (_,_) => Reflow();
     }
@@ -183,6 +184,15 @@ public sealed class SettingsWorkspace : UserControl
     {
         if(_materialSectionAdded)return;_materialSectionAdded=true;
         var section=new NativeBorder{Tag="APPEARANCE|glass intensity soft balanced vivid backdrop black colour neutral interface feel motion calm expressive preview",Child=new OperatorMaterialPreferences()};
+        section.SetResourceReference(ThemeProperty,"SettingsSectionSurface");
+        int index=0;for(int i=0;i<Sections.Count;i++)if(Sections[i] is Control item && Category(item)=="APPEARANCE")index=i+1;
+        Sections.Insert(index,section);
+    }
+
+    private void EnsureAccentPreferences()
+    {
+        if(_accentSectionAdded)return;_accentSectionAdded=true;
+        var section=new NativeBorder{Tag="APPEARANCE|accent colour sky teal violet amber palette highlight preview",Child=new OperatorAccentPreferences()};
         section.SetResourceReference(ThemeProperty,"SettingsSectionSurface");
         int index=0;for(int i=0;i<Sections.Count;i++)if(Sections[i] is Control item && Category(item)=="APPEARANCE")index=i+1;
         Sections.Insert(index,section);

@@ -1,5 +1,5 @@
 // Generated from Services/OperatorAppearance.cs; edit translator/adapters.
-// Source SHA-256: aa94194cadd54863e6a9f0f1902e24b840a83d66d8193ff2ae608a6820aef0b8
+// Source SHA-256: 5714ce4f07ab5dcd161b7d0c3e2bcc850c58797c043a57c148b5c04ad7bdcf63
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -14,6 +14,7 @@ namespace Roche_Scoreboard.Services;
 internal enum OperatorGlassIntensity { Soft, Balanced, Vivid }
 internal enum OperatorBackdropStyle { Black, Colour, Neutral }
 internal enum OperatorMotionStyle { Calm, Expressive }
+internal enum OperatorAccentPalette { Sky, Teal, Violet, Amber }
 
 /// <summary>Operator-only material/motion choices; independent of public display pacing.</summary>
 internal static class OperatorAppearance
@@ -26,6 +27,7 @@ internal static class OperatorAppearance
         public OperatorMotionStyle MotionStyle { get; set; } = OperatorMotionStyle.Expressive;
         public OperatorGlassIntensity GlassIntensity { get; set; } = OperatorGlassIntensity.Vivid;
         public OperatorBackdropStyle Backdrop { get; set; } = OperatorBackdropStyle.Colour;
+        public OperatorAccentPalette AccentPalette { get; set; } = OperatorAccentPalette.Sky;
     }
     private static readonly Preferences Current = Load();
     internal static bool GlassEnabled => Current.GlassEnabled;
@@ -33,6 +35,7 @@ internal static class OperatorAppearance
     internal static OperatorMotionStyle MotionStyle => Current.MotionStyle;
     internal static OperatorGlassIntensity GlassIntensity => Current.GlassIntensity;
     internal static OperatorBackdropStyle Backdrop => Current.Backdrop;
+    internal static OperatorAccentPalette AccentPalette => Current.AccentPalette;
     internal static event Action? Changed;
     internal static string StoragePath => Path.Combine(SelfTestStorage.DocumentsDirectory,"operator_appearance.json");
     private static Preferences Load()
@@ -43,6 +46,7 @@ internal static class OperatorAppearance
             if(!Enum.IsDefined(value.GlassIntensity))value.GlassIntensity=OperatorGlassIntensity.Vivid;
             if(!Enum.IsDefined(value.Backdrop))value.Backdrop=OperatorBackdropStyle.Colour;
             if(!Enum.IsDefined(value.MotionStyle))value.MotionStyle=OperatorMotionStyle.Expressive;
+            if(!Enum.IsDefined(value.AccentPalette))value.AccentPalette=OperatorAccentPalette.Sky;
             return value;
         }
         catch { return new(); }
@@ -63,6 +67,11 @@ internal static class OperatorAppearance
     {
         if(!Enum.IsDefined(style) || Current.MotionStyle==style)return;
         Current.MotionStyle=style;Save();
+    }
+    internal static void ConfigureAccentPalette(OperatorAccentPalette palette)
+    {
+        if(!Enum.IsDefined(palette) || Current.AccentPalette==palette)return;
+        Current.AccentPalette=palette;Save();
     }
     private static void Save()
     {

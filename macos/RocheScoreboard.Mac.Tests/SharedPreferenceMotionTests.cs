@@ -25,6 +25,7 @@ public sealed partial class SharedPreferenceMotionTests
         private readonly bool glass = OperatorAppearance.GlassEnabled;
         private readonly bool reduced = OperatorAppearance.ReduceMotion;
         private readonly OperatorMotionStyle style = OperatorAppearance.MotionStyle;
+        private readonly OperatorAccentPalette accent = OperatorAppearance.AccentPalette;
         private readonly bool? animation = OperatorMotion.AnimationOverride;
         private readonly byte[]? bytes = File.Exists(OperatorAppearance.StoragePath)
             ? File.ReadAllBytes(OperatorAppearance.StoragePath) : null;
@@ -46,6 +47,7 @@ public sealed partial class SharedPreferenceMotionTests
             OperatorMotion.AnimationOverride = animation;
             OperatorAppearance.ConfigureMotionStyle(style);
             OperatorAppearance.Configure(glass, reduced);
+            OperatorAppearance.ConfigureAccentPalette(accent);
             if (bytes is null) File.Delete(OperatorAppearance.StoragePath);
             else File.WriteAllBytes(OperatorAppearance.StoragePath, bytes);
         }

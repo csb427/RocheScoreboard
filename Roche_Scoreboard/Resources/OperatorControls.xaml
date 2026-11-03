@@ -15,7 +15,7 @@
         <SolidColorBrush x:Key="AwayAccentBrush" Color="#F85149"/>
         <SolidColorBrush x:Key="LiveBrush" Color="#3FB950"/>
         <SolidColorBrush x:Key="WarnBrush" Color="#D29922"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#58A6FF"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource Operator.CustomAccentColor}"/>
 
         <!-- ── Section heading — uppercase, tracked ── -->
         <Style x:Key="SectionHead" TargetType="TextBlock">

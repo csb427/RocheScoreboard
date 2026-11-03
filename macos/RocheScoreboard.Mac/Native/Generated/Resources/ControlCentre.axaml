@@ -17,8 +17,8 @@
     <SolidColorBrush x:Key="ControlCentre.TextBrush" Color="#FAFAFC" />
     <SolidColorBrush x:Key="ControlCentre.SecondaryTextBrush" Color="#B6B6C0" />
     <SolidColorBrush x:Key="ControlCentre.BorderBrush" Color="#44444B" />
-    <SolidColorBrush x:Key="ControlCentre.AccentBrush" Color="#7BB8FF" />
-    <SolidColorBrush x:Key="ControlCentre.SelectionBrush" Color="#253D55" />
+    <SolidColorBrush x:Key="ControlCentre.AccentBrush" Color="{DynamicResource Operator.CustomAccentColor}" />
+    <SolidColorBrush x:Key="ControlCentre.SelectionBrush" Color="{DynamicResource Operator.CustomSelectionColor}" />
     <ns4:Double x:Key="ControlCentre.BodySize">15</ns4:Double>
     <ns4:Double x:Key="ControlCentre.CaptionSize">13</ns4:Double>
     <ns4:Double x:Key="ControlCentre.ControlHeight">42</ns4:Double>

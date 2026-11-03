@@ -27,6 +27,7 @@ public sealed class ThemeService
         CurrentTheme = theme; CurrentDensity = density;
         app.RequestedThemeVariant = theme == AppTheme.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
         OperatorDesign.UpdateTheme(theme);
+        Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources();
         OperatorDesign.UpdateDensity(density);
     }
     public void SetTheme(AppTheme theme)
@@ -39,6 +40,7 @@ public sealed class ThemeService
         app.Resources.MergedDictionaries[index] = next; _theme = next; CurrentTheme = theme;
         app.RequestedThemeVariant = theme == AppTheme.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
         OperatorDesign.UpdateTheme(theme);
+        Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources();
     }
     public void SetDensity(UiDensity density)
     {

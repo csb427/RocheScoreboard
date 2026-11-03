@@ -22,6 +22,7 @@ public sealed partial class App : Application
         NativeResources.CaptureFrameworkThemes(this);
         UxPreferences = Roche_Scoreboard.Services.UxPreferences.Load();
         ThemeService.Initialize(UxPreferences.Theme, UxPreferences.Density);
+        OperatorAccentPreferences.ApplyAccentResources();
     }
     public override void OnFrameworkInitializationCompleted()
     {

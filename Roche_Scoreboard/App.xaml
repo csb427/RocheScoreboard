@@ -5,6 +5,9 @@
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
         <ResourceDictionary>
+            <!-- User-selected operator accents are global so local control dictionaries can follow them. -->
+            <Color x:Key="Operator.CustomAccentColor">#0A57FF</Color>
+            <Color x:Key="Operator.CustomSelectionColor">#E6F1FF</Color>
             <ResourceDictionary.MergedDictionaries>
                 <!-- Invariant tokens must come first -->
                 <ResourceDictionary Source="DesignSystem/Tokens.xaml" />

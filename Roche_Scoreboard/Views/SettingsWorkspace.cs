@@ -63,6 +63,7 @@ public sealed class SettingsWorkspace : UserControl
     private readonly List<FrameworkElement> _compactAvailabilityOwners = new();
     private Window? _compactMenuOwner;
     private bool _materialSectionAdded;
+    private bool _accentSectionAdded;
     private string _category = "ALL";
     public ScrollViewer Scroller { get; } = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new Thickness(8,0,18,18) };
     public UIElementCollection Sections => _sections.Children;
@@ -118,7 +119,7 @@ public sealed class SettingsWorkspace : UserControl
         _search.TextChanged += (_,_) => Filter();
         PreviewKeyDown += (_,e) => { if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && FocusSearch()) e.Handled = true; };
         SharedSurfaceMotion.Attach(Scroller);
-        Loaded += (_,_) => { EnsureMaterialPreferences(); BuildNavigation(); Reflow(); ObserveCompactMenuOwners(); if(railHeading.Children[0] is Border { Child: Roche_Scoreboard.Services.OperatorSymbol symbol })symbol.Activate(); };
+        Loaded += (_,_) => { EnsureMaterialPreferences(); EnsureAccentPreferences(); BuildNavigation(); Reflow(); ObserveCompactMenuOwners(); if(railHeading.Children[0] is Border { Child: Roche_Scoreboard.Services.OperatorSymbol symbol })symbol.Activate(); };
         Unloaded += (_,_) => { RetireCompactMenu(); ++_navigationGeneration; DetachCompactMenuOwners(); };
         SizeChanged += (_,_) => Reflow();
     }
@@ -180,6 +181,15 @@ public sealed class SettingsWorkspace : UserControl
     {
         if(_materialSectionAdded)return;_materialSectionAdded=true;
         var section=new Border{Tag="APPEARANCE|glass intensity soft balanced vivid backdrop black colour neutral interface feel motion calm expressive preview",Child=new OperatorMaterialPreferences()};
+        section.SetResourceReference(StyleProperty,"SettingsSectionSurface");
+        int index=0;for(int i=0;i<Sections.Count;i++)if(Sections[i] is FrameworkElement item && Category(item)=="APPEARANCE")index=i+1;
+        Sections.Insert(index,section);
+    }
+
+    private void EnsureAccentPreferences()
+    {
+        if(_accentSectionAdded)return;_accentSectionAdded=true;
+        var section=new Border{Tag="APPEARANCE|accent colour sky teal violet amber palette highlight preview",Child=new OperatorAccentPreferences()};
         section.SetResourceReference(StyleProperty,"SettingsSectionSurface");
         int index=0;for(int i=0;i<Sections.Count;i++)if(Sections[i] is FrameworkElement item && Category(item)=="APPEARANCE")index=i+1;
         Sections.Insert(index,section);
