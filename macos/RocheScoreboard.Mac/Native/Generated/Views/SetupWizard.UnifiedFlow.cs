@@ -1,5 +1,5 @@
 // Generated from Views/SetupWizard.UnifiedFlow.cs; edit translator/adapters.
-// Source SHA-256: eb4dcb3d66e2b15ae5595b3caf036d1161b592f3df9185af23e38dd6ac601e79
+// Source SHA-256: 9b7453828d0984b3c600fe0bf1c42cabe232cc2f53f07c440c2622f582f9631d
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -16,7 +16,9 @@ public partial class SetupWizard
 {
     internal bool UnifiedSetupEnabled { get; private set; }
     internal Func<bool>? ConfirmCompletion { get; set; }
+    internal Func<Task<bool>>? ConfirmCompletionAsync { get; set; }
     private bool _completionPending;
+    private int _completionGeneration;
     private int _sportFocusGeneration;
     public event Action<SportMode>? SportChosen;
     public event Action? CancelSetupRequested;
@@ -40,7 +42,7 @@ public partial class SetupWizard
             choice.Focus(); choice.BringIntoView();
         }));
     }
-    internal void ContinueWithAfl() => ShowStep(1);
+    internal void ContinueWithAfl() => ShowStep(1, false);
     private void GoToSportStep_Click(object? sender, RoutedEventArgs args) => BackToSportSelection?.Invoke();
     private void CancelSetup_Click(object? sender, RoutedEventArgs args) => CancelSetupRequested?.Invoke();
     // Listen to both checked and unchecked: native frameworks can notify the
@@ -74,11 +76,12 @@ public partial class SetupWizard
         if (TryCancelPresetDragOnEscape(args)) return;
         if (UnifiedSetupEnabled) WizardFlowDesign.TryCancelOnEscape(this, args, () => CancelSetupRequested?.Invoke());
     }
-    private void FinishWizard()
+    private async void FinishWizard()
     {
-        if (Result is not null || _completionPending || (ConfirmCompletion is not null && !IsVisible)) return;
+        if (Result is not null || _completionPending || ((ConfirmCompletion is not null || ConfirmCompletionAsync is not null) && !IsVisible)) return;
         _completionPending = true;
-        try { FinishWizardCore(); }
-        finally { _completionPending = false; }
+        int generation = _completionGeneration;
+        try { await FinishWizardCoreAsync(generation); }
+        finally { if (generation == _completionGeneration) _completionPending = false; }
     }
 }

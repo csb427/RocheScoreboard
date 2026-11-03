@@ -1,6 +1,10 @@
-# Windows refinement preview: native animation acceptance remains open
+# Current testing feedback: native acceptance still required
 
-**Intermittent first-use animation skipping reported on native Windows/Visual Studio has not been reproduced or resolved here.** First and repeated pointer selections had intermediate animation progress in Linux translated tests; that does not establish a native fix. Two concrete fresh-input suppression causes have been fixed and regression-tested. Other native animation skips still need a current-build recording and Windows appearance/input checks.
+This revision fixes two concrete sport-entry causes: animations targeting detached legacy XAML wrappers after the team editor rebuilt them, and first-use form work consuming animation time before a frame was presented. Both sports show intermediate motion in Linux translated renderer tests. **Native Windows first-use/cutout/smoothness is not certified fixed.** Verify the exact current Git revision, control and motion preference on Windows.
+
+The cricket panel uses natural content height and removes empty card stretching; unused background can remain in unusually tall windows. Scoring controls were not inflated solely to fill it.
+
+History is a proposal only. Reset still clears the existing active match/recovery under its prior semantics; no match archive is created.
 
 # Test preview limitations
 

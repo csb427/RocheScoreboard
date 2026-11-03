@@ -65,9 +65,6 @@ public partial class MainWindow
         OperatorAppearance.Changed -= ResetAppearanceChanged;
         OperatorAppearance.Changed += ResetAppearanceChanged;
 
-        ResetMatchContext.Text = $"{_match.HomeName}  {_match.HomeGoals}.{_match.HomeBehinds} ({_match.HomeTotal})\n"
-            + $"{_match.AwayName}  {_match.AwayGoals}.{_match.AwayBehinds} ({_match.AwayTotal})";
-        ResetPhaseText.Text = $"Quarter {_match.Quarter} · clock {(_match.ClockRunning ? "running" : "stopped")}";
         ResetContextNotice.Visibility = Visibility.Collapsed;
         ConfirmResetBtn.IsEnabled = true;
         CancelResetBtn.IsDefault = true;

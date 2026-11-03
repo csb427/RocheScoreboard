@@ -1,21 +1,11 @@
-# Windows refinement preview verification
+# Windows testing feedback verification
 
-Final Windows source/assets match the locally cross-built working revision. No app/test source changed after final verification. Publication adds documentation/manifest only.
+Windows source/assets are byte-identical to the tested/cross-built local revision. Publication changes documentation/manifest only.
 
-| Scope / source epoch | Result |
-| --- | --- |
-| Final navigation/input affected suite |79 passed,0failed/skipped/aborted;4m06s |
-| Final Windows Release / Debug |0warnings/errors;24.31s /25.07s |
-| Earlier scorecard/wicket/history continuation |76passed; separate earlier epoch |
-| Earlier workflow refinement |104passed; separate earlier epoch |
-| Earlier contextual wicket/rules/ownership pass |106distinct passing cases across3invocations |
-| Native translated product/test build |190inherited warnings,0errors;30.78s |
-| Translation/parity |49XAML /307C# /575declared UI bindings |
+- **59 distinct affected cases have passing latest results across two runs**, not one59/59 run:57passed/2fixture-failed in the broader59-case run, then both corrected test-only cases passed. The fixture had incorrectly tried to focus a non-interactive consequence TextBlock; the correction scrolls readable copy without making it focusable. Product source did not change between these two runs.0skips/aborts.
+- Coverage: actual runtime-built team-form arrivals/first use/reduced motion/rapid navigation; setup replacement/default cancellation/stale completion; integrated new-session decisions; remote command retirement across replacement; AFL/cricket Reset cancel/confirmation/repeat/stale guards; release navigation/compact reachability; cricket actions/dock/scrolling and current-play/output layout.
+- Windows Release:0warnings/0errors24.54s. Debug:0warnings/0errors24.01s.
+- Linux translated native product build:0errors/190inherited warnings31.17s. Test-only build:0/0 13.29s. Translation audit49XAML/307C#/575declared UI bindings.
+- MatchManager, CricketMatchManager, GameStateService, CricketRecoveryWriter and ScorebugControl source bytes remain unchanged from5ea23401. History remains analysis only: no archive/schema/storage/reset-deletion change.
 
-Counts overlap and must not be added together or presented as one full-suite result. Final79 scopes: Home20, unified setup18, recovery9, clock choices12, settings keyboard4, navigation3, AFL history6, post-dialog input7. The Windows-only programmatic QA assertion compiles but was not executed as a native GUI test.
-
-Input baselines reproduced fresh scoring loss under WPF-equivalent preview order: AFL pointer/Ctrl+1 navigation2fail, cricket dialog close6fail. Scoped native translation now preserves preview order for the tested guard handlers. Physical OS input, Windows compositor/UIA/DPI and cold-first-open timing still need native acceptance. Explicit routed repeat/position metadata checks do not prove OS double-click/touch classification.
-
-A first oversized follow-up filter selected unrelated tests from partial classes; it was intentionally stopped and receives no aggregate pass credit. Final79 uses exact workflow method selectors/small traits. Failed baselines, fixture corrections and private diagnostics were retained locally; assertions were not weakened to force a pass.
-
-No new complete historical regression suite, native Windows GUI certification, Mac CI/package acceptance, release or deployment is claimed. SOURCE-SNAPSHOT.json records byte hashes of included files; local source provenance does not fabricate a clean-commit identity for earlier dirty builds.
+Earlier preview test counts describe earlier source epochs and overlap; do not add them to this revision's count. No new full historical suite, native Windows GUI, MacCI/package, signing or monitor/hardware acceptance is claimed. First-use animation causes were repaired in shared source and observed in Linux renderer phases; this does not certify native Windows smoothness. Exact source file hashes are recorded in SOURCE-SNAPSHOT.json.

@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
-  "source_sha256": "b422a985af9f2686e7d7456e6d9da5a1dc2ca221f3013723adb735178f78827e",
+  "source_sha256": "63e8b569c31dd91741003c11961655034257ec2d1bb390cc39185679cf953fa0",
   "names": [
     {
       "name": "PART_Surface",
@@ -37,6 +37,41 @@
       "type": "ContentPresenter",
       "object": false,
       "template": true
+    },
+    {
+      "name": "PART_Surface",
+      "type": "Grid",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "TbSc",
+      "type": "ScaleTransform",
+      "object": true,
+      "template": true
+    },
+    {
+      "name": "ReleaseButtonSurface",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "ActionGlow",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "ReleaseKeyboardFocus",
+      "type": "Border",
+      "object": false,
+      "template": true
+    },
+    {
+      "name": "HomeRoot",
+      "type": "Grid",
+      "object": false
     },
     {
       "name": "ResponsiveScrollHost",
@@ -540,7 +575,7 @@
     },
     {
       "name": "ReleaseVersionButtons",
-      "type": "WrapPanel",
+      "type": "StackPanel",
       "object": false
     },
     {
@@ -554,7 +589,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "96db9f355ac4050e9407cadc5f928a7153425964ddc0607c1e0b9fd3d84b6e1e",
+  "code_source_sha256": "e8b29523487cd1cec2fe3f187b0eae3eb21e32d88de5ae4dba8fc89e2914816d",
   "native_events": [
     {
       "name": "ResponsiveScrollHost",

@@ -1,5 +1,5 @@
 // Generated from MainWindow.HomeCommands.cs; edit translator/adapters.
-// Source SHA-256: b128374e1aa3ee20c420fbadd609d0a3c4fb91d1ee3b549460b45586890daf03
+// Source SHA-256: a8d2c6d81abfc6bd591f65d867496203c920217403b7d57bcb4a6d15c15946ad
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -31,6 +31,7 @@ public partial class MainWindow
     private readonly Dictionary<Control, bool> _commandEnabled = new();
     private IInputElement? _commandPreviousFocus;
     private bool _commandExecuting;
+    private bool _newSessionDecisionActive;
     private CricketMatchManager? _commandObservedCricket;
     private Control? _commandPreferencesReturn;
     private sealed record OperatorCommand(string Id, string Label, string Search, Action Run, string? Unavailable = null);
@@ -43,7 +44,7 @@ public partial class MainWindow
         SportMode.AFL => _aflMatchReady,
         _ => false
     };
-    private bool CommandContextBlocked => StoppagePopup?.IsOpen==true || _recoveryPromptActive || _resetDecisionActive || MatchLoadingPanel.IsVisible || SportSelectionPanel.HasOpenSheet ||
+    private bool CommandContextBlocked => _newSessionDecisionActive || StoppagePopup?.IsOpen==true || _recoveryPromptActive || _resetDecisionActive || MatchLoadingPanel.IsVisible || SportSelectionPanel.HasOpenSheet ||
         (TrainingControlPanelView.IsVisible && (TrainingControlPanelView.HasActiveClearDecision || TrainingControlPanelView.HasActiveExitDecision)) ||
         NativeKeyboard.FocusedElement is Avalonia.Controls.MenuItem ||
         OwnedWindows.Cast<NativeWindow>().Any(w => w.IsVisible && !OutputWindows().Contains(w)) ||
@@ -138,15 +139,58 @@ public partial class MainWindow
         return generation == _sessionReplacementGeneration && setup == _setupFlowGeneration && mode == _sportMode;
     }
 
-    private bool ConfirmNewSession(SportMode mode)
+    private async Task<bool> ConfirmNewSessionAsync(SportMode mode)
     {
+        if (_newSessionDecisionActive) return false;
         if (mode == SportMode.Training && !HasCurrentSession) return true;
         if (mode == SportMode.Settings || (!HasCurrentSession && RecoverySession.Describe(GameStateService.Load()) is null)) return true;
-        return RocheScoreboard.Mac.Native.NativeMessageBox.Show(this,
-            mode == SportMode.Training
-                ? "Start training? The current session will close. Training is kept only while the app is open; the last saved match remains available after exiting."
-                : "Start a new session? Completing setup will replace the current or saved session. Choose Resume on Home to keep working on that session.",
-            "New session", NativeMessageBoxButton.YesNo, NativeMessageBoxImage.Warning, NativeMessageBoxResult.No) == NativeMessageBoxResult.Yes;
+        if (!IsLoaded || !IsVisible) return false;
+        int setup = _setupFlowGeneration, replacement = _sessionReplacementGeneration;
+        var sport = _sportMode; var cricket = _cricketMatch; var training = _trainingSession;
+        bool ready = _aflMatchReady, changed = false, accepted = false;
+        string? cricketToken = cricket?.WorkflowToken;
+        var notice = new NativeTextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 14, IsVisible = false };
+        notice.SetResourceReference(TextBlock.ForegroundProperty, "ScoreGrid.Brush.DangerForeground");
+        bool Current() => IsLoaded && IsVisible && setup == _setupFlowGeneration && replacement == _sessionReplacementGeneration
+            && sport == _sportMode && ready == _aflMatchReady && !changed
+            && ReferenceEquals(cricket, _cricketMatch) && ReferenceEquals(training, _trainingSession)
+            && cricketToken == _cricketMatch?.WorkflowToken;
+        bool Validate()
+        {
+            if (Current()) return true;
+            notice.Text = "The session changed. Cancel and review it before starting a new session.";
+            notice.IsVisible = true; return false;
+        }
+        void Changed() => changed = true;
+        void ClosingOwner(object? sender, System.ComponentModel.CancelEventArgs args) => Views.CricketPrompt.CancelAll(ApplicationSurface);
+        var enabled = ApplicationSurface.Children.OfType<Control>().ToDictionary(child => child, child => child.IsEnabled);
+        _newSessionDecisionActive = true;
+        _match.MatchChanged += Changed;
+        if (training is not null) training.StructuralChanged += Changed;
+        Closing += ClosingOwner;
+        try
+        {
+            foreach (var child in enabled.Keys) child.IsEnabled = false;
+            var body = new StackPanel();
+            string consequence = mode == SportMode.Training
+                ? "The current session will close. Training is kept only while the app is open; the last saved match remains available after exiting."
+                : "Starting the new session replaces the current or saved session. Cancel to keep it available through Resume on Home.";
+            var consequenceText = new NativeTextBlock { Text = consequence, TextWrapping = TextWrapping.Wrap, FontSize = 14, Margin = new Thickness(0, 8, 0, 8) };
+            consequenceText.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.TextBrush");
+            body.Children.Add(consequenceText); body.Children.Add(notice);
+            accepted = await Views.CricketPrompt.ShowValidatedAsync(ApplicationSurface, "New session", "", body, Validate,
+                new("cancel", "Cancel"), new("stay", "Cancel", true),
+                new("apply", mode == SportMode.Training ? "Start training" : "Start new session", false, true)) == "apply";
+        }
+        finally
+        {
+            foreach (var (child, wasEnabled) in enabled) child.IsEnabled = wasEnabled;
+            _match.MatchChanged -= Changed;
+            if (training is not null) training.StructuralChanged -= Changed;
+            Closing -= ClosingOwner;
+            _newSessionDecisionActive = false;
+        }
+        return accepted && Current();
     }
 
     private void OpenOperatorPreferences()

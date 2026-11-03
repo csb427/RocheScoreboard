@@ -449,7 +449,7 @@ public sealed partial class AflResetScopeTests
     }
 
     [AvaloniaFact]
-    public async Task CompactLongMatchContextCanScrollToConsequencesWithoutMovingActionsOrChangingMatch()
+    public async Task CompactResetKeepsConsequencesAndPinnedActionsReachableWithoutRedundantMatchContext()
     {
         using var f = await Fixture.Create();
         f.Match.SetTeams("Very long home club name with multiple suburban districts and sponsors", "HOM",
@@ -461,9 +461,9 @@ public sealed partial class AflResetScopeTests
             text => text.Text == "This action cannot be undone.");
         string before = Snapshot(f.Match); int changes = f.Changes; var recovery = f.Recovery();
         Rect cancel = PaintedBounds(f.Window, f.Cancel), confirm = PaintedBounds(f.Window, f.Confirm);
-        Assert.True(details.Extent.Height > details.Viewport.Height + 1, "Long real context must overflow the body, not the pinned actions.");
+        Assert.DoesNotContain(details.GetVisualDescendants().OfType<TextBlock>(),text=>text.Text?.Contains("suburban districts")==true);
         details.ScrollToEnd(); await Settle();
-        Assert.True(details.Offset.Y > 0);
+        if(details.Extent.Height>details.Viewport.Height+1) Assert.True(details.Offset.Y>0);
         Assert.True(PaintedBounds(f.Window, details).Contains(PaintedBounds(f.Window, consequence)),
             "The final destructive consequence must be fully readable after scrolling.");
         Assert.Equal(cancel, PaintedBounds(f.Window, f.Cancel)); Assert.Equal(confirm, PaintedBounds(f.Window, f.Confirm));

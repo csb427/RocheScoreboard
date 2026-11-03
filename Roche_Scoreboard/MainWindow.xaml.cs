@@ -994,6 +994,7 @@ namespace Roche_Scoreboard
 
         private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            if (_newSessionDecisionActive) return; // The owned in-app sheet handles its own keys.
             if (_pendingKeybindAction is not null && !KeybindCaptureContextCurrent()) RetireKeybindCapture();
             if (_resetDecisionActive) { HandleResetPreviewKeyDown(e); return; }
             bool commandChord = e.Key == Key.K && (Keyboard.Modifiers & ModifierKeys.Control) != 0;
@@ -1867,10 +1868,11 @@ namespace Roche_Scoreboard
         // ----------------------------
         // Setup wizard
         // ----------------------------
-        private void OnSportSelected(SportMode mode)
+        private async void OnSportSelected(SportMode mode)
         {
+            if (_newSessionDecisionActive) return;
             if (mode is SportMode.AFL or SportMode.Cricket) { BeginUnifiedSetup(); return; }
-            if (!ConfirmNewSession(mode)) { SportSelectionPanel.PrepareForDisplay(); return; }
+            if (!await ConfirmNewSessionAsync(mode)) { SportSelectionPanel.PrepareForDisplay(); return; }
             StopAflSetupTransition();
             if (!HasCurrentSession) _sportMode = mode;
             PersistLastMode(mode);
@@ -2652,6 +2654,7 @@ namespace Roche_Scoreboard
             SportSelectionPanel.Visibility = Visibility.Visible;
             Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)}";
             ShowOutputScreensaver(manualSelection: false);
+            SportSelectionPanel.RevealAfterReset();
         }
 
         private void ApplySetupResult(SetupResult r)

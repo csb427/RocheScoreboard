@@ -13,6 +13,20 @@ namespace Roche_Scoreboard.Views;
 
 public partial class SportSelectionScreen
 {
+    private int _resetReturnGeneration;
+    internal void RevealAfterReset()
+    {
+        int generation = ++_resetReturnGeneration;
+        HomeStartGameFocus();
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (generation != _resetReturnGeneration || !IsLoaded || !IsVisible || HasOpenSheet) return;
+            // The primary new-game scene returns; utility controls stay still.
+            // This changes presentation only, after the existing reset commits.
+            SharedSurfaceMotion.Reveal(AflTileBody, OperatorMotion.Enabled);
+        }), System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
     private readonly Dictionary<Border,Button> _launchActions=new();
     private readonly ScaleTransform _settingsContentScale=new(1,1);
     private int _selectionGeneration, _landingMotionGeneration, _changelogMotionGeneration;

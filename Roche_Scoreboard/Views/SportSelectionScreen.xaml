@@ -29,7 +29,27 @@
     </ToggleButton><ContentPresenter x:Name="Body" Content="{TemplateBinding Content}" Visibility="Collapsed"/>
    </StackPanel><ControlTemplate.Triggers><Trigger Property="IsExpanded" Value="True"><Setter TargetName="Body" Property="Visibility" Value="Visible"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
+  <Style x:Key="ReleaseNavigationButton" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+   <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}"/>
+   <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/>
+   <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+    <Grid Background="Transparent"><Grid x:Name="PART_Surface" RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform>
+     <Border x:Name="ReleaseButtonSurface" CornerRadius="18" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"/>
+     <Border x:Name="ActionGlow" CornerRadius="18" Background="White" Opacity="0" IsHitTestVisible="False"/>
+     <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+    </Grid><Border x:Name="ReleaseKeyboardFocus" Margin="2" CornerRadius="16" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Collapsed" IsHitTestVisible="False"/></Grid>
+    <ControlTemplate.Triggers>
+     <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="ReleaseKeyboardFocus" Property="Visibility" Value="Visible"/></MultiTrigger>
+     <Trigger Property="IsEnabled" Value="False"><Setter TargetName="PART_Surface" Property="Opacity" Value=".4"/></Trigger>
+    </ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="ReleaseNavigationSelected" TargetType="Button" BasedOn="{StaticResource ReleaseNavigationButton}">
+   <Setter Property="Background" Value="#F1F4F8"/><Setter Property="Foreground" Value="{DynamicResource ControlCentre.SegmentSelectedInkBrush}"/><Setter Property="BorderBrush" Value="#D9EEFF"/>
+  </Style>
  </ResourceDictionary></UserControl.Resources>
+ <Grid x:Name="HomeRoot">
  <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" PanningMode="Both" CanContentScroll="False" PreviewMouseWheel="ResponsiveScrollHost_PreviewMouseWheel">
  <Grid x:Name="SportViewport" MinHeight="620" Width="{Binding ViewportWidth, ElementName=ResponsiveScrollHost}" Height="{Binding ViewportHeight, ElementName=ResponsiveScrollHost}" ClipToBounds="True">
   <Grid x:Name="HomeBackdrop" IsHitTestVisible="False"><local:OperatorSceneBackdrop/><Border><Border.Background><RadialGradientBrush Center=".5,.45" GradientOrigin=".5,.45" RadiusX=".65" RadiusY=".85"><GradientStop Color="#002B3C55"/><GradientStop Color="#3C02070D" Offset="1"/></RadialGradientBrush></Border.Background></Border></Grid>
@@ -114,7 +134,10 @@
    </Grid>
   </Grid>
   <Border x:Name="BottomAccent" Height="1" Background="#24FFFFFF" VerticalAlignment="Bottom" Margin="28,0,28,0" IsHitTestVisible="False"/>
-  <Grid x:Name="ChangelogOverlay" Panel.ZIndex="100" Visibility="Collapsed" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.ControlTabNavigation="Cycle" FocusManager.IsFocusScope="True" PreviewKeyDown="ChangelogOverlay_PreviewKeyDown">
+  
+ </Grid>
+ </ScrollViewer>
+<Grid x:Name="ChangelogOverlay" Panel.ZIndex="100" Visibility="Collapsed" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.ControlTabNavigation="Cycle" FocusManager.IsFocusScope="True" PreviewKeyDown="ChangelogOverlay_PreviewKeyDown">
    <Border Background="#A5020509" MouseLeftButtonUp="ChangelogBackdrop_Click"/>
    <local:OperatorGlassSurface x:Name="ChangelogPanel" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin=".5,.5">
     <Border.RenderTransform><TransformGroup><ScaleTransform x:Name="ChangelogPanelScale" ScaleX=".96" ScaleY=".96"/><TranslateTransform x:Name="ChangelogPanelTranslate" Y="24"/></TransformGroup></Border.RenderTransform>
@@ -137,10 +160,10 @@
      <Grid x:Name="ReleaseLayout" Grid.Row="3">
       <Grid.ColumnDefinitions><ColumnDefinition Width="176"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
       <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-      <local:OperatorGlassSurface x:Name="ReleaseVersionRail" Material="Clear" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="25" Grid.RowSpan="2" Padding="8">
+      <local:OperatorGlassSurface x:Name="ReleaseVersionRail" Material="Opaque" Background="{DynamicResource ControlCentre.SurfaceBrush}" CornerRadius="25" Grid.RowSpan="2" Padding="8">
        <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <TextBlock x:Name="ReleaseHistoryHeading" Text="Releases" Foreground="#C1D0E2" FontSize="13" FontWeight="SemiBold" Margin="9,7,9,12"/>
-        <ScrollViewer x:Name="ReleaseHistoryScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><WrapPanel x:Name="ReleaseVersionButtons" Orientation="Vertical"/></ScrollViewer>
+        <ScrollViewer x:Name="ReleaseHistoryScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="ReleaseVersionButtons" Orientation="Vertical"/></ScrollViewer>
        </Grid>
       </local:OperatorGlassSurface>
       <ScrollViewer x:Name="ReleaseScroller" Grid.Column="1" Grid.RowSpan="2" Margin="20,0,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,2"><StackPanel x:Name="ChangelogEntries"/></ScrollViewer>
@@ -149,5 +172,4 @@
 </local:OperatorGlassSurface>
   </Grid>
  </Grid>
- </ScrollViewer>
 </UserControl>

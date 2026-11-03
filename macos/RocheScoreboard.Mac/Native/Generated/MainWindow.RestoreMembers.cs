@@ -1,5 +1,5 @@
 // Generated from MainWindow.RestoreMembers.cs; edit translator/adapters.
-// Source SHA-256: d738226a56abafc5251a2f115779ba6a48525564e883e85703e793e926c8019a
+// Source SHA-256: d1d6a564030319ef6b2d175885b8705d6c1d8a5bc1a139b8f6448583bb227f87
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -5438,6 +5438,7 @@ public partial class MainWindow
         SportSelectionPanel.IsHitTestVisible = true;
         SportSelectionPanel.Opacity = 1;
         SportSelectionPanel.IsVisible = true;
+        SportSelectionPanel.RevealAfterReset();
     }
 
     // ── Native window resize via custom grip ──

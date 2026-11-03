@@ -168,23 +168,13 @@ public sealed partial class LiveSettingsClockChoiceTests
         for (int i = 0; i < 8; i++) AddSetupAnnouncement(wizard, i + new string('v', 139));
         string[] expected = MessageDraft(wizard).Select(m => m.Text).ToArray();
         string before = ManualWeatherModel(f);
-        foreach (string choice in new[] { "No", "Yes" })
+        foreach (string choice in new[] { "stay", "apply" })
         {
-            Exception? callbackError = null; bool answered = false;
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
-                var dialog = f.Window.OwnedWindows.FirstOrDefault(w => w.Title == "New session");
-                if (dialog is null) { callbackError = new InvalidOperationException("Expected real replacement confirmation."); return; }
-                try
-                {
-                    PresPlanProvider(Assert.Single(dialog.GetVisualDescendants().OfType<Button>(), b => Equals(b.Content, choice))).Invoke();
-                    answered = true;
-                }
-                catch (Exception error) { callbackError = error; dialog.Close(); }
-            });
-            PresPlanProvider(Named<Button>(wizard, "NextButton")).Invoke(); await Settle(120);
-            Assert.Null(callbackError); Assert.True(answered);
-            if (choice == "No")
+            PresPlanProvider(Named<Button>(wizard, "NextButton")).Invoke(); await Settle(100);
+            var sheet=Assert.Single(f.Window.GetVisualDescendants().OfType<Border>(),x=>Equals(x.Tag,"cricket-decision-sheet") && x.IsEffectivelyVisible);
+            var action=Assert.Single(sheet.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Tag,choice));
+            PresPlanProvider(action).Invoke();await Settle(350);
+            if (choice == "stay")
             { Assert.Null(wizard.Result); Assert.Equal(before, ManualWeatherModel(f)); Assert.Equal(expected, MessageDraft(wizard).Select(m => m.Text)); }
         }
         var result = Assert.IsType<SetupResult>(wizard.Result);

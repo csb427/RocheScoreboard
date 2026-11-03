@@ -5585,6 +5585,7 @@ public partial class MainWindow
         SportSelectionPanel.IsHitTestVisible = true;
         SportSelectionPanel.Opacity = 1;
         SportSelectionPanel.Visibility = Visibility.Visible;
+        SportSelectionPanel.RevealAfterReset();
     }
 
     // ── Native window resize via custom grip ──

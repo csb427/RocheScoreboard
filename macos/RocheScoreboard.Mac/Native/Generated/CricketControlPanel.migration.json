@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-  "source_sha256": "f97668b9a9a074f68e665722a9663a318be76838579f9a772435e17d432683e2",
+  "source_sha256": "d1a5bebbfb2f30d515b1f06681739262748e988cfaba4e34de58406a1da28453",
   "names": [
     {
       "name": "PART_Surface",
@@ -383,6 +383,11 @@
       "object": false
     },
     {
+      "name": "MatchActionBar",
+      "type": "UniformGrid",
+      "object": false
+    },
+    {
       "name": "MatchOptionsButton",
       "type": "Button",
       "object": false
@@ -394,6 +399,11 @@
     },
     {
       "name": "EndInningsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "ResetMatchButton",
       "type": "Button",
       "object": false
     },
@@ -828,7 +838,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "876c629581e4e295514ea143988e7a1e9110f727bd2d40ba9c99fa8fdad85c23",
+  "code_source_sha256": "fd24afdc4681c1061d7549d0026929d84cf9dff320686eb5b48cefed403a2c0f",
   "native_events": [
     {
       "name": "MainTabControl",

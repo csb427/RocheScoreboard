@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SetupWizard.xaml",
-  "source_sha256": "109a94f85ab98a995dca3f2bf3e52690ffec71be6c27cfa43ce483a4879a3d8f",
+  "source_sha256": "12d485a0afc919226ba4c05e6317bc5bea3baa1849992ebef882eb8cd11bd39c",
   "names": [
     {
       "name": "FinalsFocusFrame",
@@ -744,7 +744,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "171431a4a141f52e71f532c9d1bb396d67ee91238933e5b25d3260edb3c707ef",
+  "code_source_sha256": "264045fc0b2d148a9e9398304c6b2387367a78658c60d52ba4c7551657bf168b",
   "native_events": [
     {
       "name": null,

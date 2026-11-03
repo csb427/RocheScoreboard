@@ -76,7 +76,9 @@ public partial class SportSelectionScreen : UserControl
         ReleaseScroller.Margin = compact ? new Thickness(0, shortWindow ? 0 : 12, 0, 0) : new Thickness(20, 0, 0, 0);
         ReleaseHistoryHeading.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         ReleaseVersionButtons.Orientation = compact ? Orientation.Horizontal : Orientation.Vertical;
-        ReleaseHistoryScroller.MaxHeight = compact ? 52 : double.PositiveInfinity;
+        ReleaseHistoryScroller.MaxHeight = compact ? 72 : double.PositiveInfinity;
+        ReleaseHistoryScroller.HorizontalScrollBarVisibility = compact ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
+        ReleaseHistoryScroller.VerticalScrollBarVisibility = compact ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto;
         ReleaseVersionChoice.Visibility = compact && shortWindow ? Visibility.Visible : Visibility.Collapsed;
         ReleaseVersionChoice.Width = width < 390 ? 88 : 114;
         ReleaseSheetHeading.FontSize = compact && shortWindow ? width < 390 ? 20 : 23 : 30;
@@ -164,6 +166,7 @@ public partial class SportSelectionScreen : UserControl
     /// </summary>
     public void PrepareForDisplay()
     {
+        ++_resetReturnGeneration;
         ++_selectionGeneration;
         _selectionTimer?.Stop();
         _selectionTimer = null;
@@ -398,21 +401,24 @@ public partial class SportSelectionScreen : UserControl
             {
                 bool selected = page.Version == selectedVersion;
                 var label = new StackPanel();
-                label.Children.Add(new TextBlock { Text = page.Version, FontSize = 15, FontWeight = FontWeights.SemiBold, Foreground = ReleaseBrush(selected ? "#102438" : "#EDF5FF") });
+                label.Children.Add(new TextBlock { Text = page.Version, FontSize = 15, FontWeight = FontWeights.SemiBold });
                 if (!_releaseCompact)
-                    label.Children.Add(new TextBlock { Text = FormatReleaseDate(page.Date, true), FontSize = 11, Foreground = ReleaseBrush(selected ? "#40546B" : "#AABCD2"), Margin = new Thickness(0, 3, 0, 0) });
+                    label.Children.Add(new TextBlock { Text = FormatReleaseDate(page.Date, true), FontSize = 12, Opacity = .8, Margin = new Thickness(0, 3, 0, 0) });
                 var content = new StackPanel { Orientation = Orientation.Horizontal };
-                if (!_releaseCompact) content.Children.Add(new OperatorSymbol { Kind = "Updates", IsActive = selected, Width = 20, Height = 20, Foreground = ReleaseBrush(selected ? "#214F79" : "#BBCFE6"), Margin = new Thickness(0, 0, 9, 0), VerticalAlignment = System.Windows.VerticalAlignment.Center });
+                if (!_releaseCompact) content.Children.Add(new OperatorSymbol { Kind = "Updates", IsActive = selected, Width = 20, Height = 20, Margin = new Thickness(0, 0, 9, 0), VerticalAlignment = System.Windows.VerticalAlignment.Center });
                 content.Children.Add(label);
                 var button = new System.Windows.Controls.Button
                 {
-                    Content = content, Tag = page.Version, Style = (Style)FindResource("ToolBtn"),
-                    Width = _releaseCompact ? 92 : 148, MinHeight = _releaseCompact ? 40 : 60,
+                    Content = content, Tag = page.Version, Style = (Style)FindResource(selected ? "ReleaseNavigationSelected" : "ReleaseNavigationButton"),
+                    Width = _releaseCompact ? 92 : double.NaN, MinHeight = _releaseCompact ? 44 : 60,
                     Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(2, 2, 2, 5),
                     HorizontalContentAlignment = System.Windows.HorizontalAlignment.Left,
-                    Background = ReleaseBrush(selected ? "#EEEBF4FF" : "#08FFFFFF"),
-                    BorderBrush = ReleaseBrush(selected ? "#D9EEFF" : "#00FFFFFF")
+                    HorizontalAlignment = _releaseCompact ? System.Windows.HorizontalAlignment.Left : System.Windows.HorizontalAlignment.Stretch
                 };
+                foreach (var text in label.Children.OfType<TextBlock>())
+                    text.SetBinding(TextBlock.ForegroundProperty, new System.Windows.Data.Binding("Foreground") { Source = button });
+                foreach (var symbol in content.Children.OfType<OperatorSymbol>())
+                    symbol.SetBinding(OperatorSymbol.ForegroundProperty, new System.Windows.Data.Binding("Foreground") { Source = button });
                 System.Windows.Automation.AutomationProperties.SetName(button, $"Release {page.Version}");
                 System.Windows.Automation.AutomationProperties.SetItemStatus(button, selected ? "Selected release" : "Not selected");
                 button.Click += (_, _) => SelectRelease(page.Version);
@@ -452,7 +458,16 @@ public partial class SportSelectionScreen : UserControl
         if (!_buildingReleaseNavigation && ReleaseVersionChoice.SelectedValue is string version)
         {
             ReleaseVersionChoice.IsDropDownOpen = false;
-            SelectRelease(version);
+            // A selection notification still owns the combo's current item
+            // collection. Rebuild after it has unwound, and let the latest
+            // selection/resize/close retire an obsolete request.
+            int generation = _releaseNavigationGeneration;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!_changelogOpen || generation != _releaseNavigationGeneration ||
+                    !Equals(ReleaseVersionChoice.SelectedValue, version)) return;
+                SelectRelease(version);
+            }));
         }
     }
 

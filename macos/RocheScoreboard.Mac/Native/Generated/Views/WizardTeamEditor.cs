@@ -1,5 +1,5 @@
 // Generated from Views/WizardTeamEditor.cs; edit translator/adapters.
-// Source SHA-256: 7dfbba12efba7e1c5a9418721d1ad14f7e1e99467ea4ec7de017e7a3749e1f08
+// Source SHA-256: 151d3d7acfe9277709a72327a60c7c8431ea2ebba33b9e5e77c212cbb6d9b67e
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -28,6 +28,10 @@ internal static class WizardTeamEditor
     private static readonly AttachedProperty<bool> HomeSavedProperty=(AttachedProperty<bool>)NativeProperty.RegisterAttached("HomeSaved",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
     private static readonly AttachedProperty<bool> AwaySavedProperty=(AttachedProperty<bool>)NativeProperty.RegisterAttached("AwaySaved",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
     private static readonly AttachedProperty<bool> HasClubsProperty=(AttachedProperty<bool>)NativeProperty.RegisterAttached("HasClubs",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
+    internal static Control[] TeamSurfaces(UserControl wizard)
+        => wizard.FindName("TeamsStepContainer") is Grid stage
+            ? stage.Children.OfType<Grid>().SelectMany(pair => pair.Children.OfType<OperatorGlassSurface>()).Cast<Control>().ToArray()
+            : Array.Empty<Control>();
     internal static void SetPresetAvailability(UserControl wizard,bool homeSaved,bool awaySaved,bool hasClubs)
     {
         wizard.SetValue(HomeSavedProperty,homeSaved);wizard.SetValue(AwaySavedProperty,awaySaved);wizard.SetValue(HasClubsProperty,hasClubs);
@@ -112,7 +116,7 @@ internal static class WizardTeamEditor
             presetStatus.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");
             Avalonia.Automation.AutomationProperties.SetLiveSetting(presetStatus,Avalonia.Automation.AutomationLiveSetting.Polite);
             form.Children.Add(presetStatus);oldCard.Child=form;body.Children.Add(oldCard);
-            var surface=new OperatorGlassSurface{Material=GlassMaterial.Regular,CornerRadius=new CornerRadius(30),Padding=new Thickness(24),BorderThickness=new Thickness(1),VerticalAlignment=VerticalAlignment.Top,Child=body};surface.SetResourceReference(Border.BackgroundProperty,"ControlCentre.GlassBrush");surface.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");Grid.SetColumn(surface,home?0:2);pair.Children.Add(surface);
+            var surface=new OperatorGlassSurface{Name=side+"SetupSurface",Material=GlassMaterial.Regular,CornerRadius=new CornerRadius(30),Padding=new Thickness(24),BorderThickness=new Thickness(1),VerticalAlignment=VerticalAlignment.Top,Child=body};surface.SetResourceReference(Border.BackgroundProperty,"ControlCentre.GlassBrush");surface.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");Grid.SetColumn(surface,home?0:2);pair.Children.Add(surface);
         }
         stage.Children.Clear();stage.Children.Add(pair);
         RefreshPresetAvailability(wizard);

@@ -1,5 +1,5 @@
 // Generated from MainWindow.ResetDecision.cs; edit translator/adapters.
-// Source SHA-256: f18ae40d680ad00a49e172b5c05e0a9c2cf8016cc156e91622c1e4b433cf8d55
+// Source SHA-256: a399b9d8e122e56785afea90aab7cd506b7fe5ac2a6741edd7851c71390b18b5
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -74,9 +74,6 @@ public partial class MainWindow
         OperatorAppearance.Changed -= ResetAppearanceChanged;
         OperatorAppearance.Changed += ResetAppearanceChanged;
 
-        ResetMatchContext.Text = $"{_match.HomeName}  {_match.HomeGoals}.{_match.HomeBehinds} ({_match.HomeTotal})\n"
-            + $"{_match.AwayName}  {_match.AwayGoals}.{_match.AwayBehinds} ({_match.AwayTotal})";
-        ResetPhaseText.Text = $"Quarter {_match.Quarter} · clock {(_match.ClockRunning ? "running" : "stopped")}";
         ResetContextNotice.IsVisible = false;
         ConfirmResetBtn.IsEnabled = true;
         CancelResetBtn.IsDefault = true;

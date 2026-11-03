@@ -22,6 +22,10 @@ internal static class WizardTeamEditor
     private static readonly DependencyProperty HomeSavedProperty=DependencyProperty.RegisterAttached("HomeSaved",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
     private static readonly DependencyProperty AwaySavedProperty=DependencyProperty.RegisterAttached("AwaySaved",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
     private static readonly DependencyProperty HasClubsProperty=DependencyProperty.RegisterAttached("HasClubs",typeof(bool),typeof(WizardTeamEditor),new PropertyMetadata(false));
+    internal static FrameworkElement[] TeamSurfaces(UserControl wizard)
+        => wizard.FindName("TeamsStepContainer") is Grid stage
+            ? stage.Children.OfType<Grid>().SelectMany(pair => pair.Children.OfType<OperatorGlassSurface>()).Cast<FrameworkElement>().ToArray()
+            : Array.Empty<FrameworkElement>();
     internal static void SetPresetAvailability(UserControl wizard,bool homeSaved,bool awaySaved,bool hasClubs)
     {
         wizard.SetValue(HomeSavedProperty,homeSaved);wizard.SetValue(AwaySavedProperty,awaySaved);wizard.SetValue(HasClubsProperty,hasClubs);
@@ -106,7 +110,7 @@ internal static class WizardTeamEditor
             presetStatus.SetResourceReference(TextBlock.ForegroundProperty,"ControlCentre.SecondaryTextBrush");
             System.Windows.Automation.AutomationProperties.SetLiveSetting(presetStatus,System.Windows.Automation.AutomationLiveSetting.Polite);
             form.Children.Add(presetStatus);oldCard.Child=form;body.Children.Add(oldCard);
-            var surface=new OperatorGlassSurface{Material=GlassMaterial.Regular,CornerRadius=new CornerRadius(30),Padding=new Thickness(24),BorderThickness=new Thickness(1),VerticalAlignment=VerticalAlignment.Top,Child=body};surface.SetResourceReference(Border.BackgroundProperty,"ControlCentre.GlassBrush");surface.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");Grid.SetColumn(surface,home?0:2);pair.Children.Add(surface);
+            var surface=new OperatorGlassSurface{Name=side+"SetupSurface",Material=GlassMaterial.Regular,CornerRadius=new CornerRadius(30),Padding=new Thickness(24),BorderThickness=new Thickness(1),VerticalAlignment=VerticalAlignment.Top,Child=body};surface.SetResourceReference(Border.BackgroundProperty,"ControlCentre.GlassBrush");surface.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");Grid.SetColumn(surface,home?0:2);pair.Children.Add(surface);
         }
         stage.Children.Clear();stage.Children.Add(pair);
         RefreshPresetAvailability(wizard);

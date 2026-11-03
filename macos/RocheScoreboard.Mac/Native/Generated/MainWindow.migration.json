@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/MainWindow.xaml",
-  "source_sha256": "286a88552bd271764280dc40ddb9b3033196a0797db041cc0ee132246e3657f4",
+  "source_sha256": "9cd749ab04930d6d4af61c18d2275c0f2250be74ec34f80996a93c334c5399cc",
   "names": [
     {
       "name": "HeaderToggle",
@@ -1630,16 +1630,6 @@
       "object": false
     },
     {
-      "name": "ResetMatchContext",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
-      "name": "ResetPhaseText",
-      "type": "TextBlock",
-      "object": false
-    },
-    {
       "name": "ResetContextNotice",
       "type": "TextBlock",
       "object": false
@@ -1730,7 +1720,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "07403e11ea5a3a7e1890a9ee0625b0b05e737ba1bb314887b2e9ca66f582030d",
+  "code_source_sha256": "054d1d9b3355e64bbd7749f794c0dc2fa8673abf1fc2b93d6eb8c8aae20e2651",
   "native_events": [
     {
       "name": "MainTabControl",

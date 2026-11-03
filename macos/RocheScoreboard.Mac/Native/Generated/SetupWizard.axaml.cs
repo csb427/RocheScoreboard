@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/SetupWizard.xaml.cs; edit translator/adapters.
-// Source SHA-256: 171431a4a141f52e71f532c9d1bb396d67ee91238933e5b25d3260edb3c707ef
+// Source SHA-256: 264045fc0b2d148a9e9398304c6b2387367a78658c60d52ba4c7551657bf168b
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -262,6 +262,7 @@ namespace Roche_Scoreboard.Views
         private void PlayEntryAnimation()
         {
             SettleWizardMotion();
+            if (UnifiedSetupEnabled) return; // The unified route reveals its actual team forms after layout.
             if (!OperatorMotion.Enabled || !IsLoaded) return;
             int index = 0;
             foreach (var element in new Control[] { HeaderPanel, StepIndicator, HomePresetCard, AwayPresetCard, HomeTeamCard, AwayTeamCard, NavBar })
@@ -389,6 +390,7 @@ namespace Roche_Scoreboard.Views
 
         public void Reset()
         {
+            ++_completionGeneration; _completionPending = false;
             InvalidatePresetOwner();
             OperatorWorkflowPreferencesData remembered = OperatorWorkflowPreferences.Load();
             Result = null;
@@ -478,7 +480,7 @@ namespace Roche_Scoreboard.Views
         //  FINISH WIZARD
         // ═══════════════════════════════════════════════════════
 
-        private void FinishWizardCore()
+        private async Task FinishWizardCoreAsync(int generation)
         {
             if (!ValidateQuarterEntry()) return;
             string? messageError = SetupMessageError(includeDraft: true, finishing: true);
@@ -504,6 +506,8 @@ namespace Roche_Scoreboard.Views
             string awayName = (SetupAwayNameBox.Text ?? string.Empty).Trim();
             string awayAbbr = (SetupAwayAbbrBox.Text ?? string.Empty).Trim();
 
+            if (ConfirmCompletionAsync is { } confirm && !await confirm()) return;
+            if (generation != _completionGeneration || Result is not null || (ConfirmCompletionAsync is not null && !IsVisible)) return;
             if (ConfirmCompletion?.Invoke() == false) return;
             Result = new SetupResult
             {

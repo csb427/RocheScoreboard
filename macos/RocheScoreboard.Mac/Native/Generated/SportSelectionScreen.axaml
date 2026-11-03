@@ -116,305 +116,340 @@
                     <Setter Property="IsVisible" Value="True" />
                 </Style>
             </ControlTheme>
+            <ControlTheme x:Key="ReleaseNavigationButton" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
+                <Setter Property="Background" Value="{DynamicResource ControlCentre.SurfaceBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.BorderBrush}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid Background="Transparent">
+                                <Grid x:Name="PART_Surface" RenderTransformOrigin="50%,50%">
+                                    <Grid.RenderTransform>
+                                        <ScaleTransform port:ProductionNames.TemplateId="TbSc" />
+                                    </Grid.RenderTransform>
+                                    <Border x:Name="ReleaseButtonSurface" CornerRadius="18" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" />
+                                    <Border x:Name="ActionGlow" CornerRadius="18" Background="White" Opacity="0" IsHitTestVisible="False" />
+                                    <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                </Grid>
+                                <Border x:Name="ReleaseKeyboardFocus" Margin="2" CornerRadius="16" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style Selector="^:focus:focus-visible /template/ Border#ReleaseKeyboardFocus">
+                    <Setter Property="IsVisible" Value="True" />
+                </Style>
+                <Style Selector="^:disabled /template/ Grid#PART_Surface">
+                    <Setter Property="Opacity" Value=".4" />
+                </Style>
+            </ControlTheme>
+            <ControlTheme x:Key="ReleaseNavigationSelected" TargetType="Button" BasedOn="{StaticResource ReleaseNavigationButton}">
+                <Setter Property="Background" Value="#F1F4F8" />
+                <Setter Property="Foreground" Value="{DynamicResource ControlCentre.SegmentSelectedInkBrush}" />
+                <Setter Property="BorderBrush" Value="#D9EEFF" />
+            </ControlTheme>
         </ResourceDictionary>
     </UserControl.Resources>
-    <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" PointerWheelChanged="Native_ResponsiveScrollHost_PreviewMouseWheel">
-        <Grid x:Name="SportViewport" MinHeight="620" Width="{Binding ViewportWidth, ElementName=ResponsiveScrollHost}" Height="{Binding ViewportHeight, ElementName=ResponsiveScrollHost}" ClipToBounds="True">
-            <Grid x:Name="HomeBackdrop" IsHitTestVisible="False">
-                <ns4:OperatorSceneBackdrop />
-                <Border>
-                    <Border.Background>
-                        <RadialGradientBrush Center="50%,45%" GradientOrigin="50%,45%" RadiusX="65%" RadiusY="85%">
-                            <GradientStop Color="#002B3C55" />
-                            <GradientStop Color="#3C02070D" Offset="1" />
-                        </RadialGradientBrush>
-                    </Border.Background>
-                </Border>
-            </Grid>
-            <Grid x:Name="HomeLayout" Margin="28,22,28,24">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Grid x:Name="HomeToolbar">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <ns4:OperatorGlassSurface x:Name="SettingsTile" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" HorizontalAlignment="Left" Padding="14,9" Cursor="Hand" BorderBrush="#60FFFFFF" BorderThickness="1" native:NativeActivation.Enabled="True" PointerReleased="Native_Settings_Click" PointerEntered="Native_SettingsTile_MouseEnter" PointerExited="Native_SettingsTile_MouseLeave">
-                        <Border.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform port:ProductionNames.Id="SettingsTileScale" />
-                                <TranslateTransform port:ProductionNames.Id="SettingsTileTranslate" />
-                            </TransformGroup>
-                        </Border.RenderTransform>
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="18" Color="Black" Opacity=".18" port:ProductionNames.Id="SettingsTileGlow" OffsetX="2.82842712475" OffsetY="2.82842712475" />
-                        </Border.Effect>
-                        <StackPanel Orientation="Horizontal">
-                            <ns2:OperatorSymbol Kind="Settings" Width="22" Height="22" Margin="0,0,9,0" Foreground="White" />
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock x:Name="SettingsActionCaption" Text="Settings" Foreground="White" FontSize="14" FontWeight="SemiBold" />
-                                <TextBlock x:Name="SettingsSubtitle" Text="Application preferences" Foreground="#B9C4D4" FontSize="12" Margin="0,2,0,0" IsVisible="False" />
-                            </StackPanel>
-                        </StackPanel>
-                    </ns4:OperatorGlassSurface>
-                    <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K" Theme="{StaticResource HomeUtility}" />
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <ns4:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" IsVisible="{Binding Visibility, ElementName=ResumeSavedMatchButton}">
-                            <Button x:Name="ResumeSavedMatchButton" Content="Continue match" Click="ResumeSavedMatch_Click" IsVisible="False" Theme="{StaticResource HomeUtility}" ToolTip.Tip="Review and resume the saved match" />
-                        </ns4:OperatorGlassSurface>
-                        <ns4:OperatorGlassSurface Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0">
-                            <Button x:Name="ChangelogToggle" Click="ChangelogToggle_Click" Theme="{StaticResource HomeUtility}">
-                                <StackPanel Orientation="Horizontal">
-                                    <ns2:OperatorSymbol x:Name="UpdatesActionIcon" Kind="Updates" Width="20" Height="20" Margin="0,0,8,0" Foreground="White" />
-                                    <StackPanel>
-                                        <TextBlock Text="What’s New" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="14" FontWeight="SemiBold" />
-                                        <TextBlock x:Name="VersionLabel" Text="Latest release" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" Margin="0,2,0,0" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Button>
-                        </ns4:OperatorGlassSurface>
-                    </StackPanel>
+    <Grid x:Name="HomeRoot">
+        <ScrollViewer x:Name="ResponsiveScrollHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" PointerWheelChanged="Native_ResponsiveScrollHost_PreviewMouseWheel">
+            <Grid x:Name="SportViewport" MinHeight="620" Width="{Binding ViewportWidth, ElementName=ResponsiveScrollHost}" Height="{Binding ViewportHeight, ElementName=ResponsiveScrollHost}" ClipToBounds="True">
+                <Grid x:Name="HomeBackdrop" IsHitTestVisible="False">
+                    <ns4:OperatorSceneBackdrop />
+                    <Border>
+                        <Border.Background>
+                            <RadialGradientBrush Center="50%,45%" GradientOrigin="50%,45%" RadiusX="65%" RadiusY="85%">
+                                <GradientStop Color="#002B3C55" />
+                                <GradientStop Color="#3C02070D" Offset="1" />
+                            </RadialGradientBrush>
+                        </Border.Background>
+                    </Border>
                 </Grid>
-                <Border x:Name="HeaderPanel" Grid.Row="1" Background="Transparent" Margin="0,28,0,22" IsHitTestVisible="False">
-                    <Border.RenderTransform>
-                        <TranslateTransform port:ProductionNames.Id="HeaderTranslate" />
-                    </Border.RenderTransform>
-                    <StackPanel>
-                        <TextBlock x:Name="HomeHeading" Text="Choose a sport" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
-                        <TextBlock x:Name="HomeSubtitle" Text="Start a match or a training session." Foreground="#D8E2EC" FontSize="15" TextAlignment="Center" Margin="0,7,0,0" />
-                    </StackPanel>
-                </Border>
-                <Border x:Name="ResumeSessionSurface" Grid.Row="2" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="#6073B9FF" BorderThickness="1" CornerRadius="24" Padding="22,16" Margin="10,0,10,12">
-                    <StackPanel>
-                        <TextBlock x:Name="SessionHeading" Text="Ready for your next session" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" />
-                        <TextBlock x:Name="SessionDetail" Text="No recoverable match saved. Start a new match below." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,6,0,0" />
-                        <TextBlock x:Name="ResumeOutputHint" Text="Output stays off when resuming. Use Show output window (Ctrl+K) when ready." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,7,0,0" />
-                        <Button x:Name="HomeResumeButton" Content="Resume saved match" ContentTemplate="{StaticResource HomeResumeLabel}" Click="ResumeSavedMatch_Click" HorizontalAlignment="Left" Background="#284E739D" Margin="0,12,0,0" IsVisible="False" Theme="{StaticResource HomeUtility}" />
-                    </StackPanel>
-                </Border>
-                <Grid x:Name="SportCardsGrid" Grid.Row="3" MaxWidth="1100" Height="330" VerticalAlignment="Center" HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <ns4:OperatorGlassSurface x:Name="HomeInteractionLens" Material="Clear" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Width="0" Height="0" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.ColumnSpan="3" Grid.RowSpan="3">
-                        <Border.RenderTransform>
-                            <TranslateTransform port:ProductionNames.Id="HomeLensTranslate" />
-                        </Border.RenderTransform>
-                    </ns4:OperatorGlassSurface>
-                    <ns4:OperatorGlassSurface x:Name="AflCard" Grid.Column="0" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Margin="10" Cursor="Hand" ClipToBounds="True" RenderTransformOrigin="50%,50%" PointerEntered="Native_Card_MouseEnter" PointerExited="Native_Card_MouseLeave" native:NativeActivation.Enabled="True" PointerReleased="Native_AFL_Click">
-                        <Border.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform port:ProductionNames.Id="AflCardScale" />
-                                <TranslateTransform port:ProductionNames.Id="AflCardTranslate" />
-                            </TransformGroup>
-                        </Border.RenderTransform>
-                        <Grid>
-                            <Border x:Name="AflGlow" CornerRadius="36" BorderBrush="#CFFFFFFF" BorderThickness="2" Opacity=".1" IsHitTestVisible="False" />
-                            <Border IsHitTestVisible="False" Opacity="0">
-                                <Border.RenderTransform>
-                                    <TranslateTransform port:ProductionNames.Id="AflBeamTranslate" />
-                                </Border.RenderTransform>
-                            </Border>
-                            <Grid x:Name="AflTileBody" Margin="20,18,20,20">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Viewbox x:Name="AflContentFit" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="165" Margin="0,0,0,12">
-                                    <Border x:Name="AflIconGroup" Width="145" Height="155" RenderTransformOrigin="50%,50%">
-                                        <Border.RenderTransform>
-                                            <TransformGroup>
-                                                <ScaleTransform port:ProductionNames.Id="AflIconScale" />
-                                                <TranslateTransform port:ProductionNames.Id="AflIconFloat" />
-                                                <TranslateTransform port:ProductionNames.Id="AflIconHover" />
-                                            </TransformGroup>
-                                        </Border.RenderTransform>
-                                        <ns2:OperatorSymbol Kind="afl" Width="124" Height="124" Foreground="#FF9F0A" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
-                                </Viewbox>
-                                <StackPanel x:Name="AflTextPanel" Grid.Row="1">
-                                    <StackPanel.RenderTransform>
-                                        <TranslateTransform port:ProductionNames.Id="AflTextTranslate" />
-                                    </StackPanel.RenderTransform>
-                                    <TextBlock Text="AFL" FontSize="26" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" />
-                                    <TextBlock x:Name="AflDescription" Text="Australian football" FontSize="14" Foreground="#D8E2EC" TextAlignment="Center" Margin="0,5,0,0" />
+                <Grid x:Name="HomeLayout" Margin="28,22,28,24">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid x:Name="HomeToolbar">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ns4:OperatorGlassSurface x:Name="SettingsTile" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" HorizontalAlignment="Left" Padding="14,9" Cursor="Hand" BorderBrush="#60FFFFFF" BorderThickness="1" native:NativeActivation.Enabled="True" PointerReleased="Native_Settings_Click" PointerEntered="Native_SettingsTile_MouseEnter" PointerExited="Native_SettingsTile_MouseLeave">
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform port:ProductionNames.Id="SettingsTileScale" />
+                                    <TranslateTransform port:ProductionNames.Id="SettingsTileTranslate" />
+                                </TransformGroup>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="18" Color="Black" Opacity=".18" port:ProductionNames.Id="SettingsTileGlow" OffsetX="2.82842712475" OffsetY="2.82842712475" />
+                            </Border.Effect>
+                            <StackPanel Orientation="Horizontal">
+                                <ns2:OperatorSymbol Kind="Settings" Width="22" Height="22" Margin="0,0,9,0" Foreground="White" />
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Name="SettingsActionCaption" Text="Settings" Foreground="White" FontSize="14" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="SettingsSubtitle" Text="Application preferences" Foreground="#B9C4D4" FontSize="12" Margin="0,2,0,0" IsVisible="False" />
                                 </StackPanel>
-                            </Grid>
-                            <Border x:Name="AflHover" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
-                            <Border x:Name="AflFlash" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
-                        </Grid>
-                    </ns4:OperatorGlassSurface>
-                    <ns4:OperatorGlassSurface x:Name="CricketCard" Grid.Column="1" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Margin="10" Cursor="Hand" ClipToBounds="True" RenderTransformOrigin="50%,50%" PointerEntered="Native_Card_MouseEnter" PointerExited="Native_Card_MouseLeave" native:NativeActivation.Enabled="True" PointerReleased="Native_Cricket_Click">
+                            </StackPanel>
+                        </ns4:OperatorGlassSurface>
+                        <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K" Theme="{StaticResource HomeUtility}" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <ns4:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" IsVisible="{Binding Visibility, ElementName=ResumeSavedMatchButton}">
+                                <Button x:Name="ResumeSavedMatchButton" Content="Continue match" Click="ResumeSavedMatch_Click" IsVisible="False" Theme="{StaticResource HomeUtility}" ToolTip.Tip="Review and resume the saved match" />
+                            </ns4:OperatorGlassSurface>
+                            <ns4:OperatorGlassSurface Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0">
+                                <Button x:Name="ChangelogToggle" Click="ChangelogToggle_Click" Theme="{StaticResource HomeUtility}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ns2:OperatorSymbol x:Name="UpdatesActionIcon" Kind="Updates" Width="20" Height="20" Margin="0,0,8,0" Foreground="White" />
+                                        <StackPanel>
+                                            <TextBlock Text="What’s New" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="14" FontWeight="SemiBold" />
+                                            <TextBlock x:Name="VersionLabel" Text="Latest release" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Button>
+                            </ns4:OperatorGlassSurface>
+                        </StackPanel>
+                    </Grid>
+                    <Border x:Name="HeaderPanel" Grid.Row="1" Background="Transparent" Margin="0,28,0,22" IsHitTestVisible="False">
                         <Border.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform port:ProductionNames.Id="CricketCardScale" />
-                                <TranslateTransform port:ProductionNames.Id="CricketCardTranslate" />
-                            </TransformGroup>
+                            <TranslateTransform port:ProductionNames.Id="HeaderTranslate" />
                         </Border.RenderTransform>
-                        <Grid>
-                            <Border x:Name="CricketGlow" CornerRadius="36" BorderBrush="#CFFFFFFF" BorderThickness="2" Opacity=".1" IsHitTestVisible="False" />
-                            <Border IsHitTestVisible="False" Opacity="0">
-                                <Border.RenderTransform>
-                                    <TranslateTransform port:ProductionNames.Id="CricketBeamTranslate" />
-                                </Border.RenderTransform>
-                            </Border>
-                            <Grid x:Name="CricketTileBody" Margin="20,18,20,20">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Viewbox x:Name="CricketContentFit" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="165" Margin="0,0,0,12">
-                                    <Border x:Name="CricketIconGroup" Width="155" Height="155" RenderTransformOrigin="50%,50%">
-                                        <Border.RenderTransform>
-                                            <TransformGroup>
-                                                <ScaleTransform port:ProductionNames.Id="CricketIconScale" />
-                                                <TranslateTransform port:ProductionNames.Id="CricketIconFloat" />
-                                                <TranslateTransform port:ProductionNames.Id="CricketIconHover" />
-                                            </TransformGroup>
-                                        </Border.RenderTransform>
-                                        <ns2:OperatorSymbol Kind="cricket" Width="124" Height="124" Foreground="#30D994" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
-                                </Viewbox>
-                                <StackPanel x:Name="CricketTextPanel" Grid.Row="1">
-                                    <StackPanel.RenderTransform>
-                                        <TranslateTransform port:ProductionNames.Id="CricketTextTranslate" />
-                                    </StackPanel.RenderTransform>
-                                    <TextBlock Text="Cricket" FontSize="26" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" />
-                                    <TextBlock x:Name="CricketDescription" Text="Every innings" FontSize="14" Foreground="#D8E2EC" TextAlignment="Center" Margin="0,5,0,0" />
-                                </StackPanel>
+                        <StackPanel>
+                            <TextBlock x:Name="HomeHeading" Text="Choose a sport" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                            <TextBlock x:Name="HomeSubtitle" Text="Start a match or a training session." Foreground="#D8E2EC" FontSize="15" TextAlignment="Center" Margin="0,7,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border x:Name="ResumeSessionSurface" Grid.Row="2" Background="{DynamicResource ControlCentre.SurfaceBrush}" BorderBrush="#6073B9FF" BorderThickness="1" CornerRadius="24" Padding="22,16" Margin="10,0,10,12">
+                        <StackPanel>
+                            <TextBlock x:Name="SessionHeading" Text="Ready for your next session" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock x:Name="SessionDetail" Text="No recoverable match saved. Start a new match below." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="14" TextWrapping="Wrap" Margin="0,6,0,0" />
+                            <TextBlock x:Name="ResumeOutputHint" Text="Output stays off when resuming. Use Show output window (Ctrl+K) when ready." Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,7,0,0" />
+                            <Button x:Name="HomeResumeButton" Content="Resume saved match" ContentTemplate="{StaticResource HomeResumeLabel}" Click="ResumeSavedMatch_Click" HorizontalAlignment="Left" Background="#284E739D" Margin="0,12,0,0" IsVisible="False" Theme="{StaticResource HomeUtility}" />
+                        </StackPanel>
+                    </Border>
+                    <Grid x:Name="SportCardsGrid" Grid.Row="3" MaxWidth="1100" Height="330" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ns4:OperatorGlassSurface x:Name="HomeInteractionLens" Material="Clear" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Width="0" Height="0" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.ColumnSpan="3" Grid.RowSpan="3">
+                            <Border.RenderTransform>
+                                <TranslateTransform port:ProductionNames.Id="HomeLensTranslate" />
+                            </Border.RenderTransform>
+                        </ns4:OperatorGlassSurface>
+                        <ns4:OperatorGlassSurface x:Name="AflCard" Grid.Column="0" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Margin="10" Cursor="Hand" ClipToBounds="True" RenderTransformOrigin="50%,50%" PointerEntered="Native_Card_MouseEnter" PointerExited="Native_Card_MouseLeave" native:NativeActivation.Enabled="True" PointerReleased="Native_AFL_Click">
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform port:ProductionNames.Id="AflCardScale" />
+                                    <TranslateTransform port:ProductionNames.Id="AflCardTranslate" />
+                                </TransformGroup>
+                            </Border.RenderTransform>
+                            <Grid>
+                                <Border x:Name="AflGlow" CornerRadius="36" BorderBrush="#CFFFFFFF" BorderThickness="2" Opacity=".1" IsHitTestVisible="False" />
+                                <Border IsHitTestVisible="False" Opacity="0">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform port:ProductionNames.Id="AflBeamTranslate" />
+                                    </Border.RenderTransform>
+                                </Border>
+                                <Grid x:Name="AflTileBody" Margin="20,18,20,20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Viewbox x:Name="AflContentFit" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="165" Margin="0,0,0,12">
+                                        <Border x:Name="AflIconGroup" Width="145" Height="155" RenderTransformOrigin="50%,50%">
+                                            <Border.RenderTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform port:ProductionNames.Id="AflIconScale" />
+                                                    <TranslateTransform port:ProductionNames.Id="AflIconFloat" />
+                                                    <TranslateTransform port:ProductionNames.Id="AflIconHover" />
+                                                </TransformGroup>
+                                            </Border.RenderTransform>
+                                            <ns2:OperatorSymbol Kind="afl" Width="124" Height="124" Foreground="#FF9F0A" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </Viewbox>
+                                    <StackPanel x:Name="AflTextPanel" Grid.Row="1">
+                                        <StackPanel.RenderTransform>
+                                            <TranslateTransform port:ProductionNames.Id="AflTextTranslate" />
+                                        </StackPanel.RenderTransform>
+                                        <TextBlock Text="AFL" FontSize="26" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" />
+                                        <TextBlock x:Name="AflDescription" Text="Australian football" FontSize="14" Foreground="#D8E2EC" TextAlignment="Center" Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                                <Border x:Name="AflHover" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
+                                <Border x:Name="AflFlash" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
                             </Grid>
-                            <Border x:Name="CricketHover" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
-                            <Border x:Name="CricketFlash" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
-                        </Grid>
-                    </ns4:OperatorGlassSurface>
-                    <ns4:OperatorGlassSurface x:Name="TrainingCard" Grid.Column="2" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Margin="10" Cursor="Hand" ClipToBounds="True" RenderTransformOrigin="50%,50%" PointerEntered="Native_TrainingTile_MouseEnter" PointerExited="Native_TrainingTile_MouseLeave" native:NativeActivation.Enabled="True" PointerReleased="Native_Training_Click">
-                        <Border.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform port:ProductionNames.Id="TrainingTileScale" />
-                                <TranslateTransform port:ProductionNames.Id="TrainingTileTranslate" />
-                            </TransformGroup>
-                        </Border.RenderTransform>
-                        <Border.Effect>
-                            <DropShadowEffect Color="#A8C1DF" BlurRadius="16" Opacity=".12" port:ProductionNames.Id="TrainingTileGlow" OffsetX="0" OffsetY="0" />
-                        </Border.Effect>
-                        <Grid x:Name="TrainingContentRoot" RenderTransformOrigin="50%,50%">
+                        </ns4:OperatorGlassSurface>
+                        <ns4:OperatorGlassSurface x:Name="CricketCard" Grid.Column="1" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Margin="10" Cursor="Hand" ClipToBounds="True" RenderTransformOrigin="50%,50%" PointerEntered="Native_Card_MouseEnter" PointerExited="Native_Card_MouseLeave" native:NativeActivation.Enabled="True" PointerReleased="Native_Cricket_Click">
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform port:ProductionNames.Id="CricketCardScale" />
+                                    <TranslateTransform port:ProductionNames.Id="CricketCardTranslate" />
+                                </TransformGroup>
+                            </Border.RenderTransform>
+                            <Grid>
+                                <Border x:Name="CricketGlow" CornerRadius="36" BorderBrush="#CFFFFFFF" BorderThickness="2" Opacity=".1" IsHitTestVisible="False" />
+                                <Border IsHitTestVisible="False" Opacity="0">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform port:ProductionNames.Id="CricketBeamTranslate" />
+                                    </Border.RenderTransform>
+                                </Border>
+                                <Grid x:Name="CricketTileBody" Margin="20,18,20,20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Viewbox x:Name="CricketContentFit" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="165" Margin="0,0,0,12">
+                                        <Border x:Name="CricketIconGroup" Width="155" Height="155" RenderTransformOrigin="50%,50%">
+                                            <Border.RenderTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform port:ProductionNames.Id="CricketIconScale" />
+                                                    <TranslateTransform port:ProductionNames.Id="CricketIconFloat" />
+                                                    <TranslateTransform port:ProductionNames.Id="CricketIconHover" />
+                                                </TransformGroup>
+                                            </Border.RenderTransform>
+                                            <ns2:OperatorSymbol Kind="cricket" Width="124" Height="124" Foreground="#30D994" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </Viewbox>
+                                    <StackPanel x:Name="CricketTextPanel" Grid.Row="1">
+                                        <StackPanel.RenderTransform>
+                                            <TranslateTransform port:ProductionNames.Id="CricketTextTranslate" />
+                                        </StackPanel.RenderTransform>
+                                        <TextBlock Text="Cricket" FontSize="26" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" />
+                                        <TextBlock x:Name="CricketDescription" Text="Every innings" FontSize="14" Foreground="#D8E2EC" TextAlignment="Center" Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                                <Border x:Name="CricketHover" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
+                                <Border x:Name="CricketFlash" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
+                            </Grid>
+                        </ns4:OperatorGlassSurface>
+                        <ns4:OperatorGlassSurface x:Name="TrainingCard" Grid.Column="2" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="36" Margin="10" Cursor="Hand" ClipToBounds="True" RenderTransformOrigin="50%,50%" PointerEntered="Native_TrainingTile_MouseEnter" PointerExited="Native_TrainingTile_MouseLeave" native:NativeActivation.Enabled="True" PointerReleased="Native_Training_Click">
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform port:ProductionNames.Id="TrainingTileScale" />
+                                    <TranslateTransform port:ProductionNames.Id="TrainingTileTranslate" />
+                                </TransformGroup>
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#A8C1DF" BlurRadius="16" Opacity=".12" port:ProductionNames.Id="TrainingTileGlow" OffsetX="0" OffsetY="0" />
+                            </Border.Effect>
+                            <Grid x:Name="TrainingContentRoot" RenderTransformOrigin="50%,50%">
+                                <Grid.RenderTransform>
+                                    <ScaleTransform port:ProductionNames.Id="TrainingContentScale" />
+                                </Grid.RenderTransform>
+                                <Border x:Name="TrainingGlassEdge" CornerRadius="36" BorderBrush="#CFFFFFFF" BorderThickness="2" Opacity=".12" IsHitTestVisible="False" />
+                                <Grid x:Name="TrainingTileBody" Margin="20,18,20,20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Viewbox x:Name="TrainingContentFit" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="165" Margin="0,0,0,12">
+                                        <Canvas Width="145" Height="155" RenderTransformOrigin="50%,50%">
+                                            <Canvas.RenderTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform port:ProductionNames.Id="TrainingIconMotionScale" />
+                                                    <TranslateTransform port:ProductionNames.Id="TrainingIconMotionShift" />
+                                                </TransformGroup>
+                                            </Canvas.RenderTransform>
+                                            <ns2:OperatorSymbol Kind="training" Width="124" Height="124" Foreground="#73B9FF" Canvas.Left="10" Canvas.Top="10" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <StackPanel x:Name="TrainingTextPanel" Grid.Row="1">
+                                        <TextBlock Text="Training" FontSize="26" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" />
+                                        <TextBlock x:Name="TrainingDescription" Text="Sessions and drills" FontSize="14" Foreground="#D8E2EC" TextAlignment="Center" Margin="0,5,0,0" IsVisible="False" />
+                                    </StackPanel>
+                                </Grid>
+                                <Border x:Name="TrainingHover" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
+                                <Border x:Name="TrainingFlash" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
+                            </Grid>
+                        </ns4:OperatorGlassSurface>
+                        <Grid IsHitTestVisible="False" IsVisible="False">
                             <Grid.RenderTransform>
-                                <ScaleTransform port:ProductionNames.Id="TrainingContentScale" />
+                                <ScaleTransform port:ProductionNames.Id="DividerScale" />
                             </Grid.RenderTransform>
-                            <Border x:Name="TrainingGlassEdge" CornerRadius="36" BorderBrush="#CFFFFFFF" BorderThickness="2" Opacity=".12" IsHitTestVisible="False" />
-                            <Grid x:Name="TrainingTileBody" Margin="20,18,20,20">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Viewbox x:Name="TrainingContentFit" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="165" Margin="0,0,0,12">
-                                    <Canvas Width="145" Height="155" RenderTransformOrigin="50%,50%">
-                                        <Canvas.RenderTransform>
-                                            <TransformGroup>
-                                                <ScaleTransform port:ProductionNames.Id="TrainingIconMotionScale" />
-                                                <TranslateTransform port:ProductionNames.Id="TrainingIconMotionShift" />
-                                            </TransformGroup>
-                                        </Canvas.RenderTransform>
-                                        <ns2:OperatorSymbol Kind="training" Width="124" Height="124" Foreground="#73B9FF" Canvas.Left="10" Canvas.Top="10" />
-                                    </Canvas>
-                                </Viewbox>
-                                <StackPanel x:Name="TrainingTextPanel" Grid.Row="1">
-                                    <TextBlock Text="Training" FontSize="26" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" />
-                                    <TextBlock x:Name="TrainingDescription" Text="Sessions and drills" FontSize="14" Foreground="#D8E2EC" TextAlignment="Center" Margin="0,5,0,0" IsVisible="False" />
-                                </StackPanel>
-                            </Grid>
-                            <Border x:Name="TrainingHover" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
-                            <Border x:Name="TrainingFlash" CornerRadius="36" Background="White" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="DividerGlowLine" />
                         </Grid>
-                    </ns4:OperatorGlassSurface>
-                    <Grid IsHitTestVisible="False" IsVisible="False">
-                        <Grid.RenderTransform>
-                            <ScaleTransform port:ProductionNames.Id="DividerScale" />
-                        </Grid.RenderTransform>
-                        <Border x:Name="DividerGlowLine" />
                     </Grid>
                 </Grid>
+                <Border x:Name="BottomAccent" Height="1" Background="#24FFFFFF" VerticalAlignment="Bottom" Margin="28,0,28,0" IsHitTestVisible="False" />
             </Grid>
-            <Border x:Name="BottomAccent" Height="1" Background="#24FFFFFF" VerticalAlignment="Bottom" Margin="28,0,28,0" IsHitTestVisible="False" />
-            <Grid x:Name="ChangelogOverlay" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" ZIndex="100" IsVisible="False" KeyDown="Native_ChangelogOverlay_PreviewKeyDown">
-                <Border Background="#A5020509" PointerReleased="Native_ChangelogBackdrop_Click" />
-                <ns4:OperatorGlassSurface x:Name="ChangelogPanel" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="50%,50%">
-                    <Border.RenderTransform>
-                        <TransformGroup>
-                            <ScaleTransform ScaleX=".96" ScaleY=".96" port:ProductionNames.Id="ChangelogPanelScale" />
-                            <TranslateTransform Y="24" port:ProductionNames.Id="ChangelogPanelTranslate" />
-                        </TransformGroup>
-                    </Border.RenderTransform>
-                    <Grid x:Name="ReleaseSheetBody" Margin="26">
+        </ScrollViewer>
+        <Grid x:Name="ChangelogOverlay" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" ZIndex="100" IsVisible="False" KeyDown="Native_ChangelogOverlay_PreviewKeyDown">
+            <Border Background="#A5020509" PointerReleased="Native_ChangelogBackdrop_Click" />
+            <ns4:OperatorGlassSurface x:Name="ChangelogPanel" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="50%,50%">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX=".96" ScaleY=".96" port:ProductionNames.Id="ChangelogPanelScale" />
+                        <TranslateTransform Y="24" port:ProductionNames.Id="ChangelogPanelTranslate" />
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <Grid x:Name="ReleaseSheetBody" Margin="26">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid x:Name="ReleaseHeader">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock x:Name="ReleaseSheetHeading" Text="What’s New" FontSize="30" FontWeight="SemiBold" Foreground="White" />
+                            <TextBlock x:Name="ReleaseSheetSubtitle" Text="Explore the latest release." FontSize="14" Foreground="#BAC5D6" Margin="0,5,12,0" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ComboBox x:Name="ReleaseVersionChoice" Grid.Column="1" Width="114" MinHeight="38" Margin="8,0,8,0" VerticalAlignment="Top" AutomationProperties.Name="Choose release" IsVisible="False" SelectedValueBinding="{Binding Tag}" Theme="{StaticResource SettingsChoice}" SelectionChanged="Native_ReleaseVersionChoice_SelectionChanged" />
+                        <Button Grid.Column="2" Width="44" Height="44" MinHeight="0" Padding="0" Content="×" FontSize="25" VerticalAlignment="Top" Click="ChangelogClose_Click" AutomationProperties.Name="Close What's New" />
+                    </Grid>
+                    <Grid x:Name="ReleaseSearchHost" Grid.Row="1" Margin="0,18,0,10">
+                        <ns4:OperatorSearchBox x:Name="ChangelogSearchBox" Placeholder="Search changes or a version" MinHeight="44" FontSize="15" AutomationProperties.Name="Search releases" TextChanged="Native_ChangelogSearch_TextChanged" />
+                    </Grid>
+                    <Grid x:Name="ReleaseFilterHost" Grid.Row="2" Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ns4:OperatorSegmentedPanel x:Name="ReleaseFilters" Columns="3" Rows="1" Width="264" Height="44" HorizontalAlignment="Left" AllowScrubbing="True" KeyDown="Native_ReleaseFilters_PreviewKeyDown">
+                            <RadioButton x:Name="AllReleaseFilter" Content="All" ContentTemplate="{StaticResource ReleaseAllLabel}" Tag="All" GroupName="ReleaseFilterChoice" IsChecked="True" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
+                            <RadioButton x:Name="NewReleaseFilter" Content="New" ContentTemplate="{StaticResource ReleaseNewLabel}" Tag="New" GroupName="ReleaseFilterChoice" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
+                            <RadioButton x:Name="FixedReleaseFilter" Content="Fixed" ContentTemplate="{StaticResource ReleaseFixedLabel}" Tag="Fixed" GroupName="ReleaseFilterChoice" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
+                        </ns4:OperatorSegmentedPanel>
+                        <TextBlock x:Name="ReleaseResultCount" Grid.Column="1" Foreground="#B8C4D6" FontSize="12" VerticalAlignment="Center" Margin="12,0,0,0" />
+                    </Grid>
+                    <Grid x:Name="ReleaseLayout" Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="176" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Grid x:Name="ReleaseHeader">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock x:Name="ReleaseSheetHeading" Text="What’s New" FontSize="30" FontWeight="SemiBold" Foreground="White" />
-                                <TextBlock x:Name="ReleaseSheetSubtitle" Text="Explore the latest release." FontSize="14" Foreground="#BAC5D6" Margin="0,5,12,0" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <ComboBox x:Name="ReleaseVersionChoice" Grid.Column="1" Width="114" MinHeight="38" Margin="8,0,8,0" VerticalAlignment="Top" AutomationProperties.Name="Choose release" IsVisible="False" SelectedValueBinding="{Binding Tag}" Theme="{StaticResource SettingsChoice}" SelectionChanged="Native_ReleaseVersionChoice_SelectionChanged" />
-                            <Button Grid.Column="2" Width="44" Height="44" MinHeight="0" Padding="0" Content="×" FontSize="25" VerticalAlignment="Top" Click="ChangelogClose_Click" AutomationProperties.Name="Close What's New" />
-                        </Grid>
-                        <Grid x:Name="ReleaseSearchHost" Grid.Row="1" Margin="0,18,0,10">
-                            <ns4:OperatorSearchBox x:Name="ChangelogSearchBox" Placeholder="Search changes or a version" MinHeight="44" FontSize="15" AutomationProperties.Name="Search releases" TextChanged="Native_ChangelogSearch_TextChanged" />
-                        </Grid>
-                        <Grid x:Name="ReleaseFilterHost" Grid.Row="2" Margin="0,0,0,16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ns4:OperatorSegmentedPanel x:Name="ReleaseFilters" Columns="3" Rows="1" Width="264" Height="44" HorizontalAlignment="Left" AllowScrubbing="True" KeyDown="Native_ReleaseFilters_PreviewKeyDown">
-                                <RadioButton x:Name="AllReleaseFilter" Content="All" ContentTemplate="{StaticResource ReleaseAllLabel}" Tag="All" GroupName="ReleaseFilterChoice" IsChecked="True" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
-                                <RadioButton x:Name="NewReleaseFilter" Content="New" ContentTemplate="{StaticResource ReleaseNewLabel}" Tag="New" GroupName="ReleaseFilterChoice" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
-                                <RadioButton x:Name="FixedReleaseFilter" Content="Fixed" ContentTemplate="{StaticResource ReleaseFixedLabel}" Tag="Fixed" GroupName="ReleaseFilterChoice" Click="ChangelogFilter_Click" Theme="{StaticResource ReleaseFilter}" IsCheckedChanged="Native_ChangelogFilter_Click_Checked" />
-                            </ns4:OperatorSegmentedPanel>
-                            <TextBlock x:Name="ReleaseResultCount" Grid.Column="1" Foreground="#B8C4D6" FontSize="12" VerticalAlignment="Center" Margin="12,0,0,0" />
-                        </Grid>
-                        <Grid x:Name="ReleaseLayout" Grid.Row="3">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="176" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <ns4:OperatorGlassSurface x:Name="ReleaseVersionRail" Material="Clear" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="25" Grid.RowSpan="2" Padding="8">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock x:Name="ReleaseHistoryHeading" Text="Releases" Foreground="#C1D0E2" FontSize="13" FontWeight="SemiBold" Margin="9,7,9,12" />
-                                    <ScrollViewer x:Name="ReleaseHistoryScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                        <WrapPanel x:Name="ReleaseVersionButtons" Orientation="Vertical" />
-                                    </ScrollViewer>
-                                </Grid>
-                            </ns4:OperatorGlassSurface>
-                            <ScrollViewer x:Name="ReleaseScroller" Grid.Column="1" Grid.RowSpan="2" Margin="20,0,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,2">
-                                <StackPanel x:Name="ChangelogEntries" />
-                            </ScrollViewer>
-                        </Grid>
+                        <ns4:OperatorGlassSurface x:Name="ReleaseVersionRail" Material="Opaque" Background="{DynamicResource ControlCentre.SurfaceBrush}" CornerRadius="25" Grid.RowSpan="2" Padding="8">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="ReleaseHistoryHeading" Text="Releases" Foreground="#C1D0E2" FontSize="13" FontWeight="SemiBold" Margin="9,7,9,12" />
+                                <ScrollViewer x:Name="ReleaseHistoryScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <StackPanel x:Name="ReleaseVersionButtons" Orientation="Vertical" />
+                                </ScrollViewer>
+                            </Grid>
+                        </ns4:OperatorGlassSurface>
+                        <ScrollViewer x:Name="ReleaseScroller" Grid.Column="1" Grid.RowSpan="2" Margin="20,0,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,2">
+                            <StackPanel x:Name="ChangelogEntries" />
+                        </ScrollViewer>
                     </Grid>
-                </ns4:OperatorGlassSurface>
-            </Grid>
+                </Grid>
+            </ns4:OperatorGlassSurface>
         </Grid>
-    </ScrollViewer>
+    </Grid>
 </UserControl>

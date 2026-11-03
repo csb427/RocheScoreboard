@@ -377,44 +377,16 @@ public sealed partial class AflResetScopeTests
 
         var finish = Named<Button>(wizard, "NextButton");
         await RevealByKeyboard(fixture.Window, finish);
-        bool answered = false;
-        Exception? responseError = null;
-        var waiting = System.Diagnostics.Stopwatch.StartNew();
-        var responder = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(15) };
-        responder.Tick += (_, _) =>
-        {
-            try
-            {
-                if (waiting.Elapsed > TimeSpan.FromSeconds(15))
-                    throw new TimeoutException("The actual owned new-session confirmation did not appear within 15 seconds.");
-                var dialogs = fixture.Window.OwnedWindows.Where(window => window.Title == "New session").ToArray();
-                if (answered || dialogs.Length == 0) return;
-                var dialog = Assert.Single(dialogs);
-                Assert.Same(fixture.Window, dialog.Owner);
-                Assert.True(dialog.IsVisible);
-                var yes = Assert.Single(dialog.GetVisualDescendants().OfType<Button>(), button => Equals(button.Content, "Yes"));
-                var no = Assert.Single(dialog.GetVisualDescendants().OfType<Button>(), button => Equals(button.Content, "No"));
-                Assert.True(no.IsDefault); Assert.False(yes.IsDefault);
-                Assert.Contains(dialog.GetVisualDescendants().OfType<TextBlock>(),
-                    text => text.Text?.Contains("Completing setup will replace", StringComparison.Ordinal) == true);
-                assertHeld?.Invoke();
-                answered = true;
-                // Public button activation on the actual owned modal. Do not
-                // set DialogResult or invoke Authorize/Finalize privately.
-                Click(yes);
-            }
-            catch (Exception error)
-            {
-                responseError = error;
-                responder.Stop();
-                foreach (var dialog in fixture.Window.OwnedWindows.Where(window => window.Title == "New session").ToArray()) dialog.Close();
-            }
-        };
-        responder.Start();
-        try { await Tap(fixture.Window, finish); }
-        finally { responder.Stop(); }
-        Assert.Null(responseError);
-        Assert.True(answered, "The actual replacement confirmation must be explicitly answered Yes.");
+        await Tap(fixture.Window, finish);
+        await Until(()=>fixture.Window.GetVisualDescendants().OfType<Border>().Any(x=>Equals(x.Tag,"cricket-decision-sheet") && x.IsEffectivelyVisible),
+            "The real integrated new-session confirmation must appear.");
+        var decision=Assert.Single(fixture.Window.GetVisualDescendants().OfType<Border>(),x=>Equals(x.Tag,"cricket-decision-sheet") && x.IsEffectivelyVisible);
+        var yes=Assert.Single(decision.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Tag,"apply"));
+        var no=Assert.Single(decision.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Tag,"stay"));
+        Assert.True(no.IsDefault);Assert.False(yes.IsDefault);Assert.Equal("Cancel",no.Content);
+        Assert.Contains(decision.GetVisualDescendants().OfType<TextBlock>(),x=>x.Text?.Contains("replaces the current or saved session",StringComparison.Ordinal)==true);
+        Assert.DoesNotContain(fixture.Window.OwnedWindows,x=>x.Title=="New session");
+        assertHeld?.Invoke();Click(yes);
         await Until(() => Named<Control>(fixture.Window, "MainContent").IsEffectivelyVisible && !wizard.IsEffectivelyVisible
             && fixture.Match.HomeName == "MR9 replacement home" && fixture.Match.AwayName == "MR9 replacement away",
             "Confirmed replacement must publish the new AFL teams and mounted console before releasing any held command.");

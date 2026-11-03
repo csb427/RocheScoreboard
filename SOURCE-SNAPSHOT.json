@@ -1,24 +1,35 @@
 {
-  "snapshot_id": "RocheScoreboard-5.0.0-windows-refinement-20261103-v1",
-  "branch": "codex/windows-test-20261103-v1",
-  "parent_preview_commit": "cd4bbf6bf44c6a3ced7fcd24fe4adf62395d01f3",
+  "snapshot_id": "RocheScoreboard-5.0.0-testing-feedback-20261103-v1",
+  "branch": "testing",
+  "parent_preview_commit": "5ea23401a434b2c199be41c6849f320478075320",
   "previous_preserved_commits": [
+    "5ea23401a434b2c199be41c6849f320478075320",
     "cd4bbf6bf44c6a3ced7fcd24fe4adf62395d01f3",
     "261db075692dde20081a67552a34c8ca45f565d0",
     "a007d8c0cfff04913d0343534d3fc7137baeecea"
   ],
-  "source_provenance": "Frozen byte-identical425Windows source/assets from final79-tested/cross-built working revision; independent snapshot commit does not alter live checkout/index. Earlier test receipts are separate epochs.",
+  "source_provenance": "425Windows source/assets byte-identical to locally verified current revision;59 distinct affected cases passed across2runs; no nativeWindowsGUI claim. Alternate-index commit preserves live dirty checkout.",
   "windows_file_count": 425,
   "checks": {
-    "final_affected_passed": 79,
-    "failed": 0,
-    "skipped": 0,
-    "windows_release_warnings": 0,
+    "distinct_affected_latest_passed": 59,
+    "runs": [
+      {
+        "cases": 59,
+        "passed": 57,
+        "fixture_failed": 2
+      },
+      {
+        "cases": 2,
+        "passed": 2,
+        "failed": 0
+      }
+    ],
     "windows_release_errors": 0,
-    "windows_debug_warnings": 0,
+    "windows_release_warnings": 0,
     "windows_debug_errors": 0,
+    "windows_debug_warnings": 0,
     "native_windows_gui": "not run",
-    "remaining_first_use_animation_skips": "unresolved"
+    "remaining_first_use_animation_skips": "native acceptance pending"
   },
   "files": [
     {
@@ -2958,8 +2969,8 @@
     },
     {
       "path": "KNOWN-LIMITATIONS.md",
-      "bytes": 2818,
-      "sha256": "d70fe6decc0d528e5bddf08b4d683e51596ac106928d2d6c86c2c902cbf428f5"
+      "bytes": 3129,
+      "sha256": "d395624a93a3fbb0c98155004dd53fbf81ed12424ef7ec321c2beb83405ec440"
     },
     {
       "path": "README.md",
@@ -3218,8 +3229,8 @@
     },
     {
       "path": "Roche_Scoreboard/MainWindow.HomeCommands.cs",
-      "bytes": 22170,
-      "sha256": "b128374e1aa3ee20c420fbadd609d0a3c4fb91d1ee3b549460b45586890daf03"
+      "bytes": 24991,
+      "sha256": "a8d2c6d81abfc6bd591f65d867496203c920217403b7d57bcb4a6d15c15946ad"
     },
     {
       "path": "Roche_Scoreboard/MainWindow.HomeCommandsQa.cs",
@@ -3298,8 +3309,8 @@
     },
     {
       "path": "Roche_Scoreboard/MainWindow.ResetDecision.cs",
-      "bytes": 9440,
-      "sha256": "f18ae40d680ad00a49e172b5c05e0a9c2cf8016cc156e91622c1e4b433cf8d55"
+      "bytes": 9108,
+      "sha256": "a399b9d8e122e56785afea90aab7cd506b7fe5ac2a6741edd7851c71390b18b5"
     },
     {
       "path": "Roche_Scoreboard/MainWindow.ResetMotion.cs",
@@ -3308,8 +3319,8 @@
     },
     {
       "path": "Roche_Scoreboard/MainWindow.RestoreMembers.cs",
-      "bytes": 293466,
-      "sha256": "d738226a56abafc5251a2f115779ba6a48525564e883e85703e793e926c8019a"
+      "bytes": 293514,
+      "sha256": "d1d6a564030319ef6b2d175885b8705d6c1d8a5bc1a139b8f6448583bb227f87"
     },
     {
       "path": "Roche_Scoreboard/MainWindow.SculptedGlassQa.cs",
@@ -3333,8 +3344,8 @@
     },
     {
       "path": "Roche_Scoreboard/MainWindow.UnifiedSetup.cs",
-      "bytes": 4825,
-      "sha256": "5fa1c048d41322b4feaa7be792235cd41023f2da677d226eeff20db2a875aca4"
+      "bytes": 5328,
+      "sha256": "ed93631d9b82eae6f7750e88dbbdb182cfe58af20dc781cc941e27f3c660ae27"
     },
     {
       "path": "Roche_Scoreboard/MainWindow.UnifiedSetupQa.cs",
@@ -3348,13 +3359,13 @@
     },
     {
       "path": "Roche_Scoreboard/MainWindow.xaml",
-      "bytes": 256055,
-      "sha256": "286a88552bd271764280dc40ddb9b3033196a0797db041cc0ee132246e3657f4"
+      "bytes": 255507,
+      "sha256": "9cd749ab04930d6d4af61c18d2275c0f2250be74ec34f80996a93c334c5399cc"
     },
     {
       "path": "Roche_Scoreboard/MainWindow.xaml.cs",
-      "bytes": 182382,
-      "sha256": "07403e11ea5a3a7e1890a9ee0625b0b05e737ba1bb314887b2e9ca66f582030d"
+      "bytes": 182601,
+      "sha256": "054d1d9b3355e64bbd7749f794c0dc2fa8673abf1fc2b93d6eb8c8aae20e2651"
     },
     {
       "path": "Roche_Scoreboard/Models/CricketAnalytics.cs",
@@ -4573,13 +4584,13 @@
     },
     {
       "path": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-      "bytes": 73006,
-      "sha256": "f97668b9a9a074f68e665722a9663a318be76838579f9a772435e17d432683e2"
+      "bytes": 72899,
+      "sha256": "d1a5bebbfb2f30d515b1f06681739262748e988cfaba4e34de58406a1da28453"
     },
     {
       "path": "Roche_Scoreboard/Views/CricketControlPanel.xaml.cs",
-      "bytes": 106245,
-      "sha256": "876c629581e4e295514ea143988e7a1e9110f727bd2d40ba9c99fa8fdad85c23"
+      "bytes": 105879,
+      "sha256": "fd24afdc4681c1061d7549d0026929d84cf9dff320686eb5b48cefed403a2c0f"
     },
     {
       "path": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
@@ -4688,8 +4699,8 @@
     },
     {
       "path": "Roche_Scoreboard/Views/CricketSetupWizard.UnifiedFlow.cs",
-      "bytes": 1321,
-      "sha256": "45795805b216b983c5a8b153ede7a24693c3c82b9afff3bc97b78e35cb3a6ff0"
+      "bytes": 1591,
+      "sha256": "964e4f2c9551dd5c1c4d345992865761ad72d988378a1fb6e7c9066b1f525dc3"
     },
     {
       "path": "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
@@ -4698,8 +4709,8 @@
     },
     {
       "path": "Roche_Scoreboard/Views/CricketSetupWizard.xaml.cs",
-      "bytes": 79217,
-      "sha256": "92d7ea102e4054c54beb7181deb19efa387d3bdc3ea76557a0ddcbb3d2177f40"
+      "bytes": 79641,
+      "sha256": "38f485f74e982065810046738c0e6ea3f4edad55025d0e14a67ed874868fccaf"
     },
     {
       "path": "Roche_Scoreboard/Views/CricketSummaryControl.Charts.cs",
@@ -4948,18 +4959,18 @@
     },
     {
       "path": "Roche_Scoreboard/Views/SetupWizard.UnifiedFlow.cs",
-      "bytes": 3827,
-      "sha256": "eb4dcb3d66e2b15ae5595b3caf036d1161b592f3df9185af23e38dd6ac601e79"
+      "bytes": 4097,
+      "sha256": "9b7453828d0984b3c600fe0bf1c42cabe232cc2f53f07c440c2622f582f9631d"
     },
     {
       "path": "Roche_Scoreboard/Views/SetupWizard.xaml",
-      "bytes": 102768,
-      "sha256": "109a94f85ab98a995dca3f2bf3e52690ffec71be6c27cfa43ce483a4879a3d8f"
+      "bytes": 102771,
+      "sha256": "12d485a0afc919226ba4c05e6317bc5bea3baa1849992ebef882eb8cd11bd39c"
     },
     {
       "path": "Roche_Scoreboard/Views/SetupWizard.xaml.cs",
-      "bytes": 99768,
-      "sha256": "171431a4a141f52e71f532c9d1bb396d67ee91238933e5b25d3260edb3c707ef"
+      "bytes": 100188,
+      "sha256": "264045fc0b2d148a9e9398304c6b2387367a78658c60d52ba4c7551657bf168b"
     },
     {
       "path": "Roche_Scoreboard/Views/SharedSurfaceMotion.cs",
@@ -4973,8 +4984,8 @@
     },
     {
       "path": "Roche_Scoreboard/Views/SportSelectionScreen.Interactions.cs",
-      "bytes": 22711,
-      "sha256": "e0fe33e2baf0659c0bb3b9ef71741773a408863c9db29077f988f74c8fde4fca"
+      "bytes": 23348,
+      "sha256": "27e09bc17754bf05949018a23d1f5f31951d698895963b24be3c6edf1d47b8c1"
     },
     {
       "path": "Roche_Scoreboard/Views/SportSelectionScreen.Landing.cs",
@@ -4983,13 +4994,13 @@
     },
     {
       "path": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
-      "bytes": 24518,
-      "sha256": "b422a985af9f2686e7d7456e6d9da5a1dc2ca221f3013723adb735178f78827e"
+      "bytes": 26682,
+      "sha256": "63e8b569c31dd91741003c11961655034257ec2d1bb390cc39185679cf953fa0"
     },
     {
       "path": "Roche_Scoreboard/Views/SportSelectionScreen.xaml.cs",
-      "bytes": 38090,
-      "sha256": "96db9f355ac4050e9407cadc5f928a7153425964ddc0607c1e0b9fd3d84b6e1e"
+      "bytes": 39215,
+      "sha256": "e8b29523487cd1cec2fe3f187b0eae3eb21e32d88de5ae4dba8fc89e2914816d"
     },
     {
       "path": "Roche_Scoreboard/Views/StatsScreenControl.xaml",
@@ -5073,8 +5084,8 @@
     },
     {
       "path": "Roche_Scoreboard/Views/WizardFlowDesign.cs",
-      "bytes": 8473,
-      "sha256": "d501d80b7ffe93b196311b590a3599d1fb894e5e470e67432b02c01668d0c8e9"
+      "bytes": 10571,
+      "sha256": "fe087850330723ad8327fc6b9877a4b4948f26f76f8198d2b36e9aa5cb2cb0c8"
     },
     {
       "path": "Roche_Scoreboard/Views/WizardPair.cs",
@@ -5083,8 +5094,8 @@
     },
     {
       "path": "Roche_Scoreboard/Views/WizardTeamEditor.cs",
-      "bytes": 15478,
-      "sha256": "7dfbba12efba7e1c5a9418721d1ad14f7e1e99467ea4ec7de017e7a3749e1f08"
+      "bytes": 15829,
+      "sha256": "151d3d7acfe9277709a72327a60c7c8431ea2ebba33b9e5e77c212cbb6d9b67e"
     },
     {
       "path": "Roche_Scoreboard/app.ico",
@@ -5103,13 +5114,13 @@
     },
     {
       "path": "START-WINDOWS-HERE.md",
-      "bytes": 2899,
-      "sha256": "516611426e67dd7081ae5fc38140b11246e758ce630327e1c581da07ea2d380f"
+      "bytes": 2559,
+      "sha256": "bb0bbd2a661f3a8de36f7d40a55e0e5038fdc9d086ab5689e70524614319bf73"
     },
     {
       "path": "TEST-VERIFICATION.md",
-      "bytes": 2192,
-      "sha256": "34b689e23110f25b808a4c4b6d26cba6443fc2a9b01ff938382006552375da35"
+      "bytes": 1873,
+      "sha256": "8fabfed616966a97d80675fe68125351c4d4f2b3c578359c8be90ee73e87042f"
     },
     {
       "path": "USER_GUIDE.md",
@@ -5338,18 +5349,18 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketControlPanel.axaml",
-      "bytes": 92734,
-      "sha256": "3fb7bccba01f0fb71a27da410473f0426b433f9d8ed63bfd21a9aad74142aa54"
+      "bytes": 92735,
+      "sha256": "c59389518fcfcd4bf834c6a782c6ef1b4041a81c4e6b752eb7c815646460ab97"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketControlPanel.axaml.cs",
-      "bytes": 107436,
-      "sha256": "5953eb8fd323879cd354dbe354dd21b5fac4c0b6e522f4787794d24581aee174"
+      "bytes": 107028,
+      "sha256": "38d856c3086ce40f64e306c21938e70b55864907131cbd1eed862953a760b63a"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketControlPanel.migration.json",
-      "bytes": 20024,
-      "sha256": "1ee74f0119339e3aab91529074c2d012932ac38b5948fd09262c867fca05bd08"
+      "bytes": 20213,
+      "sha256": "15af40f19ff05c6898f3a2589e25f6c9a37997279e0ff1c43650a57757129e67"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketDeliveryDialog.axaml",
@@ -5388,13 +5399,13 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketSetupWizard.axaml.cs",
-      "bytes": 86168,
-      "sha256": "30d28439c3125d6fd633842dcadffa4d98e82221bbdd2f0f0ba2b49165792479"
+      "bytes": 86592,
+      "sha256": "c08952dd891306c44a619624902769795ce3f4de4b84bf4dca1a772b581aba48"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketSetupWizard.migration.json",
       "bytes": 18366,
-      "sha256": "cbad28cd7843ee52be960d7f29bc296af690585bbfa341f23b85073abb6a768f"
+      "sha256": "bedbd7d653faa86624d1bc1216cee34826494c2cbd74345736809561d1a07145"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/CricketSummaryControl.axaml",
@@ -5623,8 +5634,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.HomeCommands.cs",
-      "bytes": 22053,
-      "sha256": "14b73e0a3ad82871494c5c743b1643f518f4fbebc7cc6516db09191bb707ca21"
+      "bytes": 24811,
+      "sha256": "fbb74b4d2e1de46543dad4e7868912a10ecf41769d50cf465ab838c5273d4b0f"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.ManualWeatherOwnership.cs",
@@ -5668,8 +5679,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.ResetDecision.cs",
-      "bytes": 9895,
-      "sha256": "704b366e0c7b58a13906b6db47114f953bbe6bb5dff68c78f4e0a6de2f8fe4c7"
+      "bytes": 9563,
+      "sha256": "863196bd72671df79f7ddc58649c0092fdccd144ec0c3e47dd0de969f245738e"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.ResetMotion.cs",
@@ -5678,8 +5689,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.RestoreMembers.cs",
-      "bytes": 287082,
-      "sha256": "3a079e5ad5a392832a171936c1bb82d95647aa643fe83088df80bdf80bf2caca"
+      "bytes": 287130,
+      "sha256": "9b07f1355cc9db160aa60cf6161616b4470dcdd49cffe957d7491584dea5e3d2"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.StoppageEditorMotion.cs",
@@ -5693,8 +5704,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.UnifiedSetup.cs",
-      "bytes": 5052,
-      "sha256": "ea3001aa62548879149f2432843e82e7e59806b67b155177a5541ec243a2897d"
+      "bytes": 5555,
+      "sha256": "09e7b3307e48b6d0c107ebcf273f7df4a145bc019948e0c5169d970e4e2cb4ca"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.WeatherLocationStatus.cs",
@@ -5703,18 +5714,18 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.axaml",
-      "bytes": 270583,
-      "sha256": "aee4ebbdef0eea376af3908ac9c1778d30abbbbf842f34686d98dd5cce954439"
+      "bytes": 270029,
+      "sha256": "ddc33caef73f5021dfd05635c6c3f19f09350ae672a10eff5300a536812a2487"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.axaml.cs",
-      "bytes": 200169,
-      "sha256": "2bdf972ed2ebde83bfc68d25e9726d1d82654d2e0b408a4679c8e3ade225d7b5"
+      "bytes": 200388,
+      "sha256": "70d4c2c38937f1f1b39fdfcd34dceb2b55127908e361e799bc250088134dd2a5"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MainWindow.migration.json",
-      "bytes": 51493,
-      "sha256": "8b07c18c3cb8c13211157b5fd0765dd0f88ca58e6fb549bcc6596a4294fb16b5"
+      "bytes": 51302,
+      "sha256": "85413891e15618d681ea4d7f647d6534e3ff300174ee3d7f12be5e9c57d09b22"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/MatchLoadingScreen.axaml",
@@ -6303,28 +6314,28 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/SetupWizard.axaml.cs",
-      "bytes": 107435,
-      "sha256": "168a4707c7c08edbce86f9bc1f9fa68d4c355dee3d452d68eac9b46c19a02791"
+      "bytes": 107855,
+      "sha256": "c1f644d79bcea6c449e9d8baeed2a8b5315f3cd164dacaef938ad76686be6652"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/SetupWizard.migration.json",
       "bytes": 21439,
-      "sha256": "4d45785778e6d5431d2dde617b617202548c36a8fbf99631cfa72246cad64cc2"
+      "sha256": "ef4e6ff65188c23b474e1008e926da76bf593d7bc698f3fe684ca02a402d482e"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/SportSelectionScreen.axaml",
-      "bytes": 36672,
-      "sha256": "6e80c505764bbed9acc3bf2556cf9aeff4cc4308689954da5d7001e760a6afed"
+      "bytes": 40070,
+      "sha256": "020217b0dbc91976e81bec491f63adbf4468c26b3bdeebde3789c56350206dc1"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/SportSelectionScreen.axaml.cs",
-      "bytes": 44097,
-      "sha256": "098661437d1ddd8c25fcd3fe6643520ef81c057a4b8600fa928b6692800511e8"
+      "bytes": 45214,
+      "sha256": "d02917934a711277e31d9d0e27244060cc6e06480b63f60b51dc0e8ffd66448c"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/SportSelectionScreen.migration.json",
-      "bytes": 14493,
-      "sha256": "939cbaedbe6b249a005d0a3592e58d718ac88e660b2e1c3e249454838ed33ab2"
+      "bytes": 15153,
+      "sha256": "afa6474e020d07bc47ff4043aeb53ddbf0068efbd7861142e269bebb83ef08f2"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/StatsScreenControl.axaml",
@@ -6628,8 +6639,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketSetupWizard.UnifiedFlow.cs",
-      "bytes": 1631,
-      "sha256": "4a83b111042aa424eef59d52efbd7b11bb2b3ea378a8c46f38539925711024fa"
+      "bytes": 1901,
+      "sha256": "f94baf417796c09c1a5c1984046c9f8974d0b7da22649682935240edab3fdf26"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/CricketSummaryControl.Charts.cs",
@@ -6733,8 +6744,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/SetupWizard.UnifiedFlow.cs",
-      "bytes": 4126,
-      "sha256": "7534e44cb7c3d09346aaf543d8e71992cb7786d22975455cc866e23d71a74aa1"
+      "bytes": 4396,
+      "sha256": "34d8b95cba97afc2d61d5827f782fd64c9ec44ce6f39be7b914c4fc52431e552"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/SharedSurfaceMotion.cs",
@@ -6743,8 +6754,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/SportSelectionScreen.Interactions.cs",
-      "bytes": 23350,
-      "sha256": "b18c84bf022ff126bd1fcf0f7916c2840534bb28072760882ec60c00d1985b66"
+      "bytes": 23983,
+      "sha256": "83596bc8f8560b3c669b46992937bc845de83094f85beffd41d8c79fe51cf5fa"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/SportSelectionScreen.Landing.cs",
@@ -6763,8 +6774,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/WizardFlowDesign.cs",
-      "bytes": 8487,
-      "sha256": "fc07d2601ef11b7027e14099810d00e32bfa264a30b0b9856b87c550fe14709a"
+      "bytes": 10585,
+      "sha256": "2159eb0630b516cc9ca75c5b84c703a4e445cd7a975039a85b54101bc7328887"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/WizardPair.cs",
@@ -6773,8 +6784,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/Views/WizardTeamEditor.cs",
-      "bytes": 15743,
-      "sha256": "8e73b4e9a677e4174ab8c5fdfdb62a503f74158f959f3134e65745fe4271911d"
+      "bytes": 16067,
+      "sha256": "263308103088aa5e56d4b63619ca0c667134a5a6c8bcc9a0b6a001bedbcc20e3"
     },
     {
       "path": "macos/RocheScoreboard.Mac/Native/Generated/WeatherScreenControl.axaml",
@@ -7128,8 +7139,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/AflResetScopeTests.cs",
-      "bytes": 42415,
-      "sha256": "da594a105e7a7d11f320402858fbefc2b2dcce3ba3e536345faf1eb11e3ee236"
+      "bytes": 42460,
+      "sha256": "98a5119874e59dc3004e3998af58d5f5121919745c2174504c8d07af30d01822"
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/AflScoreHistoryRowDesignTests.cs",
@@ -7528,8 +7539,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/CricketResetReviewDesignTests.cs",
-      "bytes": 7073,
-      "sha256": "43a2f30f169414f1b0583b8af112f86b5c24d38ceb34d24f4e121c702f1d8443"
+      "bytes": 7643,
+      "sha256": "a0a199597e692c2d0e60e6b936cbd3f39783c53d3bf95af4d1bee5d824379e73"
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/CricketRestoreOutputControlTests.cs",
@@ -7938,8 +7949,18 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/Mr9RemoteResetBoundaryTests.cs",
-      "bytes": 38814,
-      "sha256": "925822d1ba6102959aade7976f0fa0c8fcd72be23cdc64ab015805acb9aa123d"
+      "bytes": 37679,
+      "sha256": "69190ab5e98a1705d7aeebcc952468d87dd527c60a29da519baea5ed251069f9"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/NativeFeedbackLayoutTests.cs",
+      "bytes": 9683,
+      "sha256": "723fe4a2cf4bab30dfbc3993cd3edba81b0dff606ad7fa0bcf3841f3c58667a1"
+    },
+    {
+      "path": "macos/RocheScoreboard.Mac.Tests/NativeFeedbackSessionTests.cs",
+      "bytes": 3729,
+      "sha256": "6fd5c4453cc34ebeb9f287ebdc1f3ef383bc567f7b3d0907308bf141043ed54c"
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/NativeFontFixtureDiagnostics.cs",
@@ -8223,8 +8244,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/SetupMessageLimitTests.cs",
-      "bytes": 13176,
-      "sha256": "faf4720e4ffcece66b149a562864745e6881bdeb8b74398773602f04a7814467"
+      "bytes": 12734,
+      "sha256": "d34bb2734e1e8dce8a4b2f58a4f567badc87553f1360df0ba7b162333e878407"
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/SetupMessagePickerLifetimeTests.cs",
@@ -8448,8 +8469,8 @@
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/UnifiedSetupTests.cs",
-      "bytes": 19480,
-      "sha256": "3f41bbc432310c459db1f7893aa7bf5bd3c09e1c24213de9ade736cb8960dda0"
+      "bytes": 18428,
+      "sha256": "6eebed3d8c7319d88295de6faa9da28a67b09c5571160381fce3d63511ee3de5"
     },
     {
       "path": "macos/RocheScoreboard.Mac.Tests/UpdatePromptCompactTests.cs",

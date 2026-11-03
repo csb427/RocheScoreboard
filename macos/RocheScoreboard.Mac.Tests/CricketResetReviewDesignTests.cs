@@ -27,8 +27,15 @@ public sealed partial class CricketPlayerMenuPreferencesBaselineTests
         using var scope=new Scope();var match=CricketReliabilityChecks.CreateMatch(true);match.RecordDelivery(4,CricketDeliveryType.Four);var panel=new CricketControlPanel();panel.SetMatch(match);var window=scope.Window(panel,width,height);await Settle(550);
         int requests=0;panel.ResetRequested+=()=>requests++;string before=State(match);var sheet=await OpenCricketResetReview(panel,window);
         if(Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR") is {Length:>0} directory)Directory.CreateDirectory(directory);
-        Assert.Contains(sheet.GetVisualDescendants().OfType<Border>(),x=>Equals(x.Tag,"cricket-reset-context"));
-        Assert.True(PromptAction(sheet,"cancel").IsFocused);Assert.False(PromptAction(sheet,"reset").IsDefault);Assert.False(PromptAction(sheet,"keep").IsDefault);
+        Assert.DoesNotContain(sheet.GetVisualDescendants().OfType<Border>(),x=>Equals(x.Tag,"cricket-reset-context"));
+        Assert.Equal("Cancel",PromptAction(sheet,"keep").Content);
+        var consequence=Assert.Single(sheet.GetVisualDescendants().OfType<TextBlock>(),x=>(x.Text??"").Contains("This cannot be undone."));
+        // This is readable copy, not an interactive target; keep it
+        // non-focusable and scroll it without the button-focus helper.
+        consequence.BringIntoView();await Settle(80);
+        Assert.True(Painted(window,consequence).Top>=0 && Painted(window,consequence).Bottom<=window.ClientSize.Height);
+        PromptAction(sheet,"keep").Focus();
+        Assert.True(PromptAction(sheet,"keep").IsFocused);Assert.False(PromptAction(sheet,"reset").IsDefault);Assert.True(PromptAction(sheet,"keep").IsDefault);
         PromptCapture(window,$"reset-review-{width}");
         if(width==1280)KeyNow(window,PhysicalKey.Enter);else KeyNow(window,PhysicalKey.Escape);await PromptRetired(panel,sheet);Assert.Equal(0,requests);Assert.Equal(before,State(match));
     }

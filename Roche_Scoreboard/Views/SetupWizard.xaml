@@ -1,4 +1,4 @@
-<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:layout="clr-namespace:Roche_Scoreboard.Views" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.SetupWizard" Background="Transparent" motion:OperatorDesign.IsEnabled="True" PreviewKeyDown="UnifiedSetup_KeyDown">
+﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:layout="clr-namespace:Roche_Scoreboard.Views" xmlns:motion="clr-namespace:Roche_Scoreboard.Services" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Roche_Scoreboard.Views.SetupWizard" Background="Transparent" motion:OperatorDesign.IsEnabled="True" PreviewKeyDown="UnifiedSetup_KeyDown">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

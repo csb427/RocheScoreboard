@@ -1,5 +1,5 @@
 // Generated from Views/SportSelectionScreen.Interactions.cs; edit translator/adapters.
-// Source SHA-256: e0fe33e2baf0659c0bb3b9ef71741773a408863c9db29077f988f74c8fde4fca
+// Source SHA-256: 27e09bc17754bf05949018a23d1f5f31951d698895963b24be3c6edf1d47b8c1
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -18,6 +18,20 @@ namespace Roche_Scoreboard.Views;
 
 public partial class SportSelectionScreen
 {
+    private int _resetReturnGeneration;
+    internal void RevealAfterReset()
+    {
+        int generation = ++_resetReturnGeneration;
+        HomeStartGameFocus();
+        Dispatcher.UIThread.Post(new Action(() =>
+        {
+            if (generation != _resetReturnGeneration || !IsLoaded || !IsVisible || HasOpenSheet) return;
+            // The primary new-game scene returns; utility controls stay still.
+            // This changes presentation only, after the existing reset commits.
+            SharedSurfaceMotion.Reveal(AflTileBody, OperatorMotion.Enabled);
+        }), Avalonia.Threading.DispatcherPriority.Loaded);
+    }
+
     private readonly Dictionary<Border,Button> _launchActions=new();
     private readonly ScaleTransform _settingsContentScale=new(1,1);
     private int _selectionGeneration, _landingMotionGeneration, _changelogMotionGeneration;

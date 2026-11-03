@@ -2013,13 +2013,10 @@
                             </Grid>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="Reset this match?" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
-                                <TextBlock Text="Start again from Home" FontSize="13" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,4,0,0" TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                         <ScrollViewer x:Name="ResetDetails" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False" Margin="0,14,0,16">
                             <StackPanel>
-                                <TextBlock x:Name="ResetMatchContext" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
-                                <TextBlock x:Name="ResetPhaseText" FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" Margin="0,5,0,14" TextWrapping="Wrap" />
                                 <TextBlock Text="Scores, match events and elapsed time will be cleared, together with this saved recovery. You'll return to Home to start a new match." FontSize="14" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" />
                                 <TextBlock Text="This action cannot be undone." FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ScoreGrid.Brush.DangerForeground}" Margin="0,12,0,0" TextWrapping="Wrap" />
                                 <TextBlock x:Name="ResetContextNotice" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ScoreGrid.Brush.DangerForeground}" Margin="0,12,0,0" TextWrapping="Wrap" Text="The match changed while this decision was open. Cancel and open Reset again to review the current match." IsVisible="False" />
@@ -2031,8 +2028,8 @@
                                 <ColumnDefinition Width="12" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" x:Name="CancelResetBtn" Content="CANCEL" Height="46" MinHeight="46" FontSize="14" FontWeight="SemiBold" Click="CancelReset_Click" AutomationProperties.Name="Cancel match reset" Background="#303035" BorderBrush="#A8B0BA" Foreground="White" Cursor="Hand" Theme="{StaticResource ToolBtn}" />
-                            <Button Grid.Column="2" x:Name="ConfirmResetBtn" Content="RESET" Height="46" MinHeight="46" FontSize="14" FontWeight="SemiBold" Click="ConfirmReset_Click" AutomationProperties.Name="Reset this match and return Home" Background="#9B2C2C" BorderBrush="#F85149" Foreground="White" Cursor="Hand" Theme="{StaticResource PrimaryCommandButton}" />
+                            <Button Grid.Column="0" x:Name="CancelResetBtn" Content="Cancel" Height="46" MinHeight="46" FontSize="14" FontWeight="SemiBold" Click="CancelReset_Click" AutomationProperties.Name="Cancel match reset" Background="#303035" BorderBrush="#A8B0BA" Foreground="White" Cursor="Hand" Theme="{StaticResource ToolBtn}" />
+                            <Button Grid.Column="2" x:Name="ConfirmResetBtn" Content="Reset match" Height="46" MinHeight="46" FontSize="14" FontWeight="SemiBold" Click="ConfirmReset_Click" AutomationProperties.Name="Reset this match and return Home" Background="#9B2C2C" BorderBrush="#F85149" Foreground="White" Cursor="Hand" Theme="{StaticResource PrimaryCommandButton}" />
                         </Grid>
                     </Grid>
                 </Grid>

@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/SportSelectionScreen.xaml.cs; edit translator/adapters.
-// Source SHA-256: 96db9f355ac4050e9407cadc5f928a7153425964ddc0607c1e0b9fd3d84b6e1e
+// Source SHA-256: e8b29523487cd1cec2fe3f187b0eae3eb21e32d88de5ae4dba8fc89e2914816d
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -80,7 +80,9 @@ public partial class SportSelectionScreen : UserControl
         ReleaseScroller.Margin = compact ? new Thickness(0, shortWindow ? 0 : 12, 0, 0) : new Thickness(20, 0, 0, 0);
         ReleaseHistoryHeading.IsVisible = compact ? false : true;
         ReleaseVersionButtons.Orientation = compact ? Orientation.Horizontal : Orientation.Vertical;
-        ReleaseHistoryScroller.MaxHeight = compact ? 52 : double.PositiveInfinity;
+        ReleaseHistoryScroller.MaxHeight = compact ? 72 : double.PositiveInfinity;
+        ReleaseHistoryScroller.HorizontalScrollBarVisibility = compact ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
+        ReleaseHistoryScroller.VerticalScrollBarVisibility = compact ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto;
         ReleaseVersionChoice.IsVisible = compact && shortWindow ? true : false;
         ReleaseVersionChoice.Width = width < 390 ? 88 : 114;
         ReleaseSheetHeading.FontSize = compact && shortWindow ? width < 390 ? 20 : 23 : 30;
@@ -168,6 +170,7 @@ public partial class SportSelectionScreen : UserControl
     /// </summary>
     public void PrepareForDisplay()
     {
+        ++_resetReturnGeneration;
         ++_selectionGeneration;
         _selectionTimer?.Stop();
         _selectionTimer = null;
@@ -402,21 +405,24 @@ public partial class SportSelectionScreen : UserControl
             {
                 bool selected = page.Version == selectedVersion;
                 var label = new StackPanel();
-                label.Children.Add(new NativeTextBlock { Text = page.Version, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = ReleaseBrush(selected ? "#102438" : "#EDF5FF") });
+                label.Children.Add(new NativeTextBlock { Text = page.Version, FontSize = 15, FontWeight = FontWeight.SemiBold });
                 if (!_releaseCompact)
-                    label.Children.Add(new NativeTextBlock { Text = FormatReleaseDate(page.Date, true), FontSize = 11, Foreground = ReleaseBrush(selected ? "#40546B" : "#AABCD2"), Margin = new Thickness(0, 3, 0, 0) });
+                    label.Children.Add(new NativeTextBlock { Text = FormatReleaseDate(page.Date, true), FontSize = 12, Opacity = .8, Margin = new Thickness(0, 3, 0, 0) });
                 var content = new StackPanel { Orientation = Orientation.Horizontal };
-                if (!_releaseCompact) content.Children.Add(new OperatorSymbol { Kind = "Updates", IsActive = selected, Width = 20, Height = 20, Foreground = ReleaseBrush(selected ? "#214F79" : "#BBCFE6"), Margin = new Thickness(0, 0, 9, 0), VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center });
+                if (!_releaseCompact) content.Children.Add(new OperatorSymbol { Kind = "Updates", IsActive = selected, Width = 20, Height = 20, Margin = new Thickness(0, 0, 9, 0), VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center });
                 content.Children.Add(label);
                 var button = new Avalonia.Controls.Button
                 {
-                    Content = content, Tag = page.Version, Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, "ToolBtn"),
-                    Width = _releaseCompact ? 92 : 148, MinHeight = _releaseCompact ? 40 : 60,
+                    Content = content, Tag = page.Version, Theme = NativeResources.Require<Avalonia.Styling.ControlTheme>(this, selected ? "ReleaseNavigationSelected" : "ReleaseNavigationButton"),
+                    Width = _releaseCompact ? 92 : double.NaN, MinHeight = _releaseCompact ? 44 : 60,
                     Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(2, 2, 2, 5),
                     HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Left,
-                    Background = ReleaseBrush(selected ? "#EEEBF4FF" : "#08FFFFFF"),
-                    BorderBrush = ReleaseBrush(selected ? "#D9EEFF" : "#00FFFFFF")
+                    HorizontalAlignment = _releaseCompact ? Avalonia.Layout.HorizontalAlignment.Left : Avalonia.Layout.HorizontalAlignment.Stretch
                 };
+                foreach (var text in label.Children.OfType<TextBlock>())
+                    text.SetBinding(TextBlock.ForegroundProperty, new Avalonia.Data.Binding("Foreground") { Source = button });
+                foreach (var symbol in content.Children.OfType<OperatorSymbol>())
+                    symbol.SetBinding(OperatorSymbol.ForegroundProperty, new Avalonia.Data.Binding("Foreground") { Source = button });
                 Avalonia.Automation.AutomationProperties.SetName(button, $"Release {page.Version}");
                 Avalonia.Automation.AutomationProperties.SetItemStatus(button, selected ? "Selected release" : "Not selected");
                 button.Click += (_, _) => SelectRelease(page.Version);
@@ -456,7 +462,16 @@ public partial class SportSelectionScreen : UserControl
         if (!_buildingReleaseNavigation && ReleaseVersionChoice.SelectedValue is string version)
         {
             ReleaseVersionChoice.IsDropDownOpen = false;
-            SelectRelease(version);
+            // A selection notification still owns the combo's current item
+            // collection. Rebuild after it has unwound, and let the latest
+            // selection/resize/close retire an obsolete request.
+            int generation = _releaseNavigationGeneration;
+            Dispatcher.UIThread.Post(new Action(() =>
+            {
+                if (!_changelogOpen || generation != _releaseNavigationGeneration ||
+                    !Equals(ReleaseVersionChoice.SelectedValue, version)) return;
+                SelectRelease(version);
+            }));
         }
     }
 

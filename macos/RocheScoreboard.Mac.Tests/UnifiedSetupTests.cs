@@ -171,18 +171,12 @@ public sealed partial class UnifiedSetupTests
         f.Cricket.FindControl<ComboBox>("SetupWeatherLocation")!.Text="";
         for(int step=0;step<3;step++)Click(f.Cricket.FindControl<Button>("NextButton")!);
         string before=JsonSerializer.Serialize(old.CapturePersistenceState());
-        foreach(string choice in new[]{"No","Yes"})
+        foreach(string choice in new[]{"stay","apply"})
         {
-            Exception? callbackError=null;bool answered=false;
-            Dispatcher.UIThread.Post(()=>
-            {
-                var dialog=f.Window.OwnedWindows.FirstOrDefault(w=>w.Title=="New session");
-                if(dialog is null){callbackError=new InvalidOperationException("Expected the existing-match confirmation.");return;}
-                try {var no=dialog.GetVisualDescendants().OfType<Button>().Single(b=>Equals(b.Content,"No"));Assert.True(no.IsDefault);Click(dialog.GetVisualDescendants().OfType<Button>().Single(b=>Equals(b.Content,choice)));answered=true;}
-                catch(Exception error){callbackError=error;dialog.Close();}
-            });
-            Click(f.Cricket.FindControl<Button>("NextButton")!);Assert.Null(callbackError);Assert.True(answered);
-            if(choice=="No"){Assert.Same(old,Field<CricketMatchManager>(f.Window,"_cricketMatch"));Assert.Null(f.Cricket.Result);Assert.Equal(before,JsonSerializer.Serialize(old.CapturePersistenceState()));}
+            Click(f.Cricket.FindControl<Button>("NextButton")!);await Settle(100);
+            var sheet=SessionSheet(f);Assert.True(SessionAction(sheet,"stay").IsDefault);
+            Click(SessionAction(sheet,choice));await Settle(400);
+            if(choice=="stay"){Assert.Same(old,Field<CricketMatchManager>(f.Window,"_cricketMatch"));Assert.Null(f.Cricket.Result);Assert.Equal(before,JsonSerializer.Serialize(old.CapturePersistenceState()));}
         }
         await Settle(500);Assert.NotSame(old,Field<CricketMatchManager>(f.Window,"_cricketMatch"));Assert.False(Field<bool>(f.Window,"_setupFlowActive"));
         Assert.Equal(0,Field<CricketMatchManager>(f.Window,"_cricketMatch").TotalRuns);
@@ -235,20 +229,11 @@ public sealed partial class UnifiedSetupTests
         f.Start();f.Continue(false);await Settle();Click(f.Afl.FindControl<Button>("NextButton")!);Click(f.Afl.FindControl<Button>("NextButton")!);
         f.Afl.FindControl<TextBox>("SetupHomeNameBox")!.Text="Never persist this interrupted draft";
         string saved=JsonSerializer.Serialize(GameStateService.Load()),prefs=JsonSerializer.Serialize(OperatorWorkflowPreferences.Load());
-        Exception? callbackError=null;bool answered=false;
-        Dispatcher.UIThread.Post(()=>
-        {
-            var dialog=f.Window.OwnedWindows.FirstOrDefault(w=>w.Title=="New session");
-            if(dialog is null){callbackError=new InvalidOperationException("Missing replacement confirmation.");return;}
-            try
-            {
-                if(sportRoundTrip){Invoke(f.Window,"ReturnToSportChoice");f.Continue(false);}
-                else Invoke(f.Window,"CancelUnifiedSetup");
-                Click(dialog.GetVisualDescendants().OfType<Button>().Single(b=>Equals(b.Content,"Yes")));answered=true;
-            }
-            catch(Exception error){callbackError=error;dialog.Close();}
-        });
-        Click(f.Afl.FindControl<Button>("NextButton")!);Assert.Null(callbackError);Assert.True(answered);await Settle();
+        Click(f.Afl.FindControl<Button>("NextButton")!);await Settle(100);
+        var sheet=SessionSheet(f);var retained=SessionAction(sheet,"apply");
+        if(sportRoundTrip){Invoke(f.Window,"ReturnToSportChoice");f.Continue(false);}
+        else Invoke(f.Window,"CancelUnifiedSetup");
+        Click(retained);await Settle(350);
         Assert.Null(f.Afl.Result);Assert.Equal(!sportRoundTrip,f.Home.IsVisible);Assert.False(Field<bool>(f.Window,"_aflMatchReady"));
         Assert.Equal(saved,JsonSerializer.Serialize(GameStateService.Load()));Assert.Equal(prefs,JsonSerializer.Serialize(OperatorWorkflowPreferences.Load()));
     }

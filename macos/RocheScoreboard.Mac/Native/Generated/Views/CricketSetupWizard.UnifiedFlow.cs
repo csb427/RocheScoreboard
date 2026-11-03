@@ -1,5 +1,5 @@
 // Generated from Views/CricketSetupWizard.UnifiedFlow.cs; edit translator/adapters.
-// Source SHA-256: 45795805b216b983c5a8b153ede7a24693c3c82b9afff3bc97b78e35cb3a6ff0
+// Source SHA-256: 964e4f2c9551dd5c1c4d345992865761ad72d988378a1fb6e7c9066b1f525dc3
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -15,14 +15,16 @@ public partial class CricketSetupWizard
 {
     internal bool UnifiedSetupEnabled { get; private set; }
     internal Func<bool>? ConfirmCompletion { get; set; }
+    internal Func<Task<bool>>? ConfirmCompletionAsync { get; set; }
     private bool _completionPending;
+    private int _completionGeneration;
     public event Action? CancelSetupRequested;
     internal void EnableUnifiedSetup()
     {
         UnifiedSetupEnabled = true;
         SportStepNavigation.IsVisible = CancelSetupButton.IsVisible = true;
     }
-    internal void ContinueWithCricket() => ShowStep(1);
+    internal void ContinueWithCricket() => ShowStep(1, false);
     private void GoToSportStep_Click(object? sender, RoutedEventArgs args) => BackToSportSelection?.Invoke();
     private void CancelSetup_Click(object? sender, RoutedEventArgs args) => CancelSetupRequested?.Invoke();
     private void UnifiedSetup_KeyDown(object? sender, Avalonia.Input.KeyEventArgs args)
@@ -30,11 +32,12 @@ public partial class CricketSetupWizard
         if (TryCancelPresetDragOnEscape(args)) return;
         if (UnifiedSetupEnabled) WizardFlowDesign.TryCancelOnEscape(this, args, () => CancelSetupRequested?.Invoke());
     }
-    private void FinishWizard()
+    private async void FinishWizard()
     {
-        if (Result is not null || _completionPending || (ConfirmCompletion is not null && !IsVisible)) return;
+        if (Result is not null || _completionPending || ((ConfirmCompletion is not null || ConfirmCompletionAsync is not null) && !IsVisible)) return;
         _completionPending = true;
-        try { FinishWizardCore(); }
-        finally { _completionPending = false; }
+        int generation = _completionGeneration;
+        try { await FinishWizardCoreAsync(generation); }
+        finally { if (generation == _completionGeneration) _completionPending = false; }
     }
 }

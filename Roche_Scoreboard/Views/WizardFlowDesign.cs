@@ -13,6 +13,49 @@ namespace Roche_Scoreboard.Views;
 /// <summary>Shared operator-only wizard structure and semantic step feedback.</summary>
 internal static class WizardFlowDesign
 {
+    internal static void RevealTeamsAfterLayout(UserControl wizard, Func<bool> current)
+    {
+        // Both sport routes enter through here, including Cricket's first load
+        // where its already-selected step and Loaded settle used to skip motion.
+        // Header/actions stay still; the two real team forms arrive in sequence.
+        EventHandler? layout = null;
+        RoutedEventHandler? unloaded = null;
+        bool queued = false;
+        void Detach()
+        {
+            wizard.LayoutUpdated -= layout;
+            wizard.Unloaded -= unloaded;
+        }
+        void RevealWhenReady()
+        {
+            if (!current() || !wizard.IsVisible) { Detach(); return; }
+            if (!wizard.IsLoaded || wizard.FindName("TeamsStepContainer") is not FrameworkElement { IsVisible: true }) return;
+            var forms = WizardTeamEditor.TeamSurfaces(wizard);
+            // Dispatcher Loaded alone does not guarantee the newly visible
+            // team's cards have been arranged. An empty sequence silently
+            // consumed the first entry. Wait for their actual layout once.
+            if (forms.Length != 2 || forms.Any(form => !form.IsLoaded || form.ActualWidth <= 0)) return;
+            Detach();
+            if (OperatorMotion.Enabled) SharedSurfaceMotion.RevealSequence(forms);
+            else foreach (var form in forms) SharedSurfaceMotion.Reveal(form, false);
+        }
+        void Schedule()
+        {
+            if (queued) return;
+            queued = true;
+            // Finish the first Loaded/form-install/layout batch before starting
+            // the clock. Otherwise expensive first-use work consumes the flight
+            // before the operator ever receives a painted frame.
+            wizard.Dispatcher.BeginInvoke(new Action(() => { queued = false; RevealWhenReady(); }),
+                System.Windows.Threading.DispatcherPriority.ContextIdle);
+        }
+        layout = (_, _) => Schedule();
+        unloaded = (_, _) => Detach();
+        wizard.LayoutUpdated += layout;
+        wizard.Unloaded += unloaded;
+        Schedule();
+    }
+
     internal static void Enable(UserControl wizard, Action settleMotion)
     {
         void PreferenceChanged(){if(!OperatorMotion.Enabled)settleMotion();}

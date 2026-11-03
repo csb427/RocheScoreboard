@@ -18,8 +18,8 @@ public partial class MainWindow
         SetupWizardPanel.SportChosen += ContinueUnifiedSetup;
         SetupWizardPanel.CancelSetupRequested += CancelUnifiedSetup;
         CricketSetupWizardPanel.CancelSetupRequested += CancelUnifiedSetup;
-        SetupWizardPanel.ConfirmCompletion = () => AuthorizeSetupCompletion(SportMode.AFL);
-        CricketSetupWizardPanel.ConfirmCompletion = () => AuthorizeSetupCompletion(SportMode.Cricket);
+        SetupWizardPanel.ConfirmCompletionAsync = () => AuthorizeSetupCompletionAsync(SportMode.AFL);
+        CricketSetupWizardPanel.ConfirmCompletionAsync = () => AuthorizeSetupCompletionAsync(SportMode.Cricket);
     }
 
     private void BeginUnifiedSetup()
@@ -37,6 +37,7 @@ public partial class MainWindow
     private void ReturnToSportChoice()
     {
         if (!_setupFlowActive) return;
+        if (_newSessionDecisionActive) Views.CricketPrompt.CancelAll(ApplicationSurface);
         _setupCompletionAuthorized = false; ++_setupFlowGeneration;
         SportMode selected = _setupSelectedSport ?? (_sportMode == SportMode.Cricket ? SportMode.Cricket : SportMode.AFL);
         _setupSelectedSport = null;
@@ -65,11 +66,15 @@ public partial class MainWindow
             CricketSetupWizardPanel.Visibility = Visibility.Visible;
             CricketSetupWizardPanel.ContinueWithCricket();
         }
+        int generation = _setupFlowGeneration;
+        Views.WizardFlowDesign.RevealTeamsAfterLayout(mode == SportMode.AFL ? SetupWizardPanel : CricketSetupWizardPanel,
+            () => _setupFlowActive && generation == _setupFlowGeneration && _setupSelectedSport == mode);
     }
 
     private void CancelUnifiedSetup()
     {
         if (!_setupFlowActive) return;
+        if (_newSessionDecisionActive) Views.CricketPrompt.CancelAll(ApplicationSurface);
         _setupFlowActive = false; ++_setupFlowGeneration;
         _setupSelectedSport = null; _setupCompletionAuthorized = false;
         SetupWizardPanel.Visibility = CricketSetupWizardPanel.Visibility = Visibility.Collapsed;
@@ -80,13 +85,13 @@ public partial class MainWindow
         SportSelectionPanel.HomeStartGameFocus();
     }
 
-    private bool AuthorizeSetupCompletion(SportMode mode)
+    private async Task<bool> AuthorizeSetupCompletionAsync(SportMode mode)
     {
         if (!_setupFlowActive || _setupSelectedSport != mode ||
             (mode == SportMode.AFL ? !SetupWizardPanel.IsVisible : !CricketSetupWizardPanel.IsVisible)) return false;
         int generation = _setupFlowGeneration;
         var cricket = _cricketMatch; var training = _trainingSession; bool aflReady = _aflMatchReady;
-        if (!ConfirmNewSession(mode)) return false;
+        if (!await ConfirmNewSessionAsync(mode)) return false;
         // Owned confirmations pump the dispatcher. A superseded setup or changed
         // session must not persist defaults or replace the new operator state.
         if (!_setupFlowActive || generation != _setupFlowGeneration || _setupSelectedSport != mode ||

@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from MainWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 07403e11ea5a3a7e1890a9ee0625b0b05e737ba1bb314887b2e9ca66f582030d
+// Source SHA-256: 054d1d9b3355e64bbd7749f794c0dc2fa8673abf1fc2b93d6eb8c8aae20e2651
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -1001,6 +1001,7 @@ namespace Roche_Scoreboard
 
         private void MainWindow_PreviewKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
         {
+            if (_newSessionDecisionActive) return; // The owned in-app sheet handles its own keys.
             if (_pendingKeybindAction is not null && !KeybindCaptureContextCurrent()) RetireKeybindCapture();
             if (_resetDecisionActive) { HandleResetPreviewKeyDown(e); return; }
             bool commandChord = e.Key == Key.K && (NativeKeyboard.Modifiers & KeyModifiers.Control) != 0;
@@ -1874,10 +1875,11 @@ namespace Roche_Scoreboard
         // ----------------------------
         // Setup wizard
         // ----------------------------
-        private void OnSportSelected(SportMode mode)
+        private async void OnSportSelected(SportMode mode)
         {
+            if (_newSessionDecisionActive) return;
             if (mode is SportMode.AFL or SportMode.Cricket) { BeginUnifiedSetup(); return; }
-            if (!ConfirmNewSession(mode)) { SportSelectionPanel.PrepareForDisplay(); return; }
+            if (!await ConfirmNewSessionAsync(mode)) { SportSelectionPanel.PrepareForDisplay(); return; }
             StopAflSetupTransition();
             if (!HasCurrentSession) _sportMode = mode;
             PersistLastMode(mode);
@@ -2654,6 +2656,7 @@ namespace Roche_Scoreboard
             SportSelectionPanel.IsVisible = true;
             Title = $"Roche Scoreboard v{ProductionVersion.CurrentVersion.ToString(3)}";
             ShowOutputScreensaver(manualSelection: false);
+            SportSelectionPanel.RevealAfterReset();
         }
 
         private void ApplySetupResult(SetupResult r)

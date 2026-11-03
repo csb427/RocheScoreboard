@@ -293,16 +293,24 @@ namespace Roche_Scoreboard.Views
             // Pages scroll independently while the navigation dock remains anchored.
             double scoringHeight = narrow ? double.NaN : Math.Max(260, CricketMatchPageViewport.ActualHeight - 24);
             double outputHeight = narrow ? double.NaN : Math.Max(500, CricketOutputPageViewport.ActualHeight - 32);
-            if (narrow) { ScoringColumns.Height = double.NaN; DisplayColumns.Height = double.NaN; }
+            // The empty/fresh match should not stretch a short control stack
+            // beside a full-height empty log. Grow to content, capped by the
+            // page; populated logs and long forms retain their own scrolling.
+            ScoringColumns.Height = double.NaN;
+            ScoringColumns.VerticalAlignment = VerticalAlignment.Top;
+            double scoringMaximum = narrow ? double.PositiveInfinity : scoringHeight;
+            if (ScoringColumns.MaxHeight != scoringMaximum) ScoringColumns.MaxHeight = scoringMaximum;
+            if (narrow) { DisplayColumns.Height = double.NaN; }
             else
             {
-                if (!double.IsFinite(ScoringColumns.Height) || Math.Abs(ScoringColumns.Height - scoringHeight) > .5) ScoringColumns.Height = scoringHeight;
                 if (!double.IsFinite(DisplayColumns.Height) || Math.Abs(DisplayColumns.Height - outputHeight) > .5) DisplayColumns.Height = outputHeight;
             }
             bool pairPlayers=!narrow && ActualWidth>=1150;
+            MatchActionBar.Columns = ActualWidth < 760 ? 2 : 4;
             CurrentPlayers.ColumnDefinitions[1].Width=new GridLength(pairPlayers?12:0);
             CurrentPlayers.ColumnDefinitions[2].Width=pairPlayers?new GridLength(1,GridUnitType.Star):new GridLength(0);
             Grid.SetColumn(BowlingZone,pairPlayers?2:0);Grid.SetRow(BowlingZone,pairPlayers?0:1);
+            BowlingZone.VerticalAlignment = pairPlayers ? VerticalAlignment.Top : VerticalAlignment.Stretch;
             CricketPresentationGrid.Columns = ActualWidth < 650 ? 2 : 3;
             HeaderOversBadge.Visibility = narrow ? Visibility.Collapsed : Visibility.Visible;
             bool tiny = ActualWidth < 560;
@@ -1277,21 +1285,20 @@ namespace Roche_Scoreboard.Views
             if(!IsLoaded || !IsVisible || _match is not { } match)return;
             var owner=Window.GetWindow(this);if(owner is not {IsVisible:true})return;
             string token=match.WorkflowToken;
-            var record=new StackPanel();record.Children.Add(WorkflowText("MATCH UNDER RESET REVIEW",12));
-            var teams=WorkflowText(match.TeamAName+" · "+match.TeamBName,19);teams.FontWeight=FontWeights.SemiBold;record.Children.Add(teams);
-            if(match.CurrentInnings is { } innings)
+            if (_workflowBusy) return;
+            int generation = _workflowGeneration; _workflowBusy = true;
+            string? answer;
+            try
             {
-                var figures=WorkflowText($"Innings {innings.InningsNumber} · {innings.BattingTeamName} · {innings.TotalWickets}/{innings.TotalRuns}",16);
-                System.Windows.Documents.Typography.SetNumeralAlignment(figures,FontNumeralAlignment.Tabular);record.Children.Add(figures);
+                var body = new StackPanel();
+                body.Children.Add(WorkflowText("Clears this match and its saved recovery. This cannot be undone.", 14));
+                if (_scorecardDirty) body.Children.Add(WorkflowText("Unapplied scorecard edits will also be discarded.", 14));
+                answer = await CricketPrompt.ShowSourceFormAsync(CricketRoot, "Reset this match?", "",
+                    body, ResetMatchButton, () => true,
+                    new("cancel", "Cancel"), new("keep", "Cancel", true), new("reset", "Reset match", false, true));
             }
-            record.Children.Add(WorkflowText($"Stored innings: {match.AllInnings.Count} · Delivery records: {match.AllInnings.Sum(innings=>(long)innings.Deliveries.Count)}",13));
-            if(_scorecardDirty)record.Children.Add(WorkflowText("There are unapplied scorecard edits. Reset discards them.",14));
-            var context=new Border {Tag="cricket-reset-context",Child=record,CornerRadius=new CornerRadius(20),Padding=new Thickness(12,8,12,12),BorderThickness=new Thickness(1)};
-            context.SetResourceReference(Border.BackgroundProperty,"ControlCentre.SurfaceBrush");context.SetResourceReference(Border.BorderBrushProperty,"ControlCentre.BorderBrush");
-            const string consequence="Discard this match and any unapplied scorecard edits. Keep the match if you still need its record.";
-            if(await ContextDecisionAsync("Reset this match?",consequence,context,
-                new("cancel","Keep this match"),new("keep","Keep this match",true,Detail:"Return to the current match without changing figures."),
-                new("reset","Reset and leave this match",false,true,Detail:consequence))!="reset")return;
+            finally { ReleaseWorkflow(generation); }
+            if (answer != "reset" || generation != _workflowGeneration) return;
             if(!IsLoaded || !IsVisible || !owner.IsVisible || !ReferenceEquals(owner,Window.GetWindow(this)))return;
             if(!ReferenceEquals(match,_match) || token!=match.WorkflowToken)
             {

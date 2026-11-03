@@ -181,8 +181,8 @@
     </UserControl.Resources>
 
     <!-- Responsive AFL-style command surface; individual regions scroll when needed. -->
-    <Grid x:Name="CricketRoot">
-    <layout:OperatorViewport x:Name="ConsoleViewport" MinimumCanvasWidth="380" MinimumCanvasHeight="0">
+    <Grid x:Name="CricketRoot" Background="{StaticResource ShellBrush}">
+    <layout:OperatorViewport x:Name="ConsoleViewport" MinimumCanvasWidth="380" MinimumCanvasHeight="0" Background="{StaticResource ShellBrush}" VerticalScrollBarVisibility="Disabled">
         <Grid Background="{StaticResource ShellBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -242,7 +242,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- LEFT: Scoring controls — command deck -->
-                        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ScrollViewer Grid.Column="0" Padding="0,0,12,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -390,16 +390,12 @@
                     </Border>
 
                     <!-- UNDO / END INNINGS — danger row -->
-                    <UniformGrid Grid.Row="5" Columns="3">
-                        <Button x:Name="MatchOptionsButton" Content="OPTIONS" Click="MatchOptions_Click" Style="{StaticResource ToolBtn}" Height="42" Margin="0,0,6,0"/>
-                        <Button x:Name="UndoDeliveryButton" Content="↩ Undo" Height="42" Margin="0,0,6,0" Click="Undo_Click" Style="{StaticResource ToolBtn}" ToolTip="Undo last delivery" Background="#303035" BorderBrush="#6B3A3E"/>
-                        <Button x:Name="EndInningsButton" Content="End innings" MinHeight="42" Click="EndInnings_Click" Style="{StaticResource ToolBtn}" ToolTip="Innings and match options" Foreground="White"/>
+                    <UniformGrid x:Name="MatchActionBar" Grid.Row="5" Columns="4">
+                        <Button x:Name="MatchOptionsButton" Content="Options" Click="MatchOptions_Click" Style="{StaticResource ToolBtn}" Height="44" Margin="3"/>
+                        <Button x:Name="UndoDeliveryButton" Content="↩ Undo" Height="44" Margin="3" Click="Undo_Click" Style="{StaticResource ToolBtn}" ToolTip="Undo last delivery" Background="#303035" BorderBrush="#6B3A3E"/>
+                        <Button x:Name="EndInningsButton" Content="End innings" Height="44" Margin="3" Click="EndInnings_Click" Style="{StaticResource ToolBtn}" ToolTip="Innings and match options" Foreground="White"/>
+                        <Button x:Name="ResetMatchButton" Content="Reset match" Height="44" Margin="3" Click="ResetMatch_Click" Style="{StaticResource ToolBtn}" ToolTip="Review resetting and leaving the current match" Foreground="#FF6B6B"/>
                     </UniformGrid>
-
-                    <!-- RESET — danger zone -->
-                    <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Right" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="13" FontWeight="SemiBold" Click="ResetMatch_Click"
-                            Style="{StaticResource ToolBtn}" ToolTip="Review resetting and leaving the current match"
-                            Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Foreground="#FF6B6B"/>
                                 </Grid>
                         </ScrollViewer>
 

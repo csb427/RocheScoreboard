@@ -284,8 +284,8 @@
             <SolidColorBrush x:Key="TextMutedBrush" Color="#8291A2" />
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid x:Name="CricketRoot">
-        <ns4:OperatorViewport x:Name="ConsoleViewport" MinimumCanvasWidth="380" MinimumCanvasHeight="0">
+    <Grid x:Name="CricketRoot" Background="{StaticResource ShellBrush}">
+        <ns4:OperatorViewport x:Name="ConsoleViewport" MinimumCanvasWidth="380" MinimumCanvasHeight="0" Background="{StaticResource ShellBrush}" VerticalScrollBarVisibility="Disabled">
             <Grid Background="{StaticResource ShellBrush}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -332,7 +332,7 @@
                                         <ColumnDefinition Width="12" />
                                         <ColumnDefinition Width="290" MinWidth="260" />
                                     </Grid.ColumnDefinitions>
-                                    <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <ScrollViewer Grid.Column="0" Padding="0,0,12,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
@@ -502,12 +502,12 @@
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>
-                                            <UniformGrid Grid.Row="5" Columns="3">
-                                                <Button x:Name="MatchOptionsButton" Content="OPTIONS" Click="MatchOptions_Click" Height="42" Margin="0,0,6,0" Theme="{StaticResource ToolBtn}" />
-                                                <Button x:Name="UndoDeliveryButton" Content="↩ Undo" Height="42" Margin="0,0,6,0" Click="Undo_Click" Background="#303035" BorderBrush="#6B3A3E" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Undo last delivery" />
-                                                <Button x:Name="EndInningsButton" Content="End innings" MinHeight="42" Click="EndInnings_Click" Foreground="White" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Innings and match options" />
+                                            <UniformGrid x:Name="MatchActionBar" Grid.Row="5" Columns="4">
+                                                <Button x:Name="MatchOptionsButton" Content="Options" Click="MatchOptions_Click" Height="44" Margin="3" Theme="{StaticResource ToolBtn}" />
+                                                <Button x:Name="UndoDeliveryButton" Content="↩ Undo" Height="44" Margin="3" Click="Undo_Click" Background="#303035" BorderBrush="#6B3A3E" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Undo last delivery" />
+                                                <Button x:Name="EndInningsButton" Content="End innings" Height="44" Margin="3" Click="EndInnings_Click" Foreground="White" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Innings and match options" />
+                                                <Button x:Name="ResetMatchButton" Content="Reset match" Height="44" Margin="3" Click="ResetMatch_Click" Foreground="#FF6B6B" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Review resetting and leaving the current match" />
                                             </UniformGrid>
-                                            <Button Grid.Row="7" Grid.ColumnSpan="20" Content="Reset match" HorizontalAlignment="Right" Margin="0,12,0,0" MinWidth="0" Height="44" FontSize="13" FontWeight="SemiBold" Click="ResetMatch_Click" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Foreground="#FF6B6B" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Review resetting and leaving the current match" />
                                         </Grid>
                                     </ScrollViewer>
                                     <Border Grid.Column="2" CornerRadius="22" Background="#19191C" BorderBrush="#303035" BorderThickness="1" Padding="16">

@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketSetupWizard.xaml.cs; edit translator/adapters.
-// Source SHA-256: 92d7ea102e4054c54beb7181deb19efa387d3bdc3ea76557a0ddcbb3d2177f40
+// Source SHA-256: 38f485f74e982065810046738c0e6ea3f4edad55025d0e14a67ed874868fccaf
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -225,6 +225,7 @@ namespace Roche_Scoreboard.Views
         private void PlayEntryAnimation()
         {
             SettleFlowSurfaces();
+            if (UnifiedSetupEnabled) return; // Avoid composing an old whole-page arrival over the team sequence.
             if (OperatorMotion.Enabled && IsLoaded) SharedSurfaceMotion.Reveal(TeamsStepContainer);
         }
 
@@ -363,6 +364,7 @@ namespace Roche_Scoreboard.Views
 
         public void Reset()
         {
+            ++_completionGeneration; _completionPending = false;
             InvalidatePresetOwner();
             // A visible reset is a new draft too. Invalidate the editor before
             // cancelling its sheet: an accepted result may already be queued.
@@ -444,7 +446,7 @@ namespace Roche_Scoreboard.Views
         //  FINISH WIZARD
         // ═══════════════════════════════════════════════════════
 
-        private void FinishWizardCore()
+        private async Task FinishWizardCoreAsync(int generation)
         {
             if (!ValidateOversEntry()) return;
             if (!ValidateSquadEntries()) return;
@@ -461,6 +463,8 @@ namespace Roche_Scoreboard.Views
             string awayName = (SetupAwayNameBox.Text ?? string.Empty).Trim();
             string awayAbbr = (SetupAwayAbbrBox.Text ?? string.Empty).Trim();
 
+            if (ConfirmCompletionAsync is { } confirm && !await confirm()) return;
+            if (generation != _completionGeneration || Result is not null || (ConfirmCompletionAsync is not null && !IsVisible)) return;
             if (ConfirmCompletion?.Invoke() == false) return;
             Result = new CricketSetupResult
             {

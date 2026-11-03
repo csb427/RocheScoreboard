@@ -221,6 +221,7 @@ namespace Roche_Scoreboard.Views
         private void PlayEntryAnimation()
         {
             SettleFlowSurfaces();
+            if (UnifiedSetupEnabled) return; // Avoid composing an old whole-page arrival over the team sequence.
             if (OperatorMotion.Enabled && IsLoaded) SharedSurfaceMotion.Reveal(TeamsStepContainer);
         }
 
@@ -359,6 +360,7 @@ namespace Roche_Scoreboard.Views
 
         public void Reset()
         {
+            ++_completionGeneration; _completionPending = false;
             InvalidatePresetOwner();
             // A visible reset is a new draft too. Invalidate the editor before
             // cancelling its sheet: an accepted result may already be queued.
@@ -440,7 +442,7 @@ namespace Roche_Scoreboard.Views
         //  FINISH WIZARD
         // ═══════════════════════════════════════════════════════
 
-        private void FinishWizardCore()
+        private async Task FinishWizardCoreAsync(int generation)
         {
             if (!ValidateOversEntry()) return;
             if (!ValidateSquadEntries()) return;
@@ -457,6 +459,8 @@ namespace Roche_Scoreboard.Views
             string awayName = SetupAwayNameBox.Text.Trim();
             string awayAbbr = SetupAwayAbbrBox.Text.Trim();
 
+            if (ConfirmCompletionAsync is { } confirm && !await confirm()) return;
+            if (generation != _completionGeneration || Result is not null || (ConfirmCompletionAsync is not null && !IsVisible)) return;
             if (ConfirmCompletion?.Invoke() == false) return;
             Result = new CricketSetupResult
             {
