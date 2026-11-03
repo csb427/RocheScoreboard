@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
-  "source_sha256": "63e8b569c31dd91741003c11961655034257ec2d1bb390cc39185679cf953fa0",
+  "source_sha256": "801b7d731ffe33dba2b6f9ce8c7c6581413f24abc8ce07b84db63965df327844",
   "names": [
     {
       "name": "PART_Surface",
@@ -130,6 +130,11 @@
     },
     {
       "name": "HomeCommandsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "HistoryButton",
       "type": "Button",
       "object": false
     },
@@ -589,7 +594,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "e8b29523487cd1cec2fe3f187b0eae3eb21e32d88de5ae4dba8fc89e2914816d",
+  "code_source_sha256": "f12f535ca9753f066967bd6ef5708f6bd091720bafdfe1531aa8aba4d4c36a68",
   "native_events": [
     {
       "name": "ResponsiveScrollHost",

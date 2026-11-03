@@ -15,7 +15,7 @@ internal sealed class CricketRecoveryWriter
     private readonly object _gate = new();
     private readonly object _commitGate = new();
     private readonly string _path;
-    private readonly Action _clearFiles;
+    private readonly Func<bool> _clearFiles;
     private readonly Action<Exception>? _onError;
     private readonly Action? _beforeCommit;
     private (long Generation, GameState State)? _pending;
@@ -33,6 +33,7 @@ internal sealed class CricketRecoveryWriter
         {
             if (File.Exists(_path)) File.Delete(_path);
             if (File.Exists(_path + ".bak")) File.Delete(_path + ".bak");
+            return !File.Exists(_path) && !File.Exists(_path + ".bak");
         };
     }
     internal Exception? LastError { get { lock (_gate) return _lastError; } }
@@ -47,7 +48,7 @@ internal sealed class CricketRecoveryWriter
             if (_worker is null) _worker = Task.Run(Drain);
         }
     }
-    internal void Clear()
+    internal bool Clear()
     {
         // The potentially large write happens before this lock. Only the atomic
         // replace and deletion are serialized with clear, so reset does not wait
@@ -57,12 +58,14 @@ internal sealed class CricketRecoveryWriter
         {
             try
             {
-                _clearFiles();
+                bool cleared = _clearFiles();
                 if (File.Exists(_path) || File.Exists(_path + ".bak"))
                     throw new IOException("The previous cricket recovery could not be cleared.");
+                if (!cleared) throw new IOException("The previous cricket recovery was retained because its archive did not commit.");
                 lock (_gate) _lastError = null;
+                return true;
             }
-            catch (Exception error) { lock (_gate) _lastError = error; Report(error); }
+            catch (Exception error) { lock (_gate) _lastError = error; Report(error); return false; }
         }
     }
     /// <summary>Retire this session's writes without deleting its last committed recovery.</summary>
@@ -107,6 +110,10 @@ internal sealed class CricketRecoveryWriter
                 {
                     lock (_gate) if (item.Generation != _generation) continue;
                     Commit(temporary);
+                    // The primary is now durable. Keep its local history copy
+                    // before any explicit reset is allowed to clear recovery.
+                    if (item.Generation == _generation)
+                        MatchCheckpointStore.Archive(item.State);
                     lock (_gate) { _lastError = null; ++_completedWrites; }
                 }
             }

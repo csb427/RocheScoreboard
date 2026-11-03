@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using Roche_Scoreboard.Models;
 
@@ -87,6 +88,63 @@ internal static class CricketPersistenceChecks
         var failureWriter = new CricketRecoveryWriter(impossible); failureWriter.Queue(Capture());
         bool flushed = await Task.Run(() => failureWriter.Flush(TimeSpan.FromSeconds(4)));
         checks["recovery-io-failure-is-contained-and-reported-not-unobserved"] = !flushed && failureWriter.LastError is IOException;
+
+        // History uses a separate, injectable directory so checks never read
+        // or mutate operator recovery/history data.
+        string historyPath = Path.Combine(directory, "match-history");
+        var historyMatch = CricketReliabilityChecks.CreateMatch(true, 50);
+        historyMatch.RecordDelivery(4, CricketDeliveryType.Four);
+        var historyState = new GameState { Sport = "cricket", CricketMatchState = historyMatch.CapturePersistenceState() };
+        bool firstArchived = MatchCheckpointStore.Archive(historyState, historyPath);
+        bool duplicateSkipped = MatchCheckpointStore.Archive(historyState, historyPath)
+            && MatchCheckpointStore.Load(historyPath).Count == 1;
+        historyMatch.RecordDelivery(2, CricketDeliveryType.Runs);
+        bool secondArchived = MatchCheckpointStore.Archive(new GameState
+        { Sport = "cricket", CricketMatchState = historyMatch.CapturePersistenceState() }, historyPath);
+        var history = MatchCheckpointStore.Load(historyPath);
+        var restored = new CricketMatchManager();
+        if (history.Count > 0) restored.LoadState(history[0].State.CricketMatchState!);
+        checks["history-versioned-checkpoints-deduplicate-and-restore-cricket"] = firstArchived && duplicateSkipped
+            && secondArchived && history.Count == 2 && history.All(item => item.Version == 1)
+            && restored.TotalRuns == history[0].State.CricketMatchState!.AllInnings[0].TotalRuns;
+
+        var aflState = new GameState
+        {
+            Sport = "afl",
+            MatchState = new MatchManager().ToState(),
+            Messages = [],
+            TickerSlots = []
+        };
+        aflState.MatchState.HomeName = "Harbour"; aflState.MatchState.AwayName = "Rovers";
+        aflState.MatchState.Quarter = 4; aflState.MatchState.HomeGoals = 3;
+        aflState.MatchState.CompletedQuarterCount = 4;
+        aflState.MatchState.QuarterSnapshots =
+        [
+            new QuarterSnapshot(), new QuarterSnapshot(),
+            new QuarterSnapshot(), new QuarterSnapshot()
+        ];
+        bool aflArchived = MatchCheckpointStore.Archive(aflState, historyPath);
+        var aflEntry = MatchCheckpointStore.Load(historyPath).FirstOrDefault(item => item.State.Sport == "afl");
+        var aflRestart = new MatchManager();
+        if (aflEntry?.State.MatchState is { } savedAfl) aflRestart.LoadState(savedAfl);
+        string aflHome = aflRestart.HomeName, aflAway = aflRestart.AwayName;
+        aflRestart.ResetForNewGame();
+        checks["history-includes-afl-and-completed-matches"] = aflArchived && aflEntry is not null
+            && aflEntry.Version == 1 && aflEntry.State.MatchState?.Quarter == 4
+            && aflEntry.Detail.Contains("full time", StringComparison.Ordinal)
+            && aflRestart.HomeTotal == 0 && aflRestart.AwayTotal == 0
+            && aflRestart.HomeName == aflHome && aflRestart.AwayName == aflAway;
+
+        string blockedParent = Path.Combine(directory, "checkpoint-parent-is-a-file");
+        File.WriteAllText(blockedParent, "fixture");
+        checks["history-archive-failure-is-reported-without-replacing-existing-checkpoints"] =
+            !MatchCheckpointStore.Archive(historyState, blockedParent)
+            && MatchCheckpointStore.Load(historyPath).Count == 3;
+
+        string restartTeam = historyMatch.TeamAName;
+        historyMatch.ResetForNewGame();
+        checks["history-restart-resets-cricket-score-and-keeps-team-setup"] =
+            historyMatch.TotalRuns == 0 && historyMatch.TotalWickets == 0 && historyMatch.TeamAName == restartTeam;
         return checks;
     }
 }

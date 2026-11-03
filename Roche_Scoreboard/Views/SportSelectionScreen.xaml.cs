@@ -40,6 +40,11 @@ public partial class SportSelectionScreen : UserControl
         for(int row=0;row<SportCardsGrid.RowDefinitions.Count;row++)SportCardsGrid.RowDefinitions[row].Height=new GridLength(shortWindow?1:row==1?.8:1,GridUnitType.Star);
         HomeLayout.Margin=new Thickness(compact?12:30,shortWindow?10:22,compact?12:30,shortWindow?10:22);
         HomeCommandsButton.Content = size.Width < 620 ? "Ctrl+K" : "Commands · Ctrl+K";
+#if WINDOWS
+        int checkpointCount = MatchCheckpointStore.Count;
+        HistoryButton.Content = checkpointCount > 0 && width >= 520 ? $"History · {checkpointCount}" : "History";
+        HistoryButton.Visibility = Visibility.Visible;
+#endif
         SettingsSubtitle.Visibility=Visibility.Collapsed;
         SettingsActionCaption.Visibility=width<390?Visibility.Collapsed:Visibility.Visible;UpdatesActionIcon.Visibility=width<390?Visibility.Collapsed:Visibility.Visible;
         SettingsTile.Padding=new Thickness(width<390?10:14,8,width<390?2:14,8);
@@ -94,6 +99,7 @@ public partial class SportSelectionScreen : UserControl
     internal bool HasOpenSheet => ChangelogOverlay.IsVisible;
     public event Action<SportMode>? SportSelected;
     public event Action? ResumeSavedMatchRequested;
+    public event Action? HistoryRequested;
     public event Action? CommandBarRequested;
     private void HomeCommands_Click(object sender, RoutedEventArgs args) => CommandBarRequested?.Invoke();
     private string? _currentSessionTitle;
@@ -106,6 +112,11 @@ public partial class SportSelectionScreen : UserControl
     }
     private void RefreshHomeSession()
     {
+#if WINDOWS
+        int historyCount = MatchCheckpointStore.Count;
+        HistoryButton.Content = historyCount > 0 && ActualWidth >= 520 ? $"History · {historyCount}" : "History";
+        HistoryButton.Visibility = Visibility.Visible;
+#endif
         var saved = _currentSessionTitle is null ? RecoverySession.Describe(GameStateService.Load()) : null;
         bool current = _currentSessionTitle is not null;
         bool available = current || saved is not null;
@@ -129,6 +140,8 @@ public partial class SportSelectionScreen : UserControl
 
     private void ResumeSavedMatch_Click(object sender, RoutedEventArgs e)
         => ResumeSavedMatchRequested?.Invoke();
+    private void History_Click(object sender, RoutedEventArgs e)
+        => HistoryRequested?.Invoke();
     internal FrameworkElement? RecoveryExpansionSource=>HomeResumeButton.IsVisible?HomeResumeButton:null;
 
     // ── Easing curves ──

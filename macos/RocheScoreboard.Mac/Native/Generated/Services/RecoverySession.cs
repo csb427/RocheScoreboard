@@ -1,5 +1,5 @@
 // Generated from Services/RecoverySession.cs; edit translator/adapters.
-// Source SHA-256: f864b63ff663255457c55652fe5538dd35ce779b746c58eda226a9f9b7eb378f
+// Source SHA-256: e284899dddf7e0016fea0051a3b15862697f5da7f2adc2baf0a5c5af1334cb69
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -28,12 +28,18 @@ internal sealed record RecoverySession(string Title, string Detail)
                 cricket.TeamAPlayers.Exists(p => p is null) || cricket.TeamBPlayers.Exists(p => p is null) ||
                 cricket.AllInnings.Exists(i => i is null || i.Deliveries is null || i.BattingOrder is null || i.BowlingAttack is null || i.BattingOrder.Exists(p => p is null) || i.BowlingAttack.Exists(p => p is null))) return null;
             var innings = cricket.AllInnings[Math.Clamp(cricket.CurrentInningsNumber, 1, cricket.AllInnings.Count) - 1];
+            if (cricket.IsMatchFinalized)
+                return new($"{cricket.TeamAName} v {cricket.TeamBName}",
+                    $"Cricket · {cricket.FinalResult ?? "completed"} · {innings.TotalRuns}/{innings.TotalWickets} · {saved}");
             return new($"{cricket.TeamAName} v {cricket.TeamBName}",
                 $"Cricket · innings {Math.Clamp(cricket.CurrentInningsNumber, 1, cricket.AllInnings.Count)} · {innings.TotalRuns}/{innings.TotalWickets} · {saved}");
         }
         if (string.Equals(state.Sport, "cricket", StringComparison.OrdinalIgnoreCase)) return null;
         if (!string.IsNullOrWhiteSpace(state.Sport) && !string.Equals(state.Sport, "afl", StringComparison.OrdinalIgnoreCase)) return null;
         if (state.MatchState is not { } afl || state.TickerSlots is null || state.Messages is null || state.TickerSlots.Exists(s => s is null) || (afl.Events?.Exists(e => e is null) ?? false)) return null;
+        if (afl.CompletedQuarterCount >= 4 && afl.QuarterSnapshots is { Length: >= 4 } && afl.QuarterSnapshots[3] is not null)
+            return new($"{afl.HomeName ?? "HOME"} v {afl.AwayName ?? "AWAY"}",
+                $"AFL · full time · {(long)afl.HomeGoals * 6 + afl.HomeBehinds}–{(long)afl.AwayGoals * 6 + afl.AwayBehinds} · {saved}");
         return new($"{afl.HomeName ?? "HOME"} v {afl.AwayName ?? "AWAY"}",
             $"AFL · quarter {Math.Clamp(afl.Quarter, 1, 4)} · {(long)afl.HomeGoals * 6 + afl.HomeBehinds}–{(long)afl.AwayGoals * 6 + afl.AwayBehinds} · {saved}");
     }

@@ -1,5 +1,5 @@
 // Generated from MainWindow.CricketPersistence.cs; edit translator/adapters.
-// Source SHA-256: f2c75b7fdc7d3e4ba1222b55551d185c1b78187fffd7c77fcd84a49527857fd8
+// Source SHA-256: 0cd561936fd030c73a330a11dc402a9c749fb9433cf4c2418c4e9dbc6cf121d5
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -42,10 +42,11 @@ public partial class MainWindow
         };
         (_cricketRecoveryWriter ??= new CricketRecoveryWriter()).Queue(state);
     }
-    private void ClearCricketGameStateSave()
+    private bool ClearCricketGameStateSave()
     {
-        if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }) return;
-        (_cricketRecoveryWriter ??= new CricketRecoveryWriter()).Clear();
+        if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }) return true;
+        var writer = _cricketRecoveryWriter ??= new CricketRecoveryWriter();
+        return writer.Flush(TimeSpan.FromSeconds(5)) && writer.Clear();
     }
     private void FlushCricketGameStateSave()
     {

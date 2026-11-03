@@ -31,10 +31,11 @@ public partial class MainWindow
         };
         (_cricketRecoveryWriter ??= new CricketRecoveryWriter()).Queue(state);
     }
-    private void ClearCricketGameStateSave()
+    private bool ClearCricketGameStateSave()
     {
-        if (System.Windows.Application.Current is App { IsSelfTestMode: true }) return;
-        (_cricketRecoveryWriter ??= new CricketRecoveryWriter()).Clear();
+        if (System.Windows.Application.Current is App { IsSelfTestMode: true }) return true;
+        var writer = _cricketRecoveryWriter ??= new CricketRecoveryWriter();
+        return writer.Flush(TimeSpan.FromSeconds(5)) && writer.Clear();
     }
     private void FlushCricketGameStateSave()
     {

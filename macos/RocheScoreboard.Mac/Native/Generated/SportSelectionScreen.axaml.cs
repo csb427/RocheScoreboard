@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/SportSelectionScreen.xaml.cs; edit translator/adapters.
-// Source SHA-256: e8b29523487cd1cec2fe3f187b0eae3eb21e32d88de5ae4dba8fc89e2914816d
+// Source SHA-256: f12f535ca9753f066967bd6ef5708f6bd091720bafdfe1531aa8aba4d4c36a68
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -44,6 +44,11 @@ public partial class SportSelectionScreen : UserControl
         for(int row=0;row<SportCardsGrid.RowDefinitions.Count;row++)SportCardsGrid.RowDefinitions[row].Height=new GridLength(shortWindow?1:row==1?.8:1,GridUnitType.Star);
         HomeLayout.Margin=new Thickness(compact?12:30,shortWindow?10:22,compact?12:30,shortWindow?10:22);
         HomeCommandsButton.Content = size.Width < 620 ? "Ctrl+K" : "Commands · Ctrl+K";
+#if WINDOWS
+        int checkpointCount = MatchCheckpointStore.Count;
+        HistoryButton.Content = checkpointCount > 0 && width >= 520 ? $"History · {checkpointCount}" : "History";
+        HistoryButton.IsVisible = true;
+#endif
         SettingsSubtitle.IsVisible=false;
         SettingsActionCaption.IsVisible=width<390?false:true;UpdatesActionIcon.IsVisible=width<390?false:true;
         SettingsTile.Padding=new Thickness(width<390?10:14,8,width<390?2:14,8);
@@ -98,6 +103,7 @@ public partial class SportSelectionScreen : UserControl
     internal bool HasOpenSheet => ChangelogOverlay.IsVisible;
     public event Action<SportMode>? SportSelected;
     public event Action? ResumeSavedMatchRequested;
+    public event Action? HistoryRequested;
     public event Action? CommandBarRequested;
     private void HomeCommands_Click(object? sender, RoutedEventArgs args) => CommandBarRequested?.Invoke();
     private string? _currentSessionTitle;
@@ -110,6 +116,11 @@ public partial class SportSelectionScreen : UserControl
     }
     private void RefreshHomeSession()
     {
+#if WINDOWS
+        int historyCount = MatchCheckpointStore.Count;
+        HistoryButton.Content = historyCount > 0 && Bounds.Width >= 520 ? $"History · {historyCount}" : "History";
+        HistoryButton.IsVisible = true;
+#endif
         var saved = _currentSessionTitle is null ? RecoverySession.Describe(GameStateService.Load()) : null;
         bool current = _currentSessionTitle is not null;
         bool available = current || saved is not null;
@@ -133,6 +144,8 @@ public partial class SportSelectionScreen : UserControl
 
     private void ResumeSavedMatch_Click(object? sender, RoutedEventArgs e)
         => ResumeSavedMatchRequested?.Invoke();
+    private void History_Click(object? sender, RoutedEventArgs e)
+        => HistoryRequested?.Invoke();
     internal Control? RecoveryExpansionSource=>HomeResumeButton.IsVisible?HomeResumeButton:null;
 
     // ── Easing curves ──

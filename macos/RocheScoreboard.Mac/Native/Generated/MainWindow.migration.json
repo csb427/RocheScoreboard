@@ -1720,7 +1720,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "054d1d9b3355e64bbd7749f794c0dc2fa8673abf1fc2b93d6eb8c8aae20e2651",
+  "code_source_sha256": "778ade991c6d872b95aefc60b1a2e40428862ed7161cb16be0eea59d6100aa2e",
   "native_events": [
     {
       "name": "MainTabControl",

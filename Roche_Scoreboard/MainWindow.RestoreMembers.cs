@@ -5550,10 +5550,16 @@ public partial class MainWindow
 
     private void ExecuteMatchReset()
     {
+        SaveGameState();
+        if (!GameStateService.Clear())
+        {
+            System.Windows.MessageBox.Show(this, "The match could not be safely archived, so it remains open and recoverable.",
+                "Match kept", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         InvalidateStoppageEditor();
         InvalidatePresentationWork();
         _deferredGameStateSaveTimer?.Stop();
-        GameStateService.Clear();
         _aflMatchReady = false;
         StopBreakRotation();
         StopStatsBarTimer();

@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from MainWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 054d1d9b3355e64bbd7749f794c0dc2fa8673abf1fc2b93d6eb8c8aae20e2651
+// Source SHA-256: 778ade991c6d872b95aefc60b1a2e40428862ed7161cb16be0eea59d6100aa2e
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -401,6 +401,9 @@ namespace Roche_Scoreboard
             // Wire up Home
             SportSelectionPanel.SportSelected += OnSportSelected;
             SportSelectionPanel.ResumeSavedMatchRequested += ResumeFromHome;
+#if WINDOWS
+            SportSelectionPanel.HistoryRequested += OpenMatchHistory;
+#endif
             SportSelectionPanel.CommandBarRequested += () => OpenCommandBar();
             _match.MatchChanged += RefreshHomeCurrentSession;
             CricketControlPanelView.ApplicationPreferencesRequested += OpenCricketApplicationPreferences;
@@ -932,7 +935,13 @@ namespace Roche_Scoreboard
                 SportSelectionPanel.SetDeferredResumeAvailable(dialog.DeferredChosen);
                 SportSelectionPanel.PrepareForDisplay();
                 if (dialog.ResumeChosen) RestoreFromSavedState(saved);
-                else if (dialog.DiscardChosen) { GameStateService.Clear(); SportSelectionPanel.PrepareForDisplay(); }
+                else if (dialog.DiscardChosen)
+                {
+                    if (!GameStateService.Clear())
+                        MessageBox.Show(this, "The saved match could not be safely archived, so its recovery file was kept.",
+                            "Recovery kept", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
+                    SportSelectionPanel.PrepareForDisplay();
+                }
             };
             dialog.Loaded += (_, _) => dialog.Focus();
         }
@@ -2620,11 +2629,20 @@ namespace Roche_Scoreboard
             EnsureCricketDisplayWindow();
         }
 
+#if WINDOWS
+        private bool _suppressCricketRecoverySave;
+        private bool _restoringLocalCheckpoint;
+#endif
         private void OnCricketMatchChanged()
         {
             RefreshHomeCurrentSession();
+#if WINDOWS
+            if (!_suppressCricketRecoverySave) QueueCricketGameStateSave();
+            if (!_restoringLocalCheckpoint) PublishCloudSnapshot();
+#else
             QueueCricketGameStateSave();
             PublishCloudSnapshot();
+#endif
         }
 
         private void OnCricketResetRequested()
@@ -2635,7 +2653,14 @@ namespace Roche_Scoreboard
 #endif
             StopCricketSetupTransition();
             if (Avalonia.Application.Current is not RocheScoreboard.Mac.App { IsSelfTestMode: true })
-                ClearCricketGameStateSave();
+            {
+                if (!ClearCricketGameStateSave())
+                {
+                    MessageBox.Show(this, "The match could not be safely archived, so it remains open and recoverable.",
+                        "Match kept", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
+                    return;
+                }
+            }
             CricketControlPanelView.ClearMatch();
             if (_cricketMatch != null)
             {
@@ -2794,11 +2819,6 @@ namespace Roche_Scoreboard
 
             // Don't persist completed games — full time means Q4 has ended
             bool isFullTime = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) != null;
-            if (isFullTime)
-            {
-                GameStateService.Clear();
-                return;
-            }
 
             var state = new GameState
             {
@@ -2828,6 +2848,16 @@ namespace Roche_Scoreboard
                 AwayLogoOffsetY = _awayLogoOffsetY,
             };
 
+            if (isFullTime)
+            {
+                // Keep the completed result in local history before retiring
+                // the resumable slot. It remains available for read-only review.
+                if (!MatchCheckpointStore.Archive(state)) return;
+                GameStateService.Save(state);
+                if (!GameStateService.Clear())
+                    System.Diagnostics.Debug.WriteLine("[MatchHistory] Completed recovery was retained because it could not be archived safely.");
+                return;
+            }
             GameStateService.Save(state);
         }
 
@@ -2888,6 +2918,70 @@ namespace Roche_Scoreboard
             _deferredGameStateSaveTimer?.Stop();
             SaveGameState();
         }
+
+#if WINDOWS
+        private void OpenMatchHistory()
+        {
+            var history = new Views.MatchHistoryWindow(!HasCurrentSession) { Owner = this };
+            foreach (ResourceDictionary dictionary in Resources.MergedDictionaries)
+                history.Resources.MergedDictionaries.Add(dictionary);
+            history.ActionChosen += (checkpoint, action) =>
+            {
+                if (action == Views.MatchHistoryWindow.ActionKind.Review) return;
+                if (HasCurrentSession && _sportMode == SportMode.Training)
+                {
+                    MessageBox.Show(this, "Return to the current training session before continuing or restarting a match.",
+                        "Training session kept", NativeMessageBoxButton.OK, NativeMessageBoxImage.Information);
+                    return;
+                }
+                if (HasCurrentSession)
+                {
+                    var choice = MessageBox.Show(this,
+                        "Your open session will be saved as another local checkpoint before this action. Continue?",
+                        action == Views.MatchHistoryWindow.ActionKind.Restart ? "Restart from checkpoint" : "Continue from checkpoint",
+                        NativeMessageBoxButton.YesNo, NativeMessageBoxImage.Question, NativeMessageBoxResult.No);
+                    if (choice != NativeMessageBoxResult.Yes) return;
+                    SaveGameState();
+                    if (_sportMode == SportMode.Cricket && _cricketRecoveryWriter is not null
+                        && !_cricketRecoveryWriter.Flush(TimeSpan.FromSeconds(5)))
+                    {
+                        MessageBox.Show(this, "The current cricket session could not be checkpointed. It remains open.",
+                            "Checkpoint not saved", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
+                        return;
+                    }
+                }
+
+                bool cleared = _cricketRecoveryWriter is not null
+                    ? ClearCricketGameStateSave()
+                    : GameStateService.Clear();
+                if (!cleared)
+                {
+                    MessageBox.Show(this, "The current recovery could not be archived and cleared. The open match was kept.",
+                        "Match kept", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
+                    return;
+                }
+
+                bool cricketRestart = action == Views.MatchHistoryWindow.ActionKind.Restart
+                    && checkpoint.State.CricketMatchState is not null;
+                _restoringLocalCheckpoint = true;
+                _suppressCricketRecoverySave = cricketRestart;
+                try
+                {
+                    RestoreFromSavedState(checkpoint.State);
+                    if (action == Views.MatchHistoryWindow.ActionKind.Restart)
+                    {
+                        if (checkpoint.State.CricketMatchState is not null && _cricketMatch is not null)
+                            _cricketMatch.ResetForNewGame();
+                        else
+                            _match.ResetForNewGame();
+                    }
+                    if (!cricketRestart) SaveGameState();
+                }
+                finally { _suppressCricketRecoverySave = false; _restoringLocalCheckpoint = false; }
+            };
+            history.ShowDialog();
+        }
+#endif
 
         private void RestoreFromSavedState(GameState state)
         {

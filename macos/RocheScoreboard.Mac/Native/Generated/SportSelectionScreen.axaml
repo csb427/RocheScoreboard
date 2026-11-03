@@ -198,6 +198,7 @@
                         </ns4:OperatorGlassSurface>
                         <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K" Theme="{StaticResource HomeUtility}" />
                         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="HistoryButton" Content="History" Click="History_Click" AutomationProperties.Name="Open local match history" IsVisible="False" Theme="{StaticResource HomeUtility}" ToolTip.Tip="Review saved match checkpoints" />
                             <ns4:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" IsVisible="{Binding Visibility, ElementName=ResumeSavedMatchButton}">
                                 <Button x:Name="ResumeSavedMatchButton" Content="Continue match" Click="ResumeSavedMatch_Click" IsVisible="False" Theme="{StaticResource HomeUtility}" ToolTip.Tip="Review and resume the saved match" />
                             </ns4:OperatorGlassSurface>

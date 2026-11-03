@@ -1,5 +1,5 @@
 // Generated from Services/GameStateService.cs; edit translator/adapters.
-// Source SHA-256: e114464a8afe4db736f23482fc76f01638680ecaf700bd4ed465a0c38f8d98e4
+// Source SHA-256: bdc3fecc811580be3f807b5afc2cf230c81e85bafec3fdbcf8b07f907b6fc8b0
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -53,7 +53,13 @@ internal static class GameStateService
     /// Saves the current match state and UI configuration to disk.
     /// Failures are silently ignored (best-effort persistence).
     /// </summary>
-    internal static void Save(GameState state) => SaveTo(state, StateFilePath);
+    internal static void Save(GameState state)
+    {
+        // Archive first. A later reset can then retire recovery without losing
+        // the last operator-visible state.
+        MatchCheckpointStore.Archive(state);
+        SaveTo(state, StateFilePath);
+    }
 
     private static void SaveTo(GameState state, string path)
     {
@@ -157,8 +163,11 @@ internal static class GameStateService
     /// <summary>
     /// Deletes the saved state file (called on explicit new game).
     /// </summary>
-    internal static void Clear()
+    internal static bool Clear()
     {
+        // A failed archive must never turn a reset into data loss. Leave the
+        // current recovery and its backup in place so the operator can retry.
+        if (!MatchCheckpointStore.ArchiveCurrentRecovery()) return false;
         try
         {
             if (File.Exists(StateFilePath))
@@ -168,10 +177,11 @@ internal static class GameStateService
             if (!string.Equals(LegacyStateFilePath, StateFilePath, StringComparison.OrdinalIgnoreCase)
                 && File.Exists(LegacyStateFilePath))
                 File.Delete(LegacyStateFilePath);
+            return !HasSavedState();
         }
         catch
         {
-            // Best-effort
+            return false;
         }
     }
 

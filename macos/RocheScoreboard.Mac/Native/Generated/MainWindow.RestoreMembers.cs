@@ -1,5 +1,5 @@
 // Generated from MainWindow.RestoreMembers.cs; edit translator/adapters.
-// Source SHA-256: d1d6a564030319ef6b2d175885b8705d6c1d8a5bc1a139b8f6448583bb227f87
+// Source SHA-256: 76e48cb306ce0c26e40c6fdc70ca11c70f8603fddec6a2a865eddcf6a7b44c57
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -5403,10 +5403,16 @@ public partial class MainWindow
 
     private void ExecuteMatchReset()
     {
+        SaveGameState();
+        if (!GameStateService.Clear())
+        {
+            RocheScoreboard.Mac.Native.NativeMessageBox.Show(this, "The match could not be safely archived, so it remains open and recoverable.",
+                "Match kept", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
+            return;
+        }
         InvalidateStoppageEditor();
         InvalidatePresentationWork();
         _deferredGameStateSaveTimer?.Stop();
-        GameStateService.Clear();
         _aflMatchReady = false;
         StopBreakRotation();
         StopStatsBarTimer();
