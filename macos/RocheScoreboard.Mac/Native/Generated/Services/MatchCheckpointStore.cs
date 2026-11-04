@@ -1,5 +1,5 @@
 // Generated from Services/MatchCheckpointStore.cs; edit translator/adapters.
-// Source SHA-256: f5a8842c7c4d7bdb20fccd4ee0666d11ac2e3034e514728ada62f2228d54f270
+// Source SHA-256: bd49fbc5a4d9f39d2baafbf60343b3c238f736d816d1e8ccb110de2045d8ff71
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -122,10 +122,12 @@ internal static class MatchCheckpointStore
         }
     }
 
-    internal static bool ArchiveCurrentRecovery()
+    internal static bool ArchiveCurrentRecovery(string? recoveryPath = null, string? legacyPath = null, string? checkpointDirectory = null)
     {
-        GameState? state = GameStateService.Load();
-        return state is null || Archive(state);
+        GameState? state = recoveryPath is null && legacyPath is null
+            ? GameStateService.Load()
+            : GameStateService.LoadFrom(recoveryPath ?? GameStateService.RecoveryStatePath, legacyPath);
+        return state is null || Archive(state, checkpointDirectory);
     }
 
     private static Checkpoint? Read(string path)

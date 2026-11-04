@@ -1,5 +1,5 @@
 // Generated from MainWindow.CricketPersistence.cs; edit translator/adapters.
-// Source SHA-256: 0cd561936fd030c73a330a11dc402a9c749fb9433cf4c2418c4e9dbc6cf121d5
+// Source SHA-256: e738321fe3d0e7fc9acea174370bf974a4c36e27cca74b945eed2c722dc58356
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -18,15 +18,16 @@ public partial class MainWindow
 {
     private CricketRecoveryWriter? _cricketRecoveryWriter;
 
-    private void QueueCricketGameStateSave()
+    private bool QueueCricketGameStateSave()
     {
 #if DEBUG
-        if (_cricketPreviewBackup is not null) return;
+        if (_cricketPreviewBackup is not null) return false;
 #endif
-        if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true } || _cricketMatch?.CurrentInnings is null) return;
+        if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }) return true;
+        if (_cricketMatch?.CurrentInnings is null) return false;
         // Finalised outcomes remain available for review/reopening after a
         // restart. Explicit reset still clears recovery through its own path.
-        if (!_cricketMatch.HasRecoverableCricketState) return;
+        if (!_cricketMatch.HasRecoverableCricketState) return false;
         var cricket = _cricketMatch.CapturePersistenceState();
         var state = new GameState
         {
@@ -41,6 +42,7 @@ public partial class MainWindow
             Messages = [.. cricket.Messages]
         };
         (_cricketRecoveryWriter ??= new CricketRecoveryWriter()).Queue(state);
+        return true;
     }
     private bool ClearCricketGameStateSave()
     {

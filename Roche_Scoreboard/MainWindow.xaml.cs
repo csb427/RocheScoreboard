@@ -2799,21 +2799,20 @@ namespace Roche_Scoreboard
         // ----------------------------
         // Game state persistence
         // ----------------------------
-        private void SaveGameState()
+        private bool SaveGameState()
         {
-            if (System.Windows.Application.Current is App { IsSelfTestMode: true }) return;
+            if (System.Windows.Application.Current is App { IsSelfTestMode: true }) return true;
             if (_sportMode == SportMode.Cricket)
             {
-                QueueCricketGameStateSave();
-                return;
+                return QueueCricketGameStateSave();
             }
 
             // Persist AFL games that are in progress.
-            if (_sportMode != SportMode.AFL) return;
+            if (_sportMode != SportMode.AFL) return true;
             // A completed setup is a live match even before the first score or
             // clock start. Preserve it so closing immediately after setup still
             // offers recovery on the next launch.
-            if (!_aflMatchReady && _match.Events.Count == 0 && !_match.ClockRunning && _match.Quarter == 1) return;
+            if (!_aflMatchReady && _match.Events.Count == 0 && !_match.ClockRunning && _match.Quarter == 1) return false;
 
             // Don't persist completed games — full time means Q4 has ended
             bool isFullTime = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) != null;
@@ -2850,13 +2849,14 @@ namespace Roche_Scoreboard
             {
                 // Keep the completed result in local history before retiring
                 // the resumable slot. It remains available for read-only review.
-                if (!MatchCheckpointStore.Archive(state)) return;
-                GameStateService.Save(state);
+                bool archived = MatchCheckpointStore.Archive(state);
+                if (!archived) return false;
+                bool saved = GameStateService.Save(state);
                 if (!GameStateService.Clear())
                     System.Diagnostics.Debug.WriteLine("[MatchHistory] Completed recovery was retained because it could not be archived safely.");
-                return;
+                return saved || archived;
             }
-            GameStateService.Save(state);
+            return GameStateService.Save(state);
         }
 
         /// <summary>
@@ -2944,7 +2944,12 @@ namespace Roche_Scoreboard
                         action == Views.MatchHistoryView.ActionKind.Restart ? "Restart from checkpoint" : "Continue from checkpoint",
                         MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
                     if (choice != MessageBoxResult.Yes) return false;
-                    SaveGameState();
+                    if (!SaveGameState())
+                    {
+                        MessageBox.Show(this, "The current match could not be archived or saved. It remains open, and recovery was left untouched.",
+                            "Checkpoint not saved", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return false;
+                    }
                     if (_sportMode == SportMode.Cricket && _cricketRecoveryWriter is not null
                         && !_cricketRecoveryWriter.Flush(TimeSpan.FromSeconds(5)))
                     {

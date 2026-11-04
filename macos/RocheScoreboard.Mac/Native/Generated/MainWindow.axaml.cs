@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from MainWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: cf1fe5dec10f18b22793d70e573a9f41c06ffd78dc1b9b0a2a48c5565f4a6bdf
+// Source SHA-256: 68db12d73e07caa7ccf89cde3fe130a775161b6e1d0e7ef1ebf9f65ab55b99eb
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -2801,21 +2801,20 @@ namespace Roche_Scoreboard
         // ----------------------------
         // Game state persistence
         // ----------------------------
-        private void SaveGameState()
+        private bool SaveGameState()
         {
-            if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }) return;
+            if (Avalonia.Application.Current is RocheScoreboard.Mac.App { IsSelfTestMode: true }) return true;
             if (_sportMode == SportMode.Cricket)
             {
-                QueueCricketGameStateSave();
-                return;
+                return QueueCricketGameStateSave();
             }
 
             // Persist AFL games that are in progress.
-            if (_sportMode != SportMode.AFL) return;
+            if (_sportMode != SportMode.AFL) return true;
             // A completed setup is a live match even before the first score or
             // clock start. Preserve it so closing immediately after setup still
             // offers recovery on the next launch.
-            if (!_aflMatchReady && _match.Events.Count == 0 && !_match.ClockRunning && _match.Quarter == 1) return;
+            if (!_aflMatchReady && _match.Events.Count == 0 && !_match.ClockRunning && _match.Quarter == 1) return false;
 
             // Don't persist completed games — full time means Q4 has ended
             bool isFullTime = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) != null;
@@ -2852,13 +2851,14 @@ namespace Roche_Scoreboard
             {
                 // Keep the completed result in local history before retiring
                 // the resumable slot. It remains available for read-only review.
-                if (!MatchCheckpointStore.Archive(state)) return;
-                GameStateService.Save(state);
+                bool archived = MatchCheckpointStore.Archive(state);
+                if (!archived) return false;
+                bool saved = GameStateService.Save(state);
                 if (!GameStateService.Clear())
                     System.Diagnostics.Debug.WriteLine("[MatchHistory] Completed recovery was retained because it could not be archived safely.");
-                return;
+                return saved || archived;
             }
-            GameStateService.Save(state);
+            return GameStateService.Save(state);
         }
 
         /// <summary>
@@ -2946,7 +2946,12 @@ namespace Roche_Scoreboard
                         action == Views.MatchHistoryView.ActionKind.Restart ? "Restart from checkpoint" : "Continue from checkpoint",
                         NativeMessageBoxButton.YesNo, NativeMessageBoxImage.Question, NativeMessageBoxResult.No);
                     if (choice != NativeMessageBoxResult.Yes) return false;
-                    SaveGameState();
+                    if (!SaveGameState())
+                    {
+                        MessageBox.Show(this, "The current match could not be archived or saved. It remains open, and recovery was left untouched.",
+                            "Checkpoint not saved", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
+                        return false;
+                    }
                     if (_sportMode == SportMode.Cricket && _cricketRecoveryWriter is not null
                         && !_cricketRecoveryWriter.Flush(TimeSpan.FromSeconds(5)))
                     {

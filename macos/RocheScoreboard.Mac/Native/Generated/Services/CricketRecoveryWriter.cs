@@ -1,5 +1,5 @@
 // Generated from Services/CricketRecoveryWriter.cs; edit translator/adapters.
-// Source SHA-256: 13342727745cc81cebc4bfa3df47fbd81ebd3b7da7837a1c36c3c982c7d4b685
+// Source SHA-256: f2ffad07e72358e12b7e52bfb9618f336004de9d2bd86c255b6624d7e1ff7e62
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -27,18 +27,20 @@ internal sealed class CricketRecoveryWriter
     private readonly Func<bool> _clearFiles;
     private readonly Action<Exception>? _onError;
     private readonly Action? _beforeCommit;
+    private readonly string? _checkpointDirectory;
     private (long Generation, GameState State)? _pending;
     private Task? _worker;
     private long _generation;
     private Exception? _lastError;
     private int _completedWrites;
 
-    internal CricketRecoveryWriter(string? path = null, Action<Exception>? onError = null, Action? beforeCommit = null)
+    internal CricketRecoveryWriter(string? path = null, Action<Exception>? onError = null, Action? beforeCommit = null, string? checkpointDirectory = null)
     {
         _path = path ?? GameStateService.RecoveryStatePath;
         _onError = onError;
         _beforeCommit = beforeCommit;
-        _clearFiles = path is null ? GameStateService.Clear : () =>
+        _checkpointDirectory = checkpointDirectory;
+        _clearFiles = path is null ? () => GameStateService.Clear() : () =>
         {
             if (File.Exists(_path)) File.Delete(_path);
             if (File.Exists(_path + ".bak")) File.Delete(_path + ".bak");
@@ -121,8 +123,8 @@ internal sealed class CricketRecoveryWriter
                     Commit(temporary);
                     // The primary is now durable. Keep its local history copy
                     // before any explicit reset is allowed to clear recovery.
-                    if (item.Generation == _generation)
-                        MatchCheckpointStore.Archive(item.State);
+                    if (item.Generation == _generation && !MatchCheckpointStore.Archive(item.State, _checkpointDirectory))
+                        throw new IOException("Recovery was written, but its local checkpoint could not be archived.");
                     lock (_gate) { _lastError = null; ++_completedWrites; }
                 }
             }

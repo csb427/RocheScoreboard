@@ -113,10 +113,12 @@ internal static class MatchCheckpointStore
         }
     }
 
-    internal static bool ArchiveCurrentRecovery()
+    internal static bool ArchiveCurrentRecovery(string? recoveryPath = null, string? legacyPath = null, string? checkpointDirectory = null)
     {
-        GameState? state = GameStateService.Load();
-        return state is null || Archive(state);
+        GameState? state = recoveryPath is null && legacyPath is null
+            ? GameStateService.Load()
+            : GameStateService.LoadFrom(recoveryPath ?? GameStateService.RecoveryStatePath, legacyPath);
+        return state is null || Archive(state, checkpointDirectory);
     }
 
     private static Checkpoint? Read(string path)

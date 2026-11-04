@@ -89,6 +89,15 @@ internal static class CricketPersistenceChecks
         bool flushed = await Task.Run(() => failureWriter.Flush(TimeSpan.FromSeconds(4)));
         checks["recovery-io-failure-is-contained-and-reported-not-unobserved"] = !flushed && failureWriter.LastError is IOException;
 
+        string historyFailureBlocker = Path.Combine(directory, "recovery-history-parent-is-a-file");
+        File.WriteAllText(historyFailureBlocker, "fixture");
+        string archiveFailureRecovery = Path.Combine(directory, "recovery-committed-history-failed.json");
+        var archiveFailureWriter = new CricketRecoveryWriter(archiveFailureRecovery, checkpointDirectory: historyFailureBlocker);
+        archiveFailureWriter.Queue(Capture());
+        bool archiveFailureFlush = await Task.Run(() => archiveFailureWriter.Flush(TimeSpan.FromSeconds(4)));
+        checks["recovery-flush-reports-history-archive-failure-after-committing-recovery"] = !archiveFailureFlush
+            && archiveFailureWriter.LastError is IOException && File.Exists(archiveFailureRecovery);
+
         // History uses a separate, injectable directory so checks never read
         // or mutate operator recovery/history data.
         string historyPath = Path.Combine(directory, "match-history");
@@ -141,10 +150,89 @@ internal static class CricketPersistenceChecks
             !MatchCheckpointStore.Archive(historyState, blockedParent)
             && MatchCheckpointStore.Load(historyPath).Count == 3;
 
+        static GameState AflPersistenceState(int homeGoals)
+        {
+            var manager = new MatchManager();
+            var matchState = manager.ToState();
+            matchState.HomeGoals = homeGoals;
+            return new GameState { Sport = "afl", MatchState = matchState, Messages = [], TickerSlots = [] };
+        }
+
+        // Deterministically block both current-save destinations while leaving
+        // the previous recovery readable. Once unblocked, the old Clear path
+        // can archive that stale state and report success, reproducing the
+        // failure mode that a void SaveGameState could not detect.
+        string reproduceRoot = Path.Combine(directory, "history-recovery-stale-clear-repro");
+        string reproduceRecoveryDirectory = Path.Combine(reproduceRoot, "recovery");
+        string reproduceHistoryDirectory = Path.Combine(reproduceRoot, "history");
+        Directory.CreateDirectory(reproduceRecoveryDirectory);
+        Directory.CreateDirectory(reproduceHistoryDirectory);
+        string reproduceRecoveryPath = Path.Combine(reproduceRecoveryDirectory, "game_state.json");
+        string missingLegacy = Path.Combine(reproduceRoot, "missing-legacy.json");
+        bool previousRecoverySaved = GameStateService.Save(AflPersistenceState(1), reproduceRecoveryPath, reproduceHistoryDirectory);
+        BlockDirectory(reproduceRecoveryDirectory, reproduceRecoveryDirectory + ".held");
+        BlockDirectory(reproduceHistoryDirectory, reproduceHistoryDirectory + ".held");
+        bool currentSaveReportedFailure;
+        try
+        {
+            currentSaveReportedFailure = !GameStateService.Save(AflPersistenceState(7), reproduceRecoveryPath, reproduceHistoryDirectory);
+        }
+        finally
+        {
+            RestoreDirectory(reproduceHistoryDirectory, reproduceHistoryDirectory + ".held");
+            RestoreDirectory(reproduceRecoveryDirectory, reproduceRecoveryDirectory + ".held");
+        }
+        bool staleRecoveryWasCleared = GameStateService.Clear(reproduceRecoveryPath, missingLegacy, reproduceHistoryDirectory);
+        var staleClearHistory = MatchCheckpointStore.Load(reproduceHistoryDirectory);
+        checks["fault-injection-reproduces-void-save-followed-by-stale-recovery-clear"] = previousRecoverySaved
+            && File.Exists(reproduceRecoveryPath) && currentSaveReportedFailure && staleRecoveryWasCleared && !File.Exists(reproduceRecoveryPath)
+            && staleClearHistory.Count == 1 && staleClearHistory[0].State.MatchState?.HomeGoals == 1;
+
+        // The production decision path gates Clear on the current-session save
+        // result. A failed save must therefore leave the old recovery in place
+        // and must not let it stand in for the newer in-memory match.
+        string guardedRoot = Path.Combine(directory, "history-recovery-save-guard");
+        string guardedRecoveryDirectory = Path.Combine(guardedRoot, "recovery");
+        string guardedHistoryDirectory = Path.Combine(guardedRoot, "history");
+        Directory.CreateDirectory(guardedRecoveryDirectory);
+        Directory.CreateDirectory(guardedHistoryDirectory);
+        string guardedRecoveryPath = Path.Combine(guardedRecoveryDirectory, "game_state.json");
+        bool guardedPreviousSaved = GameStateService.Save(AflPersistenceState(2), guardedRecoveryPath, guardedHistoryDirectory);
+        BlockDirectory(guardedRecoveryDirectory, guardedRecoveryDirectory + ".held");
+        BlockDirectory(guardedHistoryDirectory, guardedHistoryDirectory + ".held");
+        bool guardedSaveSucceeded;
+        try
+        {
+            guardedSaveSucceeded = GameStateService.Save(AflPersistenceState(8), guardedRecoveryPath, guardedHistoryDirectory);
+        }
+        finally
+        {
+            RestoreDirectory(guardedHistoryDirectory, guardedHistoryDirectory + ".held");
+            RestoreDirectory(guardedRecoveryDirectory, guardedRecoveryDirectory + ".held");
+        }
+        bool guardAllowsClear = guardedSaveSucceeded
+            && GameStateService.Clear(guardedRecoveryPath, Path.Combine(guardedRoot, "missing-legacy.json"), guardedHistoryDirectory);
+        var guardedHistory = MatchCheckpointStore.Load(guardedHistoryDirectory);
+        checks["history-save-failure-guard-preserves-old-recovery-and-does-not-clear"] = guardedPreviousSaved
+            && File.Exists(guardedRecoveryPath) && !guardedSaveSucceeded && !guardAllowsClear && File.Exists(guardedRecoveryPath)
+            && guardedHistory.Count == 1 && guardedHistory[0].State.MatchState?.HomeGoals == 2;
+
         string restartTeam = historyMatch.TeamAName;
         historyMatch.ResetForNewGame();
         checks["history-restart-resets-cricket-score-and-keeps-team-setup"] =
             historyMatch.TotalRuns == 0 && historyMatch.TotalWickets == 0 && historyMatch.TeamAName == restartTeam;
         return checks;
+    }
+
+    private static void BlockDirectory(string path, string heldPath)
+    {
+        Directory.Move(path, heldPath);
+        File.WriteAllText(path, "fault-injection blocker");
+    }
+
+    private static void RestoreDirectory(string path, string heldPath)
+    {
+        if (File.Exists(path)) File.Delete(path);
+        Directory.Move(heldPath, path);
     }
 }
