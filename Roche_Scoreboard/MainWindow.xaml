@@ -231,7 +231,7 @@
                 <!-- TAB 1: SCORING &amp; CLOCK — the heart    -->
                 <!-- ══════════════════════════════════════════ -->
                 <TabItem x:Name="MatchControlTab" Header="1  MATCH" Tag="SCORING &amp; CLOCK" ToolTip="Scoring, clock and match log · Ctrl+1">
-                    <ScrollViewer x:Name="AflMatchPageViewport" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Border Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="12,12">
+                    <ScrollViewer x:Name="AflMatchPageViewport" Background="Transparent" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Border Background="{StaticResource RegionBrush}" BorderBrush="{StaticResource RegionEdgeBrush}" BorderThickness="0,1,0,0" Padding="12,12">
                         <Grid x:Name="AflScoringColumns">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>

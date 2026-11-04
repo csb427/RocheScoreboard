@@ -2,6 +2,9 @@
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Automation;
+using Roche_Scoreboard.Services;
 using Roche_Scoreboard.Models;
 using Roche_Scoreboard.Views;
 
@@ -37,6 +40,26 @@ public partial class MainWindow
             {
                 window.Content = setup.View; await Task.Delay(1000);
                 var scroll = FindQaVisual<WizardViewport>(setup.View)!;
+                if (setup.View is SetupWizard aflWizard)
+                {
+                    InvokeCricketQa(aflWizard, "ShowStep", 3, false);
+                    await Task.Delay(80); aflWizard.UpdateLayout();
+                    var presets = QaDescendants(aflWizard).OfType<UniformGrid>().First(grid => grid.Children.OfType<FrameworkElement>().Any(child => child.Name == "Preset10Tile"));
+                    window.Width = 420; await Task.Delay(80); aflWizard.UpdateLayout();
+                    checks["afl-quarter-presets-reflow-to-two-readable-columns"] = presets.Columns == 2 && presets.Rows == 2
+                        && presets.Children.OfType<FrameworkElement>().All(child => child.ActualWidth >= 90 && child.ActualHeight >= 40);
+                    window.Width = 1000; await Task.Delay(80); aflWizard.UpdateLayout();
+                    checks["afl-quarter-presets-return-to-one-row"] = presets.Columns == 4 && presets.Rows == 1;
+                    var finals = (System.Windows.Controls.CheckBox)aflWizard.FindName("SetupFinalsMode");
+                    OperatorMotion.AnimationOverride = false;
+                    finals.IsChecked = true; finals.ApplyTemplate();
+                    checks["afl-finals-selection-has-shaped-fill-and-static-reduced-motion-state"] = finals.Template.FindName("FinalsFocusFrame", finals) is Border
+                        && Services.OperatorChoiceMotion.GetProgress(finals) == 1
+                        && Services.OperatorChoiceMotion.GetEnabled(finals)
+                        && AutomationProperties.GetItemStatus(finals) == "On";
+                    finals.IsChecked = false;
+                    OperatorMotion.AnimationOverride = null;
+                }
                 foreach (var dimensions in new[] { (420d, 520d), (760d, 680d), (1500d, 800d) })
                 {
                     window.Width = dimensions.Item1; window.Height = dimensions.Item2;

@@ -55,6 +55,9 @@
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent">
+                        <motion:OperatorChoiceSurface CornerRadius="24" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}">
+                            <motion:OperatorChoiceSurface.FillBrush><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#8A76551A" Offset="0"/><GradientStop Color="#B09B7528" Offset="1"/></LinearGradientBrush></motion:OperatorChoiceSurface.FillBrush>
+                        </motion:OperatorChoiceSurface>
                         <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         <Border x:Name="FinalsFocusFrame" Margin="2" CornerRadius="24" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" Visibility="Collapsed" IsHitTestVisible="False" />
                     </Grid>
@@ -506,12 +509,7 @@
                                     </layout:OperatorGlassSurface>
                                 </Grid>
                                 <layout:OperatorGlassSurface x:Name="ControlPanelCountdownOptionCard" Grid.Row="1" Margin="0,16,0,16" Padding="16,12" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.AccentBrush}" BorderThickness="1" CornerRadius="22" Cursor="Hand" Visibility="Collapsed" Opacity="0" MinHeight="90" RenderTransformOrigin="0.5,0.5" MouseLeftButtonUp="ControlPanelCountdownOptionCard_Click" Material="Regular">
-                                    <Border.RenderTransform>
-                                        <TransformGroup>
-                                            <TranslateTransform x:Name="ControlPanelCountdownCardTranslate" Y="24" />
-                                            <ScaleTransform x:Name="ControlPanelCountdownCardScale" ScaleX="0.96" ScaleY="0.96" />
-                                        </TransformGroup>
-                                    </Border.RenderTransform>
+                                    <Border.RenderTransform><TranslateTransform x:Name="ControlPanelCountdownCardTranslate" Y="0" /></Border.RenderTransform>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -551,7 +549,7 @@
                                     <StackPanel Grid.Column="1" HorizontalAlignment="Center" Margin="10,0"><TextBlock x:Name="DurationMinutesDisplay" Text="20" FontSize="48" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" HorizontalAlignment="Center"/><TextBlock Text="minutes" FontSize="14" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" HorizontalAlignment="Center"/></StackPanel>
                                     <Button Grid.Column="2" Content="+" FontSize="25" Padding="0" Height="48" MinHeight="0" Click="MinutesPlus_Click" AutomationProperties.Name="Increase quarter length" VerticalAlignment="Center"/>
                                    </Grid>
-                                   <UniformGrid Rows="1" Columns="4">
+                                  <UniformGrid Rows="1" Columns="4">
                                     <Border x:Name="Preset10Tile" CornerRadius="20" Margin="3"><Button Content="10" FontSize="16" MinHeight="42" Padding="6,8" Click="SetupQuickDuration10_Click" AutomationProperties.Name="Ten minute quarters"/></Border>
                                     <Border x:Name="Preset15Tile" CornerRadius="20" Margin="3"><Button Content="15" FontSize="16" MinHeight="42" Padding="6,8" Click="SetupQuickDuration15_Click" AutomationProperties.Name="Fifteen minute quarters"/></Border>
                                     <Border x:Name="Preset20Tile" CornerRadius="20" Margin="3"><Button Content="20" FontSize="16" MinHeight="42" Padding="6,8" Click="SetupQuickDuration20_Click" AutomationProperties.Name="Twenty minute quarters"/></Border>

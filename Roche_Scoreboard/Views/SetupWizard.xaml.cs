@@ -164,6 +164,8 @@ namespace Roche_Scoreboard.Views
         public SetupWizard()
         {
             InitializeComponent();
+            QuarterLengthControls.SizeChanged += (_, _) => ApplyQuarterPresetLayout();
+            Loaded += (_, _) => ApplyQuarterPresetLayout();
             InitializePresetReorderInteraction();
             SetupFinalsMode.PreviewKeyDown += SetupFinalsMode_PreviewKeyDown;
             WizardFlowDesign.Enable(this, () => ShowStep(_currentStep, false));
@@ -230,8 +232,6 @@ namespace Roche_Scoreboard.Views
             _countdownOptionHideTimer?.Stop(); _countdownOptionHideTimer = null;
             ControlPanelCountdownOptionCard.BeginAnimation(OpacityProperty, null); ControlPanelCountdownOptionCard.Opacity = 1;
             ControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null); ControlPanelCountdownCardTranslate.Y = 0;
-            ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null); ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-            ControlPanelCountdownCardScale.ScaleX = ControlPanelCountdownCardScale.ScaleY = 1;
             bool showCountdownOption = SetupCountUp.IsChecked == true;
             ControlPanelCountdownOptionCard.Visibility = showCountdownOption ? Visibility.Visible : Visibility.Collapsed;
             ControlPanelCountdownOptionCard.IsHitTestVisible = showCountdownOption;
@@ -653,6 +653,16 @@ namespace Roche_Scoreboard.Views
         private bool _countdownOptionCardWasCollapsed = true;
         private DispatcherTimer? _countdownOptionHideTimer;
 
+        private void ApplyQuarterPresetLayout()
+        {
+            if (QuarterLengthControls is null) return;
+            var presets = QuarterLengthControls.Children.OfType<System.Windows.Controls.Primitives.UniformGrid>().FirstOrDefault();
+            if (presets is null) return;
+            bool compact = presets.ActualWidth < 340;
+            presets.Columns = compact ? 2 : 4;
+            presets.Rows = compact ? 2 : 1;
+        }
+
         private void UpdateControlPanelCountdownOptionVisuals()
         {
             if (ControlPanelCountdownOptionCard is null)
@@ -672,8 +682,6 @@ namespace Roche_Scoreboard.Views
             {
                 ControlPanelCountdownOptionCard.BeginAnimation(OpacityProperty, null);
                 ControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
 
                 ControlPanelCountdownOptionCard.Visibility = Visibility.Visible;
                 ControlPanelCountdownOptionCard.IsHitTestVisible = true;
@@ -681,37 +689,27 @@ namespace Roche_Scoreboard.Views
                 if (wasCollapsed)
                 {
                     ControlPanelCountdownOptionCard.Opacity = 0;
-                    ControlPanelCountdownCardTranslate.Y = 12;
-                    ControlPanelCountdownCardScale.ScaleX = 0.98;
-                    ControlPanelCountdownCardScale.ScaleY = 0.98;
+                    ControlPanelCountdownCardTranslate.Y = 6 * OperatorMotion.TravelScale;
 
-                    Animate(ControlPanelCountdownOptionCard, OpacityProperty, 1, 220, easing: Smooth);
-                    Animate(ControlPanelCountdownCardTranslate, TranslateTransform.YProperty, 0, 220, easing: Smooth);
-                    Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleXProperty, 1, 220, easing: Smooth);
-                    Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleYProperty, 1, 220, easing: Smooth);
+                    Animate(ControlPanelCountdownOptionCard, OpacityProperty, 1, (int)OperatorMotion.PanelOpen.TotalMilliseconds, easing: Smooth);
+                    Animate(ControlPanelCountdownCardTranslate, TranslateTransform.YProperty, 0, (int)OperatorMotion.PanelOpen.TotalMilliseconds, easing: Smooth);
                 }
                 else
                 {
                     ControlPanelCountdownOptionCard.Opacity = 1;
                     ControlPanelCountdownCardTranslate.Y = 0;
-                    ControlPanelCountdownCardScale.ScaleX = 1;
-                    ControlPanelCountdownCardScale.ScaleY = 1;
                 }
             }
             else
             {
                 ControlPanelCountdownOptionCard.BeginAnimation(OpacityProperty, null);
                 ControlPanelCountdownCardTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-                ControlPanelCountdownCardScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
 
                 ControlPanelCountdownOptionCard.IsHitTestVisible = false;
-                Animate(ControlPanelCountdownOptionCard, OpacityProperty, 0, 220, easing: Smooth);
-                Animate(ControlPanelCountdownCardTranslate, TranslateTransform.YProperty, 14, 220, easing: Smooth);
-                Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleXProperty, 0.98, 220, easing: Smooth);
-                Animate(ControlPanelCountdownCardScale, ScaleTransform.ScaleYProperty, 0.98, 220, easing: Smooth);
+                Animate(ControlPanelCountdownOptionCard, OpacityProperty, 0, (int)OperatorMotion.PanelClose.TotalMilliseconds, easing: Smooth);
+                Animate(ControlPanelCountdownCardTranslate, TranslateTransform.YProperty, 6 * OperatorMotion.TravelScale, (int)OperatorMotion.PanelClose.TotalMilliseconds, easing: Smooth);
 
-                _countdownOptionHideTimer = new DispatcherTimer { Interval = OperatorMotion.SurfaceClose };
+                _countdownOptionHideTimer = new DispatcherTimer { Interval = OperatorMotion.PanelClose };
                 _countdownOptionHideTimer.Tick += (_, _) =>
                 {
                     _countdownOptionHideTimer?.Stop();
@@ -757,10 +755,9 @@ namespace Roche_Scoreboard.Views
             if (ControlPanelCountdownToggleLabel is not null)
             {
                 ControlPanelCountdownToggleLabel.BeginAnimation(OpacityProperty, null);
-                ControlPanelCountdownToggleLabel.Opacity = 0.65;
+                ControlPanelCountdownToggleLabel.Opacity = 1;
                 ControlPanelCountdownToggleLabel.Text = isEnabled ? "ON" : "OFF";
                 ControlPanelCountdownToggleLabel.SetResourceReference(TextBlock.ForegroundProperty,isEnabled?"ControlCentre.AccentBrush":"ControlCentre.SecondaryTextBrush");
-                Animate(ControlPanelCountdownToggleLabel, OpacityProperty, 1, 180, easing: Smooth);
             }
 
             if (controlPanelCountdownHintText is not null)
@@ -828,7 +825,7 @@ namespace Roche_Scoreboard.Views
             bool on = SetupFinalsMode.IsChecked == true;
             WizardFlowDesign.StyleChoice(FinalsCard, on);
             FinalsCard.CornerRadius = new CornerRadius(26);
-            FinalsCard.Background = on ? new SolidColorBrush(Color.FromRgb(64,48,22)) : System.Windows.Media.Brushes.Transparent;
+            FinalsCard.Background = System.Windows.Media.Brushes.Transparent;
             OperatorChoiceMotion.SetEnabled(SetupFinalsMode,true);
             OperatorChoiceMotion.SetSelected(SetupFinalsMode,on);
             SetupFinalsTitle.SetResourceReference(TextBlock.ForegroundProperty,on ? "ControlCentre.ActionTextBrush" : "ControlCentre.TextBrush");

@@ -89,6 +89,9 @@ public partial class MainWindow
             var selectedTab = (TabItem)tabs.Items[0];
             double expectedLeft = selectedTab.TranslatePoint(new System.Windows.Point(), lens).X + 2;
             checks["lens-reaches-selected-tab-and-stops"] = Math.Abs(lens.LensBounds.Left - expectedLeft) < .2 && !lens.IsAnimating;
+            checks["operator-tab-template-paints-full-content-and-navigation-background"] = tabs.Template.FindName("PART_OperatorDock", tabs) is Roche_Scoreboard.Views.OperatorGlassSurface
+                && tabs.Template.FindName("PART_SelectedContentHost", tabs) is ContentPresenter selectedHost
+                && selectedHost.Margin.Bottom == 6;
             if(!checks["lens-reaches-selected-tab-and-stops"])
                 File.WriteAllText(Path.Combine(directory,"lens-diagnostic.json"),System.Text.Json.JsonSerializer.Serialize(new { expectedLeft, left=lens.LensBounds.Left, width=lens.LensBounds.Width, animating=lens.IsAnimating, selectedWidth=selectedTab.ActualWidth }));
             button.Focus();
