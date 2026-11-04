@@ -19,6 +19,7 @@ public partial class MainWindow
             fixture.MainContent.Visibility = Visibility.Collapsed;
 #if WINDOWS
             fixture.SportSelectionPanel.PrepareForDisplay();
+            fixture.Show(); fixture.UpdateLayout();
             checks["home-history-entry-is-visible-and-labelled"] =
                 fixture.SportSelectionPanel.HistoryButton.Visibility == Visibility.Visible
                 && fixture.SportSelectionPanel.HistoryButton.Content?.ToString()?.StartsWith("Match history", System.StringComparison.Ordinal) == true;
@@ -37,19 +38,40 @@ public partial class MainWindow
             ];
             var checkpoint = new MatchCheckpointStore.Checkpoint(1, "qa", System.DateTimeOffset.UtcNow,
                 "Harbour v Rovers", "AFL · full time", completedState);
-            var history = new Views.MatchHistoryWindow(true, [checkpoint]) { Owner = fixture };
-            foreach (var dictionary in fixture.Resources.MergedDictionaries) history.Resources.MergedDictionaries.Add(dictionary);
+            var history = new Views.MatchHistoryView(true, [checkpoint]);
+            history.ActionChosen += (_, _) => false;
             try
             {
-                history.Show(); history.UpdateLayout();
+                fixture.SportSelectionPanel.ShowHistory(history); fixture.UpdateLayout();
+                checks["history-is-hosted-in-home-window"] = ReferenceEquals(Window.GetWindow(history), fixture)
+                    && fixture.SportSelectionPanel.IsHistoryActive(history)
+                    && fixture.SportSelectionPanel.HistoryViewHost.Content == history;
+                checks["history-uses-shared-operator-theme-and-fills-home-sheet"] =
+                    OperatorDesign.GetIsEnabled(fixture.SportSelectionPanel)
+                    && fixture.SportSelectionPanel.HistoryOverlay.Visibility == Visibility.Visible
+                    && fixture.SportSelectionPanel.HistoryPanel.ActualWidth >= 500
+                    && fixture.SportSelectionPanel.HistoryPanel.ActualHeight >= 320;
                 checks["history-completed-checkpoint-is-reviewable-and-restartable-but-not-continuable"] =
                     history.ActionButtons.Count == 3 && history.ActionButtons[0].Content?.ToString() == "Review"
                     && !history.ActionButtons[1].IsEnabled && history.ActionButtons[2].IsEnabled;
+                var stateBeforeReview = checkpoint.State.MatchState!.CompletedQuarterCount;
+                history.ActionButtons[0].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+                checks["history-review-is-inline-and-read-only"] = history.IsReviewing
+                    && checkpoint.State.MatchState.CompletedQuarterCount == stateBeforeReview
+                    && ReferenceEquals(Window.GetWindow(history), fixture);
+                history.ActionButtons[2].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+                checks["history-restart-declines-without-closing-or-changing-current-view"] = history.IsReviewing
+                    && fixture.SportSelectionPanel.IsHistoryActive(history);
             }
-            finally { history.Close(); }
-            var emptyHistory = new Views.MatchHistoryWindow(true, []) { Owner = fixture };
-            try { emptyHistory.Show(); emptyHistory.UpdateLayout(); checks["history-empty-state-is-visible"] = emptyHistory.HasEmptyState; }
-            finally { emptyHistory.Close(); }
+            finally { fixture.SportSelectionPanel.CloseHistory(history, restoreFocus: false); }
+            var emptyHistory = new Views.MatchHistoryView(true, []);
+            try
+            {
+                fixture.SportSelectionPanel.ShowHistory(emptyHistory); fixture.UpdateLayout();
+                checks["history-empty-state-is-visible-in-home-sheet"] = emptyHistory.HasEmptyState
+                    && ReferenceEquals(Window.GetWindow(emptyHistory), fixture);
+            }
+            finally { fixture.SportSelectionPanel.CloseHistory(emptyHistory, restoreFocus: false); }
 #endif
             checks["command-bar-opens-once"] = fixture.OpenCommandBar() && !fixture.OpenCommandBar();
             fixture.CommandSearch.Text = "zzzzzz";

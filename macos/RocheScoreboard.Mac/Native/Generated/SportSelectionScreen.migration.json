@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
-  "source_sha256": "801b7d731ffe33dba2b6f9ce8c7c6581413f24abc8ce07b84db63965df327844",
+  "source_sha256": "fee1fa934e53f9a7a61c1e7038c33e7c1aa45a4d655f367a2729b8952c9bcb9d",
   "names": [
     {
       "name": "PART_Surface",
@@ -592,9 +592,34 @@
       "name": "ChangelogEntries",
       "type": "StackPanel",
       "object": false
+    },
+    {
+      "name": "HistoryOverlay",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "HistoryPanel",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
+    {
+      "name": "HistoryPanelScale",
+      "type": "ScaleTransform",
+      "object": true
+    },
+    {
+      "name": "HistoryPanelTranslate",
+      "type": "TranslateTransform",
+      "object": true
+    },
+    {
+      "name": "HistoryViewHost",
+      "type": "ContentControl",
+      "object": false
     }
   ],
-  "code_source_sha256": "f12f535ca9753f066967bd6ef5708f6bd091720bafdfe1531aa8aba4d4c36a68",
+  "code_source_sha256": "3d5bbf96f47c18d5477312bcb3268aafd66cb1c21fc1393424cbc91c6b766c5d",
   "native_events": [
     {
       "name": "ResponsiveScrollHost",
@@ -721,6 +746,18 @@
       "source": "Checked",
       "native": "IsCheckedChanged",
       "handler": "ChangelogFilter_Click"
+    },
+    {
+      "name": "HistoryOverlay",
+      "source": "PreviewKeyDown",
+      "native": "KeyDown",
+      "handler": "HistoryOverlay_PreviewKeyDown"
+    },
+    {
+      "name": null,
+      "source": "MouseLeftButtonUp",
+      "native": "PointerReleased",
+      "handler": "HistoryBackdrop_Click"
     }
   ],
   "platform_translations": [

@@ -75,6 +75,8 @@ public partial class MainWindow
             InvokeCricketQa(home,"ShowChangelog"); await Task.Delay(400); home.UpdateLayout();
             checks["changelog-glass-sheet-opens"] = home.ChangelogOverlay.IsVisible && home.ChangelogPanel.IsVisible && home.ChangelogEntries.Children.Count>0;
             checks["changelog-sheet-fits"] = CricketQaBoundsWithin(home.ChangelogPanel,home);
+            checks["changelog-sheet-size-budget-includes-its-vertical-margins"] =
+                home.ChangelogPanel.MaxHeight + home.ChangelogPanel.Margin.Top + home.ChangelogPanel.Margin.Bottom <= home.SportViewport.ActualHeight + .5;
             CaptureCricketQa(home,Path.Combine(directory,"whats-new-wide.png"));
             InvokeCricketQa(home,"SelectRelease","4.1.2");await Task.Delay(300);
             checks["changelog-selects-one-release-at-a-time"] = QaDescendants(home.ChangelogEntries).OfType<TextBlock>().Any(text=>text.Text=="4.1.2") && !QaDescendants(home.ChangelogEntries).OfType<TextBlock>().Any(text=>text.Text=="4.1.3");
@@ -90,6 +92,8 @@ public partial class MainWindow
             checks["changelog-rapid-reversal-remains-usable"] = home.ChangelogOverlay.IsVisible && home.ChangelogOverlay.IsHitTestVisible && home.ChangelogSearchBox.IsEnabled;
             fixture.Width=420; fixture.Height=420; await Task.Delay(200); home.UpdateLayout();
             checks["changelog-narrow-sheet-fits"] = CricketQaBoundsWithin(home.ChangelogPanel,home) && home.ChangelogSearchBox.ActualWidth>120;
+            checks["changelog-narrow-sheet-size-budget-includes-its-vertical-margins"] =
+                home.ChangelogPanel.MaxHeight + home.ChangelogPanel.Margin.Top + home.ChangelogPanel.Margin.Bottom <= home.SportViewport.ActualHeight + .5;
             CaptureCricketQa(home,Path.Combine(directory,"whats-new-narrow.png"));
             InvokeCricketQa(home,"HideChangelog"); await Task.Delay(350);
             for(int i=0;i<50 && home.ChangelogOverlay.Visibility!=Visibility.Collapsed;i++)await Task.Delay(16);

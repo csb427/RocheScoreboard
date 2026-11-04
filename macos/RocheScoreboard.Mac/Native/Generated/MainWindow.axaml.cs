@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from MainWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 778ade991c6d872b95aefc60b1a2e40428862ed7161cb16be0eea59d6100aa2e
+// Source SHA-256: cf1fe5dec10f18b22793d70e573a9f41c06ffd78dc1b9b0a2a48c5565f4a6bdf
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -2922,32 +2922,37 @@ namespace Roche_Scoreboard
 #if WINDOWS
         private void OpenMatchHistory()
         {
-            var history = new Views.MatchHistoryWindow(!HasCurrentSession) { Owner = this };
-            foreach (ResourceDictionary dictionary in Resources.MergedDictionaries)
-                history.Resources.MergedDictionaries.Add(dictionary);
+            var history = new Views.MatchHistoryView(!HasCurrentSession);
+            history.CloseRequested += () => SportSelectionPanel.CloseHistory(history);
             history.ActionChosen += (checkpoint, action) =>
             {
-                if (action == Views.MatchHistoryWindow.ActionKind.Review) return;
+                if (action == Views.MatchHistoryView.ActionKind.Review) return false;
+                if (RecoverySession.Describe(checkpoint.State) is null)
+                {
+                    MessageBox.Show(this, "This checkpoint cannot be restored. Your current session was kept.",
+                        "Checkpoint unavailable", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
+                    return false;
+                }
                 if (HasCurrentSession && _sportMode == SportMode.Training)
                 {
                     MessageBox.Show(this, "Return to the current training session before continuing or restarting a match.",
                         "Training session kept", NativeMessageBoxButton.OK, NativeMessageBoxImage.Information);
-                    return;
+                    return false;
                 }
                 if (HasCurrentSession)
                 {
                     var choice = MessageBox.Show(this,
                         "Your open session will be saved as another local checkpoint before this action. Continue?",
-                        action == Views.MatchHistoryWindow.ActionKind.Restart ? "Restart from checkpoint" : "Continue from checkpoint",
+                        action == Views.MatchHistoryView.ActionKind.Restart ? "Restart from checkpoint" : "Continue from checkpoint",
                         NativeMessageBoxButton.YesNo, NativeMessageBoxImage.Question, NativeMessageBoxResult.No);
-                    if (choice != NativeMessageBoxResult.Yes) return;
+                    if (choice != NativeMessageBoxResult.Yes) return false;
                     SaveGameState();
                     if (_sportMode == SportMode.Cricket && _cricketRecoveryWriter is not null
                         && !_cricketRecoveryWriter.Flush(TimeSpan.FromSeconds(5)))
                     {
                         MessageBox.Show(this, "The current cricket session could not be checkpointed. It remains open.",
                             "Checkpoint not saved", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
-                        return;
+                        return false;
                     }
                 }
 
@@ -2958,17 +2963,17 @@ namespace Roche_Scoreboard
                 {
                     MessageBox.Show(this, "The current recovery could not be archived and cleared. The open match was kept.",
                         "Match kept", NativeMessageBoxButton.OK, NativeMessageBoxImage.Warning);
-                    return;
+                    return false;
                 }
 
-                bool cricketRestart = action == Views.MatchHistoryWindow.ActionKind.Restart
+                bool cricketRestart = action == Views.MatchHistoryView.ActionKind.Restart
                     && checkpoint.State.CricketMatchState is not null;
                 _restoringLocalCheckpoint = true;
                 _suppressCricketRecoverySave = cricketRestart;
                 try
                 {
                     RestoreFromSavedState(checkpoint.State);
-                    if (action == Views.MatchHistoryWindow.ActionKind.Restart)
+                    if (action == Views.MatchHistoryView.ActionKind.Restart)
                     {
                         if (checkpoint.State.CricketMatchState is not null && _cricketMatch is not null)
                             _cricketMatch.ResetForNewGame();
@@ -2978,8 +2983,15 @@ namespace Roche_Scoreboard
                     if (!cricketRestart) SaveGameState();
                 }
                 finally { _suppressCricketRecoverySave = false; _restoringLocalCheckpoint = false; }
+                return true;
             };
-            history.ShowDialog();
+            history.Loaded += async (_, _) =>
+            {
+                IReadOnlyList<MatchCheckpointStore.Checkpoint> checkpoints = await Task.Run(() => MatchCheckpointStore.Load());
+                if (!SportSelectionPanel.IsHistoryActive(history)) return;
+                history.SetCheckpoints(checkpoints);
+            };
+            SportSelectionPanel.ShowHistory(history);
         }
 #endif
 

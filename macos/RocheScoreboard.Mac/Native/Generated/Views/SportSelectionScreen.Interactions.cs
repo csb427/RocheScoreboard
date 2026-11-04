@@ -1,5 +1,5 @@
 // Generated from Views/SportSelectionScreen.Interactions.cs; edit translator/adapters.
-// Source SHA-256: 27e09bc17754bf05949018a23d1f5f31951d698895963b24be3c6edf1d47b8c1
+// Source SHA-256: 37d826368b6f53648ace0583cf39da752321891e7b241104ab028d0cb2149d85
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -113,7 +113,7 @@ public partial class SportSelectionScreen
 
     private void SuspendLandingInteractions()
     {
-        ++_selectionGeneration;++_landingMotionGeneration;++_changelogMotionGeneration;
+        ++_selectionGeneration;++_landingMotionGeneration;++_changelogMotionGeneration;++_historyMotionGeneration;
         _selectionTimer?.Stop();_selectionTimer=null;_selectionPending=false;IsHitTestVisible=true;
         foreach (var tile in _homeTiles.Values) tile.Reset();
         _homeLens?.Reset();
@@ -122,6 +122,11 @@ public partial class SportSelectionScreen
         ChangelogOverlay.BeginAnimation(OpacityProperty,null);ChangelogOverlay.Opacity=0;ChangelogOverlay.IsVisible=false;
         _changelogOpen=false;
         _changelogPreviousFocus=null;
+        HistoryOverlay.BeginAnimation(OpacityProperty,null);HistoryOverlay.Opacity=0;HistoryOverlay.IsVisible=false;
+        HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty,null);HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty,null);
+        HistoryPanelTranslate.BeginAnimation(TranslateTransform.YProperty,null);HistoryPanelScale.ScaleX=HistoryPanelScale.ScaleY=.985;HistoryPanelTranslate.Y=10;
+        HistoryPanel.IsEnabled=false;HistoryOverlay.IsHitTestVisible=false;HistoryViewHost.Content=null;
+        _activeHistoryView=null;_historyPreviousFocus=null;
     }
 
     private void RestoreLandingVisuals()

@@ -172,5 +172,12 @@
     </Grid>
 </local:OperatorGlassSurface>
   </Grid>
+<Grid x:Name="HistoryOverlay" Panel.ZIndex="110" Visibility="Collapsed" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.ControlTabNavigation="Cycle" FocusManager.IsFocusScope="True" PreviewKeyDown="HistoryOverlay_PreviewKeyDown">
+   <Border Background="#A5020509" MouseLeftButtonUp="HistoryBackdrop_Click"/>
+   <local:OperatorGlassSurface x:Name="HistoryPanel" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin=".5,.5">
+    <Border.RenderTransform><TransformGroup><ScaleTransform x:Name="HistoryPanelScale" ScaleX=".985" ScaleY=".985"/><TranslateTransform x:Name="HistoryPanelTranslate" Y="10"/></TransformGroup></Border.RenderTransform>
+    <ContentControl x:Name="HistoryViewHost" Margin="20"/>
+   </local:OperatorGlassSurface>
+  </Grid>
  </Grid>
 </UserControl>

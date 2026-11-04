@@ -1,5 +1,5 @@
 // Generated from Views/SetupWizard.ClockChoiceDesign.cs; edit translator/adapters.
-// Source SHA-256: a9bb8b3d84156b841cea456baaf519809ddd52c853b276090733256f4d4638d8
+// Source SHA-256: 59bfe763da0b119042647a6863e4d8e69e6087bce291ff8d0f8d5a1c0d5a4433
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
+using Roche_Scoreboard.Services;
 using Panel=Avalonia.Controls.Panel;
 using RadioButton=Avalonia.Controls.RadioButton;
 using Brushes=Avalonia.Media.Brushes;
@@ -33,6 +34,7 @@ public partial class SetupWizard
             choice.Background=Brushes.Transparent;
             choice.Content=content;card.Padding=new Thickness(0);card.Child=choice;
             Avalonia.Automation.AutomationProperties.SetName(choice,name);
+            OperatorChoiceMotion.SetEnabled(choice,true);
         }
     }
 }

@@ -430,6 +430,13 @@ internal static class AflReliabilityStressSuite
             compactLogHeight == 180 && standardLogHeight == 740,
             $"compact={compactLogHeight:0.##}; standard={standardLogHeight:0.##}");
 
+        double shortMatchPage = MainWindow.CalculateContentCappedPageHeight(510, 850, false, 24);
+        double longMatchPage = MainWindow.CalculateContentCappedPageHeight(1200, 850, false, 24);
+        double stackedMatchPage = MainWindow.CalculateContentCappedPageHeight(510, 850, true, 24);
+        verify("afl-empty-scoring-page-grows-to-content-and-long-page-caps-to-viewport",
+            shortMatchPage == 510 && longMatchPage == 826 && double.IsNaN(stackedMatchPage),
+            $"short={shortMatchPage:0.##}; long={longMatchPage:0.##}; stacked={stackedMatchPage:0.##}");
+
         int[] fivePanelDelays = Enumerable.Range(0, 5).Select(i => MainWindow.GetFoldDelay(i, 5)).ToArray();
         int[] threePanelDelays = Enumerable.Range(0, 3).Select(i => MainWindow.GetFoldDelay(i, 3)).ToArray();
         verify("quarter-fold-cadence-is-monotonic",

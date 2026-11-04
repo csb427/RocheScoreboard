@@ -74,7 +74,9 @@ public sealed class SettingsWorkspace : UserControl
     {
         Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("/Roche Scoreboard;component/Resources/OperatorControls.xaml", UriKind.Relative) });
         OperatorDesign.SetIsEnabled(this, true);
-        SetResourceReference(BackgroundProperty, "ControlCentre.CanvasBrush");
+        // Keep the workspace itself clear so the owning settings screen's
+        // shared illustrated scene reaches the gaps around the cards.
+        Background = System.Windows.Media.Brushes.Transparent;
         foreach (var text in new[] { _heading, _contextHeading, _compactLabel }) text.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.TextBrush");
         foreach (var text in new[] { _subtitle, _empty }) text.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
         _search.SetResourceReference(StyleProperty, typeof(OperatorSearchBox));

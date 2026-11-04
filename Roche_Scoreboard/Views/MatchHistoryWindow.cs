@@ -1,4 +1,3 @@
-#if WINDOWS
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -7,43 +6,42 @@ using System.Windows.Media;
 using Roche_Scoreboard.Services;
 using Button = System.Windows.Controls.Button;
 using Control = System.Windows.Controls.Control;
+using UserControl = System.Windows.Controls.UserControl;
 using FontFamily = System.Windows.Media.FontFamily;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace Roche_Scoreboard.Views;
 
-/// <summary>Local checkpoint browser. Review never restores or mutates match state.</summary>
-internal sealed class MatchHistoryWindow : Window
+/// <summary>In-app local checkpoint browser. Review is read-only and never restores state.</summary>
+internal sealed class MatchHistoryView : UserControl
 {
     internal enum ActionKind { Review, Continue, Restart }
-    internal event Action<MatchCheckpointStore.Checkpoint, ActionKind>? ActionChosen;
+    internal event Func<MatchCheckpointStore.Checkpoint, ActionKind, bool>? ActionChosen;
+    internal event Action? CloseRequested;
     private readonly List<Button> _actionButtons = [];
     internal IReadOnlyList<Button> ActionButtons => _actionButtons;
-    internal bool HasEmptyState => _emptyState is { Visibility: Visibility.Visible };
+    internal bool HasEmptyState => _emptyState?.IsVisible == true;
     internal bool IsLoading { get; private set; }
+    internal bool IsReviewing => _reviewHost.Visibility == Visibility.Visible;
     private readonly StackPanel _list = new();
+    private readonly Grid _body = new();
+    private readonly Grid _reviewHost = new();
     private TextBlock? _emptyState;
     private readonly bool _canReplaceSession;
+    private readonly Button _closeButton;
 
-    internal MatchHistoryWindow(bool canReplaceSession, IReadOnlyList<MatchCheckpointStore.Checkpoint>? checkpoints = null)
+    internal MatchHistoryView(bool canReplaceSession, IReadOnlyList<MatchCheckpointStore.Checkpoint>? checkpoints = null)
     {
         _canReplaceSession = canReplaceSession;
-        Title = "Match history";
-        Width = 760; Height = 640; MinWidth = 360; MinHeight = 320;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        SetResourceReference(BackgroundProperty, "ControlCentre.GlassBrush");
-        SetResourceReference(ForegroundProperty, "ControlCentre.TextBrush");
+        Focusable = true;
         FontFamily = new FontFamily("Segoe UI Variable, Segoe UI");
-        PreviewKeyDown += (_, args) =>
-        {
-            if (args.Key != System.Windows.Input.Key.Escape) return;
-            args.Handled = true;
-            Close();
-        };
-        var root = new Grid { Margin = new Thickness(24) };
+        Background = Brushes.Transparent;
+        SetResourceReference(ForegroundProperty, "ControlCentre.TextBrush");
+        var root = new Grid();
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 16) };
+        var heading = new StackPanel { Margin = new Thickness(4, 0, 4, 16) };
         heading.Children.Add(new TextBlock { Text = "Match history", FontSize = 26, FontWeight = FontWeights.SemiBold });
         var subtitle = new TextBlock
         {
@@ -54,33 +52,37 @@ internal sealed class MatchHistoryWindow : Window
         heading.Children.Add(subtitle);
         root.Children.Add(heading);
 
-        var list = _list;
-        if (checkpoints is null) SetLoading(list);
-        else SetCheckpoints(checkpoints, list);
-        var scroller = new ScrollViewer { Content = list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
-        Grid.SetRow(scroller, 1); root.Children.Add(scroller);
-        var close = MakeButton("Close", Close);
-        close.HorizontalAlignment = System.Windows.HorizontalAlignment.Right; close.Margin = new Thickness(0, 14, 0, 0);
-        close.IsDefault = true;
-        Grid.SetRow(close, 2); root.Children.Add(close);
+        _body.Children.Add(new ScrollViewer
+        {
+            Content = _list,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        });
+        _reviewHost.Visibility = Visibility.Collapsed;
+        Grid.SetRow(_body, 1); Grid.SetRow(_reviewHost, 1);
+        root.Children.Add(_body); root.Children.Add(_reviewHost);
+        _closeButton = MakeButton("Close", () => CloseRequested?.Invoke());
+        _closeButton.HorizontalAlignment = System.Windows.HorizontalAlignment.Right; _closeButton.Margin = new Thickness(0, 14, 0, 0);
+        _closeButton.IsDefault = true;
+        Grid.SetRow(_closeButton, 2); root.Children.Add(_closeButton);
         Content = root;
+        if (checkpoints is null) SetLoading(); else SetCheckpoints(checkpoints);
     }
 
-    private void SetLoading(StackPanel list)
+    private void SetLoading()
     {
         IsLoading = true;
-        list.Children.Clear();
+        _list.Children.Clear();
         var loading = new TextBlock { Text = "Loading saved matches…", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 8, 2, 8) };
         loading.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
-        list.Children.Add(loading);
+        _list.Children.Add(loading);
     }
 
-    internal void SetCheckpoints(IReadOnlyList<MatchCheckpointStore.Checkpoint> checkpoints, StackPanel? list = null)
+    internal void SetCheckpoints(IReadOnlyList<MatchCheckpointStore.Checkpoint> checkpoints)
     {
-        list ??= _list;
         IsLoading = false;
         _actionButtons.Clear();
-        list.Children.Clear();
+        _list.Children.Clear();
         _emptyState = null;
         foreach (var item in checkpoints)
         {
@@ -93,46 +95,55 @@ internal sealed class MatchHistoryWindow : Window
             var body = new Grid();
             body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             body.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            body.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            body.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             info.Children.Add(new TextBlock { Text = item.Title, FontSize = 17, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
             var detail = new TextBlock { Text = item.Detail, FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 8, 0) };
             detail.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
-            info.Children.Add(detail);
-            body.Children.Add(info);
+            info.Children.Add(detail); body.Children.Add(info);
             var actions = new WrapPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = System.Windows.HorizontalAlignment.Right };
-            actions.Children.Add(MakeButton("Review", () => Choose(item, ActionKind.Review)));
-            _actionButtons.Add((Button)actions.Children[^1]);
-            var continueButton = MakeButton("Continue", () => Choose(item, ActionKind.Continue));
+            actions.Children.Add(MakeActionButton("Review", item, ActionKind.Review)); _actionButtons.Add((Button)actions.Children[^1]);
             bool completed = item.State.CricketMatchState?.IsMatchFinalized == true
                 || item.State.MatchState is { CompletedQuarterCount: >= 4, QuarterSnapshots: { Length: >= 4 } snapshots } && snapshots[3] is not null;
+            var continueButton = MakeActionButton("Continue", item, ActionKind.Continue);
             continueButton.IsEnabled = !completed;
             continueButton.ToolTip = completed ? "Completed matches can be reviewed or restarted with a fresh score"
                 : _canReplaceSession ? "Continue from this saved checkpoint" : "Save the current session before continuing from this checkpoint";
-            actions.Children.Add(continueButton);
-            _actionButtons.Add(continueButton);
-            var restartButton = MakeButton("Restart", () => Choose(item, ActionKind.Restart));
-            restartButton.IsEnabled = true;
+            actions.Children.Add(continueButton); _actionButtons.Add(continueButton);
+            var restartButton = MakeActionButton("Restart", item, ActionKind.Restart);
             restartButton.ToolTip = _canReplaceSession ? "Start a fresh score with these teams" : "Save the current session before starting with these teams";
-            actions.Children.Add(restartButton);
-            _actionButtons.Add(restartButton);
-            Grid.SetColumn(actions, 1); body.Children.Add(actions); card.Child = body; list.Children.Add(card);
+            actions.Children.Add(restartButton); _actionButtons.Add(restartButton);
+            Grid.SetColumn(actions, 1); body.Children.Add(actions);
+            body.SizeChanged += (_, args) =>
+            {
+                bool narrow = args.NewSize.Width < 680;
+                Grid.SetRow(actions, narrow ? 1 : 0);
+                Grid.SetColumn(actions, narrow ? 0 : 1);
+                Grid.SetColumnSpan(info, narrow ? 2 : 1);
+                actions.HorizontalAlignment = narrow ? System.Windows.HorizontalAlignment.Left : System.Windows.HorizontalAlignment.Right;
+                actions.Margin = narrow ? new Thickness(-4, 10, 0, 0) : new Thickness(0);
+            };
+            card.Child = body; _list.Children.Add(card);
         }
 
-        if (list.Children.Count == 0)
+        if (_list.Children.Count == 0)
         {
             _emptyState = new TextBlock { Text = "Saved matches will appear here after a match has been recorded.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 8, 2, 8) };
             _emptyState.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
-            list.Children.Add(_emptyState);
+            _list.Children.Add(_emptyState);
         }
     }
+
+    private Button MakeActionButton(string label, MatchCheckpointStore.Checkpoint item, ActionKind action)
+        => MakeButton(label, () => Choose(item, action));
 
     private static Button MakeButton(string label, Action action)
     {
         var button = new Button
         {
             Content = label, MinHeight = 36, MinWidth = 68, Margin = new Thickness(4), Padding = new Thickness(10, 5, 10, 5),
-            BorderThickness = new Thickness(1),
-            Cursor = System.Windows.Input.Cursors.Hand
+            BorderThickness = new Thickness(1), Cursor = System.Windows.Input.Cursors.Hand
         };
         button.SetResourceReference(FrameworkElement.StyleProperty, "ControlCentre.Button");
         button.SetResourceReference(Control.ForegroundProperty, "ControlCentre.TextBrush");
@@ -144,38 +155,29 @@ internal sealed class MatchHistoryWindow : Window
 
     private void Choose(MatchCheckpointStore.Checkpoint item, ActionKind action)
     {
-        if (action != ActionKind.Review)
-        {
-            ActionChosen?.Invoke(item, action);
-            Close();
-            return;
-        }
-        var dialog = new Window
-        {
-            Owner = this, Title = "Checkpoint review", Width = 460, SizeToContent = SizeToContent.Height,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner, ResizeMode = ResizeMode.NoResize,
-            FontFamily = FontFamily
-        };
-        foreach (ResourceDictionary dictionary in Resources.MergedDictionaries)
-            dialog.Resources.MergedDictionaries.Add(dictionary);
-        dialog.SetResourceReference(BackgroundProperty, "ControlCentre.GlassBrush");
-        dialog.SetResourceReference(ForegroundProperty, "ControlCentre.TextBrush");
-        dialog.PreviewKeyDown += (_, args) =>
-        {
-            if (args.Key != System.Windows.Input.Key.Escape) return;
-            args.Handled = true;
-            dialog.Close();
-        };
-        var content = new StackPanel { Margin = new Thickness(24) };
+        if (action == ActionKind.Review) { ShowReview(item); return; }
+        if (ActionChosen?.Invoke(item, action) == true) CloseRequested?.Invoke();
+    }
+
+    private void ShowReview(MatchCheckpointStore.Checkpoint item)
+    {
+        _body.Visibility = Visibility.Collapsed;
+        _reviewHost.Visibility = Visibility.Visible;
+        _reviewHost.Children.Clear();
+        var content = new StackPanel { Margin = new Thickness(4, 0, 4, 4) };
         content.Children.Add(new TextBlock { Text = item.Title, FontSize = 22, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
         var details = new TextBlock { Text = item.Detail, Margin = new Thickness(0, 8, 0, 12), TextWrapping = TextWrapping.Wrap };
-        details.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
-        content.Children.Add(details);
+        details.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush"); content.Children.Add(details);
         var timestamp = new TextBlock { Text = "Read-only checkpoint · saved " + item.SavedAtUtc.ToLocalTime().ToString("g"), TextWrapping = TextWrapping.Wrap };
-        timestamp.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
-        content.Children.Add(timestamp);
-        var done = MakeButton("Done", dialog.Close); done.HorizontalAlignment = System.Windows.HorizontalAlignment.Right; done.Margin = new Thickness(0, 18, 0, 0);
-        content.Children.Add(done); dialog.Content = content; dialog.ShowDialog();
+        timestamp.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush"); content.Children.Add(timestamp);
+        var back = MakeButton("Back to history", () => { _reviewHost.Visibility = Visibility.Collapsed; _body.Visibility = Visibility.Visible; _closeButton.Focus(); });
+        back.HorizontalAlignment = System.Windows.HorizontalAlignment.Left; back.Margin = new Thickness(0, 18, 0, 0); content.Children.Add(back);
+        _reviewHost.Children.Add(new ScrollViewer
+        {
+            Content = content,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        });
+        back.Focus();
     }
 }
-#endif

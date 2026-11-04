@@ -245,8 +245,11 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style Selector="^:focus /template/ Border#ClockFocus">
+        <Style Selector="^:focus:focus-visible /template/ Border#ClockFocus">
             <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+        </Style>
+        <Style Selector="^:focus:focus-visible /template/ Border#ClockFocus">
+            <Setter Property="BorderThickness" Value="2" />
         </Style>
     </ControlTheme>
 </ResourceDictionary>

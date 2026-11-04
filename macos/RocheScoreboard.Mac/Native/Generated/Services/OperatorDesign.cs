@@ -1,5 +1,5 @@
 // Generated from Services/OperatorDesign.cs; edit translator/adapters.
-// Source SHA-256: 4929c360d2620b118e278c181ce89f7ef81ed8c3e0e7c953f5e0cad56fcf934e
+// Source SHA-256: 89d7c27c60396ce5f0e09970e0bb228410c4af6a7ba0854015582b7117459f4f
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -63,7 +63,7 @@ public static class OperatorDesign
         SetTheme(root, _theme);
         // XAML can assign Resources after attached root attributes. Reapply against
         // the final dictionary, including when a view is unloaded and reopened.
-        root.Loaded += (_, _) => { SetDensity(root, _density); SetTheme(root, _theme); if(root is Window window)OperatorWindowChrome.Enable(window); InstallBackdrop(root); };
+        root.Loaded += (_, _) => { SetDensity(root, _density); SetTheme(root, _theme); OperatorAccentPreferences.ApplyAccentResources(); if(root is Window window)OperatorWindowChrome.Enable(window); InstallBackdrop(root); };
         if(root.IsLoaded)InstallBackdrop(root);
     }
     private static void InstallBackdrop(Control root)

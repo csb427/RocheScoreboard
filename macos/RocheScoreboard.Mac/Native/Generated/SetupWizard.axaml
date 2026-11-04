@@ -57,8 +57,16 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="CheckBox">
                             <Grid Background="Transparent">
+                                <ns2:OperatorChoiceSurface CornerRadius="24" OriginX="1" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ns2:OperatorChoiceSurface.FillBrush>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Color="#8A76551A" Offset="0" />
+                                            <GradientStop Color="#B09B7528" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </ns2:OperatorChoiceSurface.FillBrush>
+                                </ns2:OperatorChoiceSurface>
                                 <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                                <Border x:Name="FinalsFocusFrame" Margin="4" CornerRadius="18" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
+                                <Border x:Name="FinalsFocusFrame" Margin="2" CornerRadius="24" BorderBrush="{DynamicResource ControlCentre.TextBrush}" BorderThickness="2" IsHitTestVisible="False" IsVisible="False" />
                             </Grid>
                         </ControlTemplate>
                     </Setter.Value>
@@ -448,7 +456,7 @@
                                         <ColumnDefinition Width="16" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <ns4:OperatorGlassSurface x:Name="CountUpCard" Grid.Row="0" Cursor="Hand" Margin="0" MinHeight="132" Background="Transparent" BorderBrush="#58A6FF" BorderThickness="2" CornerRadius="24" Material="Regular" Padding="20" ClipToBounds="False" Grid.Column="0" native:NativeActivation.Enabled="True" PointerReleased="Native_CountUpCard_Click">
+                                    <ns4:OperatorGlassSurface x:Name="CountUpCard" Grid.Row="0" Cursor="Hand" Margin="0" MinHeight="132" Background="Transparent" BorderBrush="{DynamicResource ControlCentre.AccentBrush}" BorderThickness="2" CornerRadius="24" Material="Regular" Padding="20" ClipToBounds="False" Grid.Column="0" native:NativeActivation.Enabled="True" PointerReleased="Native_CountUpCard_Click">
                                         <Grid>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -461,7 +469,7 @@
                                                     <TextBlock Text="Count up" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
                                                     <TextBlock Text="Start at zero and show elapsed playing time." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
                                                 </StackPanel>
-                                                <Border x:Name="CountUpSelected" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#58A6FF" Padding="6" Margin="0,0,0,0" Grid.Column="2" CornerRadius="10">
+                                                <Border x:Name="CountUpSelected" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{DynamicResource ControlCentre.AccentBrush}" Padding="6" Margin="0,0,0,0" Grid.Column="2" CornerRadius="10">
                                                     <TextBlock Text="✓" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" />
                                                 </Border>
                                             </Grid>
@@ -501,8 +509,8 @@
                                                     <TextBlock Text="Count down" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
                                                     <TextBlock Text="Start at the quarter limit and count back to zero." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
                                                 </StackPanel>
-                                                <Border x:Name="CountdownSelected" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D29922" Padding="6" Grid.Column="2" CornerRadius="10" IsVisible="False">
-                                                    <TextBlock Text="✓" FontSize="12" FontWeight="SemiBold" Foreground="#1A1400" />
+                                                <Border x:Name="CountdownSelected" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{DynamicResource ControlCentre.AccentBrush}" Padding="6" Grid.Column="2" CornerRadius="10" IsVisible="False">
+                                                    <TextBlock Text="✓" FontSize="12" FontWeight="SemiBold" Foreground="White" />
                                                 </Border>
                                             </Grid>
                                             <Grid IsHitTestVisible="False" IsVisible="False">
@@ -525,12 +533,9 @@
                                         </Grid>
                                     </ns4:OperatorGlassSurface>
                                 </Grid>
-                                <ns4:OperatorGlassSurface x:Name="ControlPanelCountdownOptionCard" Grid.Row="1" Margin="0,16,0,16" Padding="16,12" Background="#0E1B2B" BorderBrush="#58A6FF" BorderThickness="2" CornerRadius="22" Cursor="Hand" Opacity="0" MinHeight="90" RenderTransformOrigin="50%,50%" Material="Regular" IsVisible="False" native:NativeActivation.Enabled="True" PointerReleased="Native_ControlPanelCountdownOptionCard_Click">
+                                <ns4:OperatorGlassSurface x:Name="ControlPanelCountdownOptionCard" Grid.Row="1" Margin="0,16,0,16" Padding="16,12" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="{DynamicResource ControlCentre.AccentBrush}" BorderThickness="1" CornerRadius="22" Cursor="Hand" Opacity="0" MinHeight="90" RenderTransformOrigin="50%,50%" Material="Regular" IsVisible="False" native:NativeActivation.Enabled="True" PointerReleased="Native_ControlPanelCountdownOptionCard_Click">
                                     <Border.RenderTransform>
-                                        <TransformGroup>
-                                            <TranslateTransform Y="24" port:ProductionNames.Id="ControlPanelCountdownCardTranslate" />
-                                            <ScaleTransform ScaleX="0.96" ScaleY="0.96" port:ProductionNames.Id="ControlPanelCountdownCardScale" />
-                                        </TransformGroup>
+                                        <TranslateTransform Y="0" port:ProductionNames.Id="ControlPanelCountdownCardTranslate" />
                                     </Border.RenderTransform>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -548,7 +553,7 @@
                                             <CheckBox Content="" Width="56" IsChecked="{Binding IsChecked, ElementName=SetupControlPanelCountdown, Mode=TwoWay}" AutomationProperties.Name="Enable timing stoppages" Theme="{StaticResource SettingsToggle}" />
                                             <Grid IsHitTestVisible="False" IsVisible="False">
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,0,0" HorizontalAlignment="Center">
-                                                    <Border x:Name="ControlPanelCountdownToggleTrack" Width="54" Height="28" CornerRadius="14" Background="#1F6FEB">
+                                                    <Border x:Name="ControlPanelCountdownToggleTrack" Width="54" Height="28" CornerRadius="14" Background="{DynamicResource ControlCentre.AccentBrush}">
                                                         <Border.Effect>
                                                             <DropShadowEffect BlurRadius="0" Color="#58A6FF" Opacity="0" OffsetX="0" OffsetY="0" />
                                                         </Border.Effect>
@@ -698,7 +703,7 @@
                                                 <TextBlock x:Name="SetupFinalsTitle" Text="Finals mode" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.TextBrush}" TextWrapping="Wrap" />
                                                 <TextBlock x:Name="SetupFinalsDescription" Text="Use the gold match presentation accents." FontSize="14" FontWeight="Normal" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" />
                                             </StackPanel>
-                                            <Border x:Name="FinalsSelectedBadge" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D4A017" Padding="8,4" Opacity="0" Grid.Column="2" CornerRadius="10">
+                                            <Border x:Name="FinalsSelectedBadge" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{DynamicResource ControlCentre.FinalsInkBrush}" Padding="8,4" Opacity="0" Grid.Column="2" CornerRadius="10">
                                                 <TextBlock Text="✓" FontSize="12" FontWeight="SemiBold" Foreground="#1A1400" />
                                             </Border>
                                             <TextBlock x:Name="FinalsIcon" Text="★" FontSize="48" FontFamily="{DynamicResource ControlCentre.Font}" FontWeight="SemiBold" Foreground="#D8B84F" HorizontalAlignment="Center" Margin="0,0,0,8" IsVisible="False" />
@@ -1001,7 +1006,7 @@
                         <StackPanel VerticalAlignment="Center">
                             <ns2:OperatorSymbol Kind="team" Width="23" Height="23" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" x:Name="Step1Symbol" Margin="0,0,0,3" />
                             <TextBlock x:Name="Step1Label" Text="Teams" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                            <Border x:Name="Step1Dot" Width="36" Height="36" CornerRadius="18" Background="#58A6FF" BorderBrush="#58A6FF" BorderThickness="2" IsVisible="False">
+                            <Border x:Name="Step1Dot" Width="36" Height="36" CornerRadius="18" Background="{DynamicResource ControlCentre.AccentBrush}" BorderBrush="{DynamicResource ControlCentre.AccentBrush}" BorderThickness="2" IsVisible="False">
                                 <Border.Effect>
                                     <DropShadowEffect Color="#58A6FF" BlurRadius="0" Opacity="0" port:ProductionNames.Id="Step1Glow" OffsetX="0" OffsetY="0" />
                                 </Border.Effect>

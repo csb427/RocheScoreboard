@@ -1,5 +1,5 @@
 // Generated from Views/SettingsWorkspace.cs; edit translator/adapters.
-// Source SHA-256: 1de2af24c0267e6bc158ca2e6a372a0ddd6558f148847d514454e37629bbc944
+// Source SHA-256: 5897a741b9586d4164e0d32bad4b75176428c55d9d122b71bfa3fbec204e7ccc
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -77,7 +77,9 @@ public sealed class SettingsWorkspace : UserControl
     {
         Resources.MergedDictionaries.Add(NativeAssets.Dictionary("OperatorControls"));
         OperatorDesign.SetIsEnabled(this, true);
-        this.SetResourceReference(BackgroundProperty, "ControlCentre.CanvasBrush");
+        // Keep the workspace itself clear so the owning settings screen's
+        // shared illustrated scene reaches the gaps around the cards.
+        Background = Avalonia.Media.Brushes.Transparent;
         foreach (var text in new[] { _heading, _contextHeading, _compactLabel }) text.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.TextBrush");
         foreach (var text in new[] { _subtitle, _empty }) text.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
         _search.SetResourceReference(ThemeProperty, typeof(OperatorSearchBox));

@@ -63,7 +63,10 @@ public partial class SportSelectionScreen : UserControl
         foreach(var description in new[]{AflDescription,CricketDescription,TrainingDescription})description.Visibility=height>=520?Visibility.Visible:Visibility.Collapsed;
         TrainingDescription.Visibility=Visibility.Collapsed;
         foreach(var cta in _landingCtas)if(cta.Parent is Border pill)pill.Visibility=height>=650?Visibility.Visible:Visibility.Collapsed;
-        ChangelogPanel.Width=double.NaN;ChangelogPanel.Height=double.NaN;ChangelogPanel.MaxWidth=1120;ChangelogPanel.MaxHeight=Math.Max(180,height-24);ChangelogPanel.Margin=new Thickness(compact?10:22);
+        double sheetInset=compact?10:22;
+        ChangelogPanel.Width=double.NaN;ChangelogPanel.Height=double.NaN;ChangelogPanel.MaxWidth=1120;
+        ChangelogPanel.Margin=new Thickness(sheetInset);
+        ChangelogPanel.MaxHeight=Math.Max(0,height-(2*sheetInset));
         ReleaseSheetSubtitle.Visibility=height<380?Visibility.Collapsed:Visibility.Visible;ReleaseResultCount.Visibility=width<520?Visibility.Collapsed:Visibility.Visible;
         ReflowReleaseBrowser(width,height);_homeLens?.Reflow();
     }
@@ -96,7 +99,89 @@ public partial class SportSelectionScreen : UserControl
     private void ResponsiveScrollHost_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         => NestedScrollRouting.RoutePreviewMouseWheel(ResponsiveScrollHost, e);
 
-    internal bool HasOpenSheet => ChangelogOverlay.IsVisible;
+    internal bool HasOpenSheet => ChangelogOverlay.IsVisible || HistoryOverlay.IsVisible;
+    private IInputElement? _historyPreviousFocus;
+    private int _historyMotionGeneration;
+    private MatchHistoryView? _activeHistoryView;
+
+    internal bool IsHistoryActive(MatchHistoryView view)
+        => ReferenceEquals(_activeHistoryView, view) && HistoryOverlay.Visibility == Visibility.Visible;
+
+    internal void ShowHistory(MatchHistoryView view)
+    {
+        if (_changelogOpen) HideChangelog();
+        if (HistoryOverlay.Visibility != Visibility.Visible) _historyPreviousFocus = Keyboard.FocusedElement;
+        ++_historyMotionGeneration;
+        _activeHistoryView = view;
+        HistoryViewHost.Content = view;
+        HistoryOverlay.Visibility = Visibility.Visible;
+        HistoryOverlay.IsHitTestVisible = true;
+        HistoryPanel.IsEnabled = true;
+        HistoryOverlay.BeginAnimation(OpacityProperty, null);
+        HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        HistoryPanelTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        if (OperatorMotion.Enabled)
+        {
+            HistoryOverlay.Opacity = 0;
+            HistoryPanelScale.ScaleX = HistoryPanelScale.ScaleY = .985;
+            HistoryPanelTranslate.Y = 10;
+            HistoryOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(220)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            HistoryPanelTranslate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+        }
+        else { HistoryOverlay.Opacity = 1; HistoryPanelScale.ScaleX = HistoryPanelScale.ScaleY = 1; HistoryPanelTranslate.Y = 0; }
+        HistoryOverlay.Focus();
+        Dispatcher.BeginInvoke(new Action(() => { if (IsHistoryActive(view)) view.Focus(); }), DispatcherPriority.Loaded);
+    }
+
+    internal void CloseHistory(MatchHistoryView? expected = null, bool restoreFocus = true)
+    {
+        if (expected is not null && !ReferenceEquals(_activeHistoryView, expected)) return;
+        if (_activeHistoryView is null && HistoryOverlay.Visibility != Visibility.Visible) return;
+        ++_historyMotionGeneration;
+        int generation = _historyMotionGeneration;
+        var priorFocus = _historyPreviousFocus;
+        _activeHistoryView = null;
+        HistoryPanel.IsEnabled = false;
+        void Finish()
+        {
+            if (generation != _historyMotionGeneration) return;
+            HistoryOverlay.BeginAnimation(OpacityProperty, null);
+            HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            HistoryPanelTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            HistoryOverlay.Opacity = 0; HistoryPanelScale.ScaleX = HistoryPanelScale.ScaleY = .985; HistoryPanelTranslate.Y = 10;
+            HistoryViewHost.Content = null;
+            HistoryOverlay.IsHitTestVisible = false;
+            FocusManager.SetFocusedElement(HistoryOverlay, null);
+            HistoryOverlay.Visibility = Visibility.Collapsed;
+            if (!restoreFocus) { _historyPreviousFocus = null; return; }
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() =>
+            {
+                if (generation != _historyMotionGeneration || HistoryOverlay.IsVisible || !IsVisible) return;
+                UIElement target = priorFocus is UIElement { IsVisible: true, IsEnabled: true, Focusable: true } element ? element : HistoryButton;
+                FocusManager.SetFocusedElement(FocusManager.GetFocusScope(target), target);
+                Keyboard.Focus(target); _historyPreviousFocus = null;
+            }));
+        }
+        if (!OperatorMotion.Enabled) { Finish(); return; }
+        HistoryOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(170)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(180) };
+        timer.Tick += (_, _) => { timer.Stop(); Finish(); };
+        timer.Start();
+    }
+
+    private void HistoryBackdrop_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (ReferenceEquals(e.OriginalSource, sender)) CloseHistory();
+    }
+
+    private void HistoryOverlay_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape) { CloseHistory(); e.Handled = true; }
+    }
     public event Action<SportMode>? SportSelected;
     public event Action? ResumeSavedMatchRequested;
     public event Action? HistoryRequested;

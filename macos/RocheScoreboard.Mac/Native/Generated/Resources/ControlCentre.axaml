@@ -17,8 +17,8 @@
     <SolidColorBrush x:Key="ControlCentre.TextBrush" Color="#FAFAFC" />
     <SolidColorBrush x:Key="ControlCentre.SecondaryTextBrush" Color="#B6B6C0" />
     <SolidColorBrush x:Key="ControlCentre.BorderBrush" Color="#44444B" />
-    <SolidColorBrush x:Key="ControlCentre.AccentBrush" Color="{DynamicResource Operator.CustomAccentColor}" />
-    <SolidColorBrush x:Key="ControlCentre.SelectionBrush" Color="{DynamicResource Operator.CustomSelectionColor}" />
+    <SolidColorBrush x:Key="ControlCentre.AccentBrush" Color="#0A57FF" />
+    <SolidColorBrush x:Key="ControlCentre.SelectionBrush" Color="#E6F1FF" />
     <ns4:Double x:Key="ControlCentre.BodySize">15</ns4:Double>
     <ns4:Double x:Key="ControlCentre.CaptionSize">13</ns4:Double>
     <ns4:Double x:Key="ControlCentre.ControlHeight">42</ns4:Double>
@@ -728,6 +728,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
+                        <ns6:OperatorGlassSurface Grid.RowSpan="2" CornerRadius="26" Background="{DynamicResource ControlCentre.CanvasBrush}" BorderThickness="0" IsHitTestVisible="False" />
                         <ContentPresenter x:Name="PART_SelectedContentHost" Margin="0,0,0,6" Content="{TemplateBinding SelectedContent}" ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
                         <ns6:OperatorGlassSurface x:Name="PART_OperatorDock" Grid.Row="1" CornerRadius="36" Background="{DynamicResource ControlCentre.GlassBrush}" BorderBrush="#486886A6" BorderThickness="1" Padding="5" Margin="12,4,12,12" HorizontalAlignment="Stretch" MinWidth="0" MaxWidth="600">
                             <Grid>

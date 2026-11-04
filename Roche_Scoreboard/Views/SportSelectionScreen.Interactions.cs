@@ -108,7 +108,7 @@ public partial class SportSelectionScreen
 
     private void SuspendLandingInteractions()
     {
-        ++_selectionGeneration;++_landingMotionGeneration;++_changelogMotionGeneration;
+        ++_selectionGeneration;++_landingMotionGeneration;++_changelogMotionGeneration;++_historyMotionGeneration;
         _selectionTimer?.Stop();_selectionTimer=null;_selectionPending=false;IsHitTestVisible=true;
         foreach (var tile in _homeTiles.Values) tile.Reset();
         _homeLens?.Reset();
@@ -117,6 +117,11 @@ public partial class SportSelectionScreen
         ChangelogOverlay.BeginAnimation(OpacityProperty,null);ChangelogOverlay.Opacity=0;ChangelogOverlay.Visibility=Visibility.Collapsed;
         _changelogOpen=false;
         _changelogPreviousFocus=null;
+        HistoryOverlay.BeginAnimation(OpacityProperty,null);HistoryOverlay.Opacity=0;HistoryOverlay.Visibility=Visibility.Collapsed;
+        HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty,null);HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty,null);
+        HistoryPanelTranslate.BeginAnimation(TranslateTransform.YProperty,null);HistoryPanelScale.ScaleX=HistoryPanelScale.ScaleY=.985;HistoryPanelTranslate.Y=10;
+        HistoryPanel.IsEnabled=false;HistoryOverlay.IsHitTestVisible=false;HistoryViewHost.Content=null;
+        _activeHistoryView=null;_historyPreviousFocus=null;
     }
 
     private void RestoreLandingVisuals()

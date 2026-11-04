@@ -1,5 +1,5 @@
 // Generated from MainWindow.ControlCentre.cs; edit translator/adapters.
-// Source SHA-256: f7cdbb649ca71abc63eb4c4378bd19b037bfa7eb8806688a9b8de0a1e9152890
+// Source SHA-256: d2fd6b0eeb89ba22edc6859371c4fcfbf2f233d5773fac6b998133b526a2940a
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -101,7 +101,9 @@ public partial class MainWindow
         }
 
         // A page owns vertical scrolling; the navigation dock stays outside it.
-        SetPageHeight(AflScoringColumns, AflMatchPageViewport, stacked, 24);
+        // Let an empty/fresh match use its natural scoring height; a longer
+        // match grows to the viewport cap and scrolls without blank space.
+        SetContentCappedPageHeight(AflScoringColumns, AflMatchPageViewport, stacked, 24);
         SetPageHeight(AflOutputColumns, AflOutputPageViewport, stacked, 24);
         SetPageHeight(AflMediaColumns, AflMediaPageViewport, stacked, 24);
         // Keep a usable inner form viewport when a short window leaves less
@@ -203,6 +205,23 @@ public partial class MainWindow
     private static void SetPageHeight(Grid grid, ScrollViewer viewport, bool stacked, double inset)
     {
         double height = stacked ? double.NaN : Math.Max(260, viewport.NativeHeight() - inset);
+        if (double.IsNaN(height))
+        {
+            if (!double.IsNaN(grid.Height)) grid.Height = double.NaN;
+        }
+        else if (!double.IsFinite(grid.Height) || Math.Abs(grid.Height - height) > .5) grid.Height = height;
+    }
+
+    internal static double CalculateContentCappedPageHeight(double contentHeight, double viewportHeight, bool stacked, double inset)
+    {
+        if (stacked) return double.NaN;
+        double maximum = Math.Max(260, viewportHeight - inset);
+        return Math.Min(Math.Max(0, contentHeight), maximum);
+    }
+
+    private static void SetContentCappedPageHeight(Grid grid, ScrollViewer viewport, bool stacked, double inset)
+    {
+        double height = CalculateContentCappedPageHeight(grid.DesiredSize.Height, viewport.NativeHeight(), stacked, inset);
         if (double.IsNaN(height))
         {
             if (!double.IsNaN(grid.Height)) grid.Height = double.NaN;

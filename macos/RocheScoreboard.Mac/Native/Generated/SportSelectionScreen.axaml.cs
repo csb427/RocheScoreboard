@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/SportSelectionScreen.xaml.cs; edit translator/adapters.
-// Source SHA-256: f12f535ca9753f066967bd6ef5708f6bd091720bafdfe1531aa8aba4d4c36a68
+// Source SHA-256: 3d5bbf96f47c18d5477312bcb3268aafd66cb1c21fc1393424cbc91c6b766c5d
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -46,7 +46,7 @@ public partial class SportSelectionScreen : UserControl
         HomeCommandsButton.Content = size.Width < 620 ? "Ctrl+K" : "Commands · Ctrl+K";
 #if WINDOWS
         int checkpointCount = MatchCheckpointStore.Count;
-        HistoryButton.Content = checkpointCount > 0 && width >= 520 ? $"History · {checkpointCount}" : "History";
+        HistoryButton.Content = checkpointCount > 0 && width >= 520 ? $"Match history · {checkpointCount}" : "Match history";
         HistoryButton.IsVisible = true;
 #endif
         SettingsSubtitle.IsVisible=false;
@@ -67,7 +67,10 @@ public partial class SportSelectionScreen : UserControl
         foreach(var description in new[]{AflDescription,CricketDescription,TrainingDescription})description.IsVisible=height>=520?true:false;
         TrainingDescription.IsVisible=false;
         foreach(var cta in _landingCtas)if(cta.Parent is Border pill)pill.IsVisible=height>=650?true:false;
-        ChangelogPanel.Width=double.NaN;ChangelogPanel.Height=double.NaN;ChangelogPanel.MaxWidth=1120;ChangelogPanel.MaxHeight=Math.Max(180,height-24);ChangelogPanel.Margin=new Thickness(compact?10:22);
+        double sheetInset=compact?10:22;
+        ChangelogPanel.Width=double.NaN;ChangelogPanel.Height=double.NaN;ChangelogPanel.MaxWidth=1120;
+        ChangelogPanel.Margin=new Thickness(sheetInset);
+        ChangelogPanel.MaxHeight=Math.Max(0,height-(2*sheetInset));
         ReleaseSheetSubtitle.IsVisible=height<380?false:true;ReleaseResultCount.IsVisible=width<520?false:true;
         ReflowReleaseBrowser(width,height);_homeLens?.Reflow();
     }
@@ -100,7 +103,89 @@ public partial class SportSelectionScreen : UserControl
     private void ResponsiveScrollHost_PreviewMouseWheel(object? sender, PointerWheelEventArgs e)
         => NestedScrollRouting.RoutePreviewMouseWheel(ResponsiveScrollHost, e);
 
-    internal bool HasOpenSheet => ChangelogOverlay.IsVisible;
+    internal bool HasOpenSheet => ChangelogOverlay.IsVisible || HistoryOverlay.IsVisible;
+    private IInputElement? _historyPreviousFocus;
+    private int _historyMotionGeneration;
+    private MatchHistoryView? _activeHistoryView;
+
+    internal bool IsHistoryActive(MatchHistoryView view)
+        => ReferenceEquals(_activeHistoryView, view) && HistoryOverlay.IsVisible == true;
+
+    internal void ShowHistory(MatchHistoryView view)
+    {
+        if (_changelogOpen) HideChangelog();
+        if (HistoryOverlay.IsVisible != true) _historyPreviousFocus = NativeKeyboard.FocusedElement;
+        ++_historyMotionGeneration;
+        _activeHistoryView = view;
+        HistoryViewHost.Content = view;
+        HistoryOverlay.IsVisible = true;
+        HistoryOverlay.IsHitTestVisible = true;
+        HistoryPanel.IsEnabled = true;
+        HistoryOverlay.BeginAnimation(OpacityProperty, null);
+        HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+        HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        HistoryPanelTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        if (OperatorMotion.Enabled)
+        {
+            HistoryOverlay.Opacity = 0;
+            HistoryPanelScale.ScaleX = HistoryPanelScale.ScaleY = .985;
+            HistoryPanelTranslate.Y = 10;
+            HistoryOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(220)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            HistoryPanelTranslate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+        }
+        else { HistoryOverlay.Opacity = 1; HistoryPanelScale.ScaleX = HistoryPanelScale.ScaleY = 1; HistoryPanelTranslate.Y = 0; }
+        HistoryOverlay.Focus();
+        Dispatcher.UIThread.Post(new Action(() => { if (IsHistoryActive(view)) view.Focus(); }), DispatcherPriority.Loaded);
+    }
+
+    internal void CloseHistory(MatchHistoryView? expected = null, bool restoreFocus = true)
+    {
+        if (expected is not null && !ReferenceEquals(_activeHistoryView, expected)) return;
+        if (_activeHistoryView is null && HistoryOverlay.IsVisible != true) return;
+        ++_historyMotionGeneration;
+        int generation = _historyMotionGeneration;
+        var priorFocus = _historyPreviousFocus;
+        _activeHistoryView = null;
+        HistoryPanel.IsEnabled = false;
+        void Finish()
+        {
+            if (generation != _historyMotionGeneration) return;
+            HistoryOverlay.BeginAnimation(OpacityProperty, null);
+            HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            HistoryPanelScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            HistoryPanelTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            HistoryOverlay.Opacity = 0; HistoryPanelScale.ScaleX = HistoryPanelScale.ScaleY = .985; HistoryPanelTranslate.Y = 10;
+            HistoryViewHost.Content = null;
+            HistoryOverlay.IsHitTestVisible = false;
+            NativeFocusManager.SetFocusedElement(HistoryOverlay, null);
+            HistoryOverlay.IsVisible = false;
+            if (!restoreFocus) { _historyPreviousFocus = null; return; }
+            Dispatcher.UIThread.Post(DispatcherPriority.Input, new Action(() =>
+            {
+                if (generation != _historyMotionGeneration || HistoryOverlay.IsVisible || !IsVisible) return;
+                Control target = priorFocus is Control { IsVisible: true, IsEnabled: true, Focusable: true } element ? element : HistoryButton;
+                NativeFocusManager.SetFocusedElement(NativeFocusManager.GetFocusScope(target), target);
+                NativeKeyboard.Focus(target); _historyPreviousFocus = null;
+            }));
+        }
+        if (!OperatorMotion.Enabled) { Finish(); return; }
+        HistoryOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(170)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(180) };
+        timer.Tick += (_, _) => { timer.Stop(); Finish(); };
+        timer.Start();
+    }
+
+    private void HistoryBackdrop_Click(object? sender, PointerEventArgs e)
+    {
+        if (ReferenceEquals(e.Source, sender)) CloseHistory();
+    }
+
+    private void HistoryOverlay_PreviewKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape) { CloseHistory(); e.Handled = true; }
+    }
     public event Action<SportMode>? SportSelected;
     public event Action? ResumeSavedMatchRequested;
     public event Action? HistoryRequested;
@@ -118,7 +203,7 @@ public partial class SportSelectionScreen : UserControl
     {
 #if WINDOWS
         int historyCount = MatchCheckpointStore.Count;
-        HistoryButton.Content = historyCount > 0 && Bounds.Width >= 520 ? $"History · {historyCount}" : "History";
+        HistoryButton.Content = historyCount > 0 && Bounds.Width >= 520 ? $"Match history · {historyCount}" : "Match history";
         HistoryButton.IsVisible = true;
 #endif
         var saved = _currentSessionTitle is null ? RecoverySession.Describe(GameStateService.Load()) : null;
@@ -713,6 +798,8 @@ public partial class SportSelectionScreen
     private ScaleTransform DividerScale => (ScaleTransform)ProductionNames.RegistryFor(this)["DividerScale"];
     private ScaleTransform ChangelogPanelScale => (ScaleTransform)ProductionNames.RegistryFor(this)["ChangelogPanelScale"];
     private TranslateTransform ChangelogPanelTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["ChangelogPanelTranslate"];
+    private ScaleTransform HistoryPanelScale => (ScaleTransform)ProductionNames.RegistryFor(this)["HistoryPanelScale"];
+    private TranslateTransform HistoryPanelTranslate => (TranslateTransform)ProductionNames.RegistryFor(this)["HistoryPanelTranslate"];
     private void Native_AFL_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; AFL_Click(sender!, e); }
     private void Native_Card_MouseEnter(object? sender, PointerEventArgs e) { Card_MouseEnter(sender!, e); }
     private void Native_Card_MouseLeave(object? sender, PointerEventArgs e) { Card_MouseLeave(sender!, e); }
@@ -721,6 +808,8 @@ public partial class SportSelectionScreen
     private void Native_ChangelogOverlay_PreviewKeyDown(object? sender, KeyEventArgs e) { ChangelogOverlay_PreviewKeyDown(sender!, e); }
     private void Native_ChangelogSearch_TextChanged(object? sender, TextChangedEventArgs e) { ChangelogSearch_TextChanged(sender!, e); }
     private void Native_Cricket_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; Cricket_Click(sender!, e); }
+    private void Native_HistoryBackdrop_Click(object? sender, PointerReleasedEventArgs e) { if (e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left) return; HistoryBackdrop_Click(sender!, e); }
+    private void Native_HistoryOverlay_PreviewKeyDown(object? sender, KeyEventArgs e) { HistoryOverlay_PreviewKeyDown(sender!, e); }
     private void Native_ReleaseFilters_PreviewKeyDown(object? sender, KeyEventArgs e) { ReleaseFilters_PreviewKeyDown(sender!, e); }
     private void Native_ReleaseVersionChoice_SelectionChanged(object? sender, SelectionChangedEventArgs e) { ReleaseVersionChoice_SelectionChanged(sender!, e); }
     private void Native_ResponsiveScrollHost_PreviewMouseWheel(object? sender, PointerWheelEventArgs e) { ResponsiveScrollHost_PreviewMouseWheel(sender!, e); }

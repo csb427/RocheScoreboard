@@ -481,6 +481,9 @@ public partial class MainWindow
             app.ThemeService.SetDensity(UiDensity.Comfortable);
             await Task.Delay(100);
             screen.UpdateLayout();
+            checks["settings-workspace-reveals-the-shared-illustrated-backdrop"] =
+                screen.SettingsWorkspace.Background == System.Windows.Media.Brushes.Transparent
+                && QaDescendants(screen).OfType<OperatorSceneBackdrop>().Any();
             var light = ((SolidColorBrush)screen.ThemeCombo.Foreground).Color;
             double comfortable = screen.QuickHintsToggle.ActualHeight;
             CaptureCricketQa(screen, Path.Combine(directory, "settings-light.png"));
