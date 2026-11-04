@@ -1,5 +1,5 @@
 // Generated from Views/OperatorAccentPreferences.cs; edit translator/adapters.
-// Source SHA-256: 61a3605eef031bbbc1f97251979f3e116a222d4b27831dc4b8bf7dcd2f4edc73
+// Source SHA-256: 02b36088b74f5a30c036e3e28ae7af1ef23f3560425e07c51727d0012a6b20bd
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -65,6 +65,7 @@ internal sealed class OperatorAccentPreferences : UserControl
         var (accent,selection)=ColorsFor(OperatorAppearance.AccentPalette,dark);
         app.Resources["Operator.CustomAccentColor"]=accent;
         app.Resources["Operator.CustomSelectionColor"]=selection;
+#if WINDOWS
         SharedAccentBrush.Color=accent;
         SharedSelectionBrush.Color=selection;
         UpdateMergedAccentBrushes(app.Resources,SharedAccentBrush,SharedSelectionBrush);
@@ -73,8 +74,15 @@ internal sealed class OperatorAccentPreferences : UserControl
             UpdateMergedAccentBrushes(window.Resources,SharedAccentBrush,SharedSelectionBrush);
             if(window.Content is AvaloniaObject content)UpdateVisualTreeAccentBrushes(content,SharedAccentBrush,SharedSelectionBrush);
         }
+#else
+        // The Mac translation uses Avalonia's application resource lookup; it
+        // has no WPF-style application window collection or resource binding.
+        SharedAccentBrush.Color=accent;
+        SharedSelectionBrush.Color=selection;
+#endif
     }
 
+#if WINDOWS
     private static void UpdateVisualTreeAccentBrushes(AvaloniaObject element,SolidColorBrush accent,SolidColorBrush selection)
     {
         if(element is Control frameworkElement)
@@ -98,6 +106,7 @@ internal sealed class OperatorAccentPreferences : UserControl
             Avalonia.Data.BindingOperations.SetBinding(target,SolidColorBrush.ColorProperty,new Avalonia.Data.Binding(nameof(SolidColorBrush.Color)){Source=source,Mode=Avalonia.Data.BindingMode.OneWay});
         }
     }
+#endif
 
     internal static SolidColorBrush AccentBrushResource => SharedAccentBrush;
     internal static SolidColorBrush SelectionBrushResource => SharedSelectionBrush;

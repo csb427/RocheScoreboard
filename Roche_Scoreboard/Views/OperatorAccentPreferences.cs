@@ -59,6 +59,7 @@ internal sealed class OperatorAccentPreferences : UserControl
         var (accent,selection)=ColorsFor(OperatorAppearance.AccentPalette,dark);
         app.Resources["Operator.CustomAccentColor"]=accent;
         app.Resources["Operator.CustomSelectionColor"]=selection;
+#if WINDOWS
         SharedAccentBrush.Color=accent;
         SharedSelectionBrush.Color=selection;
         UpdateMergedAccentBrushes(app.Resources,SharedAccentBrush,SharedSelectionBrush);
@@ -67,8 +68,15 @@ internal sealed class OperatorAccentPreferences : UserControl
             UpdateMergedAccentBrushes(window.Resources,SharedAccentBrush,SharedSelectionBrush);
             if(window.Content is DependencyObject content)UpdateVisualTreeAccentBrushes(content,SharedAccentBrush,SharedSelectionBrush);
         }
+#else
+        // The Mac translation uses Avalonia's application resource lookup; it
+        // has no WPF-style application window collection or resource binding.
+        SharedAccentBrush.Color=accent;
+        SharedSelectionBrush.Color=selection;
+#endif
     }
 
+#if WINDOWS
     private static void UpdateVisualTreeAccentBrushes(DependencyObject element,SolidColorBrush accent,SolidColorBrush selection)
     {
         if(element is FrameworkElement frameworkElement)
@@ -92,6 +100,7 @@ internal sealed class OperatorAccentPreferences : UserControl
             System.Windows.Data.BindingOperations.SetBinding(target,SolidColorBrush.ColorProperty,new System.Windows.Data.Binding(nameof(SolidColorBrush.Color)){Source=source,Mode=System.Windows.Data.BindingMode.OneWay});
         }
     }
+#endif
 
     internal static SolidColorBrush AccentBrushResource => SharedAccentBrush;
     internal static SolidColorBrush SelectionBrushResource => SharedSelectionBrush;
