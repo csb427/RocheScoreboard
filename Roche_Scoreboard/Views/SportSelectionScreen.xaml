@@ -64,7 +64,7 @@
     </local:OperatorGlassSurface>
     <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" Style="{StaticResource HomeUtility}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K"/>
     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-     <Button x:Name="HistoryButton" Content="History" Visibility="Collapsed" Style="{StaticResource HomeUtility}" Click="History_Click" AutomationProperties.Name="Open local match history" ToolTip="Review saved match checkpoints"/>
+     <Button x:Name="HistoryButton" Content="Match history" Visibility="Collapsed" Style="{StaticResource HomeUtility}" Click="History_Click" AutomationProperties.Name="Open local match history" ToolTip="Review saved match checkpoints"/>
      <local:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" Visibility="{Binding Visibility, ElementName=ResumeSavedMatchButton}"><Button x:Name="ResumeSavedMatchButton" Content="Continue match" Visibility="Collapsed" Style="{StaticResource HomeUtility}" Click="ResumeSavedMatch_Click" ToolTip="Review and resume the saved match"/></local:OperatorGlassSurface>
      <local:OperatorGlassSurface Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0">
       <Button x:Name="ChangelogToggle" Style="{StaticResource HomeUtility}" Click="ChangelogToggle_Click">

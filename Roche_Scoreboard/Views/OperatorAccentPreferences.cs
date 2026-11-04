@@ -13,6 +13,8 @@ namespace Roche_Scoreboard.Views;
 /// <summary>Operator-only accent colour selection with an immediate, persistent preview.</summary>
 internal sealed class OperatorAccentPreferences : UserControl
 {
+    private static readonly SolidColorBrush SharedAccentBrush = new(Color.FromRgb(10,87,255));
+    private static readonly SolidColorBrush SharedSelectionBrush = new(Color.FromRgb(230,241,255));
     private readonly Dictionary<OperatorAccentPalette,RadioButton> _choices=new();
     private readonly Border _preview=new(){CornerRadius=new CornerRadius(18),Padding=new Thickness(16),Margin=new Thickness(0,12,0,0)};
     private readonly TextBlock _sampleText=new(){Text="Selected controls and highlights",FontSize=14,FontWeight=FontWeights.SemiBold,VerticalAlignment=VerticalAlignment.Center};
@@ -57,7 +59,42 @@ internal sealed class OperatorAccentPreferences : UserControl
         var (accent,selection)=ColorsFor(OperatorAppearance.AccentPalette,dark);
         app.Resources["Operator.CustomAccentColor"]=accent;
         app.Resources["Operator.CustomSelectionColor"]=selection;
+        SharedAccentBrush.Color=accent;
+        SharedSelectionBrush.Color=selection;
+        UpdateMergedAccentBrushes(app.Resources,SharedAccentBrush,SharedSelectionBrush);
+        foreach (Window window in app.Windows)
+        {
+            UpdateMergedAccentBrushes(window.Resources,SharedAccentBrush,SharedSelectionBrush);
+            if(window.Content is DependencyObject content)UpdateVisualTreeAccentBrushes(content,SharedAccentBrush,SharedSelectionBrush);
+        }
     }
+
+    private static void UpdateVisualTreeAccentBrushes(DependencyObject element,SolidColorBrush accent,SolidColorBrush selection)
+    {
+        if(element is FrameworkElement frameworkElement)
+            UpdateMergedAccentBrushes(frameworkElement.Resources,accent,selection);
+        int children=System.Windows.Media.VisualTreeHelper.GetChildrenCount(element);
+        for(int index=0;index<children;index++)
+            UpdateVisualTreeAccentBrushes(System.Windows.Media.VisualTreeHelper.GetChild(element,index),accent,selection);
+    }
+
+    private static void UpdateMergedAccentBrushes(ResourceDictionary resources,SolidColorBrush accent,SolidColorBrush selection)
+    {
+        Update("ControlCentre.AccentBrush",accent);
+        Update("ControlCentre.SelectionBrush",selection);
+        foreach(ResourceDictionary merged in resources.MergedDictionaries)UpdateMergedAccentBrushes(merged,accent,selection);
+        void Update(string key,SolidColorBrush source)
+        {
+            if(!resources.Contains(key))return;
+            if(resources[key] is not SolidColorBrush target || ReferenceEquals(target,source) || target.IsFrozen)
+            { resources[key]=source; return; }
+            target.BeginAnimation(SolidColorBrush.ColorProperty,null);
+            System.Windows.Data.BindingOperations.SetBinding(target,SolidColorBrush.ColorProperty,new System.Windows.Data.Binding(nameof(SolidColorBrush.Color)){Source=source,Mode=System.Windows.Data.BindingMode.OneWay});
+        }
+    }
+
+    internal static SolidColorBrush AccentBrushResource => SharedAccentBrush;
+    internal static SolidColorBrush SelectionBrushResource => SharedSelectionBrush;
 
     private static (Color Accent,Color Selection) ColorsFor(OperatorAccentPalette palette,bool dark)=>palette switch
     {

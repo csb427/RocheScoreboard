@@ -59,7 +59,7 @@ public static class OperatorDesign
         SetTheme(root, _theme);
         // XAML can assign Resources after attached root attributes. Reapply against
         // the final dictionary, including when a view is unloaded and reopened.
-        root.Loaded += (_, _) => { SetDensity(root, _density); SetTheme(root, _theme); if(root is Window window)OperatorWindowChrome.Enable(window); InstallBackdrop(root); };
+        root.Loaded += (_, _) => { SetDensity(root, _density); SetTheme(root, _theme); OperatorAccentPreferences.ApplyAccentResources(); if(root is Window window)OperatorWindowChrome.Enable(window); InstallBackdrop(root); };
         if(root.IsLoaded)InstallBackdrop(root);
     }
     private static void InstallBackdrop(FrameworkElement root)

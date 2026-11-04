@@ -108,7 +108,7 @@
             <Border x:Name="ClockFocus" BorderBrush="Transparent" BorderThickness="2" CornerRadius="22" IsHitTestVisible="False"/>
             <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
         </Grid><ControlTemplate.Triggers>
-            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ClockFocus" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/></Trigger>
+            <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="ClockFocus" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter TargetName="ClockFocus" Property="BorderThickness" Value="2"/></MultiTrigger>
         </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
     </Style>
 </ResourceDictionary>

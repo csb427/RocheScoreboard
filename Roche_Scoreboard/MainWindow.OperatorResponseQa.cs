@@ -78,6 +78,11 @@ public partial class MainWindow
                 var mode=(FrameworkElement)wizard.FindName("CountdownCard");var duration=(FrameworkElement)wizard.FindName("SetupDurationPanel");
                 var bottom=mode.TranslatePoint(new System.Windows.Point(0,mode.ActualHeight),wizard);var top=duration.TranslatePoint(new System.Windows.Point(),wizard);
                 checks[$"afl-clock-choices-clear-quarter-length-{size.Item1}"]=top.Y>=bottom.Y-1;
+                var quarter=(FrameworkElement)wizard.FindName("QuarterLengthControls");
+                var preset=(FrameworkElement)wizard.FindName("Preset25Tile");
+                var presetBounds=preset.TransformToAncestor(wizard).TransformBounds(new Rect(preset.RenderSize));
+                checks[$"afl-quarter-length-preset-fits-{size.Item1}"]=preset.ActualWidth>0 && presetBounds.Left>=-1 && presetBounds.Right<=wizard.ActualWidth+1
+                    && quarter.ActualWidth>0 && quarter.ActualWidth<=duration.ActualWidth+1;
                 CaptureCricketQa(wizard,Path.Combine(directory,$"response-afl-clock-{size.Item1}.png"));
             }
             checks["afl-live-settings-use-shared-workspace"]=_aflSettingsWorkspace is not null && _aflSettingsWorkspace.Sections.Contains(SettingsSection_Match) && _aflSettingsWorkspace.Sections.Contains(SettingsSection_Teams);

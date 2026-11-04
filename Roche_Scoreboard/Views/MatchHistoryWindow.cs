@@ -18,9 +18,15 @@ internal sealed class MatchHistoryWindow : Window
     internal event Action<MatchCheckpointStore.Checkpoint, ActionKind>? ActionChosen;
     private readonly List<Button> _actionButtons = [];
     internal IReadOnlyList<Button> ActionButtons => _actionButtons;
+    internal bool HasEmptyState => _emptyState is { Visibility: Visibility.Visible };
+    internal bool IsLoading { get; private set; }
+    private readonly StackPanel _list = new();
+    private TextBlock? _emptyState;
+    private readonly bool _canReplaceSession;
 
     internal MatchHistoryWindow(bool canReplaceSession, IReadOnlyList<MatchCheckpointStore.Checkpoint>? checkpoints = null)
     {
+        _canReplaceSession = canReplaceSession;
         Title = "Match history";
         Width = 760; Height = 640; MinWidth = 360; MinHeight = 320;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -48,8 +54,35 @@ internal sealed class MatchHistoryWindow : Window
         heading.Children.Add(subtitle);
         root.Children.Add(heading);
 
-        var list = new StackPanel();
-        foreach (var item in checkpoints ?? MatchCheckpointStore.Load())
+        var list = _list;
+        if (checkpoints is null) SetLoading(list);
+        else SetCheckpoints(checkpoints, list);
+        var scroller = new ScrollViewer { Content = list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+        Grid.SetRow(scroller, 1); root.Children.Add(scroller);
+        var close = MakeButton("Close", Close);
+        close.HorizontalAlignment = System.Windows.HorizontalAlignment.Right; close.Margin = new Thickness(0, 14, 0, 0);
+        close.IsDefault = true;
+        Grid.SetRow(close, 2); root.Children.Add(close);
+        Content = root;
+    }
+
+    private void SetLoading(StackPanel list)
+    {
+        IsLoading = true;
+        list.Children.Clear();
+        var loading = new TextBlock { Text = "Loading saved matches…", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 8, 2, 8) };
+        loading.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
+        list.Children.Add(loading);
+    }
+
+    internal void SetCheckpoints(IReadOnlyList<MatchCheckpointStore.Checkpoint> checkpoints, StackPanel? list = null)
+    {
+        list ??= _list;
+        IsLoading = false;
+        _actionButtons.Clear();
+        list.Children.Clear();
+        _emptyState = null;
+        foreach (var item in checkpoints)
         {
             var card = new Border
             {
@@ -74,12 +107,12 @@ internal sealed class MatchHistoryWindow : Window
                 || item.State.MatchState is { CompletedQuarterCount: >= 4, QuarterSnapshots: { Length: >= 4 } snapshots } && snapshots[3] is not null;
             continueButton.IsEnabled = !completed;
             continueButton.ToolTip = completed ? "Completed matches can be reviewed or restarted with a fresh score"
-                : canReplaceSession ? "Continue from this saved checkpoint" : "Save the current session before continuing from this checkpoint";
+                : _canReplaceSession ? "Continue from this saved checkpoint" : "Save the current session before continuing from this checkpoint";
             actions.Children.Add(continueButton);
             _actionButtons.Add(continueButton);
             var restartButton = MakeButton("Restart", () => Choose(item, ActionKind.Restart));
             restartButton.IsEnabled = true;
-            restartButton.ToolTip = canReplaceSession ? "Start a fresh score with these teams" : "Save the current session before starting with these teams";
+            restartButton.ToolTip = _canReplaceSession ? "Start a fresh score with these teams" : "Save the current session before starting with these teams";
             actions.Children.Add(restartButton);
             _actionButtons.Add(restartButton);
             Grid.SetColumn(actions, 1); body.Children.Add(actions); card.Child = body; list.Children.Add(card);
@@ -87,17 +120,10 @@ internal sealed class MatchHistoryWindow : Window
 
         if (list.Children.Count == 0)
         {
-            var empty = new TextBlock { Text = "Saved matches will appear here after a match has been recorded.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 8, 2, 8) };
-            empty.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
-            list.Children.Add(empty);
+            _emptyState = new TextBlock { Text = "Saved matches will appear here after a match has been recorded.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 8, 2, 8) };
+            _emptyState.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush");
+            list.Children.Add(_emptyState);
         }
-        var scroller = new ScrollViewer { Content = list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
-        Grid.SetRow(scroller, 1); root.Children.Add(scroller);
-        var close = MakeButton("Close", Close);
-        close.HorizontalAlignment = System.Windows.HorizontalAlignment.Right; close.Margin = new Thickness(0, 14, 0, 0);
-        close.IsDefault = true;
-        Grid.SetRow(close, 2); root.Children.Add(close);
-        Content = root;
     }
 
     private static Button MakeButton(string label, Action action)

@@ -242,7 +242,7 @@ namespace Roche_Scoreboard.Views
             if (ControlPanelCountdownToggleTrack.Background is SolidColorBrush track)
             {
                 if (track.IsFrozen) { track = track.Clone(); ControlPanelCountdownToggleTrack.Background = track; }
-                track.BeginAnimation(SolidColorBrush.ColorProperty, null); track.Color = (Color)ColorConverter.ConvertFromString(SetupControlPanelCountdown.IsChecked == true ? "#1F6FEB" : "#4B5563");
+                track.BeginAnimation(SolidColorBrush.ColorProperty, null); track.Color = SetupControlPanelCountdown.IsChecked == true ? AccentBrush.Color : (Color)ColorConverter.ConvertFromString("#4B5563");
             }
         }
         private void OnWizardUnloaded(object sender, RoutedEventArgs args)
@@ -294,7 +294,17 @@ namespace Roche_Scoreboard.Views
         //  STEP NAVIGATION — cinematic transitions
         // ═══════════════════════════════════════════════════════
 
-        private static readonly SolidColorBrush s_accentBrush = new((Color)ColorConverter.ConvertFromString("#58A6FF"));
+        private SolidColorBrush? _accentBrush;
+        private SolidColorBrush AccentBrush
+        {
+            get
+            {
+                Color color = (Color)FindResource("Operator.CustomAccentColor");
+                if (_accentBrush is null) _accentBrush = new SolidColorBrush(color);
+                else _accentBrush.Color = color;
+                return _accentBrush;
+            }
+        }
         private static readonly SolidColorBrush s_surfaceBrush = new((Color)ColorConverter.ConvertFromString("#242427"));
         private static readonly SolidColorBrush s_textMutedBrush = new((Color)ColorConverter.ConvertFromString("#8E8E98"));
         private static readonly SolidColorBrush s_whiteBrush = new(Colors.White);
@@ -346,8 +356,8 @@ namespace Roche_Scoreboard.Views
         }
         private void UpdateStepDot(Border dot, TextBlock label, bool reached, bool active)
         {
-            dot.Background = reached ? s_accentBrush : s_surfaceBrush;
-            dot.BorderBrush = reached ? s_accentBrush : s_edgeBrush;
+            dot.Background = reached ? AccentBrush : s_surfaceBrush;
+            dot.BorderBrush = reached ? AccentBrush : s_edgeBrush;
             var dotText = (TextBlock)dot.Child;
             dotText.Foreground = reached ? s_whiteBrush : s_textMutedBrush;
             // The shared segmented lens owns label contrast and selection ink.
@@ -626,8 +636,10 @@ namespace Roche_Scoreboard.Views
             WizardFlowDesign.StyleChoice(CountUpCard,!isCountdown);WizardFlowDesign.StyleChoice(CountdownCard,isCountdown);
             CountUpSelected.Visibility=isCountdown?Visibility.Collapsed:Visibility.Visible;
             CountdownSelected.Visibility=isCountdown?Visibility.Visible:Visibility.Collapsed;
-            foreach(var mark in new[]{CountUpSelected,CountdownSelected})
-            {mark.Background=new SolidColorBrush((Color)ColorConverter.ConvertFromString("#368EEE"));if(mark.Child is TextBlock text)text.Foreground=System.Windows.Media.Brushes.White;}
+            CountUpSelected.Background = AccentBrush;
+            CountdownSelected.Background = AccentBrush;
+            if(CountUpSelected.Child is TextBlock countUpMark) countUpMark.Foreground=System.Windows.Media.Brushes.White;
+            if(CountdownSelected.Child is TextBlock countdownMark) countdownMark.Foreground=System.Windows.Media.Brushes.White;
             bool editable=isCountdown || SetupControlPanelCountdown.IsChecked==true;
             QuarterLengthControls.IsEnabled=editable;QuarterLengthControls.Opacity=editable?1:.4;
             DurationDisabledOverlay.Visibility=editable?Visibility.Collapsed:Visibility.Visible;
@@ -713,24 +725,22 @@ namespace Roche_Scoreboard.Views
                 else { _countdownOptionHideTimer = null; ControlPanelCountdownOptionCard.Visibility = Visibility.Collapsed; }
             }
 
-            ControlPanelCountdownOptionCard.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#12253A" : "#151E29"));
-            ControlPanelCountdownOptionCard.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#6CB6FF" : "#4D637C"));
             ControlPanelCountdownOptionCard.SetResourceReference(Border.BackgroundProperty,"ControlCentre.GlassBrush");
             ControlPanelCountdownOptionCard.SetResourceReference(Border.BorderBrushProperty,isEnabled?"ControlCentre.AccentBrush":"ControlCentre.BorderBrush");
             ControlPanelCountdownOptionCard.BorderThickness = new Thickness(1);
 
             if (ControlPanelCountdownToggleTrack?.Background is not SolidColorBrush trackBrush)
             {
-                trackBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#4B5563"));
+                trackBrush = AccentBrush;
                 if (ControlPanelCountdownToggleTrack is not null)
                 {
                     ControlPanelCountdownToggleTrack.Background = trackBrush;
                 }
             }
 
-            Color targetTrackColor = (Color)ColorConverter.ConvertFromString(isEnabled ? "#1F6FEB" : "#4B5563");
+            Color targetTrackColor = isEnabled ? AccentBrush.Color : (Color)ColorConverter.ConvertFromString("#4B5563");
             trackBrush.BeginAnimation(SolidColorBrush.ColorProperty, null);
-            if (!OperatorMotion.Enabled) trackBrush.Color = targetTrackColor;
+            if (!OperatorMotion.Enabled || OperatorInputFocus.GetIsKeyboardMode(SetupControlPanelCountdown)) trackBrush.Color = targetTrackColor;
             else trackBrush.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation
             {
                 To = targetTrackColor,
@@ -749,14 +759,14 @@ namespace Roche_Scoreboard.Views
                 ControlPanelCountdownToggleLabel.BeginAnimation(OpacityProperty, null);
                 ControlPanelCountdownToggleLabel.Opacity = 0.65;
                 ControlPanelCountdownToggleLabel.Text = isEnabled ? "ON" : "OFF";
-                ControlPanelCountdownToggleLabel.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#58A6FF" : "#A2ACB8"));
+                ControlPanelCountdownToggleLabel.SetResourceReference(TextBlock.ForegroundProperty,isEnabled?"ControlCentre.AccentBrush":"ControlCentre.SecondaryTextBrush");
                 Animate(ControlPanelCountdownToggleLabel, OpacityProperty, 1, 180, easing: Smooth);
             }
 
             if (controlPanelCountdownHintText is not null)
             {
                 controlPanelCountdownHintText.Text = isEnabled ? "Quarter length editable" : "Quarter length locked";
-                controlPanelCountdownHintText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isEnabled ? "#9CC9FF" : "#7D8792"));
+                controlPanelCountdownHintText.SetResourceReference(TextBlock.ForegroundProperty,isEnabled?"ControlCentre.AccentBrush":"ControlCentre.SecondaryTextBrush");
             }
         }
 
@@ -817,12 +827,18 @@ namespace Roche_Scoreboard.Views
             if (SetupFinalsMode is null || FinalsSelectedBadge is null) return;
             bool on = SetupFinalsMode.IsChecked == true;
             WizardFlowDesign.StyleChoice(FinalsCard, on);
-            if(on)FinalsCard.Background=new SolidColorBrush((Color)ColorConverter.ConvertFromString("#76551C"));
+            FinalsCard.CornerRadius = new CornerRadius(26);
+            FinalsCard.Background = on ? new SolidColorBrush(Color.FromRgb(64,48,22)) : System.Windows.Media.Brushes.Transparent;
+            OperatorChoiceMotion.SetEnabled(SetupFinalsMode,true);
+            OperatorChoiceMotion.SetSelected(SetupFinalsMode,on);
             SetupFinalsTitle.SetResourceReference(TextBlock.ForegroundProperty,on ? "ControlCentre.ActionTextBrush" : "ControlCentre.TextBrush");
             SetupFinalsDescription.SetResourceReference(TextBlock.ForegroundProperty,on ? "ControlCentre.ActionTextBrush" : "ControlCentre.SecondaryTextBrush");
             System.Windows.Automation.AutomationProperties.SetItemStatus(SetupFinalsMode,on ? "On" : "Off");
             FinalsGlowBg.Visibility = Visibility.Collapsed;
-            FinalsSelectedBadge.Opacity = on ? 1 : 0;
+            var badgeOpacity = new DoubleAnimation(on?1:0, OperatorMotion.ChoiceArrival) { EasingFunction = OperatorMotion.SmoothOut };
+            if (!OperatorMotion.Enabled || OperatorInputFocus.GetIsKeyboardMode(SetupFinalsMode))
+            { FinalsSelectedBadge.BeginAnimation(OpacityProperty,null); FinalsSelectedBadge.Opacity=on?1:0; }
+            else FinalsSelectedBadge.BeginAnimation(OpacityProperty,badgeOpacity);
             if(SetupFinalsMode.Content is Grid content)foreach(var symbol in content.Children.OfType<OperatorSymbol>())symbol.IsActive=on;
             FinalsIcon.Effect = null;
         }

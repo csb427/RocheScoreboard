@@ -21,7 +21,7 @@ public partial class MainWindow
             fixture.SportSelectionPanel.PrepareForDisplay();
             checks["home-history-entry-is-visible-and-labelled"] =
                 fixture.SportSelectionPanel.HistoryButton.Visibility == Visibility.Visible
-                && fixture.SportSelectionPanel.HistoryButton.Content?.ToString()?.StartsWith("History", System.StringComparison.Ordinal) == true;
+                && fixture.SportSelectionPanel.HistoryButton.Content?.ToString()?.StartsWith("Match history", System.StringComparison.Ordinal) == true;
             var completedState = new GameState
             {
                 Sport = "afl",
@@ -47,6 +47,9 @@ public partial class MainWindow
                     && !history.ActionButtons[1].IsEnabled && history.ActionButtons[2].IsEnabled;
             }
             finally { history.Close(); }
+            var emptyHistory = new Views.MatchHistoryWindow(true, []) { Owner = fixture };
+            try { emptyHistory.Show(); emptyHistory.UpdateLayout(); checks["history-empty-state-is-visible"] = emptyHistory.HasEmptyState; }
+            finally { emptyHistory.Close(); }
 #endif
             checks["command-bar-opens-once"] = fixture.OpenCommandBar() && !fixture.OpenCommandBar();
             fixture.CommandSearch.Text = "zzzzzz";

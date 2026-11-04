@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Roche_Scoreboard.Services;
 using Panel=System.Windows.Controls.Panel;
 using RadioButton=System.Windows.Controls.RadioButton;
 using Brushes=System.Windows.Media.Brushes;
@@ -27,6 +28,7 @@ public partial class SetupWizard
             choice.Background=Brushes.Transparent;
             choice.Content=content;card.Padding=new Thickness(0);card.Child=choice;
             System.Windows.Automation.AutomationProperties.SetName(choice,name);
+            OperatorChoiceMotion.SetEnabled(choice,true);
         }
     }
 }

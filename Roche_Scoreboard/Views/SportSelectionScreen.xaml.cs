@@ -42,7 +42,7 @@ public partial class SportSelectionScreen : UserControl
         HomeCommandsButton.Content = size.Width < 620 ? "Ctrl+K" : "Commands · Ctrl+K";
 #if WINDOWS
         int checkpointCount = MatchCheckpointStore.Count;
-        HistoryButton.Content = checkpointCount > 0 && width >= 520 ? $"History · {checkpointCount}" : "History";
+        HistoryButton.Content = checkpointCount > 0 && width >= 520 ? $"Match history · {checkpointCount}" : "Match history";
         HistoryButton.Visibility = Visibility.Visible;
 #endif
         SettingsSubtitle.Visibility=Visibility.Collapsed;
@@ -114,7 +114,7 @@ public partial class SportSelectionScreen : UserControl
     {
 #if WINDOWS
         int historyCount = MatchCheckpointStore.Count;
-        HistoryButton.Content = historyCount > 0 && ActualWidth >= 520 ? $"History · {historyCount}" : "History";
+        HistoryButton.Content = historyCount > 0 && ActualWidth >= 520 ? $"Match history · {historyCount}" : "Match history";
         HistoryButton.Visibility = Visibility.Visible;
 #endif
         var saved = _currentSessionTitle is null ? RecoverySession.Describe(GameStateService.Load()) : null;

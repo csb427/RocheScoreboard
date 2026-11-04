@@ -52,6 +52,11 @@ public partial class MainWindow
                 && System.Windows.Application.Current.Resources["Operator.CustomSelectionColor"] is Color tealSelection && tealSelection == Color.FromRgb(27,67,61);
             using(var savedAccent=System.Text.Json.JsonDocument.Parse(File.ReadAllText(OperatorAppearance.StoragePath)))
                 checks["accent-choice-persists"] = savedAccent.RootElement.GetProperty("AccentPalette").GetInt32()==(int)OperatorAccentPalette.Teal;
+            var tealResource = (Color)System.Windows.Application.Current.Resources["Operator.CustomAccentColor"];
+            checks["accent-live-brush-updates-after-palette-change"] =
+                this.TryFindResource("ControlCentre.AccentBrush") is SolidColorBrush aflLive && aflLive.Color==tealResource
+                && this.TryFindResource("ControlCentre.SelectionBrush") is SolidColorBrush aflSelection && aflSelection.Color==Color.FromRgb(27,67,61)
+                && ReferenceEquals(aflLive,Roche_Scoreboard.Views.OperatorAccentPreferences.AccentBrushResource);
             var accentSettings=new Roche_Scoreboard.Views.OperatorAccentPreferences();
             var accentHost=new Window{Width=460,Height=320,ShowInTaskbar=false,Content=accentSettings};accentHost.Show();await Pause();accentSettings.UpdateLayout();
             checks["accent-preview-visible"] = accentSettings.Visibility==Visibility.Visible && accentSettings.ActualHeight>0;
@@ -173,13 +178,19 @@ public partial class MainWindow
             }
             var cricket = new Roche_Scoreboard.Views.CricketControlPanel();
             var match = CricketReliabilityChecks.CreateMatch(true); cricket.SetMatch(match); host.Content = cricket;
+            var oldAflAccent = this.TryFindResource("ControlCentre.AccentBrush") as SolidColorBrush;
+            var oldCricketAccent = cricket.TryFindResource("ControlCentre.AccentBrush") as SolidColorBrush;
             var originalAccent=OperatorAppearance.AccentPalette;
             try
             {
+                var expectedAccent=Color.FromRgb(0,112,101);
                 OperatorAppearance.ConfigureAccentPalette(OperatorAccentPalette.Teal);Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources();
-                var expectedAccent=(Color)System.Windows.Application.Current.Resources["Operator.CustomAccentColor"];
                 checks["afl-accent-resource-applies"] = this.TryFindResource("ControlCentre.AccentBrush") is SolidColorBrush aflAccent && aflAccent.Color==expectedAccent;
                 checks["cricket-accent-resource-applies"] = cricket.TryFindResource("ControlCentre.AccentBrush") is SolidColorBrush cricketAccent && cricketAccent.Color==expectedAccent;
+                checks["afl-and-cricket-existing-accent-brushes-update-live"] = oldAflAccent?.Color==expectedAccent
+                    && oldCricketAccent?.Color==expectedAccent
+                    && ReferenceEquals(this.TryFindResource("ControlCentre.AccentBrush"),oldAflAccent)
+                    && ReferenceEquals(cricket.TryFindResource("ControlCentre.AccentBrush"),oldCricketAccent);
             }
             finally { OperatorAppearance.ConfigureAccentPalette(originalAccent);Roche_Scoreboard.Views.OperatorAccentPreferences.ApplyAccentResources(); }
             foreach (var size in new[] { (420d, 600d), (1000d, 820d), (1550d, 1000d) })
