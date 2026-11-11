@@ -22,9 +22,14 @@ public partial class MainWindow
     private bool _outputActivationRequired = true;
     private readonly Dictionary<FrameworkElement, bool> _homeReturn = new();
     private SportMode _homeReturnMode;
+    private FrameworkElement? _homeReturnFocus;
+    private FrameworkElement? _globalSettingsReturnFocus;
+    private bool _homeNavigationDecisionActive;
+    private int _homeNavigationDecisionGeneration;
     private readonly Dictionary<UIElement, bool> _commandEnabled = new();
     private IInputElement? _commandPreviousFocus;
     private bool _commandExecuting;
+    private int _commandTabFocusGeneration;
     private bool _newSessionDecisionActive;
     private CricketMatchManager? _commandObservedCricket;
     private FrameworkElement? _commandPreferencesReturn;
@@ -38,7 +43,7 @@ public partial class MainWindow
         SportMode.AFL => _aflMatchReady,
         _ => false
     };
-    private bool CommandContextBlocked => _newSessionDecisionActive || StoppagePopup?.IsOpen==true || _recoveryPromptActive || _resetDecisionActive || MatchLoadingPanel.IsVisible || SportSelectionPanel.HasOpenSheet ||
+    private bool CommandContextBlocked => _newSessionDecisionActive || _homeNavigationDecisionActive || StoppagePopup?.IsOpen==true || _recoveryPromptActive || _resetDecisionActive || MatchLoadingPanel.IsVisible || SportSelectionPanel.HasOpenSheet ||
         (TrainingControlPanelView.IsVisible && (TrainingControlPanelView.HasActiveClearDecision || TrainingControlPanelView.HasActiveExitDecision)) ||
         Keyboard.FocusedElement is System.Windows.Controls.MenuItem ||
         OwnedWindows.Cast<Window>().Any(w => w.IsVisible && !OutputWindows().Contains(w)) ||
@@ -55,7 +60,7 @@ public partial class MainWindow
     {
         if (SportSelectionPanel.IsVisible) return;
         bool capture = _homeReturn.Count == 0;
-        if (capture) _homeReturnMode = _sportMode;
+        if (capture) { _homeReturnMode = _sportMode; _homeReturnFocus = Keyboard.FocusedElement as FrameworkElement; }
         FrameworkElement? settingsReturn = _commandPreferencesReturn ?? (_returnToCricketFromGlobalSettings ? CricketControlPanelView : null);
         foreach (var surface in ApplicationSurface.Children.OfType<FrameworkElement>())
         {
@@ -72,6 +77,93 @@ public partial class MainWindow
         SportSelectionPanel.PrepareForDisplay();
         SportSelectionPanel.Visibility = Visibility.Visible;
         SportSelectionPanel.Opacity = 1;
+    }
+
+    private void OperatorHomeNavigation_Click(object sender, RoutedEventArgs e) => RequestOperatorHome();
+    private void OperatorSettingsNavigation_Click(object sender, RoutedEventArgs e) => RequestOperatorSettings();
+    private void OperatorCommandNavigation_Click(object sender, RoutedEventArgs e) => OpenCommandBar();
+
+    private bool TryGetOperatorNavigationCommand(string id, out OperatorCommand? command)
+    {
+        command = null;
+        if (CommandContextBlocked) return false;
+        command = Commands().FirstOrDefault(candidate => candidate.Id == id);
+        if (command is null) return false;
+        if (command.Unavailable is not { } reason) return true;
+        if (OpenCommandBar()) CommandHint.Text = reason;
+        return false;
+    }
+
+    private void RequestOperatorSettings()
+    {
+        if (GlobalSettingsPanel.IsVisible) return;
+        if (!TryGetOperatorNavigationCommand("settings", out var command)) return;
+        _globalSettingsReturnFocus = Keyboard.FocusedElement as FrameworkElement;
+        command!.Run();
+    }
+
+    private async void RequestOperatorHome()
+    {
+        if (SportSelectionPanel.IsVisible || !TryGetOperatorNavigationCommand("home", out _)) return;
+        if (!OutputWindows().Any(window => window.IsVisible)) { GoHome(); return; }
+        if (_homeNavigationDecisionActive || !IsLoaded || !IsVisible) return;
+
+        int generation = ++_homeNavigationDecisionGeneration;
+        int setupGeneration = _setupFlowGeneration, replacementGeneration = _sessionReplacementGeneration;
+        SportMode sport = _sportMode;
+        var cricket = _cricketMatch; var training = _trainingSession; bool aflReady = _aflMatchReady;
+        bool Current() => generation == _homeNavigationDecisionGeneration && IsLoaded && IsVisible
+            && setupGeneration == _setupFlowGeneration && replacementGeneration == _sessionReplacementGeneration
+            && sport == _sportMode && ReferenceEquals(cricket, _cricketMatch)
+            && ReferenceEquals(training, _trainingSession) && aflReady == _aflMatchReady;
+        var notice = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 14, Visibility = Visibility.Collapsed };
+        notice.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.Brush.DangerForeground");
+        bool Validate()
+        {
+            if (Current()) return true;
+            notice.Text = "The active session changed. Stay here and review it before returning Home.";
+            notice.Visibility = Visibility.Visible;
+            return false;
+        }
+        void ClosingOwner(object? sender, System.ComponentModel.CancelEventArgs args) => Views.CricketPrompt.CancelAll(ApplicationSurface);
+        var enabled = ApplicationSurface.Children.OfType<UIElement>().ToDictionary(child => child, child => child.IsEnabled);
+        _homeNavigationDecisionActive = true;
+        Closing += ClosingOwner;
+        bool accepted = false;
+        try
+        {
+            foreach (var child in enabled.Keys) child.IsEnabled = false;
+            string explanation = _sportMode == SportMode.Training
+                ? "Live training output will turn off. Your training session and timer keep running, and the session stays open when you return from Home. Output stays off until you choose to show it again."
+                : "Live scoreboard output will turn off. Your match, score and any running clock stay active. Return to the session from Home; output stays off until you choose to show it again.";
+            var body = new StackPanel();
+            var detail = new TextBlock { Text = explanation, TextWrapping = TextWrapping.Wrap, FontSize = 14, Margin = new Thickness(0, 8, 0, 8) };
+            detail.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.TextBrush");
+            body.Children.Add(detail); body.Children.Add(notice);
+            accepted = await Views.CricketPrompt.ShowValidatedAsync(ApplicationSurface, "Return to Home?", "", body, Validate,
+                new("stay", "Stay in session", true), new("apply", "Return to Home")) == "apply";
+        }
+        finally
+        {
+            Closing -= ClosingOwner;
+            foreach (var (child, wasEnabled) in enabled) child.IsEnabled = wasEnabled;
+            _homeNavigationDecisionActive = false;
+        }
+        if (accepted && Current()) GoHome();
+    }
+
+    private void RestoreGlobalSettingsReturnFocus()
+    {
+        FrameworkElement? target = _globalSettingsReturnFocus;
+        _globalSettingsReturnFocus = null;
+        if (target is null) return;
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
+        {
+            if (GlobalSettingsPanel.IsVisible || CommandOverlay.IsVisible || !IsVisible
+                || !target.IsLoaded || !target.IsVisible || !target.IsEnabled || !target.Focusable
+                || !ReferenceEquals(Window.GetWindow(target), this)) return;
+            target.Focus(); Keyboard.Focus(target);
+        }));
     }
 
     private string CurrentSessionTitle() => (_homeReturn.Count > 0 ? _homeReturnMode : _sportMode) == SportMode.Cricket && _cricketMatch is { } cricket
@@ -98,6 +190,13 @@ public partial class MainWindow
             _sportMode = _homeReturnMode;
             SportSelectionPanel.Visibility = Visibility.Collapsed;
             SportSelectionPanel.SetCurrentSession(null);
+            FrameworkElement? target = _homeReturnFocus; _homeReturnFocus = null;
+            if (target is not null) Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
+            {
+                if (SportSelectionPanel.IsVisible || !target.IsLoaded || !target.IsVisible || !target.IsEnabled || !target.Focusable
+                    || !ReferenceEquals(Window.GetWindow(target), this)) return;
+                target.Focus(); Keyboard.Focus(target);
+            }));
             return;
         }
         ResumeDeferredMatch();
@@ -189,7 +288,9 @@ public partial class MainWindow
 
     private void OpenOperatorPreferences()
     {
+        if (GlobalSettingsPanel.IsVisible) return;
         if (CricketControlPanelView.IsVisible && _cricketMatch is not null) { OpenCricketApplicationPreferences(); return; }
+        _globalSettingsReturnFocus ??= Keyboard.FocusedElement as FrameworkElement;
         _commandPreferencesReturn = MainContent.IsVisible ? MainContent : TrainingControlPanelView.IsVisible ? TrainingControlPanelView : null;
         if (_commandPreferencesReturn is not null)
         {
@@ -197,6 +298,7 @@ public partial class MainWindow
             RefreshGlobalSettingsOutputPreferences();
             GlobalSettingsPanel.SetBackCaption("←  Back to session");
             GlobalSettingsPanel.Visibility = Visibility.Visible;
+            GlobalSettingsPanel.FocusBackButton();
         }
         else OnSportSelected(SportMode.Settings);
     }
@@ -233,7 +335,7 @@ public partial class MainWindow
         bool setup = SetupWizardPanel.IsVisible || CricketSetupWizardPanel.IsVisible;
         string? changePage = editing ? "Apply or cancel the scorecard edits first."
             : setup ? "Finish setup or use its Back / cancel control first." : null;
-        if (!home) yield return new("home", "Home / resume", "landing saved session", GoHome, changePage);
+        if (!home) yield return new("home", "Home / resume", "landing saved session match clock carries on", RequestOperatorHome, changePage);
         yield return new("settings", "Application settings", "general cricket afl sound volume mute audio appearance preferences settings", OpenOperatorPreferences, changePage);
         if (home)
         {
@@ -252,7 +354,9 @@ public partial class MainWindow
         if (afl)
         {
             yield return new("afl-match", "AFL match controls", "score clock quarter", () => MainTabControl.SelectedIndex = 0);
-            yield return new("afl-output", "AFL presentation controls", "scorebug output display", () => MainTabControl.SelectedItem = OutputStudioTab);
+            string? outputUnavailable = _uxPreferences.GuidedOperatorMode
+                ? "Select Advanced Tools to reveal Output controls." : null;
+            yield return new("afl-output", "AFL presentation controls", "scorebug output display", () => MainTabControl.SelectedItem = OutputStudioTab, outputUnavailable);
             yield return new("afl-settings", "AFL match settings", "sound volume audio goal animations options settings", () => MainTabControl.SelectedItem = MatchSetupTab);
         }
         if (cricket || afl || training)
@@ -289,7 +393,7 @@ public partial class MainWindow
         return true;
     }
 
-    private void CloseCommandBar()
+    private void CloseCommandBar(bool restoreFocus = true)
     {
         _match.MatchChanged -= RefreshCommands;
         if (_commandObservedCricket is not null) _commandObservedCricket.MatchChanged -= RefreshCommands;
@@ -297,8 +401,27 @@ public partial class MainWindow
         CommandOverlay.Visibility = Visibility.Collapsed;
         foreach (var (child, enabled) in _commandEnabled) child.IsEnabled = enabled;
         _commandEnabled.Clear();
-        if (_commandPreviousFocus is UIElement { IsVisible: true, IsEnabled: true } previous) previous.Focus();
+        if (restoreFocus && _commandPreviousFocus is UIElement { IsVisible: true, IsEnabled: true } previous) previous.Focus();
         _commandPreviousFocus = null;
+    }
+
+    private static bool CommandChangesOperatorTab(string id) => id is "scorecard" or "cricket-output" or "afl-match" or "afl-output" or "afl-settings";
+
+    private void FocusSelectedOperatorTab(string id)
+    {
+        System.Windows.Controls.TabControl? tabs = id is "scorecard" or "cricket-output"
+            ? CricketControlPanelView.MainTabControl : MainTabControl;
+        if (tabs?.SelectedItem is not System.Windows.Controls.TabItem target) return;
+        int generation = ++_commandTabFocusGeneration;
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
+        {
+            if (generation != _commandTabFocusGeneration || CommandOverlay.IsVisible
+                || !ReferenceEquals(tabs.SelectedItem, target) || !target.IsVisible || !target.IsEnabled) return;
+            // A tab command can leave focus in the page it just hid. Restore
+            // focus to the selected destination; the selected-item and
+            // generation checks reject callbacks made stale by later routing.
+            target.Focus(); Keyboard.Focus(target);
+        }));
     }
 
     private void RefreshCommands()
@@ -367,7 +490,14 @@ public partial class MainWindow
         if (CommandContextBlocked || command is null) { CloseCommandBar(); return false; }
         if (command.Unavailable is { } reason) { CommandHint.Text = reason; return false; }
         _commandExecuting = true;
-        try { CloseCommandBar(); command.Run(); return true; }
+        try
+        {
+            bool changesTab = CommandChangesOperatorTab(command.Id);
+            CloseCommandBar(restoreFocus: !changesTab);
+            command.Run();
+            if (changesTab) FocusSelectedOperatorTab(command.Id);
+            return true;
+        }
         finally { _commandExecuting = false; }
     }
 

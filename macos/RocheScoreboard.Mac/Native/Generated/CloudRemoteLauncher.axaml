@@ -58,7 +58,19 @@
                             <Border Height="1" Background="{DynamicResource ControlCentre.BorderBrush}" Margin="0,0,0,8" />
                             <TextBlock x:Name="StatusText" Text="Checking configuration…" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,8" />
                             <StackPanel x:Name="IdleState" IsVisible="False">
-                                <Button x:Name="StartButton" Content="Start cloud session" Height="42" MinHeight="0" Padding="8,0" FontSize="14" FontWeight="SemiBold" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Foreground="{DynamicResource ControlCentre.TextBrush}" Cursor="Hand" Click="StartButton_Click" />
+                                <Button x:Name="StartButton" Height="48" MinHeight="0" Padding="8,0" FontSize="14" FontWeight="SemiBold" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Foreground="{DynamicResource ControlCentre.TextBrush}" Cursor="Hand" AutomationProperties.Name="Start cloud session" AutomationProperties.ItemStatus="Ready" Click="StartButton_Click">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="18" />
+                                            <RowDefinition Height="4" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock x:Name="StartButtonLabel" Text="Start cloud session" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Grid Grid.Row="1">
+                                            <ProgressBar x:Name="StartBusyProgress" IsIndeterminate="True" Height="3" Foreground="{DynamicResource ControlCentre.AccentBrush}" Background="Transparent" IsVisible="False" />
+                                            <TextBlock x:Name="StartBusyStatic" Text="" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" IsVisible="False" />
+                                        </Grid>
+                                    </Grid>
+                                </Button>
                                 <TextBlock Text="A new join code is created each time." FontSize="12" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,0" />
                             </StackPanel>
                             <StackPanel x:Name="DisabledState" IsVisible="False">
@@ -86,7 +98,19 @@
                                     <TextBlock x:Name="JoinUrlText" Text="" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
                                     <Button x:Name="CopyUrlButton" Content="Copy URL" Height="40" MinHeight="40" AutomationProperties.Name="Copy join URL" FontSize="13" FontWeight="Bold" Background="{DynamicResource ControlCentre.RaisedBrush}" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Foreground="{DynamicResource ControlCentre.TextBrush}" Cursor="Hand" Margin="0,4,0,0" Click="CopyUrlButton_Click" Theme="{StaticResource ControlCentre.Button}" />
                                 </StackPanel>
-                                <Button x:Name="EndButton" Content="End session" Height="40" MinHeight="40" FontSize="13" FontWeight="Bold" Background="Transparent" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Foreground="{DynamicResource ControlCentre.TextBrush}" Cursor="Hand" Margin="0,10,0,0" Click="EndButton_Click" Theme="{StaticResource ControlCentre.Button}" />
+                                <Button x:Name="EndButton" Height="48" MinHeight="40" FontSize="13" FontWeight="Bold" AutomationProperties.Name="End cloud session" AutomationProperties.ItemStatus="Ready" Background="Transparent" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" Foreground="{DynamicResource ControlCentre.TextBrush}" Cursor="Hand" Margin="0,10,0,0" Click="EndButton_Click" Theme="{StaticResource ControlCentre.Button}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="18" />
+                                            <RowDefinition Height="4" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock x:Name="EndButtonLabel" Text="End session" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Grid Grid.Row="1">
+                                            <ProgressBar x:Name="EndBusyProgress" IsIndeterminate="True" Height="3" Foreground="{DynamicResource ControlCentre.AccentBrush}" Background="Transparent" IsVisible="False" />
+                                            <TextBlock x:Name="EndBusyStatic" Text="" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" IsVisible="False" />
+                                        </Grid>
+                                    </Grid>
+                                </Button>
                             </StackPanel>
                             <TextBlock x:Name="CopyFeedbackText" Text="" MinHeight="18" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="13" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,8,0,0" />
                         </StackPanel>

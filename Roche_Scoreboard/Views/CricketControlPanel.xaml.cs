@@ -24,8 +24,16 @@ namespace Roche_Scoreboard.Views
     {
         private sealed record PlayerChoice(string Name, string Figures, string Status);
         public event Action? ApplicationPreferencesRequested;
+        public event Action? HomeNavigationRequested;
+        public event Action? CommandSearchRequested;
         private void OpenApplicationPreferences_Click(object sender, RoutedEventArgs e)
             => ApplicationPreferencesRequested?.Invoke();
+        private void HomeNavigation_Click(object sender, RoutedEventArgs e)
+            => HomeNavigationRequested?.Invoke();
+        private void ApplicationPreferencesNavigation_Click(object sender, RoutedEventArgs e)
+            => ApplicationPreferencesRequested?.Invoke();
+        private void CommandSearchNavigation_Click(object sender, RoutedEventArgs e)
+            => CommandSearchRequested?.Invoke();
         private CricketOverlayHost? _overlayHost;
         private readonly Dictionary<CricketOverlayKind, Button> _overlayButtons = new();
         public void SetOverlayHost(CricketOverlayHost host)

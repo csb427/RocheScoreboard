@@ -147,7 +147,15 @@ public sealed partial class BreakRotationModeIsolationTests
         Assert.Same(homeItem,results.SelectedItem);Assert.True(search.IsFocused);
         TrainingRootClearKey(main,PhysicalKey.Enter);
         var home=Named<SportSelectionScreen>(main,"SportSelectionPanel");
-        await Until(()=>home.IsEffectivelyVisible&&!command.IsVisible&&!panel.IsEffectivelyVisible,"Typed actual Home command must hide current Training and show the single Home.");
+        var surface=Named<Panel>(main,"ApplicationSurface");
+        await Until(()=>surface.Children.OfType<Border>().Any(border=>Equals(border.Tag,"cricket-decision-sheet")&&border.IsEffectivelyVisible),
+            "Typed Home from live Training must ask before disabling its active output.");
+        var homeDecision=Assert.Single(surface.Children.OfType<Border>(),border=>Equals(border.Tag,"cricket-decision-sheet")&&border.IsEffectivelyVisible);
+        Assert.Contains(homeDecision.GetVisualDescendants().OfType<TextBlock>(),text=>text.Text?.StartsWith("Live training output will turn off",StringComparison.Ordinal)==true);
+        Assert.True(panel.IsEffectivelyVisible);Assert.True(output.IsVisible);Assert.False(home.IsEffectivelyVisible);
+        homeDecision.GetVisualDescendants().OfType<Button>().Single(button=>Equals(button.Tag,"apply"))
+            .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        await Until(()=>home.IsEffectivelyVisible&&!command.IsVisible&&!panel.IsEffectivelyVisible,"Confirmed Home must show the single Home and hide Training.");
         Assert.False(panel.IsVisible);Assert.True(panel.IsLoaded);Assert.False(panel.HasActiveClearDecision);
         Assert.False(Named<Border>(panel,"TrainingClearReviewOverlay").IsVisible);
         Assert.Same(session,Read<TrainingSession>(main,"_trainingSession"));Assert.False(output.IsVisible);Assert.True(Read<bool>(main,"_outputActivationRequired"));
@@ -168,5 +176,46 @@ public sealed partial class BreakRotationModeIsolationTests
         TrainingRootClearCapture(main,"training-clear-root-home-resume-offair");
         await TrainingRootClearOpenReview(main,panel,session);TrainingRootClearKey(main,PhysicalKey.Escape);await Pump(50);
         Assert.False(panel.HasActiveClearDecision);Assert.Equal(state,TrainingRootClearState(session));Assert.False(output.IsVisible);Assert.Equal(0,structural);Assert.Equal(0,exits);scope.AssertOwnedPaths();
+    }
+
+    [AvaloniaFact][Trait("Evidence","TrainingActualRootCorrectionReturn")]
+    public async Task EscapeFromRunningTimerCorrectionReturnsToItsOpeningRowInTheActualOperator()
+    {
+        await using var scope=new StorageScope(true,null);
+        var(panel,session)=await TrainingRootClearOpenTraining(scope);var main=scope.Main!;
+        session.Clear();
+        var active=new TrainingTimer("Root correction active",TimeSpan.FromMinutes(3));
+        var queued=new TrainingTimer("Root correction queued",TimeSpan.FromMinutes(2));
+        session.AddTimer(active);session.AddTimer(queued);
+        int structural=0,exits=0;session.StructuralChanged+=()=>structural++;panel.ExitRequested+=()=>exits++;
+        var output=Read<Window?>(main,"_trainingDisplayWindow");Assert.NotNull(output);Assert.True(output.IsVisible);
+        Assert.False(Read<bool>(main,"_outputActivationRequired"));
+
+        var start=Named<Button>(panel,"StartPauseButton");await TrainingRootClearTabTo(main,start);
+        TrainingRootClearKey(main,PhysicalKey.Space);await Until(()=>session.IsRunning,"The actual Training start action must start the active timer.");
+        var edit=Assert.Single(panel.GetVisualDescendants().OfType<Button>(),button=>
+            Equals(ToolTip.GetTip(button),"Edit title and duration")&&button.GetVisualAncestors().OfType<Border>().First()
+                .GetVisualDescendants().OfType<TextBlock>().Any(text=>text.Text==active.Title));
+        await TrainingRootClearTabTo(main,edit);TrainingRootClearKey(main,PhysicalKey.Space);
+        var save=Assert.Single(panel.GetVisualDescendants().OfType<Button>(),button=>Equals(ToolTip.GetTip(button),"Save (Enter)"));
+        await Until(()=>save.IsEffectivelyVisible,"The active timer's nested correction must open from its row action.");
+        var editor=save.GetVisualAncestors().OfType<Grid>().First(grid=>grid.GetVisualDescendants().OfType<TextBox>().Count()==3);
+        var fields=editor.GetVisualDescendants().OfType<TextBox>().ToArray();
+        fields[0].Text="Abandoned title";fields[1].Text="07";fields[2].Text="09";
+        var cancel=Assert.Single(editor.GetVisualDescendants().OfType<Button>(),button=>Equals(ToolTip.GetTip(button),"Cancel (Esc)"));
+        await TrainingRootClearTabTo(main,cancel);TrainingRootClearKey(main,PhysicalKey.Escape);
+        await Until(()=>!panel.GetVisualDescendants().OfType<Button>().Any(button=>Equals(ToolTip.GetTip(button),"Save (Enter)")),
+            "Escape must remove the nested timer correction from the active Training visual tree.");
+
+        Assert.True(session.IsRunning);Assert.Same(active,session.Active);
+        Assert.Equal("Root correction active",active.Title);Assert.Equal(TimeSpan.FromMinutes(3),active.Duration);
+        Assert.Equal("Root correction queued",queued.Title);Assert.Equal(TimeSpan.FromMinutes(2),queued.Duration);
+        var returnedEdit=Assert.Single(panel.GetVisualDescendants().OfType<Button>(),button=>
+            Equals(ToolTip.GetTip(button),"Edit title and duration")&&button.GetVisualAncestors().OfType<Border>().First()
+                .GetVisualDescendants().OfType<TextBlock>().Any(text=>text.Text==active.Title));
+        Assert.Equal(0,structural);Assert.Equal(0,exits);Assert.True(returnedEdit.IsFocused);
+        Assert.False(Named<Border>(panel,"TrainingExitReviewOverlay").IsVisible);
+        Assert.True(panel.IsEffectivelyVisible);Assert.True(output.IsVisible);Assert.False(Read<bool>(main,"_outputActivationRequired"));
+        TrainingRootClearCapture(main,"training-actual-root-correction-return");scope.AssertOwnedPaths();
     }
 }

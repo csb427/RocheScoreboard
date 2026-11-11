@@ -63,6 +63,8 @@ namespace Roche_Scoreboard.Views
 
         private bool _active, _configReady, _closing, _focusAfterClose, _focusOnOpen, _suppressHeaderClick;
         private bool _ownerGeometryReady, _ownerGeometryPending;
+        private bool _startPending, _endPending;
+        private bool _busyMotionWatching;
         private int _geometryGeneration;
         private string _lastCloseReason = "none";
         private string _joinCode = "", _joinUrl = "";
@@ -107,15 +109,20 @@ namespace Roche_Scoreboard.Views
             _configReady = configReady;
             _joinCode = code;
             _joinUrl = url;
-            CopyCodeButton.IsEnabled = active && !string.IsNullOrWhiteSpace(code);
-            IdleState.Visibility     = (!active && configReady) ? Visibility.Visible : Visibility.Collapsed;
-            LiveState.Visibility     = active                    ? Visibility.Visible : Visibility.Collapsed;
-            DisabledState.Visibility = (!active && !configReady) ? Visibility.Visible : Visibility.Collapsed;
+            bool sessionVisible = active || _endPending;
+            CopyCodeButton.IsEnabled = active && !_endPending && !string.IsNullOrWhiteSpace(code);
+            IdleState.Visibility     = (!sessionVisible && configReady) ? Visibility.Visible : Visibility.Collapsed;
+            LiveState.Visibility     = sessionVisible                  ? Visibility.Visible : Visibility.Collapsed;
+            DisabledState.Visibility = (!sessionVisible && !configReady) ? Visibility.Visible : Visibility.Collapsed;
 
-            StartButton.IsEnabled = configReady;
-            EndButton.IsEnabled = active;
+            StartButton.IsEnabled = configReady && !_startPending && !_endPending;
+            EndButton.IsEnabled = active && !_startPending && !_endPending;
 
-            if (active)
+            if (_endPending)
+            {
+                StatusText.Text = "Ending cloud session…";
+            }
+            else if (active)
             {
                 StatusText.Text = "Session live · waiting for connection…";
 
@@ -163,10 +170,66 @@ namespace Roche_Scoreboard.Views
                     QrImage.Source = null;
                 }
             }
-            else
+            else if (!_endPending)
             {
                 QrImage.Source = null;
             }
+        }
+
+        internal void SetStartPending(bool pending)
+        {
+            _startPending = pending;
+            StartButton.IsEnabled = _configReady && !pending && !_endPending;
+            StartButtonLabel.Text = pending ? "Creating session…" : "Start cloud session";
+            System.Windows.Automation.AutomationProperties.SetName(StartButton, pending ? "Creating cloud session" : "Start cloud session");
+            System.Windows.Automation.AutomationProperties.SetItemStatus(StartButton, pending ? "Creating session" : "Ready");
+            OperatorControlMotion.SetIsBusy(StartButton, pending);
+            StartBusyProgress.Visibility = pending && OperatorMotion.Enabled ? Visibility.Visible : Visibility.Hidden;
+            StartBusyStatic.Text = "";
+            StartBusyStatic.Visibility = Visibility.Hidden;
+            if (pending) StatusText.Text = "Creating session…";
+            else if (!_active && _configReady) StatusText.Text = "Ready. Tap Start to open a session.";
+            UpdateBusyMotionWatch();
+        }
+
+        internal void SetEndPending(bool pending)
+        {
+            _endPending = pending;
+            EndButton.IsEnabled = _active && !pending && !_startPending;
+            EndButtonLabel.Text = pending ? "Ending session…" : "End session";
+            System.Windows.Automation.AutomationProperties.SetName(EndButton, pending ? "Ending cloud session" : "End cloud session");
+            System.Windows.Automation.AutomationProperties.SetItemStatus(EndButton, pending ? "Ending session" : "Ready");
+            OperatorControlMotion.SetIsBusy(EndButton, pending);
+            EndBusyProgress.Visibility = pending && OperatorMotion.Enabled ? Visibility.Visible : Visibility.Hidden;
+            EndBusyStatic.Text = "";
+            EndBusyStatic.Visibility = Visibility.Hidden;
+            if (pending) StatusText.Text = "Ending cloud session…";
+            else if (_active) StatusText.Text = "Session live · waiting for connection…";
+            UpdateBusyMotionWatch();
+        }
+
+        private void UpdateBusyMotionWatch()
+        {
+            bool pending = _startPending || _endPending;
+            if (pending && !_busyMotionWatching)
+            {
+                OperatorAppearance.Changed += BusyMotionPreferenceChanged;
+                _busyMotionWatching = true;
+            }
+            else if (!pending && _busyMotionWatching)
+            {
+                OperatorAppearance.Changed -= BusyMotionPreferenceChanged;
+                _busyMotionWatching = false;
+            }
+            BusyMotionPreferenceChanged();
+        }
+
+        private void BusyMotionPreferenceChanged()
+        {
+            StartBusyProgress.Visibility = _startPending && OperatorMotion.Enabled ? Visibility.Visible : Visibility.Hidden;
+            EndBusyProgress.Visibility = _endPending && OperatorMotion.Enabled ? Visibility.Visible : Visibility.Hidden;
+            StartBusyStatic.Visibility = Visibility.Hidden;
+            EndBusyStatic.Visibility = Visibility.Hidden;
         }
 
         /// <summary>Updates the small "connected" pip on the live state.</summary>
@@ -564,17 +627,15 @@ namespace Roche_Scoreboard.Views
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsExpanded || _closing || !IsLoaded || !LauncherAvailable() || !_configReady || _active || !StartButton.IsEnabled) return;
-            StartButton.IsEnabled = false;
-            StatusText.Text = "Creating session…";
-
-            CompleteClose(false, "start-request");
+            if (!IsExpanded || _closing || !IsLoaded || !LauncherAvailable() || !_configReady || _active || _startPending || _endPending || !StartButton.IsEnabled) return;
+            if (StartRequested is null) return;
+            SetStartPending(true);
             StartRequested?.Invoke(this, EventArgs.Empty);
         }
 
         private void EndButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsExpanded || _closing || !IsLoaded || !LauncherAvailable() || !_active || !EndButton.IsEnabled) return;
+            if (!IsExpanded || _closing || !IsLoaded || !LauncherAvailable() || !_active || _startPending || _endPending || !EndButton.IsEnabled) return;
             int state = _stateGeneration; long host = _hostGeneration;
             EndButton.IsEnabled = false;
             CompleteClose(false, "end-request");

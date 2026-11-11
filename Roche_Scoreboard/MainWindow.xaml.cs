@@ -401,7 +401,12 @@ namespace Roche_Scoreboard
 #endif
             SportSelectionPanel.CommandBarRequested += () => OpenCommandBar();
             _match.MatchChanged += RefreshHomeCurrentSession;
-            CricketControlPanelView.ApplicationPreferencesRequested += OpenCricketApplicationPreferences;
+            CricketControlPanelView.ApplicationPreferencesRequested += RequestOperatorSettings;
+            CricketControlPanelView.HomeNavigationRequested += RequestOperatorHome;
+            CricketControlPanelView.CommandSearchRequested += () => OpenCommandBar();
+            TrainingControlPanelView.ApplicationPreferencesRequested += RequestOperatorSettings;
+            TrainingControlPanelView.HomeNavigationRequested += RequestOperatorHome;
+            TrainingControlPanelView.CommandSearchRequested += () => OpenCommandBar();
             GlobalSettingsPanel.BackRequested += OnGlobalSettingsBackRequested;
             GlobalSettingsPanel.CricketOutputPreferencesChanged += () => {
                 var preferences = OperatorWorkflowPreferences.Load();
@@ -1003,7 +1008,7 @@ namespace Roche_Scoreboard
 
         private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (_newSessionDecisionActive) return; // The owned in-app sheet handles its own keys.
+            if (_newSessionDecisionActive || _homeNavigationDecisionActive) return; // The owned in-app sheet handles its own keys.
             if (_pendingKeybindAction is not null && !KeybindCaptureContextCurrent()) RetireKeybindCapture();
             if (_resetDecisionActive) { HandleResetPreviewKeyDown(e); return; }
             bool commandChord = e.Key == Key.K && (Keyboard.Modifiers & ModifierKeys.Control) != 0;
@@ -1891,6 +1896,7 @@ namespace Roche_Scoreboard
 
             if (mode == SportMode.Settings)
             {
+                _globalSettingsReturnFocus = Keyboard.FocusedElement as FrameworkElement;
                 _returnToCricketFromGlobalSettings = false;
                 GlobalSettingsPanel.SetBackCaption("←  Back to Home");
                 RefreshGlobalSettingsOutputPreferences();
@@ -1900,6 +1906,7 @@ namespace Roche_Scoreboard
                 CricketControlPanelView.Visibility = Visibility.Collapsed;
                 TrainingControlPanelView.Visibility = Visibility.Collapsed;
                 GlobalSettingsPanel.Visibility = Visibility.Visible;
+                GlobalSettingsPanel.FocusBackButton();
                 Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Global Settings";
             }
             else
@@ -1911,22 +1918,26 @@ namespace Roche_Scoreboard
         private bool _returnToCricketFromGlobalSettings;
         private void OpenCricketApplicationPreferences()
         {
-            if (_cricketMatch is null) return;
+            if (GlobalSettingsPanel.IsVisible || _cricketMatch is null || CricketControlPanelView.HasPendingOperatorEdits) return;
+            _globalSettingsReturnFocus ??= Keyboard.FocusedElement as FrameworkElement;
             _returnToCricketFromGlobalSettings = true;
             RefreshGlobalSettingsOutputPreferences();
             CricketControlPanelView.Visibility = Visibility.Collapsed;
             GlobalSettingsPanel.SetBackCaption("←  Back to cricket");
             GlobalSettingsPanel.Visibility = Visibility.Visible;
+            GlobalSettingsPanel.FocusBackButton();
         }
 
         private void OnGlobalSettingsBackRequested()
         {
+            if (!GlobalSettingsPanel.IsVisible) return;
             if (_commandPreferencesReturn is { } surface)
             {
                 _commandPreferencesReturn = null;
                 GlobalSettingsPanel.Visibility = Visibility.Collapsed;
                 surface.Visibility = Visibility.Visible;
                 GlobalSettingsPanel.SetBackCaption("←  Back to Home");
+                RestoreGlobalSettingsReturnFocus();
                 return;
             }
             if (_returnToCricketFromGlobalSettings && _cricketMatch is not null)
@@ -1935,6 +1946,7 @@ namespace Roche_Scoreboard
                 GlobalSettingsPanel.Visibility = Visibility.Collapsed;
                 GlobalSettingsPanel.SetBackCaption("←  Back to Home");
                 CricketControlPanelView.Visibility = Visibility.Visible;
+                RestoreGlobalSettingsReturnFocus();
                 return;
             }
             _returnToCricketFromGlobalSettings = false;
@@ -1950,6 +1962,7 @@ namespace Roche_Scoreboard
             SportSelectionPanel.Opacity = 1;
             SportSelectionPanel.Visibility = Visibility.Visible;
             Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)}";
+            RestoreGlobalSettingsReturnFocus();
         }
 
         private void OnGlobalSettingsStartupModeChanged(string mode)
@@ -2861,10 +2874,10 @@ namespace Roche_Scoreboard
 
         /// <summary>
         /// Crash-safe save wrapper invoked from the global exception handlers
-        /// and Windows session-end handler in <see cref="App"/>. Swallows any
-        /// exception so a save attempt during a teardown never re-throws and
-        /// short-circuits the rest of the shutdown path. Always called on the
-        /// UI thread.
+        /// and Windows session-end handler in <see cref="App"/>. Ordinary save
+        /// failures remain best-effort. Resource failures must reach the global
+        /// policy rather than letting a failed render channel resume. Always
+        /// called on the UI thread.
         /// </summary>
         internal void TrySaveGameStateForShutdown()
         {
@@ -2873,9 +2886,9 @@ namespace Roche_Scoreboard
                 SaveGameState();
                 FlushCricketGameStateSave();
             }
-            catch
+            catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
             {
-                // Best-effort during shutdown / crash; do not re-throw.
+                // Ordinary shutdown / crash-save failures remain best-effort.
             }
         }
 

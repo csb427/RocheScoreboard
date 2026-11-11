@@ -1,5 +1,5 @@
 // Generated from Views/OperatorGlassSurface.cs; edit translator/adapters.
-// Source SHA-256: 568ddb177283725212a67c54445ceec915dce2ee4978e90c372ad944abe7d501
+// Source SHA-256: 9a217543e24712dc3c91fb8185f3e4a71a10af139920acf7d6fa7432e585c2e9
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -50,28 +50,46 @@ public sealed class OperatorGlassSurface : NativePaintBorder
     private Brush _sample = OperatorSceneBackdrop.FallbackBrush();
     private OperatorGlassEffect? _lens;
     private DispatcherOperation? _refresh;
+    private Control? _observedLiveSource;
+    private bool _observingLiveSource;
+    private VisualBrush? _liveBrush;
+    private Border? _frostVisual;
+    private VisualBrush? _frostBrush;
+    private Rect _liveBounds = default(Rect);
     private bool _snapshotReady;
     private bool _down;
     private double _activityTarget;
     private int _activityGeneration;
     private bool HasMaterial => !(Background is ISolidColorBrush { Color.A: 0 } &&
         (BorderThickness.Left == 0 || BorderBrush is ISolidColorBrush { Color.A: 0 }));
+    private bool NeedsBackdrop => HasMaterial && Material != GlassMaterial.Opaque
+        && OperatorAppearance.GlassEnabled && !NativeSystemPreferences.HighContrast;
     internal Point OpticalSettings=>_lens?.Optics ?? default;
     internal bool IsMaterialAnimating=>_lens?.HasAnimatedProperties==true;
     internal bool UsesShader => false;
     internal bool HasCapturedBackdrop => _snapshotReady;
+    internal int LiveSampleBuildCount { get; private set; }
+    internal int LiveSampleUpdateCount { get; private set; }
     internal static bool ForceFallback { get; set; }
-    private static void Changed(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e) => ((OperatorGlassSurface)d).RefreshAppearance();
-    private static void SourceChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e) { var surface = (OperatorGlassSurface)d; surface._snapshotReady = false; surface.QueueSample(); }
+    private static void Changed(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
+    {
+        var surface = (OperatorGlassSurface)d;
+        surface.RefreshAppearance(); surface.ObserveLiveSource(); surface.QueueSample();
+    }
+    private static void SourceChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
+    {
+        var surface = (OperatorGlassSurface)d;
+        surface.ReleaseSample(); surface.ObserveLiveSource(); surface.QueueSample();
+    }
     public OperatorGlassSurface()
     {
         _materialVisual = new MaterialVisual(this) { IsHitTestVisible = false }; _focusEdge = new FocusEdge(this) { IsHitTestVisible = false };
         AddVisualChild(_materialVisual); AddVisualChild(_focusEdge);
         UseLayoutRounding = true;
-        Loaded += (_, _) => { OperatorAppearance.Changed-=AppearanceChanged;OperatorAppearance.Changed+=AppearanceChanged;RefreshAppearance(); QueueSample(); };
-        Unloaded += (_, _) => { OperatorAppearance.Changed-=AppearanceChanged;_refresh?.Abort(); _refresh = null; _snapshotReady = false; _sample = OperatorSceneBackdrop.FallbackBrush(); _down = false; ResetLight(); _materialVisual.Effect = null; _lens = null; };
+        Loaded += (_, _) => { OperatorAppearance.Changed-=AppearanceChanged;OperatorAppearance.Changed+=AppearanceChanged;ObserveLiveSource();RefreshAppearance(); QueueSample(); };
+        Unloaded += (_, _) => { OperatorAppearance.Changed-=AppearanceChanged;ReleaseSample();_down = false; ResetLight(); _materialVisual.Effect = null; _lens = null; };
         SizeChanged += (_, _) => { _snapshotReady = false; QueueSample(); RefreshAppearance(); };
-        NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, e) => { if(e.NewValue is true) QueueSample(); else { _refresh?.Abort(); _refresh = null; _down = false; ResetLight(); } });
+        NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, e) => { if(e.NewValue is true) { ObserveLiveSource(); QueueSample(); } else { ReleaseSample();_down = false; ResetLight(); } });
         PointerMoved += (_, e) => Illuminate(e.GetPosition(this), IsPointerOver ? .55 : 0);
         PointerEntered += (_, e) => Illuminate(e.GetPosition(this), .55);
         PointerExited += (_, _) => { _down = false; Illuminate(new Point(Bounds.Width * .28, 0), 0); };
@@ -95,7 +113,8 @@ public sealed class OperatorGlassSurface : NativePaintBorder
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if(_materialVisual is not null && (e.Property == BackgroundProperty || e.Property == BorderBrushProperty || e.Property == BorderThicknessProperty || e.Property == CornerRadiusProperty))RefreshAppearance();
+        if(_materialVisual is not null && (e.Property == BackgroundProperty || e.Property == BorderBrushProperty || e.Property == BorderThicknessProperty || e.Property == CornerRadiusProperty))
+        { RefreshAppearance(); ObserveLiveSource(); QueueSample(); }
     }
     private double Radius => Math.Min(CornerRadius.TopLeft, Math.Min(Bounds.Width, Bounds.Height) * .5);
     private Color BaseTint
@@ -123,14 +142,15 @@ public sealed class OperatorGlassSurface : NativePaintBorder
     {
         if(_materialVisual is null)return;
         _materialVisual.Opacity = HasMaterial ? 1 : 0;
-        if(!HasMaterial){ResetLight();_materialVisual.Effect=null;_sample=OperatorSceneBackdrop.FallbackBrush();_materialVisual.InvalidateVisual();return;}
+        if(!NeedsBackdrop)ReleaseSample();
+        if(!HasMaterial){ResetLight();_materialVisual.Effect=null;_materialVisual.InvalidateVisual();return;}
         if(!ForceFallback && OperatorAppearance.GlassEnabled && !NativeSystemPreferences.HighContrast && Material != GlassMaterial.Opaque)
             _lens ??= OperatorGlassEffect.Create();
         _materialVisual.Effect = null;
         if(_lens is not null) { _lens.Tint = BaseTint; _lens.Dimensions = new Point(Math.Max(1, Bounds.Width), Math.Max(1, Bounds.Height)); _lens.Radius = Math.Max(0, Radius);_lens.Optics=OperatorAppearance.GlassIntensity switch{OperatorGlassIntensity.Soft=>new Point(3,.24),OperatorGlassIntensity.Balanced=>new Point(7,.40),_=>new Point(14,.68)};_lens.EdgeDepth=OperatorAppearance.GlassIntensity switch{OperatorGlassIntensity.Soft=>.1,OperatorGlassIntensity.Balanced=>.075,_=>.055}; }
         _materialVisual.InvalidateVisual(); _focusEdge.InvalidateVisual();InvalidateVisual();
     }
-    private void AppearanceChanged() { RefreshAppearance();if(!OperatorMotion.Enabled || !OperatorAppearance.GlassEnabled)ResetLight();_snapshotReady=false;QueueSample(); }
+    private void AppearanceChanged() { RefreshAppearance();if(!OperatorMotion.Enabled || !OperatorAppearance.GlassEnabled)ResetLight();_snapshotReady=false;ObserveLiveSource();QueueSample(); }
     private void Illuminate(Point position, double value)
     {
         if(_lens is null)return;
@@ -143,12 +163,35 @@ public sealed class OperatorGlassSurface : NativePaintBorder
     private void ResetLight(){++_activityGeneration;_activityTarget=0;if(_lens is null)return;_lens.BeginAnimation(OperatorGlassEffect.ActivityProperty,null);_lens.Activity=0;}
     private void QueueSample()
     {
-        if(!HasMaterial || !IsLoaded || !IsVisible || Bounds.Width < 1 || Bounds.Height < 1)return;
+        if(!NeedsBackdrop || !IsLoaded || !IsVisible || Bounds.Width < 1 || Bounds.Height < 1)return;
         if(_refresh is { Status: DispatcherOperationStatus.Pending })return;
         _refresh = Dispatcher.UIThread.InvokeAsync(new Action(() => { _refresh = null; if(IsLoaded && IsVisible)RefreshSample(); }), DispatcherPriority.Loaded);
     }
+    private void ObserveLiveSource(bool observe = true)
+    {
+        Control? liveSource = GlassSource switch
+        {
+            OperatorSceneBackdrop scene when !scene.IsAncestorOf(this) => scene,
+            Avalonia.Controls.Panel { IsHitTestVisible: false } panel when !panel.IsAncestorOf(this) => panel,
+            null => OperatorDesign.GetBackdrop(this),
+            _ => _liveBrush?.Visual as Control
+        };
+        if (!ReferenceEquals(liveSource, _observedLiveSource))
+        {
+            if (_observingLiveSource && _observedLiveSource is not null) _observedLiveSource.LayoutUpdated -= LiveSourceLayoutUpdated;
+            _observedLiveSource = liveSource;
+            _observingLiveSource = false;
+        }
+        bool shouldObserve = observe && NeedsBackdrop && IsLoaded && IsVisible && _observedLiveSource is not null;
+        if (_observingLiveSource == shouldObserve || _observedLiveSource is null) return;
+        if (shouldObserve) _observedLiveSource.LayoutUpdated += LiveSourceLayoutUpdated;
+        else _observedLiveSource.LayoutUpdated -= LiveSourceLayoutUpdated;
+        _observingLiveSource = shouldObserve;
+    }
+    private void LiveSourceLayoutUpdated(object? sender, EventArgs e) => QueueSample();
     private void RefreshSample()
     {
+        if(!NeedsBackdrop){ReleaseSample();return;}
         var explicitSource = GlassSource;
         // Dedicated, non-interactive backdrop layers are safe live vector sources.
         // Capturing them would freeze an in-progress wallpaper transition into every tile.
@@ -165,31 +208,78 @@ public sealed class OperatorGlassSurface : NativePaintBorder
         }
         var scene = OperatorDesign.GetBackdrop(this) ?? (explicitSource is not null ? OperatorDesign.GetBackdrop(explicitSource) : null);
         if(scene is not null && scene.NativeWidth() > 0 && scene.NativeHeight() > 0)
-            SetLiveSample(scene);
+        { SetLiveSample(scene); return; }
+        _materialVisual.InvalidateVisual();
+    }
+    private void ReleaseSample()
+    {
+        if(_observingLiveSource && _observedLiveSource is not null)
+            _observedLiveSource.LayoutUpdated -= LiveSourceLayoutUpdated;
+        _observingLiveSource = false; _observedLiveSource = null;
+        _refresh?.Abort(); _refresh = null;
+        // Break the off-tree brush graph explicitly, including on hide. A cached
+        // RenderData may otherwise retain the old graph until another render.
+        if(_frostBrush is not null)_frostBrush.Visual = null;
+        if(_frostVisual is not null)
+        { _frostVisual.Background = null; _frostVisual.Effect = null; NativeCache.Set(_frostVisual, null); }
+        if(_liveBrush is not null)_liveBrush.Visual = null;
+        _liveBrush = null; _frostVisual = null; _frostBrush = null; _liveBounds = default(Rect);
+        _snapshotReady = false; _sample = OperatorSceneBackdrop.FallbackBrush();
         _materialVisual.InvalidateVisual();
     }
     private void SetLiveSample(Control source)
     {
         try
         {
+            if(ReferenceEquals(source,this) || source.IsAncestorOf(this)){ReleaseSample();return;}
             Point location=source.PointFromScreen(this.PointToScreen(new Point()));
             var size=new Size(Math.Max(1,Bounds.Width),Math.Max(1,Bounds.Height));
-            var live=new VisualBrush(source){SourceRect = new RelativeRect(new Rect(location,size), RelativeUnit.Absolute),Stretch=Stretch.Fill,};
-            
-            
-            
-            if((0>>16)>0 && OperatorAppearance.GlassEnabled && !NativeSystemPreferences.HighContrast)
+            var bounds = new Rect(location,size);
+            bool useFrost = (0>>16)>0 && OperatorAppearance.GlassEnabled && !NativeSystemPreferences.HighContrast;
+            double blurRadius = OperatorAppearance.GlassIntensity==OperatorGlassIntensity.Soft?10:6;
+            bool sameSource = ReferenceEquals(_liveBrush?.Visual,source);
+            bool sameFrost = useFrost == (_frostVisual is not null);
+            // LayoutUpdated is dispatcher-wide, not a source-content change. The
+            // live brush already follows content changes; do not allocate, arrange
+            // or invalidate in response to an unchanged global layout notification.
+            if(sameSource && sameFrost && _liveBounds==bounds &&
+                (!useFrost || _frostVisual?.Effect is BlurEffect currentBlur && currentBlur.Radius==blurRadius))return;
+
+            if(!sameSource || !sameFrost)
             {
-                // Blur only the sampled backdrop. Native labels and hit targets never enter this layer.
-                var frost=new NativeBorder{Width=size.Width,Height=size.Height,Background=live,Effect=new BlurEffect{Radius=OperatorAppearance.GlassIntensity==OperatorGlassIntensity.Soft?10:6,}};
-                frost.Measure(size);frost.Arrange(new Rect(size));
-                _sample=new VisualBrush(frost){SourceRect = new RelativeRect(new Rect(size), RelativeUnit.Absolute),Stretch=Stretch.Fill,};
-                
+                ReleaseSample();
+                _liveBrush=new VisualBrush(source){Stretch=Stretch.Fill,};
+
+
+
+                if(useFrost)
+                {
+                    // Keep one filtered off-tree visual for the lifetime of this
+                    // source. Native labels and hit targets remain outside it.
+                    _frostVisual=new NativeBorder{Background=_liveBrush,Effect=new BlurEffect{Radius=blurRadius,}};
+                    _frostBrush=new VisualBrush(_frostVisual){Stretch=Stretch.Fill,};
+
+                }
+                _sample = (Brush?)_frostBrush ?? _liveBrush;
+                LiveSampleBuildCount++;
             }
-            else _sample=live;
+            _liveBrush!.SourceRect = new RelativeRect(bounds, RelativeUnit.Absolute);
+            if(_frostVisual is not null && _frostBrush is not null)
+            {
+                if((_liveBounds.Width<=0 || _liveBounds.Height<=0) || _liveBounds.Size!=size)
+                {
+                    _frostVisual.Width=size.Width;_frostVisual.Height=size.Height;
+                    _frostVisual.Measure(size);_frostVisual.Arrange(new Rect(size));
+                    _frostBrush.SourceRect = new RelativeRect(new Rect(size), RelativeUnit.Absolute);
+                }
+                if(_frostVisual.Effect is BlurEffect frostBlur)frostBlur.Radius=blurRadius;
+            }
+            _liveBounds=bounds;
             _snapshotReady=false;
+            LiveSampleUpdateCount++;
+            ObserveLiveSource();
         }
-        catch(InvalidOperationException){_sample=OperatorSceneBackdrop.FallbackBrush();}
+        catch(InvalidOperationException){ReleaseSample();}
         _materialVisual.InvalidateVisual();
     }
     private bool TryCapture(Control source)

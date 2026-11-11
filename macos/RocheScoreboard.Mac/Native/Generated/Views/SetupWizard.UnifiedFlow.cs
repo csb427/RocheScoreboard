@@ -1,5 +1,5 @@
 // Generated from Views/SetupWizard.UnifiedFlow.cs; edit translator/adapters.
-// Source SHA-256: 9b7453828d0984b3c600fe0bf1c42cabe232cc2f53f07c440c2622f582f9631d
+// Source SHA-256: d8390e2b5500a20ca1e0f80247e59df75d210989e578a0661bdf84faf47e8915
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -39,7 +39,8 @@ public partial class SetupWizard
         {
             if (generation != _sportFocusGeneration || _currentStep != 0 || !IsVisible) return;
             var choice = CricketSportChoice.IsChecked == true ? CricketSportChoice : AflSportChoice;
-            choice.Focus(); choice.BringIntoView();
+            choice.Focus();
+            WizardViewport.RevealOperatorTarget(choice, () => generation == _sportFocusGeneration && _currentStep == 0 && IsVisible);
         }));
     }
     internal void ContinueWithAfl() => ShowStep(1, false);

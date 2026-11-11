@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml",
-  "source_sha256": "d1f1475792dd52acb6d2d76bade2ab5a455096d6ed1cd482ae32739246a3ee33",
+  "source_sha256": "e589349cf2837a4d9142581d963edaf5a486fdc97095d7bba807f45659cd1d1f",
   "names": [
     {
       "name": "HeaderSurface",
@@ -88,6 +88,21 @@
       "object": false
     },
     {
+      "name": "StartButtonLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "StartBusyProgress",
+      "type": "ProgressBar",
+      "object": false
+    },
+    {
+      "name": "StartBusyStatic",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "DisabledState",
       "type": "StackPanel",
       "object": false
@@ -143,12 +158,27 @@
       "object": false
     },
     {
+      "name": "EndButtonLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "EndBusyProgress",
+      "type": "ProgressBar",
+      "object": false
+    },
+    {
+      "name": "EndBusyStatic",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "CopyFeedbackText",
       "type": "TextBlock",
       "object": false
     }
   ],
-  "code_source_sha256": "b88db9eaf7fe8abd11cdfeed9bf964a4dc468f8d88f9dad3362fda3a38f2d9ba",
+  "code_source_sha256": "d7e05d8f24cad1d9030b12f612bae18f1dfe9a58c56c97d0b18bb052a509fe0d",
   "native_events": [
     {
       "name": "DetailsSurface",

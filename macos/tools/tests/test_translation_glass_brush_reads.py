@@ -1,12 +1,10 @@
-"""OUTSIDE adapter regression draft. UNRUN; imports do not regenerate files.
-Root may move into macos/tools/tests and use the normal adjacent tool locator.
-"""
+"""Read-only adapter source regressions; imports do not regenerate files."""
 import importlib.util
 import os
 from pathlib import Path
 import unittest
 
-ROOT = Path(os.environ.get('ROCHE_REPO_ROOT', '/workspace/RocheScoreboard'))
+ROOT = Path(os.environ['ROCHE_REPO_ROOT']) if 'ROCHE_REPO_ROOT' in os.environ else Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location('glass_read_translator', ROOT / 'macos/tools/translate_production.py')
 translator = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(translator)

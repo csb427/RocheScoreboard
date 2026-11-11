@@ -178,7 +178,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <ns4:OperatorGlassSurface x:Name="SettingsTile" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" HorizontalAlignment="Left" Padding="14,9" Cursor="Hand" BorderBrush="#60FFFFFF" BorderThickness="1" native:NativeActivation.Enabled="True" PointerReleased="Native_Settings_Click" PointerEntered="Native_SettingsTile_MouseEnter" PointerExited="Native_SettingsTile_MouseLeave">
+                        <ns4:OperatorGlassSurface x:Name="SettingsTile" Material="Opaque" Background="{DynamicResource ControlCentre.RaisedBrush}" CornerRadius="22" HorizontalAlignment="Left" Padding="14,9" Cursor="Hand" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" native:NativeActivation.Enabled="True" PointerReleased="Native_Settings_Click" PointerEntered="Native_SettingsTile_MouseEnter" PointerExited="Native_SettingsTile_MouseLeave">
                             <Border.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform port:ProductionNames.Id="SettingsTileScale" />
@@ -199,10 +199,10 @@
                         <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K" Theme="{StaticResource HomeUtility}" />
                         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button x:Name="HistoryButton" Content="Match history" Click="History_Click" AutomationProperties.Name="Open local match history" IsVisible="False" Theme="{StaticResource HomeUtility}" ToolTip.Tip="Review saved match checkpoints" />
-                            <ns4:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" IsVisible="{Binding Visibility, ElementName=ResumeSavedMatchButton}">
+                            <ns4:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Opaque" Background="{DynamicResource ControlCentre.RaisedBrush}" CornerRadius="22" Margin="8,0,0,0" IsVisible="{Binding Visibility, ElementName=ResumeSavedMatchButton}">
                                 <Button x:Name="ResumeSavedMatchButton" Content="Continue match" Click="ResumeSavedMatch_Click" IsVisible="False" Theme="{StaticResource HomeUtility}" ToolTip.Tip="Review and resume the saved match" />
                             </ns4:OperatorGlassSurface>
-                            <ns4:OperatorGlassSurface Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0">
+                            <ns4:OperatorGlassSurface Material="Opaque" Background="{DynamicResource ControlCentre.RaisedBrush}" CornerRadius="22" Margin="8,0,0,0">
                                 <Button x:Name="ChangelogToggle" Click="ChangelogToggle_Click" Theme="{StaticResource HomeUtility}">
                                     <StackPanel Orientation="Horizontal">
                                         <ns2:OperatorSymbol x:Name="UpdatesActionIcon" Kind="Updates" Width="20" Height="20" Margin="0,0,8,0" Foreground="White" />
@@ -382,7 +382,7 @@
         </ScrollViewer>
         <Grid x:Name="ChangelogOverlay" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" ZIndex="100" IsVisible="False" KeyDown="Native_ChangelogOverlay_PreviewKeyDown">
             <Border Background="#A5020509" PointerReleased="Native_ChangelogBackdrop_Click" />
-            <ns4:OperatorGlassSurface x:Name="ChangelogPanel" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="50%,50%">
+            <ns4:OperatorGlassSurface x:Name="ChangelogPanel" Material="Regular" GlassSource="{Binding ElementName=HomeLayout}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="50%,50%">
                 <Border.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform ScaleX=".96" ScaleY=".96" port:ProductionNames.Id="ChangelogPanelScale" />
@@ -454,7 +454,7 @@
         </Grid>
         <Grid x:Name="HistoryOverlay" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" ZIndex="110" IsVisible="False" KeyDown="Native_HistoryOverlay_PreviewKeyDown">
             <Border Background="#A5020509" PointerReleased="Native_HistoryBackdrop_Click" />
-            <ns4:OperatorGlassSurface x:Name="HistoryPanel" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="50%,50%">
+            <ns4:OperatorGlassSurface x:Name="HistoryPanel" Material="Regular" GlassSource="{Binding ElementName=HomeLayout}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="50%,50%">
                 <Border.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform ScaleX=".985" ScaleY=".985" port:ProductionNames.Id="HistoryPanelScale" />

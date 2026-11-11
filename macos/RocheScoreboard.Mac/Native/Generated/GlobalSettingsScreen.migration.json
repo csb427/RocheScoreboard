@@ -1,7 +1,22 @@
 {
   "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml",
-  "source_sha256": "890ee099c3a0fb95213c50decf0c26d9af195adecf174de1785eb464a0a50ab0",
+  "source_sha256": "1712a266f010493e2a1c99a9b85676d9e1687ca6af3f5035264ecde31a691fbd",
   "names": [
+    {
+      "name": "SettingsNavigationGrid",
+      "type": "Grid",
+      "object": false
+    },
+    {
+      "name": "BackButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "SettingsScopeSurface",
+      "type": "OperatorGlassSurface",
+      "object": false
+    },
     {
       "name": "GeneralSettingsTab",
       "type": "RadioButton",
@@ -236,14 +251,9 @@
       "name": "CricketBreakRotationDefaultToggle",
       "type": "CheckBox",
       "object": false
-    },
-    {
-      "name": "BackButton",
-      "type": "Button",
-      "object": false
     }
   ],
-  "code_source_sha256": "a3c47377d92c5825abd87717b9495e4859eb4bbee22133fff4ae873cc9f61446",
+  "code_source_sha256": "87ea5aa660a128078cbe08f0c252736f635f9a8a83d08c5097aa7850aa25066b",
   "native_events": [
     {
       "name": "GeneralSettingsTab",

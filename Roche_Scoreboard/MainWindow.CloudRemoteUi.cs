@@ -34,6 +34,8 @@ public partial class MainWindow
         new(System.Windows.Media.Color.FromRgb(0xD2, 0x99, 0x22));
 
     private readonly List<CloudRemoteLauncher> _cloudLaunchers = new();
+    private bool _cloudStartPending, _cloudEndPending;
+    private bool _asyncBusyMotionWatching;
 
     /// <summary>
     /// Registers a compact cloud-remote launcher placed on another tab so
@@ -70,10 +72,10 @@ public partial class MainWindow
         try
         {
             await StartCloudSessionAsync().ConfigureAwait(true);
-            if (IsCloudSessionActive) launcher.Expand();
         }
         finally
         {
+            launcher.SetStartPending(false);
             RefreshCloudRemoteUi();
         }
     }
@@ -94,12 +96,17 @@ public partial class MainWindow
             return;
         }
 
+        _cloudEndPending = true;
+        launcher.Expand();
+        launcher.SetEndPending(true);
         try
         {
             await EndCloudSessionAsync().ConfigureAwait(true);
         }
         finally
         {
+            _cloudEndPending = false;
+            launcher.SetEndPending(false);
             RefreshCloudRemoteUi();
         }
     }
@@ -122,7 +129,10 @@ public partial class MainWindow
     /// </summary>
     private async void StartCloudSession_Click(object sender, RoutedEventArgs e)
     {
-        if (CloudStartButton is not null) CloudStartButton.IsEnabled = false;
+        if (_cloudStartPending || IsCloudSessionActive || _cloudEndPending) return;
+        _cloudStartPending = true;
+        SetCloudButtonBusy(CloudStartButton, CloudStartButtonLabel, CloudStartBusyProgress, CloudStartBusyStatic,
+            true, "Start cloud session", "Creating cloud session", "Creating session…", "Creating session…");
         if (CloudStatusText is not null)
         {
             CloudStatusText.Text = "Creating session…";
@@ -139,6 +149,9 @@ public partial class MainWindow
             // visuals — re-running it here covers the case where Start
             // returned without raising CloudSessionStarted (e.g. config
             // missing, MessageBox shown).
+            _cloudStartPending = false;
+            SetCloudButtonBusy(CloudStartButton, CloudStartButtonLabel, CloudStartBusyProgress, CloudStartBusyStatic,
+                false, "Start cloud session", "Creating cloud session", "Start cloud session", "");
             RefreshCloudRemoteUi();
         }
     }
@@ -149,7 +162,7 @@ public partial class MainWindow
     /// </summary>
     private async void EndCloudSession_Click(object sender, RoutedEventArgs e)
     {
-        if (!IsCloudSessionActive) return;
+        if (_cloudEndPending || _cloudStartPending || !IsCloudSessionActive) return;
         var scope = CloudShareScope;
         MessageBoxResult ok = System.Windows.MessageBox.Show(this,
             "End the live cloud session?\n\nAll remote phones will be disconnected.",
@@ -158,15 +171,71 @@ public partial class MainWindow
             MessageBoxImage.Question, MessageBoxResult.No);
         if (ok != MessageBoxResult.Yes || !IsCloudSessionActive || scope != CloudShareScope) return;
 
-        if (CloudEndButton is not null) CloudEndButton.IsEnabled = false;
+        _cloudEndPending = true;
+        SetCloudButtonBusy(CloudEndButton, CloudEndButtonLabel, CloudEndBusyProgress, CloudEndBusyStatic,
+            true, "End cloud session", "Ending cloud session", "End session…", "Ending session…");
+        if (CloudStatusText is not null)
+        {
+            CloudStatusText.Text = "Ending cloud session…";
+            CloudStatusText.Foreground = CloudBadgeWarning;
+        }
         try
         {
             await EndCloudSessionAsync().ConfigureAwait(true);
         }
         finally
         {
+            _cloudEndPending = false;
+            SetCloudButtonBusy(CloudEndButton, CloudEndButtonLabel, CloudEndBusyProgress, CloudEndBusyStatic,
+                false, "End cloud session", "Ending cloud session", "End session…", "");
             RefreshCloudRemoteUi();
         }
+    }
+
+    private void SetCloudButtonBusy(System.Windows.Controls.Button? button,
+        System.Windows.Controls.TextBlock? buttonLabel, System.Windows.Controls.ProgressBar? progress,
+        System.Windows.Controls.TextBlock? reducedMotionStatus, bool busy, string name, string busyName,
+        string restingLabel, string status)
+    {
+        if (button is null) return;
+        OperatorControlMotion.SetIsBusy(button, busy);
+        button.IsEnabled = !busy;
+        if (buttonLabel is not null) buttonLabel.Text = busy ? status : restingLabel;
+        System.Windows.Automation.AutomationProperties.SetName(button, busy ? busyName : name);
+        System.Windows.Automation.AutomationProperties.SetItemStatus(button, busy ? status : "Ready");
+        if (progress is not null) progress.Visibility = busy && OperatorMotion.Enabled ? Visibility.Visible : Visibility.Hidden;
+        if (reducedMotionStatus is not null)
+        {
+            reducedMotionStatus.Text = "";
+            reducedMotionStatus.Visibility = Visibility.Hidden;
+        }
+        UpdateAsyncBusyMotionWatch();
+    }
+
+    private void UpdateAsyncBusyMotionWatch()
+    {
+        bool pending = _cloudStartPending || _cloudEndPending || _updateCheckInFlight;
+        if (pending && !_asyncBusyMotionWatching)
+        {
+            OperatorAppearance.Changed += AsyncBusyMotionPreferenceChanged;
+            _asyncBusyMotionWatching = true;
+        }
+        else if (!pending && _asyncBusyMotionWatching)
+        {
+            OperatorAppearance.Changed -= AsyncBusyMotionPreferenceChanged;
+            _asyncBusyMotionWatching = false;
+        }
+        AsyncBusyMotionPreferenceChanged();
+    }
+
+    private void AsyncBusyMotionPreferenceChanged()
+    {
+        if (CloudStartBusyProgress is not null)
+            CloudStartBusyProgress.Visibility = _cloudStartPending && OperatorMotion.Enabled ? Visibility.Visible : Visibility.Hidden;
+        if (CloudEndBusyProgress is not null)
+            CloudEndBusyProgress.Visibility = _cloudEndPending && OperatorMotion.Enabled ? Visibility.Visible : Visibility.Hidden;
+        if (CheckForUpdateBusyProgress is not null)
+            CheckForUpdateBusyProgress.Visibility = _updateCheckInFlight && OperatorMotion.Enabled ? Visibility.Visible : Visibility.Hidden;
     }
 
     // Per-window clipboard seam: production keeps the existing Windows API;
@@ -212,6 +281,7 @@ public partial class MainWindow
 
         bool configReady = IsCloudConfigReady;
         bool active      = IsCloudSessionActive;
+        bool showingSession = active || _cloudEndPending;
         string? code     = CloudJoinCode;
         string? url      = CloudJoinUrl;
 
@@ -231,18 +301,23 @@ public partial class MainWindow
         }
 
         // Show/hide the three states.
-        if (CloudIdleState     is not null) CloudIdleState.Visibility     = (!active && configReady) ? Visibility.Visible : Visibility.Collapsed;
-        if (CloudLiveState     is not null) CloudLiveState.Visibility     = active                    ? Visibility.Visible : Visibility.Collapsed;
-        if (CloudDisabledState is not null) CloudDisabledState.Visibility = (!active && !configReady) ? Visibility.Visible : Visibility.Collapsed;
+        if (CloudIdleState     is not null) CloudIdleState.Visibility     = (!showingSession && configReady) ? Visibility.Visible : Visibility.Collapsed;
+        if (CloudLiveState     is not null) CloudLiveState.Visibility     = showingSession                ? Visibility.Visible : Visibility.Collapsed;
+        if (CloudDisabledState is not null) CloudDisabledState.Visibility = (!showingSession && !configReady) ? Visibility.Visible : Visibility.Collapsed;
 
         // Idle state: re-enable the start button once a previous attempt
         // returned (success or failure both end up here).
-        if (CloudStartButton is not null) CloudStartButton.IsEnabled = configReady;
-        if (CloudEndButton is not null) CloudEndButton.IsEnabled = active;
+        if (CloudStartButton is not null) CloudStartButton.IsEnabled = configReady && !_cloudStartPending && !_cloudEndPending;
+        if (CloudEndButton is not null) CloudEndButton.IsEnabled = active && !_cloudEndPending;
 
         if (CloudStatusText is not null)
         {
-            if (active)
+            if (_cloudEndPending)
+            {
+                CloudStatusText.Text = "Ending cloud session…";
+                CloudStatusText.Foreground = CloudBadgeWarning;
+            }
+            else if (active)
             {
                 CloudStatusText.Text = CloudUiConnected ? "Session open · cloud connected" : "Session open · waiting for cloud connection…";
                 CloudStatusText.Foreground = CloudUiConnected ? CloudBadgeOnline : CloudBadgeWarning;
@@ -283,7 +358,7 @@ public partial class MainWindow
                 }
             }
         }
-        else
+        else if (!showingSession)
         {
             if (CloudQrImage is not null) CloudQrImage.Source = null;
         }

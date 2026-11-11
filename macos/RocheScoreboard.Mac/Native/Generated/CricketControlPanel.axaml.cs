@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketControlPanel.xaml.cs; edit translator/adapters.
-// Source SHA-256: fd24afdc4681c1061d7549d0026929d84cf9dff320686eb5b48cefed403a2c0f
+// Source SHA-256: e9bc01baef578606e8f74ed9175827ec869ed649f2b96ff67c766053b2f3810c
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -30,8 +30,16 @@ namespace Roche_Scoreboard.Views
     {
         private sealed record PlayerChoice(string Name, string Figures, string Status);
         public event Action? ApplicationPreferencesRequested;
+        public event Action? HomeNavigationRequested;
+        public event Action? CommandSearchRequested;
         private void OpenApplicationPreferences_Click(object? sender, RoutedEventArgs e)
             => ApplicationPreferencesRequested?.Invoke();
+        private void HomeNavigation_Click(object? sender, RoutedEventArgs e)
+            => HomeNavigationRequested?.Invoke();
+        private void ApplicationPreferencesNavigation_Click(object? sender, RoutedEventArgs e)
+            => ApplicationPreferencesRequested?.Invoke();
+        private void CommandSearchNavigation_Click(object? sender, RoutedEventArgs e)
+            => CommandSearchRequested?.Invoke();
         private CricketOverlayHost? _overlayHost;
         private readonly Dictionary<CricketOverlayKind, Button> _overlayButtons = new();
         public void SetOverlayHost(CricketOverlayHost host)

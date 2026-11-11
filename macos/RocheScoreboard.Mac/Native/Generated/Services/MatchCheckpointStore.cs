@@ -1,5 +1,5 @@
 // Generated from Services/MatchCheckpointStore.cs; edit translator/adapters.
-// Source SHA-256: bd49fbc5a4d9f39d2baafbf60343b3c238f736d816d1e8ccb110de2045d8ff71
+// Source SHA-256: 0a4c6464480683d4cc421d437f53388c7aa34f2a26d243c69fa5d1cffc229719
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -90,7 +90,7 @@ internal static class MatchCheckpointStore
                         && Read(Path.Combine(directory, marker[0] + ".json")) is not null)
                         previousFingerprint = marker[1].Trim();
                 }
-                catch { }
+                catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error)) { }
                 if (previousFingerprint is null)
                 {
                     string? latestPath = Directory.EnumerateFiles(directory, "*.json").OrderByDescending(path => Path.GetFileName(path), StringComparer.Ordinal).FirstOrDefault();
@@ -113,12 +113,20 @@ internal static class MatchCheckpointStore
                     File.WriteAllText(markerTemporary, id + Environment.NewLine + fingerprint, new UTF8Encoding(false));
                     File.Move(markerTemporary, fingerprintPath, overwrite: true);
                 }
-                catch { try { if (File.Exists(markerTemporary)) File.Delete(markerTemporary); } catch { } }
+                catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
+                {
+                    try { if (File.Exists(markerTemporary)) File.Delete(markerTemporary); }
+                    catch (Exception cleanupError) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(cleanupError)) { }
+                }
                 Prune(directory);
                 return true;
             }
-            catch { return false; }
-            finally { try { if (temporary is not null && File.Exists(temporary)) File.Delete(temporary); } catch { } }
+            catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error)) { return false; }
+            finally
+            {
+                try { if (temporary is not null && File.Exists(temporary)) File.Delete(temporary); }
+                catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error)) { }
+            }
         }
     }
 
@@ -139,7 +147,7 @@ internal static class MatchCheckpointStore
                 || RecoverySession.Describe(entry.State) is null) return null;
             return entry;
         }
-        catch { return null; }
+        catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error)) { return null; }
     }
 
     private static string Fingerprint(GameState state)
@@ -155,7 +163,8 @@ internal static class MatchCheckpointStore
                      .Select(path => (Path: path, Time: File.GetLastWriteTimeUtc(path)))
                      .OrderByDescending(item => item.Time).Skip(MaximumCheckpoints))
         {
-            try { File.Delete(path.Path); } catch { }
+            try { File.Delete(path.Path); }
+            catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error)) { }
         }
     }
 }

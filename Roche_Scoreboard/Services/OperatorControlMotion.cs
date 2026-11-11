@@ -14,6 +14,9 @@ public static class OperatorControlMotion
     public static readonly DependencyProperty EnabledProperty = DependencyProperty.RegisterAttached("Enabled", typeof(bool), typeof(OperatorControlMotion), new PropertyMetadata(false, Changed));
     public static bool GetEnabled(DependencyObject target) => (bool)target.GetValue(EnabledProperty);
     public static void SetEnabled(DependencyObject target, bool value) => target.SetValue(EnabledProperty, value);
+    public static readonly DependencyProperty IsBusyProperty = DependencyProperty.RegisterAttached("IsBusy", typeof(bool), typeof(OperatorControlMotion), new PropertyMetadata(false));
+    public static bool GetIsBusy(DependencyObject target) => (bool)target.GetValue(IsBusyProperty);
+    public static void SetIsBusy(DependencyObject target, bool value) => target.SetValue(IsBusyProperty, value);
     public static readonly DependencyProperty InflateOnPressProperty=DependencyProperty.RegisterAttached("InflateOnPress",typeof(bool),typeof(OperatorControlMotion),new PropertyMetadata(false));
     public static bool GetInflateOnPress(DependencyObject target)=>(bool)target.GetValue(InflateOnPressProperty);
     public static void SetInflateOnPress(DependencyObject target,bool value)=>target.SetValue(InflateOnPressProperty,value);
@@ -173,10 +176,7 @@ public static class OperatorControlMotion
         }
         private static void Advance(ref double value, ref double velocity, double target, double omega, double dt)
         {
-            double offset = value - target, coefficient = velocity + omega * offset;
-            double decay = Math.Exp(-omega * dt);
-            value = target + (offset + coefficient * dt) * decay;
-            velocity = (velocity - omega * coefficient * dt) * decay;
+            OperatorMotion.AdvanceCriticallyDamped(ref value, ref velocity, target, omega, dt);
         }
         private void Paint()
         {

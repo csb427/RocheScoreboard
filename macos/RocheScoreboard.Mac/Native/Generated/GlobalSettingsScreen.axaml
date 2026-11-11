@@ -45,15 +45,26 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <ns4:OperatorGlassSurface Material="Regular" CornerRadius="24" Padding="4" Margin="18,12,18,0" MaxWidth="560" HorizontalAlignment="Stretch">
-            <ns4:OperatorSegmentedPanel Rows="1" AllowScrubbing="True">
-                <RadioButton x:Name="GeneralSettingsTab" Content="General" Tag="general" GroupName="SettingsScope" IsChecked="True" Theme="{StaticResource SettingsSegment}" IsCheckedChanged="Native_SettingsScope_Checked_Checked" />
-                <RadioButton x:Name="CricketSettingsScopeTab" Content="Cricket" Tag="cricket" GroupName="SettingsScope" Theme="{StaticResource SettingsSegment}" IsCheckedChanged="Native_SettingsScope_Checked_Checked" />
-                <RadioButton x:Name="AflSettingsTab" Content="AFL" Tag="afl" GroupName="SettingsScope" Theme="{StaticResource SettingsSegment}" IsCheckedChanged="Native_SettingsScope_Checked_Checked" />
-            </ns4:OperatorSegmentedPanel>
-        </ns4:OperatorGlassSurface>
+        <Grid x:Name="SettingsNavigationGrid" Grid.Row="0" Margin="18,12,18,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Button x:Name="BackButton" Grid.Column="0" Content="←  Back to Home" HorizontalAlignment="Left" Margin="0,0,12,0" MinWidth="172" Height="42" Click="BackButton_Click" AutomationProperties.Name="Return to previous screen" Theme="{StaticResource SettingsLaunchButton}" />
+            <ns4:OperatorGlassSurface x:Name="SettingsScopeSurface" Grid.Column="1" Material="Regular" CornerRadius="24" Padding="4" MaxWidth="560" HorizontalAlignment="Stretch">
+                <ns4:OperatorSegmentedPanel Rows="1" AllowScrubbing="True">
+                    <RadioButton x:Name="GeneralSettingsTab" Content="General" Tag="general" GroupName="SettingsScope" IsChecked="True" Theme="{StaticResource SettingsSegment}" IsCheckedChanged="Native_SettingsScope_Checked_Checked" />
+                    <RadioButton x:Name="CricketSettingsScopeTab" Content="Cricket" Tag="cricket" GroupName="SettingsScope" Theme="{StaticResource SettingsSegment}" IsCheckedChanged="Native_SettingsScope_Checked_Checked" />
+                    <RadioButton x:Name="AflSettingsTab" Content="AFL" Tag="afl" GroupName="SettingsScope" Theme="{StaticResource SettingsSegment}" IsCheckedChanged="Native_SettingsScope_Checked_Checked" />
+                </ns4:OperatorSegmentedPanel>
+            </ns4:OperatorGlassSurface>
+        </Grid>
         <ns4:SettingsWorkspace x:Name="SettingsWorkspace" Grid.Row="1" Heading="Settings">
             <Border x:Name="AppearanceSection" Tag="APPEARANCE|theme light dark density compact comfortable" Theme="{StaticResource GlobalSettingsCard}">
                 <StackPanel>
@@ -384,6 +395,5 @@
                 </StackPanel>
             </Border>
         </ns4:SettingsWorkspace>
-        <Button x:Name="BackButton" Grid.Row="2" Content="←  Back to sports" HorizontalAlignment="Left" Margin="18,0,18,14" MinWidth="190" Height="42" Click="BackButton_Click" Theme="{StaticResource SettingsLaunchButton}" />
     </Grid>
 </UserControl>

@@ -37,6 +37,16 @@ public sealed class SharedMaterialMotionTests
             await Settle(65);Capture(w,$"toss-selection-{animate}-early");
             Assert.NotEmpty(home.GetVisualDescendants().OfType<OperatorChoiceSurface>());
             if(animate)Assert.InRange(OperatorChoiceMotion.GetProgress(home),.001,.999);
+            if(animate)
+            {
+                double homeBeforeReverse=OperatorChoiceMotion.GetProgress(home);
+                away.IsChecked=true;
+                Assert.True(away.IsChecked);Assert.False(home.IsChecked);Assert.Equal(homeBeforeReverse,OperatorChoiceMotion.GetProgress(home),6);
+                Assert.True(OperatorChoiceMotion.IsAnimating(home));
+                double homeBeforeRegrab=OperatorChoiceMotion.GetProgress(home);
+                home.IsChecked=true;
+                Assert.True(home.IsChecked);Assert.False(away.IsChecked);Assert.Equal(homeBeforeRegrab,OperatorChoiceMotion.GetProgress(home),6);
+            }
             Tap(away);Assert.True(away.IsChecked);Assert.False(home.IsChecked);Tap(home);Assert.True(home.IsChecked);Assert.False(away.IsChecked);
             if(animate)
                 for(int frame=0;frame<13;frame++){Capture(w,$"toss-motion-{frame:D2}");await Settle(45);}

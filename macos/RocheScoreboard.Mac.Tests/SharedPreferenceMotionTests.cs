@@ -777,4 +777,46 @@ public sealed partial class SharedPreferenceMotionTests
             anchor.ContextMenu = null;
         }
     }
+
+    [AvaloniaFact]
+    public async Task SharedSliderSpringRetargetAndLiveReduceKeepTheNativeRangeExact()
+    {
+        using var appearance = new AppearanceScope();
+        appearance.EnableAnimations();
+        using var f = new Fixture();
+        var slider = new Slider { Width = 360, Minimum = 0, Maximum = 100, Value = 40 };
+        f.Add(slider);
+        await f.Show();
+        Assert.True(OperatorSliderMotion.GetEnabled(slider));
+        var thumb = Part<Track>(slider, "PART_Track").Thumb;
+        Assert.NotNull(thumb);
+        var grip = Part<ScaleTransform>(thumb, "PART_GripScale");
+        Point Center() => thumb.TranslatePoint(new Point(thumb.Bounds.Width / 2, thumb.Bounds.Height / 2), f.Window)!.Value;
+
+        f.Window.MouseMove(Center());
+        await Settle(55);
+        Assert.InRange(grip.ScaleX, 1.001, 1.08);
+        double hoverPose = grip.ScaleX;
+        var start = Center();
+        f.Window.MouseDown(start, MouseButton.Left);
+        var drag = new Point(start.X + 48, start.Y);
+        f.Window.MouseMove(drag, RawInputModifiers.LeftMouseButton);
+        await Settle(35);
+        Assert.InRange(Math.Abs(grip.ScaleX - hoverPose), 0, .18);
+        Assert.InRange(grip.ScaleX, .94, 1.22);
+        Assert.True(slider.Value > 40, "The native thumb drag must update the actual range value immediately.");
+        double valueWhileDragging = slider.Value;
+
+        appearance.Reduce();
+        Assert.Equal(valueWhileDragging, slider.Value);
+        Assert.Equal(1, grip.ScaleX, 5);
+        var continued = new Point(drag.X + 30, drag.Y);
+        f.Window.MouseMove(continued, RawInputModifiers.LeftMouseButton);
+        await Settle(25);
+        Assert.True(slider.Value > valueWhileDragging, "Reduced motion must not stop native slider tracking.");
+        Assert.InRange(slider.Value, slider.Minimum, slider.Maximum);
+        f.Window.MouseUp(continued, MouseButton.Left);
+        Assert.InRange(slider.Value, slider.Minimum, slider.Maximum);
+        Assert.Equal(1, grip.ScaleX, 5);
+    }
 }

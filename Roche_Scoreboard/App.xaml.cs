@@ -23,6 +23,9 @@ public partial class App : Application
     /// </summary>
     internal AutoUpdateService UpdateService { get; } = new();
     private bool _updatePromptOpen;
+    private static int _diagnosticExceptionCount;
+    private int _selfTestDiagnosticBaseline;
+    internal static int DiagnosticExceptionCount => System.Threading.Volatile.Read(ref _diagnosticExceptionCount);
 
     /// <summary>
     /// Shared theme service for runtime theme and density switching
@@ -46,8 +49,8 @@ public partial class App : Application
     internal bool IsSelfTestMode { get; private set; }
 
     /// <summary>
-    /// Path to the crash log file. Each unhandled exception is appended with a
-    /// timestamp so the next crash is diagnosable even if no WER dump is produced.
+    /// Path to bounded, append-only diagnostics. Fatal evidence has a separate
+    /// bounded file so an already-full recoverable-error log cannot hide it.
     /// </summary>
     private static string CrashLogPath => SelfTestStorage.IsEnabled
         ? SelfTestStorage.PathFor("diagnostics", "crash.log")
@@ -62,6 +65,7 @@ public partial class App : Application
         OperatorFeedback.Install();
 
         IsSelfTestMode = e.Args.Any(arg =>
+            DispatcherRecoveryProbeQa.IsProbeArgument(arg) ||
             arg.StartsWith("--gallery-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--startup-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--preferences-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
@@ -69,6 +73,7 @@ public partial class App : Application
             arg.StartsWith("--operator-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--control-centre-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--apple-interaction-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--operator-controls-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--operator-design-preview", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--cricket-motion-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--cricket-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
@@ -78,11 +83,36 @@ public partial class App : Application
             arg.StartsWith("--afl-presentation-snapshots=", StringComparison.OrdinalIgnoreCase));
 
         SelfTestStorage.Initialize(IsSelfTestMode);
+        _selfTestDiagnosticBaseline = DiagnosticExceptionCount;
 
         // Install global exception handlers up-front so any error from here on
         // is logged (and, where possible, non-fatal ones are swallowed) rather
         // than tearing the process down silently mid-game.
         InstallGlobalExceptionHandlers();
+
+        // Exercise the actual dispatcher policy in a separate isolated QA child,
+        // before preferences, production services or an operator window exist.
+        if (DispatcherRecoveryProbeQa.TryRun(this, e.Args)) return;
+
+        // The controls-only route deliberately runs before operator preference
+        // loading and production-window creation. SelfTestStorage is already
+        // latched, so its fixtures can persist only below the isolated QA root.
+        string? operatorControlsDirectory = GetArgumentValue(e.Args, "--operator-controls-self-test-output=");
+        if (operatorControlsDirectory is not null)
+        {
+            int diagnosticBaseline = _selfTestDiagnosticBaseline;
+            try
+            {
+                ThemeService.Initialize(UxPreferences.Theme, UxPreferences.Density);
+                OperatorAccentPreferences.ApplyAccentResources();
+                RunOperatorControlsSelfTest(operatorControlsDirectory, diagnosticBaseline);
+            }
+            catch (Exception error)
+            {
+                WriteOperatorControlsStartupFailure(operatorControlsDirectory, error);
+            }
+            return;
+        }
 
         // The AFL presentation gallery is a fully isolated visual QA surface.
         // Open it before production services so update, video, saved-state and
@@ -114,8 +144,15 @@ public partial class App : Application
         // session manager with no chance to flush the running clock.
         SessionEnding += (_, _) => TrySaveActiveMainWindowState();
 
-        // Enable high DPI support for modern displays
-        System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.Default;
+        // A process-local QA comparison only. Every normal launch retains Default;
+        // no persisted setting, driver, registry or session configuration is changed.
+        var requestedRenderMode = SelfTestStorage.IsEnabled
+            && e.Args.Contains("--operator-design-preview", StringComparer.OrdinalIgnoreCase)
+            && e.Args.Contains("--operator-preview-diagnostics", StringComparer.OrdinalIgnoreCase)
+            && e.Args.Contains("--operator-preview-software-only", StringComparer.OrdinalIgnoreCase)
+                ? System.Windows.Interop.RenderMode.SoftwareOnly
+                : System.Windows.Interop.RenderMode.Default;
+        System.Windows.Media.RenderOptions.ProcessRenderMode = requestedRenderMode;
 
         // Load UX preferences early so theme/density can be initialized
         UxPreferences = Services.UxPreferences.Load();
@@ -183,7 +220,10 @@ public partial class App : Application
 
         if(e.Args.Contains("--operator-design-preview",StringComparer.OrdinalIgnoreCase))
         {
-            MainWindow preview=new(); MainWindow=preview; preview.Show(); return;
+            MainWindow preview=new(); MainWindow=preview;
+            if (e.Args.Contains("--operator-preview-diagnostics", StringComparer.OrdinalIgnoreCase))
+                OperatorPreviewDiagnosticsQa.Attach(preview, requestedRenderMode);
+            preview.Show(); return;
         }
 
         if (controlCentreSelfTestDirectory is not null) { RunControlCentreSelfTest(controlCentreSelfTestDirectory); return; }
@@ -255,31 +295,23 @@ public partial class App : Application
 
     /// <summary>
     /// Wires up Dispatcher, AppDomain, and TaskScheduler exception hooks.
-    /// Everything is logged to <see cref="CrashLogPath"/>; UI-thread and
-    /// unobserved-task exceptions are marked handled so the match continues.
-    /// On a terminating crash the live game state is flushed to disk before
-    /// the process dies so a restart can resume from the exact clock value.
+    /// Resource exhaustion must remain unhandled: retrying a failed WPF render
+    /// channel causes an exception/save storm rather than recovering the match.
+    /// The first terminal notification owns one best-effort log and state save.
     /// </summary>
     private void InstallGlobalExceptionHandlers()
     {
+        var policy = new UnhandledExceptionPolicy(LogException, TrySaveActiveMainWindowState);
         DispatcherUnhandledException += (_, args) =>
         {
-            LogException("DispatcherUnhandledException", args.Exception);
-            // Best-effort save before swallowing; cheap and safe.
-            TrySaveActiveMainWindowState();
-            args.Handled = true; // keep the app alive — match state is preserved
+            args.Handled = policy.Handle("DispatcherUnhandledException", args.Exception);
         };
 
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
             if (args.ExceptionObject is Exception ex)
-                LogException("AppDomain.UnhandledException (Terminating=" + args.IsTerminating + ")", ex);
-
-            // On a terminating exception this is our last chance to flush
-            // the live clock; otherwise the saved state lags behind reality
-            // by however long since the last MatchChanged event.
-            if (args.IsTerminating)
-                TrySaveActiveMainWindowState();
+                policy.Handle("AppDomain.UnhandledException", ex,
+                    terminating: args.IsTerminating, saveState: args.IsTerminating);
         };
 
         TaskScheduler.UnobservedTaskException += (_, args) =>
@@ -293,45 +325,48 @@ public partial class App : Application
     /// Best-effort flush of the active <see cref="MainWindow"/>'s live game
     /// state to disk. Marshals to the UI thread if necessary because both the
     /// MatchManager stopwatch and the WPF dispatcher demand it. Swallows
-    /// every exception so a save attempt during teardown can never block or
-    /// re-enter the crash handler.
+    /// ordinary failures and limits dispatcher queue waiting during teardown.
+    /// Resource failures propagate to the global policy so it cannot resume rendering.
+    /// Once started, the existing save itself remains a best-effort operation.
     /// </summary>
     private void TrySaveActiveMainWindowState()
     {
         try
         {
-            if (MainWindow is not MainWindow main) return;
-
-            if (main.Dispatcher.CheckAccess())
+            if (Dispatcher.CheckAccess())
             {
-                main.TrySaveGameStateForShutdown();
+                SaveActiveMainWindowStateOnDispatcher();
             }
             else
             {
-                // Synchronous Invoke so the save completes before this
-                // shutdown-path method returns and the process is allowed to
-                // terminate.
-                main.Dispatcher.Invoke(main.TrySaveGameStateForShutdown);
+                // Do not wait indefinitely for an unresponsive render/UI thread.
+                // Even reading Application.MainWindow belongs on its dispatcher.
+                Dispatcher.Invoke(SaveActiveMainWindowStateOnDispatcher, DispatcherPriority.Send,
+                    System.Threading.CancellationToken.None, TimeSpan.FromSeconds(1));
             }
         }
-        catch
+        catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
         {
-            // Best-effort during shutdown / crash; do not re-throw.
+            // Ordinary shutdown / crash-save failures remain best-effort.
         }
     }
 
-    private static void LogException(string source, Exception ex)
+    private void SaveActiveMainWindowStateOnDispatcher()
     {
+        if (MainWindow is MainWindow main)
+            main.TrySaveGameStateForShutdown();
+    }
+
+    private static void LogException(string source, Exception ex, bool fatal = false)
+    {
+        System.Threading.Interlocked.Increment(ref _diagnosticExceptionCount);
         try
         {
-            string dir = Path.GetDirectoryName(CrashLogPath)!;
-            Directory.CreateDirectory(dir);
-            string entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {source}\n{ex}\n\n";
-            File.AppendAllText(CrashLogPath, entry);
+            BoundedExceptionLog.TryAppend(fatal ? CrashLogPath + ".fatal" : CrashLogPath, source, ex);
         }
-        catch
+        catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
         {
-            // If the logger itself fails there's nothing useful we can do.
+            // Ordinary diagnostic failures are best-effort; fatal ones reach the policy.
         }
     }
 
@@ -633,14 +668,16 @@ public partial class App : Application
             : Path.GetFullPath(outputDirectory);
         Directory.CreateDirectory(directory);
         string path = Path.Combine(directory, focusedInteractions ? "apple-interaction-self-test.json" : "control-centre-self-test.json");
+        int diagnosticExceptionCount = _selfTestDiagnosticBaseline;
         MainWindow window;
         try { window = new(); MainWindow = window; window.Show(); }
         catch (Exception error)
         {
             File.WriteAllText(path, JsonSerializer.Serialize(new { error = error.ToString() }));
-            Shutdown();
+            Shutdown(1);
             return;
         }
+        int exitCode = 1;
         window.Dispatcher.InvokeAsync(async () =>
         {
             try
@@ -652,23 +689,116 @@ public partial class App : Application
                     SelfTestStorage.RootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
                 checks["qa-diagnostics-isolated"] = CrashLogPath.StartsWith(
                     SelfTestStorage.RootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                checks["qa-no-unexpected-diagnostic-exceptions"] = DiagnosticExceptionCount == diagnosticExceptionCount;
                 File.WriteAllText(path, JsonSerializer.Serialize(new
                 {
                     failures = checks.Count(check => !check.Value),
                     checks,
                     selfTestStorageRoot = SelfTestStorage.RootPath
                 }, new JsonSerializerOptions { WriteIndented = true }));
+                exitCode = checks.Values.All(value => value) ? 0 : 1;
             }
             catch (Exception error)
             {
                 File.WriteAllText(path, JsonSerializer.Serialize(new { error = error.ToString() }));
+                exitCode = 1;
             }
             finally
             {
                 window.Close();
-                Shutdown();
+                Shutdown(exitCode);
             }
         }, DispatcherPriority.ApplicationIdle);
+    }
+
+    private void RunOperatorControlsSelfTest(string outputDirectory, int diagnosticBaseline)
+    {
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        string directory = string.IsNullOrWhiteSpace(outputDirectory)
+            ? Path.Combine(SelfTestStorage.RootPath, "operator-controls")
+            : Path.GetFullPath(outputDirectory);
+        Directory.CreateDirectory(directory);
+        string path = Path.Combine(directory, "operator-controls-self-test.json");
+        Dispatcher.InvokeAsync(async () =>
+        {
+            var stages = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, bool>>();
+            int exitCode = 1;
+            async Task RunStage(string name, Func<Task<System.Collections.Generic.Dictionary<string, bool>>> run)
+            {
+                try { stages[name] = await run(); }
+                catch (Exception error)
+                {
+                    stages[name] = new System.Collections.Generic.Dictionary<string, bool> { [name + "-unexpected-exception"] = false };
+                    try { File.WriteAllText(Path.Combine(directory, name + "-unexpected-exception.txt"), error.ToString()); }
+                    catch { /* Failure remains represented in the staged JSON. */ }
+                }
+            }
+
+            try
+            {
+                await RunStage("fatal-exception-and-bounded-logging", () => ExceptionSafetyChecks.RunAsync());
+                await RunStage("live-glass-resource-lifetime", () => OperatorGlassSurfaceChecks.RunAsync());
+                await RunStage("native-accent-and-settings-controls", () => OperatorControlsSelfTestChecks.RunAsync());
+                await RunStage("setup-and-training-controls", () => OperatorSetupTrainingChecks.RunAsync());
+                await RunStage("fallback-motion-controls", () => OperatorFallbackMotionChecks.RunAsync());
+                await RunStage("shared-surface-controls", () => SharedSurfaceMotionChecks.RunAsync());
+
+                var checks = stages.SelectMany(stage => stage.Value).ToDictionary(item => item.Key, item => item.Value);
+                checks["qa-preferences-isolated"] = Services.UxPreferences.GetStoragePath().StartsWith(
+                    SelfTestStorage.RootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                checks["qa-recovery-isolated"] = GameStateService.RecoveryStatePath.StartsWith(
+                    SelfTestStorage.RootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                checks["qa-diagnostics-isolated"] = CrashLogPath.StartsWith(
+                    SelfTestStorage.RootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                checks["qa-no-unexpected-diagnostic-exceptions"] = DiagnosticExceptionCount == diagnosticBaseline;
+                int failures = checks.Count(check => !check.Value);
+                File.WriteAllText(path, JsonSerializer.Serialize(new
+                {
+                    status = failures == 0 ? "passed" : "failed",
+                    failures,
+                    diagnosticExceptions = DiagnosticExceptionCount - diagnosticBaseline,
+                    checks,
+                    stages,
+                    selfTestStorageRoot = SelfTestStorage.RootPath
+                }, new JsonSerializerOptions { WriteIndented = true }));
+                exitCode = failures == 0 ? 0 : 1;
+            }
+            catch (Exception error)
+            {
+                try
+                {
+                    File.WriteAllText(path, JsonSerializer.Serialize(new
+                    {
+                        status = "failed",
+                        error = error.ToString(),
+                        stages,
+                        diagnosticExceptions = DiagnosticExceptionCount - diagnosticBaseline,
+                        selfTestStorageRoot = SelfTestStorage.RootPath
+                    }, new JsonSerializerOptions { WriteIndented = true }));
+                }
+                catch { /* Exit status still reports failure if the output target is unavailable. */ }
+            }
+            finally { Shutdown(exitCode); }
+        }, DispatcherPriority.ApplicationIdle);
+    }
+
+    private void WriteOperatorControlsStartupFailure(string outputDirectory, Exception error)
+    {
+        try
+        {
+            string directory = string.IsNullOrWhiteSpace(outputDirectory)
+                ? Path.Combine(SelfTestStorage.RootPath, "operator-controls")
+                : Path.GetFullPath(outputDirectory);
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(Path.Combine(directory, "operator-controls-self-test.json"), JsonSerializer.Serialize(new
+            {
+                status = "failed",
+                error = error.ToString(),
+                failures = 1,
+                selfTestStorageRoot = SelfTestStorage.RootPath
+            }, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        finally { Shutdown(1); }
     }
 
     private void RunCricketSelfTest(string outputPath, bool workflowsOnly = false, bool operatorOnly = false, bool motionOnly = false)

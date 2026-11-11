@@ -70,9 +70,7 @@ public sealed class OperatorSelectionLens : FrameworkElement
     private static void Step(ref double value, ref double velocity, double target, double omega, double dt)
     {
         omega *= OperatorMotion.SpringResponse;
-        double offset = value - target, coefficient = velocity + omega * offset, decay = Math.Exp(-omega * dt);
-        value = target + (offset + coefficient * dt) * decay;
-        velocity = (velocity - omega * coefficient * dt) * decay;
+        OperatorMotion.AdvanceCriticallyDamped(ref value, ref velocity, target, omega, dt);
     }
     private void Stop() { if (!_running) return; CompositionTarget.Rendering -= Frame; _running = false; }
     private void AppearanceChanged(){if(!OperatorMotion.Enabled)Update(false);InvalidateVisual();}

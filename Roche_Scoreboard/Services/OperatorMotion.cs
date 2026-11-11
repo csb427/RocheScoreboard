@@ -12,6 +12,19 @@ public static class OperatorMotion
     // adjust operator feedback, and never postpone an action's acceptance.
     public static double TravelScale => OperatorAppearance.MotionStyle == OperatorMotionStyle.Calm ? .4 : 1;
     public static double SpringResponse => OperatorAppearance.MotionStyle == OperatorMotionStyle.Calm ? 1.5 : 1;
+    // Shared exact step for the operator's critically damped visual springs.
+    // Keeping position and velocity together makes target replacement
+    // interruptible and independent of the rendering frame partition.
+    internal static void AdvanceCriticallyDamped(ref double value, ref double velocity, double target, double omega, double elapsed)
+    {
+        if (!double.IsFinite(value) || !double.IsFinite(velocity) || !double.IsFinite(target)
+            || !double.IsFinite(omega) || !double.IsFinite(elapsed) || elapsed <= 0 || omega <= 0) return;
+        double phase = omega * elapsed;
+        if (!double.IsFinite(phase) || phase >= 700) { value = target; velocity = 0; return; }
+        double offset = value - target, coefficient = velocity + omega * offset, decay = Math.Exp(-phase);
+        value = target + (offset + coefficient * elapsed) * decay;
+        velocity = (velocity - omega * coefficient * elapsed) * decay;
+    }
     private static TimeSpan Timing(double milliseconds) => TimeSpan.FromMilliseconds(milliseconds * (OperatorAppearance.MotionStyle == OperatorMotionStyle.Calm ? .65 : 1));
     public static TimeSpan HoverIn => Timing(150);
     public static TimeSpan HoverOut => Timing(250);

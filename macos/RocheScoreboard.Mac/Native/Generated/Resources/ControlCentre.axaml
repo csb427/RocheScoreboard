@@ -65,7 +65,7 @@
                             </Grid.RenderTransform>
                             <ns6:OperatorGlassSurface x:Name="Bd" CornerRadius="26" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
                             <ns1:OperatorChoiceSurface CornerRadius="26" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}" />
-                            <Border x:Name="ActionGlow" CornerRadius="26" Background="White" Opacity="0" IsHitTestVisible="False" Margin="1" />
+                            <Border x:Name="ActionGlow" CornerRadius="26" Background="{DynamicResource ControlCentre.AccentBrush}" Opacity="0" IsHitTestVisible="False" Margin="1" />
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}">
                                 <ContentPresenter.Margin>
                                     <MultiBinding Converter="{StaticResource ControlCentre.Insets}">
@@ -82,9 +82,18 @@
             </Setter.Value>
         </Setter>
         <Style Selector="^:focus:focus-visible /template/ glass|OperatorGlassSurface#Bd">
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
         </Style>
         <Style Selector="^:focus:focus-visible /template/ glass|OperatorGlassSurface#Bd">
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <Style Selector="^:pointerover /template/ glass|OperatorGlassSurface#Bd">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+        </Style>
+        <Style Selector="^:pressed /template/ glass|OperatorGlassSurface#Bd">
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}" />
+        </Style>
+        <Style Selector="^:pressed /template/ glass|OperatorGlassSurface#Bd">
             <Setter Property="BorderThickness" Value="2" />
         </Style>
         <Style Selector="^:disabled /template/ Grid#PART_Surface">
@@ -92,6 +101,9 @@
         </Style>
         <Style Selector="^:disabled">
             <Setter Property="Cursor" Value="Arrow" />
+        </Style>
+        <Style Selector="^[(motion|OperatorControlMotion.IsBusy)=True] /template/ Grid#PART_Surface">
+            <Setter Property="Opacity" Value=".88" />
         </Style>
         <Style Selector="^[Content=⋯]">
             <Setter Property="motion:OperatorControlMotion.InflateOnPress" Value="True" />
@@ -199,7 +211,7 @@
     <ControlTheme x:Key="SettingsToggle" TargetType="CheckBox">
         <Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True" />
         <Setter Property="native:NativeToolTipPolicy.Enabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}" />
-        <Setter Property="motion:SettingsControlMotion.Enabled" Value="False" />
+        <Setter Property="motion:SettingsControlMotion.Enabled" Value="True" />
         <Setter Property="motion:OperatorControlMotion.Enabled" Value="True" />
         <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}" />
         <Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}" />

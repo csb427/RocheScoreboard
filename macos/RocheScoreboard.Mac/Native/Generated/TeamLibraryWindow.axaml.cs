@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/TeamLibraryWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 6483b35b8c4e8785313f2f633f64e0e347b5b78bfcd0e3de489eb3cd7963f9d4
+// Source SHA-256: 630bb365ebfe9b531da5f6b495061f5946fa313e3c2e788e624af3025cc3c9db
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -354,8 +354,16 @@ public partial class TeamLibraryWindow : NativeWindow
             && _selectedTeam is not null && !string.IsNullOrWhiteSpace(_logoPath);
         FavouriteButton.Tag = favourite;
         OperatorChoiceMotion.SetSelected(FavouriteButton, favourite);
-        FavouriteButton.Content = favourite ? "Remove from presets" : "Save to presets";
-        Avalonia.Automation.AutomationProperties.SetItemStatus(FavouriteButton, favourite ? "Saved in presets" : "Not saved");
+        OperatorControlMotion.SetIsBusy(FavouriteButton, _savingFavourite);
+        FavouriteButton.Content = _savingFavourite
+            ? (_operationMessage.StartsWith("Removing", StringComparison.Ordinal) ? "Removing…" : "Saving…")
+            : favourite ? "Remove from presets" : "Save to presets";
+        Avalonia.Automation.AutomationProperties.SetName(FavouriteButton, _savingFavourite
+            ? (_operationMessage.StartsWith("Removing", StringComparison.Ordinal) ? "Removing club preset" : "Saving club preset")
+            : favourite ? "Remove from presets" : "Save to presets");
+        Avalonia.Automation.AutomationProperties.SetItemStatus(FavouriteButton, _savingFavourite
+            ? (_operationMessage.StartsWith("Removing", StringComparison.Ordinal) ? "Removing preset…" : "Saving preset…")
+            : favourite ? "Saved in presets" : "Not saved");
     }
 
     private void AnimateDetails()

@@ -347,8 +347,16 @@ public partial class TeamLibraryWindow : Window
             && _selectedTeam is not null && !string.IsNullOrWhiteSpace(_logoPath);
         FavouriteButton.Tag = favourite;
         OperatorChoiceMotion.SetSelected(FavouriteButton, favourite);
-        FavouriteButton.Content = favourite ? "Remove from presets" : "Save to presets";
-        System.Windows.Automation.AutomationProperties.SetItemStatus(FavouriteButton, favourite ? "Saved in presets" : "Not saved");
+        OperatorControlMotion.SetIsBusy(FavouriteButton, _savingFavourite);
+        FavouriteButton.Content = _savingFavourite
+            ? (_operationMessage.StartsWith("Removing", StringComparison.Ordinal) ? "Removing…" : "Saving…")
+            : favourite ? "Remove from presets" : "Save to presets";
+        System.Windows.Automation.AutomationProperties.SetName(FavouriteButton, _savingFavourite
+            ? (_operationMessage.StartsWith("Removing", StringComparison.Ordinal) ? "Removing club preset" : "Saving club preset")
+            : favourite ? "Remove from presets" : "Save to presets");
+        System.Windows.Automation.AutomationProperties.SetItemStatus(FavouriteButton, _savingFavourite
+            ? (_operationMessage.StartsWith("Removing", StringComparison.Ordinal) ? "Removing preset…" : "Saving preset…")
+            : favourite ? "Saved in presets" : "Not saved");
     }
 
     private void AnimateDetails()

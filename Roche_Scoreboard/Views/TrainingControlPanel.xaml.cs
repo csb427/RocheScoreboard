@@ -32,6 +32,9 @@ namespace Roche_Scoreboard.Views;
 public partial class TrainingControlPanel : UserControl
 {
     public event Action? ExitRequested;
+    public event Action? HomeNavigationRequested;
+    public event Action? ApplicationPreferencesRequested;
+    public event Action? CommandSearchRequested;
     // Exactly one root owner commits a captured session. The public event remains
     // a notification for standalone hosts; it is not root teardown authority.
     internal Func<TrainingSession, bool>? ConfirmedExitCommit { get; set; }
@@ -1661,6 +1664,13 @@ public partial class TrainingControlPanel : UserControl
         review.Cancel.Focus(); Keyboard.Focus(review.Cancel);
         review.Cancel.BringIntoView();
     }
+
+    private void HomeNavigation_Click(object sender, RoutedEventArgs e)
+        => HomeNavigationRequested?.Invoke();
+    private void ApplicationPreferencesNavigation_Click(object sender, RoutedEventArgs e)
+        => ApplicationPreferencesRequested?.Invoke();
+    private void CommandSearchNavigation_Click(object sender, RoutedEventArgs e)
+        => CommandSearchRequested?.Invoke();
 
     private void ExitReviewAncestorVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e)
     {

@@ -1,5 +1,5 @@
 // Generated from Services/OperatorControlMotion.cs; edit translator/adapters.
-// Source SHA-256: 1dcf2144ed45842d6d759a7adaf5501aae9dbb390ef336a1ab48362878bb9d6b
+// Source SHA-256: 41e4092f7977d80a74a47eafc2a457a11f80b1764cfb10952d629325d93e8437
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -20,6 +20,9 @@ public static class OperatorControlMotion
     public static readonly AttachedProperty<bool> EnabledProperty = (AttachedProperty<bool>)NativeProperty.RegisterAttached("Enabled", typeof(bool), typeof(OperatorControlMotion), new PropertyMetadata(false, Changed));
     public static bool GetEnabled(AvaloniaObject target) => (bool)target.GetValue(EnabledProperty);
     public static void SetEnabled(AvaloniaObject target, bool value) => target.SetValue(EnabledProperty, value);
+    public static readonly AttachedProperty<bool> IsBusyProperty = (AttachedProperty<bool>)NativeProperty.RegisterAttached("IsBusy", typeof(bool), typeof(OperatorControlMotion), new PropertyMetadata(false));
+    public static bool GetIsBusy(AvaloniaObject target) => (bool)target.GetValue(IsBusyProperty);
+    public static void SetIsBusy(AvaloniaObject target, bool value) => target.SetValue(IsBusyProperty, value);
     public static readonly AttachedProperty<bool> InflateOnPressProperty=(AttachedProperty<bool>)NativeProperty.RegisterAttached("InflateOnPress",typeof(bool),typeof(OperatorControlMotion),new PropertyMetadata(false));
     public static bool GetInflateOnPress(AvaloniaObject target)=>(bool)target.GetValue(InflateOnPressProperty);
     public static void SetInflateOnPress(AvaloniaObject target,bool value)=>target.SetValue(InflateOnPressProperty,value);
@@ -179,10 +182,7 @@ public static class OperatorControlMotion
         }
         private static void Advance(ref double value, ref double velocity, double target, double omega, double dt)
         {
-            double offset = value - target, coefficient = velocity + omega * offset;
-            double decay = Math.Exp(-omega * dt);
-            value = target + (offset + coefficient * dt) * decay;
-            velocity = (velocity - omega * coefficient * dt) * decay;
+            OperatorMotion.AdvanceCriticallyDamped(ref value, ref velocity, target, omega, dt);
         }
         private void Paint()
         {

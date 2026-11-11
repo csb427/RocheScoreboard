@@ -300,7 +300,7 @@ def translate_markup(name):
             path = (source.parent / include).resolve()
             if not path.exists(): path = SRC / include.lstrip('/')
             e.tag = f'{{{AV}}}ResourceInclude'
-            e.set('Source', 'avares://RocheScoreboard.Mac/Native/Generated/' + str(path.relative_to(SRC)).replace('.xaml', '.axaml'))
+            e.set('Source', 'avares://RocheScoreboard.Mac/Native/Generated/' + path.relative_to(SRC).as_posix().replace('.xaml', '.axaml'))
         if tag == 'ItemsPresenter':
             if not identifier:
                 e.set(f'{{{X}}}Name', 'PART_ItemsPresenter')
@@ -543,7 +543,7 @@ def translate_markup(name):
     ET.indent(root, '    ')
     (OUT / name).parent.mkdir(parents=True, exist_ok=True)
     (OUT / f'{name}.axaml').write_text('<!-- Generated from production WPF source; edit the translator. -->\n' + ET.tostring(root, encoding='unicode') + '\n')
-    (OUT / f'{name}.migration.json').write_text(json.dumps({'source': str(source.relative_to(ROOT)),
+    (OUT / f'{name}.migration.json').write_text(json.dumps({'source': source.relative_to(ROOT).as_posix(),
         'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'names': names,
         'code_source_sha256': hashlib.sha256(Path(str(source) + '.cs').read_bytes()).hexdigest() if Path(str(source) + '.cs').exists() else None,
         'native_events': events, 'platform_translations': changes,
@@ -648,7 +648,7 @@ def translate_code(name, fields):
     code = re.sub(r'(?<![.\w])Control\b', 'TemplatedControl', code)
     for old, new in REPLACEMENTS.items():
         code = code.replace(old, new)
-    code = ('// Generated from ' + str(source.relative_to(SRC)) + '; edit translator/adapters.\n'
+    code = ('// Generated from ' + source.relative_to(SRC).as_posix() + '; edit translator/adapters.\n'
             '// Source SHA-256: ' + hashlib.sha256(source.read_bytes()).hexdigest() + '\n'
             'using Avalonia.Threading;\nusing Avalonia.Media;\nusing Avalonia;\nusing Avalonia.Controls;\nusing Avalonia.Interactivity;\nusing Avalonia.Layout;\nusing Avalonia.Input;\nusing RocheScoreboard.Mac.Native;\n'
             + code)
@@ -761,6 +761,38 @@ def native_absolute_brush_viewboxes(code):
     return code
 
 
+def native_retained_glass_viewboxes(code):
+    """Translate the glass owner's retained pixel brush mutations, not arbitrary Viewboxes.
+
+    These two fields have a single explicit absolute-unit initializer. Fail closed
+    if that source contract changes instead of guessing units for a retained brush.
+    Avalonia 11's TileBrush.SourceRect takes RelativeRect(Rect, RelativeUnit).
+    """
+    tokens = re.compile(r'//[^\n]*|/\*[\s\S]*?\*/|@"(?:""|[^"])*"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
+    masked = tokens.sub(lambda match: ' ' * len(match.group()), code)
+    if not re.search(r'\bclass\s+OperatorGlassSurface\b', masked):
+        return code
+    edits = []
+    for field in ('_liveBrush', '_frostBrush'):
+        mutations = list(re.finditer(r'\b' + field + r'!?\.Viewbox\s*=\s*([^;]+);', masked))
+        if not mutations:
+            continue
+        initializers = re.findall(r'\b' + field + r'\s*=\s*new\s+VisualBrush\([^;{}]*\)\s*\{([^{}]*)\}', masked)
+        if len(initializers) != 1 or not re.search(r'\bViewboxUnits\s*=\s*BrushMappingMode\.Absolute\b', initializers[0]):
+            raise ValueError(f'Cannot establish absolute Viewbox units for OperatorGlassSurface.{field}')
+        if re.search(r'\b' + field + r'!?\.ViewboxUnits\s*=', masked):
+            raise ValueError(f'Retained Viewbox units changed for OperatorGlassSurface.{field}')
+        for match in mutations:
+            receiver = code[match.start():match.start() + len(field)]
+            if masked[match.start() + len(field)] == '!':
+                receiver += '!'
+            rectangle = code[match.start(1):match.end(1)].strip()
+            edits.append((match.start(), match.end(), f'{receiver}.SourceRect = new RelativeRect({rectangle}, RelativeUnit.Absolute);'))
+    for start, end, replacement in reversed(sorted(edits)):
+        code = code[:start] + replacement + code[end:]
+    return code
+
+
 def native_glass_brush_reads(code):
     """Accept immutable native brushes at the renderer's read-only WPF sites.
 
@@ -840,6 +872,7 @@ def map_native_api(code):
     code = code.replace('MouseEnter +=', 'PointerEntered +=').replace('MouseLeave +=', 'PointerExited +=')
     code = code.replace('Avalonia.Input.MouseEventHandler', 'EventHandler<Avalonia.Input.PointerEventArgs>')
     code = code.replace('RoutedEventHandler', 'EventHandler<RoutedEventArgs>').replace('MouseButtonEventHandler', 'EventHandler<Avalonia.Input.PointerPressedEventArgs>')
+    code = native_retained_glass_viewboxes(code)
     code = native_absolute_brush_viewboxes(code)
     code = code.replace('PixelFormats.Pbgra32', 'PixelFormats.Bgra32').replace('Rect.Empty', 'default(Rect)')
     code = code.replace('ScrollToTop()', 'ScrollToHome()')
@@ -1250,7 +1283,7 @@ def map_native_api(code):
     if any('class ' + name in code for name in ('OperatorChoiceMotion', 'OperatorControlMotion', 'OperatorSymbol', 'MatchLoadingScreen', 'PresentationScoreBar')):
         # These WPF motion owners read effective visibility, not Avalonia's
         # local IsVisible flag. Keep local Visibility assignments untouched.
-        code = re.sub(r'\b(_control|button|this)\.IsVisible\b(?!\s*=(?!=))', r'NativeEffectiveVisibility.IsVisible(\1)', code)
+        code = re.sub(r'\b(_control|control|button|this)\.IsVisible\b(?!\s*=(?!=))', r'NativeEffectiveVisibility.IsVisible(\1)', code)
         code = re.sub(r'(?<![\w.])IsVisible\b(?!\s*=(?!=))', 'NativeEffectiveVisibility.IsVisible(this)', code)
         code = code.replace('NativeEvents.WatchProperty(', 'NativeEffectiveVisibility.WatchProperty(')
     if 'class MatchLoadingScreen' in code:
@@ -1524,11 +1557,21 @@ def translate_support(relative):
             seen.add(line)
         lines.append(line)
     code = '\n'.join(lines) + '\n'
+    if relative == 'Views/OperatorGlassSurface.cs':
+        # Removed WPF-only cache calls must not leave indented empty lines.
+        code = re.sub(r'(?m)^[ \t]+$', '', code)
     destination = OUT / relative
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text('// Generated from ' + relative + '; edit translator/adapters.\n// Source SHA-256: ' + hashlib.sha256(path.read_bytes()).hexdigest() + '\n' + code)
 
 if __name__ == '__main__':
+    # Hash raw source bytes, exactly as the audit does. Reject an incompatible
+    # Windows checkout before deleting output, rather than publish provenance
+    # that changes when Git normalizes text to LF on a Mac/Linux checkout.
+    from audit_parity import check_source_line_endings, inventory
+    line_errors = check_source_line_endings(inventory())
+    if line_errors:
+        raise SystemExit('\n'.join(line_errors))
     for stale in OUT.rglob('*'):
         if stale.is_file() and stale.suffix in {'.cs', '.axaml', '.json'}: stale.unlink()
     # Inventory runtime support automatically: 5.0 splits controllers and models
@@ -1537,7 +1580,7 @@ if __name__ == '__main__':
               'Services/WindowChromeEnforcer.cs', 'Services/EyeDropperService.cs', 'Services/TooltipDuration.cs',
               'Controls/MarqueeTextBlock.cs', 'App.xaml.cs', 'AssemblyInfo.cs', 'Services/EyeDropper.cs', 'Services/ChangelogService.cs', 'Services/NestedScrollRouting.cs', 'Views/ResponsivePresentationTypography.cs', 'Services/AflGoalRunDetector.cs', 'Services/AflDroughtCalculator.cs', 'Services/AtomicFile.cs'}
     for path in sorted(SRC.rglob('*.cs')):
-        rel = str(path.relative_to(SRC))
+        rel = path.relative_to(SRC).as_posix()
         if {'obj', 'bin'}.intersection(path.parts) or rel in native or path.name.endswith('.xaml.cs'):
             continue
         if rel.startswith('Models/') and rel not in {'Models/MarqueeMessage.cs', 'Models/SetupResult.cs'}:

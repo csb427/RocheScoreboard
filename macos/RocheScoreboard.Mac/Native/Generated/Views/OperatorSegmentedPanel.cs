@@ -1,5 +1,5 @@
 // Generated from Views/OperatorSegmentedPanel.cs; edit translator/adapters.
-// Source SHA-256: e9bf8b5aca7a4e5243b85402bd2f9510194a966e6a8a8bf3197e9cfc51c054da
+// Source SHA-256: ed0b258f41cdf91d445e4c52544b6b1d492a8c864301bb603190f4c1b5af6e7f
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -74,7 +74,7 @@ public sealed partial class OperatorSegmentedPanel : NativePaintGrid
         Paint();
     }
     private static void Step(ref double value,ref double velocity,double target,double omega,double dt)
-    {omega*=OperatorMotion.SpringResponse;double offset=value-target,c=velocity+omega*offset,e=Math.Exp(-omega*dt);value=target+(offset+c*dt)*e;velocity=(velocity-omega*c*dt)*e;}
+    {omega*=OperatorMotion.SpringResponse;OperatorMotion.AdvanceCriticallyDamped(ref value,ref velocity,target,omega,dt);}
     private void Stop(){if(!_running)return;NativeRendering.Rendering-=Frame;_running=false;}
     private void Paint()
     {
@@ -91,7 +91,7 @@ public sealed partial class OperatorSegmentedPanel : NativePaintGrid
         InvalidateVisual();
     }
     internal bool IsAnimating=>_running;
-    internal OperatorLiquidSelection.Shape VisualShape=>_ready?OperatorLiquidSelection.Calculate(Bounds.Size,_left,_right,_surfaceWidth,_leftVelocity,_rightVelocity,3,1.6,_running && OperatorMotion.Enabled):new(default(Rect),0,0);
+    internal OperatorLiquidSelection.Shape VisualShape=>_ready?OperatorLiquidSelection.Calculate(Bounds.Size,_left,_right,_surfaceWidth,_leftVelocity,_rightVelocity,3,1.6,(_running||_scrubbing) && OperatorMotion.Enabled):new(default(Rect),0,0);
     protected override void RenderNative(NativeDrawingContext dc)
     {
         NativeDrawingContext.RenderBase(dc);if(!_ready || Bounds.Height<2)return;

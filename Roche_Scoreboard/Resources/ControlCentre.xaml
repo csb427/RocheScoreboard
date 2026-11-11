@@ -39,12 +39,15 @@
         <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
             <Grid Background="Transparent"><Grid x:Name="PART_Surface" RenderTransformOrigin=".5,.5"><Grid.RenderTransform><ScaleTransform x:Name="TbSc"/></Grid.RenderTransform>
                 <glass:OperatorGlassSurface x:Name="Bd" CornerRadius="26" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
-                <motion:OperatorChoiceSurface CornerRadius="26" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}"/><Border x:Name="ActionGlow" CornerRadius="26" Background="White" Opacity="0" IsHitTestVisible="False" Margin="1"/>
+                <motion:OperatorChoiceSurface CornerRadius="26" Progress="{Binding Path=(motion:OperatorChoiceMotion.Progress), RelativeSource={RelativeSource TemplatedParent}}"/><Border x:Name="ActionGlow" CornerRadius="26" Background="{DynamicResource ControlCentre.AccentBrush}" Opacity="0" IsHitTestVisible="False" Margin="1"/>
                 <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"><ContentPresenter.Margin><MultiBinding Converter="{StaticResource ControlCentre.Insets}"><Binding Path="Width" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="Height" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="Padding" RelativeSource="{RelativeSource TemplatedParent}"/><Binding Path="FontSize" RelativeSource="{RelativeSource TemplatedParent}"/></MultiBinding></ContentPresenter.Margin></ContentPresenter>
             </Grid></Grid>
             <ControlTemplate.Triggers>
-                <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter TargetName="Bd" Property="BorderThickness" Value="2"/></MultiTrigger>
+                <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="motion:OperatorInputFocus.IsKeyboardMode" Value="True"/></MultiTrigger.Conditions><Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}"/><Setter TargetName="Bd" Property="BorderThickness" Value="2"/></MultiTrigger>
+                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}"/></Trigger>
+                <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ControlCentre.AccentBrush}"/><Setter TargetName="Bd" Property="BorderThickness" Value="2"/></Trigger>
                 <Trigger Property="IsEnabled" Value="False"><Setter TargetName="PART_Surface" Property="Opacity" Value=".38"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+                <Trigger Property="motion:OperatorControlMotion.IsBusy" Value="True"><Setter TargetName="PART_Surface" Property="Opacity" Value=".88"/></Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate></Setter.Value></Setter>
         <Style.Triggers><Trigger Property="Content" Value="⋯"><Setter Property="motion:OperatorControlMotion.InflateOnPress" Value="True"/><Setter Property="ContentTemplate" Value="{StaticResource ControlCentre.MoreGlyph}"/><Setter Property="AutomationProperties.Name" Value="More actions"/></Trigger></Style.Triggers>
@@ -87,7 +90,7 @@
         </ControlTemplate></Setter.Value></Setter>
     </Style>
     <Style x:Key="SettingsToggle" TargetType="CheckBox"><Setter Property="motion:OperatorChoiceMotion.Enabled" Value="True"/><Setter Property="ToolTipService.IsEnabled" Value="{Binding Path=(motion:OperatorGuidance.ShowHints), RelativeSource={RelativeSource Self}}"/>
-        <Setter Property="motion:SettingsControlMotion.Enabled" Value="False"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/>
+        <Setter Property="motion:SettingsControlMotion.Enabled" Value="True"/><Setter Property="motion:OperatorControlMotion.Enabled" Value="True"/>
         <Setter Property="Foreground" Value="{DynamicResource ControlCentre.TextBrush}"/><Setter Property="FontSize" Value="{DynamicResource ControlCentre.BodySize}"/><Setter Property="FontFamily" Value="{DynamicResource ControlCentre.Font}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ControlCentre.ControlHeight}"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox">

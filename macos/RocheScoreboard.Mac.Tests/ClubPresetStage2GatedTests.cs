@@ -2,6 +2,7 @@
 // Every accepted write delegates to the captured real AtomicFile backend.
 using System.Text.Json;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
@@ -199,6 +200,18 @@ public sealed partial class ClubPresetStage2GatedTests
         await gate.Entered.Task.WaitAsync(TimeSpan.FromSeconds(4));
         Assert.Equal(1, gate.WriteCalls);
         Assert.False(accepted.IsCompleted);
+        var favourite = Named<Button>(library, "FavouriteButton");
+        Assert.False(favourite.IsEnabled);
+        Assert.True(OperatorControlMotion.GetIsBusy(favourite));
+        Assert.Equal("Saving…", favourite.Content);
+        Assert.Equal("Saving club preset", AutomationProperties.GetName(favourite));
+        Assert.Equal("Saving preset…", AutomationProperties.GetItemStatus(favourite));
+        if (Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR") is { Length: > 0 } directory)
+        {
+            Directory.CreateDirectory(directory);
+            using var frame = library.CaptureRenderedFrame();
+            frame?.Save(Path.Combine(directory, "team-preset-saving.png"));
+        }
         return (gate, accepted);
     }
 

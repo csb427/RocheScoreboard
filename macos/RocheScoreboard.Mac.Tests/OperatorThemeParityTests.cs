@@ -2,6 +2,7 @@ using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -217,6 +218,96 @@ public sealed class OperatorThemeParityTests
             Assert.Equal(nextDensity, state.App.ThemeService.CurrentDensity);
         }
         finally { OperatorMotion.AnimationOverride = previousAnimation; }
+    }
+
+    [AvaloniaFact]
+    public async Task SharedPrimaryButtonShowsAccentHoverPressAndKeyboardFocusEvenWithMotionReduced()
+    {
+        using var state = new ThemeState();
+        state.App.ThemeService.SetTheme(AppTheme.Dark);
+        bool? previousMotion = OperatorMotion.AnimationOverride;
+        OperatorMotion.AnimationOverride = false;
+        int activations = 0;
+        var button = new Button { Content = "Start match", Width = 190, Height = 48 };
+        button.SetResourceReference(Control.ThemeProperty, "ControlCentre.PrimaryButton");
+        button.Click += (_, _) => activations++;
+        var window = new NativeWindow { Width = 420, Height = 240, Content = button };
+        OperatorDesign.Apply(window);
+        window.Show();
+        try
+        {
+            await Settle();
+            var surface = Assert.IsAssignableFrom<OperatorGlassSurface>(NativeTemplates.FindObject(button, "Bd"));
+            var glow = Assert.IsAssignableFrom<Border>(NativeTemplates.FindObject(button, "ActionGlow"));
+            Color accent = Expected(AppTheme.Dark, "AccentBrush");
+            void Capture(string stage)
+            {
+                string directory = Path.Combine(Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR")
+                    ?? Path.Combine(Path.GetTempPath(), "roche-button-states"), "shared-primary-" + stage);
+                Directory.CreateDirectory(directory);
+                using var frame = window.CaptureRenderedFrame();
+                Assert.NotNull(frame);
+                frame.Save(Path.Combine(directory, "button.png"));
+            }
+
+            Capture("default");
+            Assert.NotEqual(accent, BrushColor(surface.BorderBrush));
+            var point = button.TranslatePoint(new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), window)!.Value;
+            window.MouseMove(point);
+            await Settle();
+            Capture("hover-reduced-motion");
+            Assert.Equal(accent, BrushColor(surface.BorderBrush));
+            Assert.True(glow.Opacity > 0, "Reduced motion must keep a static hover cue when spring travel is disabled.");
+
+            window.MouseMove(new Point(2, 2));
+            window.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.None);
+            window.KeyReleaseQwerty(PhysicalKey.Tab, RawInputModifiers.None);
+            await Settle();
+            Assert.True(button.IsFocused, "A real Tab event must reach the primary action.");
+            Assert.True(OperatorInputFocus.GetIsKeyboardMode(button));
+            Assert.Equal(accent, BrushColor(surface.BorderBrush));
+            Assert.Equal(new Thickness(2), surface.BorderThickness);
+            Capture("keyboard-focus");
+
+            window.MouseMove(point);
+            window.MouseDown(point, MouseButton.Left);
+            Assert.True(button.IsPressed);
+            Assert.Equal(accent, BrushColor(surface.BorderBrush));
+            Assert.Equal(new Thickness(2), surface.BorderThickness);
+            Capture("pressed-reduced-motion");
+            Assert.True(activations == 0, "Press feedback must not activate before the native release edge.");
+            window.MouseUp(point, MouseButton.Left);
+            Assert.True(activations == 1, "A physical press and release must activate exactly once.");
+
+            window.MouseMove(new Point(2, 2));
+            button.IsEnabled = false;
+            await Settle();
+            Assert.False(button.IsEffectivelyEnabled);
+            Capture("disabled");
+            window.MouseMove(point);
+            window.MouseDown(point, MouseButton.Left);
+            window.MouseUp(point, MouseButton.Left);
+            Assert.Equal(1, activations);
+
+            button.IsEnabled = true;
+            window.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.None);
+            window.KeyReleaseQwerty(PhysicalKey.Tab, RawInputModifiers.None);
+            Assert.True(button.IsFocused);
+            window.KeyPressQwerty(PhysicalKey.Space, RawInputModifiers.None);
+            Assert.True(button.IsPressed);
+            Assert.Equal(1, activations);
+            window.KeyReleaseQwerty(PhysicalKey.Space, RawInputModifiers.None);
+            Assert.Equal(2, activations);
+            window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+            Assert.InRange(activations, 2, 3);
+            window.KeyReleaseQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+            Assert.Equal(3, activations);
+        }
+        finally
+        {
+            window.Close();
+            OperatorMotion.AnimationOverride = previousMotion;
+        }
     }
 
     [AvaloniaFact]

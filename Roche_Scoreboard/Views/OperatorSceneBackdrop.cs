@@ -104,5 +104,10 @@ public sealed class OperatorSceneBackdrop : FrameworkElement
         drawing.DrawGeometry(upper,null,UpperRibbon);drawing.Pop();drawing.Pop();
     }
     internal static Brush FallbackBrush()
-    {var group=new DrawingGroup();using(var drawing=group.Open())DrawScene(drawing,new Rect(0,0,1000,700),false);group.Freeze();return new DrawingBrush(group){Stretch=Stretch.Fill};}
+    {
+        // A missing sample must not stamp a miniature copy of the full wallpaper
+        // into every control. Let the real scene beneath the surface show through
+        // the normal material tint instead.
+        return System.Windows.Media.Brushes.Transparent;
+    }
 }

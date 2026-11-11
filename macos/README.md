@@ -95,10 +95,10 @@ includes shared refinements recorded in [batch 1](../docs/refinement/2026-10-28-
 [batch 4](../docs/refinement/2026-10-28-batch-4.md);
 model fixes compile directly on both platforms and view edits must be regenerated.
 [production-source-contract.json](production-source-contract.json) records the
-source inventory (49 XAML surfaces, 249 C# files, 530 UI event bindings).
+source inventory. Run the audit to print the current surface, C# and event counts.
 
 ```bash
-python3 macos/tools/translate_production.py
+python3 -X utf8 macos/tools/translate_production.py
 python3 macos/tools/audit_parity.py --check-translation
 dotnet build macos/RocheScoreboard.Mac.slnx -c Release
 ```
@@ -108,6 +108,24 @@ Edit the translator or native adapters, then regenerate. Files under
 `translate_scorebug.py`/`Presentation/ProductionScorebug` tree is an isolated
 regression fixture, not the production output. `audit_parity.py --write-contract`
 updates the source inventory after intentional Windows source changes.
+
+Source hashes describe **raw file bytes**, not normalized text. All inventoried
+Windows `.cs` and `.xaml` sources must use LF line endings, including when edited
+on Windows, so the hashes survive Git's text normalization on Mac/Linux checkouts.
+Generation and contract checks reject CR/CRLF input without changing it. A source
+checkout converted to CRLF must be returned to the reviewed LF representation
+before generation; do not refresh the saved contract to hide that mismatch.
+Use Python's UTF-8 mode as shown above, without changing global settings.
+
+After intentional source changes, first run `audit_parity.py --check-contract`
+and review the reported changed/missing paths against the source diff. Once all
+source edits are complete and reviewed, regenerate, run
+`audit_parity.py --write-contract` as a **separate explicit refresh**, then rerun
+`audit_parity.py --check-contract --check-translation`. Refresh cannot be combined
+with checks. Translation and package checks also validate saved-contract freshness,
+so a fresh generated header alone cannot conceal a stale saved inventory. These
+read-only checks establish source identity/coverage, not compilation or runtime
+acceptance. They do not change the Mac release-acceptance gates.
 
 The existing suite runs with `dotnet test macos/RocheScoreboard.Mac.slnx -c Release`.
 Set `ROCHE_NATIVE_MEDIA=1` at build time to include the decoded-video integration

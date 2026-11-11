@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/UpdatePromptWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: a0594990606b9e60a5459446b999d7aa2b8eb353270117e403da14d426d89a1e
+// Source SHA-256: b585faf6c36680a4103646668c0884f72727ba82236f76f2733a3a93f4d6e3a7
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -247,6 +247,8 @@ public partial class UpdatePromptWindow : NativeWindow
         {
             double percent = Math.Clamp(info.Progress * 100, 0, 100);
             UpdateProgressBar.Value = percent;
+            UpdateButtonProgress.Value = percent;
+            UpdateButtonLabel.Text = $"Downloading {percent:0}%…";
             ProgressPercentText.Text = $"{percent:0}%";
             ProgressDetailText.Text = info.TotalBytes > 0
                 ? $"{FormatBytes(info.BytesReceived)} of {FormatBytes(info.TotalBytes)}" +
@@ -256,6 +258,16 @@ public partial class UpdatePromptWindow : NativeWindow
         else
         {
             UpdateProgressBar.Value = info.Stage == UpdateProgressStage.Preparing ? 4 : 100;
+            UpdateButtonProgress.Value = UpdateProgressBar.Value;
+            UpdateButtonLabel.Text = info.Stage switch
+            {
+                UpdateProgressStage.Preparing => "Preparing update…",
+                UpdateProgressStage.Verifying => "Verifying update…",
+                UpdateProgressStage.Extracting => "Extracting update…",
+                UpdateProgressStage.Staging => "Checking update…",
+                UpdateProgressStage.Ready => "Ready to restart",
+                _ => "Update in progress…"
+            };
             ProgressPercentText.Text = info.Stage switch
             {
                 UpdateProgressStage.Preparing => "PREP",
@@ -293,8 +305,15 @@ public partial class UpdatePromptWindow : NativeWindow
     private void SetBusyState(bool busy)
     {
         if (_closed) return;
+        OperatorControlMotion.SetIsBusy(UpdateButton, busy);
         UpdateButton.IsEnabled = !busy;
-        UpdateButton.Content = busy ? "Update in progress…" : "Retry update  →";
+        UpdateButtonLabel.Text = busy ? "Preparing update…" : "Retry update  →";
+        UpdateButtonProgress.Value = 0;
+        UpdateButtonProgress.IsVisible = busy ? true : false;
+        Avalonia.Automation.AutomationProperties.SetName(UpdateButton, busy ? "Update in progress" : "Retry update");
+        Avalonia.Automation.AutomationProperties.SetHelpText(UpdateButton, busy
+            ? "The update is being prepared. Progress and the current step appear in this button and the details above."
+            : "Retry downloading, verifying and installing the update.");
         ViewReleaseButton.IsEnabled = !busy;
         SkipButton.Content = busy ? "Cancel safely" : "Remind me later";
         SkipButton.IsEnabled = !busy || !_cancellationRequested;
@@ -316,6 +335,8 @@ public partial class UpdatePromptWindow : NativeWindow
     {
         if (_closed) return;
         Avalonia.Automation.AutomationProperties.SetHelpText(UpdateProgressBar, (ProgressText.Text ?? string.Empty) + " " + (ProgressDetailText.Text ?? string.Empty));
+        if (_isDownloading)
+            Avalonia.Automation.AutomationProperties.SetHelpText(UpdateButton, (UpdateButtonLabel.Text ?? string.Empty) + ". " + (ProgressText.Text ?? string.Empty) + " " + (ProgressDetailText.Text ?? string.Empty));
         // WPF exposes explicit live-region events; the portable view retains
         // LiveSetting/Text notifications through its framework automation peer.
 #if WINDOWS
@@ -332,6 +353,7 @@ public partial class UpdatePromptWindow : NativeWindow
     {
         if (_closed || !_isDownloading || _downloadCancellation is null || _cancellationRequested) return;
         _cancellationRequested = true;
+        UpdateButtonLabel.Text = "Cancelling safely…";
         ProgressText.Text = "Cancelling safely…";
         ProgressDetailText.Text = "Cancellation requested. Waiting for the update operation to finish safely.";
         SkipButton.IsEnabled = false;

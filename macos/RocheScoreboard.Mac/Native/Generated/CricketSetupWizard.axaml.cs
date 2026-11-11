@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/CricketSetupWizard.xaml.cs; edit translator/adapters.
-// Source SHA-256: 38f485f74e982065810046738c0e6ea3f4edad55025d0e14a67ed874868fccaf
+// Source SHA-256: 05ad372b5d2a52f05409974ab091d45c27ef1043e3da32877c6a5270894307b3
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -290,6 +290,7 @@ namespace Roche_Scoreboard.Views
             int version = ++_stepTransitionVersion;
             _ambientRestartTimer?.Stop(); _ambientRestartTimer = null;
             if (_stepTransitionStoryboard is not null) { _stepTransitionStoryboard.Remove(this); _stepTransitionStoryboard = null; }
+            NextButton.IsEnabled = true;
             Control[] panels = [TeamsStepContainer, Step3Panel, Step3bPanel, Step4Panel];
             Control active = panels[_currentStep - 1];
             foreach (var panel in panels)
@@ -310,8 +311,8 @@ namespace Roche_Scoreboard.Views
                 Storyboard.SetTarget(fade, active); Storyboard.SetTargetProperty(fade, new PropertyPath(OpacityProperty)); storyboard.Children.Add(fade);
                 var slide = new DoubleAnimation((_currentStep > previous ? 8 : -8) * OperatorMotion.TravelScale, 0, OperatorMotion.Page) { FillBehavior = FillBehavior.Stop, EasingFunction = OperatorMotion.SmoothOut };
                 Storyboard.SetTarget(slide, shift); Storyboard.SetTargetProperty(slide, new PropertyPath(TranslateTransform.XProperty)); storyboard.Children.Add(slide);
-                storyboard.Completed += (_, _) => { if (version != _stepTransitionVersion) return; storyboard.Remove(this); active.Opacity = 1; active.RenderTransform = new MatrixTransform(Matrix.Identity); _stepTransitionStoryboard = null; };
-                _stepTransitionStoryboard = storyboard; storyboard.Begin(this, HandoffBehavior.SnapshotAndReplace, true);
+                storyboard.Completed += (_, _) => { if (version != _stepTransitionVersion) return; storyboard.Remove(this); active.Opacity = 1; active.RenderTransform = new MatrixTransform(Matrix.Identity); _stepTransitionStoryboard = null; NextButton.IsEnabled = true; };
+                _stepTransitionStoryboard = storyboard; NextButton.IsEnabled = false; storyboard.Begin(this, HandoffBehavior.SnapshotAndReplace, true);
             }
             BackButton.IsVisible = true;
             NextButtonText.Text = _currentStep == TotalSteps ? "Start match" : "Continue";
@@ -337,7 +338,9 @@ namespace Roche_Scoreboard.Views
 
         private void Next_Click(object? sender, RoutedEventArgs e)
         {
-            if (_completionPending || Result is not null) return;
+            // A repeated activation during the page transition must not skip
+            // the arriving step. Back and Cancel can still interrupt it.
+            if (_completionPending || Result is not null || _stepTransitionStoryboard is not null) return;
             if (_currentStep == 3 && !ValidateOversEntry()) return;
             if (_currentStep < TotalSteps)
                 ShowStep(_currentStep + 1);

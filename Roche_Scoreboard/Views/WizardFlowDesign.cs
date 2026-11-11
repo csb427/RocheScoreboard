@@ -158,7 +158,11 @@ internal static class WizardFlowDesign
         if(wizard.FindName("NavBar") is Grid nav && nav.ColumnDefinitions.Count==3)
         {
             bool hasBack=wizard.FindName("BackButton") is FrameworkElement back && back.Visibility==Visibility.Visible;
-            nav.ColumnDefinitions[0].Width=hasBack?new GridLength(compact?84:104):new GridLength(0);
+            // The unified sport step places Cancel in Back's otherwise empty
+            // column. Reserve its own desired width so WPF does not clip it.
+            bool hasLeadingCancel=wizard.FindName("CancelSetupButton") is FrameworkElement cancel
+                && cancel.Visibility==Visibility.Visible && Grid.GetColumn(cancel)==0;
+            nav.ColumnDefinitions[0].Width=hasBack?new GridLength(compact?84:104):hasLeadingCancel?GridLength.Auto:new GridLength(0);
             nav.ColumnDefinitions[1].Width=hasBack?GridLength.Auto:new GridLength(1,GridUnitType.Star);
             if(nav.Parent is Border shell)shell.MaxWidth=560;
         }

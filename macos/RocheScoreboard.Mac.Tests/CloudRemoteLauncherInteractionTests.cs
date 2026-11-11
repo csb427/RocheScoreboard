@@ -836,19 +836,71 @@ public sealed class CloudRemoteLauncherInteractionTests
         using var f = new Fixture();
         await Settle();
         if (action == "start") f.Launcher.ApplyState(true, false, null, null);
+        var command = Named<Button>(f.Launcher, action == "start" ? "StartButton" : "EndButton");
         int calls = 0;
         EventHandler handler = (_, _) =>
         {
             calls++;
-            Assert.False(f.Launcher.IsExpanded);
-            Assert.False(f.Launcher.IsDetailsAnimating);
-            Assert.False(Named<StackPanel>(f.Launcher, "ExpandedPanel").IsVisible);
+            if (action == "start")
+            {
+                Assert.True(f.Launcher.IsExpanded, "Start remains in its initiating surface while the asynchronous request is pending.");
+                Assert.True(OperatorControlMotion.GetIsBusy(command));
+                Assert.True(Named<ProgressBar>(f.Launcher, "StartBusyProgress").IsVisible
+                    || Named<TextBlock>(f.Launcher, "StartButtonLabel").Text == "Creating session…");
+            }
+            else
+            {
+                Assert.False(f.Launcher.IsExpanded);
+                Assert.False(f.Launcher.IsDetailsAnimating);
+                Assert.False(Named<StackPanel>(f.Launcher, "ExpandedPanel").IsVisible);
+            }
         };
         if (action == "start") f.Launcher.StartRequested += handler; else f.Launcher.EndRequested += handler;
-        var command = Named<Button>(f.Launcher, action == "start" ? "StartButton" : "EndButton");
         Click(command);
         Click(command); // A detached/repeated callback must not dispatch again.
         Assert.Equal(1, calls);
+    }
+
+    [AvaloniaFact]
+    public async Task LauncherStartBusyStateBlocksRepeatsAndDoesNotReopenAfterDismissal()
+    {
+        using var preferences = new AppearanceScope(false);
+        using var f = new Fixture();
+        await Settle();
+        f.Launcher.ApplyState(true, false, null, null);
+        var command = Named<Button>(f.Launcher, "StartButton");
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int calls = 0;
+        f.Launcher.StartRequested += async (_, _) =>
+        {
+            calls++;
+            await release.Task;
+            f.Launcher.SetStartPending(false);
+        };
+        Click(command);
+        Assert.Equal(1, calls);
+        Assert.False(command.IsEnabled);
+        Assert.True(OperatorControlMotion.GetIsBusy(command));
+        Assert.Equal("Creating cloud session", AutomationProperties.GetName(command));
+        Assert.Equal("Creating session", AutomationProperties.GetItemStatus(command));
+        CaptureDetails(f.Launcher, "cloud-launcher-start-busy");
+        Assert.True(Named<ProgressBar>(f.Launcher, "StartBusyProgress").IsVisible
+            || Named<TextBlock>(f.Launcher, "StartButtonLabel").Text == "Creating session…");
+        OperatorAppearance.Configure(OperatorAppearance.GlassEnabled, true);
+        Assert.False(Named<ProgressBar>(f.Launcher, "StartBusyProgress").IsVisible);
+        Assert.Equal("Creating session…", Named<TextBlock>(f.Launcher, "StartButtonLabel").Text);
+        OperatorAppearance.Configure(OperatorAppearance.GlassEnabled, false);
+        Assert.Equal(OperatorMotion.Enabled, Named<ProgressBar>(f.Launcher, "StartBusyProgress").IsVisible);
+        Click(command);
+        Assert.Equal(1, calls);
+
+        f.Launcher.Collapse();
+        release.SetResult();
+        await Settle(30);
+        Assert.False(f.Launcher.IsExpanded, "Completion must not reopen a surface the operator dismissed.");
+        Assert.True(command.IsEnabled);
+        Assert.False(OperatorControlMotion.GetIsBusy(command));
+        Assert.False(Named<ProgressBar>(f.Launcher, "StartBusyProgress").IsVisible);
     }
 
     private static double Contrast(Color first, Color second)

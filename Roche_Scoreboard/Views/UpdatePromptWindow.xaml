@@ -128,7 +128,14 @@
                 <Button x:Name="SkipButton" Grid.Column="2" Style="{StaticResource DialogButton}"
                         Content="Remind me later" Click="Skip_Click" IsCancel="True" IsDefault="True"/>
                 <Button x:Name="UpdateButton" Grid.Column="4" Style="{StaticResource PrimaryButton}"
-                        Content="Download and restart  →" MinWidth="205" Click="Update_Click" IsDefault="False"/>
+                        MinWidth="205" Click="Update_Click" IsDefault="False" AutomationProperties.Name="Download and restart">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock x:Name="UpdateButtonLabel" Text="Download and restart  →" HorizontalAlignment="Center"/>
+                        <ProgressBar x:Name="UpdateButtonProgress" AutomationProperties.Name="Update progress in action button"
+                                     Style="{StaticResource UpdateProgressStyle}" Width="124" Height="3" Margin="0,3,0,0"
+                                     Visibility="Collapsed" Focusable="False"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </Grid>
     </glass:OperatorGlassSurface>

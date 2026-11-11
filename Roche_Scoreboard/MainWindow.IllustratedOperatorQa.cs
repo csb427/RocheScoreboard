@@ -144,6 +144,7 @@ public partial class MainWindow
 
             var match=CricketReliabilityChecks.CreateMatch(true);var panel=new CricketControlPanel();panel.SetMatch(match);window.Content=panel;await Wait();
             InvokeCricketQa(panel,"ShowBatterSelection","Select batter");await Wait();
+            checks["player-selector-qa-invocation-honours-optional-source-and-flow-parameters"] = panel.BatterSelectionOverlay.Visibility==Visibility.Visible;
             panel.BatterSelectionList.SelectedIndex=1;
             var playerItem=panel.BatterSelectionList.ItemContainerGenerator.ContainerFromIndex(1) as System.Windows.Controls.ListBoxItem;
             checks["player-selector-owns-rounded-hover-and-tick-feedback"]=playerItem is not null && OperatorControlMotion.GetEnabled(playerItem) && SelectionCheckMotion.GetEnabled(playerItem)

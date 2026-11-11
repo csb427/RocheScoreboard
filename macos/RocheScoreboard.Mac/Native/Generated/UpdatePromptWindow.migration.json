@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml",
-  "source_sha256": "49c72a284cdb82f19d4ae32ed54b48bc9f7648ff492b3b52ffe5b92b4d1e95f6",
+  "source_sha256": "191d38c6c34fcc44b9e45c2faee6b2177694bdb7e977bd8c553cdbf8ff626c30",
   "names": [
     {
       "name": "PART_Track",
@@ -103,9 +103,19 @@
       "name": "UpdateButton",
       "type": "Button",
       "object": false
+    },
+    {
+      "name": "UpdateButtonLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "UpdateButtonProgress",
+      "type": "ProgressBar",
+      "object": false
     }
   ],
-  "code_source_sha256": "a0594990606b9e60a5459446b999d7aa2b8eb353270117e403da14d426d89a1e",
+  "code_source_sha256": "b585faf6c36680a4103646668c0884f72727ba82236f76f2733a3a93f4d6e3a7",
   "native_events": [
     {
       "name": null,

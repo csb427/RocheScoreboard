@@ -126,8 +126,8 @@ def scan() -> tuple[list[dict], list[dict]]:
     ui_types = CONTROLS | VISUAL_SITES | custom_types | {'Window','OpenFileDialog','SaveFileDialog','FolderBrowserDialog','ColorDialog'}
     create=re.compile(r'\bnew\s+(?:[\w.]+\.)?('+'|'.join(sorted(ui_types,key=len,reverse=True))+r')\s*(?:[({])')
     for path in sorted(SRC.rglob('*.xaml')):
-        relative = str(path.relative_to(ROOT)); raw = path.read_text(encoding='utf-8-sig')
-        root = ET.fromstring(raw); counts = Counter(); feature = str(path.relative_to(SRC));parents={child:parent for parent in root.iter() for child in parent}
+        relative = path.relative_to(ROOT).as_posix(); raw = path.read_text(encoding='utf-8-sig')
+        root = ET.fromstring(raw); counts = Counter(); feature = path.relative_to(SRC).as_posix();parents={child:parent for parent in root.iter() for child in parent}
         files.append({'source':relative,'sha256':digest(path),'kind':'xaml','domain':domain(relative),'feature':feature})
         entries.append({'id':feature+'::surface','feature':feature,'domain':domain(relative),'source':relative,'line':1,'kind':'surface','type':root.tag.split('}')[-1],'name':root.get(X+'Class',''),'label':'','current_source':{'root_attributes':dict(root.attrib)}})
         tag_lines=[];parser=xml.parsers.expat.ParserCreate();parser.StartElementHandler=lambda *_:tag_lines.append(parser.CurrentLineNumber);parser.Parse(raw,True)
@@ -166,7 +166,7 @@ def scan() -> tuple[list[dict], list[dict]]:
             entries.append({'id':identity,'feature':feature+('::'+scope if scope else ''),'domain':area,'source':relative,'line':line,'kind':'interactive' if kind in CONTROLS or event_input else 'numeric' if numeric else 'custom visual' if kind in custom_types else 'region','type':kind,'name':name,'label':label,'current_source':attrs})
     for path in sorted(SRC.rglob('*.cs')):
         if {'obj','bin'}.intersection(path.parts) or re.search(r'Qa\.cs$|Checks\.cs$|Scenarios\.cs$',path.name): continue
-        raw=path.read_text(encoding='utf-8-sig'); relative=str(path.relative_to(ROOT)); lines=raw.splitlines(); method='initialization'; counts=Counter(); found=[];return_control=None
+        raw=path.read_text(encoding='utf-8-sig'); relative=path.relative_to(ROOT).as_posix(); lines=raw.splitlines(); method='initialization'; counts=Counter(); found=[];return_control=None
         code=code_only(raw);code_lines=code.splitlines()
         line_starts=[0]+[m.end() for m in re.finditer('\n',code)]
         factory_decl=re.compile(r'\b(?:'+'|'.join(sorted(CONTROLS|VISUAL_SITES|custom_types,key=len,reverse=True))+r')\??\s+(\w+)\s*\(')
@@ -194,12 +194,12 @@ def scan() -> tuple[list[dict], list[dict]]:
             contexts[number] = method
             sites=[match for match in sites_by_line.get(number,[]) if not declaration or match[1]!=method]
             for match in sites:
-                kind=match[1];counts[(method,kind)]+=1; feature=str(path.relative_to(SRC))+'::'+method
+                kind=match[1];counts[(method,kind)]+=1; feature=path.relative_to(SRC).as_posix()+'::'+method
                 identity=f'{feature}::{kind}:{counts[(method,kind)]}'
                 snippet='\n'.join(lines[max(0,number-2):min(len(lines),number+3)])
                 found.append({'id':identity,'feature':feature,'domain':domain(relative+'::'+method),'source':relative,'line':number,'kind':'dynamic visual' if kind in VISUAL_SITES else 'dynamic/factory','type':kind,'name':method,'label':'','current_source':{'snippet':snippet}})
             if return_control and re.search(r'(?:return|=>)\s+new\s*\(',line):
-                kind=return_control;counts[(method,kind)]+=1;feature=str(path.relative_to(SRC))+'::'+method
+                kind=return_control;counts[(method,kind)]+=1;feature=path.relative_to(SRC).as_posix()+'::'+method
                 found.append({'id':f'{feature}::{kind}:{counts[(method,kind)]}','feature':feature,'domain':domain(relative),'source':relative,'line':number,'kind':'implicit factory','type':kind,'name':method,'label':'','current_source':{'snippet':'\n'.join(lines[max(0,number-2):min(len(lines),number+3)])}})
             elif extended_return and re.search(r'(?:\breturn\s+|=>\s*)new\s*\(', line):
                 extra_returns.append((number, method, extended_return))
@@ -209,22 +209,22 @@ def scan() -> tuple[list[dict], list[dict]]:
             number = bisect.bisect_right(line_starts, offset)
             owner = 'initialization' if field else contexts[number]
             counts[(owner,kind)] += 1
-            feature = str(path.relative_to(SRC)) + '::' + owner
+            feature = path.relative_to(SRC).as_posix() + '::' + owner
             found.append({'id':f'{feature}::{kind}:{counts[(owner,kind)]}','feature':feature,'domain':domain(relative+'::'+owner),'source':relative,'line':number,'kind':'dynamic visual' if kind in VISUAL_SITES else 'dynamic/factory','type':kind,'name':variable,'label':'','current_source':{'snippet':'\n'.join(lines[max(0,number-2):min(len(lines),number+3)]),'declarator':variable,'scope':'field/property initializer' if field else 'local initializer'}})
         for number, owner, kind in extra_returns:
             counts[(owner,kind)] += 1
-            feature = str(path.relative_to(SRC)) + '::' + owner
+            feature = path.relative_to(SRC).as_posix() + '::' + owner
             found.append({'id':f'{feature}::{kind}:{counts[(owner,kind)]}','feature':feature,'domain':domain(relative),'source':relative,'line':number,'kind':'implicit factory','type':kind,'name':owner,'label':'','current_source':{'snippet':'\n'.join(lines[max(0,number-2):min(len(lines),number+3)]),'scope':'return expression'}})
         surfaces=[definition for definition in re.finditer(r'class\s+(\w+)\s*:\s*(Window|UserControl|FrameworkElement|ContentControl|Border|Panel|ScrollViewer)\b',code)
                   if not (path.parent/(definition[1]+'.xaml')).exists()]
         for definition in surfaces:
-            feature=str(path.relative_to(SRC))+'::surface'+(':'+definition[1] if len(surfaces)>1 else '')
+            feature=path.relative_to(SRC).as_posix()+'::surface'+(':'+definition[1] if len(surfaces)>1 else '')
             found.append({'id':feature,'feature':feature,'domain':domain(relative),'source':relative,'line':raw.count('\n',0,definition.start())+1,'kind':'code surface','type':definition[2],'name':definition[1],'label':'','current_source':{'class':definition[1],'base':definition[2]}})
         if path.parent.name=='Services' and (path.stem.endswith('Motion') or path.stem in {'OperatorDesign','OperatorFeedback','OperatorInputFocus','OperatorRoundedClip','ThemeManager','ScrollActivity'}):
-            feature=str(path.relative_to(SRC))+'::interaction-infrastructure'
+            feature=path.relative_to(SRC).as_posix()+'::interaction-infrastructure'
             found.append({'id':feature,'feature':feature,'domain':'presentation/output' if path.stem=='BroadcastMotion' else 'shared primitives','source':relative,'line':1,'kind':'interaction infrastructure','type':'motion/input service','name':path.stem,'label':'','current_source':{'source_sha256':digest(path)}})
         if path.parent.name=='Views' or path.name.startswith('MainWindow.') or path.name=='App.xaml.cs':
-            feature=str(path.relative_to(SRC))+'::controller'
+            feature=path.relative_to(SRC).as_posix()+'::controller'
             found.append({'id':feature,'feature':feature,'domain':domain(relative),'source':relative,'line':1,'kind':'controller','type':'view controller','name':path.name,'label':'','current_source':{'source_sha256':digest(path),'methods':[m[1] for m in METHOD.finditer(code)]}})
         if found or re.search(r':\s*(?:Window|UserControl)\b',raw):
             files.append({'source':relative,'sha256':digest(path),'kind':'code','domain':domain(relative),'features':sorted({entry['feature'] for entry in found})})

@@ -16,6 +16,16 @@ public partial class MainWindow
     internal async Task<Dictionary<string,bool>> RunAppleInteractionChecksAsync(string directory)
     {
         var checks=new Dictionary<string,bool>();
+        async Task AppendStage(string name,Func<Task<Dictionary<string,bool>>> run)
+        {
+            try { foreach(var check in await run()) checks[check.Key]=check.Value; }
+            catch(Exception error)
+            {
+                checks[name+"-unexpected-exception"]=false;
+                try { System.IO.File.WriteAllText(System.IO.Path.Combine(directory,name+"-unexpected-exception.txt"),error.ToString()); }
+                catch { /* The failed check remains visible in the result dictionary. */ }
+            }
+        }
         var fixture=new Window { Width=1000,Height=760,Owner=this,Title="Apple interaction regression" };
         bool? motion=OperatorMotion.AnimationOverride;bool glass=OperatorAppearance.GlassEnabled,reduced=OperatorAppearance.ReduceMotion;
         UiDensity density=((App)System.Windows.Application.Current).ThemeService.CurrentDensity;
@@ -28,6 +38,30 @@ public partial class MainWindow
         }
         try
         {
+#if WINDOWS
+            var currentAccent=OperatorAccentPreferences.AccentBrushResource;
+            var currentSelection=OperatorAccentPreferences.SelectionBrushResource;
+            var frozenResources=new ResourceDictionary();
+            var frozenAccent=new SolidColorBrush(Colors.Magenta);frozenAccent.Freeze();
+            var frozenSelection=new SolidColorBrush(Colors.Cyan);frozenSelection.Freeze();
+            frozenResources["ControlCentre.AccentBrush"]=frozenAccent;
+            frozenResources["ControlCentre.SelectionBrush"]=frozenSelection;
+            var mutableResources=new ResourceDictionary
+            {
+                ["ControlCentre.AccentBrush"]=new SolidColorBrush(Colors.Magenta),
+                ["ControlCentre.SelectionBrush"]=new SolidColorBrush(Colors.Cyan)
+            };
+            OperatorAccentPreferences.UpdateMergedAccentBrushes(frozenResources,currentAccent,currentSelection);
+            OperatorAccentPreferences.UpdateMergedAccentBrushes(mutableResources,currentAccent,currentSelection);
+            checks["frozen-accent-resource-is-replaced-with-current-palette-brush"]=
+                ReferenceEquals(frozenResources["ControlCentre.AccentBrush"],currentAccent)
+                && ReferenceEquals(frozenResources["ControlCentre.SelectionBrush"],currentSelection);
+            checks["mutable-accent-resource-tracks-current-palette-brush"]=
+                mutableResources["ControlCentre.AccentBrush"] is SolidColorBrush mutableAccent
+                && mutableAccent.Color==currentAccent.Color
+                && mutableResources["ControlCentre.SelectionBrush"] is SolidColorBrush mutableSelection
+                && mutableSelection.Color==currentSelection.Color;
+#endif
             OperatorAppearance.Configure(true,false);OperatorMotion.AnimationOverride=true;
             var home=new SportSelectionScreen();fixture.Content=home;fixture.Show();await Task.Delay(250);
             int selected=0;var elapsed=System.Diagnostics.Stopwatch.StartNew();long arrived=-1;
@@ -78,6 +112,10 @@ public partial class MainWindow
             var settings=new GlobalSettingsScreen();
             settings.SetApplicationPreferences(((App)System.Windows.Application.Current).ThemeService.CurrentTheme,UiDensity.Compact,true);
             fixture.Content=settings;await Task.Delay(200);
+            var materialThumb=settings.GlassMaterialToggle.Template.FindName("Thumb",settings.GlassMaterialToggle) as TranslateTransform;
+            settings.GlassMaterialToggle.IsChecked=false;await Settle(()=>materialThumb is {X:<=.01});
+            settings.GlassMaterialToggle.IsChecked=true;await Settle(()=>materialThumb is {X:>=16.99});
+            checks["settings-glass-toggle-track-and-thumb-share-the-checked-state"] = settings.GlassMaterialToggle.IsChecked==true && materialThumb is {X:>=16.99};
             settings.GlassMaterialToggle.IsChecked=false;
             checks["operator-solid-material-choice-applies"] = !OperatorAppearance.GlassEnabled;
             settings.ReducedMotionToggle.IsChecked=true;OperatorMotion.AnimationOverride=null;
@@ -136,13 +174,19 @@ public partial class MainWindow
                 checks["scorecard-editor-cancel-keeps-ledger"] = match.TotalRuns==1 && match.CurrentInnings!.Deliveries.Count==1;
             }
         }
+        catch(Exception error)
+        {
+            checks["apple-interaction-main-stage-unexpected-exception"]=false;
+            try { System.IO.File.WriteAllText(System.IO.Path.Combine(directory,"apple-interaction-main-stage-unexpected-exception.txt"),error.ToString()); }
+            catch { /* The failed check remains visible in the result dictionary. */ }
+        }
         finally { fixture.Close();OperatorAppearance.Configure(glass,reduced);OperatorMotion.AnimationOverride=motion;OperatorDesign.UpdateDensity(density); }
-        foreach(var check in await RunIphoneControlChecksAsync(directory)) checks[check.Key]=check.Value;
-        foreach(var check in await RunLiquidSelectionChecksAsync(directory)) checks[check.Key]=check.Value;
-        foreach(var check in await RunAppleReviewChecksAsync(directory)) checks[check.Key]=check.Value;
-        foreach(var check in await RunSculptedGlassChecksAsync(directory)) checks[check.Key]=check.Value;
-        foreach(var check in await RunOperatorResponseChecksAsync(directory)) checks[check.Key]=check.Value;
-        foreach(var check in await RunIllustratedOperatorChecksAsync(directory)) checks[check.Key]=check.Value;
+        await AppendStage("iphone-controls",()=>RunIphoneControlChecksAsync(directory));
+        await AppendStage("liquid-selection",()=>RunLiquidSelectionChecksAsync(directory));
+        await AppendStage("apple-review",()=>RunAppleReviewChecksAsync(directory));
+        await AppendStage("sculpted-glass",()=>RunSculptedGlassChecksAsync(directory));
+        await AppendStage("operator-response",()=>RunOperatorResponseChecksAsync(directory));
+        await AppendStage("illustrated-operator",()=>RunIllustratedOperatorChecksAsync(directory));
         return checks;
     }
 }

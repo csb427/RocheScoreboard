@@ -36,6 +36,7 @@ public partial class MainWindow : IRemoteCommandTarget, IRemoteCommandScope
         ArgumentNullException.ThrowIfNull(configuration);
         if (_cloudRemote is not null) throw new InvalidOperationException("Configure only an idle window.");
         _cloudConfig = configuration;
+        RefreshCloudRemoteUi();
     }
 
     private void ReportCloudSessionStartFailure(Exception error)

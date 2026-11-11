@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Roche_Scoreboard.Services;
 using Roche_Scoreboard.Services.Cloud;
@@ -15,6 +16,27 @@ using Xunit;
 namespace RocheScoreboard.Mac.Tests;
 public sealed partial class LiveSettingsClockChoiceTests
 {
+    private sealed class PendingShareCardSession(string code) : ICloudRemoteSession
+    {
+        private readonly TaskCompletionSource start = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource dispose = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private Action<bool>? connection;
+        public bool IsActive { get; private set; }
+        public string? JoinCode => IsActive ? code : null;
+        public Guid? SessionId { get; } = Guid.NewGuid();
+        internal int StartCalls, DisposeCalls;
+        public event Action<bool>? ConnectedChanged { add => connection += value; remove => connection -= value; }
+        public async Task StartAsync(string sport,string home,string away,LiveStateSnapshot snapshot,CancellationToken ct)
+        { StartCalls++; await start.Task; IsActive=true; }
+        public void PublishSnapshot(LiveStateSnapshot snapshot) { }
+        public void Connection(bool connected)=>connection?.Invoke(connected);
+        internal void StartSucceeds()=>start.TrySetResult();
+        internal void StartFails(bool canceled=false)
+        { if(canceled)start.TrySetCanceled();else start.TrySetException(new IOException("Controlled start failure.")); }
+        internal void FinishDisposal()=>dispose.TrySetResult();
+        public ValueTask DisposeAsync() { DisposeCalls++; return new ValueTask(DisposeCore()); }
+        private async Task DisposeCore() { await dispose.Task; IsActive=false; }
+    }
     // No transport/network/real credentials. Public host lifecycle still owns
     // generation, subscriptions, snapshots and UI refresh.
     private sealed class ShareCardSession(string code) : ICloudRemoteSession
@@ -45,6 +67,150 @@ public sealed partial class LiveSettingsClockChoiceTests
             RemoteAppBaseUrl="https://remote.example.invalid" });
         f.Window.CloudSessionFactory=(_,_,_)=>session;
         return session;
+    }
+
+    private static PendingShareCardSession ConfigurePendingShareCard(AflFixture f,string code)
+    {
+        var session=new PendingShareCardSession(code);
+        f.Window.SetCloudSessionTestConfiguration(new SupabaseConfig {
+            Url="https://share-card.example.invalid",AnonKey="fixture-only-anon",ServiceRoleKey="fixture-only-host",
+            RemoteAppBaseUrl="https://remote.example.invalid" });
+        f.Window.CloudSessionFactory=(_,_,_)=>session;
+        f.Window.CloudSessionFailureSink=_=>{};
+        return session;
+    }
+
+    [AvaloniaTheory]
+    [InlineData("success")][InlineData("failure")][InlineData("cancel")]
+    [Trait("Evidence","AflCloudShareCard")]
+    public async Task ActualCloudStartButtonHasSingleRecoverableInlineBusyLifecycle(string outcome)
+    {
+        await using var f=await AflFixture.Create(1280,850);
+        OperatorAppearance.Configure(OperatorAppearance.GlassEnabled,false);
+        var session=ConfigurePendingShareCard(f,"BUSY-7QPR");
+        await OpenShareCard(f);
+        var button=Named<Button>(f.Window,"CloudStartButton");
+        await Mr6Reveal(f,button);
+        var before=button.Bounds.Size;
+        await Tap(f.Window,button);
+        Assert.Equal(1,session.StartCalls);
+        Assert.False(button.IsEnabled);
+        Assert.True(OperatorControlMotion.GetIsBusy(button));
+        Assert.Equal(before,button.Bounds.Size);
+        Assert.Equal("Creating cloud session",AutomationProperties.GetName(button));
+        Assert.Equal("Creating session…",AutomationProperties.GetItemStatus(button));
+        Assert.Equal("Creating session…",Named<TextBlock>(f.Window,"CloudStartButtonLabel").Text);
+        Assert.True(Named<ProgressBar>(f.Window,"CloudStartBusyProgress").IsVisible
+            || Named<TextBlock>(f.Window,"CloudStartButtonLabel").Text == "Creating session…");
+        Capture(f.Window,$"cloud-settings-start-busy-{outcome}");
+        Assert.Equal("Creating session…",Named<TextBlock>(f.Window,"CloudStatusText").Text);
+        button.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(1,session.StartCalls);
+
+        if(outcome=="success") session.StartSucceeds(); else session.StartFails(outcome=="cancel");
+        if(outcome!="success") await Until(()=>session.DisposeCalls>0,"Failed or cancelled start must enter controlled cleanup before releasing the fake session.");
+        if(outcome!="success") session.FinishDisposal();
+        await Until(()=>!OperatorControlMotion.GetIsBusy(button),"The initiating action must recover after its real async operation terminates.");
+        Assert.True(button.Bounds.Size.Width>0);
+        Assert.False(Named<ProgressBar>(f.Window,"CloudStartBusyProgress").IsVisible);
+        Assert.False(OperatorControlMotion.GetIsBusy(button));
+        if(outcome=="success") Assert.True(f.Window.IsCloudSessionActive);
+        else
+        {
+            Assert.False(f.Window.IsCloudSessionActive);
+            Assert.True(button.IsEnabled);
+            var retry=ConfigurePendingShareCard(f,"RETRY-7QPR");
+            await Tap(f.Window,button);
+            Assert.Equal(1,retry.StartCalls);
+            retry.StartSucceeds();
+            await Until(()=>f.Window.IsCloudSessionActive,"A new start must remain possible after failure/cancellation cleanup.");
+            var end=f.Window.EndCloudSessionAsync();retry.FinishDisposal();await end;
+        }
+        if(outcome=="success") { var task=f.Window.EndCloudSessionAsync();session.FinishDisposal();await task; }
+    }
+
+    [AvaloniaFact]
+    [Trait("Evidence","AflCloudShareCard")]
+    public async Task ActualCloudEndButtonRemainsBusyUntilConfirmedDisposalCompletes()
+    {
+        await using var f=await AflFixture.Create(1280,850);
+        var session=ConfigurePendingShareCard(f,"END-7QPR");
+        var start=f.Window.StartCloudSessionAsync();session.StartSucceeds();await start;
+        await OpenShareCard(f);
+        var button=Named<Button>(f.Window,"CloudEndButton");await Mr6Reveal(f,button);
+        bool confirmed=false;Exception? callbackError=null;
+        var timer=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(20)};
+        timer.Tick+=(_,_)=>{
+            var dialog=f.Window.OwnedWindows.SingleOrDefault(x=>x.Title=="Cloud Remote");
+            if(dialog is null)return;
+            timer.Stop();
+            try { var yes=Assert.Single(dialog.GetVisualDescendants().OfType<Button>(),x=>Equals(x.Content,"Yes"));yes.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));confirmed=true; }
+            catch(Exception error){callbackError=error;dialog.Close();}
+        };
+        try
+        {
+            timer.Start();await Tap(f.Window,button);
+            await Until(()=>confirmed||callbackError is not null,"The owned confirmation must resolve before ending the session.");
+            Assert.Null(callbackError);Assert.False(f.Window.IsCloudSessionActive);
+            Assert.True(Named<StackPanel>(f.Window,"CloudLiveState").IsVisible,"Keep the initiating live action visible while teardown is pending.");
+            Assert.False(button.IsEnabled);Assert.True(OperatorControlMotion.GetIsBusy(button));
+            Assert.Equal("Ending cloud session",AutomationProperties.GetName(button));
+            Assert.Equal("Ending session…",AutomationProperties.GetItemStatus(button));
+            Assert.Equal("Ending session…",Named<TextBlock>(f.Window,"CloudEndButtonLabel").Text);
+            Assert.True(Named<ProgressBar>(f.Window,"CloudEndBusyProgress").IsVisible
+                || Named<TextBlock>(f.Window,"CloudEndButtonLabel").Text == "Ending session…");
+            Capture(f.Window,"cloud-settings-end-busy");
+            Assert.Equal("Ending cloud session…",Named<TextBlock>(f.Window,"CloudStatusText").Text);
+            session.FinishDisposal();
+            await Until(()=>!OperatorControlMotion.GetIsBusy(button),"End must restore its action when disposal is complete.");
+            Assert.False(f.Window.IsCloudSessionActive);
+            Assert.False(Named<StackPanel>(f.Window,"CloudLiveState").IsVisible);
+            Assert.True(Named<StackPanel>(f.Window,"CloudIdleState").IsVisible);
+        }
+        finally { timer.Stop();foreach(var child in f.Window.OwnedWindows.Where(x=>x.Title=="Cloud Remote").ToArray())child.Close();session.FinishDisposal(); }
+    }
+
+    [AvaloniaTheory]
+    [InlineData("success")][InlineData("failure")][InlineData("cancel")]
+    [Trait("Evidence","AsyncCommandButton")]
+    public async Task UpdateCheckButtonShowsInlineBusyAndRecoversWithoutNetwork(string outcome)
+    {
+        await using var f=await AflFixture.Create(1280,850);
+        var release=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int calls=0;
+        f.Window.UpdateCheckAsyncOverride=()=>{calls++;return release.Task;};
+        await OpenShareCard(f);
+        var button=Named<Button>(f.Window,"CheckForUpdateButton");await Mr6Reveal(f,button);
+        var before=button.Bounds.Size;
+        await Tap(f.Window,button);
+        Assert.Equal(1,calls);Assert.False(button.IsEnabled);Assert.True(OperatorControlMotion.GetIsBusy(button));
+        Assert.Equal(before,button.Bounds.Size);
+        Assert.Equal("Checking for updates",AutomationProperties.GetName(button));
+        Assert.Equal("Checking for updates…",AutomationProperties.GetItemStatus(button));
+        Assert.True(Named<ProgressBar>(f.Window,"CheckForUpdateBusyProgress").IsVisible
+            || Named<TextBlock>(f.Window,"CheckForUpdateLabel").Text == "Checking…");
+        Capture(f.Window,$"update-check-busy-{outcome}");
+        bool oldReduceMotion=OperatorAppearance.ReduceMotion;
+        try
+        {
+            OperatorAppearance.Configure(OperatorAppearance.GlassEnabled,false);
+            OperatorAppearance.Configure(OperatorAppearance.GlassEnabled,true);
+            Assert.False(Named<ProgressBar>(f.Window,"CheckForUpdateBusyProgress").IsVisible,
+                "A live reduced-motion change removes the animated indicator while keeping the action label busy.");
+            Assert.Equal("Checking…",Named<TextBlock>(f.Window,"CheckForUpdateLabel").Text);
+            OperatorAppearance.Configure(OperatorAppearance.GlassEnabled,false);
+            Assert.Equal(OperatorMotion.Enabled,Named<ProgressBar>(f.Window,"CheckForUpdateBusyProgress").IsVisible);
+        }
+        finally { OperatorAppearance.Configure(OperatorAppearance.GlassEnabled,oldReduceMotion); }
+        button.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));Assert.Equal(1,calls);
+        if(outcome=="failure")release.TrySetException(new IOException("Controlled check failure."));
+        else if(outcome=="cancel")release.TrySetCanceled();
+        else release.TrySetResult();
+        await Until(()=>!OperatorControlMotion.GetIsBusy(button),"The update check action must recover after completion, failure or cancellation.");
+        Assert.True(button.IsEnabled);Assert.Equal(before,button.Bounds.Size);
+        Assert.False(Named<ProgressBar>(f.Window,"CheckForUpdateBusyProgress").IsVisible);
+        Assert.False(Named<TextBlock>(f.Window,"CheckForUpdateBusyStatic").IsVisible);
+        if(outcome!="success") Assert.Contains("Update check failed",Named<TextBlock>(f.Window,"UpdateStatusText").Text);
     }
     [AvaloniaTheory]
     [InlineData(1280,850,false)][InlineData(420,320,false)]

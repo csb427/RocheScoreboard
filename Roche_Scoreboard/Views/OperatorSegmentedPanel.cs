@@ -69,7 +69,7 @@ public sealed partial class OperatorSegmentedPanel : UniformGrid
         Paint();
     }
     private static void Step(ref double value,ref double velocity,double target,double omega,double dt)
-    {omega*=OperatorMotion.SpringResponse;double offset=value-target,c=velocity+omega*offset,e=Math.Exp(-omega*dt);value=target+(offset+c*dt)*e;velocity=(velocity-omega*c*dt)*e;}
+    {omega*=OperatorMotion.SpringResponse;OperatorMotion.AdvanceCriticallyDamped(ref value,ref velocity,target,omega,dt);}
     private void Stop(){if(!_running)return;CompositionTarget.Rendering-=Frame;_running=false;}
     private void Paint()
     {
@@ -86,7 +86,7 @@ public sealed partial class OperatorSegmentedPanel : UniformGrid
         InvalidateVisual();
     }
     internal bool IsAnimating=>_running;
-    internal OperatorLiquidSelection.Shape VisualShape=>_ready?OperatorLiquidSelection.Calculate(RenderSize,_left,_right,_surfaceWidth,_leftVelocity,_rightVelocity,3,1.6,_running && OperatorMotion.Enabled):new(Rect.Empty,0,0);
+    internal OperatorLiquidSelection.Shape VisualShape=>_ready?OperatorLiquidSelection.Calculate(RenderSize,_left,_right,_surfaceWidth,_leftVelocity,_rightVelocity,3,1.6,(_running||_scrubbing) && OperatorMotion.Enabled):new(Rect.Empty,0,0);
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);if(!_ready || ActualHeight<2)return;

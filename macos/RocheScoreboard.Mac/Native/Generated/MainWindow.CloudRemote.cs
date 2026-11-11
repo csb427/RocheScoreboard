@@ -1,5 +1,5 @@
 // Generated from MainWindow.CloudRemote.cs; edit translator/adapters.
-// Source SHA-256: e3ea4684e469995bf92632e4e81f573881483ff04dceb32ff3f6db3876463b1e
+// Source SHA-256: 7780c5af32d37821f9b75c109e3d9aa021a85842ff98b0a5636e992f0955391c
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -46,6 +46,7 @@ public partial class MainWindow : IRemoteCommandTarget, IRemoteCommandScope
         ArgumentNullException.ThrowIfNull(configuration);
         if (_cloudRemote is not null) throw new InvalidOperationException("Configure only an idle window.");
         _cloudConfig = configuration;
+        RefreshCloudRemoteUi();
     }
 
     private void ReportCloudSessionStartFailure(Exception error)

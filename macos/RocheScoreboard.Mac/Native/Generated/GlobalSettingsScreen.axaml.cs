@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/GlobalSettingsScreen.xaml.cs; edit translator/adapters.
-// Source SHA-256: a3c47377d92c5825abd87717b9495e4859eb4bbee22133fff4ae873cc9f61446
+// Source SHA-256: 87ea5aa660a128078cbe08f0c252736f635f9a8a83d08c5097aa7850aa25066b
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -126,9 +126,24 @@ public partial class GlobalSettingsScreen : global::Avalonia.Controls.UserContro
         } finally { _syncingTiles=false; }
     }
     public void SetBackCaption(string caption) => BackButton.Content = caption;
+    public void FocusBackButton() => BackButton.Focus();
 
     private void Settings_SizeChanged(object? sender, global::Avalonia.Controls.SizeChangedEventArgs e)
     {
+        bool stackedNavigation = e.NewSize.Width < 680;
+        SettingsNavigationGrid.RowDefinitions[1].Height = stackedNavigation
+            ? global::Avalonia.Controls.GridLength.Auto : new global::Avalonia.Controls.GridLength(0);
+        global::Avalonia.Controls.Grid.SetRow(BackButton, 0);
+        global::Avalonia.Controls.Grid.SetColumn(BackButton, 0);
+        global::Avalonia.Controls.Grid.SetColumnSpan(BackButton, stackedNavigation ? 3 : 1);
+        global::Avalonia.Controls.Grid.SetRow(SettingsScopeSurface, stackedNavigation ? 1 : 0);
+        global::Avalonia.Controls.Grid.SetColumn(SettingsScopeSurface, stackedNavigation ? 0 : 1);
+        global::Avalonia.Controls.Grid.SetColumnSpan(SettingsScopeSurface, stackedNavigation ? 3 : 1);
+        BackButton.Margin = stackedNavigation
+            ? new global::Avalonia.Thickness(0, 0, 0, 8)
+            : new global::Avalonia.Thickness(0, 0, 12, 0);
+        SettingsScopeSurface.HorizontalAlignment = stackedNavigation
+            ? global::Avalonia.Layout.HorizontalAlignment.Left : global::Avalonia.Layout.HorizontalAlignment.Stretch;
         // On very short windows the read-only identifier scrolls internally;
         // its entire focusable field must still fit the settings viewport.
         double viewportHeight = SettingsWorkspace?.Scroller.NativeHeight() ?? 0;

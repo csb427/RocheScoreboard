@@ -31,7 +31,8 @@ public partial class SetupWizard
         {
             if (generation != _sportFocusGeneration || _currentStep != 0 || !IsVisible) return;
             var choice = CricketSportChoice.IsChecked == true ? CricketSportChoice : AflSportChoice;
-            choice.Focus(); choice.BringIntoView();
+            choice.Focus();
+            WizardViewport.RevealOperatorTarget(choice, () => generation == _sportFocusGeneration && _currentStep == 0 && IsVisible);
         }));
     }
     internal void ContinueWithAfl() => ShowStep(1, false);

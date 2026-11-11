@@ -31,7 +31,10 @@ public partial class MainWindow
             var normalBorder=surface?.BorderBrush;
             checks["pointer-focus-does-not-add-a-keyboard-border"]=button.IsKeyboardFocused && surface?.BorderThickness.Left==1;
             OperatorInputFocus.SetIsKeyboardMode(window,true);await Task.Delay(30);
-            checks["keyboard-focus-has-neutral-shaped-ring"]=surface?.BorderThickness.Left==2 && surface.BorderBrush is SolidColorBrush ink && ink.Color.R==ink.Color.G;
+            checks["keyboard-focus-has-visible-contrasting-accent-ring"]=surface?.BorderThickness.Left==2
+                && surface.BorderBrush is SolidColorBrush ink
+                && window.TryFindResource("ControlCentre.CanvasBrush") is SolidColorBrush canvas
+                && ContrastHelper.ContrastRatio(ink.Color,canvas.Color)>=3;
             button.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice,Environment.TickCount,MouseButton.Left){RoutedEvent=UIElement.PreviewMouseDownEvent});
             checks["pointer-input-clears-inherited-keyboard-mode"]=!OperatorInputFocus.GetIsKeyboardMode(button);
             checks["transparent-figures-do-not-allocate-glass-passes"]=QaDescendants(transparent).OfType<OperatorGlassSurface>().All(glass=>!glass.UsesShader && !glass.HasCapturedBackdrop);

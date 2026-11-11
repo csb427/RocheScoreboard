@@ -69,6 +69,8 @@ internal static class OperatorFallbackMotionChecks
         ContextMenu? fallback = null;
         Thumb? captured = null;
         Exception? primaryFailure = null;
+        var pressureSamples = new List<object>();
+        var pressureEvents = new List<object>();
         async Task Pump(int milliseconds = 0)
         {
             await window.Dispatcher.InvokeAsync(() => window.UpdateLayout(), DispatcherPriority.Render);
@@ -147,26 +149,106 @@ internal static class OperatorFallbackMotionChecks
             legacy.Visibility = Visibility.Visible;
 
             AllowMotion();
-            // WPF routed phases expose the off-target release independently
-            // of ButtonBase capture. This does not inject physical mouse input.
-            handA.RaiseEvent(new System.Windows.Input.MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount)
-                { RoutedEvent = UIElement.PreviewMouseMoveEvent, Source = handA });
-            handA.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
-                { RoutedEvent = UIElement.PreviewMouseLeftButtonDownEvent, Source = handA });
-            var pressedAdorner = FallbackAdorner(handA);
-            var pressureProperty = pressedAdorner?.GetType().GetField("PressProperty",
-                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)?.GetValue(null) as DependencyProperty;
-            bool reachedPress = pressedAdorner is not null && pressureProperty is not null
-                && DependencyPropertyHelper.GetValueSource(pressedAdorner, pressureProperty).IsAnimated;
-            checks["wpf-uncaptured-action-down-reaches-an-owned-pressure-clock"] = reachedPress && !handA.IsMouseCaptureWithin;
-            handB.RaiseEvent(new System.Windows.Input.MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount)
-                { RoutedEvent = UIElement.PreviewMouseMoveEvent, Source = handB });
-            handB.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
-                { RoutedEvent = UIElement.PreviewMouseLeftButtonUpEvent, Source = handB });
-            ReduceNow();
-            var released = FallbackAdorner(handA);
-            checks["wpf-off-target-release-cannot-strand-static-pressure-on-an-uncaptured-action"] =
-                reachedPress && !handA.IsMouseCaptureWithin && (released is null || !released.HasAnimatedProperties && LocalDouble(released, "Pressure") == 0);
+            // Finish the preceding visibility/focus test before starting a new
+            // gesture. Background runs after queued layout and input work.
+            await Pump();
+            await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
+            var pressureTime = System.Diagnostics.Stopwatch.StartNew();
+            Adorner? pressedAdorner = null;
+            DependencyProperty? pressureProperty = null;
+            string? Describe(object? source) => ReferenceEquals(source, handA) ? "handA"
+                : ReferenceEquals(source, handB) ? "handB"
+                : ReferenceEquals(source, legacy) ? "legacy" : source?.GetType().Name;
+            object PressureSnapshot(string phase, object? source = null, bool? handled = null)
+            {
+                var current = FallbackAdorner(handA);
+                var property = pressureProperty ?? current?.GetType().GetField("PressProperty",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)?.GetValue(null) as DependencyProperty;
+                return new
+                {
+                    phase, elapsedMs = pressureTime.Elapsed.TotalMilliseconds, source = Describe(source), handled,
+                    adornerExists = current is not null, propertyExists = property is not null,
+                    sameAdorner = current is not null && ReferenceEquals(current, pressedAdorner),
+                    pressure = current is not null && property is not null ? (double?)current.GetValue(property) : null,
+                    animated = current is not null && property is not null && DependencyPropertyHelper.GetValueSource(current, property).IsAnimated,
+                    window.IsActive, handA.IsLoaded, handA.IsVisible, handA.IsEnabled, handA.IsMouseOver,
+                    handA.IsMouseCaptureWithin, captured = Describe(Mouse.Captured), focused = Describe(Keyboard.FocusedElement),
+                    motionEnabled = OperatorMotion.Enabled, reducedMotion = OperatorAppearance.ReduceMotion,
+                    keyboardMode = OperatorInputFocus.GetIsKeyboardMode(window)
+                };
+            }
+            void ObservePressure(RoutedEventArgs args)
+            {
+                if (pressureEvents.Count < 64)
+                    pressureEvents.Add(PressureSnapshot(args.RoutedEvent.Name, args.OriginalSource, args.Handled));
+            }
+            System.Windows.Input.MouseEventHandler observeMouse = (_, args) => ObservePressure(args);
+            MouseButtonEventHandler observeButton = (_, args) => ObservePressure(args);
+            KeyboardFocusChangedEventHandler observeFocus = (_, args) => ObservePressure(args);
+            EventHandler observeDeactivation = (_, _) =>
+            {
+                if (pressureEvents.Count < 64) pressureEvents.Add(PressureSnapshot("Deactivated"));
+            };
+            var mouseEvents = new[] { UIElement.PreviewMouseMoveEvent, UIElement.MouseLeaveEvent, UIElement.LostMouseCaptureEvent };
+            var buttonEvents = new[] { Mouse.PreviewMouseDownEvent, UIElement.PreviewMouseLeftButtonDownEvent,
+                Mouse.PreviewMouseUpEvent, UIElement.PreviewMouseLeftButtonUpEvent };
+            var focusEvents = new[] { UIElement.GotKeyboardFocusEvent, UIElement.LostKeyboardFocusEvent };
+            try
+            {
+                foreach (var routedEvent in mouseEvents) window.AddHandler(routedEvent, observeMouse, true);
+                foreach (var routedEvent in buttonEvents) window.AddHandler(routedEvent, observeButton, true);
+                foreach (var routedEvent in focusEvents) window.AddHandler(routedEvent, observeFocus, true);
+                window.Deactivated += observeDeactivation;
+                pressureSamples.Add(PressureSnapshot("before-move"));
+                // WPF routed phases expose the off-target release independently
+                // of ButtonBase capture. This does not inject physical mouse input.
+                handA.RaiseEvent(new System.Windows.Input.MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount)
+                    { RoutedEvent = UIElement.PreviewMouseMoveEvent, Source = handA });
+                handA.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
+                    { RoutedEvent = Mouse.PreviewMouseDownEvent, Source = handA });
+                pressedAdorner = FallbackAdorner(handA);
+                pressureProperty = pressedAdorner?.GetType().GetField("PressProperty",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)?.GetValue(null) as DependencyProperty;
+                pressureSamples.Add(PressureSnapshot("immediate-down"));
+                checks["witness-pressure-adorner-exists"] = pressedAdorner is not null;
+                checks["witness-pressure-property-exists"] = pressureProperty is not null;
+                bool OwnedPositivePressure() => pressedAdorner is not null && pressureProperty is not null
+                    && ReferenceEquals(FallbackAdorner(handA), pressedAdorner)
+                    && DependencyPropertyHelper.GetValueSource(pressedAdorner, pressureProperty).IsAnimated
+                    && (double)pressedAdorner.GetValue(pressureProperty) > 0;
+                // Observe, never replay, the one Down. A slow composition tick
+                // gets a short deadline, but an absent/reset pressure still fails.
+                var pressureWait = System.Diagnostics.Stopwatch.StartNew();
+                await Pump(60);
+                pressureSamples.Add(PressureSnapshot("sample-after-60ms"));
+                for (int sample = 0; sample < 16 && !OwnedPositivePressure() && pressureWait.ElapsedMilliseconds < 300; sample++)
+                {
+                    await Pump(15);
+                    pressureSamples.Add(PressureSnapshot("sample-wait"));
+                }
+                bool reachedPress = OwnedPositivePressure();
+                checks["wpf-uncaptured-action-down-reaches-an-owned-pressure-clock"] = reachedPress && !handA.IsMouseCaptureWithin;
+                pressureSamples.Add(PressureSnapshot("before-off-target-up"));
+                handB.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left)
+                    { RoutedEvent = Mouse.PreviewMouseUpEvent, Source = handB });
+                pressureSamples.Add(PressureSnapshot("immediate-off-target-up"));
+                await Pump(400);
+                var beforeReduction = FallbackAdorner(handA);
+                pressureSamples.Add(PressureSnapshot("before-reduction"));
+                checks["wpf-off-target-release-settles-before-reduction"] = reachedPress && (beforeReduction is null || LocalDouble(beforeReduction, "Pressure") == 0);
+                ReduceNow();
+                var released = FallbackAdorner(handA);
+                pressureSamples.Add(PressureSnapshot("after-reduction"));
+                checks["wpf-off-target-release-cannot-strand-static-pressure-on-an-uncaptured-action"] =
+                    reachedPress && !handA.IsMouseCaptureWithin && (released is null || !released.HasAnimatedProperties && LocalDouble(released, "Pressure") == 0);
+            }
+            finally
+            {
+                foreach (var routedEvent in mouseEvents) window.RemoveHandler(routedEvent, observeMouse);
+                foreach (var routedEvent in buttonEvents) window.RemoveHandler(routedEvent, observeButton);
+                foreach (var routedEvent in focusEvents) window.RemoveHandler(routedEvent, observeFocus);
+                window.Deactivated -= observeDeactivation;
+            }
 
             AllowMotion();
             viewer.ApplyTemplate(); viewer.UpdateLayout();
@@ -183,7 +265,10 @@ internal static class OperatorFallbackMotionChecks
             {
                 viewer.ScrollToVerticalOffset(40); viewer.ScrollToHorizontalOffset(30);
                 viewer.UpdateLayout();
+                await Pump();
                 bool enteringClock = HasOpacityClock(vertical);
+                checks["witness-scroll-entry-clock"] = enteringClock;
+                File.WriteAllText(Path.Combine(SelfTestStorage.RootPath, "scroll-witness.txt"), $"entry active viewer={ScrollActivity.GetActive(viewer)}, bar={ScrollActivity.GetActive(vertical)}, loaded={vertical.IsLoaded}, visible={vertical.IsVisible}, enabled={vertical.IsEnabled}, motion={OperatorMotion.Enabled}, opacity={vertical.Opacity}, clock={enteringClock}\n");
                 double verticalBefore = viewer.VerticalOffset, horizontalBefore = viewer.HorizontalOffset;
                 ScrollBar.PageDownCommand.Execute(null, vertical);
                 ScrollBar.PageRightCommand.Execute(null, horizontal);
@@ -202,7 +287,10 @@ internal static class OperatorFallbackMotionChecks
 
                 AllowMotion();
                 ScrollActivity.SetActive(viewer, false);
+                await Pump();
                 bool exitingClock = HasOpacityClock(vertical);
+                checks["witness-scroll-exit-clock"] = exitingClock;
+                File.AppendAllText(Path.Combine(SelfTestStorage.RootPath, "scroll-witness.txt"), $"exit active viewer={ScrollActivity.GetActive(viewer)}, bar={ScrollActivity.GetActive(vertical)}, loaded={vertical.IsLoaded}, visible={vertical.IsVisible}, enabled={vertical.IsEnabled}, motion={OperatorMotion.Enabled}, opacity={vertical.Opacity}, clock={exitingClock}\n");
                 ReduceNow(); await Pump();
                 checks["wpf-live-reduction-clears-scrollbar-exit-clock-to-style-rest"] = exitingClock
                     && !HasOpacityClock(vertical) && vertical.Opacity == 0 && viewer.VerticalOffset == offset;
@@ -256,6 +344,9 @@ internal static class OperatorFallbackMotionChecks
                 });
             }
             Attempt(() => { if (!directoryExisted && Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any()) Directory.Delete(directory); });
+            Attempt(() => File.WriteAllText(Path.Combine(SelfTestStorage.RootPath, "pressure-witness.json"),
+                System.Text.Json.JsonSerializer.Serialize(new { samples = pressureSamples, events = pressureEvents },
+                    new System.Text.Json.JsonSerializerOptions { WriteIndented = true })));
             if (cleanupErrors.Count > 0)
             {
                 if (primaryFailure is not null) cleanupErrors.Insert(0, primaryFailure);

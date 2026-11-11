@@ -1,5 +1,5 @@
 // Generated from Views/MatchHistoryWindow.cs; edit translator/adapters.
-// Source SHA-256: abbc54ea69669d59628f63b45d73054df06956bb2f1d63a7bbdd939fbf22c596
+// Source SHA-256: 88fb82bfce38517dc6b4b5a46cf961b0b65abd10d82a3ee68253978eef50131e
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -29,10 +29,13 @@ internal sealed class MatchHistoryView : UserControl
     internal bool HasEmptyState => _emptyState?.IsVisible == true;
     internal bool IsLoading { get; private set; }
     internal bool IsReviewing => _reviewHost.IsVisible == true;
+    internal Button? ReviewBackButton => _reviewBackButton;
     private readonly StackPanel _list = new();
     private readonly Grid _body = new();
     private readonly Grid _reviewHost = new();
     private TextBlock? _emptyState;
+    private Button? _reviewBackButton;
+    private Button? _reviewOriginButton;
     private readonly bool _canReplaceSession;
     private readonly Button _closeButton;
 
@@ -142,7 +145,11 @@ internal sealed class MatchHistoryView : UserControl
     }
 
     private Button MakeActionButton(string label, MatchCheckpointStore.Checkpoint item, ActionKind action)
-        => MakeButton(label, () => Choose(item, action));
+    {
+        Button? button = null;
+        button = MakeButton(label, () => Choose(item, action, button));
+        return button;
+    }
 
     private static Button MakeButton(string label, Action action)
     {
@@ -159,14 +166,31 @@ internal sealed class MatchHistoryView : UserControl
         return button;
     }
 
-    private void Choose(MatchCheckpointStore.Checkpoint item, ActionKind action)
+    private void Choose(MatchCheckpointStore.Checkpoint item, ActionKind action, Button? source)
     {
-        if (action == ActionKind.Review) { ShowReview(item); return; }
+        if (action == ActionKind.Review) { ShowReview(item, source); return; }
         if (ActionChosen?.Invoke(item, action) == true) CloseRequested?.Invoke();
     }
 
-    private void ShowReview(MatchCheckpointStore.Checkpoint item)
+    internal bool HandleEscape()
     {
+        if (!IsReviewing) return false;
+        ReturnToHistory();
+        return true;
+    }
+
+    private void ReturnToHistory()
+    {
+        _reviewHost.IsVisible = false;
+        _body.IsVisible = true;
+        Button target = _reviewOriginButton is { IsVisible: true, IsEnabled: true } origin ? origin : _closeButton;
+        _reviewOriginButton = null;
+        target.Focus();
+    }
+
+    private void ShowReview(MatchCheckpointStore.Checkpoint item, Button? source)
+    {
+        _reviewOriginButton = source;
         _body.IsVisible = false;
         _reviewHost.IsVisible = true;
         _reviewHost.Children.Clear();
@@ -176,14 +200,21 @@ internal sealed class MatchHistoryView : UserControl
         details.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush"); content.Children.Add(details);
         var timestamp = new NativeTextBlock { Text = "Read-only checkpoint · saved " + item.SavedAtUtc.ToLocalTime().ToString("g"), TextWrapping = TextWrapping.Wrap };
         timestamp.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush"); content.Children.Add(timestamp);
-        var back = MakeButton("Back to history", () => { _reviewHost.IsVisible = false; _body.IsVisible = true; _closeButton.Focus(); });
-        back.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left; back.Margin = new Thickness(0, 18, 0, 0); content.Children.Add(back);
-        _reviewHost.Children.Add(new ScrollViewer
+        var review = new Grid();
+        review.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        review.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        _reviewBackButton = MakeButton("Back to history", ReturnToHistory);
+        _reviewBackButton.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
+        _reviewBackButton.Margin = new Thickness(4, 0, 4, 12);
+        review.Children.Add(_reviewBackButton);
+        var scroller = new ScrollViewer
         {
             Content = content,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
-        });
-        back.Focus();
+        };
+        Grid.SetRow(scroller, 1); review.Children.Add(scroller);
+        _reviewHost.Children.Add(review);
+        _reviewBackButton.Focus();
     }
 }

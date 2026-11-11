@@ -104,6 +104,11 @@
                     </TextBlock>
                         </StackPanel>
                         <Button Grid.Column="4" x:Name="ExitButton" Content="✕  Exit Training" Click="OnExitClicked" Background="#3F1212" Foreground="#FECACA" BorderBrush="#B91C1C" Theme="{StaticResource ActionButton}" ToolTip.Tip="Close Training and return Home (Esc)" />
+                        <StackPanel Grid.Row="2" Grid.ColumnSpan="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                            <Button x:Name="OperatorHomeButton" Content="Home" Click="HomeNavigation_Click" MinHeight="0" Height="36" Padding="14,6" Margin="0,0,8,0" AutomationProperties.Name="Return to Home" AutomationProperties.HelpText="Your training session remains open. Return to it from Home; use Exit Training to close it." Theme="{StaticResource ToolBtn}" ToolTip.Tip="Return Home. Your training session keeps running." />
+                            <Button x:Name="OperatorSettingsButton" Content="App settings" Click="ApplicationPreferencesNavigation_Click" MinHeight="0" Height="36" Padding="14,6" Margin="0,0,8,0" AutomationProperties.Name="Open application settings" Theme="{StaticResource ToolBtn}" ToolTip.Tip="Open application preferences." />
+                            <Button x:Name="OperatorCommandSearchButton" Content="Find actions" Click="CommandSearchNavigation_Click" MinHeight="0" Height="36" Padding="14,6" AutomationProperties.Name="Find actions" AutomationProperties.HelpText="Opens command search. Keyboard shortcut: Control plus K." Theme="{StaticResource ToolBtn}" ToolTip.Tip="Find an action (Ctrl+K)" />
+                        </StackPanel>
                     </Grid>
                 </Border>
                 <ScrollViewer x:Name="TrainingPageViewport" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

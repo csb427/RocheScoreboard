@@ -191,7 +191,7 @@
 
         <!-- ═══ PERSISTENT MATCH STRIP — always visible, dense, functional ═══ -->
         <Border Grid.Row="0" CornerRadius="18" Margin="12,10,12,8" Background="#19191C" BorderBrush="#303035" BorderThickness="1" Padding="16,10">
-            <Grid x:Name="PersistentHeader"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Grid x:Name="PersistentHeader"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="18"/>
@@ -220,6 +220,11 @@
 
                 <!-- Score readout -->
                 <TextBlock Grid.Column="6" MinWidth="96" TextAlignment="Right" x:Name="HeaderScore" Text="0/0" Foreground="White" FontSize="28" FontWeight="SemiBold" FontFamily="{DynamicResource ControlCentre.Font}" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining" Typography.Kerning="False"/>
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <Button x:Name="OperatorHomeButton" Content="Home" Click="HomeNavigation_Click" Style="{StaticResource ToolBtn}" MinHeight="0" Height="36" Padding="14,6" Margin="0,0,8,0" ToolTip="Return Home. If output is live, you’ll be asked before it turns off." AutomationProperties.Name="Return to Home" AutomationProperties.HelpText="Your cricket score and workflow remain open. Live output turns off after confirmation and stays off until you turn it on again."/>
+                    <Button x:Name="OperatorSettingsButton" Content="App settings" Click="ApplicationPreferencesNavigation_Click" Style="{StaticResource ToolBtn}" MinHeight="0" Height="36" Padding="14,6" Margin="0,0,8,0" ToolTip="Open application preferences. Cricket match settings remain under Cricket settings." AutomationProperties.Name="Open application settings"/>
+                    <Button x:Name="OperatorCommandSearchButton" Content="Find actions" Click="CommandSearchNavigation_Click" Style="{StaticResource ToolBtn}" MinHeight="0" Height="36" Padding="14,6" ToolTip="Find an action (Ctrl+K)" AutomationProperties.Name="Find actions" AutomationProperties.HelpText="Opens command search. Keyboard shortcut: Control plus K."/>
+                </StackPanel>
             </Grid>
         </Border>
 

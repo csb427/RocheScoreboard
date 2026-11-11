@@ -23,6 +23,13 @@ public sealed class AppleDesignRefinementTests
         string dir=Environment.GetEnvironmentVariable("ROCHE_CAPTURE_DIR")??"/tmp/roche-batch-11";Directory.CreateDirectory(dir);
         using var frame=window.CaptureRenderedFrame();Assert.NotNull(frame);frame.Save(Path.Combine(dir,name+".png"));
     }
+    private static Rect ScrubBounds(OperatorSegmentedPanel panel)
+    {
+        object shape=typeof(OperatorSegmentedPanel).GetProperty("VisualShape",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(panel)!;
+        return (Rect)shape.GetType().GetProperty("Bounds")!.GetValue(shape)!;
+    }
+    private static double ScrubVelocity(OperatorSegmentedPanel panel,string field)
+        =>(double)typeof(OperatorSegmentedPanel).GetField(field,BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(panel)!;
     private sealed class AppearanceScope:IDisposable
     {
         private readonly OperatorMotionStyle style=OperatorAppearance.MotionStyle;
@@ -111,7 +118,7 @@ public sealed class AppleDesignRefinementTests
         var panel=new OperatorSegmentedPanel{Rows=1,Height=52,VerticalAlignment=Avalonia.Layout.VerticalAlignment.Center};
         var first=new RadioButton{Content="First",GroupName="scrub-test",IsChecked=true};var last=new RadioButton{Content="Last",GroupName="scrub-test"};
         first.SetResourceReference(Control.ThemeProperty,"SettingsSegment");last.SetResourceReference(Control.ThemeProperty,"SettingsSegment");
-        panel.Children.Add(first);panel.Children.Add(last);OperatorDesign.SetIsEnabled(panel,true);
+        panel.Children.Add(first);panel.Children.Add(last);OperatorDesign.SetIsEnabled(panel,true);panel.AllowScrubbing=true;
         typeof(OperatorSegmentedPanel).GetProperty("AllowScrubbing")?.SetValue(panel,true);
         var window=new NativeWindow{Width=480,Height=180,Content=panel};window.Show();
         try
@@ -119,14 +126,179 @@ public sealed class AppleDesignRefinementTests
             await Settle(400);int changes=0;last.IsCheckedChanged+=(_,_)=>{if(last.IsChecked==true)changes++;};
             Point Start()=>first.TranslatePoint(new Point(first.Bounds.Width/2,first.Bounds.Height/2),window)!.Value;
             Point End()=>last.TranslatePoint(new Point(last.Bounds.Width/2,last.Bounds.Height/2),window)!.Value;
+            Point EndLocal()=>last.TranslatePoint(new Point(last.Bounds.Width/2,last.Bounds.Height/2),panel)!.Value;
             window.MouseDown(Start(),MouseButton.Left);window.MouseMove(End(),RawInputModifiers.LeftMouseButton);await Settle(80);Capture(window,"scrub-preview-"+reduced);
             Assert.True(first.IsChecked);Assert.False(last.IsChecked);Assert.Equal(0,changes);
             Assert.True((bool?)typeof(OperatorSegmentedPanel).GetProperty("IsPreviewingSelection",BindingFlags.Instance|BindingFlags.NonPublic)?.GetValue(panel));
-            window.MouseUp(End(),MouseButton.Left);await Settle(500);Assert.True(last.IsChecked);Assert.False(first.IsChecked);Assert.Equal(1,changes);
+            Assert.InRange(Math.Abs(ScrubBounds(panel).Center.X-EndLocal().X),0,1.5);
+            if(!reduced)Assert.True(ScrubBounds(panel).Height<panel.Bounds.Height);
+            window.MouseUp(End(),MouseButton.Left);Assert.True(last.IsChecked);Assert.False(first.IsChecked);Assert.Equal(1,changes);
+            if(reduced){Assert.Equal(0,ScrubVelocity(panel,"_leftVelocity"),5);Assert.Equal(0,ScrubVelocity(panel,"_rightVelocity"),5);}
+            await Settle(500);
             Capture(window,"scrub-committed-"+reduced);
         }
         finally{window.Close();}
     }
+    [AvaloniaTheory]
+    [InlineData(false)][InlineData(true)]
+    public async Task ScrubEdgesUseBoundedReversibleResistanceWithoutCommittingPreview(bool reduced)
+    {
+        using var appearance=new AppearanceScope();OperatorAppearance.Configure(true,reduced);OperatorMotion.AnimationOverride=null;
+        var panel=new OperatorSegmentedPanel{Rows=1,Height=52,VerticalAlignment=Avalonia.Layout.VerticalAlignment.Center};
+        var first=new RadioButton{Content="First",GroupName="rubber-scrub",IsChecked=true};var last=new RadioButton{Content="Last",GroupName="rubber-scrub"};
+        first.SetResourceReference(Control.ThemeProperty,"SettingsSegment");last.SetResourceReference(Control.ThemeProperty,"SettingsSegment");
+        panel.Children.Add(first);panel.Children.Add(last);OperatorDesign.SetIsEnabled(panel,true);panel.AllowScrubbing=true;
+        var window=new NativeWindow{Width=480,Height=180,Content=panel};window.Show();
+        try
+        {
+            await Settle(350);int changes=0;last.IsCheckedChanged+=(_,_)=>{if(last.IsChecked==true)changes++;};
+            Point Start()=>first.TranslatePoint(new Point(first.Bounds.Width/2,first.Bounds.Height/2),window)!.Value;
+            Point End()=>last.TranslatePoint(new Point(last.Bounds.Width/2,last.Bounds.Height/2),window)!.Value;
+            Point Local(double x)=>new(x,panel.Bounds.Height/2);
+            Point InWindow(Point p)=>new(panel.TranslatePoint(default,window)!.Value.X+p.X,panel.TranslatePoint(default,window)!.Value.Y+p.Y);
+            Point farLeft=InWindow(Local(20)),farRight=InWindow(Local(panel.Bounds.Width-20));
+            window.MouseDown(Start(),MouseButton.Left);
+            Assert.True((bool)typeof(OperatorSegmentedPanel).GetField("_scrubPressed",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(panel)!, $"Scrub press not registered: allow={panel.AllowScrubbing}, start={Start()}, panel={panel.Bounds}, first={first.Bounds}");
+            window.MouseMove(End(),RawInputModifiers.LeftMouseButton);
+            Assert.True(panel.IsPreviewingSelection,"The normal cross-segment drag should capture before testing edge resistance.");
+            window.MouseMove(farRight,RawInputModifiers.LeftMouseButton);await Settle(80);
+            Rect rightEdge=ScrubBounds(panel);Capture(window,"scrub-rubber-band-right");
+            Assert.True(rightEdge.Left>=-.01 && rightEdge.Right<=panel.Bounds.Width+.01);
+            Assert.InRange(rightEdge.Width,1,last.Bounds.Width-7);
+            Assert.True(first.IsChecked);Assert.False(last.IsChecked);Assert.Equal(0,changes);
+            window.MouseMove(farLeft,RawInputModifiers.LeftMouseButton);await Settle(60);
+            Rect leftEdge=ScrubBounds(panel);Capture(window,"scrub-rubber-band-left");
+            Assert.True(leftEdge.Left>=-.01 && leftEdge.Right<=panel.Bounds.Width+.01);
+            Assert.InRange(leftEdge.Width,1,first.Bounds.Width-7);
+            Assert.True(ScrubVelocity(panel,"_leftVelocity")<0,"The reversed drag should carry leftward velocity into the preview spring.");
+            Assert.True(first.IsChecked);Assert.False(last.IsChecked);Assert.Equal(0,changes);
+            window.KeyPressQwerty(PhysicalKey.Escape,RawInputModifiers.None);window.KeyReleaseQwerty(PhysicalKey.Escape,RawInputModifiers.None);await Settle(450);
+            Assert.True(first.IsChecked);Assert.False(last.IsChecked);Assert.Equal(0,changes);
+            Assert.False(panel.IsPreviewingSelection);
+            Assert.True(first.IsFocused);
+            window.MouseDown(Start(),MouseButton.Left);window.MouseMove(End(),RawInputModifiers.LeftMouseButton);
+            Assert.True(panel.IsPreviewingSelection);Assert.True(first.IsChecked);Assert.False(last.IsChecked);Assert.Equal(0,changes);
+            window.MouseUp(End(),MouseButton.Left);Assert.True(last.IsChecked);Assert.Equal(1,changes);
+            await Settle(500);Assert.Equal(1,changes);Assert.False(panel.IsPreviewingSelection);
+        }
+        finally{window.Close();}
+    }
+    [AvaloniaFact]
+    public async Task ScrubReleaseAfterPauseDropsStaleVelocityAndCommitsOnce()
+    {
+        using var appearance=new AppearanceScope();OperatorAppearance.Configure(true,false);OperatorMotion.AnimationOverride=true;
+        var panel=new OperatorSegmentedPanel{Rows=1,AllowScrubbing=true,Height=52,VerticalAlignment=Avalonia.Layout.VerticalAlignment.Center};
+        var first=new RadioButton{Content="First",GroupName="pause-scrub",IsChecked=true};var last=new RadioButton{Content="Last",GroupName="pause-scrub"};
+        first.SetResourceReference(Control.ThemeProperty,"SettingsSegment");last.SetResourceReference(Control.ThemeProperty,"SettingsSegment");
+        panel.Children.Add(first);panel.Children.Add(last);OperatorDesign.SetIsEnabled(panel,true);
+        var window=new NativeWindow{Width=480,Height=180,Content=panel};window.Show();
+        try
+        {
+            await Settle(300);int changes=0;last.IsCheckedChanged+=(_,_)=>{if(last.IsChecked==true)changes++;};
+            Point Start()=>first.TranslatePoint(new Point(first.Bounds.Width/2,first.Bounds.Height/2),window)!.Value;
+            Point End()=>last.TranslatePoint(new Point(last.Bounds.Width/2,last.Bounds.Height/2),window)!.Value;
+            window.MouseDown(Start(),MouseButton.Left);window.MouseMove(End(),RawInputModifiers.LeftMouseButton);
+            Assert.True(ScrubVelocity(panel,"_leftVelocity")>0);Assert.True(first.IsChecked);Assert.False(last.IsChecked);Assert.Equal(0,changes);
+            await Settle(500); // Deliberately no pointer-move events during the pause.
+            window.MouseUp(End(),MouseButton.Left);
+            Assert.True(last.IsChecked);Assert.False(first.IsChecked);Assert.Equal(1,changes);
+            Assert.InRange(Math.Abs(ScrubVelocity(panel,"_leftVelocity")),0,.5);
+            Assert.InRange(Math.Abs(ScrubVelocity(panel,"_rightVelocity")),0,.5);
+            await Settle(500);Assert.Equal(1,changes);
+        }
+        finally{window.Close();}
+    }
+
+    [AvaloniaFact]
+    public async Task ChangingToReducedMotionMidScrubKeepsPointerPreviewAndSingleReleaseCommit()
+    {
+        using var appearance=new AppearanceScope();OperatorAppearance.Configure(true,false);OperatorMotion.AnimationOverride=null;
+        var panel=new OperatorSegmentedPanel{Rows=1,AllowScrubbing=true,Height=52,VerticalAlignment=Avalonia.Layout.VerticalAlignment.Center};
+        var first=new RadioButton{Content="First",GroupName="live-reduce-scrub",IsChecked=true};var last=new RadioButton{Content="Last",GroupName="live-reduce-scrub"};
+        first.SetResourceReference(Control.ThemeProperty,"SettingsSegment");last.SetResourceReference(Control.ThemeProperty,"SettingsSegment");
+        panel.Children.Add(first);panel.Children.Add(last);OperatorDesign.SetIsEnabled(panel,true);
+        var window=new NativeWindow{Width=480,Height=180,Content=panel};window.Show();
+        try
+        {
+            await Settle(300);int changes=0;last.IsCheckedChanged+=(_,_)=>{if(last.IsChecked==true)changes++;};
+            Point Start()=>first.TranslatePoint(new Point(first.Bounds.Width/2,first.Bounds.Height/2),window)!.Value;
+            Point End()=>last.TranslatePoint(new Point(last.Bounds.Width/2,last.Bounds.Height/2),window)!.Value;
+            Point EndLocal()=>last.TranslatePoint(new Point(last.Bounds.Width/2,last.Bounds.Height/2),panel)!.Value;
+            window.MouseDown(Start(),MouseButton.Left);window.MouseMove(End(),RawInputModifiers.LeftMouseButton);
+            Assert.True(panel.IsPreviewingSelection);Assert.True(first.IsChecked);Assert.False(last.IsChecked);Assert.Equal(0,changes);
+            OperatorAppearance.Configure(true,true);Assert.False(OperatorMotion.Enabled);
+            window.MouseMove(End(),RawInputModifiers.LeftMouseButton);await Settle(40);
+            Assert.True(panel.IsPreviewingSelection);Assert.True(first.IsChecked);Assert.False(last.IsChecked);Assert.Equal(0,changes);
+            Assert.InRange(Math.Abs(ScrubBounds(panel).Center.X-EndLocal().X),0,1.5);
+            window.MouseUp(End(),MouseButton.Left);
+            Assert.True(last.IsChecked);Assert.False(first.IsChecked);Assert.Equal(1,changes);
+            Assert.Equal(0,ScrubVelocity(panel,"_leftVelocity"),5);Assert.Equal(0,ScrubVelocity(panel,"_rightVelocity"),5);
+            Assert.False(panel.IsPreviewingSelection);
+        }
+        finally{window.Close();}
+    }
+
+    [Fact]
+    public void ScrubResistanceAndVelocityModelAreFiniteBoundedAndFrameRateIndependent()
+    {
+        const double extent=160;
+        Assert.Equal(0,OperatorSegmentedPanel.RubberBandOffset(0,extent));
+        Assert.Equal(extent*.5,OperatorSegmentedPanel.RubberBandOffset(extent,extent),8);
+        Assert.Equal(-extent*.5,OperatorSegmentedPanel.RubberBandOffset(-extent,extent),8);
+        double near=OperatorSegmentedPanel.RubberBandOffset(20,extent);
+        double farther=OperatorSegmentedPanel.RubberBandOffset(80,extent);
+        double extreme=OperatorSegmentedPanel.RubberBandOffset(1e12,extent);
+        Assert.True(near>0 && farther>near && farther<extent);
+        Assert.True(double.IsFinite(extreme) && extreme<extent);
+        Assert.Equal(-farther,OperatorSegmentedPanel.RubberBandOffset(-80,extent),8);
+
+        double duplicate=OperatorSegmentedPanel.SmoothVelocity(120,0,0,28,500);
+        Assert.Equal(120,duplicate);
+        double paused=OperatorSegmentedPanel.SmoothVelocity(120,0,.5,28,500);
+        Assert.InRange(Math.Abs(paused),0,.01);
+        double extremeVelocity=OperatorSegmentedPanel.SmoothVelocity(0,double.MaxValue,double.Epsilon,28,500);
+        Assert.True(double.IsFinite(extremeVelocity) && Math.Abs(extremeVelocity)<=500);
+        double oneSample=OperatorSegmentedPanel.SmoothVelocity(0,100,.1,28,100000);
+        double tenSamples=0;
+        for(int i=0;i<10;i++)tenSamples=OperatorSegmentedPanel.SmoothVelocity(tenSamples,10,.01,28,100000);
+        Assert.Equal(oneSample,tenSamples,7);
+
+        var step=typeof(OperatorSegmentedPanel).GetMethod("Step",BindingFlags.Static|BindingFlags.NonPublic)!;
+        (double Position,double Velocity) Run(int partitions)
+        {
+            double position=40,velocity=700;
+            for(int i=0;i<partitions;i++)
+            {
+                object?[] args={position,velocity,210d,28d,.12/partitions};
+                step.Invoke(null,args);position=(double)args[0]!;velocity=(double)args[1]!;
+            }
+            return(position,velocity);
+        }
+        var single=Run(1);var split=Run(12);
+        Assert.Equal(single.Position,split.Position,7);Assert.Equal(single.Velocity,split.Velocity,7);
+    }
+
+    [Fact]
+    public void SharedCriticallyDampedSpringCarriesVelocityAcrossRetargetAndFramePartitions()
+    {
+        (double Position,double Velocity) Run(int partitions)
+        {
+            double position=.18,velocity=2.4;
+            for(int i=0;i<partitions;i++)OperatorMotion.AdvanceCriticallyDamped(ref position,ref velocity,1,20,.12/partitions);
+            double beforeReverse=position,velocityBeforeReverse=velocity;
+            OperatorMotion.AdvanceCriticallyDamped(ref position,ref velocity,0,20,.001);
+            Assert.True(position>beforeReverse,"Retarget keeps the outgoing velocity for its immediate next step.");
+            Assert.True(velocity>0&&velocityBeforeReverse>0);
+            double remaining=.179;
+            for(int i=0;i<partitions;i++)OperatorMotion.AdvanceCriticallyDamped(ref position,ref velocity,0,20,remaining/partitions);
+            return(position,velocity);
+        }
+        var oneFrame=Run(1);var splitFrames=Run(12);
+        Assert.Equal(oneFrame.Position,splitFrames.Position,7);
+        Assert.Equal(oneFrame.Velocity,splitFrames.Velocity,7);
+        Assert.True(double.IsFinite(oneFrame.Position)&&double.IsFinite(oneFrame.Velocity));
+    }
+
     [AvaloniaTheory]
     [InlineData("escape")][InlineData("outside")][InlineData("close")][InlineData("disabled")]
     public async Task InterruptedScrubbingLeavesTheSettingAndCommitCountUnchanged(string interruption)

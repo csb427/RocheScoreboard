@@ -130,4 +130,6 @@ public static class NativeImmutability
 {
     public static bool IsFrozen(object value)=>NativeFreezing.IsFrozen(value)||value is Avalonia.Media.IImmutableSolidColorBrush;
     public static SolidColorBrush Clone(this SolidColorBrush brush)=>new(brush.Color,brush.Opacity);
+    // Snapshot effective animated values into a new mutable brush, without clocks.
+    public static SolidColorBrush CloneCurrentValue(this SolidColorBrush brush)=>new(brush.Color,brush.Opacity);
 }

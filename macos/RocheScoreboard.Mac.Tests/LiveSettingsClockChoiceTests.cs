@@ -198,8 +198,12 @@ public sealed partial class LiveSettingsClockChoiceTests
                 await Until(() => Named<Control>(fixture.Window, "MainContent").IsEffectivelyVisible && !wizard.IsEffectivelyVisible,
                     "The completed AFL setup must mount the real operator console.");
 
-                await Tap(fixture.Window, Named<Button>(fixture.Window, "HomeGoalButton"));
-                await Tap(fixture.Window, Named<Button>(fixture.Window, "AwayBehindButton"));
+                // This fixture needs a nonzero baseline to prove settings
+                // navigation preserves scoring. Do not depend on the score
+                // button's pointer template geometry here: the later test is
+                // specifically about native clock-radio keyboard behavior.
+                fixture.Match.AddGoal(TeamSide.Home);
+                fixture.Match.AddBehind(TeamSide.Away);
                 Assert.Equal(6, fixture.Match.HomeTotal);
                 Assert.Equal(1, fixture.Match.AwayTotal);
                 Assert.Equal(2, fixture.Match.Events.Count);

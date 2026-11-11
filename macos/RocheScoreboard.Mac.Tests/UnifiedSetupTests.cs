@@ -78,7 +78,25 @@ public sealed partial class UnifiedSetupTests
         Assert.False(f.Afl.FindControl<Control>("TeamsStepContainer")!.IsVisible);
         Assert.True(f.Afl.FindControl<RadioButton>("SportStepNavigation")!.IsChecked);
         Assert.False(f.Afl.FindControl<RadioButton>("Step1Navigation")!.IsEnabled);
+        var initialChoice=f.Afl.FindControl<RadioButton>("AflSportChoice")!;
+        Assert.True(initialChoice.IsChecked,"AFL remains the intentional initial choice");
+        Assert.True(initialChoice.IsFocused,"entry focus should land on the initial sport choice");
+        var initialPoint=initialChoice.TranslatePoint(default,f.Window)!.Value;
+        Assert.True(initialPoint.Y>=0 && initialPoint.Y+initialChoice.Bounds.Height<=height,$"initial selection should be fully visible on entry; y={initialPoint.Y}, h={initialChoice.Bounds.Height}, viewport={height}");
+        Capture(f.Window,$"sport-step-initial-{width}x{height}");
         Choose(f.Afl.FindControl<RadioButton>(cricket?"CricketSportChoice":"AflSportChoice")!);await Settle();
+        var choices=f.Afl.FindControl<Grid>("SportChoiceGrid")!;
+        if(width<536) Assert.Single(choices.ColumnDefinitions);
+        else Assert.Collection(choices.ColumnDefinitions,_=>{},_=>{});
+        Assert.Equal(width<536?1:0,Grid.GetRow(f.Afl.FindControl<RadioButton>("CricketSportChoice")!));
+        Assert.Equal(width<536?0:1,Grid.GetColumn(f.Afl.FindControl<RadioButton>("CricketSportChoice")!));
+        Assert.True(f.Afl.FindControl<Control>("SportStepContainer")!.IsVisible,"choosing a sport must not navigate until Continue");
+        var cancel=f.Afl.FindControl<Button>("CancelSetupButton")!;var next=f.Afl.FindControl<Button>("NextButton")!;
+        Assert.True(cancel.IsVisible,"Cancel remains available on the first setup step");
+        Assert.False(f.Afl.FindControl<Button>("BackButton")!.IsVisible);
+        Assert.Equal(0,Grid.GetColumn(cancel));Assert.Equal(2,Grid.GetColumn(next));
+        Assert.Equal(Avalonia.Layout.HorizontalAlignment.Left,cancel.HorizontalAlignment);
+        Assert.True(cancel.Bounds.Width>0 && cancel.Bounds.Height>0,$"Cancel must occupy visible footer bounds; bounds={cancel.Bounds}, visible={cancel.IsVisible}, parent={cancel.Parent?.GetType().Name}");
         Assert.Equal(cricket?"1 of 5":"1 of 4",f.Afl.FindControl<TextBlock>("WizardStepCounter")!.Text);
         Assert.Equal(cricket?"Players":"Clock",f.Afl.FindControl<TextBlock>("Step2Label")!.Text);
         Assert.Equal(cricket,f.Afl.FindControl<Control>("SportOptionsPreview")!.IsVisible);
@@ -119,6 +137,41 @@ public sealed partial class UnifiedSetupTests
         Click(f.Home.FindControl<Button>("HomeResumeButton")!);Assert.True(f.Window.FindControl<Control>("MainContent")!.IsVisible);
     }
     [AvaloniaTheory]
+    [InlineData(false,1000,760)]
+    [InlineData(true,1000,760)]
+    [InlineData(false,420,320)]
+    [InlineData(true,420,320)]
+    public async Task RepeatedNextCannotSkipTheArrivingSetupStepAndBackKeepsLongTeamNames(bool cricket,int width,int height)
+    {
+        bool? priorMotion=OperatorMotion.AnimationOverride;
+        OperatorMotion.AnimationOverride=true;
+        try
+        {
+            using var f=new Fixture();await f.Ready(width,height);f.Start();f.Continue(cricket);await Settle(350);
+            UserControl wizard=cricket?f.Cricket:f.Afl;
+            string homeName=new string('H',72),awayName=new string('A',72);
+            wizard.FindControl<TextBox>("SetupHomeNameBox")!.Text=homeName;
+            wizard.FindControl<TextBox>("SetupAwayNameBox")!.Text=awayName;
+
+            var next=wizard.FindControl<Button>("NextButton")!;
+            var nextPosition=next.TranslatePoint(default,f.Window)!.Value;
+            Assert.True(new Rect(f.Window.Bounds.Size).Intersects(new Rect(nextPosition,next.Bounds.Size)),"Continue stays reachable at the tested window size.");
+            Click(next);
+            Assert.False(next.IsEnabled,"Continue should communicate that the next page is still arriving.");
+            Click(next); // duplicate activation while the first page transition is running
+            Assert.True(wizard.FindControl<Control>("Step3Panel")!.IsVisible);
+            Assert.Equal(cricket?"3 of 5":"3 of 4",wizard.FindControl<TextBlock>("WizardStepCounter")!.Text);
+
+            Click(wizard.FindControl<Button>("BackButton")!); // Back remains an interruptible route
+            await Settle(350);
+            Assert.True(wizard.FindControl<Control>("TeamsStepContainer")!.IsVisible);
+            Assert.Equal(homeName,wizard.FindControl<TextBox>("SetupHomeNameBox")!.Text);
+            Assert.Equal(awayName,wizard.FindControl<TextBox>("SetupAwayNameBox")!.Text);
+            Assert.True(next.IsEnabled);
+        }
+        finally{OperatorMotion.AnimationOverride=priorMotion;}
+    }
+    [AvaloniaTheory]
     [InlineData(false)][InlineData(true)]
     public async Task CanceledOrStaleSetupCannotCommitOrPersistDefaults(bool cricket)
     {
@@ -147,7 +200,7 @@ public sealed partial class UnifiedSetupTests
         wizard.FindControl<ComboBox>("SetupWeatherLocation")!.Text="";
         if(cricket)
         {((System.Collections.IList)Field<object>(wizard,"_homePlayers")).Clear();((System.Collections.IList)Field<object>(wizard,"_awayPlayers")).Clear();}
-        for(int step=1;step<=(cricket?4:3);step++) {Click(wizard.FindControl<Button>("NextButton")!);await Settle(120);}
+        for(int step=1;step<=(cricket?4:3);step++) {Click(wizard.FindControl<Button>("NextButton")!);await Settle(350);}
         await Settle(600);Assert.False(f.Home.IsVisible);Assert.False(Field<bool>(f.Window,"_setupFlowActive"));
         if(cricket)
         {
@@ -169,11 +222,11 @@ public sealed partial class UnifiedSetupTests
         f.Start();f.Continue(true);await Settle();
         ((System.Collections.IList)Field<object>(f.Cricket,"_homePlayers")).Clear();((System.Collections.IList)Field<object>(f.Cricket,"_awayPlayers")).Clear();
         f.Cricket.FindControl<ComboBox>("SetupWeatherLocation")!.Text="";
-        for(int step=0;step<3;step++)Click(f.Cricket.FindControl<Button>("NextButton")!);
+        for(int step=0;step<3;step++){Click(f.Cricket.FindControl<Button>("NextButton")!);await Settle(350);}
         string before=JsonSerializer.Serialize(old.CapturePersistenceState());
         foreach(string choice in new[]{"stay","apply"})
         {
-            Click(f.Cricket.FindControl<Button>("NextButton")!);await Settle(100);
+            Click(f.Cricket.FindControl<Button>("NextButton")!);await Settle(350);
             var sheet=SessionSheet(f);Assert.True(SessionAction(sheet,"stay").IsDefault);
             Click(SessionAction(sheet,choice));await Settle(400);
             if(choice=="stay"){Assert.Same(old,Field<CricketMatchManager>(f.Window,"_cricketMatch"));Assert.Null(f.Cricket.Result);Assert.Equal(before,JsonSerializer.Serialize(old.CapturePersistenceState()));}
@@ -217,7 +270,7 @@ public sealed partial class UnifiedSetupTests
     public async Task EscapeFirstClosesAnOpenWizardComboWithoutCancelingSetup()
     {
         using var f=new Fixture();await f.Ready();f.Start();f.Continue(false);await Settle();
-        Click(f.Afl.FindControl<Button>("NextButton")!);Click(f.Afl.FindControl<Button>("NextButton")!);await Settle();
+        Click(f.Afl.FindControl<Button>("NextButton")!);await Settle(350);Click(f.Afl.FindControl<Button>("NextButton")!);await Settle(350);
         var combo=f.Afl.FindControl<ComboBox>("SetupWeatherLocation")!;combo.Focus();combo.BringIntoView();combo.IsDropDownOpen=true;await Settle();
         Key(f.Window,PhysicalKey.Escape);await Settle();Assert.False(combo.IsDropDownOpen);Assert.True(f.Afl.IsVisible);Assert.False(f.Home.IsVisible);
     }
@@ -226,7 +279,7 @@ public sealed partial class UnifiedSetupTests
     public async Task InterruptedFinalConfirmationInvalidatesTheRetainedYesResultAndDefaults(bool sportRoundTrip)
     {
         using var f=new Fixture();await f.Ready();GameStateService.Save(new GameState{MatchState=new MatchManager().ToState()});
-        f.Start();f.Continue(false);await Settle();Click(f.Afl.FindControl<Button>("NextButton")!);Click(f.Afl.FindControl<Button>("NextButton")!);
+        f.Start();f.Continue(false);await Settle();Click(f.Afl.FindControl<Button>("NextButton")!);await Settle(350);Click(f.Afl.FindControl<Button>("NextButton")!);await Settle(350);
         f.Afl.FindControl<TextBox>("SetupHomeNameBox")!.Text="Never persist this interrupted draft";
         string saved=JsonSerializer.Serialize(GameStateService.Load()),prefs=JsonSerializer.Serialize(OperatorWorkflowPreferences.Load());
         Click(f.Afl.FindControl<Button>("NextButton")!);await Settle(100);

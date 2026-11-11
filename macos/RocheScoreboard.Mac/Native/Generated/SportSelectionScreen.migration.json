@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
-  "source_sha256": "fee1fa934e53f9a7a61c1e7038c33e7c1aa45a4d655f367a2729b8952c9bcb9d",
+  "source_sha256": "bda805af94553009e2c44042ffcf6bddb95643ee04b89f6f7b1f204f17494c65",
   "names": [
     {
       "name": "PART_Surface",
@@ -619,7 +619,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "3d5bbf96f47c18d5477312bcb3268aafd66cb1c21fc1393424cbc91c6b766c5d",
+  "code_source_sha256": "0dfb05347592eb84853dc822a5ff15a13828b94dd402764c5a8fc0177a4cde81",
   "native_events": [
     {
       "name": "ResponsiveScrollHost",

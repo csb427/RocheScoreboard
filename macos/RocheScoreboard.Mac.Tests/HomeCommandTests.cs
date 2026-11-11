@@ -46,9 +46,26 @@ public sealed class HomeCommandTests
         try
         {
             await Settle(550);home.PrepareForDisplay();
+            string commandLabel=home.FindControl<Button>("HomeCommandsButton")!.Content!.ToString()!;
+            Assert.Contains(width<620?"actions":"Ctrl+K",commandLabel,StringComparison.OrdinalIgnoreCase);
             Assert.False(home.FindControl<Button>("HomeResumeButton")!.IsVisible);
             Assert.False(home.FindControl<Control>("ResumeSessionSurface")!.IsVisible);
-            Assert.False(home.FindControl<Control>("HomeSubtitle")!.IsVisible);Assert.False(home.FindControl<Control>("SettingsSubtitle")!.IsVisible);Assert.False(home.FindControl<Control>("TrainingDescription")!.IsVisible);
+            Assert.False(home.FindControl<Control>("SettingsSubtitle")!.IsVisible);
+            var cards=home.FindControl<Grid>("SportCardsGrid")!;
+            if(width<700)
+            {Assert.Single(cards.ColumnDefinitions);Assert.Collection(cards.RowDefinitions,_=>{},_=>{});}
+            else
+            {Assert.Collection(cards.ColumnDefinitions,_=>{},_=>{});Assert.Single(cards.RowDefinitions);}
+            Assert.Equal("Welcome to Roche",home.FindControl<TextBlock>("HomeHeading")!.Text);
+            Assert.Contains("Choose AFL or Cricket",home.FindControl<TextBlock>("AflDescription")!.Text);
+            Assert.Contains("training session",home.FindControl<TextBlock>("TrainingDescription")!.Text);
+            Assert.True(home.FindControl<Control>("TrainingDescription")!.IsVisible);
+            if(height<=320)
+            foreach(string action in new[]{"AflCard","TrainingCard"})
+            {
+                var card=home.FindControl<Control>(action)!;var point=card.TranslatePoint(default,window)!.Value;
+                Assert.True(point.Y>=0 && point.Y+card.Bounds.Height<=height,$"{action} should be visible without scrolling in a compact empty Home; y={point.Y}, h={card.Bounds.Height}, viewport={height}");
+            }
             Assert.Contains("No recoverable",home.FindControl<TextBlock>("SessionDetail")!.Text);
             Capture(window,$"home-empty-{width}x{height}");
             var match=new MatchManager();match.SetTeams("Roche with a very long club name","RCH","Visitors with a very long club name","VIS");match.AddGoal(TeamSide.Home);
@@ -64,6 +81,10 @@ public sealed class HomeCommandTests
                 var point=target.TranslatePoint(default,window)!.Value;
                 Assert.True(new Rect(window.Bounds.Size).Intersects(new Rect(point,target.Bounds.Size)),name+" must be reachable by scrolling");
             }
+            window.Width=1280;window.Height=850;await Settle(120);home.PrepareForDisplay();
+            Assert.Collection(home.FindControl<Grid>("SportCardsGrid")!.ColumnDefinitions,_=>{},_=>{});
+            window.Width=420;window.Height=320;await Settle(120);home.PrepareForDisplay();
+            Assert.Single(home.FindControl<Grid>("SportCardsGrid")!.ColumnDefinitions);
         }
         finally{window.Close();GameStateService.Clear();app.IsSelfTestMode=previous;}
     }
@@ -95,6 +116,183 @@ public sealed class HomeCommandTests
             Assert.NotNull(RecoverySession.Describe(GameStateService.LoadFrom(path)));Assert.Equal(backup,File.ReadAllText(path+".bak"));
         }
         finally{Directory.Delete(dir,true);}
+    }
+    [AvaloniaFact]
+    public async Task CheckpointReviewBackAndEscapeRestoreTheOpeningRowWithoutChangingSavedState()
+    {
+        var match=new MatchManager();match.SetTeams("Harbour","HBR","Rovers","ROV");match.AddGoal(TeamSide.Home);
+        var state=new GameState{Sport="afl",MatchState=match.ToState()};
+        var first=new MatchCheckpointStore.Checkpoint(1,"first",DateTimeOffset.UtcNow,"Harbour v Rovers","AFL · Q1",state);
+        var selected=new MatchCheckpointStore.Checkpoint(2,"selected",DateTimeOffset.UtcNow,"Harbour v Rovers","AFL · Q1",state);
+        string before=JsonSerializer.Serialize(selected.State.MatchState);
+        var history=new MatchHistoryView(true,[first,selected]);
+        var window=new NativeWindow{Width=760,Height=540,Content=history};window.Show();
+        try
+        {
+            await Settle();var review=history.ActionButtons[3];Assert.True(review.Focus());Click(review);await Settle();
+            Assert.True(history.IsReviewing);var back=Assert.IsAssignableFrom<Button>(history.ReviewBackButton);Assert.True(back.IsVisible);Assert.Equal(0,Grid.GetRow(back));Assert.True(back.IsFocused);
+            Assert.True(history.HandleEscape());await Settle();
+            Assert.False(history.IsReviewing);Assert.True(review.IsFocused);Assert.False(history.HandleEscape());
+            Assert.True(review.Focus());Click(review);await Settle();Click(history.ReviewBackButton!);await Settle();
+            Assert.False(history.IsReviewing);Assert.True(review.IsFocused);Assert.Equal(before,JsonSerializer.Serialize(selected.State.MatchState));
+        }
+        finally{window.Close();}
+    }
+    [AvaloniaTheory]
+    [InlineData(1280,850)][InlineData(420,320)]
+    public async Task GlobalNavigationActionsStayVisibleAcrossLiveOperatorModes(int width,int height)
+    {
+        var app=(App)Application.Current!;bool previous=app.IsSelfTestMode;app.IsSelfTestMode=true;
+        var window=new Roche_Scoreboard.MainWindow{Width=width,Height=height};window.Show();
+        static void AssertNav(Control panel)
+        {
+            Assert.True(panel.FindControl<Button>("OperatorHomeButton")!.IsVisible);
+            Assert.Equal("Home",panel.FindControl<Button>("OperatorHomeButton")!.Content);
+            Assert.Equal("App settings",panel.FindControl<Button>("OperatorSettingsButton")!.Content);
+            Assert.Equal("Find actions",panel.FindControl<Button>("OperatorCommandSearchButton")!.Content);
+        }
+        try
+        {
+            await Settle(300);window.Width=width;window.Height=height;AflSession(window);await Settle();
+            Assert.True(window.FindControl<Button>("AflOperatorHomeButton")!.IsVisible);
+            Assert.Equal("App settings",window.FindControl<Button>("AflApplicationSettingsButton")!.Content);
+            Assert.Equal("Find actions",window.FindControl<Button>("AflCommandSearchButton")!.Content);
+            Click(window.FindControl<Button>("AflCommandSearchButton")!);await Settle();
+            Assert.True(window.FindControl<Grid>("CommandOverlay")!.IsVisible);Key(window,PhysicalKey.Escape);await Settle();
+            var cricketPanel=window.FindControl<CricketControlPanel>("CricketControlPanelView")!;
+            var cricket=CricketReliabilityChecks.CreateMatch(true);cricketPanel.SetMatch(cricket);Set(window,"_cricketMatch",cricket);Set(window,"_sportMode",SportMode.Cricket);
+            window.FindControl<SportSelectionScreen>("SportSelectionPanel")!.IsVisible=false;
+            window.FindControl<Control>("MainContent")!.IsVisible=false;cricketPanel.IsVisible=true;await Settle();AssertNav(cricketPanel);
+            Click(cricketPanel.FindControl<Button>("OperatorCommandSearchButton")!);await Settle();
+            Assert.True(window.FindControl<Grid>("CommandOverlay")!.IsVisible);Key(window,PhysicalKey.Escape);await Settle();
+            Invoke(window,"EnterTrainingMode");await Settle(300);AssertNav(window.FindControl<TrainingControlPanel>("TrainingControlPanelView")!);
+            var trainingPanel=window.FindControl<TrainingControlPanel>("TrainingControlPanelView")!;
+            Click(trainingPanel.FindControl<Button>("OperatorCommandSearchButton")!);await Settle();
+            Assert.True(window.FindControl<Grid>("CommandOverlay")!.IsVisible);Key(window,PhysicalKey.Escape);await Settle();
+        }
+        finally{foreach(var child in window.OwnedWindows.ToArray())child.Close();window.Close();app.IsSelfTestMode=previous;}
+    }
+    [AvaloniaFact]
+    public async Task ApplicationSettingsIsIdempotentAndBackRestoresTheOriginalAflActionAndMatch()
+    {
+        var app=(App)Application.Current!;bool previous=app.IsSelfTestMode;app.IsSelfTestMode=true;
+        var window=new Roche_Scoreboard.MainWindow();window.Show();
+        try
+        {
+            await Settle(300);AflSession(window);await Settle();var match=Field<MatchManager>(window,"_match");match.AddGoal(TeamSide.Away);
+            string before=JsonSerializer.Serialize(match.ToState());var origin=window.FindControl<Button>("AflApplicationSettingsButton")!;Assert.True(origin.Focus());Click(origin);await Settle();
+            var settings=window.FindControl<GlobalSettingsScreen>("GlobalSettingsPanel")!;var back=settings.FindControl<Button>("BackButton")!;
+            Assert.True(settings.IsVisible);Assert.Equal("←  Back to session",back.Content);Assert.Same(window.FindControl<Control>("MainContent"),Field<Control>(window,"_commandPreferencesReturn"));
+            var returnFocus=Field<Control?>(window,"_globalSettingsReturnFocus");Assert.Same(origin,returnFocus);
+            Assert.True(window.OpenCommandBar());Assert.True(window.ExecuteCommand("settings"));await Settle();
+            Assert.Same(window.FindControl<Control>("MainContent"),Field<Control>(window,"_commandPreferencesReturn"));Assert.Same(origin,Field<Control?>(window,"_globalSettingsReturnFocus"));
+            Click(back);await Settle(160);Assert.False(settings.IsVisible);Assert.True(window.FindControl<Control>("MainContent")!.IsVisible);
+            Assert.True(origin.IsFocused);Assert.Equal(before,JsonSerializer.Serialize(match.ToState()));Assert.True(Field<bool>(window,"_outputActivationRequired"));
+        }
+        finally{foreach(var child in window.OwnedWindows.ToArray())child.Close();window.Close();app.IsSelfTestMode=previous;}
+    }
+    [AvaloniaFact]
+    public async Task ApplicationSettingsBackReturnsToCricketAndTrainingWithOpeningFocus()
+    {
+        var app=(App)Application.Current!;bool previous=app.IsSelfTestMode;app.IsSelfTestMode=true;
+        var window=new Roche_Scoreboard.MainWindow();window.Show();
+        try
+        {
+            await Settle(300);
+            var cricketPanel=window.FindControl<CricketControlPanel>("CricketControlPanelView")!;
+            var cricket=CricketReliabilityChecks.CreateMatch(true);cricketPanel.SetMatch(cricket);Set(window,"_cricketMatch",cricket);Set(window,"_sportMode",SportMode.Cricket);
+            window.FindControl<SportSelectionScreen>("SportSelectionPanel")!.IsVisible=false;cricketPanel.IsVisible=true;
+            var cricketOrigin=cricketPanel.FindControl<Button>("OperatorSettingsButton")!;window.Activate();await Settle();Assert.True(cricketOrigin.Focus(),$"visible={cricketOrigin.IsVisible}, enabled={cricketOrigin.IsEnabled}, focusable={cricketOrigin.Focusable}, panel={cricketPanel.IsVisible}");Click(cricketOrigin);await Settle();
+            var settings=window.FindControl<GlobalSettingsScreen>("GlobalSettingsPanel")!;var back=settings.FindControl<Button>("BackButton")!;
+            Assert.Equal("←  Back to cricket",back.Content);Click(back);await Settle(160);
+            Assert.True(cricketPanel.IsVisible);Assert.True(cricketOrigin.IsFocused);Assert.Same(cricket,Field<CricketMatchManager?>(window,"_cricketMatch"));
+
+            Invoke(window,"EnterTrainingMode");await Settle(300);
+            var training=window.FindControl<TrainingControlPanel>("TrainingControlPanelView")!;
+            var trainingOrigin=training.FindControl<Button>("OperatorSettingsButton")!;Assert.True(trainingOrigin.Focus());Click(trainingOrigin);await Settle();
+            Assert.Equal("←  Back to session",back.Content);Click(back);await Settle(160);
+            Assert.True(training.IsVisible);Assert.True(trainingOrigin.IsFocused);Assert.NotNull(Field<object?>(window,"_trainingSession"));
+        }
+        finally{foreach(var child in window.OwnedWindows.ToArray())child.Close();window.Close();app.IsSelfTestMode=previous;}
+    }
+    [AvaloniaFact]
+    public async Task CommandPaletteTabNavigationMovesFocusIntoTheDestinationTab()
+    {
+        var app=(App)Application.Current!;bool previous=app.IsSelfTestMode;app.IsSelfTestMode=true;
+        var window=new Roche_Scoreboard.MainWindow();window.Show();
+        object? preferences=null;System.Reflection.PropertyInfo? guided=null;bool originalGuided=false;
+        try
+        {
+            await Settle(300);preferences=Field<object>(window,"_uxPreferences");guided=preferences.GetType().GetProperty("GuidedOperatorMode")!;
+            originalGuided=(bool)guided.GetValue(preferences)!;guided.SetValue(preferences,false);Invoke(window,"ApplyGuidedOperatorMode");
+            AflSession(window);await Settle();
+            var tabs=window.FindControl<TabControl>("MainTabControl")!;
+            var destination=window.FindControl<TabItem>("OutputStudioTab")!;
+            var searchButton=window.FindControl<Button>("AflCommandSearchButton")!;Assert.True(searchButton.Focus());Click(searchButton);await Settle();
+            Assert.True(window.FindControl<Grid>("CommandOverlay")!.IsVisible);Assert.True(window.ExecuteCommand("afl-output"));await Settle();
+            Assert.Same(destination,tabs.SelectedItem);
+            Capture(window,"command-palette-destination-output");
+            Assert.True(destination.IsVisible,$"selected target should be visible; focusable={destination.Focusable}, selected={destination.IsSelected}, main={window.FindControl<Control>("MainContent")!.IsVisible}, tabs={tabs.IsVisible}, bounds={destination.Bounds}");
+            Assert.True(destination.Focusable,"selected target should participate in keyboard focus");Assert.True(destination.IsEnabled);
+            Assert.Equal(1,Field<int>(window,"_commandTabFocusGeneration"));
+            Assert.Same(destination,window.FocusManager?.GetFocusedElement());
+        }
+        finally{if(preferences is not null&&guided is not null){guided.SetValue(preferences,originalGuided);Invoke(window,"ApplyGuidedOperatorMode");}foreach(var child in window.OwnedWindows.ToArray())child.Close();window.Close();app.IsSelfTestMode=previous;}
+    }
+    [AvaloniaFact]
+    public async Task HiddenAflOutputCommandExplainsTheAdvancedToolsPrerequisite()
+    {
+        var app=(App)Application.Current!;bool previous=app.IsSelfTestMode;app.IsSelfTestMode=true;
+        var window=new Roche_Scoreboard.MainWindow();window.Show();object? preferences=null;System.Reflection.PropertyInfo? guided=null;bool originalGuided=true;
+        try
+        {
+            await Settle(300);preferences=Field<object>(window,"_uxPreferences");guided=preferences.GetType().GetProperty("GuidedOperatorMode")!;
+            originalGuided=(bool)guided.GetValue(preferences)!;guided.SetValue(preferences,true);Invoke(window,"ApplyGuidedOperatorMode");
+            AflSession(window);await Settle();var tabs=window.FindControl<TabControl>("MainTabControl")!;
+            Assert.True(window.OpenCommandBar());Assert.False(window.ExecuteCommand("afl-output"));
+            Assert.True(window.FindControl<Grid>("CommandOverlay")!.IsVisible);
+            Assert.Contains("Select Advanced Tools",window.FindControl<TextBlock>("CommandHint")!.Text);
+            Assert.Same(window.FindControl<TabItem>("MatchControlTab"),tabs.SelectedItem);
+        }
+        finally{if(preferences is not null&&guided is not null){guided.SetValue(preferences,originalGuided);Invoke(window,"ApplyGuidedOperatorMode");}foreach(var child in window.OwnedWindows.ToArray())child.Close();window.Close();app.IsSelfTestMode=previous;}
+    }
+    [AvaloniaFact]
+    public async Task LiveHomeNavigationRequiresOutputConfirmationAndKeepsTheSessionOffAirAfterResume()
+    {
+        var app=(App)Application.Current!;bool previous=app.IsSelfTestMode;app.IsSelfTestMode=true;
+        bool? oldMotion=OperatorMotion.AnimationOverride;OperatorMotion.AnimationOverride=false;
+        var window=new Roche_Scoreboard.MainWindow();window.Show();
+        try
+        {
+            await Settle(300);AflSession(window);var match=Field<MatchManager>(window,"_match");match.AddGoal(TeamSide.Home);string before=JsonSerializer.Serialize(match.ToState());
+            Assert.True(window.OpenCommandBar());Assert.True(window.ExecuteCommand("enable-output"));await Settle(250);
+            var output=Field<NativeWindow?>(window,"_displayWindow")!;Assert.True(output.IsVisible);
+            var home=window.FindControl<Button>("AflOperatorHomeButton")!;Assert.True(home.Focus());Click(home);await Settle();
+            var surface=window.FindControl<Panel>("ApplicationSurface")!;
+            var sheet=Assert.Single(surface.Children.OfType<Border>(),border=>Equals(border.Tag,"cricket-decision-sheet"));
+            Assert.Contains(sheet.GetVisualDescendants().OfType<TextBlock>(),text=>text.Text?.StartsWith("Live scoreboard output will turn off",StringComparison.Ordinal)==true);
+            var stay=sheet.GetVisualDescendants().OfType<Button>().Single(button=>Equals(button.Tag,"stay"));Click(stay);await Settle();
+            Assert.True(window.FindControl<Control>("MainContent")!.IsVisible);Assert.True(output.IsVisible);Assert.False(Field<bool>(window,"_outputActivationRequired"));Assert.Equal(before,JsonSerializer.Serialize(match.ToState()));
+            Click(home);await Settle();sheet=Assert.Single(surface.Children.OfType<Border>(),border=>Equals(border.Tag,"cricket-decision-sheet"));var apply=sheet.GetVisualDescendants().OfType<Button>().Single(button=>Equals(button.Tag,"apply"));Click(apply);await Settle();
+            var homeScreen=window.FindControl<SportSelectionScreen>("SportSelectionPanel")!;Assert.True(homeScreen.IsVisible);
+            Assert.Equal("Return to current session",homeScreen.FindControl<Button>("HomeResumeButton")!.Content);Assert.False(output.IsVisible);Assert.True(Field<bool>(window,"_outputActivationRequired"));
+            Assert.Equal(before,JsonSerializer.Serialize(match.ToState()));Click(homeScreen.FindControl<Button>("HomeResumeButton")!);await Settle();
+            Assert.True(window.FindControl<Control>("MainContent")!.IsVisible);Assert.False(output.IsVisible);Assert.Equal(before,JsonSerializer.Serialize(match.ToState()));
+        }
+        finally{foreach(var child in window.OwnedWindows.ToArray())child.Close();window.Close();OperatorMotion.AnimationOverride=oldMotion;app.IsSelfTestMode=previous;}
+    }
+    [AvaloniaTheory]
+    [InlineData(800,500,0)][InlineData(620,500,1)]
+    public async Task SettingsBackRemainsAtTheTopAndItsNavigationStacksAtCompactWidth(int width,int height,int expectedScopeRow)
+    {
+        var screen=new GlobalSettingsScreen();var window=new NativeWindow{Width=width,Height=height,Content=screen};window.Show();
+        try
+        {
+            await Settle(150);Assert.True(screen.FindControl<Button>("BackButton")!.IsVisible);
+            Assert.Equal(expectedScopeRow,Grid.GetRow(screen.FindControl<Control>("SettingsScopeSurface")!));
+            Assert.Equal("←  Back to Home",screen.FindControl<Button>("BackButton")!.Content);
+        }
+        finally{window.Close();}
     }
     [AvaloniaTheory]
     [InlineData(1280,850)][InlineData(420,320)]

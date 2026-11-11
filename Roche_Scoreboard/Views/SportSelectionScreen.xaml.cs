@@ -29,17 +29,31 @@ public partial class SportSelectionScreen : UserControl
     {
         if(SportCardsGrid is null || HomeLayout is null)return;
         InstallIllustratedLanding();
-        double width=size.Width,height=size.Height;bool compact=width<620,shortWindow=height<440;
-        if(_sportCardsStacked!=true)
+        double width=size.Width,height=size.Height;bool compact=width<700,shortWindow=height<440;
+        SportViewport.MinHeight=height<360?Math.Max(320,height):620;
+        bool stacked=width<700;
+        if(_sportCardsStacked!=stacked)
         {
-            _sportCardsStacked=true;SportCardsGrid.ColumnDefinitions.Clear();SportCardsGrid.RowDefinitions.Clear();SportCardsGrid.ColumnDefinitions.Add(new());
+            _sportCardsStacked=stacked;SportCardsGrid.ColumnDefinitions.Clear();SportCardsGrid.RowDefinitions.Clear();
             var cards=new[]{AflCard,TrainingCard};
-            for(int i=0;i<cards.Length;i++){SportCardsGrid.RowDefinitions.Add(new(){Height=new GridLength(i==1?.8:1,GridUnitType.Star)});Grid.SetRow(cards[i],i);Grid.SetColumn(cards[i],0);Grid.SetColumnSpan(cards[i],1);}
+            if(stacked)
+            {
+                SportCardsGrid.ColumnDefinitions.Add(new());
+                SportCardsGrid.RowDefinitions.Add(new(){Height=new GridLength(1.08,GridUnitType.Star)});
+                SportCardsGrid.RowDefinitions.Add(new(){Height=new GridLength(.92,GridUnitType.Star)});
+                for(int i=0;i<cards.Length;i++){Grid.SetRow(cards[i],i);Grid.SetColumn(cards[i],0);Grid.SetColumnSpan(cards[i],1);}
+            }
+            else
+            {
+                SportCardsGrid.ColumnDefinitions.Add(new(){Width=new GridLength(1.12,GridUnitType.Star)});
+                SportCardsGrid.ColumnDefinitions.Add(new(){Width=new GridLength(.88,GridUnitType.Star)});
+                SportCardsGrid.RowDefinitions.Add(new());
+                for(int i=0;i<cards.Length;i++){Grid.SetRow(cards[i],0);Grid.SetColumn(cards[i],i);Grid.SetColumnSpan(cards[i],1);}
+            }
         }
         CricketCard.Visibility = Visibility.Collapsed;
-        for(int row=0;row<SportCardsGrid.RowDefinitions.Count;row++)SportCardsGrid.RowDefinitions[row].Height=new GridLength(shortWindow?1:row==1?.8:1,GridUnitType.Star);
-        HomeLayout.Margin=new Thickness(compact?12:30,shortWindow?10:22,compact?12:30,shortWindow?10:22);
-        HomeCommandsButton.Content = size.Width < 620 ? "Ctrl+K" : "Commands · Ctrl+K";
+        HomeLayout.Margin=new Thickness(compact?14:40,height<340?16:shortWindow?10:22,compact?14:40,height<340?4:shortWindow?10:22);
+        HomeCommandsButton.Content = size.Width < 620 ? "Find actions" : "Commands · Ctrl+K";
 #if WINDOWS
         int checkpointCount = MatchCheckpointStore.Count;
         HistoryButton.Content = checkpointCount > 0 && width >= 520 ? $"Match history · {checkpointCount}" : "Match history";
@@ -50,19 +64,18 @@ public partial class SportSelectionScreen : UserControl
         SettingsTile.Padding=new Thickness(width<390?10:14,8,width<390?2:14,8);
         VersionLabel.Visibility=width>=700 && !shortWindow?Visibility.Visible:Visibility.Collapsed;ResumeSavedMatchButton.Content=width<600?"Continue":"Continue match";
         HeaderPanel.Visibility=height<340?Visibility.Collapsed:Visibility.Visible;HeaderPanel.Margin=new Thickness(0,shortWindow?12:22,0,shortWindow?12:20);
-        HomeHeading.FontSize=compact?27:34;HomeSubtitle.Visibility=Visibility.Collapsed;
-        // The star row owns the actual remaining space. Estimating header
-        // height clipped Training's lower corners as text/density changed.
-        SportCardsGrid.MaxWidth=1120;SportCardsGrid.Height=double.NaN;SportCardsGrid.VerticalAlignment=VerticalAlignment.Stretch;
-        foreach(var card in new[]{AflCard,CricketCard,TrainingCard})card.Margin=new Thickness(0,height<340?2:4,0,height<340?2:4);
+        HomeHeading.FontSize=compact?27:32;HomeSubtitle.Visibility=height>=340?Visibility.Visible:Visibility.Collapsed;
+        SportCardsGrid.MaxWidth=960;SportCardsGrid.Height=height<360?248:shortWindow?236:292;SportCardsGrid.VerticalAlignment=VerticalAlignment.Center;
+        foreach(var card in new[]{AflCard,CricketCard,TrainingCard})card.Margin=new Thickness(compact?3:8,height<340?3:8,compact?3:8,height<340?3:8);
         foreach(var text in new[]{AflTextPanel,CricketTextPanel,TrainingTextPanel})
         {
-            text.Margin=new Thickness(compact?17:28,height<340?3:7,14,height<340?3:7);text.MaxWidth=Math.Max(100,width*.65);
-            if(text.Children[0] is TextBlock title)title.FontSize=height<340?20:compact?25:34;
+            text.Margin=new Thickness(compact?12:18,8,12,8);text.MaxWidth=Math.Max(130,width*.72);
+            if(text.Children[0] is TextBlock title)title.FontSize=compact?22:25;
         }
-        foreach(var description in new[]{AflDescription,CricketDescription,TrainingDescription})description.Visibility=height>=520?Visibility.Visible:Visibility.Collapsed;
-        TrainingDescription.Visibility=Visibility.Collapsed;
-        foreach(var cta in _landingCtas)if(cta.Parent is Border pill)pill.Visibility=height>=650?Visibility.Visible:Visibility.Collapsed;
+        foreach(var description in new[]{AflDescription,CricketDescription,TrainingDescription})description.Visibility=Visibility.Visible;
+        foreach(var cta in _landingCtas)if(cta.Parent is Border pill)pill.Visibility=Visibility.Visible;
+        ResumeSessionSurface.Padding=new Thickness(compact?14:18,compact?10:12,compact?14:18,compact?10:12);
+        SessionHeading.FontSize=compact?16:18;SessionDetail.FontSize=compact?13:14;ResumeOutputHint.FontSize=12;
         double sheetInset=compact?10:22;
         ChangelogPanel.Width=double.NaN;ChangelogPanel.Height=double.NaN;ChangelogPanel.MaxWidth=1120;
         ChangelogPanel.Margin=new Thickness(sheetInset);
@@ -180,7 +193,9 @@ public partial class SportSelectionScreen : UserControl
 
     private void HistoryOverlay_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape) { CloseHistory(); e.Handled = true; }
+        if (e.Key != Key.Escape) return;
+        if (_activeHistoryView?.HandleEscape() == true) { e.Handled = true; return; }
+        CloseHistory(); e.Handled = true;
     }
     public event Action<SportMode>? SportSelected;
     public event Action? ResumeSavedMatchRequested;
@@ -280,7 +295,7 @@ public partial class SportSelectionScreen : UserControl
         ++_landingMotionGeneration;
         RestoreLandingVisuals();
         if(!OperatorMotion.Enabled) return;
-        var cards=new UIElement[] {AflCard,CricketCard,TrainingCard};
+        var cards=new UIElement[] {AflCard,TrainingCard};
         for(int i=0;i<cards.Length;i++)
         {
             cards[i].Opacity=0;

@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml",
-  "source_sha256": "0f709c0c1739a710f2ba155ff69e4278d75a664299344a3477c8e92940fe9c9e",
+  "source_sha256": "cd0c448c2224e56f61ca0171110efd5a80c3520881b1458db21b87fda32980d5",
   "names": [
     {
       "name": "TrainingClearDecisionHost",
@@ -59,6 +59,21 @@
     },
     {
       "name": "ExitButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OperatorHomeButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OperatorSettingsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OperatorCommandSearchButton",
       "type": "Button",
       "object": false
     },
@@ -353,7 +368,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "d3532acbbeb10ee28a675ecd8caf61bdad9b7f39ca2b14459d5541551c31d325",
+  "code_source_sha256": "fe7d4bc66f1805ee0b9f4039574765baf749fef6777bd179b249f2e49a0c51ca",
   "native_events": [
     {
       "name": "AutoAdvanceToggle",

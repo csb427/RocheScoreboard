@@ -240,6 +240,8 @@ public partial class UpdatePromptWindow : Window
         {
             double percent = Math.Clamp(info.Progress * 100, 0, 100);
             UpdateProgressBar.Value = percent;
+            UpdateButtonProgress.Value = percent;
+            UpdateButtonLabel.Text = $"Downloading {percent:0}%…";
             ProgressPercentText.Text = $"{percent:0}%";
             ProgressDetailText.Text = info.TotalBytes > 0
                 ? $"{FormatBytes(info.BytesReceived)} of {FormatBytes(info.TotalBytes)}" +
@@ -249,6 +251,16 @@ public partial class UpdatePromptWindow : Window
         else
         {
             UpdateProgressBar.Value = info.Stage == UpdateProgressStage.Preparing ? 4 : 100;
+            UpdateButtonProgress.Value = UpdateProgressBar.Value;
+            UpdateButtonLabel.Text = info.Stage switch
+            {
+                UpdateProgressStage.Preparing => "Preparing update…",
+                UpdateProgressStage.Verifying => "Verifying update…",
+                UpdateProgressStage.Extracting => "Extracting update…",
+                UpdateProgressStage.Staging => "Checking update…",
+                UpdateProgressStage.Ready => "Ready to restart",
+                _ => "Update in progress…"
+            };
             ProgressPercentText.Text = info.Stage switch
             {
                 UpdateProgressStage.Preparing => "PREP",
@@ -286,8 +298,15 @@ public partial class UpdatePromptWindow : Window
     private void SetBusyState(bool busy)
     {
         if (_closed) return;
+        OperatorControlMotion.SetIsBusy(UpdateButton, busy);
         UpdateButton.IsEnabled = !busy;
-        UpdateButton.Content = busy ? "Update in progress…" : "Retry update  →";
+        UpdateButtonLabel.Text = busy ? "Preparing update…" : "Retry update  →";
+        UpdateButtonProgress.Value = 0;
+        UpdateButtonProgress.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        System.Windows.Automation.AutomationProperties.SetName(UpdateButton, busy ? "Update in progress" : "Retry update");
+        System.Windows.Automation.AutomationProperties.SetHelpText(UpdateButton, busy
+            ? "The update is being prepared. Progress and the current step appear in this button and the details above."
+            : "Retry downloading, verifying and installing the update.");
         ViewReleaseButton.IsEnabled = !busy;
         SkipButton.Content = busy ? "Cancel safely" : "Remind me later";
         SkipButton.IsEnabled = !busy || !_cancellationRequested;
@@ -309,6 +328,8 @@ public partial class UpdatePromptWindow : Window
     {
         if (_closed) return;
         System.Windows.Automation.AutomationProperties.SetHelpText(UpdateProgressBar, ProgressText.Text + " " + ProgressDetailText.Text);
+        if (_isDownloading)
+            System.Windows.Automation.AutomationProperties.SetHelpText(UpdateButton, UpdateButtonLabel.Text + ". " + ProgressText.Text + " " + ProgressDetailText.Text);
         // WPF exposes explicit live-region events; the portable view retains
         // LiveSetting/Text notifications through its framework automation peer.
 #if WINDOWS
@@ -325,6 +346,7 @@ public partial class UpdatePromptWindow : Window
     {
         if (_closed || !_isDownloading || _downloadCancellation is null || _cancellationRequested) return;
         _cancellationRequested = true;
+        UpdateButtonLabel.Text = "Cancelling safely…";
         ProgressText.Text = "Cancelling safely…";
         ProgressDetailText.Text = "Cancellation requested. Waiting for the update operation to finish safely.";
         SkipButton.IsEnabled = false;

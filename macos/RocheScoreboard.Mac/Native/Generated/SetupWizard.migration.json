@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/SetupWizard.xaml",
-  "source_sha256": "1ba0a3d4f2f1739e8cc07626cfbbf4b5675aa41faa71e20edc1c75f9ad34c9e2",
+  "source_sha256": "855a41a69a6659a4b79c09b219de6b19e8f5a840cb5a6a0d0e517f2e7d28f033",
   "names": [
     {
       "name": "FinalsFocusFrame",
@@ -31,6 +31,11 @@
     {
       "name": "SportDescription",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "SportChoiceGrid",
+      "type": "Grid",
       "object": false
     },
     {
@@ -739,7 +744,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "dbc5f7f86036a2e8cd363e071682a5939841345de259f1fcceea7115112a6931",
+  "code_source_sha256": "acf8efbe1e629367688e255e9f7ddc5bd39529dff2ef075b86eff83d5621b379",
   "native_events": [
     {
       "name": null,

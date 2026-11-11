@@ -1,5 +1,5 @@
 // Generated from MainWindow.RestoreMembers.cs; edit translator/adapters.
-// Source SHA-256: 76e48cb306ce0c26e40c6fdc70ca11c70f8603fddec6a2a865eddcf6a7b44c57
+// Source SHA-256: 24caff3ff036a7bfd8e544bff418709ee9a1204cb613006ff1380350480e7c42
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -5490,6 +5490,8 @@ public partial class MainWindow
     // ═══════════════════════════════════════════════════════════════
 
     private bool _updateCheckInFlight;
+    // Controlled async boundary for UI tests; production uses the real update service.
+    internal Func<Task>? UpdateCheckAsyncOverride { get; set; }
 
     private void RefreshUpdateStatusUi()
     {
@@ -5558,11 +5560,12 @@ public partial class MainWindow
         try
         {
             CheckForUpdateButton.IsEnabled = false;
+            SetUpdateCheckBusy(true);
             UpdateStatusText.Text = "Checking for updates…";
             UpdateStatusText.Foreground = new SolidColorBrush(MediaColor.FromRgb(0x8A, 0x95, 0xA3));
             InstallUpdateButton.IsVisible = false;
 
-            await app.UpdateService.CheckForUpdateAsync();
+            await (UpdateCheckAsyncOverride?.Invoke() ?? app.UpdateService.CheckForUpdateAsync());
             RefreshUpdateStatusUi();
         }
         catch (Exception ex)
@@ -5575,9 +5578,25 @@ public partial class MainWindow
         }
         finally
         {
-            CheckForUpdateButton.IsEnabled = true;
             _updateCheckInFlight = false;
+            SetUpdateCheckBusy(false);
+            CheckForUpdateButton.IsEnabled = true;
         }
+    }
+
+    private void SetUpdateCheckBusy(bool busy)
+    {
+        OperatorControlMotion.SetIsBusy(CheckForUpdateButton, busy);
+        CheckForUpdateButton.IsEnabled = !busy;
+        CheckForUpdateLabel.Text = busy ? "Checking…" : "Check for updates";
+        Avalonia.Automation.AutomationProperties.SetName(CheckForUpdateButton,
+            busy ? "Checking for updates" : "Check for updates");
+        Avalonia.Automation.AutomationProperties.SetItemStatus(CheckForUpdateButton,
+            busy ? "Checking for updates…" : "Ready");
+        CheckForUpdateBusyProgress.IsVisible = busy && OperatorMotion.Enabled ? true : false;
+        CheckForUpdateBusyStatic.Text = "";
+        CheckForUpdateBusyStatic.IsVisible = false;
+        UpdateAsyncBusyMotionWatch();
     }
 
     private void InstallUpdate_Click(object? sender, RoutedEventArgs e)

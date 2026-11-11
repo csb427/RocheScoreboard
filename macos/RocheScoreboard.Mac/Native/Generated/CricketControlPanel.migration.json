@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
-  "source_sha256": "d1a5bebbfb2f30d515b1f06681739262748e988cfaba4e34de58406a1da28453",
+  "source_sha256": "98f2a834614219ee8a273cbec86fe22e9441c077524c30c5f8291c534cb40d77",
   "names": [
     {
       "name": "PART_Surface",
@@ -165,6 +165,21 @@
     {
       "name": "HeaderScore",
       "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "OperatorHomeButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OperatorSettingsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "OperatorCommandSearchButton",
+      "type": "Button",
       "object": false
     },
     {
@@ -838,7 +853,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "fd24afdc4681c1061d7549d0026929d84cf9dff320686eb5b48cefed403a2c0f",
+  "code_source_sha256": "e9bc01baef578606e8f74ed9175827ec869ed649f2b96ff67c766053b2f3810c",
   "native_events": [
     {
       "name": "MainTabControl",

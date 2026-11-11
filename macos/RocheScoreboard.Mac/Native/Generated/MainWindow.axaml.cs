@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from MainWindow.xaml.cs; edit translator/adapters.
-// Source SHA-256: 68db12d73e07caa7ccf89cde3fe130a775161b6e1d0e7ef1ebf9f65ab55b99eb
+// Source SHA-256: 8e1f2bdda7de2b8cc006331b4572bf76343def3b2a98cecb8e7f0125bc888d88
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -406,7 +406,12 @@ namespace Roche_Scoreboard
 #endif
             SportSelectionPanel.CommandBarRequested += () => OpenCommandBar();
             _match.MatchChanged += RefreshHomeCurrentSession;
-            CricketControlPanelView.ApplicationPreferencesRequested += OpenCricketApplicationPreferences;
+            CricketControlPanelView.ApplicationPreferencesRequested += RequestOperatorSettings;
+            CricketControlPanelView.HomeNavigationRequested += RequestOperatorHome;
+            CricketControlPanelView.CommandSearchRequested += () => OpenCommandBar();
+            TrainingControlPanelView.ApplicationPreferencesRequested += RequestOperatorSettings;
+            TrainingControlPanelView.HomeNavigationRequested += RequestOperatorHome;
+            TrainingControlPanelView.CommandSearchRequested += () => OpenCommandBar();
             GlobalSettingsPanel.BackRequested += OnGlobalSettingsBackRequested;
             GlobalSettingsPanel.CricketOutputPreferencesChanged += () => {
                 var preferences = OperatorWorkflowPreferences.Load();
@@ -1010,7 +1015,7 @@ namespace Roche_Scoreboard
 
         private void MainWindow_PreviewKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
         {
-            if (_newSessionDecisionActive) return; // The owned in-app sheet handles its own keys.
+            if (_newSessionDecisionActive || _homeNavigationDecisionActive) return; // The owned in-app sheet handles its own keys.
             if (_pendingKeybindAction is not null && !KeybindCaptureContextCurrent()) RetireKeybindCapture();
             if (_resetDecisionActive) { HandleResetPreviewKeyDown(e); return; }
             bool commandChord = e.Key == Key.K && (NativeKeyboard.Modifiers & KeyModifiers.Control) != 0;
@@ -1898,6 +1903,7 @@ namespace Roche_Scoreboard
 
             if (mode == SportMode.Settings)
             {
+                _globalSettingsReturnFocus = NativeKeyboard.FocusedElement as Control;
                 _returnToCricketFromGlobalSettings = false;
                 GlobalSettingsPanel.SetBackCaption("←  Back to Home");
                 RefreshGlobalSettingsOutputPreferences();
@@ -1907,6 +1913,7 @@ namespace Roche_Scoreboard
                 CricketControlPanelView.IsVisible = false;
                 TrainingControlPanelView.IsVisible = false;
                 GlobalSettingsPanel.IsVisible = true;
+                GlobalSettingsPanel.FocusBackButton();
                 Title = $"Roche Scoreboard v{ProductionVersion.CurrentVersion.ToString(3)} | Global Settings";
             }
             else
@@ -1918,22 +1925,26 @@ namespace Roche_Scoreboard
         private bool _returnToCricketFromGlobalSettings;
         private void OpenCricketApplicationPreferences()
         {
-            if (_cricketMatch is null) return;
+            if (GlobalSettingsPanel.IsVisible || _cricketMatch is null || CricketControlPanelView.HasPendingOperatorEdits) return;
+            _globalSettingsReturnFocus ??= NativeKeyboard.FocusedElement as Control;
             _returnToCricketFromGlobalSettings = true;
             RefreshGlobalSettingsOutputPreferences();
             CricketControlPanelView.IsVisible = false;
             GlobalSettingsPanel.SetBackCaption("←  Back to cricket");
             GlobalSettingsPanel.IsVisible = true;
+            GlobalSettingsPanel.FocusBackButton();
         }
 
         private void OnGlobalSettingsBackRequested()
         {
+            if (!GlobalSettingsPanel.IsVisible) return;
             if (_commandPreferencesReturn is { } surface)
             {
                 _commandPreferencesReturn = null;
                 GlobalSettingsPanel.IsVisible = false;
                 surface.IsVisible = true;
                 GlobalSettingsPanel.SetBackCaption("←  Back to Home");
+                RestoreGlobalSettingsReturnFocus();
                 return;
             }
             if (_returnToCricketFromGlobalSettings && _cricketMatch is not null)
@@ -1942,6 +1953,7 @@ namespace Roche_Scoreboard
                 GlobalSettingsPanel.IsVisible = false;
                 GlobalSettingsPanel.SetBackCaption("←  Back to Home");
                 CricketControlPanelView.IsVisible = true;
+                RestoreGlobalSettingsReturnFocus();
                 return;
             }
             _returnToCricketFromGlobalSettings = false;
@@ -1957,6 +1969,7 @@ namespace Roche_Scoreboard
             SportSelectionPanel.Opacity = 1;
             SportSelectionPanel.IsVisible = true;
             Title = $"Roche Scoreboard v{ProductionVersion.CurrentVersion.ToString(3)}";
+            RestoreGlobalSettingsReturnFocus();
         }
 
         private void OnGlobalSettingsStartupModeChanged(string mode)
@@ -2863,10 +2876,10 @@ namespace Roche_Scoreboard
 
         /// <summary>
         /// Crash-safe save wrapper invoked from the global exception handlers
-        /// and Windows session-end handler in <see cref="App"/>. Swallows any
-        /// exception so a save attempt during a teardown never re-throws and
-        /// short-circuits the rest of the shutdown path. Always called on the
-        /// UI thread.
+        /// and Windows session-end handler in <see cref="App"/>. Ordinary save
+        /// failures remain best-effort. Resource failures must reach the global
+        /// policy rather than letting a failed render channel resume. Always
+        /// called on the UI thread.
         /// </summary>
         internal void TrySaveGameStateForShutdown()
         {
@@ -2875,9 +2888,9 @@ namespace Roche_Scoreboard
                 SaveGameState();
                 FlushCricketGameStateSave();
             }
-            catch
+            catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
             {
-                // Best-effort during shutdown / crash; do not re-throw.
+                // Ordinary shutdown / crash-save failures remain best-effort.
             }
         }
 

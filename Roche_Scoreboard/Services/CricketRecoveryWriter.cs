@@ -23,6 +23,7 @@ internal sealed class CricketRecoveryWriter
     private Task? _worker;
     private long _generation;
     private Exception? _lastError;
+    private Exception? _fatalError;
     private int _completedWrites;
 
     internal CricketRecoveryWriter(string? path = null, Action<Exception>? onError = null, Action? beforeCommit = null, string? checkpointDirectory = null)
@@ -46,6 +47,7 @@ internal sealed class CricketRecoveryWriter
         ArgumentNullException.ThrowIfNull(snapshot);
         lock (_gate)
         {
+            ThrowIfFatalError();
             _pending = (_generation, snapshot);
             if (_worker is null) _worker = Task.Run(Drain);
         }
@@ -55,19 +57,28 @@ internal sealed class CricketRecoveryWriter
         // The potentially large write happens before this lock. Only the atomic
         // replace and deletion are serialized with clear, so reset does not wait
         // for JSON serialization or a complete multi-megabyte file write.
-        lock (_gate) { ++_generation; _pending = null; }
+        lock (_gate) { ThrowIfFatalError(); ++_generation; _pending = null; }
         lock (_commitGate)
         {
+            // A worker/report callback may have become terminal while this
+            // clear waited for the atomic commit already in progress.
+            lock (_gate) ThrowIfFatalError();
             try
             {
                 bool cleared = _clearFiles();
                 if (File.Exists(_path) || File.Exists(_path + ".bak"))
                     throw new IOException("The previous cricket recovery could not be cleared.");
                 if (!cleared) throw new IOException("The previous cricket recovery was retained because its archive did not commit.");
-                lock (_gate) _lastError = null;
+                lock (_gate) { ThrowIfFatalError(); _lastError = null; }
                 return true;
             }
-            catch (Exception error) { lock (_gate) _lastError = error; Report(error); return false; }
+            catch (Exception error)
+            {
+                RecordError(error);
+                Report(error);
+                lock (_gate) ThrowIfFatalError();
+                return false;
+            }
         }
     }
     /// <summary>Retire this session's writes without deleting its last committed recovery.</summary>
@@ -81,13 +92,22 @@ internal sealed class CricketRecoveryWriter
     internal bool Flush(TimeSpan timeout)
     {
         Task? worker;
-        lock (_gate) worker = _worker;
+        lock (_gate) { ThrowIfFatalError(); worker = _worker; }
         try
         {
-            if (worker is not null && !worker.Wait(timeout)) return false;
-            lock (_gate) return _pending is null && _lastError is null;
+            bool finished = worker is null || worker.Wait(timeout);
+            lock (_gate)
+            {
+                ThrowIfFatalError();
+                return finished && _pending is null && _lastError is null;
+            }
         }
-        catch (AggregateException error) { Report(error); return false; }
+        catch (AggregateException error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
+        {
+            Report(error);
+            lock (_gate) ThrowIfFatalError();
+            return false;
+        }
     }
     private void Drain()
     {
@@ -96,7 +116,7 @@ internal sealed class CricketRecoveryWriter
             (long Generation, GameState State) item;
             lock (_gate)
             {
-                if (_pending is not { } next) { _worker = null; return; }
+                if (_fatalError is not null || _pending is not { } next) { _worker = null; return; }
                 item = next; _pending = null;
             }
             string? temporary = null;
@@ -116,18 +136,25 @@ internal sealed class CricketRecoveryWriter
                     // before any explicit reset is allowed to clear recovery.
                     if (item.Generation == _generation && !MatchCheckpointStore.Archive(item.State, _checkpointDirectory))
                         throw new IOException("Recovery was written, but its local checkpoint could not be archived.");
-                    lock (_gate) { _lastError = null; ++_completedWrites; }
+                    lock (_gate)
+                    {
+                        if (_fatalError is null) { _lastError = null; ++_completedWrites; }
+                    }
                 }
             }
             catch (Exception error)
             {
-                lock (_gate) if (item.Generation == _generation) _lastError = error;
+                RecordError(error, item.Generation);
                 Report(error);
             }
             finally
             {
                 try { if (temporary is not null && File.Exists(temporary)) File.Delete(temporary); }
-                catch (Exception error) { Report(error); }
+                catch (Exception error)
+                {
+                    if (UnhandledExceptionPolicy.IsFatalResourceFailure(error)) RecordError(error);
+                    Report(error);
+                }
             }
         }
     }
@@ -143,8 +170,46 @@ internal sealed class CricketRecoveryWriter
     }
     private void Report(Exception error)
     {
-        Debug.WriteLine("[CricketRecovery] " + error);
-        try { _onError?.Invoke(error); }
-        catch (Exception reportingError) { Debug.WriteLine("[CricketRecovery] Reporting failed: " + reportingError); }
+        try
+        {
+            // Do not expand an exception tree while resources are exhausted.
+            if (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
+                Debug.WriteLine("[CricketRecovery] " + error);
+            _onError?.Invoke(error);
+        }
+        catch (Exception reportingError)
+        {
+            // A failed error callback is not a reason to report recursively.
+            if (UnhandledExceptionPolicy.IsFatalResourceFailure(reportingError)) RecordError(reportingError);
+        }
+    }
+    private void RecordError(Exception error, long? generation = null)
+    {
+        bool fatal = UnhandledExceptionPolicy.IsFatalResourceFailure(error);
+        if (fatal)
+        {
+            // Serialize the terminal latch with the last pre-mutation check in
+            // Commit/Clear. Neither can write/delete after a fatal latch wins.
+            lock (_commitGate)
+            lock (_gate)
+            {
+                if (_fatalError is null) { _fatalError = error; ++_generation; }
+                _lastError = _fatalError;
+                _pending = null;
+            }
+        }
+        else
+        {
+            lock (_gate)
+            if (_fatalError is null && (generation is null || generation == _generation))
+                _lastError = error;
+        }
+    }
+    // Call only with _gate held. Keep the original failure visible to Queue,
+    // Clear and the UI-thread crash flush; neither a later save nor reset can
+    // turn resource exhaustion back into an ordinary best-effort I/O failure.
+    private void ThrowIfFatalError()
+    {
+        if (_fatalError is { } error) throw error;
     }
 }

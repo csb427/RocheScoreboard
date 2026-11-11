@@ -1,5 +1,5 @@
 // Generated from Views/WizardFlowDesign.cs; edit translator/adapters.
-// Source SHA-256: fe087850330723ad8327fc6b9877a4b4948f26f76f8198d2b36e9aa5cb2cb0c8
+// Source SHA-256: 4a4b2a9490f11f8ebf12ba1faa96e25728905d76696aca5eb25a7e2ec733abdb
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -163,7 +163,11 @@ internal static class WizardFlowDesign
         if(wizard.FindName("NavBar") is Grid nav && nav.ColumnDefinitions.Count==3)
         {
             bool hasBack=wizard.FindName("BackButton") is Control back && back.IsVisible==true;
-            nav.ColumnDefinitions[0].Width=hasBack?new GridLength(compact?84:104):new GridLength(0);
+            // The unified sport step places Cancel in Back's otherwise empty
+            // column. Reserve its own desired width so WPF does not clip it.
+            bool hasLeadingCancel=wizard.FindName("CancelSetupButton") is Control cancel
+                && cancel.IsVisible==true && Grid.GetColumn(cancel)==0;
+            nav.ColumnDefinitions[0].Width=hasBack?new GridLength(compact?84:104):hasLeadingCancel?GridLength.Auto:new GridLength(0);
             nav.ColumnDefinitions[1].Width=hasBack?GridLength.Auto:new GridLength(1,GridUnitType.Star);
             if(nav.Parent is Border shell)shell.MaxWidth=560;
         }

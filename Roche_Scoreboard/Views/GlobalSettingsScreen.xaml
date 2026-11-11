@@ -15,12 +15,17 @@
  <Style x:Key="PreferenceDivider" TargetType="Border"><Setter Property="Height" Value="1"/><Setter Property="Margin" Value="20,0"/><Setter Property="Background" Value="{DynamicResource ControlCentre.BorderBrush}"/><Setter Property="Opacity" Value=".45"/></Style>
  <Style x:Key="SettingsLaunchButton" TargetType="Button" BasedOn="{StaticResource ControlCentre.Button}"/>
  </ResourceDictionary></UserControl.Resources>
- <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
- <local:OperatorGlassSurface Material="Regular" CornerRadius="24" Padding="4" Margin="18,12,18,0" MaxWidth="560" HorizontalAlignment="Stretch"><local:OperatorSegmentedPanel Rows="1" AllowScrubbing="True">
+ <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+ <Grid x:Name="SettingsNavigationGrid" Grid.Row="0" Margin="18,12,18,0">
+  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Button x:Name="BackButton" Grid.Column="0" Content="←  Back to Home" HorizontalAlignment="Left" Margin="0,0,12,0" MinWidth="172" Height="42" Click="BackButton_Click" Style="{StaticResource SettingsLaunchButton}" AutomationProperties.Name="Return to previous screen"/>
+  <local:OperatorGlassSurface x:Name="SettingsScopeSurface" Grid.Column="1" Material="Regular" CornerRadius="24" Padding="4" MaxWidth="560" HorizontalAlignment="Stretch"><local:OperatorSegmentedPanel Rows="1" AllowScrubbing="True">
   <RadioButton x:Name="GeneralSettingsTab" Content="General" Tag="general" GroupName="SettingsScope" Style="{StaticResource SettingsSegment}" IsChecked="True" Checked="SettingsScope_Checked"/>
   <RadioButton x:Name="CricketSettingsScopeTab" Content="Cricket" Tag="cricket" GroupName="SettingsScope" Style="{StaticResource SettingsSegment}" Checked="SettingsScope_Checked"/>
   <RadioButton x:Name="AflSettingsTab" Content="AFL" Tag="afl" GroupName="SettingsScope" Style="{StaticResource SettingsSegment}" Checked="SettingsScope_Checked"/>
  </local:OperatorSegmentedPanel></local:OperatorGlassSurface>
+ </Grid>
  <local:SettingsWorkspace x:Name="SettingsWorkspace" Grid.Row="1" Heading="Settings">
   <Border x:Name="AppearanceSection" Tag="APPEARANCE|theme light dark density compact comfortable" Style="{StaticResource GlobalSettingsCard}"><StackPanel>
    <TextBlock Text="Appearance" Style="{StaticResource GroupCaption}"/>
@@ -91,6 +96,5 @@
 </Grid>
 </StackPanel></Border>
  </local:SettingsWorkspace>
- <Button x:Name="BackButton" Grid.Row="2" Content="←  Back to sports" HorizontalAlignment="Left" Margin="18,0,18,14" MinWidth="190" Height="42" Click="BackButton_Click" Style="{StaticResource SettingsLaunchButton}"/>
  </Grid>
 </UserControl>

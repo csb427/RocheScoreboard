@@ -23,10 +23,13 @@ internal sealed class MatchHistoryView : UserControl
     internal bool HasEmptyState => _emptyState?.IsVisible == true;
     internal bool IsLoading { get; private set; }
     internal bool IsReviewing => _reviewHost.Visibility == Visibility.Visible;
+    internal Button? ReviewBackButton => _reviewBackButton;
     private readonly StackPanel _list = new();
     private readonly Grid _body = new();
     private readonly Grid _reviewHost = new();
     private TextBlock? _emptyState;
+    private Button? _reviewBackButton;
+    private Button? _reviewOriginButton;
     private readonly bool _canReplaceSession;
     private readonly Button _closeButton;
 
@@ -136,7 +139,11 @@ internal sealed class MatchHistoryView : UserControl
     }
 
     private Button MakeActionButton(string label, MatchCheckpointStore.Checkpoint item, ActionKind action)
-        => MakeButton(label, () => Choose(item, action));
+    {
+        Button? button = null;
+        button = MakeButton(label, () => Choose(item, action, button));
+        return button;
+    }
 
     private static Button MakeButton(string label, Action action)
     {
@@ -153,14 +160,31 @@ internal sealed class MatchHistoryView : UserControl
         return button;
     }
 
-    private void Choose(MatchCheckpointStore.Checkpoint item, ActionKind action)
+    private void Choose(MatchCheckpointStore.Checkpoint item, ActionKind action, Button? source)
     {
-        if (action == ActionKind.Review) { ShowReview(item); return; }
+        if (action == ActionKind.Review) { ShowReview(item, source); return; }
         if (ActionChosen?.Invoke(item, action) == true) CloseRequested?.Invoke();
     }
 
-    private void ShowReview(MatchCheckpointStore.Checkpoint item)
+    internal bool HandleEscape()
     {
+        if (!IsReviewing) return false;
+        ReturnToHistory();
+        return true;
+    }
+
+    private void ReturnToHistory()
+    {
+        _reviewHost.Visibility = Visibility.Collapsed;
+        _body.Visibility = Visibility.Visible;
+        Button target = _reviewOriginButton is { IsVisible: true, IsEnabled: true } origin ? origin : _closeButton;
+        _reviewOriginButton = null;
+        target.Focus();
+    }
+
+    private void ShowReview(MatchCheckpointStore.Checkpoint item, Button? source)
+    {
+        _reviewOriginButton = source;
         _body.Visibility = Visibility.Collapsed;
         _reviewHost.Visibility = Visibility.Visible;
         _reviewHost.Children.Clear();
@@ -170,14 +194,21 @@ internal sealed class MatchHistoryView : UserControl
         details.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush"); content.Children.Add(details);
         var timestamp = new TextBlock { Text = "Read-only checkpoint · saved " + item.SavedAtUtc.ToLocalTime().ToString("g"), TextWrapping = TextWrapping.Wrap };
         timestamp.SetResourceReference(TextBlock.ForegroundProperty, "ControlCentre.SecondaryTextBrush"); content.Children.Add(timestamp);
-        var back = MakeButton("Back to history", () => { _reviewHost.Visibility = Visibility.Collapsed; _body.Visibility = Visibility.Visible; _closeButton.Focus(); });
-        back.HorizontalAlignment = System.Windows.HorizontalAlignment.Left; back.Margin = new Thickness(0, 18, 0, 0); content.Children.Add(back);
-        _reviewHost.Children.Add(new ScrollViewer
+        var review = new Grid();
+        review.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        review.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        _reviewBackButton = MakeButton("Back to history", ReturnToHistory);
+        _reviewBackButton.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
+        _reviewBackButton.Margin = new Thickness(4, 0, 4, 12);
+        review.Children.Add(_reviewBackButton);
+        var scroller = new ScrollViewer
         {
             Content = content,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
-        });
-        back.Focus();
+        };
+        Grid.SetRow(scroller, 1); review.Children.Add(scroller);
+        _reviewHost.Children.Add(review);
+        _reviewBackButton.Focus();
     }
 }

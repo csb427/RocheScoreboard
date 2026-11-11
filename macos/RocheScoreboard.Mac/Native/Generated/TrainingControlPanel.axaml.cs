@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/TrainingControlPanel.xaml.cs; edit translator/adapters.
-// Source SHA-256: d3532acbbeb10ee28a675ecd8caf61bdad9b7f39ca2b14459d5541551c31d325
+// Source SHA-256: fe7d4bc66f1805ee0b9f4039574765baf749fef6777bd179b249f2e49a0c51ca
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -36,6 +36,9 @@ namespace Roche_Scoreboard.Views;
 public partial class TrainingControlPanel : UserControl
 {
     public event Action? ExitRequested;
+    public event Action? HomeNavigationRequested;
+    public event Action? ApplicationPreferencesRequested;
+    public event Action? CommandSearchRequested;
     // Exactly one root owner commits a captured session. The public event remains
     // a notification for standalone hosts; it is not root teardown authority.
     internal Func<TrainingSession, bool>? ConfirmedExitCommit { get; set; }
@@ -1665,6 +1668,13 @@ public partial class TrainingControlPanel : UserControl
         review.Cancel.Focus(); NativeKeyboard.Focus(review.Cancel);
         review.Cancel.BringIntoView();
     }
+
+    private void HomeNavigation_Click(object? sender, RoutedEventArgs e)
+        => HomeNavigationRequested?.Invoke();
+    private void ApplicationPreferencesNavigation_Click(object? sender, RoutedEventArgs e)
+        => ApplicationPreferencesRequested?.Invoke();
+    private void CommandSearchNavigation_Click(object? sender, RoutedEventArgs e)
+        => CommandSearchRequested?.Invoke();
 
     private void ExitReviewAncestorVisibilityChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {

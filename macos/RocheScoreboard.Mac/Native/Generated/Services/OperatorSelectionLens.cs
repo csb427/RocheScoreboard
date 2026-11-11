@@ -1,5 +1,5 @@
 // Generated from Services/OperatorSelectionLens.cs; edit translator/adapters.
-// Source SHA-256: 4e62f6fbe561dd082f84d9109f037b0794a6367223c9950bb41046753cf06305
+// Source SHA-256: 2a6c709111fd2a76adac41750bd495ba29a5ab984fc3667ed0ab030a0df317e5
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -76,9 +76,7 @@ public sealed class OperatorSelectionLens : Control
     private static void Step(ref double value, ref double velocity, double target, double omega, double dt)
     {
         omega *= OperatorMotion.SpringResponse;
-        double offset = value - target, coefficient = velocity + omega * offset, decay = Math.Exp(-omega * dt);
-        value = target + (offset + coefficient * dt) * decay;
-        velocity = (velocity - omega * coefficient * dt) * decay;
+        OperatorMotion.AdvanceCriticallyDamped(ref value, ref velocity, target, omega, dt);
     }
     private void Stop() { if (!_running) return; NativeRendering.Rendering -= Frame; _running = false; }
     private void AppearanceChanged(){if(!OperatorMotion.Enabled)Update(false);InvalidateVisual();}

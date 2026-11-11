@@ -131,7 +131,12 @@
                 </Grid.ColumnDefinitions>
                 <Button x:Name="ViewReleaseButton" Grid.Column="0" Content="View release" MinWidth="120" Click="ViewRelease_Click" Theme="{StaticResource DialogButton}" />
                 <Button x:Name="SkipButton" Grid.Column="2" Content="Remind me later" Click="Skip_Click" IsCancel="True" IsDefault="True" Theme="{StaticResource DialogButton}" />
-                <Button x:Name="UpdateButton" Grid.Column="4" Content="Download and restart  →" MinWidth="205" Click="Update_Click" IsDefault="False" Theme="{StaticResource PrimaryButton}" />
+                <Button x:Name="UpdateButton" Grid.Column="4" MinWidth="205" Click="Update_Click" IsDefault="False" AutomationProperties.Name="Download and restart" Theme="{StaticResource PrimaryButton}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock x:Name="UpdateButtonLabel" Text="Download and restart  →" HorizontalAlignment="Center" />
+                        <ProgressBar x:Name="UpdateButtonProgress" AutomationProperties.Name="Update progress in action button" Width="124" Height="3" Margin="0,3,0,0" Focusable="False" Theme="{StaticResource UpdateProgressStyle}" IsVisible="False" />
+                    </StackPanel>
+                </Button>
             </Grid>
         </Grid>
     </ns4:OperatorGlassSurface>

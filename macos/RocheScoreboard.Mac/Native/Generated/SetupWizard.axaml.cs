@@ -1,6 +1,6 @@
 using RocheScoreboard.Mac.Production;
 // Generated from Views/SetupWizard.xaml.cs; edit translator/adapters.
-// Source SHA-256: dbc5f7f86036a2e8cd363e071682a5939841345de259f1fcceea7115112a6931
+// Source SHA-256: acf8efbe1e629367688e255e9f7ddc5bd39529dff2ef075b86eff83d5621b379
 using Avalonia.Threading;
 using Avalonia.Media;
 using Avalonia;
@@ -40,6 +40,7 @@ namespace Roche_Scoreboard.Views
         private string? _homeVideoPath;
         private string? _awayVideoPath;
         private int _currentStep = 1;
+        private bool _sportChoicesStacked;
         private int _stepTransitionVersion;
         private Storyboard? _stepTransitionStoryboard;
         private DispatcherTimer? _ambientRestartTimer;
@@ -199,6 +200,7 @@ namespace Roche_Scoreboard.Views
             SetupWeatherLocation.DropDownOpened += (_, _) => _weatherBoxActivated = true;
 
             Loaded += OnLoaded;
+            SportChoiceGrid.SizeChanged += SportChoiceGrid_SizeChanged;
             Unloaded += OnWizardUnloaded;
             NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_, args) =>
             {
@@ -245,7 +247,7 @@ namespace Roche_Scoreboard.Views
             ControlPanelCountdownToggleLabel.BeginAnimation(OpacityProperty, null); ControlPanelCountdownToggleLabel.Opacity = 1;
             if (ControlPanelCountdownToggleTrack.Background is SolidColorBrush track)
             {
-                if (NativeImmutability.IsFrozen(track)) { track = track.Clone(); ControlPanelCountdownToggleTrack.Background = track; }
+                track = track.CloneCurrentValue(); ControlPanelCountdownToggleTrack.Background = track;
                 track.BeginAnimation(SolidColorBrush.ColorProperty, null); track.Color = SetupControlPanelCountdown.IsChecked == true ? AccentBrush.Color : (Color)ColorConverter.ConvertFromString("#4B5563");
             }
         }
@@ -256,6 +258,7 @@ namespace Roche_Scoreboard.Views
             _ambientRestartTimer?.Stop(); _ambientRestartTimer = null;
             _countdownOptionHideTimer?.Stop(); _countdownOptionHideTimer = null;
             if (_stepTransitionStoryboard is not null) { _stepTransitionStoryboard.Remove(this); _stepTransitionStoryboard = null; }
+            NextButton.IsEnabled = true;
             SettleWizardMotion();
             ShowStep(_currentStep, false);
         }
@@ -321,6 +324,7 @@ namespace Roche_Scoreboard.Views
             int version = ++_stepTransitionVersion;
             _ambientRestartTimer?.Stop(); _ambientRestartTimer = null;
             if (_stepTransitionStoryboard is not null) { _stepTransitionStoryboard.Remove(this); _stepTransitionStoryboard = null; }
+            NextButton.IsEnabled = true;
             FlashOverlay.BeginAnimation(OpacityProperty, null); FlashOverlay.Opacity = 0;
             Control[] panels = [SportStepContainer, TeamsStepContainer, Step3Panel, Step4Panel];
             var active = panels[_currentStep];
@@ -343,13 +347,17 @@ namespace Roche_Scoreboard.Views
                 storyboard.Completed += (_, _) =>
                 {
                     if (version != _stepTransitionVersion) return;
-                    storyboard.Remove(this); active.Opacity = 1; active.RenderTransform = new MatrixTransform(Matrix.Identity); _stepTransitionStoryboard = null;
+                    storyboard.Remove(this); active.Opacity = 1; active.RenderTransform = new MatrixTransform(Matrix.Identity); _stepTransitionStoryboard = null; NextButton.IsEnabled = true;
                 };
-                _stepTransitionStoryboard = storyboard; storyboard.Begin(this, HandoffBehavior.SnapshotAndReplace, true);
+                _stepTransitionStoryboard = storyboard; NextButton.IsEnabled = false; storyboard.Begin(this, HandoffBehavior.SnapshotAndReplace, true);
             }
             HeaderTitle.Text = _currentStep == 0 ? "Start a game" : "Set up AFL (footy)";
             foreach (var navigation in new[] { Step1Navigation, Step2Navigation, Step3Navigation }) navigation.IsEnabled = _currentStep > 0;
             BackButton.IsVisible = _currentStep == 0 ? false : true;
+            bool firstUnifiedStep = UnifiedSetupEnabled && _currentStep == 0;
+            Grid.SetColumn(CancelSetupButton, firstUnifiedStep ? 0 : 1);
+            CancelSetupButton.HorizontalAlignment = firstUnifiedStep ? Avalonia.Layout.HorizontalAlignment.Left : Avalonia.Layout.HorizontalAlignment.Center;
+            CancelSetupButton.Margin = firstUnifiedStep ? new Thickness(0) : new Thickness(6, 0, 6, 0);
             NextButtonText.Text = _currentStep == TotalSteps ? "Start match" : "Continue";
             WizardFlowDesign.SelectStep(this, _currentStep, TotalSteps);
             RefreshSportChoiceChrome();
@@ -357,6 +365,38 @@ namespace Roche_Scoreboard.Views
             UpdateStepDot(Step2Dot, Step2Label, _currentStep >= 2, _currentStep == 2);
             UpdateStepDot(Step3Dot, Step3Label, _currentStep >= 3, _currentStep == 3);
             UpdateSetupClockSummary();
+        }
+
+        private void SportChoiceGrid_SizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            if (SportChoiceGrid is null || AflSportChoice is null || CricketSportChoice is null) return;
+            // Keep two equal choices while they can each remain comfortably
+            // readable; below this width, stack them without reducing type size.
+            bool stacked = _sportChoicesStacked ? SportChoiceGrid.NativeWidth() < 584 : SportChoiceGrid.NativeWidth() < 536;
+            if (stacked == _sportChoicesStacked && SportChoiceGrid.ColumnDefinitions.Count == (stacked ? 1 : 2)) return;
+            _sportChoicesStacked = stacked;
+            SportChoiceGrid.ColumnDefinitions.Clear();
+            SportChoiceGrid.RowDefinitions.Clear();
+            if (stacked)
+            {
+                SportChoiceGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                SportChoiceGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                SportChoiceGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                Grid.SetColumn(AflSportChoice, 0); Grid.SetRow(AflSportChoice, 0);
+                Grid.SetColumn(CricketSportChoice, 0); Grid.SetRow(CricketSportChoice, 1);
+                AflSportChoice.Margin = new Thickness(0, 0, 0, 8);
+                CricketSportChoice.Margin = new Thickness(0, 0, 0, 8);
+            }
+            else
+            {
+                SportChoiceGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                SportChoiceGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                SportChoiceGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                Grid.SetColumn(AflSportChoice, 0); Grid.SetRow(AflSportChoice, 0);
+                Grid.SetColumn(CricketSportChoice, 1); Grid.SetRow(CricketSportChoice, 0);
+                AflSportChoice.Margin = new Thickness(0, 0, 8, 10);
+                CricketSportChoice.Margin = new Thickness(8, 0, 0, 10);
+            }
         }
         private void UpdateStepDot(Border dot, TextBlock label, bool reached, bool active)
         {
@@ -373,7 +413,10 @@ namespace Roche_Scoreboard.Views
 
         private void Next_Click(object? sender, RoutedEventArgs e)
         {
-            if (_completionPending || Result is not null) return;
+            // A second pointer/keyboard activation during the in-flight page
+            // transition must not advance past the page that is arriving.
+            // Back and Cancel remain available to interrupt it.
+            if (_completionPending || Result is not null || _stepTransitionStoryboard is not null) return;
             if (_currentStep == 0) { SportChosen?.Invoke(CricketSportChoice.IsChecked == true ? SportMode.Cricket : SportMode.AFL); return; }
             if (_currentStep == 2 && !ValidateQuarterEntry()) return;
             if (_currentStep < TotalSteps)
@@ -733,11 +776,19 @@ namespace Roche_Scoreboard.Views
 
             if (ControlPanelCountdownToggleTrack?.Background is not SolidColorBrush trackBrush)
             {
-                trackBrush = AccentBrush;
+                trackBrush = AccentBrush.CloneCurrentValue();
                 if (ControlPanelCountdownToggleTrack is not null)
                 {
                     ControlPanelCountdownToggleTrack.Background = trackBrush;
                 }
+            }
+
+            // WPF resources may be frozen or shared; animate only a private mutable brush.
+            if (ControlPanelCountdownToggleTrack is not null)
+            {
+                trackBrush = trackBrush.CloneCurrentValue();
+                if (ControlPanelCountdownToggleTrack is not null)
+                    ControlPanelCountdownToggleTrack.Background = trackBrush;
             }
 
             Color targetTrackColor = isEnabled ? AccentBrush.Color : (Color)ColorConverter.ConvertFromString("#4B5563");

@@ -105,8 +105,14 @@ public sealed partial class UpdatePromptLifetimeTests
     }
     private static async Task Begin(Fixture f)
     {
+        var button=f.Named<Button>("UpdateButton");var restingSize=button.Bounds.Size;
         await Pointer(f,"UpdateButton");await Until(()=>f.Op.Calls==1,"Actual Update click must call only fake updater once");
-        Assert.False(f.Op.Token.IsCancellationRequested);Assert.False(f.Named<Button>("UpdateButton").IsEnabled);
+        Assert.False(f.Op.Token.IsCancellationRequested);Assert.False(button.IsEnabled);Assert.Equal(restingSize,button.Bounds.Size);
+        Assert.Equal("Update in progress",AutomationProperties.GetName(button));
+        Assert.Equal("Preparing update…",f.Named<TextBlock>("UpdateButtonLabel").Text);
+        Assert.True(f.Named<ProgressBar>("UpdateButtonProgress").IsVisible,"A genuine pending operation must expose progress inside its initiating button.");
+        Assert.True(OperatorControlMotion.GetIsBusy(f.Named<Button>("UpdateButton")));
+        Assert.Equal(.88,Assert.IsAssignableFrom<Control>(NativeTemplates.FindObject(f.Named<Button>("UpdateButton"),"PART_Surface")).Opacity,2);
         Assert.Equal(0,f.Closed);Assert.False(f.Completion.IsCompleted);
     }
     [AvaloniaFact]
@@ -129,6 +135,7 @@ public sealed partial class UpdatePromptLifetimeTests
         Record(f,"cancel-false",Snapshot(f));
         Assert.Equal("Download cancelled",f.Named<TextBlock>("ProgressText").Text);
         Assert.Equal("STOPPED",f.Named<TextBlock>("ProgressPercentText").Text);
+        Assert.False(OperatorControlMotion.GetIsBusy(f.Named<Button>("UpdateButton")));
         Assert.False(f.Dialog.UpdateApplied);Assert.Equal(1,f.Op.Calls);Assert.Equal(0,f.Closed);
     }
     [AvaloniaFact]
@@ -255,6 +262,10 @@ public sealed partial class UpdatePromptLifetimeTests
     public async Task RapidRealUpdateClicksStartOnlyOnePendingOperation()
     {
         using var f=new Fixture();await Begin(f);var button=f.Named<Button>("UpdateButton");
+        f.Op.Report("Downloading selected package");
+        await Until(()=>f.Named<ProgressBar>("UpdateButtonProgress").Value==25,"The actual download callback must update the inline button progress.");
+        Assert.Equal("Downloading 25%…",f.Named<TextBlock>("UpdateButtonLabel").Text);
+        Assert.Contains("Downloading selected package",AutomationProperties.GetHelpText(button));
         var origin=button.TranslatePoint(default,f.Dialog);Assert.NotNull(origin);var point=origin.Value+new Vector(button.Bounds.Width/2,button.Bounds.Height/2);
         for(int i=0;i<4;i++){f.Dialog.MouseDown(point,MouseButton.Left);f.Dialog.MouseUp(point,MouseButton.Left);}
         Dispatcher.UIThread.RunJobs();Record(f,"rapid-update",Snapshot(f));Assert.Equal(1,f.Op.Calls);

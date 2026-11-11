@@ -4,7 +4,7 @@
     {
       "source": "Roche_Scoreboard/App.xaml",
       "class": "Roche_Scoreboard.App",
-      "sha256": "8027f8fad5f552437ccc07e64ffad7e17e0e32bf0e300c47b0bde93360f6b4bc",
+      "sha256": "a1631fb474dc4b0a31bebe66e2f46f5cf265f9b66bdd252f8626e24c98746c32",
       "named_elements": [],
       "handlers": [],
       "fonts": []
@@ -94,7 +94,7 @@
     {
       "source": "Roche_Scoreboard/MainWindow.xaml",
       "class": "Roche_Scoreboard.MainWindow",
-      "sha256": "05ab7960902ff96ebd9dda9a899559453b4528c444e2a9a8fce2a308c4d463ed",
+      "sha256": "8b2e02d81d00160423fae405179fb64817f3dea7dd716bb0ac5bc56576535e51",
       "named_elements": [
         "HeaderToggle",
         "HB",
@@ -124,6 +124,9 @@
         "EssentialsModeBadge",
         "OperatorModeBadgeText",
         "GuidedModeButton",
+        "AflOperatorHomeButton",
+        "AflApplicationSettingsButton",
+        "AflCommandSearchButton",
         "MainTabControl",
         "MatchControlTab",
         "AflMatchPageViewport",
@@ -231,6 +234,8 @@
         "AflMediaPreviewCard",
         "VideoTabLiveMirror",
         "VideoTabPreviewPlaceholder",
+        "VideoTabPreviewHeading",
+        "VideoTabPreviewDetail",
         "VideoTabPreviewBadge",
         "VideoTabTelemetryText",
         "VideoTabDiagnosticText",
@@ -285,15 +290,23 @@
         "HomeAbbrBox",
         "HomeColorBox",
         "HomeColorPreview",
+        "HomePrimaryScreenSampler",
         "HomeSecondaryColorBox",
         "HomeSecondaryColorPreview",
+        "HomeSecondaryScreenSampler",
+        "HomeLogoBrowseAction",
+        "HomeLogoClearAction",
         "HomeLogoStatusText",
         "AwayNameBox",
         "AwayAbbrBox",
         "AwayColorBox",
         "AwayColorPreview",
+        "AwayPrimaryScreenSampler",
         "AwaySecondaryColorBox",
         "AwaySecondaryColorPreview",
+        "AwaySecondaryScreenSampler",
+        "AwayLogoBrowseAction",
+        "AwayLogoClearAction",
         "AwayLogoStatusText",
         "SettingsSection_Match",
         "SettingsCountUpCard",
@@ -359,10 +372,8 @@
         "AnimPreviewDuration",
         "AnimPreviewIntensity",
         "SettingsSection_Overlays",
-        "AutoOverlaysToggle",
         "AutoOverlaysCard",
-        "AutoOverlaysGlow",
-        "AutoOverlaysCheck",
+        "AutoOverlaysToggle",
         "SettingsBreakScreenCard",
         "SettingsBreakScreenToggle",
         "SettingsWeatherLocation",
@@ -385,20 +396,32 @@
         "CloudStatusText",
         "CloudIdleState",
         "CloudStartButton",
+        "CloudStartButtonLabel",
+        "CloudStartBusyProgress",
+        "CloudStartBusyStatic",
         "CloudDisabledState",
         "CloudLiveState",
         "CloudConnectionDot",
         "CloudConnectionLabel",
+        "CloudCopyCodeButton",
         "CloudJoinCodeText",
         "CloudQrImage",
         "CloudJoinUrlPanel",
         "CloudJoinUrlText",
         "CloudCopyUrlButton",
+        "CloudCopyFeedback",
         "CloudEndButton",
+        "CloudEndButtonLabel",
+        "CloudEndBusyProgress",
+        "CloudEndBusyStatic",
+        "SettingsResetMatchButton",
         "UpdateCurrentVersionText",
         "UpdateStatusText",
         "UpdateProgressBar",
         "CheckForUpdateButton",
+        "CheckForUpdateLabel",
+        "CheckForUpdateBusyProgress",
+        "CheckForUpdateBusyStatic",
         "InstallUpdateButton",
         "ResetOverlay",
         "ResetBackdrop",
@@ -409,8 +432,6 @@
         "ResetArrow",
         "ResetWarningMark",
         "ResetDetails",
-        "ResetMatchContext",
-        "ResetPhaseText",
         "ResetContextNotice",
         "ResetActions",
         "CancelResetBtn",
@@ -445,6 +466,21 @@
           "element": "GuidedModeButton",
           "event": "Click",
           "handler": "GuidedModeButton_Click"
+        },
+        {
+          "element": "AflOperatorHomeButton",
+          "event": "Click",
+          "handler": "OperatorHomeNavigation_Click"
+        },
+        {
+          "element": "AflApplicationSettingsButton",
+          "event": "Click",
+          "handler": "OperatorSettingsNavigation_Click"
+        },
+        {
+          "element": "AflCommandSearchButton",
+          "event": "Click",
+          "handler": "OperatorCommandNavigation_Click"
         },
         {
           "element": "MainTabControl",
@@ -708,6 +744,11 @@
         },
         {
           "element": null,
+          "event": "KeyDown",
+          "handler": "TickerItemHighlightColor_KeyDown"
+        },
+        {
+          "element": null,
           "event": "Click",
           "handler": "RemoveMessageItem_Click"
         },
@@ -942,7 +983,7 @@
           "handler": "PickHomeColor_Click"
         },
         {
-          "element": null,
+          "element": "HomePrimaryScreenSampler",
           "event": "MouseLeftButtonUp",
           "handler": "OperatorTile_DropperHomeColor_Click"
         },
@@ -952,17 +993,17 @@
           "handler": "PickHomeSecondaryColor_Click"
         },
         {
-          "element": null,
+          "element": "HomeSecondaryScreenSampler",
           "event": "MouseLeftButtonUp",
           "handler": "OperatorTile_DropperHomeSecondaryColor_Click"
         },
         {
-          "element": null,
+          "element": "HomeLogoBrowseAction",
           "event": "Click",
           "handler": "BrowseHomeLogo_Click"
         },
         {
-          "element": null,
+          "element": "HomeLogoClearAction",
           "event": "Click",
           "handler": "ClearHomeLogo_Click"
         },
@@ -982,7 +1023,7 @@
           "handler": "PickAwayColor_Click"
         },
         {
-          "element": null,
+          "element": "AwayPrimaryScreenSampler",
           "event": "MouseLeftButtonUp",
           "handler": "OperatorTile_DropperAwayColor_Click"
         },
@@ -992,17 +1033,17 @@
           "handler": "PickAwaySecondaryColor_Click"
         },
         {
-          "element": null,
+          "element": "AwaySecondaryScreenSampler",
           "event": "MouseLeftButtonUp",
           "handler": "OperatorTile_DropperAwaySecondaryColor_Click"
         },
         {
-          "element": null,
+          "element": "AwayLogoBrowseAction",
           "event": "Click",
           "handler": "BrowseAwayLogo_Click"
         },
         {
-          "element": null,
+          "element": "AwayLogoClearAction",
           "event": "Click",
           "handler": "ClearAwayLogo_Click"
         },
@@ -1197,11 +1238,6 @@
           "handler": "AutoOverlaysToggle_Changed"
         },
         {
-          "element": "AutoOverlaysCard",
-          "event": "MouseLeftButtonUp",
-          "handler": "OperatorTile_AutoOverlaysCard_Click"
-        },
-        {
           "element": "SettingsBreakScreenToggle",
           "event": "Checked",
           "handler": "SettingsBreakScreenToggle_Changed"
@@ -1292,9 +1328,9 @@
           "handler": "StartCloudSession_Click"
         },
         {
-          "element": null,
-          "event": "MouseLeftButtonUp",
-          "handler": "OperatorTile_CopyCloudJoinCode_Click"
+          "element": "CloudCopyCodeButton",
+          "event": "Click",
+          "handler": "CopyCloudJoinCode_Click"
         },
         {
           "element": "CloudCopyUrlButton",
@@ -1307,9 +1343,9 @@
           "handler": "EndCloudSession_Click"
         },
         {
-          "element": null,
-          "event": "MouseLeftButtonUp",
-          "handler": "OperatorTile_ResetCardSettings_Click"
+          "element": "SettingsResetMatchButton",
+          "event": "Click",
+          "handler": "ResetMatch_Click"
         },
         {
           "element": "CheckForUpdateButton",
@@ -1385,7 +1421,7 @@
     {
       "source": "Roche_Scoreboard/Resources/ControlCentre.xaml",
       "class": null,
-      "sha256": "becfd6d388e74d91b0344c92b850368070c940a315fd223fb363c0f69e6acfd2",
+      "sha256": "7a5ccced3d8e79963471b91a4bf2ff36af09910f3775071e6e55304262e9467e",
       "named_elements": [
         "PART_Surface",
         "TbSc",
@@ -1435,6 +1471,11 @@
         "NamesThumb",
         "TbSc",
         "Thumb",
+        "FocusFrame",
+        "AutomaticOverlaysBase",
+        "AutomaticOverlaysDescription",
+        "AutomaticOverlaysBadge",
+        "AutomaticOverlaysStateText",
         "FocusFrame",
         "QuarterBreakBase",
         "QuarterBreakSelection",
@@ -1519,7 +1560,7 @@
     {
       "source": "Roche_Scoreboard/Resources/OperatorControls.xaml",
       "class": null,
-      "sha256": "3c5e821854ab3636618a346f33cbcaf928dc7b8a3e69969acb9454da25bcfc41",
+      "sha256": "0cccdaec199f086e9d82800a0d881cb297181ef5cc3e2925725fed81a63fc379",
       "named_elements": [
         "TbSc",
         "TbLift",
@@ -1574,7 +1615,7 @@
     {
       "source": "Roche_Scoreboard/Resources/SettingsControls.xaml",
       "class": null,
-      "sha256": "59bb91d39369b784960cd8181ffbfb53602807078ca2877cea972e4d44138ea3",
+      "sha256": "a7c7da75c1249c1590c79fb9a2564a3e02af0bfb2e6162a6c99c15495daf5662",
       "named_elements": [
         "Outline",
         "PART_ContentHost",
@@ -1672,7 +1713,7 @@
     {
       "source": "Roche_Scoreboard/Views/CalibrationOverlay.xaml",
       "class": "Roche_Scoreboard.Views.CalibrationOverlay",
-      "sha256": "a90493862e0a808c6f751151f30c1b748816f9114a26b94ad1d45fdf7ff96e0b",
+      "sha256": "1543d7b630f0464f458e14d36a82d98ee769a9a931086c677292a0329f1d6550",
       "named_elements": [
         "SizeReadout"
       ],
@@ -1685,7 +1726,7 @@
     {
       "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml",
       "class": "Roche_Scoreboard.Views.CloudRemoteLauncher",
-      "sha256": "d1f1475792dd52acb6d2d76bade2ab5a455096d6ed1cd482ae32739246a3ee33",
+      "sha256": "e589349cf2837a4d9142581d963edaf5a486fdc97095d7bba807f45659cd1d1f",
       "named_elements": [
         "HeaderSurface",
         "CollapsedButton",
@@ -1704,6 +1745,9 @@
         "StatusText",
         "IdleState",
         "StartButton",
+        "StartButtonLabel",
+        "StartBusyProgress",
+        "StartBusyStatic",
         "DisabledState",
         "LiveState",
         "ConnectionDot",
@@ -1715,6 +1759,9 @@
         "JoinUrlText",
         "CopyUrlButton",
         "EndButton",
+        "EndButtonLabel",
+        "EndBusyProgress",
+        "EndBusyStatic",
         "CopyFeedbackText"
       ],
       "handlers": [
@@ -1762,7 +1809,7 @@
     {
       "source": "Roche_Scoreboard/Views/ColorPickerWindow.xaml",
       "class": "Roche_Scoreboard.Views.ColorPickerWindow",
-      "sha256": "87ca3ab836298e272e523ef72c010a85e3f2cb0a523c60e3483d91f954137b2c",
+      "sha256": "9e0a63aca517625f77e9339d725df56633dc166499e0b8d935f4c7dbc1abdcea",
       "named_elements": [
         "PART_Track",
         "Grip",
@@ -1873,15 +1920,23 @@
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml",
       "class": "Roche_Scoreboard.Views.CricketControlPanel",
-      "sha256": "06ac590fffee2c7e9e69e27ccdd84200a9a9ec05cf1a3e1bd58e334051f51dc4",
+      "sha256": "98f2a834614219ee8a273cbec86fe22e9441c077524c30c5f8291c534cb40d77",
       "named_elements": [
         "PART_Surface",
         "TbSc",
         "ActionGlow",
         "MenuKeyboardFocus",
+        "CricketLiveFocusFrame",
+        "CricketBattingFocusFrame",
+        "FigureWell",
+        "FigureFocus",
+        "ScorecardTeamSelected",
+        "ScorecardTeamFocus",
+        "LineupRoleFocus",
         "PART_Surface",
         "TbSc",
         "Surface",
+        "PlayerChoiceContentLayer",
         "ActionGlow",
         "PlayerSelected",
         "SelectionPop",
@@ -1896,10 +1951,14 @@
         "HeaderOversBadge",
         "HeaderOvers",
         "HeaderScore",
+        "OperatorHomeButton",
+        "OperatorSettingsButton",
+        "OperatorCommandSearchButton",
         "MainTabControl",
         "MatchTab",
         "CricketMatchPageViewport",
         "ScoringColumns",
+        "CurrentPlayers",
         "BattingZone",
         "BattingZoneLogo",
         "BattingStartHint",
@@ -1938,9 +1997,11 @@
         "ScoringReadyDetail",
         "StartTossButton",
         "ExtraCommands",
+        "MatchActionBar",
         "MatchOptionsButton",
         "UndoDeliveryButton",
         "EndInningsButton",
+        "ResetMatchButton",
         "DeliveryOverChoice",
         "DeliveryLogScroller",
         "EventLog",
@@ -1949,22 +2010,45 @@
         "OutputTab",
         "CricketOutputPageViewport",
         "DisplayColumns",
+        "CricketPresentationViewport",
         "CricketOnAirText",
-        "CricketExtrasOverlayButton",
-        "CricketBoundariesOverlayButton",
+        "Presentationwindow",
+        "CricketOutputRestoreGlyph",
         "CricketPresentationGrid",
         "Presentationscorebug",
+        "CricketLiveScorebugGlyphView",
+        "CricketLiveScorebugEyebrow",
+        "CricketLiveScorebugTitle",
+        "CricketLiveScorebugCheck",
         "Presentationbatting",
+        "CricketBattingGlyphView",
+        "CricketBattingEyebrow",
+        "CricketBattingTitle",
+        "CricketBattingCheck",
         "Presentationbowling",
-        "Presentationwindow",
+        "CricketBowlingGlyphView",
+        "CricketBowlingCheck",
         "Presentationsummary",
+        "CricketMatchSummaryGlyphView",
+        "CricketMatchSummaryCheck",
         "Presentationworm",
+        "CricketScorewormGlyphView",
+        "CricketScorewormCheck",
         "Presentationmanhattan",
+        "CricketManhattanGlyphView",
+        "CricketManhattanCheck",
+        "CricketOverlaysViewport",
         "OverlayStatusText",
         "CricketOverlayButtons",
+        "CricketExtrasOverlayButton",
+        "CricketBoundariesOverlayButton",
+        "CricketWeatherViewport",
+        "CricketWeatherDataVenue",
         "CricketWeatherTemperature",
         "CricketWeatherDescription",
+        "CricketWeatherVenueLabel",
         "CricketWeatherLocation",
+        "CricketWeatherStatus",
         "CricketSettingsTab",
         "CricketSettingsColumns",
         "SettingsMatchText",
@@ -1981,6 +2065,7 @@
         "BatterSelectionTitle",
         "BatterSelectionTeamText",
         "BatterSelectionList",
+        "BatterSelectedName",
         "ConfirmBatterButton",
         "BowlerSelectionOverlay",
         "BowlerSelectionCard",
@@ -1988,11 +2073,14 @@
         "BowlerSelectionTeamText",
         "BowlerSelectionHint",
         "BowlerSelectionList",
+        "BowlerSelectedName",
         "ConfirmBowlerButton",
         "DeliveryEntryOverlay",
         "DeliveryEntryContent",
         "TossOverlay",
         "TossSheet",
+        "TossCloseButton",
+        "TossTeamChoices",
         "TossHomeChoice",
         "TossAwayChoice",
         "TossBatChoice",
@@ -2006,6 +2094,21 @@
           "element": null,
           "event": "SizeChanged",
           "handler": "Console_SizeChanged"
+        },
+        {
+          "element": "OperatorHomeButton",
+          "event": "Click",
+          "handler": "HomeNavigation_Click"
+        },
+        {
+          "element": "OperatorSettingsButton",
+          "event": "Click",
+          "handler": "ApplicationPreferencesNavigation_Click"
+        },
+        {
+          "element": "OperatorCommandSearchButton",
+          "event": "Click",
+          "handler": "CommandSearchNavigation_Click"
         },
         {
           "element": "MainTabControl",
@@ -2128,7 +2231,7 @@
           "handler": "EndInnings_Click"
         },
         {
-          "element": null,
+          "element": "ResetMatchButton",
           "event": "Click",
           "handler": "ResetMatch_Click"
         },
@@ -2143,14 +2246,9 @@
           "handler": "Console_SizeChanged"
         },
         {
-          "element": "CricketExtrasOverlayButton",
+          "element": "Presentationwindow",
           "event": "Click",
-          "handler": "ExtrasOverlay_Click"
-        },
-        {
-          "element": "CricketBoundariesOverlayButton",
-          "event": "Click",
-          "handler": "BoundariesOverlay_Click"
+          "handler": "PresentationButton_Click"
         },
         {
           "element": "Presentationscorebug",
@@ -2164,11 +2262,6 @@
         },
         {
           "element": "Presentationbowling",
-          "event": "Click",
-          "handler": "PresentationButton_Click"
-        },
-        {
-          "element": "Presentationwindow",
           "event": "Click",
           "handler": "PresentationButton_Click"
         },
@@ -2188,9 +2281,24 @@
           "handler": "PresentationButton_Click"
         },
         {
+          "element": "CricketExtrasOverlayButton",
+          "event": "Click",
+          "handler": "ExtrasOverlay_Click"
+        },
+        {
+          "element": "CricketBoundariesOverlayButton",
+          "event": "Click",
+          "handler": "BoundariesOverlay_Click"
+        },
+        {
           "element": null,
           "event": "Click",
           "handler": "CancelCricketOverlay_Click"
+        },
+        {
+          "element": "CricketWeatherLocation",
+          "event": "TextChanged",
+          "handler": "CricketWeatherLocation_TextChanged"
         },
         {
           "element": null,
@@ -2273,7 +2381,7 @@
           "handler": "Toss_PreviewKeyDown"
         },
         {
-          "element": null,
+          "element": "TossCloseButton",
           "event": "Click",
           "handler": "CloseToss_Click"
         },
@@ -2310,7 +2418,7 @@
     {
       "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml",
       "class": "Roche_Scoreboard.Views.CricketDeliveryDialog",
-      "sha256": "0b36789d57e284acce42253ca3905f7bf15ed28d1214a381610112c1d2b552f0",
+      "sha256": "2fb956fe389e9ad343e3fbfb8f51320ae553dc5553441dfbf8dd52c4d815cef6",
       "named_elements": [
         "EntryLayout",
         "TeamHeader",
@@ -2359,6 +2467,7 @@
         "RestOfOverBowler",
         "EntryFooter",
         "PreviewPanel",
+        "PreviewScroll",
         "PreviewText",
         "ErrorText",
         "CancelButton",
@@ -2528,7 +2637,7 @@
     {
       "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml",
       "class": "Roche_Scoreboard.Views.CricketScorebugControl",
-      "sha256": "78db5c45236c2f4069a36c1ce56f48c564a8f104a0e0c359f3340d9eb5adc88a",
+      "sha256": "52f343f4e77d450b22023396b1627abd175ab904e5303beaabc862d3f3f2c02c",
       "named_elements": [
         "CricketDesignRoot",
         "MainScoreboard",
@@ -2637,7 +2746,7 @@
     {
       "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml",
       "class": "Roche_Scoreboard.Views.CricketSetupWizard",
-      "sha256": "958353241a93e36ddbe3c360b059ec8bf8c0f31f3c9ac0dcce7a50477cd93518",
+      "sha256": "5f0ea92ee4e4e6adfb3bd017f9f114470cf53778424a589c9b9d4f7d8a9d9542",
       "named_elements": [
         "WizardBody",
         "TeamsStepContainer",
@@ -3150,8 +3259,11 @@
     {
       "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml",
       "class": "Roche_Scoreboard.Views.GlobalSettingsScreen",
-      "sha256": "a1aa76067e4aaeb1494358671b66a9cc12e1acca1a54de8da65dbc8b6a44aefb",
+      "sha256": "1712a266f010493e2a1c99a9b85676d9e1687ca6af3f5035264ecde31a691fbd",
       "named_elements": [
+        "SettingsNavigationGrid",
+        "BackButton",
+        "SettingsScopeSurface",
         "GeneralSettingsTab",
         "CricketSettingsScopeTab",
         "AflSettingsTab",
@@ -3198,14 +3310,18 @@
         "CricketRollingDefaultToggle",
         "CricketBowlerDefaultToggle",
         "CricketAutomaticDefaultToggle",
-        "CricketBreakRotationDefaultToggle",
-        "BackButton"
+        "CricketBreakRotationDefaultToggle"
       ],
       "handlers": [
         {
           "element": null,
           "event": "SizeChanged",
           "handler": "Settings_SizeChanged"
+        },
+        {
+          "element": "BackButton",
+          "event": "Click",
+          "handler": "BackButton_Click"
         },
         {
           "element": "GeneralSettingsTab",
@@ -3421,11 +3537,6 @@
           "element": "CricketBreakRotationDefaultToggle",
           "event": "Unchecked",
           "handler": "CricketDefault_Changed"
-        },
-        {
-          "element": "BackButton",
-          "event": "Click",
-          "handler": "BackButton_Click"
         }
       ],
       "fonts": []
@@ -3630,7 +3741,7 @@
     {
       "source": "Roche_Scoreboard/Views/OutputScreensaverControl.xaml",
       "class": "Roche_Scoreboard.Views.OutputScreensaverControl",
-      "sha256": "4f7243a34bb28cc9e7cba027899b9ff4ae55a746653f4dd366a7fd8160929882",
+      "sha256": "4ab9dc45bbf51808166043555648ca1d9090cb0121d046be93e643698db84744",
       "named_elements": [
         "Root",
         "CustomVideoHost",
@@ -3843,7 +3954,7 @@
     {
       "source": "Roche_Scoreboard/Views/ScoreEventEditorWindow.xaml",
       "class": "Roche_Scoreboard.Views.ScoreEventEditorWindow",
-      "sha256": "a96d6214502dea856146c72809e73767f339e5c9dc3606e7aed75d9bf0e5a6a4",
+      "sha256": "065de1837300b222578647abb1e3fe2c8fba2ad3422539f87d42db72dc5dce28",
       "named_elements": [
         "ScoreChoiceMaterial",
         "ScoreChoiceLens",
@@ -4418,13 +4529,15 @@
     {
       "source": "Roche_Scoreboard/Views/SetupWizard.xaml",
       "class": "Roche_Scoreboard.Views.SetupWizard",
-      "sha256": "1c82d438ddf10c48498bfe670b7329899472b219c6a5f2c96c9ec1e8b1af57f1",
+      "sha256": "855a41a69a6659a4b79c09b219de6b19e8f5a840cb5a6a0d0e517f2e7d28f033",
       "named_elements": [
+        "FinalsFocusFrame",
         "ResponsiveScrollHost",
         "WizardBody",
         "SportStepContainer",
         "SportQuestion",
         "SportDescription",
+        "SportChoiceGrid",
         "AflSportChoice",
         "AflSportSymbol",
         "AflSportLabel",
@@ -4494,7 +4607,6 @@
         "CountdownIcon",
         "ControlPanelCountdownOptionCard",
         "ControlPanelCountdownCardTranslate",
-        "ControlPanelCountdownCardScale",
         "ControlPanelCountdownToggleTrack",
         "ControlPanelCountdownToggleThumb",
         "ControlPanelCountdownThumbTranslate",
@@ -4520,6 +4632,9 @@
         "MsgHeaderGroup",
         "MsgHeaderTranslate",
         "FinalsCard",
+        "SetupFinalsMode",
+        "SetupFinalsTitle",
+        "SetupFinalsDescription",
         "FinalsSelectedBadge",
         "FinalsIcon",
         "WeatherCard",
@@ -4529,8 +4644,8 @@
         "SetupNewMessageBox",
         "SetupNewMessageTextColorBtn",
         "SetupNewMessageHighlightColorBtn",
+        "SetupMessageFeedback",
         "MsgGlow",
-        "SetupFinalsMode",
         "BgGlow",
         "BeamTranslate",
         "BottomAccent",
@@ -4792,9 +4907,14 @@
           "handler": "SetupQuarterDuration_TextChanged"
         },
         {
-          "element": "FinalsCard",
-          "event": "MouseLeftButtonUp",
-          "handler": "FinalsCard_Click"
+          "element": "SetupFinalsMode",
+          "event": "Checked",
+          "handler": "SetupFinalsMode_Changed"
+        },
+        {
+          "element": "SetupFinalsMode",
+          "event": "Unchecked",
+          "handler": "SetupFinalsMode_Changed"
         },
         {
           "element": null,
@@ -4813,8 +4933,18 @@
         },
         {
           "element": null,
+          "event": "KeyDown",
+          "handler": "SetupItemHighlightColor_KeyDown"
+        },
+        {
+          "element": null,
           "event": "Click",
           "handler": "SetupRemoveMessageItem_Click"
+        },
+        {
+          "element": "SetupNewMessageBox",
+          "event": "TextChanged",
+          "handler": "SetupMessageDraft_TextChanged"
         },
         {
           "element": "SetupNewMessageBox",
@@ -4835,6 +4965,11 @@
           "element": "SetupNewMessageHighlightColorBtn",
           "event": "MouseRightButtonUp",
           "handler": "SetupClearNewHighlightColor_Click"
+        },
+        {
+          "element": "SetupNewMessageHighlightColorBtn",
+          "event": "KeyDown",
+          "handler": "SetupNewHighlightColor_KeyDown"
         },
         {
           "element": null,
@@ -4885,7 +5020,7 @@
     {
       "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml",
       "class": "Roche_Scoreboard.Views.SportSelectionScreen",
-      "sha256": "b208ad2136895e53b8f26b8948a2e464ac7fa7189ceb90237fb7c56adb075863",
+      "sha256": "bda805af94553009e2c44042ffcf6bddb95643ee04b89f6f7b1f204f17494c65",
       "named_elements": [
         "PART_Surface",
         "TbSc",
@@ -4893,6 +5028,12 @@
         "ActionGlow",
         "DisclosureHeader",
         "Body",
+        "PART_Surface",
+        "TbSc",
+        "ReleaseButtonSurface",
+        "ActionGlow",
+        "ReleaseKeyboardFocus",
+        "HomeRoot",
         "ResponsiveScrollHost",
         "SportViewport",
         "HomeBackdrop",
@@ -4905,6 +5046,7 @@
         "SettingsActionCaption",
         "SettingsSubtitle",
         "HomeCommandsButton",
+        "HistoryButton",
         "ResumeUtilitySurface",
         "ResumeSavedMatchButton",
         "ChangelogToggle",
@@ -4917,6 +5059,7 @@
         "ResumeSessionSurface",
         "SessionHeading",
         "SessionDetail",
+        "ResumeOutputHint",
         "HomeResumeButton",
         "SportCardsGrid",
         "HomeInteractionLens",
@@ -4994,7 +5137,12 @@
         "ReleaseHistoryScroller",
         "ReleaseVersionButtons",
         "ReleaseScroller",
-        "ChangelogEntries"
+        "ChangelogEntries",
+        "HistoryOverlay",
+        "HistoryPanel",
+        "HistoryPanelScale",
+        "HistoryPanelTranslate",
+        "HistoryViewHost"
       ],
       "handlers": [
         {
@@ -5026,6 +5174,11 @@
           "element": "HomeCommandsButton",
           "event": "Click",
           "handler": "HomeCommands_Click"
+        },
+        {
+          "element": "HistoryButton",
+          "event": "Click",
+          "handler": "History_Click"
         },
         {
           "element": "ResumeSavedMatchButton",
@@ -5146,6 +5299,16 @@
           "element": "FixedReleaseFilter",
           "event": "Click",
           "handler": "ChangelogFilter_Click"
+        },
+        {
+          "element": "HistoryOverlay",
+          "event": "PreviewKeyDown",
+          "handler": "HistoryOverlay_PreviewKeyDown"
+        },
+        {
+          "element": null,
+          "event": "MouseLeftButtonUp",
+          "handler": "HistoryBackdrop_Click"
         }
       ],
       "fonts": []
@@ -5226,15 +5389,18 @@
     {
       "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml",
       "class": "Roche_Scoreboard.Views.TeamLibraryWindow",
-      "sha256": "900e6bcabc2b5568b4159e8a7b5b2cd152d47fa014d85736ba58919e7def3a61",
+      "sha256": "3f99d05708a8f3c8db918894f99dc49be12343022ed0cc607a7d674692e66660",
       "named_elements": [
         "LibrarySurface",
         "LibraryToolbar",
         "TargetHeading",
         "CatalogueDescription",
         "SearchBox",
+        "LeagueFilterLabel",
         "LeagueFilter",
+        "StateFilterLabel",
         "StateFilter",
+        "SortFilterLabel",
         "SortFilter",
         "FavouriteOnly",
         "ClubContent",
@@ -5326,26 +5492,33 @@
     {
       "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml",
       "class": "Roche_Scoreboard.Views.TrainingControlPanel",
-      "sha256": "ecf6c7493a1399d9e982897e7e1faed6474774a50d63d3614933135295877ded",
+      "sha256": "cd0c448c2224e56f61ca0171110efd5a80c3520881b1458db21b87fda32980d5",
       "named_elements": [
         "TrainingClearDecisionHost",
         "TrainingViewport",
+        "TrainingHeaderSurface",
         "TrainingHeaderGrid",
+        "TrainingTitleSurface",
         "TrainingEntrySymbol",
+        "TrainingTitleText",
         "TrainingTitleDivider",
         "TrainingSubtitle",
         "TrainingSessionReadout",
         "SessionTotalText",
-        "TrainingCloudLauncher",
         "ExitButton",
+        "OperatorHomeButton",
+        "OperatorSettingsButton",
+        "OperatorCommandSearchButton",
         "TrainingPageViewport",
         "TrainingBodyColumns",
         "TrainingActiveColumn",
+        "TrainingActiveSurface",
         "TrainingActiveCardGrid",
         "ActiveTitleText",
         "ActiveStatusPill",
         "ActiveStatusText",
         "ActiveRemainingText",
+        "TrainingTransportSurface",
         "StartPauseButton",
         "TrainingTransportSymbol",
         "TrainingTransportLabel",
@@ -5370,6 +5543,7 @@
         "NewSecondsBox",
         "TrainingEntryError",
         "AddTimerButton",
+        "RecentTimersCard",
         "RecentTimersPanel",
         "RecentTimersEmptyText",
         "IntervalRoundsBox",
@@ -5377,6 +5551,7 @@
         "IntervalRestBox",
         "TrainingIntervalError",
         "BuildIntervalButton",
+        "TrainingCloudLauncher",
         "TrainingClearReviewOverlay",
         "TrainingClearReviewShell",
         "TrainingClearReviewContent",
@@ -5408,6 +5583,21 @@
           "element": "ExitButton",
           "event": "Click",
           "handler": "OnExitClicked"
+        },
+        {
+          "element": "OperatorHomeButton",
+          "event": "Click",
+          "handler": "HomeNavigation_Click"
+        },
+        {
+          "element": "OperatorSettingsButton",
+          "event": "Click",
+          "handler": "ApplicationPreferencesNavigation_Click"
+        },
+        {
+          "element": "OperatorCommandSearchButton",
+          "event": "Click",
+          "handler": "CommandSearchNavigation_Click"
         },
         {
           "element": "StartPauseButton",
@@ -5539,12 +5729,14 @@
     {
       "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml",
       "class": "Roche_Scoreboard.Views.UpdatePromptWindow",
-      "sha256": "e029f88be2c1b9c96ab7ba5b5a1144e44db7491dc9dfcd193bdfa88202f7d2b7",
+      "sha256": "191d38c6c34fcc44b9e45c2faee6b2177694bdb7e977bd8c553cdbf8ff626c30",
       "named_elements": [
         "PART_Track",
         "PART_Indicator",
         "DialogShell",
+        "DialogHeading",
         "CloseButton",
+        "UpdateDetailsViewport",
         "CurrentVersionText",
         "NewVersionText",
         "IntegrityText",
@@ -5555,9 +5747,12 @@
         "ProgressPercentText",
         "UpdateProgressBar",
         "ProgressDetailText",
+        "UpdateActions",
         "ViewReleaseButton",
         "SkipButton",
-        "UpdateButton"
+        "UpdateButton",
+        "UpdateButtonLabel",
+        "UpdateButtonProgress"
       ],
       "handlers": [
         {
@@ -5635,8 +5830,8 @@
   "code": [
     {
       "source": "Roche_Scoreboard/App.xaml.cs",
-      "sha256": "c247491a93e70131ccce4b34695d00a45962abb20313665c4315d94f6e8f0d64",
-      "lines": 788,
+      "sha256": "7893acd5e0187245312a9ee317c07b72063cff941a4befa67167dc96ce969678",
+      "lines": 919,
       "native_libraries": []
     },
     {
@@ -5701,8 +5896,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.AppleInteractionQa.cs",
-      "sha256": "1723cd0d7e5e53ccb4715664c0efc8ef55484bfc99e996294d33dde7b2754b2a",
-      "lines": 148,
+      "sha256": "2e9c9498a95119ee1f1088756c12be4b3faa66c9d829e154d781e1064120d886",
+      "lines": 192,
       "native_libraries": []
     },
     {
@@ -5713,26 +5908,26 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CloudRemote.cs",
-      "sha256": "fe0023dc65c903948a196aa4ddca75afb50e94f2d0f06f3ee25c51cc62ee58cb",
-      "lines": 604,
+      "sha256": "7780c5af32d37821f9b75c109e3d9aa021a85842ff98b0a5636e992f0955391c",
+      "lines": 687,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CloudRemoteUi.cs",
-      "sha256": "e3b3d26eafbc2a06504300999cefeea4753eb411e60f04149c8ca820f66f9e62",
-      "lines": 287,
+      "sha256": "dc081dc76e33546ddd2f3a271dc60d67c28ac33bd6735094d183acd3e69be23a",
+      "lines": 395,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.ControlCentre.cs",
-      "sha256": "29a60b8f79a16aaa48e71496898cf1b2759b9bec3b4ed98c61017e4b6c0da2e8",
-      "lines": 257,
+      "sha256": "d2fd6b0eeb89ba22edc6859371c4fcfbf2f233d5773fac6b998133b526a2940a",
+      "lines": 278,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.ControlCentreQa.cs",
-      "sha256": "c8788d71166200cb14af68207f9965579672171722aa5a65154dcee199ae7b0f",
-      "lines": 197,
+      "sha256": "0786ddda85cb54a14dbda86fbc37e67c1e0820f130ee9156b4033f3adfce1da4",
+      "lines": 240,
       "native_libraries": []
     },
     {
@@ -5791,8 +5986,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CricketPersistence.cs",
-      "sha256": "f2c75b7fdc7d3e4ba1222b55551d185c1b78187fffd7c77fcd84a49527857fd8",
-      "lines": 45,
+      "sha256": "e738321fe3d0e7fc9acea174370bf974a4c36e27cca74b945eed2c722dc58356",
+      "lines": 48,
       "native_libraries": []
     },
     {
@@ -5809,8 +6004,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CricketQa.cs",
-      "sha256": "d569cbd6d9308ca0bbb24fb713ae4cdb728bb6d5ed4f91754a8c342185b9e448",
-      "lines": 561,
+      "sha256": "0068afb7bec594c4a064f9434edfd2e59efaa382e7ab6c73c933acb2026450b3",
+      "lines": 568,
       "native_libraries": [
         "user32.dll"
       ]
@@ -5835,14 +6030,14 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CricketSetupQa.cs",
-      "sha256": "8496fdadcf6ad667d5df233e52c8265ce80c0ea59aa912194dab8f1f1d413897",
-      "lines": 134,
+      "sha256": "4e8d756a70689d16470596e370445dc9b5a457080119950223ba0fc47972bd6f",
+      "lines": 157,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CricketTossQa.cs",
-      "sha256": "89e3e0a464b373603227deea26aeb7d7888a4d96650272e239e7e3854efcb66f",
-      "lines": 108,
+      "sha256": "3ebbea757127def92122481c7247b75ccdbedb7f108e16897da418711715d85a",
+      "lines": 110,
       "native_libraries": []
     },
     {
@@ -5865,26 +6060,26 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.GlassQa.cs",
-      "sha256": "7f1bbead60f9eb59006449c31b4741218c52f0b3a964f7be614d61bd7d620bdc",
-      "lines": 114,
+      "sha256": "4fba549861da72922bbfcf0c4b889c4c2ff2e679ee3203e53510bc0faf2ed647",
+      "lines": 118,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.HomeCommands.cs",
-      "sha256": "ddc13546ebccf3213b674a8dbeb62694b6d0c3a451d56ce781e36879b38d6226",
-      "lines": 358,
+      "sha256": "f4945d319be30366a40a41e15dc69ecc24fc256d3146121dc5c5f4e24522d4a4",
+      "lines": 536,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.HomeCommandsQa.cs",
-      "sha256": "bd56faed68c2af0c261d5d2dc031d89ecaec629840096c1bc6e6ecdac8126844",
-      "lines": 35,
+      "sha256": "8dc94d82f6c1633c711319726d4740f75dd2a2628a98a9b75fca8f58b214a372",
+      "lines": 275,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.IllustratedOperatorQa.cs",
-      "sha256": "7f80d82480b64c0f72bb76b74e1c829aa0244524c3c8263aebafb4cd930a47c0",
-      "lines": 200,
+      "sha256": "df4853cb38892a3f5a2491143d04d21d67d97da287b2db8d13206671c8d8f4e8",
+      "lines": 201,
       "native_libraries": []
     },
     {
@@ -5896,6 +6091,12 @@
     {
       "source": "Roche_Scoreboard/MainWindow.LiquidSelectionQa.cs",
       "sha256": "9f9f07da334958866acd118db9a1b1cdd8259d6c64e2ff6ae81ff92470f9c719",
+      "lines": 96,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.ManualWeatherOwnership.cs",
+      "sha256": "e1fe2802c495d8224867e3423b880f454a7be1c3bfa9e35539ec82fc0859c8e5",
       "lines": 96,
       "native_libraries": []
     },
@@ -5913,20 +6114,20 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.OperatorResponseQa.cs",
-      "sha256": "9cb041c96c4b28da81c7ed61ce9308efc0549894bf6be1ebfda9c4079dc53a77",
-      "lines": 88,
+      "sha256": "e8a1807093e3bd8a70184de363235f9092c1968d899b8c94bb6efc843c198d20",
+      "lines": 96,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.OperatorSetupTransition.cs",
-      "sha256": "e161417a0014c649b5957e0616571ac15054ce7e1ab5d865780bc3f957b4c28c",
-      "lines": 58,
+      "sha256": "e5b23089c7f7d939f9b39573857e4608ff0158d825a3ea1e4997ea103e448790",
+      "lines": 86,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.OperatorTileActions.cs",
-      "sha256": "6d76af84025db3e42df43d4086938dc9652f2a07de2d6a907558e584bae30600",
-      "lines": 59,
+      "sha256": "1ccd75afbc213235afc2fbb79416109d3ee1ac39ab6726d862ab9e7aaa14b3e3",
+      "lines": 57,
       "native_libraries": []
     },
     {
@@ -5943,8 +6144,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.PresentationLifetime.cs",
-      "sha256": "a6de44eb682e0cc26684df6f15ad10277c638a034eb1b8bb6435f86bfbf39f52",
-      "lines": 81,
+      "sha256": "ba208d05fdb0f35102b488a9754cc370f6329e21104b4f0c634b262101927d6b",
+      "lines": 82,
       "native_libraries": []
     },
     {
@@ -5955,14 +6156,14 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.QuarterLabels.cs",
-      "sha256": "598538888a9380c74407efc601418bd9ce384d16621ada797daf236b968529e7",
-      "lines": 109,
+      "sha256": "61a876228cfeebe4bbd8eb0fb5a35e086468a6ac156cf3bb0c5d65c754b365e1",
+      "lines": 126,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.ResetDecision.cs",
-      "sha256": "f18ae40d680ad00a49e172b5c05e0a9c2cf8016cc156e91622c1e4b433cf8d55",
-      "lines": 213,
+      "sha256": "a399b9d8e122e56785afea90aab7cd506b7fe5ac2a6741edd7851c71390b18b5",
+      "lines": 210,
       "native_libraries": []
     },
     {
@@ -5973,8 +6174,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.RestoreMembers.cs",
-      "sha256": "a90c59a4391c4f71a668e53f782b6cf7d5dea81a14362d09c526f661512fdc31",
-      "lines": 6593,
+      "sha256": "24caff3ff036a7bfd8e544bff418709ee9a1204cb613006ff1380350480e7c42",
+      "lines": 6779,
       "native_libraries": [
         "user32.dll"
       ]
@@ -5999,14 +6200,14 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.TrainingCloudRemote.cs",
-      "sha256": "671836851b82dedb7e91b16e0febef1c6db6ad861346de62212330469bd53cda",
-      "lines": 271,
+      "sha256": "1278c52417a309fdfaa19e266f5deaa0b297012ce5fb33f49a5a01e4dc9469a0",
+      "lines": 297,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/MainWindow.UnifiedSetup.cs",
-      "sha256": "5fa1c048d41322b4feaa7be792235cd41023f2da677d226eeff20db2a875aca4",
-      "lines": 105,
+      "sha256": "ed93631d9b82eae6f7750e88dbbdb182cfe58af20dc781cc941e27f3c660ae27",
+      "lines": 110,
       "native_libraries": []
     },
     {
@@ -6016,9 +6217,15 @@
       "native_libraries": []
     },
     {
+      "source": "Roche_Scoreboard/MainWindow.WeatherLocationStatus.cs",
+      "sha256": "ca74ff070cad26f7a6cc4f6d7260ef6398cec3b6592977e7eb7766e8fb200486",
+      "lines": 101,
+      "native_libraries": []
+    },
+    {
       "source": "Roche_Scoreboard/MainWindow.xaml.cs",
-      "sha256": "4fff6c316a98044a5efd43dce2c3c04b3a1236ec889cd33e81d1e610c0c65bf4",
-      "lines": 3805,
+      "sha256": "8e1f2bdda7de2b8cc006331b4572bf76343def3b2a98cecb8e7f0125bc888d88",
+      "lines": 3927,
       "native_libraries": []
     },
     {
@@ -6041,8 +6248,8 @@
     },
     {
       "source": "Roche_Scoreboard/Models/CricketDeliveryRules.cs",
-      "sha256": "39c8644051cc3cb9ae2c8f7cf08a62e78ac861103ae7fe750287d979639a062d",
-      "lines": 36,
+      "sha256": "ab38a8f52d15e1a9a082061fe99d150a4be89859745908a4b475fc16c92656f5",
+      "lines": 51,
       "native_libraries": []
     },
     {
@@ -6059,8 +6266,8 @@
     },
     {
       "source": "Roche_Scoreboard/Models/CricketMatchConditions.cs",
-      "sha256": "bfd470b55c0e0f416589edeee6252c19111da88cd7b61d94c063b6563a524058",
-      "lines": 83,
+      "sha256": "8057c106d061afc025f8c006655d720734b128549987ea4b37e4334fbbf21310",
+      "lines": 97,
       "native_libraries": []
     },
     {
@@ -6071,8 +6278,8 @@
     },
     {
       "source": "Roche_Scoreboard/Models/CricketMatchManager.cs",
-      "sha256": "33d159aaf7699f4c05cf69ff2aee3a23cd3b4258eead906eb35eb75ed99f150a",
-      "lines": 1366,
+      "sha256": "e0d0411ae73537ee879afc1c8e05ca49f200060266c0cd40e3c47a6a516f8c0f",
+      "lines": 1368,
       "native_libraries": []
     },
     {
@@ -6202,6 +6409,12 @@
       "native_libraries": []
     },
     {
+      "source": "Roche_Scoreboard/Models/TickerMessagePolicy.cs",
+      "sha256": "a511f9b309c15bb801d9cd6faff94ed6af639314196fdbd84a6e0ad004842b2b",
+      "lines": 12,
+      "native_libraries": []
+    },
+    {
       "source": "Roche_Scoreboard/Models/TrainingSession.cs",
       "sha256": "f4216fc1a0cca7519bdc54b0fd07ab2eb6b567d934950cdefb056136781f5eba",
       "lines": 394,
@@ -6239,8 +6452,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/AflReliabilityStressSuite.cs",
-      "sha256": "a1101c25ba98e8607eaa766dd99a3c02d9ad1576756e83e6b9b5b004d063c3fd",
-      "lines": 716,
+      "sha256": "5f1b904f3e7782266e8f0b05932d804c02bc0363263fa10ac0ef07b27351c730",
+      "lines": 723,
       "native_libraries": []
     },
     {
@@ -6253,6 +6466,12 @@
       "source": "Roche_Scoreboard/Services/AutoUpdateService.cs",
       "sha256": "f2c6db8e1c90e1d9f1720220961c9b000cce80c0c1f953a0b8dd3078a3bfbfcb",
       "lines": 1055,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/BoundedExceptionLog.cs",
+      "sha256": "f81d708038e61813fcd9e40fba7469eae93d4c850bda7ed94c5973cb38fc4bde",
+      "lines": 102,
       "native_libraries": []
     },
     {
@@ -6293,7 +6512,7 @@
     },
     {
       "source": "Roche_Scoreboard/Services/Cloud/CloudGameSessionService.cs",
-      "sha256": "7a009dc2b2a6d2367f94b5d85be611e262deee3ad9dcf4dd96bcc8be57ae2767",
+      "sha256": "404a46a543298546489371026e92153a1695fe034be70d5e071d9acc1c9a5c06",
       "lines": 120,
       "native_libraries": []
     },
@@ -6305,20 +6524,20 @@
     },
     {
       "source": "Roche_Scoreboard/Services/Cloud/LiveStateSnapshot.cs",
-      "sha256": "339f4e39981f2e4691a422648931020971a651dbc290a293e906e95e788628fe",
-      "lines": 153,
+      "sha256": "26e0fa3f778d9e732f709c4730ac927f8e56ae4fef9d9b3cd65f333b7926fa4f",
+      "lines": 154,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/Cloud/RemoteCommandDispatcher.cs",
-      "sha256": "9d97292ee2444266a5c63d4316dc173ce80e1998886d25ce09d44804c94d0d60",
-      "lines": 390,
+      "sha256": "8eebf7d64526a60796bfaedb66889dbd29e7f9a68ec3e6b38283ab7c41d27a7a",
+      "lines": 435,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/Cloud/RemoteControlService.cs",
-      "sha256": "33f482768f22b53ceec5aa3a8b5be20cda5a28bfde906e7d35aa0422d6c0a4cc",
-      "lines": 258,
+      "sha256": "f40b30d6e0832b578486e2f537df904904135d21f20bfe90f53c27e3f973aba0",
+      "lines": 431,
       "native_libraries": []
     },
     {
@@ -6335,7 +6554,7 @@
     },
     {
       "source": "Roche_Scoreboard/Services/Cloud/SupabaseRealtimeClient.cs",
-      "sha256": "24be856340a1a03acf6ea45005fa9971a7bf705125a7d417e1c4251c1dfba71d",
+      "sha256": "28f508b991e3eeb6fd4a3cd3c6f47862856ae39e7aa2a19aa3113fa99f7068a6",
       "lines": 220,
       "native_libraries": []
     },
@@ -6353,8 +6572,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/CricketActionMotion.cs",
-      "sha256": "3ab18be53d03b3266eb9ccc8f7fcbf77520bdc27fd90531a59fa2a253edeaa3d",
-      "lines": 90,
+      "sha256": "dc890beb698b72e4623b1dd1bb75dead9edc3ebc4328d38d33a860f8459d0844",
+      "lines": 150,
       "native_libraries": []
     },
     {
@@ -6431,14 +6650,14 @@
     },
     {
       "source": "Roche_Scoreboard/Services/CricketPersistenceChecks.cs",
-      "sha256": "5cb94217540ac18cbed82010784f6658efb02f70e28fcb4a27358fd951b3783e",
-      "lines": 92,
+      "sha256": "9025dd5cf031e6fb036b474a735126b59f38e0c46f61918185798db0cf9f17b0",
+      "lines": 238,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/CricketRecoveryWriter.cs",
-      "sha256": "03cdc51f760073fcf9f8d04fc30a69014b9d353243fcebc4dfad8d191189137c",
-      "lines": 141,
+      "sha256": "9a40f85ddcb1cdbfc35fb918b3f7f7b178c62d9b780f08ec3485fdd713024cea",
+      "lines": 215,
       "native_libraries": []
     },
     {
@@ -6472,9 +6691,21 @@
       "native_libraries": []
     },
     {
+      "source": "Roche_Scoreboard/Services/DispatcherRecoveryProbeQa.cs",
+      "sha256": "c4fb15186f0670c5824443415473e3447675705da23216227d680b21d0d0d2c8",
+      "lines": 303,
+      "native_libraries": []
+    },
+    {
       "source": "Roche_Scoreboard/Services/DisplaySettings.cs",
       "sha256": "fcf79db846d74a2b0cd9a14963364504935897b130b91d24eacc94ff38e6c670",
       "lines": 101,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/ExceptionSafetyChecks.cs",
+      "sha256": "317b5466fd11d115e20a6931be37750982e99d5ff941db9ce0ba737d571f91f8",
+      "lines": 469,
       "native_libraries": []
     },
     {
@@ -6500,8 +6731,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/GameStateService.cs",
-      "sha256": "e114464a8afe4db736f23482fc76f01638680ecaf700bd4ed465a0c38f8d98e4",
-      "lines": 220,
+      "sha256": "8ed82b24c45b0ef31897c328cd6b23ff8f75bde1f9c00eebb629fff454a6394d",
+      "lines": 241,
       "native_libraries": []
     },
     {
@@ -6514,6 +6745,12 @@
       "source": "Roche_Scoreboard/Services/InteractionMotion.cs",
       "sha256": "cdf8c75a1f1d184699886cc90ba308927cf2b323b4c63c0c21776df99e73540d",
       "lines": 8,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/MatchCheckpointStore.cs",
+      "sha256": "0a4c6464480683d4cc421d437f53388c7aa34f2a26d243c69fa5d1cffc229719",
+      "lines": 161,
       "native_libraries": []
     },
     {
@@ -6530,20 +6767,20 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorAppearance.cs",
-      "sha256": "aa94194cadd54863e6a9f0f1902e24b840a83d66d8193ff2ae608a6820aef0b8",
-      "lines": 63,
+      "sha256": "5714ce4f07ab5dcd161b7d0c3e2bcc850c58797c043a57c148b5c04ad7bdcf63",
+      "lines": 72,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorChoiceMotion.cs",
-      "sha256": "90f8c722e1229c46cad4c967595771e7ea4dba5f3441dc5dfcef5784cab827ed",
-      "lines": 58,
+      "sha256": "7585814f81040b90f11ea28b5a0176f75eeebe31458b24d1c01ebd99a99bf9bc",
+      "lines": 140,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorChoiceSurface.cs",
-      "sha256": "e709a1a7a40fa5de67f17cf1ebca53901b3fe067825c6f5f37c4d19eef870e3c",
-      "lines": 30,
+      "sha256": "60b4bf2118c8fa9cd89b0d4b2883289ee633a98ebbaf9b5e1c9f50a8f2c2d7ec",
+      "lines": 34,
       "native_libraries": []
     },
     {
@@ -6554,7 +6791,7 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorControlMotion.cs",
-      "sha256": "1dcf2144ed45842d6d759a7adaf5501aae9dbb390ef336a1ab48362878bb9d6b",
+      "sha256": "41e4092f7977d80a74a47eafc2a457a11f80b1764cfb10952d629325d93e8437",
       "lines": 202,
       "native_libraries": []
     },
@@ -6566,19 +6803,19 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorDesign.cs",
-      "sha256": "4929c360d2620b118e278c181ce89f7ef81ed8c3e0e7c953f5e0cad56fcf934e",
+      "sha256": "89d7c27c60396ce5f0e09970e0bb228410c4af6a7ba0854015582b7117459f4f",
       "lines": 155,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorFallbackMotionChecks.cs",
-      "sha256": "20d3c5794eb5be501086d3d5700afb8dfef37d2cc0904abdbb7093811059b87f",
-      "lines": 281,
+      "sha256": "938ad64ab7b9642632faba477e74d51ac508555d322f3f86ec98d95c3af39979",
+      "lines": 372,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorFeedback.cs",
-      "sha256": "0a756fef7cf8b56419eb163e688223b85d237bca0daae02376a50daedfdf2ce7",
+      "sha256": "8617e8ab675653adfcf706533931c137560cfd88c4accde8dd0c64858efe5a12",
       "lines": 274,
       "native_libraries": []
     },
@@ -6586,6 +6823,12 @@
       "source": "Roche_Scoreboard/Services/OperatorGlassEffect.cs",
       "sha256": "8ef4e785816201c8603d8a8a0e2510af1a20488f8d00379f1ba2d6d3a1d335c0",
       "lines": 48,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorGlassSurfaceChecks.cs",
+      "sha256": "3adf741a811de8f2f6f156eac574b6b3c61b53da980f0aeaaf573508a2e7f6ee",
+      "lines": 222,
       "native_libraries": []
     },
     {
@@ -6608,8 +6851,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorLiquidSelection.cs",
-      "sha256": "a3f867b443678d60e5519c73700ba3f399ac34aae5febd5bf27083c09b28aff1",
-      "lines": 85,
+      "sha256": "c02a9ad09e2e7a76df4a50b22bc7898ce63971f2a703d78ea2ba6772d151ef94",
+      "lines": 116,
       "native_libraries": []
     },
     {
@@ -6620,8 +6863,14 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorMotion.cs",
-      "sha256": "fcf34c10fd43f4540cabc872dce74aef4dc967157550fe36b69b0124b4c36e34",
-      "lines": 33,
+      "sha256": "d4fe0d9c8ffc671c6510ffcc75ff7a5d83898d9797d6ce5d24267a0bfbbff1c5",
+      "lines": 46,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/OperatorPreviewDiagnosticsQa.cs",
+      "sha256": "b531d093a79c1f3c9c713df5f447738148a0a8fc842814fe901833e393e7809f",
+      "lines": 244,
       "native_libraries": []
     },
     {
@@ -6632,26 +6881,26 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorSelectionLens.cs",
-      "sha256": "4e62f6fbe561dd082f84d9109f037b0794a6367223c9950bb41046753cf06305",
-      "lines": 85,
+      "sha256": "2a6c709111fd2a76adac41750bd495ba29a5ab984fc3667ed0ab030a0df317e5",
+      "lines": 83,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorSetupTrainingChecks.cs",
-      "sha256": "1f9f9765045488418c4eeaa4924d5632948b11695ce10153043f4995c562c48b",
-      "lines": 91,
+      "sha256": "800f77a6ed53a09a024d3315748517b893c180dcc492a3cc576ef6277f088c87",
+      "lines": 196,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorSliderMotion.cs",
-      "sha256": "5212e58cea72f077080b83abf5e363dce33da7496981a3186103fda58511209a",
-      "lines": 94,
+      "sha256": "35e89fac92463708179761bedd9518f891c43fc1204a7400fcb03d9c82c7ce25",
+      "lines": 119,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorSymbol.cs",
-      "sha256": "56de8354fe08dee64824fb601348910823a68cac8c7df3d36792a2394f8cfbcb",
-      "lines": 428,
+      "sha256": "02ca276ffe58bfdb0cb5df8481ced4c03c23839791d372fb9182c7b92f06e089",
+      "lines": 452,
       "native_libraries": []
     },
     {
@@ -6662,8 +6911,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/OperatorTabMotion.cs",
-      "sha256": "35a972d5945ca5e645810264cdc0b4516c4084f7d60267043d56d2f53a1845a9",
-      "lines": 58,
+      "sha256": "ec7a88ade0ac5341a5f0fe9cb16156cbb36c5f33e9b20d7a54aa6a2ce8c52054",
+      "lines": 88,
       "native_libraries": []
     },
     {
@@ -6694,8 +6943,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/PresetStorage.cs",
-      "sha256": "b16bc0d49fa3a98b19d820a09024483c156b5afcfeb296fd9a59cc39879d018e",
-      "lines": 316,
+      "sha256": "c1b1f9a1101d7c69920195675c0e84b45482edd988e0f02f90767c379346aef8",
+      "lines": 319,
       "native_libraries": []
     },
     {
@@ -6718,8 +6967,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/RecoverySession.cs",
-      "sha256": "f864b63ff663255457c55652fe5538dd35ce779b746c58eda226a9f9b7eb378f",
-      "lines": 31,
+      "sha256": "e284899dddf7e0016fea0051a3b15862697f5da7f2adc2baf0a5c5af1334cb69",
+      "lines": 37,
       "native_libraries": []
     },
     {
@@ -6730,8 +6979,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/SelectionCheckMotion.cs",
-      "sha256": "fa770b5e851acdaca7069fff886a36107932d59989e4bb3e42d35f13f2d4ff90",
-      "lines": 56,
+      "sha256": "5b7981e3bb5cd2a9ef33ac7a0e3070f198ba735ed02f44a62979f0c8287729de",
+      "lines": 132,
       "native_libraries": []
     },
     {
@@ -6778,8 +7027,14 @@
     },
     {
       "source": "Roche_Scoreboard/Services/ThemeService.cs",
-      "sha256": "9941e782a5e80e1121bee6df517be4f8f5ee4183788dc8c8db7bc564443b952f",
-      "lines": 206,
+      "sha256": "182caf4cd719e413a1ae8c90c41d36c28c5a650202e0b588eb6a16beedce179b",
+      "lines": 207,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Services/UnhandledExceptionPolicy.cs",
+      "sha256": "89c7177e64819418b1cddf8a3622d5ebfdb21bd3b941db63cab04ea4e25e6c12",
+      "lines": 88,
       "native_libraries": []
     },
     {
@@ -6808,8 +7063,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/WeatherService.cs",
-      "sha256": "db2d03e67afd1ff63bb7c291c6a7ff6bc6662b8ee2793ffd99ddd981eb634b91",
-      "lines": 275,
+      "sha256": "0645cfe83d73273a4892cdcd9b9c4a76955554aab8a82044f293b3a9bbf29177",
+      "lines": 289,
       "native_libraries": []
     },
     {
@@ -6894,20 +7149,32 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CloudRemoteLauncher.xaml.cs",
-      "sha256": "37f50952b81efe79d24629fb369a3de0dd17ea1374016278d290734b6087ecad",
-      "lines": 621,
+      "sha256": "d7e05d8f24cad1d9030b12f612bae18f1dfe9a58c56c97d0b18bb052a509fe0d",
+      "lines": 696,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/ColorPickerWindow.xaml.cs",
-      "sha256": "f3dd451934b91ee974592b6695324a3b6f125f54086e39dabcdcfc41ca369318",
-      "lines": 277,
+      "sha256": "7c11934c711ec206a098054ac64ada8846bfbc6b30725e283254198170875161",
+      "lines": 293,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/ControlPanel.xaml.cs",
       "sha256": "442c282b438b1d2edbe6bc8c80cfe4af9deeb7b7856e798a19f334500862ed29",
       "lines": 131,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketBattingScorecardGlyph.cs",
+      "sha256": "4110e865e04ebcfb8a66a098461782710f76d464b2c02194405ca059f8409bf3",
+      "lines": 84,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketBowlingFiguresGlyph.cs",
+      "sha256": "f49e767434ae6dae1b2febb17eadad1424c03d4ed4e4eae1a5448118747b01b4",
+      "lines": 90,
       "native_libraries": []
     },
     {
@@ -6924,8 +7191,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.Conditions.cs",
-      "sha256": "3c56ff4738a2c56f26b3b2af8641132058eda3cef21dc48cacb94fa47c8f3eba",
-      "lines": 97,
+      "sha256": "836580939a0d220faf0d70a1cfe7b48107ffafb39a6b44fab6db33643fcb9ed2",
+      "lines": 235,
       "native_libraries": []
     },
     {
@@ -6936,8 +7203,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.ExceptionalEvents.cs",
-      "sha256": "e68ddef1aee5f3e9013625aa40a366bd15e15d52e390f3e74f17f4ae0d5a30c6",
-      "lines": 81,
+      "sha256": "bf78946b86da1420b15f2cbedb9089f57e8543969cd44b4a94dcf83287ace250",
+      "lines": 135,
       "native_libraries": []
     },
     {
@@ -6947,57 +7214,87 @@
       "native_libraries": []
     },
     {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.InningsDecisionDesign.cs",
+      "sha256": "4e819a9df0e3e37f48f75a426b1cbcdf11615dff4e9d7d02775af909e5b60142",
+      "lines": 53,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketControlPanel.LiveScorebugCard.cs",
+      "sha256": "04be9cd666ec4744e3ce62da111ffdc49f8fc1d48084bace464d3b08678517a4",
+      "lines": 247,
+      "native_libraries": []
+    },
+    {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.PlayerMenu.cs",
-      "sha256": "2daa24f52da2535cb932afe863372e900103abe5d6724516e42f02f6b9ed5539",
-      "lines": 353,
+      "sha256": "abd221f92b2f4dc152f4dd48126ba1aa33bb16638b98cc12169dd528cff1e183",
+      "lines": 366,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.Scorecard.cs",
-      "sha256": "b96f92462662f1a6f34a0a348222563c2d1570965a433fd159cf6317dfc54d0b",
-      "lines": 310,
+      "sha256": "035462b9c5b68ec269eb14358480e6577cfef8cd51b3349ac93ce8e843e1a50c",
+      "lines": 429,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.ScorecardDetails.cs",
-      "sha256": "d9d0b5ff39df019a2fccac0a7f591ab6e4271f67f8a46dbf81a88dea37d2bf73",
-      "lines": 106,
+      "sha256": "11460813cc1cfd46f033e4452071acdc6228daa247c688a27f5c1a517730a80f",
+      "lines": 169,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.ScorecardInline.cs",
-      "sha256": "79a41ebebc2e05e39098ed1de65965c9a1062dac5ce9621e43b9f64bd219707d",
-      "lines": 199,
+      "sha256": "40ed45c0390802ac6f6436893dfad83e2e82f47b5d2e40d3b7ec7f18b9fe6e1d",
+      "lines": 250,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.ScorecardTotals.cs",
-      "sha256": "643a37120a494f0309680088e0787e41409e842f68a819d0cf744f40bada45dc",
-      "lines": 135,
+      "sha256": "2184672e80392ae8e198b085ece971cc4d2634fc36c4542ba04ebccf9dc64526",
+      "lines": 169,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.ScorecardTransactions.cs",
-      "sha256": "2d6f5ee7cd8db2d1a7d4e6b0e7c48680d7f64ce4431f1f08285a935fcce58f0e",
-      "lines": 73,
+      "sha256": "3b349b531497e2655dfd39cf05522a13bcb3a4c13ff21f235b6197cf9faef5e1",
+      "lines": 114,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.Workflows.cs",
-      "sha256": "ed543a76d1f41eadf6eee210b7a751df776c5a1e697d480afa25727e0887db62",
-      "lines": 347,
+      "sha256": "d31c880bf0ca9fd6120c028901320cb8f086449f34dc5041c9820e1390db9357",
+      "lines": 538,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketControlPanel.xaml.cs",
-      "sha256": "883eb038022c8086156d7734cc81266627bfe2de180de08f628cf68ef3b0c881",
-      "lines": 1538,
+      "sha256": "e9bc01baef578606e8f74ed9175827ec869ed649f2b96ff67c766053b2f3810c",
+      "lines": 1792,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketDeliveryDialog.xaml.cs",
-      "sha256": "2d0c4149276c21ab2800853a0202c4e3e22b2af3f58e1f779687ba8fed1a9a43",
-      "lines": 422,
+      "sha256": "438e4af35f04fa071424598c4a14d1fb9207b6df27c47ed68f1368ef68a0abbf",
+      "lines": 580,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketLiveScorebugGlyph.cs",
+      "sha256": "195b67fd03ad1284c613e46397b2bf0aa166de2c30dc0ccc9eb32f692367fe8c",
+      "lines": 62,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketManhattanGlyph.cs",
+      "sha256": "53b22103537f2cb54dc058c865132c99f41fc877df02b9a80352749f8b4232e1",
+      "lines": 66,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketMatchSummaryGlyph.cs",
+      "sha256": "cf0715a0e92e1b825980c71345ce8dd6a5a3f1ad56bea80b37f80fb5617ade8f",
+      "lines": 73,
       "native_libraries": []
     },
     {
@@ -7014,14 +7311,14 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketOverlayHost.cs",
-      "sha256": "10528e8de1385dd935e73992c15d6f67a33e8e318944694e529bd703ec56cf4e",
-      "lines": 450,
+      "sha256": "c1dec150f2c4e07c9f28e1750b5c3da0d48e403516c17c8714626eeb8b9e1a78",
+      "lines": 526,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketPrompt.cs",
-      "sha256": "04c4fd79c85b351d37690d986be67cb1d9e70a86292c8ceb56264c00dd1142d6",
-      "lines": 289,
+      "sha256": "8cb2b031a926d753ceccbeedbecdc42ea8256e64525dc2bb7c583eac67919fa3",
+      "lines": 343,
       "native_libraries": []
     },
     {
@@ -7062,14 +7359,26 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketScorebugControl.xaml.cs",
-      "sha256": "adb9e8a3ae21106905b3fa90b787d8dfcc96f853e379b763c488a7c5d80c9d3b",
-      "lines": 842,
+      "sha256": "41eb4ce6327239fe4eb1e050050850967303c51b6d52a7239fb83c4ee0a0245e",
+      "lines": 873,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketScorewormGlyph.cs",
+      "sha256": "0d76af619be2d1639d19f3489a1a9a764a482749b5f0731c4f6f74934e90f2a0",
+      "lines": 64,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketSetupWizard.PlayerEntry.cs",
-      "sha256": "8f7d0c7f19e2da8600803881bb6b2444d81903e6fcd4381ef72f6bb30bb50dd9",
-      "lines": 99,
+      "sha256": "cab781bf94d7606b5bab54ffa58514abc4d48d887245a73170bc5917ec98f9f5",
+      "lines": 306,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/CricketSetupWizard.PresetReorderInteraction.cs",
+      "sha256": "60ab578d6b1bd1bcb2e1190580cd1d1e0c853201caa00658c345855eddd564e4",
+      "lines": 160,
       "native_libraries": []
     },
     {
@@ -7080,14 +7389,14 @@
     },
     {
       "source": "Roche_Scoreboard/Views/CricketSetupWizard.UnifiedFlow.cs",
-      "sha256": "ac65d803cb3f81d0c4312acf840d79af7037b6d1a6ad11c8067f1489a62dc1d3",
-      "lines": 31,
+      "sha256": "964e4f2c9551dd5c1c4d345992865761ad72d988378a1fb6e7c9066b1f525dc3",
+      "lines": 35,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/CricketSetupWizard.xaml.cs",
-      "sha256": "d9d0cb65f845d839f19c7c96c92a2aff14d9cbed494ee3bdac313751a7620ac4",
-      "lines": 1528,
+      "sha256": "05ad372b5d2a52f05409974ab091d45c27ef1043e3da32877c6a5270894307b3",
+      "lines": 1563,
       "native_libraries": []
     },
     {
@@ -7110,8 +7419,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/DesignSystemGalleryWindow.xaml.cs",
-      "sha256": "44dd64848d1ebfc786f65deb4c460233e92e92486dbbadb70bea9cb69f0f137a",
-      "lines": 342,
+      "sha256": "747023d2bf81e467d6541af7bc6194dfd7a1c43b05c577f5399c78e55f6c0c7d",
+      "lines": 344,
       "native_libraries": []
     },
     {
@@ -7122,8 +7431,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/GlobalSettingsScreen.xaml.cs",
-      "sha256": "23df2c5d850c49f82a540c53ec504ede39a49c7c6a85245fa36f678962fbb82e",
-      "lines": 355,
+      "sha256": "87ea5aa660a128078cbe08f0c252736f635f9a8a83d08c5097aa7850aa25066b",
+      "lines": 377,
       "native_libraries": []
     },
     {
@@ -7134,32 +7443,50 @@
     },
     {
       "source": "Roche_Scoreboard/Views/LogoCropWindow.xaml.cs",
-      "sha256": "cc97acc8b085c536ed471c88822394dd310b80322cdf29529227bbfdd21c03a2",
+      "sha256": "66fd9e6775927eb2076def482c6341d21dfa7614ea40eb0957aec80ecde27ace",
       "lines": 250,
       "native_libraries": []
     },
     {
+      "source": "Roche_Scoreboard/Views/MatchHistoryWindow.cs",
+      "sha256": "88fb82bfce38517dc6b4b5a46cf961b0b65abd10d82a3ee68253978eef50131e",
+      "lines": 214,
+      "native_libraries": []
+    },
+    {
       "source": "Roche_Scoreboard/Views/MatchLoadingScreen.xaml.cs",
-      "sha256": "d0e7b05df8b59d8a62b1d5397e2d8dbbbb6628b207b2a5139b443708c8ff2fbf",
-      "lines": 572,
+      "sha256": "351535e27ce4c1fd319983cb4d2385ddeab8b2d536d41a41be1fcc339be96852",
+      "lines": 737,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorAccentPreferences.cs",
+      "sha256": "3dd38db67852b7d7fd43498dcda8bcf12d6673517ca544aac50531a789768b0f",
+      "lines": 127,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/OperatorActionBorder.cs",
-      "sha256": "00e3eee189225e7f6fb7d64f1b7665aa9c1fd40b6cd7cad3058d072b3631dcd3",
-      "lines": 40,
+      "sha256": "7e237a314286f59aa1a99ba36a7f0abc611576754a3a126ca0a5cfaa9f8cdb8f",
+      "lines": 46,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/OperatorClubPresetDesign.cs",
-      "sha256": "9aa16ca10d653a27d137fcb70c59375642e47afc135d16449cf0a8f748403e4c",
-      "lines": 79,
+      "sha256": "88d73132f0706693e4f19265053999c187484fa3d7449479a8eb714b603f21e7",
+      "lines": 133,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/Views/OperatorControlsSelfTestChecks.cs",
+      "sha256": "4b1326785f42873ca88433ddbeb747ee4c3d75c5d4245c368b031a46ca7bb179",
+      "lines": 186,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/OperatorGlassSurface.cs",
-      "sha256": "568ddb177283725212a67c54445ceec915dce2ee4978e90c372ad944abe7d501",
-      "lines": 257,
+      "sha256": "9a217543e24712dc3c91fb8185f3e4a71a10af139920acf7d6fa7432e585c2e9",
+      "lines": 347,
       "native_libraries": []
     },
     {
@@ -7170,8 +7497,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/OperatorSceneBackdrop.cs",
-      "sha256": "b3a35270ccb54cbf14a998493c0e4c95ba698b644ec5a6f4857724edd3b0b349",
-      "lines": 108,
+      "sha256": "5caa92640c4c2c87b6967d0d616ac52321b620cafa5fa0661738d1b2c29bc8a4",
+      "lines": 113,
       "native_libraries": []
     },
     {
@@ -7182,13 +7509,13 @@
     },
     {
       "source": "Roche_Scoreboard/Views/OperatorSegmentedPanel.Scrubbing.cs",
-      "sha256": "2af23fc3f56a5157dbc45a847df2399849b829d32fd7d3f62661b8efec95fab9",
-      "lines": 85,
+      "sha256": "ae9887aa1f588bfb196b3220ed73eeb768bdde8f264c63a0e824a9073e84939e",
+      "lines": 192,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/OperatorSegmentedPanel.cs",
-      "sha256": "e9bf8b5aca7a4e5243b85402bd2f9510194a966e6a8a8bf3197e9cfc51c054da",
+      "sha256": "ed0b258f41cdf91d445e4c52544b6b1d492a8c864301bb603190f4c1b5af6e7f",
       "lines": 95,
       "native_libraries": []
     },
@@ -7206,14 +7533,14 @@
     },
     {
       "source": "Roche_Scoreboard/Views/OutputScreensaverControl.xaml.cs",
-      "sha256": "b6104847511c9687005ea3b62debe244e725bfa59ec487446b821a29a1828e95",
-      "lines": 122,
+      "sha256": "4a61d152044a6978bc96b29487ba3844efdbeae7039ffa34658adb54d0e7937e",
+      "lines": 305,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/PresentationScoreBar.xaml.cs",
-      "sha256": "2c9ae555242f08a65521837db42fe706c7788443a9bc315e170fd429ddd80bcb",
-      "lines": 398,
+      "sha256": "d02e164e9a5e36385122ad2f3d5f1822781fa982b9ee7905d76ca3f6b885287f",
+      "lines": 520,
       "native_libraries": []
     },
     {
@@ -7266,8 +7593,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/ScorebugControl.xaml.cs",
-      "sha256": "42df522b32849b21e4db629a86b12fe10d65562d62980f4a7f141826249bb02f",
-      "lines": 5921,
+      "sha256": "3ce4e47848f3c28644d4e52f9fb2a12ba2e9c5a5d7e14de01a6cfd9d79eca96d",
+      "lines": 5968,
       "native_libraries": []
     },
     {
@@ -7278,14 +7605,14 @@
     },
     {
       "source": "Roche_Scoreboard/Views/SettingsWorkspace.cs",
-      "sha256": "ce0f9aa73285186a383fd42155d2b8091f15c7daaecaf749ed1a8c04cdbf78ab",
-      "lines": 206,
+      "sha256": "5897a741b9586d4164e0d32bad4b75176428c55d9d122b71bfa3fbec204e7ccc",
+      "lines": 282,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/SetupWizard.ClockChoiceDesign.cs",
-      "sha256": "a9bb8b3d84156b841cea456baaf519809ddd52c853b276090733256f4d4638d8",
-      "lines": 32,
+      "sha256": "59bfe763da0b119042647a6863e4d8e69e6087bce291ff8d0f8d5a1c0d5a4433",
+      "lines": 34,
       "native_libraries": []
     },
     {
@@ -7295,21 +7622,27 @@
       "native_libraries": []
     },
     {
+      "source": "Roche_Scoreboard/Views/SetupWizard.PresetReorderInteraction.cs",
+      "sha256": "80e1d488b27caddb3980b2fecad3d2d3da5c8fa4fad762478f7ae0c6ce2dadca",
+      "lines": 160,
+      "native_libraries": []
+    },
+    {
       "source": "Roche_Scoreboard/Views/SetupWizard.UnifiedFlow.cs",
-      "sha256": "4cbbc18266de1db177724a10957aa7b6f51ddf07f94a7e47bfd98d38be740a71",
-      "lines": 75,
+      "sha256": "d8390e2b5500a20ca1e0f80247e59df75d210989e578a0661bdf84faf47e8915",
+      "lines": 80,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/SetupWizard.xaml.cs",
-      "sha256": "af14ebf6c6141cf026340f341af982d784788e76b8ece2a05bee94d2187cae95",
-      "lines": 1726,
+      "sha256": "acf8efbe1e629367688e255e9f7ddc5bd39529dff2ef075b86eff83d5621b379",
+      "lines": 1968,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/SharedSurfaceMotion.cs",
-      "sha256": "eb5457efc594fff1884f55e5b69929a8828ea40159a6e2c98f17c7cd7858b102",
-      "lines": 113,
+      "sha256": "5a9e5bd33c87a2f873f4c750f1575a407dc96d3e688a41f86cbc2635ed7eac06",
+      "lines": 127,
       "native_libraries": []
     },
     {
@@ -7320,20 +7653,20 @@
     },
     {
       "source": "Roche_Scoreboard/Views/SportSelectionScreen.Interactions.cs",
-      "sha256": "dea45367cb6f95bd2062d69a04860814c48538f850cee96eff79fcd9bac8b76d",
-      "lines": 365,
+      "sha256": "83e2c8926bbfca2f458d589ec7edaca31d66cbfed6ff7075818392c0f0676f96",
+      "lines": 384,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/SportSelectionScreen.Landing.cs",
-      "sha256": "2b98fac02313d3e166d645ac5f2d7476bc65fddcd9082e42a67afbc9f0f7051f",
-      "lines": 49,
+      "sha256": "473b38f3c4a6d47dc9f76b1f976b75a1f31f857207f29f6671872dae350f5c9b",
+      "lines": 55,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/SportSelectionScreen.xaml.cs",
-      "sha256": "23bbe07f69bbeda04edadcc80473691fa4bd3fcdd2eb8a5171e5e73202b78b8e",
-      "lines": 647,
+      "sha256": "0dfb05347592eb84853dc822a5ff15a13828b94dd402764c5a8fc0177a4cde81",
+      "lines": 780,
       "native_libraries": []
     },
     {
@@ -7344,32 +7677,32 @@
     },
     {
       "source": "Roche_Scoreboard/Views/TeamLibraryWindow.xaml.cs",
-      "sha256": "fd433d05c3b1de3724ae0ad8500eae44ecbf28640a9b4d269d374d33a7488684",
-      "lines": 374,
+      "sha256": "630bb365ebfe9b531da5f6b495061f5946fa313e3c2e788e624af3025cc3c9db",
+      "lines": 392,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/TrainingControlPanel.ControlCentre.cs",
-      "sha256": "3a7fe3e9c4468eb4a5df2fa64167fd99db05f2a5ad1c461649752dd812a79794",
-      "lines": 80,
+      "sha256": "01645154e6098803eafba8c4666010d70ff839efdfb509a24c54b8b9f516a419",
+      "lines": 95,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/TrainingControlPanel.xaml.cs",
-      "sha256": "5b00158eec8dbcaafc1cd29f03a5158294382cf4a0d67fac552c2bd1a205eec2",
-      "lines": 1771,
+      "sha256": "fe7d4bc66f1805ee0b9f4039574765baf749fef6777bd179b249f2e49a0c51ca",
+      "lines": 1782,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/TrainingScorebugControl.xaml.cs",
-      "sha256": "07b17e23494ac21e11299a7b99b394ad121ac4cb1788cef3e8ea307dd45e9772",
-      "lines": 813,
+      "sha256": "2f0e7dcede27a107304a7f12862f77f79fb81c499cd9fbdc1a0c37b6ef8813ba",
+      "lines": 929,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Views/UpdatePromptWindow.xaml.cs",
-      "sha256": "48d02d26f7a96c36dc2f8804c697e815485007b7e6bcffd4a7ab96f8a06da9e4",
-      "lines": 250,
+      "sha256": "b585faf6c36680a4103646668c0884f72727ba82236f76f2733a3a93f4d6e3a7",
+      "lines": 365,
       "native_libraries": []
     },
     {
@@ -7380,8 +7713,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/VideoPlayerControl.xaml.cs",
-      "sha256": "b14fde01866a27a06c0854cbbdc48af65484e5ed74ab371267321404696f5eb3",
-      "lines": 825,
+      "sha256": "4eb5a4db9e5d203197106c04afc1a5bebf0e54db3d44ff86a8845f510c2bee9a",
+      "lines": 839,
       "native_libraries": []
     },
     {
@@ -7392,8 +7725,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/WizardFlowDesign.cs",
-      "sha256": "fed8abb716ca6b1166854d637c8861fcef16da3d6d3908af0520150081189445",
-      "lines": 126,
+      "sha256": "4a4b2a9490f11f8ebf12ba1faa96e25728905d76696aca5eb25a7e2ec733abdb",
+      "lines": 178,
       "native_libraries": []
     },
     {
@@ -7404,8 +7737,8 @@
     },
     {
       "source": "Roche_Scoreboard/Views/WizardTeamEditor.cs",
-      "sha256": "0b8db2d502d924bb40d1b0c11e6f653f0729dc7b3ad70d42ea928874f1647d6f",
-      "lines": 128,
+      "sha256": "151d3d7acfe9277709a72327a60c7c8431ea2ebba33b9e5e77c212cbb6d9b67e",
+      "lines": 164,
       "native_libraries": []
     }
   ]

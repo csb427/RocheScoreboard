@@ -9,6 +9,19 @@ def mapped(source):
     for old,new in translator.REPLACEMENTS.items():source=source.replace(old,new)
     return translator.map_native_api(source)
 class EffectiveMotionVisibilityTests(unittest.TestCase):
+    def test_actual_choice_owner_checks_effective_visibility_for_retarget_frame_and_observer(self):
+        source=(Path(__file__).resolve().parents[3]/'Roche_Scoreboard/Services/OperatorChoiceMotion.cs').read_text(encoding='utf-8-sig')
+        code=mapped(source)
+        self.assertEqual(3,code.count('NativeEffectiveVisibility.IsVisible(control)'))
+        self.assertNotIn('control.IsVisible',code)
+        self.assertIn('NativeEffectiveVisibility.WatchProperty(control,Avalonia.Controls.Control.IsVisibleProperty,true,VisibilityChanged)',code)
+        self.assertIn('NativeEffectiveVisibility.WatchProperty(control,Avalonia.Controls.Control.IsVisibleProperty,false,VisibilityChanged)',code)
+        self.assertIn('{ Settle(); return; }',code)
+        self.assertIn('CompositionTarget.Rendering',source)
+    def test_new_control_owner_preserves_local_visibility_writes(self):
+        code=mapped('class OperatorChoiceMotion { void Check(){control.Visibility = Visibility.Collapsed; if(!control.IsVisible)Settle();} }')
+        self.assertIn('control.IsVisible = false;',code)
+        self.assertIn('!NativeEffectiveVisibility.IsVisible(control)',code)
     def test_control_reads_effective_without_rewriting_popup_local_assignment(self):
         code=mapped('class OperatorControlMotion { void Update(){ if(!_control.IsVisible) Reset(); _popupSurface.Visibility = Visibility.Collapsed; } }')
         self.assertIn('!NativeEffectiveVisibility.IsVisible(_control)',code)

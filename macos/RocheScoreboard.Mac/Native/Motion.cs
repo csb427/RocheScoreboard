@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Data;
 using Avalonia.Threading;
+using Roche_Scoreboard.Services;
 
 namespace RocheScoreboard.Mac.Native;
 
@@ -72,7 +73,8 @@ public class DoubleAnimation
 public static class Motion
 {
     private static readonly ConditionalWeakTable<AvaloniaObject, Dictionary<AvaloniaProperty, Running>> Active = new();
-    public static bool IsAnimating(AvaloniaObject target)=>Active.TryGetValue(target,out var values)&&values.Values.Any(value=>!value.Finished);
+    public static bool IsAnimating(AvaloniaObject target)=>Active.TryGetValue(target,out var values)&&values.Values.Any(value=>!value.Finished)
+        || OperatorChoiceMotion.IsAnimating(target);
     // A finished HoldEnd clock can still supply an animation-priority value.
     // Query the requested property rather than another active clock on target.
     internal static bool HasAnimationValue(AvaloniaObject target, AvaloniaProperty property)

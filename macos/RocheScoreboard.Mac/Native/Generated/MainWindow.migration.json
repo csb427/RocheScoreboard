@@ -1,6 +1,6 @@
 {
   "source": "Roche_Scoreboard/MainWindow.xaml",
-  "source_sha256": "d5901cb6816429900758bf6d6d84f543c3b8a71d65fae5459cb0b02832a763e6",
+  "source_sha256": "8b2e02d81d00160423fae405179fb64817f3dea7dd716bb0ac5bc56576535e51",
   "names": [
     {
       "name": "HeaderToggle",
@@ -146,6 +146,21 @@
     },
     {
       "name": "GuidedModeButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AflOperatorHomeButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AflApplicationSettingsButton",
+      "type": "Button",
+      "object": false
+    },
+    {
+      "name": "AflCommandSearchButton",
       "type": "Button",
       "object": false
     },
@@ -1495,6 +1510,21 @@
       "object": false
     },
     {
+      "name": "CloudStartButtonLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CloudStartBusyProgress",
+      "type": "ProgressBar",
+      "object": false
+    },
+    {
+      "name": "CloudStartBusyStatic",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "CloudDisabledState",
       "type": "StackPanel",
       "object": false
@@ -1555,6 +1585,21 @@
       "object": false
     },
     {
+      "name": "CloudEndButtonLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CloudEndBusyProgress",
+      "type": "ProgressBar",
+      "object": false
+    },
+    {
+      "name": "CloudEndBusyStatic",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
       "name": "SettingsResetMatchButton",
       "type": "Button",
       "object": false
@@ -1577,6 +1622,21 @@
     {
       "name": "CheckForUpdateButton",
       "type": "Button",
+      "object": false
+    },
+    {
+      "name": "CheckForUpdateLabel",
+      "type": "TextBlock",
+      "object": false
+    },
+    {
+      "name": "CheckForUpdateBusyProgress",
+      "type": "ProgressBar",
+      "object": false
+    },
+    {
+      "name": "CheckForUpdateBusyStatic",
+      "type": "TextBlock",
       "object": false
     },
     {
@@ -1720,7 +1780,7 @@
       "object": false
     }
   ],
-  "code_source_sha256": "68db12d73e07caa7ccf89cde3fe130a775161b6e1d0e7ef1ebf9f65ab55b99eb",
+  "code_source_sha256": "8e1f2bdda7de2b8cc006331b4572bf76343def3b2a98cecb8e7f0125bc888d88",
   "native_events": [
     {
       "name": "MainTabControl",

@@ -82,7 +82,7 @@ internal static class GameStateService
             }
             return true;
         }
-        catch
+        catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
         {
             // Report failure to explicit replacement/reset flows. Ordinary
             // autosaves may still ignore this result to keep input responsive.
@@ -94,7 +94,7 @@ internal static class GameStateService
             {
                 if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
             }
-            catch { }
+            catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error)) { }
         }
     }
 
@@ -141,8 +141,13 @@ internal static class GameStateService
             // primary is corrupt: never overwrite the known-valid backup with it.
             File.Move(temporary, path, overwrite: true);
         }
-        catch { /* Leave the valid backup/legacy source available for retry. */ }
-        finally { try { if (File.Exists(temporary)) File.Delete(temporary); } catch { } }
+        catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
+        { /* Leave the valid backup/legacy source available for retry. */ }
+        finally
+        {
+            try { if (File.Exists(temporary)) File.Delete(temporary); }
+            catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error)) { }
+        }
     }
 
     private static GameState? TryLoad(string path)
@@ -153,7 +158,7 @@ internal static class GameStateService
             var state = JsonSerializer.Deserialize<GameState>(File.ReadAllText(path), JsonOptions);
             return RecoverySession.Describe(state) is null ? null : state;
         }
-        catch { return null; }
+        catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error)) { return null; }
     }
 
     /// <summary>
@@ -176,7 +181,7 @@ internal static class GameStateService
             return !File.Exists(statePath) && !File.Exists(backupPath)
                 && (string.Equals(legacy, statePath, StringComparison.OrdinalIgnoreCase) || !File.Exists(legacy));
         }
-        catch
+        catch (Exception error) when (!UnhandledExceptionPolicy.IsFatalResourceFailure(error))
         {
             return false;
         }

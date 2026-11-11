@@ -1,5 +1,5 @@
 // Generated from Views/OperatorSceneBackdrop.cs; edit translator/adapters.
-// Source SHA-256: b3a35270ccb54cbf14a998493c0e4c95ba698b644ec5a6f4857724edd3b0b349
+// Source SHA-256: 5caa92640c4c2c87b6967d0d616ac52321b620cafa5fa0661738d1b2c29bc8a4
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -109,5 +109,10 @@ public sealed class OperatorSceneBackdrop : Control
         drawing.DrawGeometry(upper,null,UpperRibbon);drawing.Pop();drawing.Pop();
     }
     internal static Brush FallbackBrush()
-    {var group=new DrawingGroup();using(var drawing=group.Open())DrawScene(drawing,new Rect(0,0,1000,700),false);group.Freeze();return new DrawingBrush(group){Stretch=Stretch.Fill};}
+    {
+        // A missing sample must not stamp a miniature copy of the full wallpaper
+        // into every control. Let the real scene beneath the surface show through
+        // the normal material tint instead.
+        return Avalonia.Media.Brushes.Transparent;
+    }
 }

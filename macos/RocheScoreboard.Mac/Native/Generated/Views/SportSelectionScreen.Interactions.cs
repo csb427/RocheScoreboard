@@ -1,5 +1,5 @@
 // Generated from Views/SportSelectionScreen.Interactions.cs; edit translator/adapters.
-// Source SHA-256: 37d826368b6f53648ace0583cf39da752321891e7b241104ab028d0cb2149d85
+// Source SHA-256: 83e2c8926bbfca2f458d589ec7edaca31d66cbfed6ff7075818392c0f0676f96
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -77,7 +77,7 @@ public partial class SportSelectionScreen
         _homeTiles[TrainingCard] = new HomeTileMotion(this, TrainingCard, TrainingIconMotionScale, TrainingIconMotionShift, TrainingGlassEdge, TrainingHover);
         _homeLens = new HomeLensMotion(this);
         _releaseSheetMotion = new HomeSheetMotion(this);
-        KeyboardNavigation.SetTabIndex(HomeResumeButton,1);KeyboardNavigation.SetTabIndex(HomeCommandsButton,2);KeyboardNavigation.SetTabIndex(ResumeSavedMatchButton,1);KeyboardNavigation.SetTabIndex(ChangelogToggle,20);
+        KeyboardNavigation.SetTabIndex(HomeResumeButton,1);KeyboardNavigation.SetTabIndex(HomeCommandsButton,2);KeyboardNavigation.SetTabIndex(HistoryButton,3);KeyboardNavigation.SetTabIndex(ResumeSavedMatchButton,1);KeyboardNavigation.SetTabIndex(ChangelogToggle,20);
         Loaded+=(_,_)=>{OperatorAppearance.Changed-=LandingPreferencesChanged;OperatorAppearance.Changed+=LandingPreferencesChanged;};
         Unloaded+=(_,_)=>{OperatorAppearance.Changed-=LandingPreferencesChanged;SuspendLandingInteractions();};
         NativeEvents.WatchProperty(this,Avalonia.Controls.Control.IsVisibleProperty,true,(_,_) =>

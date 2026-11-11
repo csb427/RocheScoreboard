@@ -1,5 +1,5 @@
 // Generated from Views/OperatorAccentPreferences.cs; edit translator/adapters.
-// Source SHA-256: 02b36088b74f5a30c036e3e28ae7af1ef23f3560425e07c51727d0012a6b20bd
+// Source SHA-256: 3dd38db67852b7d7fd43498dcda8bcf12d6673517ca544aac50531a789768b0f
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -19,8 +19,10 @@ namespace Roche_Scoreboard.Views;
 /// <summary>Operator-only accent colour selection with an immediate, persistent preview.</summary>
 internal sealed class OperatorAccentPreferences : UserControl
 {
-    private static readonly SolidColorBrush SharedAccentBrush = new(Color.FromRgb(10,87,255));
-    private static readonly SolidColorBrush SharedSelectionBrush = new(Color.FromRgb(230,241,255));
+    // Resource dictionaries may freeze AvaloniaObject values. Replace these palette
+    // sources on each update rather than mutating a brush after it was shared.
+    private static SolidColorBrush SharedAccentBrush = new(Color.FromRgb(10,87,255));
+    private static SolidColorBrush SharedSelectionBrush = new(Color.FromRgb(230,241,255));
     private readonly Dictionary<OperatorAccentPalette,RadioButton> _choices=new();
     private readonly Border _preview=new NativeBorder(){CornerRadius=new CornerRadius(18),Padding=new Thickness(16),Margin=new Thickness(0,12,0,0)};
     private readonly TextBlock _sampleText=new(){Text="Selected controls and highlights",FontSize=14,FontWeight=FontWeight.SemiBold,VerticalAlignment=VerticalAlignment.Center};
@@ -63,11 +65,11 @@ internal sealed class OperatorAccentPreferences : UserControl
         var currentTheme=themeService?.GetType().GetProperty("CurrentTheme",flags)?.GetValue(themeService);
         bool dark=Equals(currentTheme,AppTheme.Dark);
         var (accent,selection)=ColorsFor(OperatorAppearance.AccentPalette,dark);
+        SharedAccentBrush = new SolidColorBrush(accent);
+        SharedSelectionBrush = new SolidColorBrush(selection);
         app.Resources["Operator.CustomAccentColor"]=accent;
         app.Resources["Operator.CustomSelectionColor"]=selection;
 #if WINDOWS
-        SharedAccentBrush.Color=accent;
-        SharedSelectionBrush.Color=selection;
         UpdateMergedAccentBrushes(app.Resources,SharedAccentBrush,SharedSelectionBrush);
         foreach (Window window in app.Windows)
         {
@@ -77,8 +79,6 @@ internal sealed class OperatorAccentPreferences : UserControl
 #else
         // The Mac translation uses Avalonia's application resource lookup; it
         // has no WPF-style application window collection or resource binding.
-        SharedAccentBrush.Color=accent;
-        SharedSelectionBrush.Color=selection;
 #endif
     }
 
@@ -92,7 +92,7 @@ internal sealed class OperatorAccentPreferences : UserControl
             UpdateVisualTreeAccentBrushes(VisualTreeHelper.GetChild(element,index),accent,selection);
     }
 
-    private static void UpdateMergedAccentBrushes(ResourceDictionary resources,SolidColorBrush accent,SolidColorBrush selection)
+    internal static void UpdateMergedAccentBrushes(ResourceDictionary resources,SolidColorBrush accent,SolidColorBrush selection)
     {
         Update("ControlCentre.AccentBrush",accent);
         Update("ControlCentre.SelectionBrush",selection);

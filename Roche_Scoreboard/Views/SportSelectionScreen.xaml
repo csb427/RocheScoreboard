@@ -57,7 +57,7 @@
    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
    <Grid x:Name="HomeToolbar">
     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-    <local:OperatorGlassSurface x:Name="SettingsTile" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" HorizontalAlignment="Left" Padding="14,9" Cursor="Hand" BorderBrush="#60FFFFFF" BorderThickness="1" MouseLeftButtonUp="Settings_Click" MouseEnter="SettingsTile_MouseEnter" MouseLeave="SettingsTile_MouseLeave">
+    <local:OperatorGlassSurface x:Name="SettingsTile" Material="Opaque" Background="{DynamicResource ControlCentre.RaisedBrush}" CornerRadius="22" HorizontalAlignment="Left" Padding="14,9" Cursor="Hand" BorderBrush="{DynamicResource ControlCentre.BorderBrush}" BorderThickness="1" MouseLeftButtonUp="Settings_Click" MouseEnter="SettingsTile_MouseEnter" MouseLeave="SettingsTile_MouseLeave">
      <Border.RenderTransform><TransformGroup><ScaleTransform x:Name="SettingsTileScale"/><TranslateTransform x:Name="SettingsTileTranslate"/></TransformGroup></Border.RenderTransform>
      <Border.Effect><DropShadowEffect x:Name="SettingsTileGlow" BlurRadius="18" ShadowDepth="4" Color="Black" Opacity=".18"/></Border.Effect>
      <StackPanel Orientation="Horizontal"><motion:OperatorSymbol Kind="Settings" Width="22" Height="22" Margin="0,0,9,0" Foreground="White"/><StackPanel VerticalAlignment="Center"><TextBlock x:Name="SettingsActionCaption" Text="Settings" Foreground="White" FontSize="14" FontWeight="SemiBold"/><TextBlock x:Name="SettingsSubtitle" Visibility="Collapsed" Text="Application preferences" Foreground="#B9C4D4" FontSize="12" Margin="0,2,0,0"/></StackPanel></StackPanel>
@@ -65,8 +65,8 @@
     <Button x:Name="HomeCommandsButton" Grid.Column="1" Content="Commands · Ctrl+K" Style="{StaticResource HomeUtility}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0" Click="HomeCommands_Click" AutomationProperties.Name="Search commands, Control K"/>
     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
      <Button x:Name="HistoryButton" Content="Match history" Visibility="Collapsed" Style="{StaticResource HomeUtility}" Click="History_Click" AutomationProperties.Name="Open local match history" ToolTip="Review saved match checkpoints"/>
-     <local:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0" Visibility="{Binding Visibility, ElementName=ResumeSavedMatchButton}"><Button x:Name="ResumeSavedMatchButton" Content="Continue match" Visibility="Collapsed" Style="{StaticResource HomeUtility}" Click="ResumeSavedMatch_Click" ToolTip="Review and resume the saved match"/></local:OperatorGlassSurface>
-     <local:OperatorGlassSurface Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="24" Margin="8,0,0,0">
+     <local:OperatorGlassSurface x:Name="ResumeUtilitySurface" Material="Opaque" Background="{DynamicResource ControlCentre.RaisedBrush}" CornerRadius="22" Margin="8,0,0,0" Visibility="{Binding Visibility, ElementName=ResumeSavedMatchButton}"><Button x:Name="ResumeSavedMatchButton" Content="Continue match" Visibility="Collapsed" Style="{StaticResource HomeUtility}" Click="ResumeSavedMatch_Click" ToolTip="Review and resume the saved match"/></local:OperatorGlassSurface>
+     <local:OperatorGlassSurface Material="Opaque" Background="{DynamicResource ControlCentre.RaisedBrush}" CornerRadius="22" Margin="8,0,0,0">
       <Button x:Name="ChangelogToggle" Style="{StaticResource HomeUtility}" Click="ChangelogToggle_Click">
        <StackPanel Orientation="Horizontal"><motion:OperatorSymbol x:Name="UpdatesActionIcon" Kind="Updates" Width="20" Height="20" Margin="0,0,8,0" Foreground="White"/><StackPanel><TextBlock Text="What’s New" Foreground="{DynamicResource ControlCentre.TextBrush}" FontSize="14" FontWeight="SemiBold"/><TextBlock x:Name="VersionLabel" Text="Latest release" Foreground="{DynamicResource ControlCentre.SecondaryTextBrush}" FontSize="12" Margin="0,2,0,0"/></StackPanel></StackPanel>
       </Button>
@@ -140,7 +140,7 @@
  </ScrollViewer>
 <Grid x:Name="ChangelogOverlay" Panel.ZIndex="100" Visibility="Collapsed" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.ControlTabNavigation="Cycle" FocusManager.IsFocusScope="True" PreviewKeyDown="ChangelogOverlay_PreviewKeyDown">
    <Border Background="#A5020509" MouseLeftButtonUp="ChangelogBackdrop_Click"/>
-   <local:OperatorGlassSurface x:Name="ChangelogPanel" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin=".5,.5">
+    <local:OperatorGlassSurface x:Name="ChangelogPanel" Material="Regular" GlassSource="{Binding ElementName=HomeLayout}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin=".5,.5">
     <Border.RenderTransform><TransformGroup><ScaleTransform x:Name="ChangelogPanelScale" ScaleX=".96" ScaleY=".96"/><TranslateTransform x:Name="ChangelogPanelTranslate" Y="24"/></TransformGroup></Border.RenderTransform>
         <Grid x:Name="ReleaseSheetBody" Margin="26">
      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
@@ -174,7 +174,7 @@
   </Grid>
 <Grid x:Name="HistoryOverlay" Panel.ZIndex="110" Visibility="Collapsed" Opacity="0" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.ControlTabNavigation="Cycle" FocusManager.IsFocusScope="True" PreviewKeyDown="HistoryOverlay_PreviewKeyDown">
    <Border Background="#A5020509" MouseLeftButtonUp="HistoryBackdrop_Click"/>
-   <local:OperatorGlassSurface x:Name="HistoryPanel" Material="Regular" GlassSource="{Binding ElementName=HomeBackdrop}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin=".5,.5">
+   <local:OperatorGlassSurface x:Name="HistoryPanel" Material="Regular" GlassSource="{Binding ElementName=HomeLayout}" CornerRadius="32" MaxWidth="1080" Margin="22" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin=".5,.5">
     <Border.RenderTransform><TransformGroup><ScaleTransform x:Name="HistoryPanelScale" ScaleX=".985" ScaleY=".985"/><TranslateTransform x:Name="HistoryPanelTranslate" Y="10"/></TransformGroup></Border.RenderTransform>
     <ContentControl x:Name="HistoryViewHost" Margin="20"/>
    </local:OperatorGlassSurface>

@@ -543,11 +543,15 @@ public partial class MainWindow
     private static object? InvokeCricketQa(object target, string method, params object[] args)
     {
         var candidate=target.GetType().GetMethods(BindingFlags.NonPublic|BindingFlags.Instance)
-            .Where(item=>item.Name==method && item.GetParameters().Length==args.Length)
-            .Where(item=>item.GetParameters().Select((parameter,index)=>args[index] is null ? !parameter.ParameterType.IsValueType || Nullable.GetUnderlyingType(parameter.ParameterType) is not null : parameter.ParameterType.IsInstanceOfType(args[index])).All(matches=>matches))
+            .Where(item=>item.Name==method && item.GetParameters().Length>=args.Length)
+            .Where(item=>item.GetParameters().Take(args.Length).Select((parameter,index)=>args[index] is null ? !parameter.ParameterType.IsValueType || Nullable.GetUnderlyingType(parameter.ParameterType) is not null : parameter.ParameterType.IsInstanceOfType(args[index])).All(matches=>matches))
+            .Where(item=>item.GetParameters().Skip(args.Length).All(parameter=>parameter.IsOptional))
             .OrderBy(item=>item.DeclaringType==target.GetType()?0:1).FirstOrDefault()
             ?? throw new MissingMethodException(target.GetType().FullName,method);
-        return candidate.Invoke(target,args);
+        var invocationArgs=new object?[candidate.GetParameters().Length];
+        Array.Copy(args,invocationArgs,args.Length);
+        for(int index=args.Length;index<invocationArgs.Length;index++)invocationArgs[index]=Type.Missing;
+        return candidate.Invoke(target,invocationArgs);
     }
 
     private static void CaptureCricketQa(FrameworkElement element, string path)

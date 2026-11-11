@@ -116,9 +116,24 @@ public partial class GlobalSettingsScreen : global::System.Windows.Controls.User
         } finally { _syncingTiles=false; }
     }
     public void SetBackCaption(string caption) => BackButton.Content = caption;
+    public void FocusBackButton() => BackButton.Focus();
 
     private void Settings_SizeChanged(object sender, global::System.Windows.SizeChangedEventArgs e)
     {
+        bool stackedNavigation = e.NewSize.Width < 680;
+        SettingsNavigationGrid.RowDefinitions[1].Height = stackedNavigation
+            ? global::System.Windows.GridLength.Auto : new global::System.Windows.GridLength(0);
+        global::System.Windows.Controls.Grid.SetRow(BackButton, 0);
+        global::System.Windows.Controls.Grid.SetColumn(BackButton, 0);
+        global::System.Windows.Controls.Grid.SetColumnSpan(BackButton, stackedNavigation ? 3 : 1);
+        global::System.Windows.Controls.Grid.SetRow(SettingsScopeSurface, stackedNavigation ? 1 : 0);
+        global::System.Windows.Controls.Grid.SetColumn(SettingsScopeSurface, stackedNavigation ? 0 : 1);
+        global::System.Windows.Controls.Grid.SetColumnSpan(SettingsScopeSurface, stackedNavigation ? 3 : 1);
+        BackButton.Margin = stackedNavigation
+            ? new global::System.Windows.Thickness(0, 0, 0, 8)
+            : new global::System.Windows.Thickness(0, 0, 12, 0);
+        SettingsScopeSurface.HorizontalAlignment = stackedNavigation
+            ? global::System.Windows.HorizontalAlignment.Left : global::System.Windows.HorizontalAlignment.Stretch;
         // On very short windows the read-only identifier scrolls internally;
         // its entire focusable field must still fit the settings viewport.
         double viewportHeight = SettingsWorkspace?.Scroller.ActualHeight ?? 0;

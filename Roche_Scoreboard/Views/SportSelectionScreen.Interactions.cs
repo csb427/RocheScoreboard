@@ -72,7 +72,7 @@ public partial class SportSelectionScreen
         _homeTiles[TrainingCard] = new HomeTileMotion(this, TrainingCard, TrainingIconMotionScale, TrainingIconMotionShift, TrainingGlassEdge, TrainingHover);
         _homeLens = new HomeLensMotion(this);
         _releaseSheetMotion = new HomeSheetMotion(this);
-        KeyboardNavigation.SetTabIndex(HomeResumeButton,1);KeyboardNavigation.SetTabIndex(HomeCommandsButton,2);KeyboardNavigation.SetTabIndex(ResumeSavedMatchButton,1);KeyboardNavigation.SetTabIndex(ChangelogToggle,20);
+        KeyboardNavigation.SetTabIndex(HomeResumeButton,1);KeyboardNavigation.SetTabIndex(HomeCommandsButton,2);KeyboardNavigation.SetTabIndex(HistoryButton,3);KeyboardNavigation.SetTabIndex(ResumeSavedMatchButton,1);KeyboardNavigation.SetTabIndex(ChangelogToggle,20);
         Loaded+=(_,_)=>{OperatorAppearance.Changed-=LandingPreferencesChanged;OperatorAppearance.Changed+=LandingPreferencesChanged;};
         Unloaded+=(_,_)=>{OperatorAppearance.Changed-=LandingPreferencesChanged;SuspendLandingInteractions();};
         IsVisibleChanged+=(_,_) =>
