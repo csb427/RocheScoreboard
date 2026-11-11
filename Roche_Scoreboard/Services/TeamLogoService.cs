@@ -16,6 +16,7 @@ public static partial class TeamLogoService
 
     public static async Task<string> GetTransparentLogoAsync(TeamCatalogEntry team, CancellationToken cancellationToken = default)
     {
+        OperatorFlowIsolation.Deny("logo-download");
         if (!string.IsNullOrWhiteSpace(team.BundledLogo))
             return await PrepareBundledLogoAsync(team, null, cancellationToken).ConfigureAwait(false);
         string directory = Path.Combine(

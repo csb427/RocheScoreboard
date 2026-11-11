@@ -38,6 +38,7 @@ public sealed class AutoUpdateService
 
     internal static void CleanupStaleStagingDirectories()
     {
+        OperatorFlowIsolation.Deny("updater-cleanup");
         string tempDirectory = Path.GetTempPath();
         DateTime staleBeforeUtc = DateTime.UtcNow.AddDays(-2);
         try
@@ -96,6 +97,7 @@ public sealed class AutoUpdateService
     /// </summary>
     public async Task<bool> CheckForUpdateAsync(CancellationToken ct = default)
     {
+        OperatorFlowIsolation.Deny("updater-check");
         await _checkGate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
@@ -172,6 +174,7 @@ public sealed class AutoUpdateService
         IProgress<UpdateProgressInfo>? progress,
         CancellationToken ct)
     {
+        OperatorFlowIsolation.Deny("updater-download");
         LastError = null;
         if (LatestRelease is null)
         {
@@ -535,6 +538,7 @@ public sealed class AutoUpdateService
 
     private static bool TryLaunchUpdaterScript(string scriptPath, string workingDirectory)
     {
+        OperatorFlowIsolation.Deny("updater-install");
         string escapedScript = scriptPath.Replace("\"", "\"\"");
 
         ProcessStartInfo[] candidates =
@@ -744,6 +748,7 @@ public sealed class AutoUpdateService
 
     public static void OpenUrlInBrowser(string url)
     {
+        OperatorFlowIsolation.Deny("external-browser");
         if (string.IsNullOrWhiteSpace(url))
             throw new InvalidOperationException("No URL is available.");
 
@@ -961,6 +966,7 @@ public sealed class AutoUpdateService
 
     private static void WriteDiagnostic(string message)
     {
+        OperatorFlowIsolation.Deny("updater-diagnostics");
         lock (s_diagnosticGate)
         {
             try

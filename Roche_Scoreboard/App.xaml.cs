@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -74,6 +74,7 @@ public partial class App : Application
             arg.StartsWith("--control-centre-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--apple-interaction-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--operator-controls-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
+            arg.StartsWith("--operator-afl-flow", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--operator-design-preview", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--cricket-motion-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
             arg.StartsWith("--cricket-self-test-output=", StringComparison.OrdinalIgnoreCase) ||
@@ -83,12 +84,18 @@ public partial class App : Application
             arg.StartsWith("--afl-presentation-snapshots=", StringComparison.OrdinalIgnoreCase));
 
         SelfTestStorage.Initialize(IsSelfTestMode);
+        if (e.Args.Any(arg => arg.StartsWith("--operator-afl-flow", StringComparison.OrdinalIgnoreCase)))
+            OperatorFlowIsolation.Enable();
         _selfTestDiagnosticBaseline = DiagnosticExceptionCount;
 
         // Install global exception handlers up-front so any error from here on
         // is logged (and, where possible, non-fatal ones are swallowed) rather
         // than tearing the process down silently mid-game.
         InstallGlobalExceptionHandlers();
+
+        // Explicit controller-only AFL integration, before preferences and any
+        // operator construction. Invalid activation never falls through.
+        if (AflOperatorFlowQa.TryStart(this, e.Args, _selfTestDiagnosticBaseline)) return;
 
         // Exercise the actual dispatcher policy in a separate isolated QA child,
         // before preferences, production services or an operator window exist.

@@ -20,6 +20,11 @@ internal static class VlcRuntime
     private static Exception? _initializationError;
     private static bool _initialisationAttempted;
 
+    internal static bool InitializationAttempted
+    {
+        get { lock (_gate) return _initialisationAttempted; }
+    }
+
     /// <summary>
     /// True once the native runtime has been initialised successfully and
     /// the shared <see cref="LibVLC"/> instance is ready.
@@ -49,6 +54,7 @@ internal static class VlcRuntime
     {
         get
         {
+            OperatorFlowIsolation.Deny("vlc-instance");
             if (_instance is not null) return _instance;
             EnsureInitialised();
             return _instance ?? throw new InvalidOperationException(
@@ -63,6 +69,7 @@ internal static class VlcRuntime
     /// </summary>
     public static void ValidateOrThrow()
     {
+        OperatorFlowIsolation.Deny("vlc-validate");
         EnsureInitialised();
         if (_instance is null)
         {
@@ -74,6 +81,7 @@ internal static class VlcRuntime
 
     private static void EnsureInitialised()
     {
+        OperatorFlowIsolation.Deny("vlc-initialize");
         if (_instance is not null) return;
         lock (_gate)
         {

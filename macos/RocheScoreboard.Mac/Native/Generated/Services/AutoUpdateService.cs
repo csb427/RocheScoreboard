@@ -1,5 +1,5 @@
 // Generated from Services/AutoUpdateService.cs; edit translator/adapters.
-// Source SHA-256: f2c6db8e1c90e1d9f1720220961c9b000cce80c0c1f953a0b8dd3078a3bfbfcb
+// Source SHA-256: d47e374f9954adb05420542eeb6ab0973a82462bc48f4ebd67963ffde0e81507
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -44,6 +44,7 @@ public sealed class AutoUpdateService
 
     internal static void CleanupStaleStagingDirectories()
     {
+        OperatorFlowIsolation.Deny("updater-cleanup");
         string tempDirectory = Path.GetTempPath();
         DateTime staleBeforeUtc = DateTime.UtcNow.AddDays(-2);
         try
@@ -102,6 +103,7 @@ public sealed class AutoUpdateService
     /// </summary>
     public async Task<bool> CheckForUpdateAsync(CancellationToken ct = default)
     {
+        OperatorFlowIsolation.Deny("updater-check");
         await _checkGate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
@@ -212,6 +214,7 @@ public sealed class AutoUpdateService
 
     public static void OpenUrlInBrowser(string url)
     {
+        OperatorFlowIsolation.Deny("external-browser");
         if (string.IsNullOrWhiteSpace(url))
             throw new InvalidOperationException("No URL is available.");
 
@@ -259,6 +262,7 @@ public sealed class AutoUpdateService
 
     private static void WriteDiagnostic(string message)
     {
+        OperatorFlowIsolation.Deny("updater-diagnostics");
         lock (s_diagnosticGate)
         {
             try

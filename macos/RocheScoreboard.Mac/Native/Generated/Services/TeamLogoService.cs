@@ -1,5 +1,5 @@
 // Generated from Services/TeamLogoService.cs; edit translator/adapters.
-// Source SHA-256: 5bb9e7cac50fc71757e174e8c3f9aaeeaa2027095eb95cada42498637baf843f
+// Source SHA-256: b55e5e962131b34b8a4f7497dfec40241b78650945134c73aac9fcc80b482cf7
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -23,6 +23,7 @@ public static partial class TeamLogoService
 
     public static async Task<string> GetTransparentLogoAsync(TeamCatalogEntry team, CancellationToken cancellationToken = default)
     {
+        OperatorFlowIsolation.Deny("logo-download");
         if (!string.IsNullOrWhiteSpace(team.BundledLogo))
             return await PrepareBundledLogoAsync(team, null, cancellationToken).ConfigureAwait(false);
         string directory = Path.Combine(

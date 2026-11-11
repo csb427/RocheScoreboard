@@ -1,5 +1,5 @@
 // Generated from MainWindow.CloudRemote.cs; edit translator/adapters.
-// Source SHA-256: 7780c5af32d37821f9b75c109e3d9aa021a85842ff98b0a5636e992f0955391c
+// Source SHA-256: 2b63e7caea4c6f8adcea819b3b8386f9bc25babd3c087eb933938502411e432d
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -110,6 +110,7 @@ public partial class MainWindow : IRemoteCommandTarget, IRemoteCommandScope
     /// </summary>
     private void StartCloudRemoteOnLoad()
     {
+        Services.OperatorFlowIsolation.Deny("cloud-config-onload");
         _cloudConfig = SupabaseConfig.TryLoad();
         RefreshCloudRemoteUi();
     }
@@ -140,6 +141,7 @@ public partial class MainWindow : IRemoteCommandTarget, IRemoteCommandScope
     /// </summary>
     public async Task StartCloudSessionAsync()
     {
+        Services.OperatorFlowIsolation.Deny("cloud-session");
         if (_cloudRemote is not null || _remoteCommandOwnerClosed) return;
 
         SupabaseConfig? cfg = _cloudConfig ??= SupabaseConfig.TryLoad();

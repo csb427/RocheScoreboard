@@ -40,6 +40,7 @@ namespace Roche_Scoreboard.Services
         /// </summary>
         public static string GetPlaybackPath(string originalPath)
         {
+            OperatorFlowIsolation.Deny("video-playback");
             if (string.IsNullOrWhiteSpace(originalPath) || !File.Exists(originalPath))
                 return originalPath;
 
@@ -66,6 +67,7 @@ namespace Roche_Scoreboard.Services
         /// </summary>
         public static Task<string> EnsureOptimisedAsync(string originalPath, CancellationToken cancellationToken = default)
         {
+            OperatorFlowIsolation.Deny("video-optimize");
             if (string.IsNullOrWhiteSpace(originalPath) || !File.Exists(originalPath))
                 return Task.FromResult(originalPath);
 

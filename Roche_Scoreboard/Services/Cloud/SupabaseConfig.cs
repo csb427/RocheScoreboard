@@ -78,6 +78,7 @@ public sealed record SupabaseConfig
     /// </summary>
     public static SupabaseConfig? TryLoad()
     {
+        OperatorFlowIsolation.Deny("cloud-config");
         foreach (string candidate in new[] { PrimaryConfigPath, FallbackConfigPath })
         {
             if (!File.Exists(candidate)) continue;

@@ -1,5 +1,5 @@
 // Generated from Services/TeamLogoService.Bundled.cs; edit translator/adapters.
-// Source SHA-256: 1005067c572c590b66fa1dfbba45749e672ac1ce60f67873a64fcfa71ca324ea
+// Source SHA-256: 2d8fb9bb5b75a3cc69b480d6d7826ab5afb42f35acfc3a99280ebb32a26db721
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -18,6 +18,7 @@ public static partial class TeamLogoService
     private static readonly SemaphoreSlim BundledPreparation = new(1, 1);
     internal static async Task<string> PrepareBundledLogoAsync(TeamCatalogEntry team, string? cacheDirectory, CancellationToken cancellationToken = default)
     {
+        OperatorFlowIsolation.Deny("logo-bundled");
         string directory = cacheDirectory ?? Path.Combine(NativeStoragePaths.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Roche_Scoreboard", "team_library", "logos");
         Directory.CreateDirectory(directory);
         string output = Path.Combine(directory, team.Id + "-crest-v5.png");

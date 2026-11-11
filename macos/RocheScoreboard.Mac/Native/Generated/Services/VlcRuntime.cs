@@ -1,5 +1,5 @@
 // Generated from Services/VlcRuntime.cs; edit translator/adapters.
-// Source SHA-256: adeb8b8a65927d0a93e48270478245a3a096daf9d8f63fdc5f8488fb927bd034
+// Source SHA-256: 689334b6328b00e85de8bf8db87111e4f60da2889a75d8fab54c561c0d8a35b7
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -28,6 +28,11 @@ internal static class VlcRuntime
     private static LibVLC? _instance;
     private static Exception? _initializationError;
     private static bool _initialisationAttempted;
+
+    internal static bool InitializationAttempted
+    {
+        get { lock (_gate) return _initialisationAttempted; }
+    }
 
     /// <summary>
     /// True once the native runtime has been initialised successfully and
@@ -58,6 +63,7 @@ internal static class VlcRuntime
     {
         get
         {
+            OperatorFlowIsolation.Deny("vlc-instance");
             if (_instance is not null) return _instance;
             EnsureInitialised();
             return _instance ?? throw new InvalidOperationException(
@@ -72,6 +78,7 @@ internal static class VlcRuntime
     /// </summary>
     public static void ValidateOrThrow()
     {
+        OperatorFlowIsolation.Deny("vlc-validate");
         EnsureInitialised();
         if (_instance is null)
         {
@@ -83,6 +90,7 @@ internal static class VlcRuntime
 
     private static void EnsureInitialised()
     {
+        OperatorFlowIsolation.Deny("vlc-initialize");
         if (_instance is not null) return;
         lock (_gate)
         {

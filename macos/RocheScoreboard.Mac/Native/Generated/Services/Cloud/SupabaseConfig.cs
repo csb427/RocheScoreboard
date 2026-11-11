@@ -1,5 +1,5 @@
 // Generated from Services/Cloud/SupabaseConfig.cs; edit translator/adapters.
-// Source SHA-256: c507e587a850ac3cde30d2bfe7b22074077684e4787976a4888614fd7f216c78
+// Source SHA-256: c94f7ba14a788ef9914e6e412a98b1d28fdf536220266308e25a7f7d712c6746
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -87,6 +87,7 @@ public sealed record SupabaseConfig
     /// </summary>
     public static SupabaseConfig? TryLoad()
     {
+        OperatorFlowIsolation.Deny("cloud-config");
         foreach (string candidate in new[] { PrimaryConfigPath, FallbackConfigPath })
         {
             if (!File.Exists(candidate)) continue;

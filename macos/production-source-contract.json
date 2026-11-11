@@ -5830,8 +5830,8 @@
   "code": [
     {
       "source": "Roche_Scoreboard/App.xaml.cs",
-      "sha256": "7893acd5e0187245312a9ee317c07b72063cff941a4befa67167dc96ce969678",
-      "lines": 919,
+      "sha256": "09739da4c34add307e838efb46542e3a2e52e4404ee79cba943f9e3c09177ae8",
+      "lines": 926,
       "native_libraries": []
     },
     {
@@ -5862,6 +5862,12 @@
       "source": "Roche_Scoreboard/MainWindow.AflMatchStatsCard.cs",
       "sha256": "536dd4eeb7dbc0ca69edc59ff0820cf1affe5a6cc4df2525469217650ab83bbf",
       "lines": 105,
+      "native_libraries": []
+    },
+    {
+      "source": "Roche_Scoreboard/MainWindow.AflOperatorFlowQa.cs",
+      "sha256": "e0a8456cc61ed45a67b8edba6c404e067803292715afbe9a9b0f9e05eeaed6a6",
+      "lines": 667,
       "native_libraries": []
     },
     {
@@ -5908,8 +5914,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.CloudRemote.cs",
-      "sha256": "7780c5af32d37821f9b75c109e3d9aa021a85842ff98b0a5636e992f0955391c",
-      "lines": 687,
+      "sha256": "2b63e7caea4c6f8adcea819b3b8386f9bc25babd3c087eb933938502411e432d",
+      "lines": 689,
       "native_libraries": []
     },
     {
@@ -6174,8 +6180,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.RestoreMembers.cs",
-      "sha256": "24caff3ff036a7bfd8e544bff418709ee9a1204cb613006ff1380350480e7c42",
-      "lines": 6779,
+      "sha256": "51dca5244b9dba5a00a3788ece7045141ede9195250ab834ee7918177f48b60b",
+      "lines": 6775,
       "native_libraries": [
         "user32.dll"
       ]
@@ -6224,8 +6230,8 @@
     },
     {
       "source": "Roche_Scoreboard/MainWindow.xaml.cs",
-      "sha256": "8e1f2bdda7de2b8cc006331b4572bf76343def3b2a98cecb8e7f0125bc888d88",
-      "lines": 3927,
+      "sha256": "22414bfa9ef76a349693e24bd275bd91f8495004e9dc9c415330f0b689067b28",
+      "lines": 3943,
       "native_libraries": []
     },
     {
@@ -6464,8 +6470,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/AutoUpdateService.cs",
-      "sha256": "f2c6db8e1c90e1d9f1720220961c9b000cce80c0c1f953a0b8dd3078a3bfbfcb",
-      "lines": 1055,
+      "sha256": "d47e374f9954adb05420542eeb6ab0973a82462bc48f4ebd67963ffde0e81507",
+      "lines": 1061,
       "native_libraries": []
     },
     {
@@ -6548,8 +6554,8 @@
     },
     {
       "source": "Roche_Scoreboard/Services/Cloud/SupabaseConfig.cs",
-      "sha256": "c507e587a850ac3cde30d2bfe7b22074077684e4787976a4888614fd7f216c78",
-      "lines": 104,
+      "sha256": "c94f7ba14a788ef9914e6e412a98b1d28fdf536220266308e25a7f7d712c6746",
+      "lines": 105,
       "native_libraries": []
     },
     {
@@ -6820,6 +6826,12 @@
       "native_libraries": []
     },
     {
+      "source": "Roche_Scoreboard/Services/OperatorFlowIsolation.cs",
+      "sha256": "4b26c677166349b5d9e1dce3d90f86772e6282e75e98fe62f3bd562e40a6cb72",
+      "lines": 88,
+      "native_libraries": []
+    },
+    {
       "source": "Roche_Scoreboard/Services/OperatorGlassEffect.cs",
       "sha256": "8ef4e785816201c8603d8a8a0e2510af1a20488f8d00379f1ba2d6d3a1d335c0",
       "lines": 48,
@@ -7009,14 +7021,14 @@
     },
     {
       "source": "Roche_Scoreboard/Services/TeamLogoService.Bundled.cs",
-      "sha256": "1005067c572c590b66fa1dfbba45749e672ac1ce60f67873a64fcfa71ca324ea",
-      "lines": 82,
+      "sha256": "2d8fb9bb5b75a3cc69b480d6d7826ab5afb42f35acfc3a99280ebb32a26db721",
+      "lines": 83,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/TeamLogoService.cs",
-      "sha256": "5bb9e7cac50fc71757e174e8c3f9aaeeaa2027095eb95cada42498637baf843f",
-      "lines": 237,
+      "sha256": "b55e5e962131b34b8a4f7497dfec40241b78650945134c73aac9fcc80b482cf7",
+      "lines": 238,
       "native_libraries": []
     },
     {
@@ -7051,14 +7063,14 @@
     },
     {
       "source": "Roche_Scoreboard/Services/VideoOptimizer.cs",
-      "sha256": "dff96e60c1a426b48409e55674c410f6066249f7d553f8ee012e013295c486cb",
-      "lines": 274,
+      "sha256": "050ce5c6c98e5df130104a5c52597da376feb06beb68226046fcc27532e22cb9",
+      "lines": 276,
       "native_libraries": []
     },
     {
       "source": "Roche_Scoreboard/Services/VlcRuntime.cs",
-      "sha256": "adeb8b8a65927d0a93e48270478245a3a096daf9d8f63fdc5f8488fb927bd034",
-      "lines": 119,
+      "sha256": "689334b6328b00e85de8bf8db87111e4f60da2889a75d8fab54c561c0d8a35b7",
+      "lines": 127,
       "native_libraries": []
     },
     {

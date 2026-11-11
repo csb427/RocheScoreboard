@@ -100,6 +100,7 @@ public partial class MainWindow : IRemoteCommandTarget, IRemoteCommandScope
     /// </summary>
     private void StartCloudRemoteOnLoad()
     {
+        Services.OperatorFlowIsolation.Deny("cloud-config-onload");
         _cloudConfig = SupabaseConfig.TryLoad();
         RefreshCloudRemoteUi();
     }
@@ -130,6 +131,7 @@ public partial class MainWindow : IRemoteCommandTarget, IRemoteCommandScope
     /// </summary>
     public async Task StartCloudSessionAsync()
     {
+        Services.OperatorFlowIsolation.Deny("cloud-session");
         if (_cloudRemote is not null || _remoteCommandOwnerClosed) return;
 
         SupabaseConfig? cfg = _cloudConfig ??= SupabaseConfig.TryLoad();

@@ -1361,10 +1361,6 @@ public partial class MainWindow
 
             RebuildMatchLog();
 
-            // Reset the last-event text when all events are undone
-            if (_match.Events.Count == 0)
-                LastEventText.Text = string.Empty;
-
             UpdateLiveUI();
             PushAllToScoreboard();
             RefreshVisibleScreens();
@@ -5423,6 +5419,7 @@ public partial class MainWindow
 
     private async Task StartOrUpdateWeatherServiceCoreAsync(string? location)
     {
+        if (OperatorFlowIsolation.SuppressAutomatic("weather-automatic")) return;
         var statusRequest = CaptureWeatherLocationStatusRequest(location);
         ObserveManualWeatherLocation(location);
         if (!IsLatestWeatherLocationStatusRequest(statusRequest)) return;
@@ -5544,7 +5541,6 @@ public partial class MainWindow
         _overlayQueueWired = false;
         ResetPeriodicOverlayTracking();
         RebuildMatchLog();
-        LastEventText.Text = string.Empty;
         _scorebug?.ResetAllOverlayState();
     }
 

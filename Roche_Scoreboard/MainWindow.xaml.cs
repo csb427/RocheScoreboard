@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -282,6 +282,7 @@ namespace Roche_Scoreboard
 
             _match.MatchChanged += () =>
             {
+                RefreshLastEventSummary();
                 Title = $"Roche Scoreboard v{AutoUpdateService.CurrentVersion.ToString(3)} | Q{_match.Quarter} | {_match.HomeTotal} – {_match.AwayTotal}";
                 PushAllToScoreboard();
                 // Every presentation is a live view of the same match. Refresh
@@ -311,9 +312,6 @@ namespace Roche_Scoreboard
                 Border logBar = CreateScoreLogBar(ev);
                 EventList.Children.Insert(0, logBar);
                 AnimateLogEntry(logBar);
-                string teamName = ev.Team == TeamSide.Home ? _match.HomeName : _match.AwayName;
-                string scoreType = ev.Type == ScoreType.Goal ? "Goal" : "Behind";
-                LastEventText.Text = $"Last: {teamName} {scoreType}";
 
                 // Hide the empty-state hint as soon as any event appears
                 if (MatchLogEmptyHint is not null)
@@ -1649,6 +1647,25 @@ namespace Roche_Scoreboard
         private static readonly SolidColorBrush UndoEnabledBrush = new(Color.FromRgb(0x2A, 0x14, 0x16));
         private static readonly SolidColorBrush UndoEnabledBorderBrush = new(Color.FromRgb(0x6B, 0x3A, 0x3E));
 
+        private void RefreshLastEventSummary()
+        {
+            // MatchChanged follows timeline rebuilds, including corrections,
+            // Undo and restore. The last incoming score is not always the
+            // newest retained event after a historical edit.
+            var events = _match.Events;
+            string summary = string.Empty;
+            if (events.Count > 0)
+            {
+                ScoreEvent last = events[^1];
+                string teamName = last.Team == TeamSide.Home ? _match.HomeName : _match.AwayName;
+                string scoreType = last.Type == ScoreType.Goal ? "Goal" : "Behind";
+                summary = $"Last: {teamName} {scoreType}";
+            }
+
+            if (!string.Equals(LastEventText.Text, summary, StringComparison.Ordinal))
+                LastEventText.Text = summary;
+        }
+
         private void UpdateLiveUI()
         {
             bool q4Ended = _match.Quarter == 4 && _match.GetQuarterSnapshot(4) != null;
@@ -2176,6 +2193,7 @@ namespace Roche_Scoreboard
 
         private void EnsureTrainingDisplayWindow()
         {
+            OperatorFlowIsolation.Deny("output-training");
             if (_trainingDisplayWindow != null)
             {
                 if (!_outputActivationRequired && !_trainingDisplayWindow.IsVisible) _trainingDisplayWindow.Show();
@@ -2545,6 +2563,7 @@ namespace Roche_Scoreboard
 
         private void EnsureCricketDisplayWindow()
         {
+            OperatorFlowIsolation.Deny("output-cricket");
             if (_cricketDisplayWindow != null)
             {
                 if (!_outputActivationRequired && !_cricketDisplayWindow.IsVisible) _cricketDisplayWindow.Show();
@@ -3125,10 +3144,6 @@ namespace Roche_Scoreboard
                 if (MatchLogCountBadge is not null)
                     MatchLogCountBadge.Text = $"({_match.Events.Count})";
 
-                ScoreEvent last = _match.Events[^1];
-                string teamName = last.Team == TeamSide.Home ? _match.HomeName : _match.AwayName;
-                string scoreType = last.Type == ScoreType.Goal ? "Goal" : "Behind";
-                LastEventText.Text = $"Last: {teamName} {scoreType}";
             }
 
             // Reset layout/anim to defaults
@@ -3188,6 +3203,7 @@ namespace Roche_Scoreboard
 
         private void EnsureScoreboardWindow()
         {
+            if (OperatorFlowIsolation.SuppressAutomatic("output-afl")) return;
             if (_displayWindow != null)
             {
                 if (!_outputActivationRequired && !_displayWindow.IsVisible) _displayWindow.Show();

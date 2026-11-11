@@ -1,5 +1,5 @@
 // Generated from MainWindow.RestoreMembers.cs; edit translator/adapters.
-// Source SHA-256: 24caff3ff036a7bfd8e544bff418709ee9a1204cb613006ff1380350480e7c42
+// Source SHA-256: 51dca5244b9dba5a00a3788ece7045141ede9195250ab834ee7918177f48b60b
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -1365,10 +1365,6 @@ public partial class MainWindow
             _previousLeadChanges = MatchStats.Calculate(_match, _match.Quarter, _match.ElapsedInQuarter).LeadChanges;
 
             RebuildMatchLog();
-
-            // Reset the last-event text when all events are undone
-            if (_match.Events.Count == 0)
-                LastEventText.Text = string.Empty;
 
             UpdateLiveUI();
             PushAllToScoreboard();
@@ -5276,6 +5272,7 @@ public partial class MainWindow
 
     private async Task StartOrUpdateWeatherServiceCoreAsync(string? location)
     {
+        if (OperatorFlowIsolation.SuppressAutomatic("weather-automatic")) return;
         var statusRequest = CaptureWeatherLocationStatusRequest(location);
         ObserveManualWeatherLocation(location);
         if (!IsLatestWeatherLocationStatusRequest(statusRequest)) return;
@@ -5397,7 +5394,6 @@ public partial class MainWindow
         _overlayQueueWired = false;
         ResetPeriodicOverlayTracking();
         RebuildMatchLog();
-        LastEventText.Text = string.Empty;
         _scorebug?.ResetAllOverlayState();
     }
 

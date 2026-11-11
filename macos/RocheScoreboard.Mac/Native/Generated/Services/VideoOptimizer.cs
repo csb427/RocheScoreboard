@@ -1,5 +1,5 @@
 // Generated from Services/VideoOptimizer.cs; edit translator/adapters.
-// Source SHA-256: dff96e60c1a426b48409e55674c410f6066249f7d553f8ee012e013295c486cb
+// Source SHA-256: 050ce5c6c98e5df130104a5c52597da376feb06beb68226046fcc27532e22cb9
 using RocheScoreboard.Mac.Native;
 using Avalonia;
 using Avalonia.Media;
@@ -49,6 +49,7 @@ namespace Roche_Scoreboard.Services
         /// </summary>
         public static string GetPlaybackPath(string originalPath)
         {
+            OperatorFlowIsolation.Deny("video-playback");
             if (string.IsNullOrWhiteSpace(originalPath) || !File.Exists(originalPath))
                 return originalPath;
 
@@ -75,6 +76,7 @@ namespace Roche_Scoreboard.Services
         /// </summary>
         public static Task<string> EnsureOptimisedAsync(string originalPath, CancellationToken cancellationToken = default)
         {
+            OperatorFlowIsolation.Deny("video-optimize");
             if (string.IsNullOrWhiteSpace(originalPath) || !File.Exists(originalPath))
                 return Task.FromResult(originalPath);
 

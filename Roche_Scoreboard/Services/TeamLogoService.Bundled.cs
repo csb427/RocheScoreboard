@@ -10,6 +10,7 @@ public static partial class TeamLogoService
     private static readonly SemaphoreSlim BundledPreparation = new(1, 1);
     internal static async Task<string> PrepareBundledLogoAsync(TeamCatalogEntry team, string? cacheDirectory, CancellationToken cancellationToken = default)
     {
+        OperatorFlowIsolation.Deny("logo-bundled");
         string directory = cacheDirectory ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Roche_Scoreboard", "team_library", "logos");
         Directory.CreateDirectory(directory);
         string output = Path.Combine(directory, team.Id + "-crest-v5.png");
